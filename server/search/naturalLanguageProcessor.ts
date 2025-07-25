@@ -54,7 +54,7 @@ Examples:
 "Show me this week's schedule" -> {"intent": "schedule", "keywords": ["schedule", "this week"], "entityTypes": ["event"], "dateRange": {"start": "this-week-start", "end": "this-week-end"}, "confidence": 0.95}`;
 
       const response = await openai.chat.completions.create({
-        model: 'gpt-4',
+        model: 'gpt-4o', // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: query }

@@ -14884,19 +14884,67 @@ The Production Team`;
         return res.status(400).json({ message: "Search query is required" });
       }
 
-      console.log('🔍 Search engine initialized successfully');
+      console.log('🔍 Starting comprehensive search for query:', query);
       
-      // For now, search contacts which we know works
-      const keywords = query.toLowerCase().split(' ').filter(word => word.length > 0);
-      console.log('🔍 Starting search for userId:', userId, 'keywords:', keywords);
+      // Try to use OpenAI for natural language processing if available
+      let processedQuery = null;
+      let keywords = query.toLowerCase().split(' ').filter(word => word.length > 0);
+      
+      try {
+        if (process.env.OPENAI_API_KEY) {
+          const { naturalLanguageProcessor } = await import('./search/naturalLanguageProcessor.js');
+          processedQuery = await naturalLanguageProcessor.processQuery(query, userId, projectId);
+          console.log('🔍 OpenAI processed query:', processedQuery);
+          
+          // Use enhanced keywords from OpenAI if available
+          if (processedQuery?.keywords?.length > 0) {
+            keywords = [...new Set([...keywords, ...processedQuery.keywords])];
+          }
+        }
+      } catch (openAIError) {
+        console.log('🔍 OpenAI processing failed, falling back to keyword search:', openAIError.message);
+      }
       
       const results = [];
       
       try {
+        // Get all user's projects first
+        const projects = await storage.getProjectsByUserId(userId.toString());
+        console.log('🔍 Found projects:', projects.length);
+        
+        // Search projects themselves
+        const matchingProjects = projects.filter(project => {
+          const searchText = [
+            project.name,
+            project.description,
+            project.venue
+          ].filter(Boolean).join(' ').toLowerCase();
+          
+          return keywords.some(keyword => searchText.includes(keyword));
+        });
+        
+        matchingProjects.forEach(project => {
+          results.push({
+            id: `project-${project.id}`,
+            type: 'project',
+            title: project.name,
+            description: `${project.venue || 'Production'}${project.description ? ` • ${project.description}` : ''}`,
+            snippet: project.description || '',
+            date: project.updatedAt?.toISOString(),
+            relevanceScore: keywords.some(keyword => 
+              project.name.toLowerCase().includes(keyword)
+            ) ? 5.0 + Math.random() : 2.0 + Math.random(),
+            metadata: {
+              venue: project.venue,
+              openingNight: project.openingNight
+            },
+            url: `/shows/${project.id}`
+          });
+        });
+        
         // Search contacts
         console.log('🔍 Searching contacts...');
         const contacts = await storage.getAllContactsByUserId(userId.toString());
-        console.log('🔍 Found contacts:', contacts.length);
         
         const matchingContacts = contacts.filter(contact => {
           const searchText = [
@@ -14911,8 +14959,6 @@ The Production Team`;
           return keywords.some(keyword => searchText.includes(keyword));
         });
         
-        console.log('🔍 Matching contacts:', matchingContacts.length);
-        
         matchingContacts.forEach(contact => {
           results.push({
             id: `contact-${contact.id}`,
@@ -14923,7 +14969,7 @@ The Production Team`;
             date: contact.updatedAt?.toISOString(),
             relevanceScore: keywords.some(keyword => 
               [contact.firstName, contact.lastName, contact.email].filter(Boolean).join(' ').toLowerCase().includes(keyword)
-            ) ? 3.0 + Math.random() : 1.0 + Math.random(),
+            ) ? 4.0 + Math.random() : 1.5 + Math.random(),
             metadata: {
               role: contact.role,
               email: contact.email,
@@ -14933,93 +14979,318 @@ The Production Team`;
           });
         });
         
-        // Search projects  
-        console.log('🔍 Searching projects...');
-        const projects = await storage.getProjectsByUserId(userId.toString());
-        console.log('🔍 Found projects:', projects.length);
-        
-        const matchingProjects = projects.filter(project => {
-          const searchText = [
-            project.name,
-            project.description,
-            project.venue
-          ].filter(Boolean).join(' ').toLowerCase();
-          
-          return keywords.some(keyword => searchText.includes(keyword));
-        });
-        
-        console.log('🔍 Matching projects:', matchingProjects.length);
-        
-        matchingProjects.forEach(project => {
-          results.push({
-            id: `project-${project.id}`,
-            type: 'project',
-            title: project.name,
-            description: `${project.venue || 'Production'}${project.description ? ` • ${project.description}` : ''}`,
-            snippet: project.description || '',
-            date: project.updatedAt?.toISOString(),
-            relevanceScore: keywords.some(keyword => 
-              project.name.toLowerCase().includes(keyword)
-            ) ? 3.0 + Math.random() : 1.0 + Math.random(),
-            metadata: {
-              venue: project.venue,
-              openingNight: project.openingNight
-            },
-            url: `/shows/${project.id}`
-          });
-        });
-        
-        // Search schedule events for questions about schedules
+        // Search schedule events
         console.log('🔍 Searching schedule events...');
-        const allEvents = [];
-        
-        // Get events from all user's projects
         for (const project of projects) {
           try {
             const events = await storage.getEventsByProjectId(project.id);
-            allEvents.push(...events.map(event => ({ ...event, projectName: project.name, projectId: project.id })));
+            
+            const matchingEvents = events.filter(event => {
+              const searchText = [
+                event.title,
+                event.description,
+                event.location,
+                event.eventType
+              ].filter(Boolean).join(' ').toLowerCase();
+              
+              return keywords.some(keyword => searchText.includes(keyword));
+            });
+            
+            matchingEvents.forEach(event => {
+              results.push({
+                id: `event-${event.id}`,
+                type: 'event',
+                title: event.title,
+                description: `${event.eventType || 'Event'} • ${event.location || 'TBD'}${event.description ? ` • ${event.description}` : ''}`,
+                snippet: event.description || '',
+                date: event.startTime?.toISOString(),
+                relevanceScore: keywords.some(keyword => 
+                  event.title.toLowerCase().includes(keyword)
+                ) ? 4.5 + Math.random() : 1.5 + Math.random(),
+                metadata: {
+                  eventType: event.eventType,
+                  location: event.location,
+                  startTime: event.startTime,
+                  endTime: event.endTime
+                },
+                projectName: project.name,
+                url: `/shows/${project.id}/schedule`
+              });
+            });
           } catch (error) {
             console.log(`🔍 Could not get events for project ${project.id}:`, error.message);
           }
         }
         
-        console.log('🔍 Found total events:', allEvents.length);
+        // Search props
+        console.log('🔍 Searching props...');
+        for (const project of projects) {
+          try {
+            const props = await storage.getPropsByProjectId(project.id);
+            
+            const matchingProps = props.filter(prop => {
+              const searchText = [
+                prop.name,
+                prop.description,
+                prop.character,
+                prop.scene,
+                prop.act,
+                prop.notes,
+                prop.sourcingNotes
+              ].filter(Boolean).join(' ').toLowerCase();
+              
+              return keywords.some(keyword => searchText.includes(keyword));
+            });
+            
+            matchingProps.forEach(prop => {
+              results.push({
+                id: `prop-${prop.id}`,
+                type: 'prop',
+                title: prop.name,
+                description: `Prop${prop.character ? ` • ${prop.character}` : ''}${prop.scene ? ` • Scene ${prop.scene}` : ''}${prop.status ? ` • ${prop.status}` : ''}`,
+                snippet: prop.description || prop.notes || '',
+                date: prop.updatedAt?.toISOString(),
+                relevanceScore: keywords.some(keyword => 
+                  prop.name.toLowerCase().includes(keyword)
+                ) ? 5.0 + Math.random() : 2.0 + Math.random(),
+                metadata: {
+                  character: prop.character,
+                  scene: prop.scene,
+                  status: prop.status,
+                  quantity: prop.quantity
+                },
+                projectName: project.name,
+                url: `/shows/${project.id}/props`
+              });
+            });
+          } catch (error) {
+            console.log(`🔍 Could not get props for project ${project.id}:`, error.message);
+          }
+        }
         
-        const matchingEvents = allEvents.filter(event => {
-          const searchText = [
-            event.title,
-            event.description,
-            event.location,
-            event.eventType,
-            event.projectName
-          ].filter(Boolean).join(' ').toLowerCase();
-          
-          return keywords.some(keyword => searchText.includes(keyword));
-        });
+        // Search costumes
+        console.log('🔍 Searching costumes...');
+        for (const project of projects) {
+          try {
+            const costumes = await storage.getCostumesByProjectId(project.id);
+            
+            const matchingCostumes = costumes.filter(costume => {
+              const searchText = [
+                costume.character,
+                costume.piece,
+                costume.scene,
+                costume.notes,
+                costume.quickChangeNotes
+              ].filter(Boolean).join(' ').toLowerCase();
+              
+              return keywords.some(keyword => searchText.includes(keyword));
+            });
+            
+            matchingCostumes.forEach(costume => {
+              results.push({
+                id: `costume-${costume.id}`,
+                type: 'costume',
+                title: `${costume.character} - ${costume.piece}`,
+                description: `Costume${costume.scene ? ` • Scene ${costume.scene}` : ''}${costume.status ? ` • ${costume.status}` : ''}${costume.isQuickChange ? ' • Quick Change' : ''}`,
+                snippet: costume.notes || '',
+                date: costume.updatedAt?.toISOString(),
+                relevanceScore: keywords.some(keyword => 
+                  [costume.character, costume.piece].join(' ').toLowerCase().includes(keyword)
+                ) ? 5.0 + Math.random() : 2.0 + Math.random(),
+                metadata: {
+                  character: costume.character,
+                  scene: costume.scene,
+                  status: costume.status,
+                  isQuickChange: costume.isQuickChange
+                },
+                projectName: project.name,
+                url: `/shows/${project.id}/costumes`
+              });
+            });
+          } catch (error) {
+            console.log(`🔍 Could not get costumes for project ${project.id}:`, error.message);
+          }
+        }
         
-        console.log('🔍 Matching schedule events:', matchingEvents.length);
+        // Search notes
+        console.log('🔍 Searching notes...');
+        for (const project of projects) {
+          try {
+            const notes = await storage.getNotes(project.id);
+            
+            const matchingNotes = notes.filter(note => {
+              const searchText = [
+                note.title,
+                note.content,
+                note.tags?.join(' ')
+              ].filter(Boolean).join(' ').toLowerCase();
+              
+              return keywords.some(keyword => searchText.includes(keyword));
+            });
+            
+            matchingNotes.forEach(note => {
+              results.push({
+                id: `note-${note.id}`,
+                type: 'note',
+                title: note.title,
+                description: `Note${note.tags?.length ? ` • ${note.tags.join(', ')}` : ''}`,
+                snippet: note.content?.substring(0, 200) || '',
+                date: note.updatedAt?.toISOString(),
+                relevanceScore: keywords.some(keyword => 
+                  note.title.toLowerCase().includes(keyword)
+                ) ? 4.0 + Math.random() : 1.5 + Math.random(),
+                metadata: {
+                  tags: note.tags,
+                  isPinned: note.isPinned
+                },
+                projectName: project.name,
+                url: `/shows/${project.id}/notes/${note.id}`
+              });
+            });
+          } catch (error) {
+            console.log(`🔍 Could not get notes for project ${project.id}:`, error.message);
+          }
+        }
         
-        matchingEvents.forEach(event => {
-          results.push({
-            id: `event-${event.id}`,
-            type: 'event',
-            title: event.title,
-            description: `${event.eventType || 'Event'} • ${event.location || 'TBD'}${event.description ? ` • ${event.description}` : ''}`,
-            snippet: event.description || '',
-            date: event.startTime?.toISOString(),
-            relevanceScore: keywords.some(keyword => 
-              event.title.toLowerCase().includes(keyword)
-            ) ? 3.0 + Math.random() : 1.0 + Math.random(),
-            metadata: {
-              eventType: event.eventType,
-              location: event.location,
-              startTime: event.startTime,
-              endTime: event.endTime
-            },
-            projectName: event.projectName,
-            url: `/shows/${event.projectId}/schedule`
-          });
-        });
+        // Search reports
+        console.log('🔍 Searching reports...');
+        for (const project of projects) {
+          try {
+            const reports = await storage.getReportsByProjectId(project.id);
+            
+            const matchingReports = reports.filter(report => {
+              const searchText = [
+                report.title,
+                report.type,
+                JSON.stringify(report.content)
+              ].filter(Boolean).join(' ').toLowerCase();
+              
+              return keywords.some(keyword => searchText.includes(keyword));
+            });
+            
+            matchingReports.forEach(report => {
+              results.push({
+                id: `report-${report.id}`,
+                type: 'report',
+                title: report.title,
+                description: `${report.type} Report • ${new Date(report.date).toLocaleDateString()}`,
+                snippet: '',
+                date: report.date?.toISOString(),
+                relevanceScore: keywords.some(keyword => 
+                  report.title.toLowerCase().includes(keyword)
+                ) ? 4.0 + Math.random() : 1.5 + Math.random(),
+                metadata: {
+                  reportType: report.type,
+                  status: report.status
+                },
+                projectName: project.name,
+                url: `/shows/${project.id}/reports/${report.id}`
+              });
+            });
+          } catch (error) {
+            console.log(`🔍 Could not get reports for project ${project.id}:`, error.message);
+          }
+        }
+        
+        // Search scripts
+        console.log('🔍 Searching scripts...');
+        for (const project of projects) {
+          try {
+            const scripts = await storage.getScriptsByProjectId(project.id);
+            
+            const matchingScripts = scripts.filter(script => {
+              const searchText = [
+                script.title,
+                script.content
+              ].filter(Boolean).join(' ').toLowerCase();
+              
+              return keywords.some(keyword => searchText.includes(keyword));
+            });
+            
+            matchingScripts.forEach(script => {
+              results.push({
+                id: `script-${script.id}`,
+                type: 'script',
+                title: script.title,
+                description: `Script • Version ${script.currentVersion}`,
+                snippet: script.content?.substring(0, 200) || '',
+                date: script.updatedAt?.toISOString(),
+                relevanceScore: keywords.some(keyword => 
+                  script.title.toLowerCase().includes(keyword)
+                ) ? 4.5 + Math.random() : 2.0 + Math.random(),
+                metadata: {
+                  version: script.currentVersion
+                },
+                projectName: project.name,
+                url: `/shows/${project.id}/script`
+              });
+            });
+          } catch (error) {
+            console.log(`🔍 Could not get scripts for project ${project.id}:`, error.message);
+          }
+        }
+        
+        // Search for important dates from show settings
+        console.log('🔍 Searching important dates...');
+        for (const project of projects) {
+          try {
+            // Check for prep start date
+            if (project.prepStartDate && query.toLowerCase().includes('prep')) {
+              results.push({
+                id: `date-prep-${project.id}`,
+                type: 'date',
+                title: 'Prep Start Date',
+                description: `${new Date(project.prepStartDate).toLocaleDateString()} • ${project.name}`,
+                snippet: 'First day of prep for this production',
+                date: project.prepStartDate.toISOString(),
+                relevanceScore: 6.0,
+                metadata: {
+                  dateType: 'prep_start'
+                },
+                projectName: project.name,
+                url: `/shows/${project.id}`
+              });
+            }
+            
+            // Check for first rehearsal
+            if (project.firstRehearsalDate && query.toLowerCase().includes('rehearsal')) {
+              results.push({
+                id: `date-rehearsal-${project.id}`,
+                type: 'date',
+                title: 'First Rehearsal',
+                description: `${new Date(project.firstRehearsalDate).toLocaleDateString()} • ${project.name}`,
+                snippet: 'First rehearsal for this production',
+                date: project.firstRehearsalDate.toISOString(),
+                relevanceScore: 6.0,
+                metadata: {
+                  dateType: 'first_rehearsal'
+                },
+                projectName: project.name,
+                url: `/shows/${project.id}`
+              });
+            }
+            
+            // Check for opening night
+            if (project.openingNight && query.toLowerCase().includes('opening')) {
+              results.push({
+                id: `date-opening-${project.id}`,
+                type: 'date',
+                title: 'Opening Night',
+                description: `${new Date(project.openingNight).toLocaleDateString()} • ${project.name}`,
+                snippet: 'Opening night of this production',
+                date: project.openingNight.toISOString(),
+                relevanceScore: 6.0,
+                metadata: {
+                  dateType: 'opening_night'
+                },
+                projectName: project.name,
+                url: `/shows/${project.id}`
+              });
+            }
+          } catch (error) {
+            console.log(`🔍 Could not check dates for project ${project.id}:`, error.message);
+          }
+        }
         
       } catch (searchError) {
         console.error('Search error:', searchError);
@@ -15029,7 +15300,7 @@ The Production Team`;
       results.sort((a, b) => b.relevanceScore - a.relevanceScore);
       
       console.log('🔍 Total search results:', results.length);
-      res.json({ results: results.slice(0, 20) });
+      res.json({ results: results.slice(0, 50) });
     } catch (error) {
       console.error("Natural language search error:", error);
       res.status(500).json({ message: "Search failed" });

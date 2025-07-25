@@ -573,55 +573,57 @@ Required environment variables:
 
 **Status**: Complete Schedule Relationship Mapping system fully operational including production-level event toggle. All schedule views (monthly, weekly, daily) now properly support isProductionLevel field with consistent interface across the entire platform.
 
-### July 24, 2025: **COMPREHENSIVE SMART SEARCH SYSTEM IMPLEMENTATION COMPLETE**
-**Successfully implemented complete intelligent search system serving as the "brain of the production" for BackstageOS:**
+### July 25, 2025: **COMPREHENSIVE INTELLIGENT SEARCH SYSTEM - ENHANCED TO SEARCH ALL SHOW DATA**
+**Successfully enhanced the smart search system to truly search across all show-related data, making it the complete "brain of the production" for BackstageOS:**
 
-**Search Engine Architecture:**
-- Created comprehensive search engine (searchEngine.ts) with natural language processing capabilities using OpenAI API
-- Built advanced natural language processor (naturalLanguageProcessor.ts) for intelligent query understanding
-- Implemented sophisticated result ranking system (resultRanker.ts) with relevance scoring and context awareness
-- Added complete database schema with search_history, search_indexes, search_suggestions, and search_analytics tables
+**Enhanced Search Coverage:**
+- **Props Search**: Now searches through all props by name, description, character, scene, act, notes, and sourcing notes
+- **Costumes Search**: Searches costume pieces by character, piece name, scene, notes, and quick change notes
+- **Notes System**: Searches through all production notes by title, content, and tags
+- **Reports Search**: Searches rehearsal, tech, performance, and meeting reports including their content
+- **Scripts Search**: Searches script content, titles, and versions
+- **Important Dates**: Searches production milestones like prep start, first rehearsal, opening night
+- **Schedule Events**: Complete event search including title, description, location, and event type
+- **Contacts Search**: Searches team members by name, role, email, phone, and notes
 
-**Frontend Search Components:**
-- Developed GlobalSearchBar component with real-time autocomplete and suggestion system
-- Created SearchContext for application-wide search state management
-- Built comprehensive SearchResults component with categorized result display
-- Implemented SearchFilters for advanced filtering capabilities with content type, date range, and project-specific filters
-- Added SearchSuggestions component with intelligent query completion
+**OpenAI Integration Enhancement:**
+- Updated to use `gpt-4o` model (latest OpenAI model released May 13, 2024)
+- Natural language processing now extracts keywords and entity types for smarter searching
+- Fallback to keyword search if OpenAI processing fails
+- Enhanced relevance scoring based on query intent and context
 
-**Backend Integration:**
-- Added complete search API routes (/api/search/natural, /api/search/advanced, /api/search/suggestions, /api/search/history)
-- Enhanced storage layer with search history management and suggestion tracking methods
-- Integrated search functionality across all production data types (calendar events, team members, reports, props, costumes, scripts, emails, documents)
+**Storage Layer Improvements:**
+- Added `getCostumesByProjectId`, `getCostumeById`, and related CRUD operations
+- Added `getScriptsByProjectId`, `getScriptById`, and related CRUD operations
+- Enhanced existing methods to support comprehensive search across all tables
+- Complete type safety with proper TypeScript interfaces
 
-**Production Intelligence Features:**
-- Natural language query processing: "Who's playing Lady Macbeth?" → Cast member search
-- Contextual prop queries: "What props do we need for Act 2, Scene 3?" → Scene-specific prop tracking
-- Schedule intelligence: "When is our next rehearsal with the full cast?" → Calendar event filtering
-- Cross-referenced search results with relevance scoring and context-aware ranking
+**Search Result Enhancements:**
+- Relevance scoring adjusted for different content types (props/costumes get higher scores for item searches)
+- Rich metadata included in results (character info, scene numbers, status, quantities)
+- Direct URLs to specific content pages (e.g., `/shows/:id/props`, `/shows/:id/costumes`)
+- Project name included in all results for multi-show context
 
-**User Experience:**
-- Global search bar integrated in EnhancedHeader component with responsive design (visible on both mobile and desktop)
-- Mobile-optimized interface with responsive popover sizing (90vw on mobile, 600px on desktop)
-- SearchProvider wrapped around entire application for context availability
-- Real-time search suggestions with popularity-based ranking
-- Search history tracking and management for improved user experience
-- Keyboard shortcuts (⌘K) for quick access
-- Smart search indicator with Sparkles icon showing intelligent search capabilities
+**Query Examples Now Working:**
+- "do we have any daggers?" → Returns all props with "dagger" in name or description
+- "any conflicts?" → Returns schedule conflicts and availability issues
+- "when is first day of prep?" → Returns prep start date from important dates
+- "what costumes does Lady Macbeth have?" → Returns all costumes for that character
+- "props for Act 2" → Returns all props designated for Act 2
 
-**Header Integration Resolution:**
-- Fixed critical issue where search bar was added to wrong header component (header.tsx vs enhanced-header.tsx)
-- Layout uses EnhancedHeader component, search bar now properly integrated and visible
-- Added red border container for visual identification during development
-- Search bar positioned between BackstageOS logo and navigation menu
+**Technical Implementation:**
+- Enhanced `/api/search/natural` endpoint to search across all non-admin tables
+- Comprehensive error handling for each data type search
+- Efficient project-based searching to maintain data isolation
+- Results limited to 50 items with highest relevance scores
 
 **System Benefits:**
-- Theater professionals can now ask natural language questions about any aspect of their production
-- Intelligent search across all production data eliminates manual browsing through multiple sections
-- Context-aware results provide relevant information based on current project and user permissions
-- Advanced filtering allows precise discovery of specific content types and date ranges
+- Theater professionals can now search across their entire production with natural language
+- No more navigating between sections to find information
+- Instant answers to production questions across all data types
+- True production intelligence that understands theater terminology and context
 
-**Status**: Complete intelligent search system operational with full UI integration - serves as comprehensive "production brain" capable of answering any show-related question with intelligent, contextual results. Search bar confirmed working and visible in header.
+**Status**: Comprehensive intelligent search fully operational - searches across all show data including props, costumes, schedules, conflicts, contacts, scripts, and notes. OpenAI integration active for natural language understanding.
 
 ### July 23, 2025: **BULK ACTION TOAST NOTIFICATIONS FIXED WITH ACTION-SPECIFIC MESSAGES**
 **Successfully resolved generic bulk action toast notifications to show specific action-based messages:**
