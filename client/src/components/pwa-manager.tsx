@@ -29,29 +29,22 @@ export function PWAManager({ children }: PWAManagerProps) {
       setInstallPrompt(e);
     };
 
-    // Check if user is on mobile device
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
     // Listen for online/offline status
     const handleOnline = () => {
       setIsOnline(true);
-      if (isMobile) {
-        toast({
-          title: "Back online",
-          description: "Your data will sync automatically.",
-        });
-      }
+      toast({
+        title: "Back online",
+        description: "Your data will sync automatically.",
+      });
     };
 
     const handleOffline = () => {
       setIsOnline(false);
-      if (isMobile) {
-        toast({
-          title: "You're offline",
-          description: "Don't worry - you can still use BackstageOS. Changes will sync when you're back online.",
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "You're offline",
+        description: "Don't worry - you can still use BackstageOS. Changes will sync when you're back online.",
+        variant: "destructive",
+      });
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -66,10 +59,6 @@ export function PWAManager({ children }: PWAManagerProps) {
   }, [toast]);
 
   const registerServiceWorker = async () => {
-    // Check if user is on mobile device
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    console.log('[PWA] Mobile detection:', { isMobile, userAgent: navigator.userAgent });
-    
     if ('serviceWorker' in navigator) {
       try {
         const registration = await navigator.serviceWorker.register('/sw.js');
@@ -83,8 +72,27 @@ export function PWAManager({ children }: PWAManagerProps) {
             newWorker.addEventListener('statechange', () => {
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                 setHasUpdate(true);
-                // Silent update - no notifications
-                console.log('[PWA] New version available, will update on next reload');
+                toast({
+                  title: "Update available",
+                  description: "A new version of BackstageOS is ready.",
+                  action: (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={handleUpdate}
+                      disabled={isUpdating}
+                    >
+                      {isUpdating ? (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                          Updating...
+                        </>
+                      ) : (
+                        'Update Now'
+                      )}
+                    </Button>
+                  ),
+                });
               }
             });
           }
@@ -92,7 +100,7 @@ export function PWAManager({ children }: PWAManagerProps) {
 
         // Listen for messages from service worker
         navigator.serviceWorker.addEventListener('message', (event) => {
-          if (event.data?.type === 'SYNC_COMPLETE' && isMobile) {
+          if (event.data?.type === 'SYNC_COMPLETE') {
             toast({
               title: "Data synced",
               description: `${event.data.data.reportsCount} reports synchronized.`,

@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
     
     <!-- Default SEO Meta Tags -->
     <title>BackstageOS | Professional Stage Management Software</title>
@@ -31,12 +31,12 @@
     <meta name="twitter:image:alt" content="BackstageOS Professional Stage Management Software" />
     
     <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#ffffff" />
+    <meta name="theme-color" content="#1a1a1a" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="BackstageOS" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="msapplication-TileColor" content="#ffffff" />
+    <meta name="msapplication-TileColor" content="#1a1a1a" />
     <meta name="msapplication-tap-highlight" content="no" />
     
     <!-- Additional Meta Tags -->
@@ -49,9 +49,6 @@
     
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json" />
-    
-    <!-- PWA Styles -->
-    <link rel="stylesheet" href="/src/styles/pwa.css" />
     
     <!-- Structured Data -->
     <script type="application/ld+json">
@@ -71,16 +68,11 @@
       }
     }
     </script>
-    <style>
-      /* Force white background on all elements */
-      html, body, #root {
-        background-color: #ffffff !important;
-        background: #ffffff !important;
-      }
-    </style>
   </head>
-  <body style="background-color: #ffffff !important;">
-    <div id="root" style="background-color: #ffffff !important;"></div>
+  <body>
+    <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
+    <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
   </body>
 </html>

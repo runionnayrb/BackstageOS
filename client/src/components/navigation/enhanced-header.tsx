@@ -208,23 +208,8 @@ export default function EnhancedHeader() {
 
   const breadcrumbs = getBreadcrumbs();
 
-  // PWA Detection - Multiple methods for better compatibility
-  const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
-                (window.navigator as any).standalone === true ||
-                document.referrer.includes('android-app://');
-
-  // Console log for debugging
-  console.log('PWA Detection:', {
-    standalone: window.matchMedia('(display-mode: standalone)').matches,
-    navigatorStandalone: (window.navigator as any).standalone,
-    referrer: document.referrer,
-    isPWA: isPWA
-  });
-
   return (
-    <div ref={headerRef} className={`bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm ${isPWA ? 'pt-safe' : ''}`}>
-
-      
+    <div ref={headerRef} className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
       {/* Main Header */}
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
@@ -258,9 +243,9 @@ export default function EnhancedHeader() {
                     <DropdownMenuItem onClick={() => setLocation('/email')}>
                       <Mail className="h-4 w-4 mr-2" strokeWidth={1.5} />
                       Email
-                      {(unreadEmailData as any)?.totalUnread > 0 && (
+                      {unreadEmailData?.totalUnread > 0 && (
                         <span className="ml-auto bg-blue-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
-                          {(unreadEmailData as any).totalUnread}
+                          {unreadEmailData.totalUnread}
                         </span>
                       )}
                     </DropdownMenuItem>

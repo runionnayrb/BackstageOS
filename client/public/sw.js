@@ -1,9 +1,9 @@
-// BackstageOS Service Worker  
-// Version 5.0.0 - Mobile white background fix
+// BackstageOS Service Worker
+// Version 1.0.0
 
-const CACHE_NAME = 'backstageos-v2';
-const STATIC_CACHE_NAME = 'backstageos-static-v2';
-const DYNAMIC_CACHE_NAME = 'backstageos-dynamic-v2';
+const CACHE_NAME = 'backstageos-v1';
+const STATIC_CACHE_NAME = 'backstageos-static-v1';
+const DYNAMIC_CACHE_NAME = 'backstageos-dynamic-v1';
 
 // Core files to cache for offline functionality
 const STATIC_ASSETS = [
