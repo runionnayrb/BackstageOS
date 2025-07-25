@@ -369,6 +369,21 @@ Required environment variables:
 ## Recent Changes
 
 ### July 25, 2025: **IMPORTANT DATES PRODUCTION CALENDAR INTEGRATION WITH EVENT TYPE COLOR CODING COMPLETE**
+**Successfully resolved complete Important Date event type color coding system with proper API integration:**
+
+**Event Type Color Display Resolution:**
+- Fixed event types API to pull directly from Show Settings page database records instead of complex system/database mixing logic
+- Important Date events now display with correct colors: Rehearsal (Blue), Tech Rehearsal (Orange), Performance (Red), Preview (Yellow), Meeting (Purple)
+- Resolved ID mismatch where Important Date events had positive eventTypeId values (4, 5, 6, 7, 15) that now properly match database event types
+- Event type selection in edit forms now correctly maps Important Date eventTypeId to proper event type names for form display
+
+**Technical Implementation:**
+- Simplified `getEventTypesByProjectId` method to return only actual database records from event_types table managed through Show Settings
+- Enhanced event edit dialog to properly map Important Date eventTypeId to corresponding event type names for form selection
+- Color lookup function now successfully matches positive database IDs with Important Date event assignments
+- Event type API now serves as single source of truth from Show Settings Schedule tab configuration
+
+### July 25, 2025: **IMPORTANT DATES PRODUCTION CALENDAR INTEGRATION WITH EVENT TYPE COLOR CODING COMPLETE (CONTINUED)**
 **Successfully enhanced Important Dates synchronization with automatic production calendar integration and proper event type color coding:**
 
 **Production Calendar Visibility:**
