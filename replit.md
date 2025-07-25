@@ -49,8 +49,9 @@ BackstageOS is a comprehensive theater management platform specifically designed
 - **Install Experience**: Smart install banners for iOS Safari (Add to Home Screen instructions) and Chrome/Edge (native install prompts)
 - **Offline Support**: Framework ready for offline reports, cached show data, and sync when connection returns
 - **Mobile Native Feel**: Standalone display mode, custom status bar styling, and professional app appearance
-- **Update Management**: Automatic background updates with user-friendly notification system
+- **Update Management**: Automatic background updates with mobile-only notification system (desktop users don't see update toasts)
 - **Theater-Specific Features**: Foundation for push notifications (show calls, rehearsal reminders) and offline note-taking
+- **Mobile-Only Notifications**: PWA update notifications and offline/online status toasts only appear on mobile devices, not desktop browsers
 
 ### Schedule Tab Mobile Optimization (July 25, 2025)
 - **Mobile-Responsive Grids**: Updated schedule settings grid from fixed 3-column to responsive (1 column mobile, 2 tablet, 3 desktop)
