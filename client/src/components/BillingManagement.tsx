@@ -16,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Edit2, Trash2 } from "lucide-react";
+import { Edit2, Trash2, CreditCard } from "lucide-react";
 
 interface BillingPlan {
   id: number;
@@ -73,6 +73,11 @@ interface ProfileType {
 export default function BillingManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Fetch user analytics for billing overview
+  const { data: users = [] } = useQuery<any[]>({
+    queryKey: ["/api/admin/user-analytics"],
+  });
   const [isCreatePlanOpen, setIsCreatePlanOpen] = useState(false);
   const [isEditPlanOpen, setIsEditPlanOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<BillingPlan | null>(null);
@@ -345,6 +350,44 @@ export default function BillingManagement() {
 
   return (
     <div className="space-y-6">
+      {/* Billing Overview */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CreditCard className="h-5 w-5" />
+            Billing Overview
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">
+                {users.filter(u => u.subscriptionStatus === 'active').length}
+              </div>
+              <div className="text-sm text-muted-foreground">Active Subscriptions</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">
+                {users.filter(u => u.subscriptionStatus === 'trialing').length}
+              </div>
+              <div className="text-sm text-muted-foreground">Trial Users</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-yellow-600">
+                {users.filter(u => u.subscriptionStatus === 'past_due').length}
+              </div>
+              <div className="text-sm text-muted-foreground">Past Due</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-gray-600">
+                {users.filter(u => !u.subscriptionStatus || u.subscriptionStatus === 'none').length}
+              </div>
+              <div className="text-sm text-muted-foreground">Free/No Plan</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Billing Management</h2>
