@@ -119,7 +119,7 @@ export default function EventForm({
         <div>
           <Label htmlFor="type">Type</Label>
           <EventTypeSelect
-            value={formData.type}
+            value={formData.type ? formData.type.toLowerCase().replace(/\s+/g, '_') : ''}
             onValueChange={(value) => setFormData({ ...formData, type: value })}
             projectId={projectId}
             eventTypes={eventTypes}
