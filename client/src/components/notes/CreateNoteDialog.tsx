@@ -153,7 +153,7 @@ export function CreateNoteDialog({
           <div className="space-y-2">
             <Label htmlFor="folder">Folder (optional)</Label>
             <Select value={selectedFolderId?.toString() || "none"} onValueChange={(value) => setSelectedFolderId(value === "none" ? null : parseInt(value))}>
-              <SelectTrigger id="folder">
+              <SelectTrigger>
                 <SelectValue placeholder="Select a folder or leave unorganized" />
               </SelectTrigger>
               <SelectContent>

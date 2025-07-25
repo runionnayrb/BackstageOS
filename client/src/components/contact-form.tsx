@@ -302,7 +302,7 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
             <div>
               <Label htmlFor="category">Contact Type *</Label>
               <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
-                <SelectTrigger id="category">
+                <SelectTrigger>
                   <SelectValue placeholder="Select contact type..." />
                 </SelectTrigger>
                 <SelectContent>

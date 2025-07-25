@@ -12,7 +12,6 @@ import ErrorBoundary from "@/components/error-boundary";
 import { AdminViewProvider } from "@/contexts/AdminViewContext";
 import { SearchProvider } from "@/components/search/SearchContext";
 import { PWAManager } from "@/components/pwa-manager";
-
 import AuthPage from "@/pages/auth-page";
 import ProfileSelection from "@/pages/profile-selection";
 import Layout from "@/components/layout/layout";
@@ -107,8 +106,6 @@ function Router() {
     window.addEventListener('popstate', handleRouteChange);
     return () => window.removeEventListener('popstate', handleRouteChange);
   }, []);
-  
-
 
   // Update user ID when authentication changes - always call
   useEffect(() => {

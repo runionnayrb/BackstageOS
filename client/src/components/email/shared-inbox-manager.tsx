@@ -345,7 +345,7 @@ export function SharedInboxManager({ projectId, projectName }: SharedInboxManage
               <div>
                 <Label htmlFor="edit-isActive">Status</Label>
                 <Select name="isActive" defaultValue={editingInbox.isActive.toString()}>
-                  <SelectTrigger id="edit-isActive">
+                  <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -390,7 +390,7 @@ export function SharedInboxManager({ projectId, projectName }: SharedInboxManage
                   <div>
                     <Label htmlFor="member-role">Theater Role</Label>
                     <Select defaultValue="viewer">
-                      <SelectTrigger id="member-role">
+                      <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
