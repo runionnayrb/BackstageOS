@@ -5610,6 +5610,12 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
+  async getEditorAnalytics(): Promise<any[]> {
+    // Get user analytics data but filter for editors only
+    const allAnalytics = await this.getUserAnalytics();
+    return allAnalytics.filter(user => user.email.includes('editor') || user.userRole === 'editor');
+  }
+
   async getUserInvitedTeamMembers(userId: number): Promise<any[]> {
     // Return empty array for now - this method was for legacy teamMembers expansion
     // In new architecture, invited team members are handled differently

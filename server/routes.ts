@@ -2104,6 +2104,23 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Get editor analytics for admin dashboard
+  app.get('/api/admin/editor-analytics', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      
+      if (!isAdmin(userId)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const editorAnalytics = await storage.getEditorAnalytics();
+      res.json(editorAnalytics);
+    } catch (error) {
+      console.error("Error fetching editor analytics:", error);
+      res.status(500).json({ message: "Failed to fetch editor analytics" });
+    }
+  });
+
   // Get invited team members by user (for admin dashboard expansion)
   app.get('/api/admin/users/:userId/invited-editors', isAuthenticated, async (req: any, res) => {
     try {
