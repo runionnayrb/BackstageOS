@@ -1,9 +1,9 @@
 // BackstageOS Service Worker  
-// Version 5.0.0 - NUCLEAR CACHE BYPASS
+// Version 6.0.0 - COMPLETE DOM OVERRIDE
 
-const CACHE_NAME = 'backstageos-v5-' + Date.now();
-const STATIC_CACHE_NAME = 'backstageos-static-v5-' + Date.now();
-const DYNAMIC_CACHE_NAME = 'backstageos-dynamic-v5-' + Date.now();
+const CACHE_NAME = 'backstageos-v6-' + Date.now();
+const STATIC_CACHE_NAME = 'backstageos-static-v6-' + Date.now();
+const DYNAMIC_CACHE_NAME = 'backstageos-dynamic-v6-' + Date.now();
 
 // Core files to cache for offline functionality
 const STATIC_ASSETS = [
@@ -24,7 +24,7 @@ const CACHEABLE_APIS = [
 
 // Install event - BYPASS ALL CACHING
 self.addEventListener('install', event => {
-  console.log('[SW] Installing BackstageOS Service Worker v5.0.0 - NUCLEAR CACHE BYPASS');
+  console.log('[SW] Installing BackstageOS Service Worker v6.0.0 - COMPLETE DOM OVERRIDE');
   
   // Skip all caching and force immediate activation
   event.waitUntil(self.skipWaiting());
@@ -32,7 +32,7 @@ self.addEventListener('install', event => {
 
 // Activate event - DESTROY ALL CACHES
 self.addEventListener('activate', event => {
-  console.log('[SW] Activating BackstageOS Service Worker v5.0.0 - NUCLEAR OPTION');
+  console.log('[SW] Activating BackstageOS Service Worker v6.0.0 - COMPLETE DOM OVERRIDE');
   
   event.waitUntil(
     Promise.all([
@@ -57,8 +57,8 @@ self.addEventListener('activate', event => {
       console.log('[SW] NUCLEAR: Force reloading client');
       client.postMessage({
         type: 'FORCE_RELOAD',
-        version: '5.0.0',
-        message: 'NUCLEAR CACHE CLEAR - RELOADING NOW'
+        version: '6.0.0',
+        message: 'COMPLETE DOM OVERRIDE - RELOADING NOW'
       });
     });
   });

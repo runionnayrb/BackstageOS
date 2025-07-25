@@ -221,15 +221,55 @@ export default function EnhancedHeader() {
     isPWA: isPWA
   });
 
+  // Force white background for PWA through direct DOM manipulation
+  useEffect(() => {
+    if (isPWA && headerRef.current) {
+      // Force white background through multiple methods
+      headerRef.current.style.setProperty('background-color', 'white', 'important');
+      headerRef.current.style.setProperty('background', 'white', 'important');
+      
+      // Find and force white background on all child elements
+      const allElements = headerRef.current.querySelectorAll('*');
+      allElements.forEach((el: any) => {
+        if (el.style) {
+          el.style.setProperty('background-color', 'white', 'important');
+          el.style.setProperty('background', 'white', 'important');
+        }
+      });
+      
+      // Force body background to white in PWA
+      document.body.style.setProperty('background-color', 'white', 'important');
+      document.body.style.setProperty('background', 'white', 'important');
+      document.documentElement.style.setProperty('background-color', 'white', 'important');
+      
+      console.log('[PWA] Forced white background through DOM manipulation');
+    }
+  }, [isPWA]);
+
   return (
-    <div ref={headerRef} className={`pwa-header border-b border-gray-200 sticky top-0 z-50 shadow-sm`} style={{backgroundColor: 'white'}}>
-      {/* PWA Dynamic Island Area - Force white background */}
-      <div className="pwa-dynamic-island-container" style={{background: 'white', paddingTop: isPWA ? 'calc(env(safe-area-inset-top) + 8px)' : '8px'}}>
+    <div 
+      ref={headerRef} 
+      className={`border-b border-gray-200 sticky top-0 z-50 shadow-sm`} 
+      style={{
+        backgroundColor: 'white !important',
+        background: 'white !important',
+        paddingTop: isPWA ? 'calc(env(safe-area-inset-top) + 0px)' : '0px'
+      }}
+    >
+      {/* PWA Dynamic Island Area */}
+      <div 
+        style={{
+          background: 'white !important',
+          backgroundColor: 'white !important',
+          paddingTop: isPWA ? '8px' : '8px',
+          paddingBottom: '8px'
+        }}
+      >
         <div className="flex justify-center px-4 pb-1">
           <div className="pwa-dynamic-island">
             <div className="pwa-status-dot"></div>
             <span className="text-white text-xs font-medium">
-              {isPWA ? 'Live Production (PWA) v5.0.0' : 'Development Mode v5.0.0'}
+              {isPWA ? 'Live Production (PWA) v6.0.0' : 'Development Mode v6.0.0'}
             </span>
           </div>
         </div>

@@ -12,6 +12,7 @@ import ErrorBoundary from "@/components/error-boundary";
 import { AdminViewProvider } from "@/contexts/AdminViewContext";
 import { SearchProvider } from "@/components/search/SearchContext";
 import { PWAManager } from "@/components/pwa-manager";
+import { PWABackgroundFixer } from "@/components/pwa-background-fixer";
 import AuthPage from "@/pages/auth-page";
 import ProfileSelection from "@/pages/profile-selection";
 import Layout from "@/components/layout/layout";
@@ -282,6 +283,7 @@ function App() {
           <SearchProvider>
             <TooltipProvider>
               <PWAManager>
+                <PWABackgroundFixer />
                 <Toaster />
                 <Router />
               </PWAManager>
