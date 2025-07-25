@@ -1975,6 +1975,119 @@ The Production Team`
             </CardContent>
           </Card>
 
+          {/* Event Locations Management */}
+          <Card className="mt-6 border-0 shadow-none">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>
+                    Event Locations
+                  </CardTitle>
+                  <CardDescription>
+                    Manage locations where events can take place
+                  </CardDescription>
+                </div>
+                <Button onClick={handleCreateLocation} size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Location
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {locations.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No locations created yet. Create your first location to get started.
+                  </p>
+                ) : (
+                  locations.map((location: any) => (
+                    <div 
+                      key={location.id} 
+                      draggable
+                      onDragStart={(e) => handleLocationDragStart(e, location.id)}
+                      onDragOver={(e) => handleLocationDragOver(e, location.id)}
+                      onDragLeave={handleLocationDragLeave}
+                      onDrop={(e) => handleLocationDrop(e, location.id)}
+                      onDragEnd={handleLocationDragEnd}
+                      className={`flex items-center p-3 rounded-lg cursor-move transition-colors bg-gray-50/50 ${
+                        draggedLocationId === location.id ? 'opacity-50' : ''
+                      } ${
+                        dragOverLocationId === location.id ? 'bg-blue-50/50' : ''
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 flex-1">
+                        <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <div className="flex-1">
+                          <h4 className="font-medium">{location.name}</h4>
+                          {location.address && (
+                            <p className="text-sm text-muted-foreground">{location.address}</p>
+                          )}
+                          {location.description && (
+                            <p className="text-sm text-muted-foreground">{location.description}</p>
+                          )}
+                          {location.capacity && (
+                            <p className="text-sm text-muted-foreground">Capacity: {location.capacity}</p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs font-medium ${
+                          location.locationType === 'main' ? 'text-blue-600' : 
+                          location.locationType === 'auxiliary' ? 'text-purple-600' :
+                          location.locationType === 'fittings' ? 'text-green-600' :
+                          location.locationType === 'appointments' ? 'text-orange-600' : 'text-gray-600'
+                        }`}>
+                          {location.locationType === 'main' ? 'Primary' : 
+                           location.locationType === 'auxiliary' ? 'Secondary' :
+                           location.locationType === 'fittings' ? 'Fittings' :
+                           location.locationType === 'appointments' ? 'Appointments' : location.locationType}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditLocation(location);
+                          }}
+                        >
+                          <Edit3 className="h-4 w-4" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Location</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete "{location.name}"? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteLocation(location.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Event Types Management */}
           <Card className="mt-6 border-0 shadow-none">
             <CardHeader>
@@ -2494,120 +2607,6 @@ The Production Team`}
               <PersonalScheduleShare projectId={parseInt(params.id)} />
             </CardContent>
           </Card>
-
-          {/* Event Locations Management */}
-          <Card className="mt-6 border-0 shadow-none">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>
-                    Event Locations
-                  </CardTitle>
-                  <CardDescription>
-                    Manage locations where events can take place
-                  </CardDescription>
-                </div>
-                <Button onClick={handleCreateLocation} size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Location
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {locations.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    No locations created yet. Create your first location to get started.
-                  </p>
-                ) : (
-                  locations.map((location: any) => (
-                    <div 
-                      key={location.id} 
-                      draggable
-                      onDragStart={(e) => handleLocationDragStart(e, location.id)}
-                      onDragOver={(e) => handleLocationDragOver(e, location.id)}
-                      onDragLeave={handleLocationDragLeave}
-                      onDrop={(e) => handleLocationDrop(e, location.id)}
-                      onDragEnd={handleLocationDragEnd}
-                      className={`flex items-center p-3 rounded-lg cursor-move transition-colors bg-gray-50/50 ${
-                        draggedLocationId === location.id ? 'opacity-50' : ''
-                      } ${
-                        dragOverLocationId === location.id ? 'bg-blue-50/50' : ''
-                      }`}
-                    >
-                      <div className="flex items-center gap-3 flex-1">
-                        <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                        <div className="flex-1">
-                          <h4 className="font-medium">{location.name}</h4>
-                          {location.address && (
-                            <p className="text-sm text-muted-foreground">{location.address}</p>
-                          )}
-                          {location.description && (
-                            <p className="text-sm text-muted-foreground">{location.description}</p>
-                          )}
-                          {location.capacity && (
-                            <p className="text-sm text-muted-foreground">Capacity: {location.capacity}</p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-xs font-medium ${
-                          location.locationType === 'main' ? 'text-blue-600' : 
-                          location.locationType === 'auxiliary' ? 'text-purple-600' :
-                          location.locationType === 'fittings' ? 'text-green-600' :
-                          location.locationType === 'appointments' ? 'text-orange-600' : 'text-gray-600'
-                        }`}>
-                          {location.locationType === 'main' ? 'Primary' : 
-                           location.locationType === 'auxiliary' ? 'Secondary' :
-                           location.locationType === 'fittings' ? 'Fittings' :
-                           location.locationType === 'appointments' ? 'Appointments' : location.locationType}
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditLocation(location);
-                          }}
-                        >
-                          <Edit3 className="h-4 w-4" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Location</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete "{location.name}"? This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDeleteLocation(location.id)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
 
           {/* Email Template Categories */}
           <Card className="mt-6 border-0 shadow-none">

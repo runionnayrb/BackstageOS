@@ -47,6 +47,8 @@ BackstageOS is a comprehensive theater management platform specifically designed
 - **Event Types Filtering**: Optimized event type grid for mobile with proper text truncation and border styling
 - **Switch Controls**: Improved mobile spacing and alignment for settings toggles with flex-shrink-0 and gap-4
 - **Duplicate Removal**: Removed duplicate "Personal Schedule Sharing" section that appeared above email templates, keeping only the main "Schedule Sharing" section
+- **UI Icon Enhancements**: Added Bell icons to notification settings and Calendar icons to calendar sharing buttons with black outline styling matching app design
+- **Section Organization**: Moved Event Locations above Event Types in schedule settings for more logical workflow organization
 
 ### Notes System Features (Completed)
 - **Rich Text Editor**: TipTap-powered editor with comprehensive formatting toolbar

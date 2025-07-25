@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar, Copy, Download, ExternalLink, Mail, Plus, Settings, Share2, Trash2, Users } from "lucide-react";
+import { Bell, Calendar, Copy, Download, ExternalLink, Mail, Plus, Settings, Share2, Trash2, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
@@ -666,7 +666,8 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
                       {/* Notification Settings */}
                       <Popover>
                       <PopoverTrigger asChild>
-                        <button className="text-left hover:text-blue-600 transition-colors text-sm font-medium">
+                        <button className="text-left hover:text-blue-600 transition-colors text-sm font-medium flex items-center gap-2">
+                          <Bell className="h-4 w-4" />
                           Notification Settings
                         </button>
                       </PopoverTrigger>
@@ -722,7 +723,8 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
                     {/* Calendar Sharing */}
                     <Popover>
                       <PopoverTrigger asChild>
-                        <button className="text-left hover:text-blue-600 transition-colors text-sm font-medium">
+                        <button className="text-left hover:text-blue-600 transition-colors text-sm font-medium flex items-center gap-2">
+                          <Calendar className="h-4 w-4" />
                           Calendar Sharing
                         </button>
                       </PopoverTrigger>
