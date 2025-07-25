@@ -83,30 +83,8 @@ export function PWAManager({ children }: PWAManagerProps) {
             newWorker.addEventListener('statechange', () => {
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                 setHasUpdate(true);
-                // Only show update notification on mobile devices
-                if (isMobile) {
-                  toast({
-                    title: "Update available",
-                    description: "A new version of BackstageOS is ready.",
-                    action: (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={handleUpdate}
-                        disabled={isUpdating}
-                      >
-                        {isUpdating ? (
-                          <>
-                            <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                            Updating...
-                          </>
-                        ) : (
-                          'Update Now'
-                        )}
-                      </Button>
-                    ),
-                  });
-                }
+                // Silent update - no notifications
+                console.log('[PWA] New version available, will update on next reload');
               }
             });
           }
