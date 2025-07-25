@@ -409,6 +409,17 @@ export default function MonthlyScheduleView({
                       const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes, event.eventTypeId);
                       const formatEventTime = (time: string) => formatTimeDisplay(time.slice(0, 5), timeFormat);
                       
+                      // Log color calculation for Important Date events
+                      if (event.type === "important_date") {
+                        console.log('🎨 COLOR DEBUG for Important Date:', {
+                          title: event.title,
+                          type: event.type,
+                          eventTypeId: event.eventTypeId,
+                          calculatedColor: eventTypeColor,
+                          availableEventTypes: eventTypes.map(et => ({ id: et.id, name: et.name, color: et.color }))
+                        });
+                      }
+                      
                       // Log every event to see what data we have
                       if (event.title === "Another test event") {
                         console.log('🔍 FOUND "Another test event" in map:', JSON.stringify(event, null, 2));
@@ -604,10 +615,21 @@ export default function MonthlyScheduleView({
           {editEventDialog.event && (() => {
             console.log('🚨 EDIT DIALOG EVENT:', JSON.stringify(editEventDialog.event, null, 2));
             console.log('🚨 Event isProductionLevel value:', editEventDialog.event.isProductionLevel);
+            
+            // If the event has an eventTypeId, find the corresponding event type name
+            let eventTypeName = editEventDialog.event.type;
+            if (editEventDialog.event.eventTypeId) {
+              const matchedEventType = eventTypes.find(et => et.id === editEventDialog.event.eventTypeId);
+              if (matchedEventType) {
+                eventTypeName = matchedEventType.name.toLowerCase().replace(/\s+/g, '_');
+                console.log('🎯 Found event type for eventTypeId', editEventDialog.event.eventTypeId, ':', matchedEventType.name, '-> normalized:', eventTypeName);
+              }
+            }
+            
             const initialValuesForForm = {
               title: editEventDialog.event.title,
               description: editEventDialog.event.description,
-              type: editEventDialog.event.type,
+              type: eventTypeName,
               startDate: editEventDialog.event.date,
               endDate: editEventDialog.event.date,
               startTime: editEventDialog.event.startTime.slice(0, 5),
