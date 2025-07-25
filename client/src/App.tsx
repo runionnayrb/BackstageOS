@@ -1,3 +1,4 @@
+import React, { useEffect } from "react";
 import { Switch, Route, useParams } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -7,7 +8,6 @@ import { useAuth, AuthProvider } from "@/hooks/useAuth";
 import { useSessionHeartbeat } from "@/hooks/useSessionHeartbeat";
 import { errorLogger } from "@/lib/errorLogger";
 import { useSEO } from "@/hooks/useSEO";
-import { useEffect } from "react";
 import ErrorBoundary from "@/components/error-boundary";
 import { AdminViewProvider } from "@/contexts/AdminViewContext";
 import { SearchProvider } from "@/components/search/SearchContext";
