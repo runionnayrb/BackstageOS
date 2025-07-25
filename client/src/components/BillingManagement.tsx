@@ -388,12 +388,7 @@ export default function BillingManagement() {
         </CardContent>
       </Card>
 
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Billing Management</h2>
-          <p className="text-muted-foreground">Manage billing plans and profile types</p>
-        </div>
-      </div>
+      
 
       <Tabs defaultValue="billing-plans" className="space-y-4">
         <TabsList>
@@ -405,7 +400,6 @@ export default function BillingManagement() {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-medium">Billing Plans</h3>
-              <p className="text-sm text-muted-foreground">Manage subscription plans and pricing</p>
             </div>
             <Dialog open={isCreatePlanOpen} onOpenChange={setIsCreatePlanOpen}>
           <DialogTrigger asChild>

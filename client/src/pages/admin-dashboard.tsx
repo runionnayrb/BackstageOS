@@ -80,7 +80,7 @@ export default function AdminDashboard() {
           <div className="w-full overflow-x-hidden">
             <TabsContent value="users" className="space-y-4 sm:space-y-6">
               <div>
-                <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">User Analytics & Management</h2>
+                <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Users</h2>
                 <UserAnalytics />
               </div>
             </TabsContent>
