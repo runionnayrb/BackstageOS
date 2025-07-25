@@ -6156,15 +6156,21 @@ Best regards,
 
   // Helper function to sync important date event changes back to project
   async function syncImportantDateEventToProject(event: any, updatedData: any) {
+    console.log('🔄 syncImportantDateEventToProject called with:', {
+      eventTitle: event.title,
+      eventType: event.type,
+      updatedDate: updatedData.date
+    });
+
     // Check if this is an Important Date event by its title (since we no longer use "important_date" type)
     const importantDateMapping: { [key: string]: string } = {
-      'Prep Start': 'prepStartDate',
-      'First Rehearsal': 'firstRehearsalDate', 
-      'Designer Run': 'designerRunDate',
-      'First Tech': 'firstTechDate',
-      'First Preview': 'firstPreviewDate',
-      'Opening Night': 'openingNight',
-      'Closing': 'closingDate'
+      'Prep Start': 'prep_start_date',
+      'First Rehearsal': 'first_rehearsal_date', 
+      'Designer Run': 'designer_run_date',
+      'First Tech': 'first_tech_date',
+      'First Preview': 'first_preview_date',
+      'Opening Night': 'opening_night',
+      'Closing': 'closing_date'
     };
 
     const projectField = importantDateMapping[event.title];
@@ -6173,17 +6179,19 @@ Best regards,
       return; // Not a recognized important date
     }
 
-    console.log('🔄 Important Date event detected, syncing:', event.title, '→', projectField);
+    console.log('✅ Important Date event detected, syncing:', event.title, '→', projectField);
 
     const newDate = updatedData.date;
     if (newDate) {
-      // Update the project with the new date
+      // Update the project with the new date (database uses snake_case field names)
       const updateData: any = {};
       updateData[projectField] = new Date(newDate);
       
-      console.log('💾 Updating project with Important Date change:', updateData);
-      await storage.updateProject(event.projectId, updateData);
-      console.log('✅ Important Date synced successfully to Show Settings');
+      console.log('💾 Updating project', event.projectId, 'with Important Date change:', updateData);
+      const result = await storage.updateProject(event.projectId, updateData);
+      console.log('✅ Important Date synced successfully to Show Settings:', result);
+    } else {
+      console.log('⚠️ No date provided in updatedData');
     }
   }
 
