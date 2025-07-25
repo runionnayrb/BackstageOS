@@ -364,10 +364,7 @@ export default function AdminErrorLogs() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div>
-          <h2 className="text-xl font-semibold mb-6">Error Logs</h2>
-          <div className="text-center py-8">Loading error logs...</div>
-        </div>
+        <div className="text-center py-8">Loading error logs...</div>
       </div>
     );
   }

@@ -79,10 +79,7 @@ export default function AdminDashboard() {
 
           <div className="w-full overflow-x-hidden">
             <TabsContent value="users" className="space-y-4 sm:space-y-6">
-              <div>
-                <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Users</h2>
-                <UserAnalytics />
-              </div>
+              <UserAnalytics />
             </TabsContent>
 
             <TabsContent value="editors" className="space-y-4 sm:space-y-6">
@@ -94,17 +91,11 @@ export default function AdminDashboard() {
             </TabsContent>
 
             <TabsContent value="features" className="space-y-4 sm:space-y-6">
-              <div>
-                <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Beta Feature Configuration</h2>
-                <BetaFeatureComponent />
-              </div>
+              <BetaFeatureComponent />
             </TabsContent>
 
             <TabsContent value="waitlist" className="space-y-4 sm:space-y-6">
-              <div>
-                <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Waitlist Management</h2>
-                <WaitlistManagement />
-              </div>
+              <WaitlistManagement />
             </TabsContent>
 
             <TabsContent value="feedback" className="space-y-4 sm:space-y-6">
