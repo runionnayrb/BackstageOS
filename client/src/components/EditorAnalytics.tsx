@@ -134,39 +134,46 @@ export default function EditorAnalytics() {
     <div className="space-y-6">
       {/* Analytics Overview Cards */}
       {analyticsStats && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Editors</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Total Editors</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{filteredEditors.length}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Editors</CardTitle>
-            </CardHeader>
-            <CardContent>
+            <CardContent className="pt-0">
               <div className="text-2xl font-bold">{filteredEditors.filter(e => e.isActive).length}</div>
+              <p className="text-xs text-gray-500">of {filteredEditors.length} total</p>
             </CardContent>
           </Card>
+
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Monthly Cost</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Monthly Cost</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-0">
               <div className="text-2xl font-bold">
                 {formatCurrency(filteredEditors.reduce((sum, editor) => sum + editor.monthlyCost, 0))}
               </div>
+              <p className="text-xs text-gray-500">total API spend</p>
             </CardContent>
           </Card>
+
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Avg Session Time</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Top Feature</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-0">
+              <div className="text-2xl font-bold">{analyticsStats.topFeature}</div>
+              <p className="text-xs text-gray-500">most used</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Avg Session Time</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
               <div className="text-2xl font-bold">{analyticsStats.averageSessionTime} min</div>
+              <p className="text-xs text-gray-500">per session</p>
             </CardContent>
           </Card>
         </div>
