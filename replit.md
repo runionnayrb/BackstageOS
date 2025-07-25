@@ -368,23 +368,30 @@ Required environment variables:
 
 ## Recent Changes
 
-### July 25, 2025: **IMPORTANT DATES PRODUCTION CALENDAR INTEGRATION COMPLETE**
-**Successfully enhanced Important Dates synchronization to automatically appear on production calendar:**
+### July 25, 2025: **IMPORTANT DATES PRODUCTION CALENDAR INTEGRATION WITH EVENT TYPE COLOR CODING COMPLETE**
+**Successfully enhanced Important Dates synchronization with automatic production calendar integration and proper event type color coding:**
 
 **Production Calendar Visibility:**
 - Updated `syncImportantDatesWithSchedule` function to automatically set `isProductionLevel: true` for all Important Date events
 - Fixed field name mapping inconsistencies between frontend (camelCase) and backend (snake_case) to ensure proper synchronization
 - Important Dates now automatically appear when Production Calendar filter is enabled in monthly view
 
+**Event Type Color Coding Implementation:**
+- Added `getEventTypeIdForImportantDate` helper function to automatically assign correct event types based on date labels
+- Implemented comprehensive event type mapping: First Rehearsal/Designer Run=Rehearsal (Blue), First Tech=Tech Rehearsal (Orange), First Preview=Preview (Yellow), Opening Night/Closing=Performance (Red), Prep Start=Meeting (Purple)
+- Enhanced sync function to automatically assign event types when creating or updating Important Date events
+- All Important Date events now display with proper color coding matching their event type classifications
+
 **Field Mapping Corrections:**
 - Corrected `prepStartDate`, `firstRehearsalDate`, `designerRunDate`, `firstTechDate`, `firstPreviewDate`, `openingNight`, and `closingDate` field mappings
-- Ensured bidirectional sync maintains production-level status for all Important Date events
-- All Important Date events now automatically created as all-day, production-level events visible in filtered production calendar view
+- Ensured bidirectional sync maintains production-level status and event type assignments for all Important Date events
+- All Important Date events now automatically created as all-day, production-level events with appropriate event types
 
 **Theater Professional Benefits:**
-- Critical production milestones (Prep Start, First Rehearsal, Designer Run, First Tech, First Preview, Opening Night, Closing) now automatically visible on production calendar
-- Production calendar filter shows both manually created production events and Important Date milestones in unified view
-- Maintains existing bidirectional sync functionality while ensuring production calendar integration
+- Critical production milestones (Prep Start, First Rehearsal, Designer Run, First Tech, First Preview, Opening Night, Closing) now automatically visible on production calendar with proper color coding
+- Event type color distinction provides immediate visual recognition of milestone types (rehearsals vs performances vs tech vs previews)
+- Production calendar filter shows both manually created production events and Important Date milestones in unified view with consistent color coding
+- Maintains existing bidirectional sync functionality while ensuring production calendar integration and visual clarity
 
 ### July 24, 2025: **BETA CONFIGURATION FEATURE VISIBILITY CONTROL SYSTEM COMPLETE**
 **Successfully implemented comprehensive beta configuration system where admin dashboard settings actually control feature visibility in user accounts:**

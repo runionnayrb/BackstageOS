@@ -2681,6 +2681,34 @@ Best regards,
     }
   });
 
+  // Helper function to get event type ID for Important Dates
+  async function getEventTypeIdForImportantDate(projectId: number, dateLabel: string): Promise<number | undefined> {
+    const allEventTypes = await storage.getEventTypesByProjectId(projectId);
+    
+    const eventTypeMapping: { [key: string]: string[] } = {
+      'Prep Start': ['Meeting', 'meeting'],
+      'First Rehearsal': ['Rehearsal', 'rehearsal'],
+      'Designer Run': ['Rehearsal', 'rehearsal'],
+      'First Tech': ['Tech Rehearsal', 'tech rehearsal', 'tech'],
+      'First Preview': ['Preview', 'preview'],
+      'Opening Night': ['Performance', 'performance'],
+      'Closing': ['Performance', 'performance']
+    };
+
+    const possibleTypes = eventTypeMapping[dateLabel] || [];
+    
+    for (const typeName of possibleTypes) {
+      const eventType = allEventTypes.find(et => 
+        et.name.toLowerCase() === typeName.toLowerCase()
+      );
+      if (eventType) {
+        return eventType.id;
+      }
+    }
+    
+    return undefined;
+  }
+
   // Helper function to sync important dates with schedule events
   async function syncImportantDatesWithSchedule(
     projectId: number, 
@@ -2718,6 +2746,7 @@ Best regards,
         // Create or update event
         const eventDate = new Date(newDate);
         const dateStr = eventDate.toISOString().split('T')[0];
+        const eventTypeId = await getEventTypeIdForImportantDate(projectId, dateField.label);
         
         if (existingEvent) {
           // Update existing event
@@ -2729,7 +2758,8 @@ Best regards,
             isAllDay: true,
             isProductionLevel: true,
             startTime: '00:00',
-            endTime: '23:59'
+            endTime: '23:59',
+            eventTypeId: eventTypeId
           });
         } else {
           // Create new event
@@ -2743,7 +2773,8 @@ Best regards,
             type: 'important_date',
             isAllDay: true,
             isProductionLevel: true,
-            createdBy: userId
+            createdBy: userId,
+            eventTypeId: eventTypeId
           });
         }
       } else if (!newDate && existingEvent) {
