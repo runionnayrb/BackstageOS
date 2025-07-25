@@ -452,7 +452,7 @@ export default function WaitlistManagement() {
                               <div>
                                 <Label htmlFor="status">Status</Label>
                                 <Select value={status} onValueChange={setStatus}>
-                                  <SelectTrigger>
+                                  <SelectTrigger id="status">
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
