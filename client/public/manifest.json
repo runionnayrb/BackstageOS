@@ -6,6 +6,7 @@
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
+  "status_bar": "white-content",
   "orientation": "portrait-primary",
   "categories": ["business", "productivity", "entertainment"],
   "lang": "en-US",
