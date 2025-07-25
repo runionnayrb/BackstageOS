@@ -368,20 +368,37 @@ Required environment variables:
 
 ## Recent Changes
 
-### July 25, 2025: **IMPORTANT DATES PRODUCTION CALENDAR INTEGRATION WITH EVENT TYPE COLOR CODING COMPLETE**
-**Successfully resolved complete Important Date event type color coding system with proper API integration:**
+### July 25, 2025: **IMPORTANT DATES EVENT TYPE DROPDOWN SELECTION COMPLETE - FULLY RESOLVED**
+**Successfully completed the comprehensive Important Date event type system with perfect dropdown functionality:**
 
-**Event Type Color Display Resolution:**
-- Fixed event types API to pull directly from Show Settings page database records instead of complex system/database mixing logic
+**Event Type Dropdown Selection Resolution:**
+- Fixed critical dropdown selection issue where Important Date events appeared blank in edit modal despite having correct event types assigned
+- Root cause: EventTypeSelect component normalizes event type names to lowercase with underscores ("rehearsal"), but EventForm was passing actual names ("Rehearsal")
+- Solution: Updated EventForm to normalize event type values using `.toLowerCase().replace(/\s+/g, '_')` before passing to dropdown component
+- Important Date events now display proper dropdown selections: "Rehearsal", "Tech Rehearsal", "Performance", "Preview", "Meeting"
+
+**Database Cleanup Implementation:**
+- Direct database update of all 7 existing Important Date events to replace obsolete `type: "important_date"` with proper event type names
+- Updated events: Prep Start→Meeting, First Rehearsal→Rehearsal, Designer Run→Rehearsal, First Tech→Tech Rehearsal, First Preview→Preview, Opening Night→Performance, Closing→Performance
+- Eliminated problematic hardcoded "important_date" system identifier that was preventing proper event type matching
+
+**Complete System Integration:**
 - Important Date events now display with correct colors: Rehearsal (Blue), Tech Rehearsal (Orange), Performance (Red), Preview (Yellow), Meeting (Purple)
-- Resolved ID mismatch where Important Date events had positive eventTypeId values (4, 5, 6, 7, 15) that now properly match database event types
-- Event type selection in edit forms now correctly maps Important Date eventTypeId to proper event type names for form display
+- Event type dropdown selection works perfectly in edit modals for all Important Date events
+- Bidirectional sync between Show Settings Important Dates and calendar events maintains proper event type assignments
+- Production calendar filter displays Important Date events with correct color coding and event type classifications
 
 **Technical Implementation:**
-- Simplified `getEventTypesByProjectId` method to return only actual database records from event_types table managed through Show Settings
-- Enhanced event edit dialog to properly map Important Date eventTypeId to corresponding event type names for form selection
-- Color lookup function now successfully matches positive database IDs with Important Date event assignments
+- Fixed event types API to pull directly from Show Settings database records instead of complex system/database mixing logic
+- Enhanced EventForm component with proper event type value normalization for dropdown compatibility
+- Eliminated cache invalidation conflicts and simplified sync logic to use actual event type names from database
 - Event type API now serves as single source of truth from Show Settings Schedule tab configuration
+
+**Theater Professional Benefits:**
+- Critical production milestones automatically visible on production calendar with proper color coding and dropdown selection
+- Event type color distinction provides immediate visual recognition of milestone types (rehearsals vs performances vs tech vs previews)
+- Professional edit interface with proper dropdown selections matching Show Settings event type configuration
+- Complete integration between Important Dates planning and calendar execution with consistent visual and functional behavior
 
 ### July 25, 2025: **IMPORTANT DATES PRODUCTION CALENDAR INTEGRATION WITH EVENT TYPE COLOR CODING COMPLETE (CONTINUED)**
 **Successfully enhanced Important Dates synchronization with automatic production calendar integration and proper event type color coding:**
