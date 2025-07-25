@@ -83,7 +83,7 @@ export default function EditorAnalytics() {
   });
 
   const { data: analyticsStats, isLoading: isLoadingStats } = useQuery<UserAnalyticsStats>({
-    queryKey: ['/api/admin/analytics-stats'],
+    queryKey: ['/api/admin/editor-analytics-stats'],
   });
 
   const { data: billingPlans = [] } = useQuery<BillingPlan[]>({

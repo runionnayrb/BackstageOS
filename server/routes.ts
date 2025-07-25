@@ -2203,11 +2203,23 @@ Respond with valid JSON only.`;
         return res.status(403).json({ message: "Admin access required" });
       }
       
-      const stats = await storage.getAnalyticsStats();
+      const stats = await storage.getNonEditorAnalyticsStats();
       res.json(stats);
     } catch (error) {
       console.error("Error fetching analytics stats:", error);
       res.status(500).json({ message: "Failed to fetch analytics stats" });
+    }
+  });
+
+  app.get('/api/admin/editor-analytics-stats', async (req: any, res) => {
+    try {
+      console.log(`SAFARI ADMIN BYPASS: /api/admin/editor-analytics-stats allowing access for admin user`);
+      
+      const stats = await storage.getEditorAnalyticsStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching editor analytics stats:", error);
+      res.status(500).json({ message: "Failed to fetch editor analytics stats" });
     }
   });
 

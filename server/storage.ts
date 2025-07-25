@@ -5622,6 +5622,162 @@ export class DatabaseStorage implements IStorage {
     return allAnalytics.filter(user => user.userRole === 'user' || user.userRole === 'admin');
   }
 
+  async getNonEditorAnalyticsStats(): Promise<any> {
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    // Total non-editor users (user/admin roles only)
+    const totalUsersResult = await db.select({ 
+      count: sql<number>`count(*)` 
+    }).from(users).where(or(eq(users.userRole, 'user'), eq(users.userRole, 'admin')));
+    const totalUsers = totalUsersResult[0].count;
+
+    // Active non-editor users (users with is_active = true and user/admin roles)
+    const activeUsersResult = await db.select({ 
+      count: sql<number>`count(*)` 
+    }).from(users).where(and(
+      eq(users.isActive, true),
+      or(eq(users.userRole, 'user'), eq(users.userRole, 'admin'))
+    ));
+    const activeUsers = activeUsersResult[0].count;
+
+    // Get non-editor user IDs for cost calculations
+    const nonEditorUsersResult = await db.select({ id: users.id })
+      .from(users)
+      .where(or(eq(users.userRole, 'user'), eq(users.userRole, 'admin')));
+    const nonEditorUserIds = nonEditorUsersResult.map(u => u.id);
+
+    // Total monthly cost for non-editor users only
+    let totalMonthlyCost = 0;
+    if (nonEditorUserIds.length > 0) {
+      const monthlyCostResult = await db.select({ 
+        total: sql<number>`sum(cost)` 
+      }).from(apiCosts).where(and(
+        gte(apiCosts.date, thirtyDaysAgo),
+        sql`${apiCosts.userId} IN (${sql.join(nonEditorUserIds, sql`,`)})`
+      ));
+      totalMonthlyCost = monthlyCostResult[0].total || 0;
+    }
+
+    // Average session time for non-editor users only
+    let averageSessionTime = 0;
+    if (nonEditorUserIds.length > 0) {
+      const sessionsResult = await db.select().from(userSessions).where(and(
+        gte(userSessions.startTime, thirtyDaysAgo),
+        sql`${userSessions.userId} IN (${sql.join(nonEditorUserIds, sql`,`)})`
+      ));
+      averageSessionTime = sessionsResult.length > 0 
+        ? sessionsResult.reduce((sum, session) => {
+            const duration = session.endTime 
+              ? (new Date(session.endTime).getTime() - new Date(session.startTime).getTime()) / (1000 * 60)
+              : 0;
+            return sum + duration;
+          }, 0) / sessionsResult.length
+        : 0;
+    }
+
+    // Top feature for non-editor users only
+    let topFeature = 'None';
+    if (nonEditorUserIds.length > 0) {
+      const featureUsagesResult = await db.select().from(featureUsage).where(
+        sql`${featureUsage.userId} IN (${sql.join(nonEditorUserIds, sql`,`)})`
+      );
+      const featureMap = new Map<string, number>();
+      featureUsagesResult.forEach(usage => {
+        featureMap.set(usage.featureName, (featureMap.get(usage.featureName) || 0) + usage.usageCount);
+      });
+      topFeature = featureMap.size > 0 
+        ? Array.from(featureMap.entries()).sort((a, b) => b[1] - a[1])[0][0]
+        : 'None';
+    }
+
+    return {
+      totalUsers,
+      activeUsers,
+      totalMonthlyCost,
+      averageSessionTime,
+      topFeature
+    };
+  }
+
+  async getEditorAnalyticsStats(): Promise<any> {
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    // Total editor users
+    const totalUsersResult = await db.select({ 
+      count: sql<number>`count(*)` 
+    }).from(users).where(eq(users.userRole, 'editor'));
+    const totalUsers = totalUsersResult[0].count;
+
+    // Active editor users
+    const activeUsersResult = await db.select({ 
+      count: sql<number>`count(*)` 
+    }).from(users).where(and(
+      eq(users.isActive, true),
+      eq(users.userRole, 'editor')
+    ));
+    const activeUsers = activeUsersResult[0].count;
+
+    // Get editor user IDs for cost calculations
+    const editorUsersResult = await db.select({ id: users.id })
+      .from(users)
+      .where(eq(users.userRole, 'editor'));
+    const editorUserIds = editorUsersResult.map(u => u.id);
+
+    // Total monthly cost for editors only
+    let totalMonthlyCost = 0;
+    if (editorUserIds.length > 0) {
+      const monthlyCostResult = await db.select({ 
+        total: sql<number>`sum(cost)` 
+      }).from(apiCosts).where(and(
+        gte(apiCosts.date, thirtyDaysAgo),
+        sql`${apiCosts.userId} IN (${sql.join(editorUserIds, sql`,`)})`
+      ));
+      totalMonthlyCost = monthlyCostResult[0].total || 0;
+    }
+
+    // Average session time for editors only
+    let averageSessionTime = 0;
+    if (editorUserIds.length > 0) {
+      const sessionsResult = await db.select().from(userSessions).where(and(
+        gte(userSessions.startTime, thirtyDaysAgo),
+        sql`${userSessions.userId} IN (${sql.join(editorUserIds, sql`,`)})`
+      ));
+      averageSessionTime = sessionsResult.length > 0 
+        ? sessionsResult.reduce((sum, session) => {
+            const duration = session.endTime 
+              ? (new Date(session.endTime).getTime() - new Date(session.startTime).getTime()) / (1000 * 60)
+              : 0;
+            return sum + duration;
+          }, 0) / sessionsResult.length
+        : 0;
+    }
+
+    // Top feature for editors only
+    let topFeature = 'None';
+    if (editorUserIds.length > 0) {
+      const featureUsagesResult = await db.select().from(featureUsage).where(
+        sql`${featureUsage.userId} IN (${sql.join(editorUserIds, sql`,`)})`
+      );
+      const featureMap = new Map<string, number>();
+      featureUsagesResult.forEach(usage => {
+        featureMap.set(usage.featureName, (featureMap.get(usage.featureName) || 0) + usage.usageCount);
+      });
+      topFeature = featureMap.size > 0 
+        ? Array.from(featureMap.entries()).sort((a, b) => b[1] - a[1])[0][0]
+        : 'None';
+    }
+
+    return {
+      totalUsers,
+      activeUsers,
+      totalMonthlyCost,
+      averageSessionTime,
+      topFeature
+    };
+  }
+
   async getUserInvitedTeamMembers(userId: number): Promise<any[]> {
     // Return empty array for now - this method was for legacy teamMembers expansion
     // In new architecture, invited team members are handled differently
