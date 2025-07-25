@@ -262,14 +262,42 @@ export default function ShowSettings() {
     mutationFn: async (data: Partial<ShowSettings>) => {
       return await apiRequest("PATCH", `/api/projects/${params.id}/settings`, data);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/settings`] });
-      toast({
-        title: "Settings Updated",
-        description: "Your settings have been saved successfully.",
+    onMutate: async (newSettings) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: [`/api/projects/${params.id}/settings`] });
+      
+      // Snapshot the previous value
+      const previousSettings = queryClient.getQueryData([`/api/projects/${params.id}/settings`]);
+      
+      // Optimistically update to the new value
+      queryClient.setQueryData([`/api/projects/${params.id}/settings`], (oldData: any) => {
+        if (!oldData) return newSettings;
+        return { ...oldData, ...newSettings };
       });
+      
+      // Return a context object with the snapshotted value
+      return { previousSettings };
     },
-    onError: (error) => {
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/settings`] });
+      
+      // Check if this is a schedule filtering update (no toast for these)
+      const isScheduleFilterUpdate = variables.scheduleSettings && 
+        JSON.parse(variables.scheduleSettings || '{}').enabledEventTypes;
+      
+      if (!isScheduleFilterUpdate) {
+        toast({
+          title: "Settings Updated",
+          description: "Your settings have been saved successfully.",
+        });
+      }
+    },
+    onError: (error, variables, context) => {
+      // Roll back to the previous value
+      if (context?.previousSettings) {
+        queryClient.setQueryData([`/api/projects/${params.id}/settings`], context.previousSettings);
+      }
+      
       toast({
         title: "Error",
         description: "Failed to update settings. Please try again.",
