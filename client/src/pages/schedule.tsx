@@ -1449,7 +1449,7 @@ The Production Team`
             className="h-[95vh] p-0 flex flex-col rounded-t-lg"
           >
             <SheetHeader className="p-4 pb-3 border-b bg-white sticky top-0 z-10 rounded-t-lg flex-row items-center justify-between">
-              <SheetTitle className="text-left text-lg font-semibold">Schedule Version Control</SheetTitle>
+              <SheetTitle className="text-left text-lg font-semibold">Schedule Version History</SheetTitle>
               <Button
                 variant="ghost"
                 size="sm"
