@@ -1,4 +1,3 @@
-import * as React from "react";
 import { useState, useRef, useEffect } from "react";
 import { X, Users, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";

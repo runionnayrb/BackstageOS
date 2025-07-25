@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, ChangeEvent, FormEvent } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Search, Sparkles, Loader2, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -33,7 +33,6 @@ export default function GlobalSearchBar({
   const [isExpanded, setIsExpanded] = useState(false);
   const [results, setResults] = useState<SearchResult[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
-  const searchContainerRef = useRef<HTMLDivElement>(null);
 
   // AI Search mutation with cost controls
   const searchMutation = useMutation({
@@ -54,7 +53,7 @@ export default function GlobalSearchBar({
     }
   });
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setQuery(value);
     console.log('🔍 Search input:', value);
@@ -65,7 +64,7 @@ export default function GlobalSearchBar({
     }
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim() && query.length >= 2) {
       console.log('🔍 Search submitted:', query);
@@ -113,7 +112,7 @@ export default function GlobalSearchBar({
   // Close when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+      if (inputRef.current && !inputRef.current.contains(event.target as Node)) {
         if (isExpanded && !query.trim()) {
           handleClose();
         }
@@ -141,7 +140,7 @@ export default function GlobalSearchBar({
           </Button>
         ) : (
           // Expanded search bar with dropdown results
-          <div className="flex items-center" ref={searchContainerRef}>
+          <div className="flex items-center">
             <div className="relative" style={{ width: '300px' }}>
               <form onSubmit={handleSubmit} className="relative">
                 <Input

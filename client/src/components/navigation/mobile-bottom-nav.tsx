@@ -1,4 +1,3 @@
-import * as React from "react";
 import { useState } from "react";
 import { FolderOpen, Mail, MessageCircle, MoreHorizontal, Calendar, Package, Users, FileText, Settings, Edit } from "lucide-react";
 import { Link, useLocation } from "wouter";

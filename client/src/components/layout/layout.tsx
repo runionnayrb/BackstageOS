@@ -1,4 +1,3 @@
-import * as React from "react";
 import EnhancedHeader from "../navigation/enhanced-header";
 import MobileBottomNav from "../navigation/mobile-bottom-nav";
 import VersionFooter from "../version-footer";
