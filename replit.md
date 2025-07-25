@@ -368,6 +368,28 @@ Required environment variables:
 
 ## Recent Changes
 
+### July 25, 2025: **CALENDAR EVENT DATE UPDATE ISSUE RESOLVED - DUPLICATE EVENT CLEANUP**
+**Successfully resolved critical calendar event date update issue that was preventing events from moving when dates were changed:**
+
+**Root Cause Analysis:**
+- Duplicate events existed in database for same event title ("Another test event")
+- Event ID 25: old duplicate on July 2nd (from July 13th)
+- Event ID 55: updated event on July 25th (current)
+- Calendar displayed old duplicate while edit operations updated newer event
+- Created appearance that date updates weren't working
+
+**Resolution:**
+- Deleted duplicate event (ID 25) from database
+- Calendar now displays correct event (ID 55) 
+- Date updates work properly when changing start date (which auto-updates end date)
+- User discovered calendar expects single-day events where start/end dates match
+
+**System Benefits:**
+- Calendar event date updates now work immediately and visually
+- No more confusion from duplicate events in database
+- Proper single-day event handling maintains calendar consistency
+- Important Date sync continues working with Show Settings integration
+
 ### July 25, 2025: **IMPORTANT DATES EVENT TYPE DROPDOWN SELECTION COMPLETE - FULLY RESOLVED**
 **Successfully completed the comprehensive Important Date event type system with perfect dropdown functionality:**
 

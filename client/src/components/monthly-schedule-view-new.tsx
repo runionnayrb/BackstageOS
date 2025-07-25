@@ -215,12 +215,8 @@ export default function MonthlyScheduleView({
   });
 
   const updateEventMutation = useMutation({
-    mutationFn: ({ id, ...eventData }: any) => {
-      console.log('🚀 UPDATE MUTATION CALLED:', { id, eventData });
-      return apiRequest('PUT', `/api/schedule-events/${id}`, eventData);
-    },
-    onSuccess: (response) => {
-      console.log('✅ UPDATE MUTATION SUCCESS:', response);
+    mutationFn: ({ id, ...eventData }: any) => apiRequest('PUT', `/api/schedule-events/${id}`, eventData),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
       // Also invalidate Show Settings query since Important Date events sync to project settings
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/settings`] });
@@ -268,14 +264,6 @@ export default function MonthlyScheduleView({
   // Handle event editing
   const handleEditEvent = (eventData: any) => {
     if (editEventDialog.event) {
-      console.log('🎯 HANDLE EDIT EVENT CALLED:', {
-        originalEvent: editEventDialog.event,
-        newEventData: eventData,
-        finalPayload: {
-          id: editEventDialog.event.id,
-          ...eventData
-        }
-      });
       updateEventMutation.mutate({
         id: editEventDialog.event.id,
         ...eventData
