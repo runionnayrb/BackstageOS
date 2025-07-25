@@ -208,90 +208,14 @@ export default function EnhancedHeader() {
 
   const breadcrumbs = getBreadcrumbs();
 
-  // PWA Detection - Multiple methods for better compatibility
-  const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
-                (window.navigator as any).standalone === true ||
-                document.referrer.includes('android-app://');
 
-  // Console log for debugging
-  console.log('PWA Detection:', {
-    standalone: window.matchMedia('(display-mode: standalone)').matches,
-    navigatorStandalone: (window.navigator as any).standalone,
-    referrer: document.referrer,
-    isPWA: isPWA
-  });
-
-  // Force white background for PWA through direct DOM manipulation
-  useEffect(() => {
-    if (isPWA && headerRef.current) {
-      // Force white background through multiple methods
-      headerRef.current.style.setProperty('background-color', 'white', 'important');
-      headerRef.current.style.setProperty('background', 'white', 'important');
-      
-      // Find and force white background on all child elements
-      const allElements = headerRef.current.querySelectorAll('*');
-      allElements.forEach((el: any) => {
-        if (el.style) {
-          el.style.setProperty('background-color', 'white', 'important');
-          el.style.setProperty('background', 'white', 'important');
-        }
-      });
-      
-      // Force body background to white in PWA
-      document.body.style.setProperty('background-color', 'white', 'important');
-      document.body.style.setProperty('background', 'white', 'important');
-      document.documentElement.style.setProperty('background-color', 'white', 'important');
-      
-      console.log('[PWA] Forced white background through DOM manipulation');
-    }
-  }, [isPWA]);
 
   return (
     <div 
       ref={headerRef} 
-      className={`border-b border-gray-200 sticky top-0 z-50 shadow-sm`} 
-      style={{
-        backgroundColor: 'white !important',
-        background: 'white !important',
-        paddingTop: isPWA ? 'calc(env(safe-area-inset-top) + 0px)' : '0px'
-      }}
+      className={`border-b border-gray-200 sticky top-0 z-50 shadow-sm bg-white`}
     >
-      {/* PWA Dynamic Island Area */}
-      <div 
-        style={{
-          background: 'white !important',
-          backgroundColor: 'white !important',
-          paddingTop: isPWA ? '8px' : '8px',
-          paddingBottom: '8px'
-        }}
-      >
-        <div className="flex justify-center px-4 pb-1">
-          <div className="pwa-dynamic-island">
-            <div className="pwa-status-dot"></div>
-            <span className="text-white text-xs font-medium">
-              {isPWA ? 'Live Production (PWA) v6.0.0' : 'Development Mode v6.0.0'}
-            </span>
-          </div>
-        </div>
-        {!isPWA && (
-          <div className="text-center mb-2 space-x-4">
-            <a 
-              href="/pwa-test.html" 
-              className="text-xs text-blue-600 underline"
-              target="_blank"
-            >
-              Test PWA Installation
-            </a>
-            <a 
-              href="/force-update.html" 
-              className="text-xs text-red-600 underline"
-              target="_blank"
-            >
-              Force PWA Update
-            </a>
-          </div>
-        )}
-      </div>
+
       
       {/* Main Header */}
       <div className="px-4 sm:px-6 lg:px-8">
