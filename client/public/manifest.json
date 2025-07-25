@@ -1,0 +1,64 @@
+{
+  "name": "BackstageOS - Professional Stage Management",
+  "short_name": "BackstageOS",
+  "description": "Professional stage management software built for theater professionals. Manage productions from prep to closing night.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1a1a1a",
+  "orientation": "portrait-primary",
+  "categories": ["business", "productivity", "entertainment"],
+  "lang": "en-US",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/uploads/favicon-1751583712399.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/uploads/favicon-1751583712399.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/uploads/shareImage-1751581407362.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "BackstageOS Dashboard - Manage your theater productions"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New Report",
+      "short_name": "Report",
+      "description": "Create a new rehearsal or performance report",
+      "url": "/reports/new",
+      "icons": [
+        {
+          "src": "/uploads/favicon-1751583712399.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "My Projects",
+      "short_name": "Projects",
+      "description": "View and manage your theater projects",
+      "url": "/projects",
+      "icons": [
+        {
+          "src": "/uploads/favicon-1751583712399.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

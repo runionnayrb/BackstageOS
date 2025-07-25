@@ -11,6 +11,7 @@ import { useEffect } from "react";
 import ErrorBoundary from "@/components/error-boundary";
 import { AdminViewProvider } from "@/contexts/AdminViewContext";
 import { SearchProvider } from "@/components/search/SearchContext";
+import { PWAManager } from "@/components/pwa-manager";
 import AuthPage from "@/pages/auth-page";
 import ProfileSelection from "@/pages/profile-selection";
 import Layout from "@/components/layout/layout";
@@ -280,8 +281,10 @@ function App() {
         <AdminViewProvider>
           <SearchProvider>
             <TooltipProvider>
-              <Toaster />
-              <Router />
+              <PWAManager>
+                <Toaster />
+                <Router />
+              </PWAManager>
             </TooltipProvider>
           </SearchProvider>
         </AdminViewProvider>
