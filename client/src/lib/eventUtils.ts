@@ -5,7 +5,8 @@ export const SHOW_EVENT_TYPES = [
   'tech_rehearsal', 
   'preview',
   'performance',
-  'dark'
+  'dark',
+  'breaks'
 ] as const;
 
 export const INDIVIDUAL_EVENT_TYPES = [
@@ -37,6 +38,7 @@ export const getEventTypeDisplayName = (eventType: string): string => {
     case 'preview': return 'Preview';
     case 'performance': return 'Performance';
     case 'dark': return 'DARK';
+    case 'breaks': return 'Breaks';
     case 'meeting': return 'Meeting';
     case 'costume_fitting': return 'Costume Fitting';
     case 'wig_fitting': return 'Wig Fitting';
@@ -110,6 +112,7 @@ export const getEventTypeHexColor = (eventType: string): string => {
     case 'preview': return '#EAB308'; // yellow-500
     case 'performance': return '#22C55E'; // green-500
     case 'dark': return '#000000'; // black
+    case 'breaks': return '#A855F7'; // purple-500
     // Individual events - muted colors
     case 'meeting': return '#8B5CF6'; // purple-500
     case 'costume_fitting': return '#EC4899'; // pink-500

@@ -85,6 +85,7 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
         case 'preview': return 'previews';
         case 'meeting': return 'meetings';
         case 'dark': return 'dark days';
+        case 'breaks': return 'breaks';
         default: return type.replace(/_/g, ' ');
       }
     });

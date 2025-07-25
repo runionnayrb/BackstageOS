@@ -50,6 +50,13 @@ BackstageOS is a comprehensive theater management platform specifically designed
 - **UI Icon Enhancements**: Added Bell icons to notification settings and Calendar icons to calendar sharing buttons with black outline styling matching app design
 - **Section Organization**: Moved Event Locations above Event Types in schedule settings for more logical workflow organization
 
+### Breaks Event Type System Default Implementation (July 25, 2025)
+- **System Event Type Addition**: Added "Breaks" as system default event type (ID: -11) to systemEventTypes array in server storage
+- **Default Show Creation**: New shows automatically include "breaks: true" in enabledEventTypes during project creation
+- **Event Utils Integration**: Updated eventUtils.ts to include breaks in SHOW_EVENT_TYPES with purple color (#A855F7) and "Breaks" display name
+- **Personal Schedule Support**: Enhanced personal schedule sharing component to include "breaks" in event type descriptions
+- **Complete Integration**: Breaks event type now available by default in all schedule views (weekly, monthly, daily) for new shows without manual setup
+
 ### Notes System Features (Completed)
 - **Rich Text Editor**: TipTap-powered editor with comprehensive formatting toolbar
 - **Organization**: Folder-based organization with drag-drop reordering

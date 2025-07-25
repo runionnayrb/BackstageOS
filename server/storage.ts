@@ -2540,7 +2540,8 @@ export class DatabaseStorage implements IStorage {
           { id: -7, name: 'Wig Fitting' },
           { id: -8, name: 'Hair and Make-Up' },
           { id: -9, name: 'Vocal Coaching' },
-          { id: -10, name: 'DARK' }
+          { id: -10, name: 'DARK' },
+          { id: -11, name: 'Breaks' }
         ];
         
         const systemType = systemEventTypes.find(st => st.id === eventTypeId);

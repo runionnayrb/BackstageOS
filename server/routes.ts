@@ -2633,7 +2633,8 @@ Best regards,
           performance: true,
           preview: true,
           meeting: true,
-          dark: true
+          dark: true,
+          breaks: true
         }
       };
 
