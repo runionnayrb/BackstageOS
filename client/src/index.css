@@ -68,7 +68,10 @@
   }
   
   /* FORCE WHITE BACKGROUND IN PWA MODE - v6.0.0 */
-  *, *::before, *::after {
+  /* Exclude buttons and interactive elements from white background override */
+  *:not(button):not(.btn):not([class*="button"]):not([class*="bg-blue"]):not([class*="bg-primary"]):not([class*="bg-secondary"]):not([class*="bg-destructive"]):not([class*="hero-gradient"]),
+  *:not(button):not(.btn):not([class*="button"]):not([class*="bg-blue"]):not([class*="bg-primary"]):not([class*="bg-secondary"]):not([class*="bg-destructive"]):not([class*="hero-gradient"])::before,
+  *:not(button):not(.btn):not([class*="button"]):not([class*="bg-blue"]):not([class*="bg-primary"]):not([class*="bg-secondary"]):not([class*="bg-destructive"]):not([class*="hero-gradient"])::after {
     background-color: white !important;
     background-image: none !important;
     background: white !important;
@@ -86,11 +89,7 @@ html, body, #root, .App {
   background: white !important;
 }
 
-/* Override specific blue backgrounds */
-.bg-blue-600, .bg-blue-500, .bg-primary, .bg-blue-400 {
-  background-color: white !important;
-  background: white !important;
-}
+/* Allow blue backgrounds for buttons and interactive elements */
 
 /* Force header white background */
 header, .header, [class*="header"] {
