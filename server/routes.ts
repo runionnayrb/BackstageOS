@@ -2033,6 +2033,17 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Get users with their invited editors (hierarchical view for admin dashboard)
+  app.get('/api/admin/users-with-editors', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const usersWithEditors = await storage.getUsersWithInvitedEditors();
+      res.json(usersWithEditors);
+    } catch (error) {
+      console.error('Error fetching users with invited editors:', error);
+      res.status(500).json({ message: 'Failed to fetch users with invited editors' });
+    }
+  });
+
   // Get all editors with their project assignments
   app.get('/api/admin/editors-with-projects', isAuthenticated, async (req: any, res) => {
     try {

@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
 import { Edit2, Trash2, Save, X, Brain, Target, DollarSign, TrendingUp, Users, BarChart3, Zap } from "lucide-react";
+import HierarchicalUserManagement from "@/components/HierarchicalUserManagement";
 
 interface UserAnalytics {
   id: number;
@@ -374,13 +375,22 @@ export default function UserAnalytics() {
             </div>
           )}
 
-      {/* User List */}
+      {/* Hierarchical User Management */}
+      <div>
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold">User Management with Invited Editors</h3>
+          <p className="text-sm text-gray-600">Users with "user" role and their invited editors organized by production</p>
+        </div>
+        <HierarchicalUserManagement />
+      </div>
+      
+      {/* Full User Analytics (All Users) */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>User Analytics & Management</span>
+            <span>Complete User Analytics</span>
             <div className="text-sm font-normal text-gray-600">
-              {users.length} users
+              {users.length} users (all roles)
             </div>
           </CardTitle>
         </CardHeader>
