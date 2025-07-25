@@ -50,12 +50,12 @@ BackstageOS is a comprehensive theater management platform specifically designed
 - **UI Icon Enhancements**: Added Bell icons to notification settings and Calendar icons to calendar sharing buttons with black outline styling matching app design
 - **Section Organization**: Moved Event Locations above Event Types in schedule settings for more logical workflow organization
 
-### Breaks Event Type System Default Implementation (July 25, 2025)
-- **System Event Type Addition**: Added "Breaks" as system default event type (ID: -11) to systemEventTypes array in server storage
-- **Default Show Creation**: New shows automatically include "breaks: true" in enabledEventTypes during project creation
-- **Event Utils Integration**: Updated eventUtils.ts to include breaks in SHOW_EVENT_TYPES with gray color (#6B7280) and "Breaks" display name
-- **Personal Schedule Support**: Enhanced personal schedule sharing component to include "breaks" in event type descriptions
-- **Complete Integration**: Breaks event type now available by default in all schedule views (weekly, monthly, daily) for new shows without manual setup
+### Complete System Event Types Implementation (July 25, 2025)
+- **Full System Event Types Restoration**: Added missing system event types (Costume Fitting, Wig Fitting, Hair and Make-Up, Vocal Coaching) to existing project database
+- **Breaks Event Type Implementation**: Added "Breaks" as system default event type (ID: -11) with gray color (#6B7280) 
+- **System Event Type IDs**: Costume Fitting (-6, green), Wig Fitting (-7, purple), Hair and Make-Up (-8, yellow), Vocal Coaching (-9, cyan)
+- **Optimistic Updates**: Implemented optimistic updates for show schedule filtering toggles to eliminate database lag and removed toast notifications
+- **Complete Integration**: All system event types now available in schedule views with proper color coding and immediate toggle response
 
 ### Notes System Features (Completed)
 - **Rich Text Editor**: TipTap-powered editor with comprehensive formatting toolbar
