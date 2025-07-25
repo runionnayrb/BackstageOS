@@ -83,3 +83,14 @@
     min-width: 44px;
   }
 }
+
+/* Force white background for PWA header - v4.0.0 */
+.pwa-header {
+  background: white !important;
+  background-color: white !important;
+}
+
+.pwa-dynamic-island-container {
+  background: white !important;
+  background-color: white !important;
+}

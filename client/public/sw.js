@@ -1,9 +1,9 @@
 // BackstageOS Service Worker  
-// Version 3.0.0 - Force Dynamic Island Update
+// Version 4.0.0 - Force Header White Background Fix
 
-const CACHE_NAME = 'backstageos-v3';
-const STATIC_CACHE_NAME = 'backstageos-static-v3';
-const DYNAMIC_CACHE_NAME = 'backstageos-dynamic-v3';
+const CACHE_NAME = 'backstageos-v4';
+const STATIC_CACHE_NAME = 'backstageos-static-v4';
+const DYNAMIC_CACHE_NAME = 'backstageos-dynamic-v4';
 
 // Core files to cache for offline functionality
 const STATIC_ASSETS = [
@@ -24,7 +24,7 @@ const CACHEABLE_APIS = [
 
 // Install event - cache core assets
 self.addEventListener('install', event => {
-  console.log('[SW] Installing BackstageOS Service Worker v3.0.0');
+  console.log('[SW] Installing BackstageOS Service Worker v4.0.0 - Force White Background');
   
   event.waitUntil(
     Promise.all([
@@ -40,7 +40,7 @@ self.addEventListener('install', event => {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', event => {
-  console.log('[SW] Activating BackstageOS Service Worker v3.0.0 - Force cache clear');
+  console.log('[SW] Activating BackstageOS Service Worker v4.0.0 - Force white background fix');
   
   event.waitUntil(
     Promise.all([
@@ -64,7 +64,7 @@ self.addEventListener('activate', event => {
     clients.forEach(client => {
       client.postMessage({
         type: 'NEW_VERSION_AVAILABLE',
-        version: '3.0.0'
+        version: '4.0.0'
       });
     });
   });

@@ -222,25 +222,32 @@ export default function EnhancedHeader() {
   });
 
   return (
-    <div ref={headerRef} className={`bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm ${isPWA ? 'pt-safe' : ''}`}>
-      {/* PWA Dynamic Island Area - Always show for testing, will hide in production */}
-      <div className="bg-white px-4 pt-2 pb-1">
-        <div className="flex justify-center">
+    <div ref={headerRef} className={`pwa-header border-b border-gray-200 sticky top-0 z-50 shadow-sm`} style={{backgroundColor: 'white'}}>
+      {/* PWA Dynamic Island Area - Force white background */}
+      <div className="pwa-dynamic-island-container" style={{background: 'white', paddingTop: isPWA ? 'calc(env(safe-area-inset-top) + 8px)' : '8px'}}>
+        <div className="flex justify-center px-4 pb-1">
           <div className="pwa-dynamic-island">
             <div className="pwa-status-dot"></div>
             <span className="text-white text-xs font-medium">
-              {isPWA ? 'Live Production (PWA)' : 'Development Mode'}
+              {isPWA ? 'Live Production (PWA) v3.0.0' : 'Development Mode v3.0.0'}
             </span>
           </div>
         </div>
         {!isPWA && (
-          <div className="text-center mt-2">
+          <div className="text-center mb-2 space-x-4">
             <a 
               href="/pwa-test.html" 
               className="text-xs text-blue-600 underline"
               target="_blank"
             >
               Test PWA Installation
+            </a>
+            <a 
+              href="/force-update.html" 
+              className="text-xs text-red-600 underline"
+              target="_blank"
+            >
+              Force PWA Update
             </a>
           </div>
         )}
