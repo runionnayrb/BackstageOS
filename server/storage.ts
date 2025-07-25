@@ -2455,33 +2455,42 @@ export class DatabaseStorage implements IStorage {
       { id: -10, name: 'DARK', description: 'Dark days - no scheduled activities', color: '#6b7280', isDefault: true, projectId }
     ];
     
-    // Create a map of system event types that have been customized or hidden
-    const customizedSystemTypes = new Map();
+    // Create a map of database records by name to identify which system types have database equivalents
+    const databaseTypesByName = new Map();
     const customEventTypes = [];
     
     allEventTypes.forEach(eventType => {
-      if (eventType.isDefault) {
-        // This is a customized system event type (overrides the default)
-        customizedSystemTypes.set(eventType.id, eventType);
-      } else {
-        // This is a completely custom event type
+      const nameLowerCase = eventType.name.toLowerCase();
+      databaseTypesByName.set(nameLowerCase, eventType);
+      
+      if (!eventType.isDefault) {
+        // This is a completely custom event type (not overriding a system type)
         customEventTypes.push(eventType);
       }
     });
     
-    // Filter system event types, replacing with customized versions where they exist
-    const activeSystemEventTypes = systemEventTypes
-      .map(systemType => {
-        const customized = customizedSystemTypes.get(systemType.id);
-        return customized || systemType;
-      })
-      .filter(eventType => {
-        // Filter out system types that have been explicitly hidden (marked with name starting with 'HIDDEN_')
-        return !eventType.name?.startsWith('HIDDEN_');
-      });
+    // For each system event type, use the database version if it exists, otherwise use the default
+    const finalEventTypes = [];
     
-    // Combine active system event types and custom event types
-    return [...activeSystemEventTypes, ...customEventTypes];
+    systemEventTypes.forEach(systemType => {
+      const nameLowerCase = systemType.name.toLowerCase();
+      const databaseVersion = databaseTypesByName.get(nameLowerCase);
+      
+      if (databaseVersion) {
+        // Use the database version (with positive ID) instead of system version (negative ID)
+        finalEventTypes.push(databaseVersion);
+      } else {
+        // No database version exists, use the system default (but only if not hidden)
+        if (!systemType.name?.startsWith('HIDDEN_')) {
+          finalEventTypes.push(systemType);
+        }
+      }
+    });
+    
+    // Add any custom event types that don't override system types
+    finalEventTypes.push(...customEventTypes);
+    
+    return finalEventTypes;
   }
 
   async createEventType(eventType: any): Promise<any> {
