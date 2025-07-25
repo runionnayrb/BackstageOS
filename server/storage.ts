@@ -828,8 +828,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateProject(id: number, project: Partial<InsertProject>): Promise<Project> {
-    const result = await db.update(projects).set(project).where(eq(projects.id, id)).returning();
-    return result[0];
+    console.log('💾 updateProject called with:', { id, project });
+    try {
+      const result = await db.update(projects).set(project).where(eq(projects.id, id)).returning();
+      console.log('✅ updateProject successful:', result[0]);
+      return result[0];
+    } catch (error) {
+      console.error('❌ updateProject failed:', error);
+      console.error('❌ Failed query details:', { id, project });
+      throw error;
+    }
   }
 
   async deleteProject(id: number): Promise<void> {
