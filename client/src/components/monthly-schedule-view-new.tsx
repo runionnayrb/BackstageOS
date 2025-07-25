@@ -609,11 +609,17 @@ export default function MonthlyScheduleView({
             
             // For Important Date events, map the eventTypeId to the actual event type name for the form
             let eventTypeName = editEventDialog.event.type;
+            console.log('🔍 INITIAL eventTypeName:', eventTypeName, 'eventTypeId:', editEventDialog.event.eventTypeId);
+            console.log('🔍 Available eventTypes:', eventTypes.map(et => ({ id: et.id, name: et.name })));
+            
             if (editEventDialog.event.type === 'important_date' && editEventDialog.event.eventTypeId) {
               const matchedEventType = eventTypes.find(et => et.id === editEventDialog.event.eventTypeId);
+              console.log('🔍 Looking for eventTypeId:', editEventDialog.event.eventTypeId, 'found:', matchedEventType);
               if (matchedEventType) {
                 eventTypeName = matchedEventType.name.toLowerCase().replace(/\s+/g, '_');
                 console.log('🎯 Mapping Important Date eventTypeId', editEventDialog.event.eventTypeId, 'to event type:', matchedEventType.name, '-> normalized:', eventTypeName);
+              } else {
+                console.log('❌ No matching event type found for eventTypeId:', editEventDialog.event.eventTypeId);
               }
             }
             
