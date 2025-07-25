@@ -73,23 +73,29 @@
     background-image: none !important;
     background: white !important;
   }
-  
-  html, body, #root, .App {
-    background-color: white !important;
-    background: white !important;
-  }
-  
-  /* Override specific blue backgrounds */
-  .bg-blue-600, .bg-blue-500, .bg-primary, .bg-blue-400 {
-    background-color: white !important;
-    background: white !important;
-  }
-  
-  /* Force header white background */
-  header, .header, [class*="header"] {
-    background-color: white !important;
-    background: white !important;
-  }
+}
+
+/* Force white status bar for Safari and PWA */
+:root {
+  color-scheme: light;
+  --status-bar-background: #ffffff;
+}
+
+html, body, #root, .App {
+  background-color: white !important;
+  background: white !important;
+}
+
+/* Override specific blue backgrounds */
+.bg-blue-600, .bg-blue-500, .bg-primary, .bg-blue-400 {
+  background-color: white !important;
+  background: white !important;
+}
+
+/* Force header white background */
+header, .header, [class*="header"] {
+  background-color: white !important;
+  background: white !important;
 }
 
 @media not (display-mode: standalone) {
