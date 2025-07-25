@@ -15,7 +15,6 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Users, Crown, Edit3, Eye, Settings } from "lucide-react";
 import SimpleUserList from "@/components/SimpleUserList";
-import HierarchicalUserManagement from "@/components/HierarchicalUserManagement";
 
 interface User {
   id: number;
@@ -247,19 +246,8 @@ export default function AdminUserRoles() {
           />
         </TabsContent>
 
-        {/* User Tab with Hierarchical Management */}
-        <TabsContent value="user" className="mt-6">
-          <div>
-            <div className="mb-4">
-              <h3 className="text-lg font-semibold">Users with Invited Editors</h3>
-              <p className="text-sm text-gray-600">Users and the editors they have invited to their productions</p>
-            </div>
-            <HierarchicalUserManagement />
-          </div>
-        </TabsContent>
-
-        {/* Other role tabs (admin, viewer) */}
-        {["admin", "viewer"].map((role) => {
+        {/* Other role tabs */}
+        {["admin", "user", "viewer"].map((role) => {
           const isLoading = usersLoading;
           const userData = users;
           
