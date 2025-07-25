@@ -1,5 +1,13 @@
 /* PWA-specific styles for iOS Dynamic Island and safe areas */
 
+/* Ensure white background for PWA viewport */
+@media (display-mode: standalone) {
+  html, body {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+  }
+}
+
 /* iOS Safe Areas for PWA mode */
 @supports (padding: max(0px)) {
   .pt-safe {

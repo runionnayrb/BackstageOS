@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Set white background for html and body */
+html, body {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+}
+
+/* Set white background for root element */
+#root {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  min-height: 100vh;
+}
+
 /* PWA-specific styles for iOS Dynamic Island and safe areas */
 @supports (padding: max(0px)) {
   .pt-safe {
