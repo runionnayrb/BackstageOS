@@ -11,6 +11,8 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 import { storage } from "./storage";
+import { db } from "./db";
+import { sql } from "drizzle-orm";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
@@ -6188,8 +6190,17 @@ Best regards,
       updateData[projectField] = new Date(newDate);
       
       console.log('💾 Updating project', event.projectId, 'with Important Date change:', updateData);
-      const result = await storage.updateProject(event.projectId, updateData);
-      console.log('✅ Important Date synced successfully to Show Settings:', result);
+      
+      // Use direct SQL update to avoid Drizzle ORM field name issues
+      try {
+        const sqlQuery = `UPDATE projects SET ${projectField} = $1, updated_at = NOW() WHERE id = $2`;
+        console.log('🔍 Executing SQL:', sqlQuery, 'with values:', [newDate, event.projectId]);
+        await db.execute(sql.raw(sqlQuery, [newDate, event.projectId]));
+        console.log('✅ Important Date synced successfully to Show Settings via direct SQL');
+      } catch (sqlError) {
+        console.error('❌ Direct SQL update failed:', sqlError);
+        throw sqlError;
+      }
     } else {
       console.log('⚠️ No date provided in updatedData');
     }
