@@ -213,7 +213,7 @@ export default function EnhancedHeader() {
   return (
     <div 
       ref={headerRef} 
-      className={`border-b border-gray-200 sticky top-0 z-50 shadow-sm bg-white`}
+      className={`border-b border-gray-200 sticky top-0 z-50 shadow-sm bg-white pwa-header`}
     >
 
       

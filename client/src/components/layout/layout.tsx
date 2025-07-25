@@ -9,9 +9,9 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col pwa-body-content">
       <EnhancedHeader />
-      <main className="flex-1 pb-16 md:pb-0">
+      <main className="flex-1 pb-16 md:pb-0 pwa-main-content">
         <PageTransition>
           {children}
         </PageTransition>

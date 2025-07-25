@@ -1,13 +1,50 @@
-/* PWA-specific styles for iOS Dynamic Island and safe areas */
+/* PWA-specific styles for iOS Dynamic Island and safe areas - v7.0.0 */
 
-/* iOS Safe Areas for PWA mode */
+/* Force white status bar and background for PWA - Nuclear Option v7.0.0 */
+@media (display-mode: standalone) {
+  html {
+    background: white !important;
+    background-color: white !important;
+  }
+  
+  body {
+    background: white !important;
+    background-color: white !important;
+  }
+  
+  /* Aggressive white background enforcement */
+  html::before,
+  html::after,
+  body::before, 
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: white !important;
+    z-index: -1000;
+    pointer-events: none;
+  }
+  
+  /* Override any blue status area */
+  #root,
+  #app,
+  .app {
+    background: white !important;
+    background-color: white !important;
+  }
+}
+
+/* iOS Safe Areas for PWA mode with proper Dynamic Island spacing */
 @supports (padding: max(0px)) {
   .pt-safe {
-    padding-top: max(env(safe-area-inset-top), 8px);
+    padding-top: max(env(safe-area-inset-top), 60px);
   }
   
   .pb-safe {
-    padding-bottom: max(env(safe-area-inset-bottom), 8px);
+    padding-bottom: max(env(safe-area-inset-bottom), 34px);
   }
   
   .pl-safe {
@@ -82,15 +119,48 @@
     min-height: 44px;
     min-width: 44px;
   }
+  
+  /* Header positioning under Dynamic Island */
+  .pwa-header {
+    background: white !important;
+    background-color: white !important;
+    position: fixed !important;
+    top: env(safe-area-inset-top) !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 50 !important;
+    padding-top: 8px !important;
+  }
+  
+  /* Main content padding to account for fixed header */
+  .pwa-main-content {
+    padding-top: calc(env(safe-area-inset-top) + 80px) !important;
+  }
+  
+  /* Footer navigation proper spacing */
+  .pwa-footer-nav {
+    position: fixed !important;
+    bottom: env(safe-area-inset-bottom) !important;
+    left: 0 !important;
+    right: 0 !important;
+    background: white !important;
+    padding-bottom: max(env(safe-area-inset-bottom), 8px) !important;
+    padding-top: 8px !important;
+  }
+  
+  /* Body content bottom padding for footer */
+  .pwa-body-content {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 80px) !important;
+  }
 }
 
-/* Force white background for PWA header - v4.0.0 */
-.pwa-header {
-  background: white !important;
-  background-color: white !important;
-}
-
+/* Dynamic Island container white background */
 .pwa-dynamic-island-container {
   background: white !important;
   background-color: white !important;
+  position: fixed !important;
+  top: 8px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 100 !important;
 }
