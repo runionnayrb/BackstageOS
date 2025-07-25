@@ -6193,9 +6193,9 @@ Best regards,
       
       // Use direct SQL update to avoid Drizzle ORM field name issues
       try {
-        const sqlQuery = `UPDATE projects SET ${projectField} = $1, updated_at = NOW() WHERE id = $2`;
-        console.log('🔍 Executing SQL:', sqlQuery, 'with values:', [newDate, event.projectId]);
-        await db.execute(sql.raw(sqlQuery, [newDate, event.projectId]));
+        const sqlQuery = sql.raw(`UPDATE projects SET ${projectField} = '${newDate}', updated_at = NOW() WHERE id = ${event.projectId}`);
+        console.log('🔍 Executing SQL:', sqlQuery.queryChunks.join(''));
+        await db.execute(sqlQuery);
         console.log('✅ Important Date synced successfully to Show Settings via direct SQL');
       } catch (sqlError) {
         console.error('❌ Direct SQL update failed:', sqlError);
