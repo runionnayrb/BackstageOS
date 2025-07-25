@@ -43,20 +43,33 @@ export function PWABackgroundFixer() {
         }
         
         styleEl.textContent = `
-          /* PWA White Background Fix - v6.0.0 */
+          /* PWA White Background Fix - v6.0.0 NUCLEAR */
           html, body, #root, .App {
+            background-color: white !important;
+            background: white !important;
+            background-image: none !important;
+          }
+          
+          /* FORCE WHITE ON EVERYTHING */
+          * {
+            background-color: white !important;
+            background: white !important;
+            background-image: none !important;
+          }
+          
+          /* Override any blue or colored backgrounds */
+          .bg-blue-600, .bg-blue-500, .bg-primary, .bg-blue-400,
+          [style*="background-color: blue"], [style*="background: blue"],
+          [style*="background-color: rgb(37, 99, 235)"] {
             background-color: white !important;
             background: white !important;
           }
           
-          /* Force header white background in PWA */
+          /* Force specific iOS PWA styling */
           @media (display-mode: standalone) {
-            *, *::before, *::after {
+            body { 
               background-color: white !important;
-            }
-            
-            .bg-blue-600, .bg-blue-500, .bg-primary {
-              background-color: white !important;
+              background: white !important;
             }
           }
         `;

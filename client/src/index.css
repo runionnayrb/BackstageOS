@@ -66,6 +66,30 @@
   .browser-only {
     display: none !important;
   }
+  
+  /* FORCE WHITE BACKGROUND IN PWA MODE - v6.0.0 */
+  *, *::before, *::after {
+    background-color: white !important;
+    background-image: none !important;
+    background: white !important;
+  }
+  
+  html, body, #root, .App {
+    background-color: white !important;
+    background: white !important;
+  }
+  
+  /* Override specific blue backgrounds */
+  .bg-blue-600, .bg-blue-500, .bg-primary, .bg-blue-400 {
+    background-color: white !important;
+    background: white !important;
+  }
+  
+  /* Force header white background */
+  header, .header, [class*="header"] {
+    background-color: white !important;
+    background: white !important;
+  }
 }
 
 @media not (display-mode: standalone) {
