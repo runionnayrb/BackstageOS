@@ -2609,15 +2609,6 @@ The Production Team`}
           </Card>
 
 
-          {/* Personal Schedule Sharing */}
-          <Card className="mt-6 border-0 shadow-none">
-            <CardContent className="pt-6">
-              <PersonalScheduleShare projectId={parseInt(params.id)} />
-            </CardContent>
-          </Card>
-
-
-
           {/* Email Template Categories */}
           <Card className="mt-6 border-0 shadow-none">
             <CardHeader>

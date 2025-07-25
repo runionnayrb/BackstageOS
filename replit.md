@@ -40,6 +40,14 @@ BackstageOS is a comprehensive theater management platform specifically designed
 - **Beta Access Control**: Three-tier system (none, limited, full) with granular feature permissions
 - **Feature Rollout**: Controlled deployment of new functionality to beta testers
 
+## Recent Changes
+
+### Schedule Tab Mobile Optimization (July 25, 2025)
+- **Mobile-Responsive Grids**: Updated schedule settings grid from fixed 3-column to responsive (1 column mobile, 2 tablet, 3 desktop)
+- **Event Types Filtering**: Optimized event type grid for mobile with proper text truncation and border styling
+- **Switch Controls**: Improved mobile spacing and alignment for settings toggles with flex-shrink-0 and gap-4
+- **Duplicate Removal**: Removed duplicate "Personal Schedule Sharing" section that appeared above email templates, keeping only the main "Schedule Sharing" section
+
 ### Notes System Features (Completed)
 - **Rich Text Editor**: TipTap-powered editor with comprehensive formatting toolbar
 - **Organization**: Folder-based organization with drag-drop reordering
