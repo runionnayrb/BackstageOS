@@ -406,7 +406,7 @@ export default function MonthlyScheduleView({
                     })
                     .slice(0, 3)
                     .map((event: ScheduleEvent) => {
-                      const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes);
+                      const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes, event.eventTypeId);
                       const formatEventTime = (time: string) => formatTimeDisplay(time.slice(0, 5), timeFormat);
                       
                       // Log every event to see what data we have

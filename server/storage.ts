@@ -2088,6 +2088,7 @@ export class DatabaseStorage implements IStorage {
       startTime: scheduleEvents.startTime,
       endTime: scheduleEvents.endTime,
       type: scheduleEvents.type,
+      eventTypeId: scheduleEvents.eventTypeId,
       location: scheduleEvents.location,
       notes: scheduleEvents.notes,
       isAllDay: scheduleEvents.isAllDay,

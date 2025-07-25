@@ -67,8 +67,16 @@ export const getEventTypeColor = (eventType: string): string => {
 };
 
 // Enhanced color matching function for database event types with format conversion
-export const getEventTypeColorFromDatabase = (eventType: string, eventTypes: any[]): string => {
-  // First try direct match
+export const getEventTypeColorFromDatabase = (eventType: string, eventTypes: any[], eventTypeId?: number): string => {
+  // If eventTypeId is provided, use it for direct lookup first
+  if (eventTypeId) {
+    const matchedEventType = eventTypes.find(et => et.id === eventTypeId);
+    if (matchedEventType?.color) {
+      return matchedEventType.color;
+    }
+  }
+  
+  // First try direct match by name/type
   let matchedEventType = eventTypes.find(et => 
     et.id === eventType || 
     et.name === eventType ||
