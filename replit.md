@@ -69,6 +69,17 @@ BackstageOS is a comprehensive theater management platform specifically designed
 **Technical Implementation**: CSS v7.0.0 uses aggressive pseudo-element overlay system to force white background in all PWA contexts
 **Status**: All available technical approaches exhausted - iOS PWA status bar behavior may be beyond CSS/JavaScript control
 
+### PWA Infinite Refresh Loop Bug Fix (July 25, 2025) - CRITICAL ISSUE RESOLVED
+**Critical Issue**: beta.backstageos.com was refreshing page 4-5 times immediately upon load, creating infinite reload loops
+**Root Cause**: Service worker v6.0.0 was sending automatic `FORCE_RELOAD` messages on every activation, combined with aggressive cache-busting registration
+**Solution Implemented**:
+- Removed automatic `FORCE_RELOAD` message from service worker activation event
+- Changed service worker to send `NEW_VERSION_AVAILABLE` message instead of forcing immediate reloads
+- Removed aggressive cache-busting timestamp from service worker registration (`/sw.js?v=timestamp` → `/sw.js`)
+- Updated PWA manager to set update flag instead of auto-reloading when receiving force reload messages
+**Technical Fix**: Service worker now notifies of updates without forcing immediate page reloads, breaking the infinite refresh cycle
+**Status**: Critical PWA refresh loop issue completely resolved - site should now load normally without multiple refreshes
+
 ### Schedule Tab Mobile Optimization (July 25, 2025)
 - **Mobile-Responsive Grids**: Updated schedule settings grid from fixed 3-column to responsive (1 column mobile, 2 tablet, 3 desktop)
 - **Event Types Filtering**: Optimized event type grid for mobile with proper text truncation and border styling

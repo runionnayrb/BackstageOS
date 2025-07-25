@@ -51,14 +51,14 @@ self.addEventListener('activate', event => {
     ])
   );
   
-  // Force reload all clients immediately
+  // Notify clients of service worker activation (without forcing reload)
   self.clients.matchAll().then(clients => {
     clients.forEach(client => {
-      console.log('[SW] NUCLEAR: Force reloading client');
+      console.log('[SW] Service worker activated, notifying client');
       client.postMessage({
-        type: 'FORCE_RELOAD',
+        type: 'NEW_VERSION_AVAILABLE',
         version: '6.0.0',
-        message: 'COMPLETE DOM OVERRIDE - RELOADING NOW'
+        message: 'Service worker activated'
       });
     });
   });

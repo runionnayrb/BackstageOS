@@ -52,13 +52,10 @@ export function PWAManager({ children }: PWAManagerProps) {
   const registerServiceWorker = async () => {
     if ('serviceWorker' in navigator) {
       try {
-        // Force registration update by adding timestamp
-        const registration = await navigator.serviceWorker.register('/sw.js?v=' + Date.now());
+        // Standard service worker registration without aggressive cache busting
+        const registration = await navigator.serviceWorker.register('/sw.js');
         
         console.log('[PWA] Service Worker registered successfully');
-        
-        // Force immediate update check
-        await registration.update();
 
         // Listen for updates
         registration.addEventListener('updatefound', () => {
@@ -84,11 +81,9 @@ export function PWAManager({ children }: PWAManagerProps) {
           }
           
           if (event.data?.type === 'FORCE_RELOAD') {
-            console.log('[PWA] Force reload triggered by service worker');
-            // Force immediate reload with cache busting
-            setTimeout(() => {
-              window.location.href = window.location.href + '?nuclear=' + Date.now();
-            }, 1000);
+            console.log('[PWA] Force reload message received - setting update flag instead of auto-reloading');
+            // Set update flag instead of immediately reloading to prevent infinite loops
+            setHasUpdate(true);
           }
         });
 
