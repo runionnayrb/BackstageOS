@@ -1,5 +1,5 @@
 // BackstageOS Service Worker  
-// Version 2.0.0 - Updated for Dynamic Island
+// Version 3.0.0 - Force white background update
 
 const CACHE_NAME = 'backstageos-v2';
 const STATIC_CACHE_NAME = 'backstageos-static-v2';

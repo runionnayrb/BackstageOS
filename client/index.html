@@ -33,7 +33,7 @@
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#ffffff" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="BackstageOS" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="msapplication-TileColor" content="#ffffff" />
@@ -71,9 +71,16 @@
       }
     }
     </script>
+    <style>
+      /* Force white background on all elements */
+      html, body, #root {
+        background-color: #ffffff !important;
+        background: #ffffff !important;
+      }
+    </style>
   </head>
-  <body>
-    <div id="root"></div>
+  <body style="background-color: #ffffff !important;">
+    <div id="root" style="background-color: #ffffff !important;"></div>
     <script type="module" src="/src/main.tsx"></script>
     <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
     <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
