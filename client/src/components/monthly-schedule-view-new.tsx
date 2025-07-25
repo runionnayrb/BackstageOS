@@ -607,6 +607,12 @@ export default function MonthlyScheduleView({
             console.log('🚨 EDIT DIALOG EVENT:', JSON.stringify(editEventDialog.event, null, 2));
             console.log('🚨 Event isProductionLevel value:', editEventDialog.event.isProductionLevel);
             
+            // DEBUG: Force console logs to appear
+            console.log('🚨🚨🚨 MAPPING LOGIC STARTING NOW!');
+            console.log('🚨🚨🚨 editEventDialog.event.type:', editEventDialog.event.type);
+            console.log('🚨🚨🚨 editEventDialog.event.eventTypeId:', editEventDialog.event.eventTypeId);
+            console.log('🚨🚨🚨 eventTypes array length:', eventTypes.length);
+            
             // For Important Date events, map the eventTypeId to the actual event type name for the form
             let eventTypeName = editEventDialog.event.type;
             console.log('🔍 INITIAL eventTypeName:', eventTypeName, 'eventTypeId:', editEventDialog.event.eventTypeId);
