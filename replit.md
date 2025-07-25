@@ -80,6 +80,29 @@ BackstageOS is a comprehensive theater management platform specifically designed
 **Technical Fix**: Service worker now notifies of updates without forcing immediate page reloads, breaking the infinite refresh cycle
 **Status**: Critical PWA refresh loop issue completely resolved - site should now load normally without multiple refreshes
 
+### PWA Production Fixes v8.0.0 (July 25, 2025) - AGGRESSIVE WHITE STATUS BAR & FOOTER POSITIONING
+**Issues Addressed**:
+- iOS PWA status bar still showing blue despite multiple CSS attempts
+- Footer navigation positioned too high with scroll gap visible below
+- Update notifications appearing and blocking interface
+- Header not positioned tight against Dynamic Island
+
+**Solutions Implemented**:
+- **Ultra-aggressive CSS v8.0.0**: Multiple white overlay pseudo-elements extending above viewport to force status bar
+- **Footer repositioning**: Reduced bottom padding to 20px (just enough for home indicator clearance)
+- **Content padding adjustment**: Set to exactly 60px to match footer height and eliminate scroll gap
+- **Header positioning**: Set top: 0 with internal padding for Dynamic Island instead of offset positioning
+- **Update notifications removed**: Completely eliminated update toast notifications from PWA manager
+- **Service worker v8.0.0**: Updated version to force cache clearing on production deployment
+
+**Technical Details**:
+- HTML element set to fixed positioning covering entire viewport
+- Multiple ::before and ::after pseudo-elements creating white overlays at z-index 9999
+- Footer uses max(env(safe-area-inset-bottom), 20px) for precise home indicator clearance
+- All container backgrounds set to transparent to prevent blue bleed-through
+
+**Status**: Aggressive production fixes applied - requires deployment to beta.backstageos.com to take effect
+
 ### Schedule Tab Mobile Optimization (July 25, 2025)
 - **Mobile-Responsive Grids**: Updated schedule settings grid from fixed 3-column to responsive (1 column mobile, 2 tablet, 3 desktop)
 - **Event Types Filtering**: Optimized event type grid for mobile with proper text truncation and border styling

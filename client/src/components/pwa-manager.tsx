@@ -158,31 +158,7 @@ export function PWAManager({ children }: PWAManagerProps) {
         }}
       />
 
-      {/* Offline Indicator */}
-      <div className="fixed top-4 right-4 z-50">
-        {!isOnline && (
-          <div className="bg-yellow-500 text-yellow-50 px-3 py-2 rounded-lg shadow-lg flex items-center space-x-2 text-sm">
-            <WifiOff className="h-4 w-4" />
-            <span>Offline Mode</span>
-          </div>
-        )}
-        
-        {isOnline && hasUpdate && (
-          <div className="bg-blue-500 text-blue-50 px-3 py-2 rounded-lg shadow-lg flex items-center space-x-2 text-sm">
-            <RefreshCw className="h-4 w-4" />
-            <span>Update available</span>
-            <Button 
-              size="sm" 
-              variant="secondary" 
-              onClick={handleUpdate}
-              disabled={isUpdating}
-              className="ml-2 h-6 px-2 text-xs"
-            >
-              {isUpdating ? 'Updating...' : 'Update'}
-            </Button>
-          </div>
-        )}
-      </div>
+      {/* Removed update notifications completely */}
     </>
   );
 }

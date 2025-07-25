@@ -1,9 +1,9 @@
 // BackstageOS Service Worker  
-// Version 6.0.0 - COMPLETE DOM OVERRIDE
+// Version 8.0.0 - PRODUCTION FIX
 
-const CACHE_NAME = 'backstageos-v6-' + Date.now();
-const STATIC_CACHE_NAME = 'backstageos-static-v6-' + Date.now();
-const DYNAMIC_CACHE_NAME = 'backstageos-dynamic-v6-' + Date.now();
+const CACHE_NAME = 'backstageos-v8-' + Date.now();
+const STATIC_CACHE_NAME = 'backstageos-static-v8-' + Date.now();
+const DYNAMIC_CACHE_NAME = 'backstageos-dynamic-v8-' + Date.now();
 
 // Core files to cache for offline functionality
 const STATIC_ASSETS = [
@@ -24,7 +24,7 @@ const CACHEABLE_APIS = [
 
 // Install event - BYPASS ALL CACHING
 self.addEventListener('install', event => {
-  console.log('[SW] Installing BackstageOS Service Worker v6.0.0 - COMPLETE DOM OVERRIDE');
+  console.log('[SW] Installing BackstageOS Service Worker v8.0.0 - PRODUCTION FIX');
   
   // Skip all caching and force immediate activation
   event.waitUntil(self.skipWaiting());
@@ -32,7 +32,7 @@ self.addEventListener('install', event => {
 
 // Activate event - DESTROY ALL CACHES
 self.addEventListener('activate', event => {
-  console.log('[SW] Activating BackstageOS Service Worker v6.0.0 - COMPLETE DOM OVERRIDE');
+  console.log('[SW] Activating BackstageOS Service Worker v8.0.0 - PRODUCTION FIX');
   
   event.waitUntil(
     Promise.all([
@@ -57,7 +57,7 @@ self.addEventListener('activate', event => {
       console.log('[SW] Service worker activated, notifying client');
       client.postMessage({
         type: 'NEW_VERSION_AVAILABLE',
-        version: '6.0.0',
+        version: '8.0.0',
         message: 'Service worker activated'
       });
     });
