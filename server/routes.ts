@@ -2174,11 +2174,24 @@ Respond with valid JSON only.`;
       
       console.log(`SAFARI ADMIN BYPASS: /api/admin/user-analytics allowing access for admin user`);
       
-      const analytics = await storage.getUserAnalytics();
+      const analytics = await storage.getNonEditorUserAnalytics();
       res.json(analytics);
     } catch (error) {
       console.error("Error fetching user analytics:", error);
       res.status(500).json({ message: "Failed to fetch user analytics" });
+    }
+  });
+
+  // All users analytics (for admin debugging - includes editors)
+  app.get('/api/admin/all-user-analytics', async (req: any, res) => {
+    try {
+      console.log(`SAFARI ADMIN BYPASS: /api/admin/all-user-analytics allowing access for admin user`);
+      
+      const analytics = await storage.getUserAnalytics();
+      res.json(analytics);
+    } catch (error) {
+      console.error("Error fetching all user analytics:", error);
+      res.status(500).json({ message: "Failed to fetch all user analytics" });
     }
   });
 

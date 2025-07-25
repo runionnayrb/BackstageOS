@@ -5613,7 +5613,13 @@ export class DatabaseStorage implements IStorage {
   async getEditorAnalytics(): Promise<any[]> {
     // Get user analytics data but filter for editors only
     const allAnalytics = await this.getUserAnalytics();
-    return allAnalytics.filter(user => user.email.includes('editor') || user.userRole === 'editor');
+    return allAnalytics.filter(user => user.userRole === 'editor');
+  }
+
+  async getNonEditorUserAnalytics(): Promise<any[]> {
+    // Get user analytics data but filter for non-editors only (user/admin roles)
+    const allAnalytics = await this.getUserAnalytics();
+    return allAnalytics.filter(user => user.userRole === 'user' || user.userRole === 'admin');
   }
 
   async getUserInvitedTeamMembers(userId: number): Promise<any[]> {
