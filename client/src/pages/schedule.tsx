@@ -1448,8 +1448,16 @@ The Production Team`
             side="bottom" 
             className="h-[95vh] p-0 flex flex-col rounded-t-lg"
           >
-            <SheetHeader className="p-4 pb-3 border-b bg-white sticky top-0 z-10 rounded-t-lg">
+            <SheetHeader className="p-4 pb-3 border-b bg-white sticky top-0 z-10 rounded-t-lg flex-row items-center justify-between">
               <SheetTitle className="text-left text-lg font-semibold">Schedule Version Control</SheetTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowVersionControl(false)}
+                className="h-8 w-8 p-0 hover:bg-gray-100"
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </SheetHeader>
             <div className="flex-1 overflow-y-auto">
               <div className="p-4">
