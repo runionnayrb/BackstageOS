@@ -2660,30 +2660,33 @@ Best regards,
           "Performance",
           "Preview",
           "Breaks",
-          "Tech Rehearsal"
+          "Tech Rehearsal",
+          "Costume Fitting",
+          "Wig Fitting",
+          "Hair and Make-Up",
+          "Vocal Coaching"
         ]
       };
 
       // Create all system event types for the new project
       const systemEventTypes = [
-        { id: -1, name: 'Rehearsal', description: 'Regular rehearsals including table reads, blocking, and run-throughs', color: '#3B82F6' },
-        { id: -2, name: 'Tech Rehearsal', description: 'Technical rehearsals including light and sound integration', color: '#FF6B35' },
-        { id: -3, name: 'Preview', description: 'Preview performances before opening', color: '#F59E0B' },
-        { id: -4, name: 'Performance', description: 'Live performances and shows', color: '#EF4444' },
-        { id: -5, name: 'Meeting', description: 'Production meetings and administrative gatherings', color: '#8B5CF6' },
-        { id: -6, name: 'Costume Fitting', description: 'Wardrobe and costume fittings', color: '#10B981' },
-        { id: -7, name: 'Wig Fitting', description: 'Wig and hair piece fittings', color: '#8B5CF6' },
-        { id: -8, name: 'Hair and Make-Up', description: 'Hair and makeup sessions', color: '#F59E0B' },
-        { id: -9, name: 'Vocal Coaching', description: 'Vocal training and coaching sessions', color: '#06B6D4' },
-        { id: -10, name: 'DARK', description: 'Dark days - no scheduled activities', color: '#000000' },
-        { id: -11, name: 'Breaks', description: 'Meal breaks, rest periods, and intermissions', color: '#6B7280' }
+        { name: 'Rehearsal', description: 'Regular rehearsals including table reads, blocking, and run-throughs', color: '#3B82F6' },
+        { name: 'Tech Rehearsal', description: 'Technical rehearsals including light and sound integration', color: '#FF6B35' },
+        { name: 'Preview', description: 'Preview performances before opening', color: '#F59E0B' },
+        { name: 'Performance', description: 'Live performances and shows', color: '#EF4444' },
+        { name: 'Meeting', description: 'Production meetings and administrative gatherings', color: '#8B5CF6' },
+        { name: 'Costume Fitting', description: 'Wardrobe and costume fittings', color: '#10B981' },
+        { name: 'Wig Fitting', description: 'Wig and hair piece fittings', color: '#8B5CF6' },
+        { name: 'Hair and Make-Up', description: 'Hair and makeup sessions', color: '#F59E0B' },
+        { name: 'Vocal Coaching', description: 'Vocal training and coaching sessions', color: '#06B6D4' },
+        { name: 'DARK', description: 'Dark days - no scheduled activities', color: '#000000' },
+        { name: 'Breaks', description: 'Meal breaks, rest periods, and intermissions', color: '#6B7280' }
       ];
 
-      // Create system event types for new project
+      // Create system event types for new project (let the database assign IDs)
       for (const eventType of systemEventTypes) {
         try {
           await storage.createEventType({
-            id: eventType.id,
             projectId: project.id,
             name: eventType.name,
             description: eventType.description,
@@ -2692,8 +2695,7 @@ Best regards,
             createdBy: parseInt(userId)
           });
         } catch (error) {
-          // If event type already exists, skip (should not happen for new projects but defensive coding)
-          console.log(`Event type ${eventType.name} already exists for project ${project.id}`);
+          console.log(`Error creating event type ${eventType.name} for project ${project.id}:`, error);
         }
       }
 

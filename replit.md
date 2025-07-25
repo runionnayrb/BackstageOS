@@ -51,13 +51,13 @@ BackstageOS is a comprehensive theater management platform specifically designed
 - **Section Organization**: Moved Event Locations above Event Types in schedule settings for more logical workflow organization
 - **Mobile Navigation Context**: Updated mobile three-dot menu to display "Show Settings" instead of "Settings" when inside a specific show for clearer context
 
-### Complete System Event Types Implementation (July 25, 2025)
-- **Full System Event Types Restoration**: Added missing system event types (Costume Fitting, Wig Fitting, Hair and Make-Up, Vocal Coaching) to existing project database
-- **Breaks Event Type Implementation**: Added "Breaks" as system default event type (ID: -11) with gray color (#6B7280) 
-- **System Event Type IDs**: Costume Fitting (-6, green), Wig Fitting (-7, purple), Hair and Make-Up (-8, yellow), Vocal Coaching (-9, cyan)
-- **Optimistic Updates**: Implemented optimistic updates for show schedule filtering toggles to eliminate database lag and removed toast notifications
-- **Complete Integration**: All system event types now available in schedule views with proper color coding and immediate toggle response
-- **New Project Defaults**: Updated project creation process to automatically include all system event types and Macbeth's enabled event type settings as defaults for new shows
+### Project Creation Fixes & System Event Types (July 25, 2025)
+- **Database Constraint Fix**: Resolved show creation failure caused by missing `slug` field constraint by adding slug generation from project name
+- **Schema Updates**: Added slug field to projects schema with automatic URL-friendly slug generation during project creation
+- **System Event Types Fix**: Fixed missing system event types (Costume Fitting, Wig Fitting, Hair and Make-Up, Vocal Coaching, DARK, Breaks) in existing projects
+- **Project Creation Enhancement**: Updated new project creation to include all 11 system event types with proper database ID management
+- **Validation Improvements**: Enhanced project creation validation to handle venueId and seasonId empty string conversions
+- **Complete System Integration**: All system event types now properly created for both existing and new projects with consistent naming and colors
 
 ### Notes System Features (Completed)
 - **Rich Text Editor**: TipTap-powered editor with comprehensive formatting toolbar
