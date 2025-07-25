@@ -530,64 +530,62 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
         {eventTypeShares.length > 0 ? (
           <div className="space-y-2">
             {eventTypeShares.map((share: EventTypeCalendarShare) => (
-              <div key={share.id} className="flex items-center justify-between py-3 px-4 rounded-lg bg-gray-50/50">
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
+              <div key={share.id} className="py-3 px-4 rounded-lg bg-gray-50/50">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="flex-1">
                     <h4 className="font-medium">{share.eventTypeName}</h4>
-                    <div className="flex items-center gap-2">
-                      <div className="text-xs text-muted-foreground">
-                        {share.accessCount} access{share.accessCount !== 1 ? 'es' : ''} • Created {formatDate(share.createdAt)}
-                      </div>
-                      <div className="flex gap-2">
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className="text-xs h-8"
-                          onClick={() => handleCopyEventTypeLink(share.token, share.eventTypeName)}
-                        >
-                          <Copy className="h-3 w-3 mr-1" />
-                          Copy Link
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className="text-xs h-8"
-                          onClick={() => handleDownloadEventTypeICS(share.token, share.eventTypeName)}
-                        >
-                          <Download className="h-3 w-3 mr-1" />
-                          Download
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              disabled={deleteEventTypeShareMutation.isPending}
-                              className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Calendar Share</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete the "{share.eventTypeName}" calendar share? This will permanently remove access for all users with this link and cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => deleteEventTypeShareMutation.mutate(share.id)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {share.accessCount} access{share.accessCount !== 1 ? 'es' : ''} • Created {formatDate(share.createdAt)}
                     </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="text-xs h-8"
+                      onClick={() => handleCopyEventTypeLink(share.token, share.eventTypeName)}
+                    >
+                      <Copy className="h-3 w-3 mr-1" />
+                      Copy Link
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="text-xs h-8"
+                      onClick={() => handleDownloadEventTypeICS(share.token, share.eventTypeName)}
+                    >
+                      <Download className="h-3 w-3 mr-1" />
+                      Download
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={deleteEventTypeShareMutation.isPending}
+                          className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Calendar Share</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete the "{share.eventTypeName}" calendar share? This will permanently remove access for all users with this link and cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => deleteEventTypeShareMutation.mutate(share.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
               </div>
@@ -661,10 +659,10 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
               
               return (
                 <div key={contact.id} className="p-4 rounded-lg bg-gray-50/50">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <h4 className="font-medium">{getContactDisplayName(contact)}</h4>
                     
-                    <div className="flex items-center gap-6">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-6">
                       {/* Notification Settings */}
                       <Popover>
                       <PopoverTrigger asChild>
@@ -672,7 +670,7 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
                           Notification Settings
                         </button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-80" align="start">
+                      <PopoverContent className="w-80 sm:w-80 max-w-[calc(100vw-2rem)]" align="start">
                         <div className="space-y-4">
                           <div>
                             <h4 className="font-medium text-sm mb-2">Email Notifications</h4>
@@ -728,7 +726,7 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
                           Calendar Sharing
                         </button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-80" align="start">
+                      <PopoverContent className="w-80 sm:w-80 max-w-[calc(100vw-2rem)]" align="start">
                         <div className="space-y-4">
                           <div>
                             <h4 className="font-medium text-sm mb-2">Calendar Sharing</h4>
@@ -737,12 +735,12 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
                                 <div className="text-xs text-muted-foreground">
                                   {existingShare.accessCount} access{existingShare.accessCount !== 1 ? 'es' : ''} • Created {formatDate(existingShare.createdAt)}
                                 </div>
-                                <div className="flex gap-2">
+                                <div className="flex flex-col sm:flex-row gap-2">
                                   <Button
                                     onClick={() => handleCopyLinkForContact(contact.id)}
                                     variant="outline"
                                     size="sm"
-                                    className="flex-1 gap-1"
+                                    className="flex-1 gap-1 text-xs sm:text-sm"
                                   >
                                     <Copy className="h-3 w-3" />
                                     Copy Link
@@ -751,7 +749,7 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
                                     onClick={() => handleDownloadICSForContact(contact.id)}
                                     variant="outline"
                                     size="sm"
-                                    className="flex-1 gap-1"
+                                    className="flex-1 gap-1 text-xs sm:text-sm"
                                   >
                                     <Download className="h-3 w-3" />
                                     Download

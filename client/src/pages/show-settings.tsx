@@ -1975,6 +1975,92 @@ The Production Team`
             </CardContent>
           </Card>
 
+          {/* Event Types Management */}
+          <Card className="mt-6 border-0 shadow-none">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>
+                    Event Types
+                  </CardTitle>
+                  <CardDescription>
+                    Manage custom event types for your schedule
+                  </CardDescription>
+                </div>
+                <Button onClick={handleCreateEventType} size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Event Type
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {eventTypes.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    Loading event types...
+                  </p>
+                ) : (
+                  eventTypes.map((eventType: any) => (
+                    <div key={eventType.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50/50">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-4 h-4 rounded-full"
+                          style={{ backgroundColor: eventType.color }}
+                        />
+                        <div>
+                          <h4 className="font-medium">{eventType.name}</h4>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {eventType.isDefault && (
+                          <span className="text-xs text-blue-700 font-medium">
+                            System
+                          </span>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditEventType(eventType)}
+                        >
+                          <Edit3 className="h-4 w-4" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                {eventType.isDefault ? 'Remove System Event Type' : 'Delete Event Type'}
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                {eventType.isDefault 
+                                  ? `Are you sure you want to remove "${eventType.name}" from this show? You can add it back later by creating a custom event type with the same name.`
+                                  : `Are you sure you want to delete "${eventType.name}"? This action cannot be undone.`
+                                }
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteEventType(eventType.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                {eventType.isDefault ? 'Remove' : 'Delete'}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Show Schedule Filtering */}
           <Card className="mt-6 border-0 shadow-none">
             <CardHeader>
@@ -2406,92 +2492,6 @@ The Production Team`}
             </CardHeader>
             <CardContent>
               <PersonalScheduleShare projectId={parseInt(params.id)} />
-            </CardContent>
-          </Card>
-
-          {/* Event Types Management */}
-          <Card className="mt-6 border-0 shadow-none">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>
-                    Event Types
-                  </CardTitle>
-                  <CardDescription>
-                    Manage custom event types for your schedule
-                  </CardDescription>
-                </div>
-                <Button onClick={handleCreateEventType} size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Event Type
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {eventTypes.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    Loading event types...
-                  </p>
-                ) : (
-                  eventTypes.map((eventType: any) => (
-                    <div key={eventType.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50/50">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="w-4 h-4 rounded-full"
-                          style={{ backgroundColor: eventType.color }}
-                        />
-                        <div>
-                          <h4 className="font-medium">{eventType.name}</h4>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {eventType.isDefault && (
-                          <span className="text-xs text-blue-700 font-medium">
-                            System
-                          </span>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditEventType(eventType)}
-                        >
-                          <Edit3 className="h-4 w-4" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>
-                                {eventType.isDefault ? 'Remove System Event Type' : 'Delete Event Type'}
-                              </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                {eventType.isDefault 
-                                  ? `Are you sure you want to remove "${eventType.name}" from this show? You can add it back later by creating a custom event type with the same name.`
-                                  : `Are you sure you want to delete "${eventType.name}"? This action cannot be undone.`
-                                }
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDeleteEventType(eventType.id)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                {eventType.isDefault ? 'Remove' : 'Delete'}
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
             </CardContent>
           </Card>
 
