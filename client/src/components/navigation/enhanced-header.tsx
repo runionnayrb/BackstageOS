@@ -223,7 +223,7 @@ export default function EnhancedHeader() {
 
   return (
     <div ref={headerRef} className={`bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm ${isPWA ? 'pt-safe' : ''}`}>
-      {/* PWA Dynamic Island Area - Always show for now to test */}
+      {/* PWA Dynamic Island Area - Always show for testing, will hide in production */}
       <div className="bg-white px-4 pt-2 pb-1">
         <div className="flex justify-center">
           <div className="pwa-dynamic-island">
@@ -233,6 +233,17 @@ export default function EnhancedHeader() {
             </span>
           </div>
         </div>
+        {!isPWA && (
+          <div className="text-center mt-2">
+            <a 
+              href="/pwa-test.html" 
+              className="text-xs text-blue-600 underline"
+              target="_blank"
+            >
+              Test PWA Installation
+            </a>
+          </div>
+        )}
       </div>
       
       {/* Main Header */}
