@@ -28,6 +28,8 @@ import {
   errorClusters,
   errorNotifications,
   props,
+  costumes,
+  scripts,
   domainRoutes,
   waitlist,
   waitlistEmailSettings,
@@ -142,6 +144,10 @@ import {
   type InsertApiSettings,
   type Prop,
   type InsertProp,
+  type Costume,
+  type InsertCostume,
+  type Script,
+  type InsertScript,
   type DomainRoute,
   type InsertDomainRoute,
   type SeoSettings,
@@ -421,6 +427,20 @@ export interface IStorage {
   createProp(prop: InsertProp): Promise<Prop>;
   updateProp(id: number, prop: Partial<InsertProp>): Promise<Prop>;
   deleteProp(id: number): Promise<void>;
+
+  // Costumes operations
+  getCostumesByProjectId(projectId: number): Promise<Costume[]>;
+  getCostumeById(id: number): Promise<Costume | undefined>;
+  createCostume(costume: InsertCostume): Promise<Costume>;
+  updateCostume(id: number, costume: Partial<InsertCostume>): Promise<Costume>;
+  deleteCostume(id: number): Promise<void>;
+
+  // Scripts operations
+  getScriptsByProjectId(projectId: number): Promise<Script[]>;
+  getScriptById(id: number): Promise<Script | undefined>;
+  createScript(script: InsertScript): Promise<Script>;
+  updateScript(id: number, script: Partial<InsertScript>): Promise<Script>;
+  deleteScript(id: number): Promise<void>;
 
   // Error logging operations
   createErrorLog(errorLog: InsertErrorLog): Promise<ErrorLog>;
@@ -1717,6 +1737,56 @@ export class DatabaseStorage implements IStorage {
 
   async deleteProp(id: number): Promise<void> {
     await db.delete(props).where(eq(props.id, id));
+  }
+
+  // Costumes operations
+  async getCostumesByProjectId(projectId: number): Promise<Costume[]> {
+    const result = await db.select().from(costumes).where(eq(costumes.projectId, projectId));
+    return result;
+  }
+
+  async getCostumeById(id: number): Promise<Costume | undefined> {
+    const result = await db.select().from(costumes).where(eq(costumes.id, id));
+    return result[0];
+  }
+
+  async createCostume(costume: InsertCostume): Promise<Costume> {
+    const result = await db.insert(costumes).values(costume).returning();
+    return result[0];
+  }
+
+  async updateCostume(id: number, costume: Partial<InsertCostume>): Promise<Costume> {
+    const result = await db.update(costumes).set(costume).where(eq(costumes.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteCostume(id: number): Promise<void> {
+    await db.delete(costumes).where(eq(costumes.id, id));
+  }
+
+  // Scripts operations
+  async getScriptsByProjectId(projectId: number): Promise<Script[]> {
+    const result = await db.select().from(scripts).where(eq(scripts.projectId, projectId));
+    return result;
+  }
+
+  async getScriptById(id: number): Promise<Script | undefined> {
+    const result = await db.select().from(scripts).where(eq(scripts.id, id));
+    return result[0];
+  }
+
+  async createScript(script: InsertScript): Promise<Script> {
+    const result = await db.insert(scripts).values(script).returning();
+    return result[0];
+  }
+
+  async updateScript(id: number, script: Partial<InsertScript>): Promise<Script> {
+    const result = await db.update(scripts).set(script).where(eq(scripts.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteScript(id: number): Promise<void> {
+    await db.delete(scripts).where(eq(scripts.id, id));
   }
 
   async createErrorLog(errorLog: InsertErrorLog): Promise<ErrorLog> {
