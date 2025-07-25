@@ -112,7 +112,7 @@ export const getEventTypeHexColor = (eventType: string): string => {
     case 'preview': return '#EAB308'; // yellow-500
     case 'performance': return '#22C55E'; // green-500
     case 'dark': return '#000000'; // black
-    case 'breaks': return '#A855F7'; // purple-500
+    case 'breaks': return '#6B7280'; // gray-500
     // Individual events - muted colors
     case 'meeting': return '#8B5CF6'; // purple-500
     case 'costume_fitting': return '#EC4899'; // pink-500
