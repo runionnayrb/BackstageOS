@@ -1,0 +1,30 @@
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.Understand this error
+framework-12a98232eb5e9d11.js:1 Unrecognized feature: 'ambient-light-sensor'.
+_ @ framework-12a98232eb5e9d11.js:1Understand this warning
+framework-12a98232eb5e9d11.js:1 Unrecognized feature: 'battery'.
+_ @ framework-12a98232eb5e9d11.js:1Understand this warning
+framework-12a98232eb5e9d11.js:1 Unrecognized feature: 'execution-while-not-rendered'.
+_ @ framework-12a98232eb5e9d11.js:1Understand this warning
+framework-12a98232eb5e9d11.js:1 Unrecognized feature: 'execution-while-out-of-viewport'.
+_ @ framework-12a98232eb5e9d11.js:1Understand this warning
+framework-12a98232eb5e9d11.js:1 Unrecognized feature: 'layout-animations'.
+_ @ framework-12a98232eb5e9d11.js:1Understand this warning
+framework-12a98232eb5e9d11.js:1 Unrecognized feature: 'legacy-image-formats'.
+_ @ framework-12a98232eb5e9d11.js:1Understand this warning
+framework-12a98232eb5e9d11.js:1 Unrecognized feature: 'navigation-override'.
+_ @ framework-12a98232eb5e9d11.js:1Understand this warning
+framework-12a98232eb5e9d11.js:1 Unrecognized feature: 'oversized-images'.
+_ @ framework-12a98232eb5e9d11.js:1Understand this warning
+framework-12a98232eb5e9d11.js:1 Unrecognized feature: 'publickey-credentials'.
+_ @ framework-12a98232eb5e9d11.js:1Understand this warning
+framework-12a98232eb5e9d11.js:1 Unrecognized feature: 'speaker-selection'.
+_ @ framework-12a98232eb5e9d11.js:1Understand this warning
+framework-12a98232eb5e9d11.js:1 Unrecognized feature: 'unoptimized-images'.
+_ @ framework-12a98232eb5e9d11.js:1Understand this warning
+framework-12a98232eb5e9d11.js:1 Unrecognized feature: 'unsized-media'.
+_ @ framework-12a98232eb5e9d11.js:1Understand this warning
+framework-12a98232eb5e9d11.js:1 Unrecognized feature: 'pointer-lock'.
+_ @ framework-12a98232eb5e9d11.js:1Understand this warning
+framework-12a98232eb5e9d11.js:1 Allow attribute will take precedence over 'allowfullscreen'.
+_ @ framework-12a98232eb5e9d11.js:1Understand this warning
+framework-12a98232eb5e9d11.js:1 Allow attribute will take precedence over 'allowpaymentrequest'
