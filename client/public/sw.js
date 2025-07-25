@@ -1,9 +1,9 @@
 // BackstageOS Service Worker  
-// Version 2.0.0 - Updated for Dynamic Island
+// Version 3.0.0 - Force Dynamic Island Update
 
-const CACHE_NAME = 'backstageos-v2';
-const STATIC_CACHE_NAME = 'backstageos-static-v2';
-const DYNAMIC_CACHE_NAME = 'backstageos-dynamic-v2';
+const CACHE_NAME = 'backstageos-v3';
+const STATIC_CACHE_NAME = 'backstageos-static-v3';
+const DYNAMIC_CACHE_NAME = 'backstageos-dynamic-v3';
 
 // Core files to cache for offline functionality
 const STATIC_ASSETS = [
@@ -24,7 +24,7 @@ const CACHEABLE_APIS = [
 
 // Install event - cache core assets
 self.addEventListener('install', event => {
-  console.log('[SW] Installing BackstageOS Service Worker');
+  console.log('[SW] Installing BackstageOS Service Worker v3.0.0');
   
   event.waitUntil(
     Promise.all([
@@ -32,7 +32,7 @@ self.addEventListener('install', event => {
         console.log('[SW] Caching static assets');
         return cache.addAll(STATIC_ASSETS);
       }),
-      // Skip waiting to activate immediately
+      // Skip waiting to activate immediately and force update
       self.skipWaiting()
     ])
   );
@@ -40,27 +40,34 @@ self.addEventListener('install', event => {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', event => {
-  console.log('[SW] Activating BackstageOS Service Worker');
+  console.log('[SW] Activating BackstageOS Service Worker v3.0.0 - Force cache clear');
   
   event.waitUntil(
     Promise.all([
-      // Clean up old caches
+      // Clean up ALL old caches to force fresh content
       caches.keys().then(cacheNames => {
+        console.log('[SW] Clearing all caches for Dynamic Island update');
         return Promise.all(
           cacheNames.map(cacheName => {
-            if (cacheName !== STATIC_CACHE_NAME && 
-                cacheName !== DYNAMIC_CACHE_NAME && 
-                cacheName !== CACHE_NAME) {
-              console.log('[SW] Deleting old cache:', cacheName);
-              return caches.delete(cacheName);
-            }
+            console.log('[SW] Deleting cache:', cacheName);
+            return caches.delete(cacheName);
           })
         );
       }),
-      // Take control of all clients
+      // Take control of all clients immediately
       self.clients.claim()
     ])
   );
+  
+  // Notify all clients that new version is available
+  self.clients.matchAll().then(clients => {
+    clients.forEach(client => {
+      client.postMessage({
+        type: 'NEW_VERSION_AVAILABLE',
+        version: '3.0.0'
+      });
+    });
+  });
 });
 
 // Fetch event - implement caching strategies

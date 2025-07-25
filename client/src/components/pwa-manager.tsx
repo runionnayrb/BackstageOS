@@ -61,9 +61,13 @@ export function PWAManager({ children }: PWAManagerProps) {
   const registerServiceWorker = async () => {
     if ('serviceWorker' in navigator) {
       try {
-        const registration = await navigator.serviceWorker.register('/sw.js');
+        // Force registration update by adding timestamp
+        const registration = await navigator.serviceWorker.register('/sw.js?v=' + Date.now());
         
         console.log('[PWA] Service Worker registered successfully');
+        
+        // Force immediate update check
+        await registration.update();
 
         // Listen for updates
         registration.addEventListener('updatefound', () => {
@@ -73,8 +77,8 @@ export function PWAManager({ children }: PWAManagerProps) {
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                 setHasUpdate(true);
                 toast({
-                  title: "Update available",
-                  description: "A new version of BackstageOS is ready.",
+                  title: "Dynamic Island Update Available!",
+                  description: "New PWA features are ready to install.",
                   action: (
                     <Button 
                       variant="outline" 
@@ -106,6 +110,24 @@ export function PWAManager({ children }: PWAManagerProps) {
               description: `${event.data.data.reportsCount} reports synchronized.`,
             });
           }
+          
+          if (event.data?.type === 'NEW_VERSION_AVAILABLE') {
+            console.log('[PWA] New version message received:', event.data.version);
+            setHasUpdate(true);
+            toast({
+              title: "Dynamic Island Update v" + event.data.version,
+              description: "PWA features have been updated!",
+              action: (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleUpdate}
+                >
+                  Update Now
+                </Button>
+              ),
+            });
+          }
         });
 
       } catch (error) {
@@ -133,23 +155,35 @@ export function PWAManager({ children }: PWAManagerProps) {
   const handleUpdate = async () => {
     if ('serviceWorker' in navigator) {
       setIsUpdating(true);
+      console.log('[PWA] Starting force update process');
       
       try {
+        // Clear all caches first
+        if ('caches' in window) {
+          const cacheNames = await caches.keys();
+          await Promise.all(cacheNames.map(name => caches.delete(name)));
+          console.log('[PWA] Cleared all caches');
+        }
+        
         const registration = await navigator.serviceWorker.getRegistration();
         if (registration?.waiting) {
           // Tell the waiting service worker to skip waiting and become active
           registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-          
-          // Reload the page to use the new service worker
-          window.location.reload();
         }
+        
+        // Force unregister and re-register service worker
+        await registration?.unregister();
+        console.log('[PWA] Unregistered old service worker');
+        
+        // Wait a moment then reload with cache busting
+        setTimeout(() => {
+          window.location.href = window.location.href + '?cache-bust=' + Date.now();
+        }, 500);
+        
       } catch (error) {
         console.error('[PWA] Update failed:', error);
-        toast({
-          title: "Update failed",
-          description: "Please refresh the page manually.",
-          variant: "destructive",
-        });
+        // Fallback to hard refresh
+        window.location.reload(true);
       } finally {
         setIsUpdating(false);
         setHasUpdate(false);
