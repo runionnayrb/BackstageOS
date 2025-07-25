@@ -1,5 +1,5 @@
 // BackstageOS Service Worker  
-// Version 4.0.0 - Silent updates
+// Version 5.0.0 - Mobile white background fix
 
 const CACHE_NAME = 'backstageos-v2';
 const STATIC_CACHE_NAME = 'backstageos-static-v2';

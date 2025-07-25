@@ -29,6 +29,42 @@ body {
   }
 }
 
+/* Mobile-specific white background fixes */
+@media screen and (max-width: 768px) {
+  html, body {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+  }
+  
+  #root {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+  }
+  
+  /* iOS specific fixes */
+  @supports (-webkit-touch-callout: none) {
+    html, body {
+      background-color: #ffffff !important;
+      background: #ffffff !important;
+      -webkit-background-color: #ffffff !important;
+    }
+  }
+}
+
+/* Force white background on all viewport meta */
+:root {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+}
+
+/* iOS PWA specific white background */
+@media (display-mode: standalone) {
+  html, body, #root {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+  }
+}
+
 /* PWA-specific styles for iOS Dynamic Island and safe areas */
 @supports (padding: max(0px)) {
   .pt-safe {

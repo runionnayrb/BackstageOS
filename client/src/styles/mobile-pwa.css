@@ -1,0 +1,61 @@
+/* Mobile PWA specific white background overrides */
+
+/* Force white on iOS Safari and Chrome */
+@supports (-webkit-touch-callout: none) {
+  html {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  body {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+  }
+}
+
+/* Android Chrome specific */
+@media screen and (max-width: 768px) {
+  :root {
+    background-color: #ffffff !important;
+  }
+  
+  html {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+  }
+  
+  body {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
+  
+  #root {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
+}
+
+/* PWA standalone mode */
+@media (display-mode: standalone) {
+  html, body, #root {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+  }
+}
+
+/* Remove any blue tints from iOS */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* Ensure no blue background on focus */
+:focus {
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
