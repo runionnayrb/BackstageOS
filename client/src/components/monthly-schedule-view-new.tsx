@@ -607,39 +607,12 @@ export default function MonthlyScheduleView({
             console.log('🚨 EDIT DIALOG EVENT:', JSON.stringify(editEventDialog.event, null, 2));
             console.log('🚨 Event isProductionLevel value:', editEventDialog.event.isProductionLevel);
             
-            // DEBUG: Force console logs to appear
-            console.log('🚨🚨🚨 MAPPING LOGIC STARTING NOW!');
-            console.log('🚨🚨🚨 editEventDialog.event.type:', editEventDialog.event.type);
-            console.log('🚨🚨🚨 editEventDialog.event.eventTypeId:', editEventDialog.event.eventTypeId);
-            console.log('🚨🚨🚨 eventTypes array length:', eventTypes.length);
-            
-            // For Important Date events, map the eventTypeId to the actual event type name for the form
-            let eventTypeName = editEventDialog.event.type;
-            console.log('🔍 INITIAL eventTypeName:', eventTypeName, 'eventTypeId:', editEventDialog.event.eventTypeId);
-            console.log('🔍 Available eventTypes:', eventTypes.map(et => ({ id: et.id, name: et.name })));
-            
-            if (editEventDialog.event.type === 'important_date' && editEventDialog.event.eventTypeId) {
-              const matchedEventType = eventTypes.find(et => et.id === editEventDialog.event.eventTypeId);
-              console.log('🔍 Looking for eventTypeId:', editEventDialog.event.eventTypeId, 'found:', matchedEventType);
-              if (matchedEventType) {
-                // Use the actual event type name from Show Settings, not normalized
-                eventTypeName = matchedEventType.name;
-                console.log('🎯 SUCCESS! Important Date eventTypeId', editEventDialog.event.eventTypeId, 'mapped to event type:', matchedEventType.name);
-                console.log('🎯 EventForm will receive type:', eventTypeName);
-              } else {
-                console.log('❌ No matching event type found for eventTypeId:', editEventDialog.event.eventTypeId);
-              }
-            } else {
-              console.log('❌ Conditions not met for mapping:', {
-                isImportantDate: editEventDialog.event.type === 'important_date', 
-                hasEventTypeId: !!editEventDialog.event.eventTypeId
-              });
-            }
+            console.log('🎯 Event type should now be correct:', editEventDialog.event.type);
             
             const initialValuesForForm = {
               title: editEventDialog.event.title,
               description: editEventDialog.event.description,
-              type: eventTypeName, // This should now be the mapped value
+              type: editEventDialog.event.type, // Event should now have correct type name
               startDate: editEventDialog.event.date,
               endDate: editEventDialog.event.date,
               startTime: editEventDialog.event.startTime.slice(0, 5),

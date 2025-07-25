@@ -2726,11 +2726,10 @@ Best regards,
       { field: 'closingDate', label: 'Closing' }
     ];
 
-    // Get existing important date events
+    // Get existing important date events (identified by title matching important date labels)
     const existingEvents = await storage.getScheduleEventsByProjectId(projectId);
     const importantDateEvents = existingEvents.filter(event => 
-      event.type === 'important_date' && event.title && 
-      importantDateFields.some(field => event.title.includes(field.label))
+      event.title && importantDateFields.some(field => event.title.includes(field.label))
     );
 
     for (const dateField of importantDateFields) {
@@ -2748,13 +2747,18 @@ Best regards,
         const dateStr = eventDate.toISOString().split('T')[0];
         const eventTypeId = await getEventTypeIdForImportantDate(projectId, dateField.label);
         
+        // Get the actual event type name instead of using "important_date"
+        const allEventTypes = await storage.getEventTypesByProjectId(projectId);
+        const eventType = allEventTypes.find(et => et.id === eventTypeId);
+        const eventTypeName = eventType ? eventType.name : 'Event';
+        
         if (existingEvent) {
           // Update existing event
           await storage.updateScheduleEvent(existingEvent.id, {
             date: dateStr,
             title: dateField.label,
             description: `Important production milestone: ${dateField.label}`,
-            type: 'important_date',
+            type: eventTypeName, // Use actual event type name instead of "important_date"
             isAllDay: true,
             isProductionLevel: true,
             startTime: '00:00',
@@ -2770,7 +2774,7 @@ Best regards,
             date: dateStr,
             startTime: '00:00',
             endTime: '23:59',
-            type: 'important_date',
+            type: eventTypeName, // Use actual event type name instead of "important_date"
             isAllDay: true,
             isProductionLevel: true,
             createdBy: userId,
