@@ -1827,7 +1827,7 @@ The Production Team`
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="timeZone">Time Zone</Label>
                   <Select
@@ -1908,44 +1908,48 @@ The Production Team`
                 </div>
               </div>
 
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
+              <div className="flex items-start justify-between gap-4">
+                <div className="space-y-0.5 flex-1 min-w-0">
                   <Label>Allow Schedule Conflicts</Label>
                   <p className="text-sm text-muted-foreground">
                     Permit overlapping events in the schedule
                   </p>
                 </div>
-                <Switch
-                  checked={(() => {
-                    const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
-                      ? safeJsonParse((settings as any).scheduleSettings, {}) 
-                      : ((settings as any)?.scheduleSettings || {});
-                    return scheduleSettings?.allowConflicts || false;
-                  })()}
-                  onCheckedChange={(checked) =>
-                    handleSettingsUpdate("scheduleSettings", { allowConflicts: checked })
-                  }
-                />
+                <div className="flex-shrink-0">
+                  <Switch
+                    checked={(() => {
+                      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                        ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                        : ((settings as any)?.scheduleSettings || {});
+                      return scheduleSettings?.allowConflicts || false;
+                    })()}
+                    onCheckedChange={(checked) =>
+                      handleSettingsUpdate("scheduleSettings", { allowConflicts: checked })
+                    }
+                  />
+                </div>
               </div>
 
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
+              <div className="flex items-start justify-between gap-4">
+                <div className="space-y-0.5 flex-1 min-w-0">
                   <Label>Event Reminders</Label>
                   <p className="text-sm text-muted-foreground">
                     Send reminders before scheduled events
                   </p>
                 </div>
-                <Switch
-                  checked={(settings as any)?.scheduleSettings?.reminderSettings?.enabled !== false}
-                  onCheckedChange={(checked) =>
-                    handleSettingsUpdate("scheduleSettings", {
-                      reminderSettings: {
-                        ...(settings as any)?.scheduleSettings?.reminderSettings,
-                        enabled: checked,
-                      },
-                    })
-                  }
-                />
+                <div className="flex-shrink-0">
+                  <Switch
+                    checked={(settings as any)?.scheduleSettings?.reminderSettings?.enabled !== false}
+                    onCheckedChange={(checked) =>
+                      handleSettingsUpdate("scheduleSettings", {
+                        reminderSettings: {
+                          ...(settings as any)?.scheduleSettings?.reminderSettings,
+                          enabled: checked,
+                        },
+                      })
+                    }
+                  />
+                </div>
               </div>
 
               {(settings as any)?.scheduleSettings?.reminderSettings?.enabled !== false && (
@@ -1981,19 +1985,19 @@ The Production Team`
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {eventTypes.map((eventType: any) => (
-                    <div key={eventType.id} className="flex items-center justify-between p-3 rounded-lg">
+                    <div key={eventType.id} className="flex items-center justify-between p-3 rounded-lg border border-gray-100">
                       <div className="flex items-center gap-3">
                         <div
-                          className="w-4 h-4 rounded-full"
+                          className="w-4 h-4 rounded-full flex-shrink-0"
                           style={{ backgroundColor: eventType.color }}
                         />
-                        <div>
-                          <h4 className="font-medium">{eventType.name}</h4>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-medium text-sm truncate">{eventType.name}</h4>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-shrink-0">
                         {eventType.isDefault && (
                           <span className="text-xs text-blue-700 font-medium">
                             System
