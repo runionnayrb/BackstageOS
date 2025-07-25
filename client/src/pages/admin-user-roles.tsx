@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Users, Crown, Edit3, Eye, Settings } from "lucide-react";
+import SimpleUserList from "@/components/SimpleUserList";
 
 interface User {
   id: number;
@@ -63,12 +64,6 @@ export default function AdminUserRoles() {
   const { data: users = [], isLoading: usersLoading } = useQuery({
     queryKey: ["/api/admin/users-by-role", selectedRole],
     enabled: !!selectedRole && selectedRole !== "editor",
-  });
-
-  // Fetch editors with projects (for editor tab only)
-  const { data: editorsWithProjects = [], isLoading: editorsLoading } = useQuery({
-    queryKey: ["/api/admin/editors-with-projects"],
-    enabled: selectedRole === "editor",
   });
 
   // Update user role mutation
@@ -242,10 +237,19 @@ export default function AdminUserRoles() {
           </TabsTrigger>
         </TabsList>
 
-        {["admin", "user", "editor", "viewer"].map((role) => {
-          const isEditor = role === "editor";
-          const isLoading = isEditor ? editorsLoading : usersLoading;
-          const userData = isEditor ? editorsWithProjects : users;
+        {/* Editor Tab with SimpleUserList */}
+        <TabsContent value="editor" className="mt-6">
+          <SimpleUserList 
+            role="editor" 
+            title="Editors" 
+            description="Users with editor role who can edit productions"
+          />
+        </TabsContent>
+
+        {/* Other role tabs */}
+        {["admin", "user", "viewer"].map((role) => {
+          const isLoading = usersLoading;
+          const userData = users;
           
           return (
             <TabsContent key={role} value={role} className="mt-6">

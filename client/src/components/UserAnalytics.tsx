@@ -15,6 +15,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
 import { Edit2, Trash2, Save, X, Brain, Target, DollarSign, TrendingUp, Users, BarChart3, Zap } from "lucide-react";
 import HierarchicalUserManagement from "@/components/HierarchicalUserManagement";
+import SimpleUserList from "@/components/SimpleUserList";
 
 interface UserAnalytics {
   id: number;
@@ -375,14 +376,12 @@ export default function UserAnalytics() {
             </div>
           )}
 
-      {/* Hierarchical User Management */}
-      <div>
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold">User Management with Invited Editors</h3>
-          <p className="text-sm text-gray-600">Users with "user" role and their invited editors organized by production</p>
-        </div>
-        <HierarchicalUserManagement />
-      </div>
+      {/* User Management */}
+      <SimpleUserList 
+        role="user" 
+        title="Users" 
+        description="Users with standard user role who can create and manage productions"
+      />
       
       {/* Full User Analytics (All Users) */}
       <Card>
