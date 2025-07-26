@@ -78,10 +78,8 @@ BackstageOS is a comprehensive theater management platform specifically designed
 - Template field position changes now persist correctly across page reloads and navigation
 - No more reverting to old positions when returning to template editing
 - Consistent data flow ensures what user saves is exactly what gets loaded
-- Lock button responds instantly with optimistic updates for immediate visual feedback
-- Drag and resize operations now update UI immediately without visual lag
-- All layout changes happen instantly while database saves occur in background
-- Smooth, responsive template editing experience without waiting for server responses
+- Lock button now responds instantly with optimistic updates for immediate visual feedback
+- Background database saves ensure persistence without blocking user interface
 
 **Files Updated:**
 - `client/src/pages/template-settings.tsx`: Fixed data source mismatch in template loading and configuration saving
