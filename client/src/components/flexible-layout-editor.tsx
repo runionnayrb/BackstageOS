@@ -714,18 +714,18 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     };
   }, [effectiveEditMode]);
 
-  // Update layouts when configuration changes (but not during manual drag updates)
-  const [manualLayoutUpdate, setManualLayoutUpdate] = useState(false);
-  
+  // Update layouts when configuration changes (but never during edit mode if user has edited)
   useEffect(() => {
-    if (!manualLayoutUpdate) {
-      const newLayouts = convertToGridLayouts(configuration.items);
-      setLayouts(newLayouts);
-    } else {
-      // Reset flag after manual update
-      setManualLayoutUpdate(false);
+    // If we're in edit mode and user has made changes, never update layouts automatically
+    if (effectiveEditMode && userHasEditedLayout) {
+      console.log('🛡️ BLOCKING automatic layout update - user has edited in edit mode');
+      return;
     }
-  }, [configuration, convertToGridLayouts, manualLayoutUpdate]);
+    
+    console.log('✅ Allowing automatic layout update - no user edits in edit mode');
+    const newLayouts = convertToGridLayouts(configuration.items);
+    setLayouts(newLayouts);
+  }, [configuration, convertToGridLayouts, effectiveEditMode, userHasEditedLayout]);
 
   // No need to save on mode exit since we save immediately with every layout change
   // Every change becomes the new permanent template configuration automatically
@@ -816,7 +816,6 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     setUserHasEditedLayout(true); // Mark that user has made layout changes
     
     // Immediately update layouts to prevent snap-back
-    setManualLayoutUpdate(true); // Prevent useEffect from overriding
     const newLayouts = convertToGridLayouts(newConfig.items);
     setLayouts(newLayouts);
     
