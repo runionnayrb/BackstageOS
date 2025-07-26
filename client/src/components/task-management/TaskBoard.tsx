@@ -142,9 +142,16 @@ export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTa
       ? (task.properties?.project === projectId.toString())
       : true; // Show all tasks when not in a show context
     
-
-    
     return matchesSearch && matchesProject;
+  });
+
+  // Debug logging
+  console.log('🔍 Task filtering:', {
+    totalTasks: tasks.length,
+    filteredTasks: filteredTasks.length,
+    searchQuery,
+    projectId,
+    firstTaskProject: tasks[0]?.properties?.project
   });
 
   const handleCreateTask = (data: any) => {
