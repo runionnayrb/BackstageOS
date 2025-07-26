@@ -75,6 +75,7 @@ export function MobileFolderCreationSheet({
         projectId: projectId || null,
         color: null,
         sortOrder: 0,
+        isGlobal: !projectId, // Set to true when no project is specified
         createdBy: parseInt(user!.id)
       });
 
@@ -112,6 +113,7 @@ export function MobileFolderCreationSheet({
                 placeholder="Enter folder name..."
                 required
                 autoFocus
+                className="focus-visible:ring-0 focus-visible:ring-offset-0 border-gray-200 focus:border-gray-300"
               />
             </div>
 
@@ -123,6 +125,7 @@ export function MobileFolderCreationSheet({
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Enter folder description..."
                 rows={3}
+                className="focus-visible:ring-0 focus-visible:ring-offset-0 border-gray-200 focus:border-gray-300"
               />
             </div>
           </div>

@@ -77,6 +77,7 @@ export function CreateFolderDialog({
         projectId: projectId || null,
         color: null,
         sortOrder: 0,
+        isGlobal: !projectId, // Set to true when no project is specified
         createdBy: parseInt(user!.id)
       });
 
