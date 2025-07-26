@@ -664,24 +664,10 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     }
   }, [template, initialLoadComplete, userHasEditedLayout, isTransitioning, generateLayoutFromTemplate, onConfigurationChange]);
 
-  // Detect edit mode exit and save configuration
+  // Update ref for edit mode tracking (removed auto-save on exit)
   useEffect(() => {
-    const previousEditMode = prevEditModeRef.current;
-    const currentEditMode = effectiveEditMode;
-    
-    // Detect transition from edit mode to locked mode
-    if (previousEditMode && !currentEditMode) {
-      console.log('🔒 Edit mode exited - ensuring configuration is saved before lock');
-      // Save current configuration to ensure changes persist
-      if (configuration.items.length > 0) {
-        onConfigurationChange?.(configuration);
-        console.log('💾 Configuration saved on edit mode exit');
-      }
-    }
-    
-    // Update ref for next comparison
-    prevEditModeRef.current = currentEditMode;
-  }, [effectiveEditMode, configuration, onConfigurationChange]);
+    prevEditModeRef.current = effectiveEditMode;
+  }, [effectiveEditMode]);
 
   // Helper function to snap width to quarters (25%, 50%, 75%, 100%)
   const snapToQuarters = useCallback((width: number) => {
@@ -821,11 +807,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
 
     setConfiguration(newConfig);
     setUserHasEditedLayout(true); // Mark that user has made layout changes
-    console.log('👤 User has edited layout - this becomes the new template version');
-    
-    // Immediately save to database - every change becomes the new truth
-    onConfigurationChange?.(newConfig);
-    console.log('💾 Layout change saved immediately - this is now the permanent template configuration');
+    console.log('👤 User has edited layout - changes stored locally (will save on lock)');
   };
 
   const handleDragStart = () => {
