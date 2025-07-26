@@ -244,10 +244,10 @@ export function MobileNotesList({ projectId, viewMode }: MobileNotesListProps) {
   // Folders view
   const FoldersView = () => (
     <ScrollArea className="flex-1">
-      <div className="p-4">
+      <div>
         {/* All Notes option */}
         <div 
-          className="flex items-center justify-between p-4 rounded-lg border border-gray-100 mb-3 active:bg-gray-50 transition-colors"
+          className="flex items-center justify-between p-4 active:bg-gray-50 transition-colors"
           onClick={() => handleFolderSelect(0)}
         >
           <div className="flex items-center gap-3">
@@ -266,7 +266,7 @@ export function MobileNotesList({ projectId, viewMode }: MobileNotesListProps) {
           return (
             <div
               key={folder.id}
-              className="flex items-center justify-between p-4 rounded-lg border border-gray-100 mb-3 active:bg-gray-50 transition-colors"
+              className="flex items-center justify-between p-4 active:bg-gray-50 transition-colors"
               onClick={() => handleFolderSelect(folder.id)}
             >
               <div className="flex items-center gap-3">
@@ -282,7 +282,7 @@ export function MobileNotesList({ projectId, viewMode }: MobileNotesListProps) {
         })}
 
         {folders.length === 0 && (
-          <div className="text-center py-12">
+          <div className="text-center py-12 px-4">
             <Folder className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No folders yet</h3>
             <p className="text-gray-500 mb-6">Create your first folder to organize your notes</p>
