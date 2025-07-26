@@ -876,8 +876,7 @@ export default function TemplateSettings() {
                             [selectedPhase]: updatedTemplate
                           }));
                           console.log('✅ Template state updated locally (no save during edit mode)');
-                        }
-
+                        }}
                         externalEditMode={isEditMode}
                       />
                     ) : (
