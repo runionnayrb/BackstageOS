@@ -617,7 +617,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
           };
           setConfiguration(newConfig);
           setUserHasEditedLayout(false); // Allow this regeneration save
-          onConfigurationChange?.(newConfig);
+          // Don't call onConfigurationChange during migration - no auto-save during editing
           setIsLayoutMounted(true);
         } else {
           console.log('✅ Using saved configuration from template - preserving user changes');

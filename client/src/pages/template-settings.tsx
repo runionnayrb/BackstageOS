@@ -857,12 +857,13 @@ export default function TemplateSettings() {
                         isEditing={true}
                         template={template}
                         onTemplateUpdate={(updatedTemplate) => {
+                          // This only triggers when lock button is pressed
                           setTemplates(prev => ({
                             ...prev,
                             [phase]: updatedTemplate
                           }));
                           saveTemplate.mutate(updatedTemplate);
-                          // Force timestamp update by touching settings
+                          // Force timestamp update ONLY when lock is pressed
                           queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
                         }}
                         onConfigurationChange={async (config) => {
