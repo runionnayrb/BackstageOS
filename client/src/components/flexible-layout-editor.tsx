@@ -587,7 +587,13 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       return;
     }
     
-    // Always load from template if it has a layoutConfiguration (this ensures tab navigation works)
+    // If user has EVER edited the layout, never reload from template - preserve user changes permanently
+    if (userHasEditedLayoutRef.current) {
+      console.log('🛡️ User has edited layout - NEVER loading from template again');
+      return;
+    }
+    
+    // Only load from template if user has never edited the layout
     if (template?.layoutConfiguration) {
       console.log('🔄 Loading layout configuration from template:', template.layoutConfiguration);
       const savedConfig = template.layoutConfiguration;
