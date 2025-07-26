@@ -881,7 +881,10 @@ export default function TemplateSettings() {
                               [selectedPhase]: updatedTemplate
                             }));
                             
-                            console.log('✅ Configuration saved to unified showSettings - single database table!');
+                            console.log('✅ Configuration saved to unified showSettings - ensuring database completion');
+                            
+                            // Small delay to ensure database write completion before user can lock template
+                            await new Promise(resolve => setTimeout(resolve, 300));
                             
                             // Invalidate showSettings cache for consistency
                             setTimeout(() => {

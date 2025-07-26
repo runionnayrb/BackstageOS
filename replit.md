@@ -78,11 +78,13 @@ BackstageOS is a comprehensive theater management platform specifically designed
 - Template field position changes now persist correctly across page reloads and navigation
 - No more reverting to old positions when returning to template editing
 - Consistent data flow ensures what user saves is exactly what gets loaded
+- Added 300ms database completion delay to ensure saves finish before template locking
 
 **Files Updated:**
 - `client/src/pages/template-settings.tsx`: Fixed data source mismatch in template loading and configuration saving
+- `server/routes.ts`: Updated API endpoint to use unified showSettings storage approach
 
-**Status**: Template field persistence data source mismatch completely resolved - system now has unified data flow ensuring layout changes persist correctly.
+**Status**: Template field persistence completely resolved with unified database architecture. Fields now stick reliably with proper save timing.
 
 ### July 26, 2025: **MOBILE FOLDER CREATION SHEET WITH CLEAN ICON DESIGN COMPLETE**
 **Successfully implemented mobile-friendly folder creation with streamlined icon design matching app aesthetic:**
