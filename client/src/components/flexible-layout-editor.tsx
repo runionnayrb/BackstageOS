@@ -87,6 +87,7 @@ export interface FlexibleLayoutEditorRef {
   addNewItem: (type: string) => void;
   removeItem: (id: string) => void;
   resetLayout: () => void;
+  getCurrentConfiguration: () => FlexibleLayoutConfiguration | null;
 }
 
 // Draggable component wrapper for grid items
@@ -1003,8 +1004,9 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
   useImperativeHandle(ref, () => ({
     addNewItem,
     removeItem,
-    resetLayout
-  }), [addNewItem, removeItem, resetLayout]);
+    resetLayout,
+    getCurrentConfiguration: () => configuration
+  }), [addNewItem, removeItem, resetLayout, configuration]);
 
   return (
     <DndProvider backend={HTML5Backend}>

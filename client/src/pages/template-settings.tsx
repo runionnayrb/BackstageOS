@@ -692,20 +692,45 @@ export default function TemplateSettings() {
                             onClick={async () => {
                               // If we're locking the template (transitioning from edit to locked mode)
                               if (isEditMode) {
-                                console.log('🔒 Locking template - updating timestamp');
+                                console.log('🔒 Locking template - forcing save and updating timestamp');
+                                
+                                // First, force save any pending layout changes
                                 try {
-                                  // Touch the settings to update timestamp
+                                  const currentConfig = flexibleLayoutRef.current?.getCurrentConfiguration?.();
+                                  if (currentConfig) {
+                                    console.log('💾 Forcing final save of current configuration before lock');
+                                    const response = await apiRequest("PUT", `/api/projects/${projectId}/settings/layout-configuration`, {
+                                      layoutConfiguration: currentConfig,
+                                      templateType: selectedPhase
+                                    });
+                                    
+                                    // Update local state with saved configuration
+                                    setTemplates(prev => ({
+                                      ...prev,
+                                      [selectedPhase]: response
+                                    }));
+                                    console.log('✅ Configuration saved before lock');
+                                  }
+                                } catch (error) {
+                                  console.error('❌ Failed to save configuration before lock:', error);
+                                }
+                                
+                                // Then update timestamp
+                                try {
                                   await apiRequest("PUT", `/api/projects/${projectId}/settings`, {
                                     updatedAt: new Date().toISOString()
                                   });
                                   console.log('✅ Template timestamp updated on lock');
-                                  
-                                  // Invalidate cache immediately to show updated timestamp
-                                  queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
-                                  queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/templates`] });
                                 } catch (error) {
                                   console.error('❌ Failed to update timestamp on lock:', error);
                                 }
+                                
+                                // Wait a moment then invalidate cache to show all updates
+                                setTimeout(() => {
+                                  queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
+                                  queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/templates`] });
+                                  console.log('📝 Cache invalidated after lock');
+                                }, 500);
                               }
                               
                               // Toggle edit mode
@@ -865,23 +890,21 @@ export default function TemplateSettings() {
                             });
                             console.log('✅ Layout configuration saved successfully:', response);
                             
-                            // Update local template state immediately with new configuration
-                            const updatedTemplate = {
-                              ...template,
-                              layoutConfiguration: config
-                            };
+                            // Update local template state immediately with the response from the server
                             setTemplates(prev => ({
                               ...prev,
-                              [selectedPhase]: updatedTemplate
+                              [selectedPhase]: response
                             }));
-                            console.log('✅ Template state updated with new configuration');
+                            console.log('✅ Template state updated with server response');
                             
                             setLastSaved(new Date());
                             
-                            // Invalidate cache immediately to show updated data
-                            queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/templates`] });
-                            queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
-                            console.log('📝 Cache invalidated to show updated configuration');
+                            // Delay cache invalidation to ensure database write is complete
+                            setTimeout(() => {
+                              queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/templates`] });
+                              queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
+                              console.log('📝 Cache invalidated after delay to show updated configuration');
+                            }, 500);
                             
                           } catch (error) {
                             console.error('❌ Failed to save layout configuration:', error);
