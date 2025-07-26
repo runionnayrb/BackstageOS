@@ -251,9 +251,7 @@ export function MobileNotesList({ projectId, viewMode }: MobileNotesListProps) {
           onClick={() => handleFolderSelect(0)}
         >
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-blue-100">
-              <FileText className="h-5 w-5 text-blue-600" />
-            </div>
+            <FileText className="h-5 w-5 text-gray-700" />
             <div>
               <h3 className="font-medium">All Notes</h3>
               <p className="text-sm text-gray-500">{notes.length} notes</p>
@@ -272,9 +270,7 @@ export function MobileNotesList({ projectId, viewMode }: MobileNotesListProps) {
               onClick={() => handleFolderSelect(folder.id)}
             >
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-amber-100">
-                  <Folder className="h-5 w-5 text-amber-600" />
-                </div>
+                <Folder className="h-5 w-5 text-gray-700" />
                 <div>
                   <h3 className="font-medium">{folder.name}</h3>
                   <p className="text-sm text-gray-500">{folderNotes.length} notes</p>

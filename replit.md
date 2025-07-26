@@ -42,6 +42,33 @@ BackstageOS is a comprehensive theater management platform specifically designed
 
 ## Recent Changes
 
+### July 26, 2025: **MOBILE FOLDER CREATION SHEET WITH CLEAN ICON DESIGN COMPLETE**
+**Successfully implemented mobile-friendly folder creation with streamlined icon design matching app aesthetic:**
+
+**Mobile Folder Creation Features:**
+- Bottom sheet slides up smoothly from bottom of screen on mobile devices
+- Fixed HTTP authentication errors by correcting API call parameter format from (url, options) to (method, url, data)
+- Removed focus border styling from input fields for cleaner mobile interface
+- Fixed cache invalidation with predicate function to match all folder query variations
+- Folders now appear immediately after creation without page refresh
+
+**Clean Icon Design Implementation:**
+- Removed colored background boxes from all folder icons (blue for "All Notes", amber for folders)
+- Updated to simple black and white outlined icons using `text-gray-700` color
+- Consistent icon styling throughout notes interface matching app's design language
+- Clean, minimal appearance without visual clutter from colored containers
+
+**Technical Fixes:**
+- Corrected `apiRequest` calls in both mobile and desktop folder creation components
+- Enhanced cache invalidation using predicate function: `predicate: (query) => query.queryKey[0] === '/api/note-folders'`
+- Ensures all folder query variations are properly invalidated for immediate UI updates
+
+**User Experience:**
+- Mobile folder creation now works seamlessly with proper animations and immediate feedback
+- Clean, consistent icon design provides professional appearance matching BackstageOS aesthetic
+- No more HTTP errors during folder creation process
+- Folders display immediately after creation without requiring page refresh
+
 ### July 26, 2025: **TASK MANAGEMENT SYSTEM CACHE ISSUE RESOLVED WITH MOBILE LAYOUT IMPROVEMENT**
 **Successfully resolved critical task management caching issue and improved mobile user experience:**
 
