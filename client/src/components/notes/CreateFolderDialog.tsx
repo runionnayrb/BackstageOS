@@ -33,7 +33,10 @@ export function CreateFolderDialog({
   const createFolderMutation = useMutation({
     mutationFn: (folderData: any) => apiRequest('POST', '/api/note-folders', folderData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/note-folders'] });
+      // Invalidate all variations of the note-folders query
+      queryClient.invalidateQueries({ 
+        predicate: (query) => query.queryKey[0] === '/api/note-folders'
+      });
       onOpenChange(false);
       resetForm();
       toast({
