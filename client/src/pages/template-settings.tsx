@@ -858,64 +858,77 @@ export default function TemplateSettings() {
                     {/* Fields Preview */}
                     {selectedPhase === 'tech' ? (
                       /* Flexible Layout Editor for entire tech template */
-                      <FlexibleLayoutEditor
-                        ref={flexibleLayoutRef}
-                        projectId={parseInt(params.id)}
-                        reportType="tech"
-                        isEditing={true}
-                        template={template}
-                        onTemplateUpdate={(updatedTemplate) => {
-                          // This only triggers when lock button is pressed
-                          setTemplates(prev => ({
-                            ...prev,
-                            [phase]: updatedTemplate
-                          }));
-                          saveTemplate.mutate(updatedTemplate);
-                          // Note: No cache invalidation to prevent data reload conflicts
-                        }}
-                        onConfigurationChange={async (config) => {
-                          console.log('🚀 OPTIMISTIC Configuration update - UI updates immediately:', {
-                            projectId,
-                            configItems: config.items.length,
-                            yPositions: config.items.map((item: any) => ({ id: item.id, y: item.y }))
-                          });
-                          
-                          // OPTIMISTIC UPDATE: Update UI immediately for instant visual feedback
-                          const updatedTemplate = {
+                      <>
+                        {/* Debug information to help troubleshoot */}
+                        <div className="text-xs text-gray-500 mb-2">
+                          Template Debug: {template ? `Has template with ${template.layoutConfiguration?.items?.length || 0} layout items` : 'No template'} 
+                          {template?.layoutConfiguration?.items?.length === 0 && ' (Empty layout - will generate default)'}
+                        </div>
+                        <FlexibleLayoutEditor
+                          ref={flexibleLayoutRef}
+                          projectId={parseInt(params.id)}
+                          reportType="tech"
+                          isEditing={true}
+                          template={{
                             ...template,
-                            layoutConfiguration: config
-                          };
-                          setTemplates(prev => ({
-                            ...prev,
-                            [selectedPhase]: updatedTemplate
-                          }));
-                          
-                          // Background database save without blocking UI
-                          try {
-                            console.log('💾 Background save to database...');
-                            // Don't await - let it happen in background for instant UI response
-                            apiRequest("PUT", `/api/projects/${projectId}/settings/layout-configuration`, {
-                              layoutConfiguration: config,
-                              templateType: selectedPhase
-                            }).then(() => {
-                              console.log('✅ Background configuration save completed');
-                              // Cache invalidation after successful save
-                              setTimeout(() => {
-                                queryClient.invalidateQueries({
-                                  queryKey: ['/api/projects', projectId, 'settings']
-                                });
-                              }, 200);
-                            }).catch((error) => {
-                              console.error('❌ Background save failed:', error);
-                              // Could show subtle error notification here if needed
+                            // Ensure template has valid layoutConfiguration or provide fallback
+                            layoutConfiguration: template.layoutConfiguration && template.layoutConfiguration.items && template.layoutConfiguration.items.length > 0 
+                              ? template.layoutConfiguration 
+                              : undefined // Let FlexibleLayoutEditor generate default
+                          }}
+                          onTemplateUpdate={(updatedTemplate) => {
+                            // This only triggers when lock button is pressed
+                            setTemplates(prev => ({
+                              ...prev,
+                              [phase]: updatedTemplate
+                            }));
+                            saveTemplate.mutate(updatedTemplate);
+                            // Note: No cache invalidation to prevent data reload conflicts
+                          }}
+                          onConfigurationChange={async (config) => {
+                            console.log('🚀 OPTIMISTIC Configuration update - UI updates immediately:', {
+                              projectId,
+                              configItems: config.items.length,
+                              yPositions: config.items.map((item: any) => ({ id: item.id, y: item.y }))
                             });
                             
-                          } catch (error) {
-                            console.error('❌ Failed to initiate background save:', error);
-                          }
-                        }}
-                        externalEditMode={isEditMode}
-                      />
+                            // OPTIMISTIC UPDATE: Update UI immediately for instant visual feedback
+                            const updatedTemplate = {
+                              ...template,
+                              layoutConfiguration: config
+                            };
+                            setTemplates(prev => ({
+                              ...prev,
+                              [selectedPhase]: updatedTemplate
+                            }));
+                            
+                            // Background database save without blocking UI
+                            try {
+                              console.log('💾 Background save to database...');
+                              // Don't await - let it happen in background for instant UI response
+                              apiRequest("PUT", `/api/projects/${projectId}/settings/layout-configuration`, {
+                                layoutConfiguration: config,
+                                templateType: selectedPhase
+                              }).then(() => {
+                                console.log('✅ Background configuration save completed');
+                                // Cache invalidation after successful save
+                                setTimeout(() => {
+                                  queryClient.invalidateQueries({
+                                    queryKey: ['/api/projects', projectId, 'settings']
+                                  });
+                                }, 200);
+                              }).catch((error) => {
+                                console.error('❌ Background save failed:', error);
+                                // Could show subtle error notification here if needed
+                              });
+                              
+                            } catch (error) {
+                              console.error('❌ Failed to initiate background save:', error);
+                            }
+                          }}
+                          externalEditMode={isEditMode}
+                        />
+                      </>
                     ) : (
                       /* Standard layout for other templates */
                       <div className="space-y-6">
