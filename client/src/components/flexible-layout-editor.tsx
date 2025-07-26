@@ -169,7 +169,6 @@ const LayoutItemRenderer: React.FC<{
   onDateChange?: (date: string) => void;
   configuration?: FlexibleLayoutConfiguration;
   setConfiguration?: React.Dispatch<React.SetStateAction<FlexibleLayoutConfiguration>>;
-  setUserHasEditedLayout?: React.Dispatch<React.SetStateAction<boolean>>;
   onConfigurationChange?: (config: FlexibleLayoutConfiguration) => void;
 }> = ({ 
   item, 
@@ -183,7 +182,6 @@ const LayoutItemRenderer: React.FC<{
   onDateChange,
   configuration,
   setConfiguration,
-  setUserHasEditedLayout,
   onConfigurationChange
 }) => {
   switch (item.type) {
@@ -204,7 +202,6 @@ const LayoutItemRenderer: React.FC<{
                 onDateChange={onDateChange}
                 configuration={configuration}
                 setConfiguration={setConfiguration}
-                setUserHasEditedLayout={setUserHasEditedLayout}
                 onConfigurationChange={onConfigurationChange}
               />
             </div>
@@ -292,7 +289,6 @@ const LayoutItemRenderer: React.FC<{
             
             console.log(`🔗 Updated field relationship: "${currentFieldId}" → "${newFieldId}"`);
             setConfiguration(newConfig);
-            setUserHasEditedLayout(true); // Mark that user has made layout changes
             onConfigurationChange?.(newConfig);
           }}
           projectId={String(projectId)}
