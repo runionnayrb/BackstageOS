@@ -145,7 +145,6 @@ export function TaskManagement() {
   // Create task mutation
   const createTaskMutation = useMutation({
     mutationFn: async () => {
-      console.log('Creating new task...');
       const response = await fetch(`/api/task-databases/${database?.id}/tasks`, {
         method: 'POST',
         headers: {
@@ -169,14 +168,21 @@ export function TaskManagement() {
       }
       
       const newTask = await response.json();
-      console.log('Task created successfully:', newTask);
       return newTask;
     },
     onSuccess: (newTask) => {
-      console.log('Task creation successful, updating cache...');
-      queryClient.invalidateQueries({ queryKey: ['/api/task-databases', database?.id, 'tasks'] });
+      // Update the cache immediately with the new task to make it available
+      queryClient.setQueryData(['/api/task-databases', database?.id, 'tasks'], (oldData: any[]) => {
+        const updated = oldData ? [...oldData, newTask] : [newTask];
+        return updated;
+      });
+      
+      // Set the state
       setNewTaskId(newTask.id);
       setIsCreateTaskOpen(true);
+      
+      // Also invalidate to get fresh data from server
+      queryClient.invalidateQueries({ queryKey: ['/api/task-databases', database?.id, 'tasks'] });
     },
     onError: (error) => {
       console.error('Task creation failed:', error);
@@ -184,10 +190,7 @@ export function TaskManagement() {
   });
 
   const handleCreateTask = () => {
-    console.log('Handle create task clicked!');
-    console.log('Database:', database);
     if (database?.id) {
-      console.log('Triggering task creation mutation...');
       createTaskMutation.mutate();
     } else {
       console.error('No database ID available for task creation');

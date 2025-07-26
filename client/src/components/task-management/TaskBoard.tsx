@@ -156,6 +156,16 @@ export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTa
 
   // Get the task to edit when newTaskId is provided
   const taskToEdit = newTaskId ? tasks.find(task => task.id === newTaskId) : null;
+  
+  // Log dialog state for debugging (only when relevant)
+  if (isCreateTaskOpen || newTaskId) {
+    console.log('TaskBoard dialog state:', {
+      isCreateTaskOpen,
+      newTaskId,
+      taskToEdit: taskToEdit ? 'Found' : 'Not found',
+      tasksCount: tasks.length
+    });
+  }
 
 
 
@@ -241,22 +251,24 @@ export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTa
       </div>
 
       {/* Create/Edit New Task Dialog */}
-      {(isCreateTaskOpen && taskToEdit) && (
+      {isCreateTaskOpen && (
         <TaskDialog
           isOpen={isCreateTaskOpen}
           onClose={() => onCreateTaskClose?.()}
           onSubmit={(data) => {
-            handleUpdateTask(taskToEdit.id, data);
+            if (taskToEdit) {
+              handleUpdateTask(taskToEdit.id, data);
+            }
             onCreateTaskClose?.();
           }}
           task={taskToEdit}
           properties={properties}
           isLoading={updateTaskMutation.isPending}
           onTaskUpdate={handleUpdateTask}
-          onDelete={() => {
+          onDelete={taskToEdit ? () => {
             handleDeleteTask(taskToEdit.id);
             onCreateTaskClose?.();
-          }}
+          } : undefined}
         />
       )}
 
