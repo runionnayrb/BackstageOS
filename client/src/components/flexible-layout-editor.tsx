@@ -607,39 +607,12 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     };
   }, [effectiveEditMode]);
 
-  // Update layouts when configuration changes (but never during edit mode if user has edited)
+  // Update layouts when configuration changes
   useEffect(() => {
-    // If we're in edit mode and user has edited this session, don't override with automatic updates
-    if (effectiveEditMode && userHasEditedLayoutRef.current && hasLoadedFromDatabaseRef.current) {
-      console.log('🛡️ BLOCKING automatic layout update - user has edited layout this session');
-      return;
-    }
-    
-    console.log('✅ Allowing automatic layout update');
+    console.log('✅ Updating layouts from configuration');
     const newLayouts = convertToGridLayouts(configuration.items);
     setLayouts(newLayouts);
-  }, [configuration, convertToGridLayouts, effectiveEditMode]);
-
-  // No need to save on mode exit since we save immediately with every layout change
-  // Every change becomes the new permanent template configuration automatically
-
-  // Force layout refresh when switching between edit/view modes - but preserve user changes
-  useEffect(() => {
-    console.log(`🔄 MODE SWITCH DETECTED - Edit Mode: ${effectiveEditMode}, User Has Edited This Session: ${userHasEditedLayoutRef.current}`);
-    
-    // Only refresh layout if user hasn't edited this session (allow initial refresh but prevent after editing)
-    if (userHasEditedLayoutRef.current && hasLoadedFromDatabaseRef.current) {
-      console.log('🛡️ Preserving user layout changes - no refresh on mode switch');
-      return;
-    }
-    
-    const timer = setTimeout(() => {
-      console.log('🔄 Refreshing layout due to mode switch');
-      const newLayouts = convertToGridLayouts(configuration.items);
-      setLayouts(newLayouts);
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [effectiveEditMode, configuration.items, convertToGridLayouts]);
+  }, [configuration, convertToGridLayouts]);
 
   // Handle layout changes from react-grid-layout
 
@@ -961,7 +934,6 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
                         onDateChange={handleDateChange}
                         configuration={configuration}
                         setConfiguration={setConfiguration}
-                        setUserHasEditedLayout={setUserHasEditedLayout}
                         onConfigurationChange={onConfigurationChange}
                       />
                     </DraggableGridItem>
