@@ -536,6 +536,15 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [userHasEditedLayout, setUserHasEditedLayout] = useState(false);
   
+  // Once user has edited layout, this flag should NEVER be reset
+  const userHasEditedLayoutRef = useRef(false);
+  
+  useEffect(() => {
+    if (userHasEditedLayout) {
+      userHasEditedLayoutRef.current = true;
+    }
+  }, [userHasEditedLayout]);
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -607,17 +616,11 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         const hasMissingFields = templateFieldIds.some(fieldId => !savedFieldIds.includes(fieldId));
         
         if (hasObsoleteFields || hasMissingFields) {
-          console.log('🔄 Template structure mismatch - regenerating layout from template');
+          console.log('🔄 Template structure mismatch detected but preserving user layout');
           console.log('Template fields:', templateFieldIds);
           console.log('Saved fields:', savedFieldIds);
-          const newLayoutItems = generateLayoutFromTemplate();
-          const newConfig = {
-            ...savedConfig,
-            items: newLayoutItems
-          };
-          setConfiguration(newConfig);
-          setUserHasEditedLayout(false); // Allow this regeneration save
-          // Don't call onConfigurationChange during migration - no auto-save during editing
+          // Keep existing layout even if fields are missing/obsolete to preserve user changes
+          setConfiguration(savedConfig);
           setIsLayoutMounted(true);
         } else {
           console.log('✅ Using saved configuration from template - preserving user changes');
@@ -716,28 +719,27 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
 
   // Update layouts when configuration changes (but never during edit mode if user has edited)
   useEffect(() => {
-    // If we're in edit mode and user has made changes, never update layouts automatically
-    if (effectiveEditMode && userHasEditedLayout) {
-      console.log('🛡️ BLOCKING automatic layout update - user has edited in edit mode');
+    // If we're in edit mode and user has EVER made changes, never update layouts automatically
+    if (effectiveEditMode && userHasEditedLayoutRef.current) {
+      console.log('🛡️ BLOCKING automatic layout update - user has edited layout');
       return;
     }
     
-    console.log('✅ Allowing automatic layout update - no user edits in edit mode');
+    console.log('✅ Allowing automatic layout update - no user edits detected');
     const newLayouts = convertToGridLayouts(configuration.items);
     setLayouts(newLayouts);
-  }, [configuration, convertToGridLayouts, effectiveEditMode, userHasEditedLayout]);
+  }, [configuration, convertToGridLayouts, effectiveEditMode]);
 
   // No need to save on mode exit since we save immediately with every layout change
   // Every change becomes the new permanent template configuration automatically
 
   // Force layout refresh when switching between edit/view modes - but preserve user changes
   useEffect(() => {
-    console.log(`🔄 MODE SWITCH DETECTED - Edit Mode: ${effectiveEditMode}, User Has Edited: ${userHasEditedLayout}`);
+    console.log(`🔄 MODE SWITCH DETECTED - Edit Mode: ${effectiveEditMode}, User Has Ever Edited: ${userHasEditedLayoutRef.current}`);
     
-    // Only refresh layout if user hasn't made any changes - preserve user edits completely
-    if (userHasEditedLayout) {
+    // Only refresh layout if user has NEVER made any changes - preserve user edits completely
+    if (userHasEditedLayoutRef.current) {
       console.log('🛡️ Preserving user layout changes - no refresh on mode switch');
-      console.log('🔍 Current Y positions before mode switch:', configuration.items.map(item => ({ id: item.id, y: item.y })));
       return;
     }
     
@@ -747,7 +749,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       setLayouts(newLayouts);
     }, 100);
     return () => clearTimeout(timer);
-  }, [effectiveEditMode, configuration.items, userHasEditedLayout, convertToGridLayouts]);
+  }, [effectiveEditMode, configuration.items, convertToGridLayouts]);
 
   // Handle layout changes from react-grid-layout
 
