@@ -522,22 +522,13 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     return items;
   }, [template]);
 
-  // IMMEDIATE CONFIGURATION - No delays or useEffects
+  // IMMEDIATE CONFIGURATION - Load from template if available
   const [configuration, setConfiguration] = useState<FlexibleLayoutConfiguration>(() => {
     if (template?.layoutConfiguration) {
       console.log('📋 IMMEDIATE load from saved template config');
       return template.layoutConfiguration;
-    } else if (template) {
-      console.log('🏗️ IMMEDIATE generate new layout from template');
-      const config = {
-        items: generateLayoutFromTemplate(),
-        gridCols: 12,
-        gridRows: 20,
-        gridGap: 8
-      };
-      return config;
     } else {
-      // Default empty config
+      // Start with empty config, will be populated when template loads
       return {
         items: [],
         gridCols: 12,
@@ -549,6 +540,20 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Initialize configuration when template becomes available
+  useEffect(() => {
+    if (template && !template.layoutConfiguration && configuration.items.length === 0) {
+      console.log('🏗️ Initializing configuration from template');
+      const newConfig = {
+        items: generateLayoutFromTemplate(),
+        gridCols: 12,
+        gridRows: 20,
+        gridGap: 8
+      };
+      setConfiguration(newConfig);
+    }
+  }, [template, generateLayoutFromTemplate, configuration.items.length]);
 
   // NO MORE COMPLEX TRACKING - Keep it simple
 
