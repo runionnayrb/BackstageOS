@@ -692,40 +692,32 @@ export default function TemplateSettings() {
                             onClick={async () => {
                               // If locking (going from edit to locked), save current configuration
                               if (isEditMode) {
-                                console.log('🔒 LOCK BUTTON CLICKED - Saving current configuration before locking');
-                                
                                 try {
+                                  // Add a small delay to ensure any pending layout changes are processed
+                                  await new Promise(resolve => setTimeout(resolve, 100));
+                                  
                                   // Get current configuration from FlexibleLayoutEditor
                                   const currentConfig = flexibleLayoutRef.current?.getCurrentConfiguration();
                                   if (currentConfig) {
-                                    console.log('💾 Lock button got configuration with positions:', currentConfig.items.map(item => ({ 
-                                      id: item.id, 
-                                      x: item.x, 
-                                      y: item.y 
-                                    })));
-                                    
                                     // Save the CURRENT configuration, not the old template one
                                     await apiRequest("PUT", `/api/projects/${projectId}/settings/layout-configuration`, {
                                       layoutConfiguration: currentConfig,
                                       templateType: selectedPhase
                                     });
                                     
-                                    // Update the local template with current config
-                                    const updatedTemplate = {
-                                      ...template,
-                                      layoutConfiguration: currentConfig
-                                    };
+                                    // Update the local template with current config immediately
                                     setTemplates(prev => ({
                                       ...prev,
-                                      [selectedPhase]: updatedTemplate
+                                      [selectedPhase]: {
+                                        ...template,
+                                        layoutConfiguration: currentConfig
+                                      }
                                     }));
                                     
                                     // Update timestamp only after save
                                     await apiRequest("PUT", `/api/projects/${projectId}/settings`, {
                                       updatedAt: new Date().toISOString()
                                     });
-                                    
-                                    console.log('✅ Current configuration saved and locked');
                                   }
                                   
                                 } catch (error) {
@@ -879,8 +871,7 @@ export default function TemplateSettings() {
                             [phase]: updatedTemplate
                           }));
                           saveTemplate.mutate(updatedTemplate);
-                          // Force timestamp update ONLY when lock is pressed
-                          queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
+                          // Note: No cache invalidation to prevent data reload conflicts
                         }}
                         onConfigurationChange={async (config) => {
                           // Only update local state immediately - no API calls during editing
