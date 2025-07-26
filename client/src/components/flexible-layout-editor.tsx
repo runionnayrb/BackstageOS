@@ -568,8 +568,10 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       // First check if we have saved configuration from showSettings (database)
       if (showSettings?.layoutConfiguration) {
         console.log('🎯 INITIAL LOAD: Using saved configuration from DATABASE (showSettings)');
-        console.log('💾 Database saved config:', {
+        console.log('💾 Database saved config FULL DETAILS:', {
           totalItems: showSettings.layoutConfiguration.items.length,
+          updatedAt: showSettings.updatedAt,
+          fullConfig: JSON.stringify(showSettings.layoutConfiguration, null, 2),
           allItems: showSettings.layoutConfiguration.items.map((item: any) => ({ 
             id: item.id, 
             y: item.y, 
@@ -579,11 +581,16 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         });
         
         const savedConfig = showSettings.layoutConfiguration;
+        // Force a fresh cache check - ignore cached version
+        console.log('🔄 FORCING FRESH DATABASE LOAD - IGNORING CACHE');
+        
         // Use the saved configuration directly - no filtering to preserve all user changes
         setConfiguration(savedConfig);
         setIsLayoutMounted(true);
         hasLoadedFromDatabaseRef.current = true;
-        console.log('✅ APPLIED DATABASE CONFIG WITH Y POSITIONS');
+        console.log('✅ APPLIED DATABASE CONFIG WITH Y POSITIONS:', 
+          savedConfig.items.map((item: any) => ({ id: item.id, y: item.y }))
+        );
         
       } else if (template?.layoutConfiguration) {
         console.log('🎯 INITIAL LOAD: Using saved configuration from TEMPLATE');

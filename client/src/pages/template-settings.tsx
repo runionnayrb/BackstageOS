@@ -203,6 +203,8 @@ export default function TemplateSettings() {
 
   const { data: showSettings } = useQuery<ShowSettings>({
     queryKey: ['/api/projects', projectId, 'settings'],
+    staleTime: 0, // Always fetch fresh data
+    cacheTime: 0, // Don't cache the result
   });
 
   // Load user-created templates
@@ -913,10 +915,10 @@ export default function TemplateSettings() {
                             
                             console.log('✅ Configuration saved to database and local state updated');
                             
-                            // Delay cache invalidation to prevent immediate reload
-                            setTimeout(() => {
-                              queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
-                            }, 1000);
+                            // Force immediate cache refresh to get the latest data
+                            console.log('🔄 Forcing immediate cache refresh');
+                            queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
+                            queryClient.refetchQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
                             
                           } catch (error) {
                             console.error('❌ Failed to save configuration:', error);
