@@ -689,7 +689,28 @@ export default function TemplateSettings() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => setIsEditMode(!isEditMode)}
+                            onClick={async () => {
+                              // If we're locking the template (transitioning from edit to locked mode)
+                              if (isEditMode) {
+                                console.log('🔒 Locking template - updating timestamp');
+                                try {
+                                  // Touch the settings to update timestamp
+                                  await apiRequest("PUT", `/api/projects/${projectId}/settings`, {
+                                    updatedAt: new Date().toISOString()
+                                  });
+                                  console.log('✅ Template timestamp updated on lock');
+                                  
+                                  // Invalidate cache immediately to show updated timestamp
+                                  queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
+                                  queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/templates`] });
+                                } catch (error) {
+                                  console.error('❌ Failed to update timestamp on lock:', error);
+                                }
+                              }
+                              
+                              // Toggle edit mode
+                              setIsEditMode(!isEditMode);
+                            }}
                             className="h-6 w-6 p-0"
                           >
                             {isEditMode ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
