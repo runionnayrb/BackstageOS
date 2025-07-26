@@ -555,69 +555,26 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     enabled: !!projectId
   });
 
-  // Initialize layout when template is available (ONLY ON FIRST LOAD - never reload after user edits)
+  // Simple initialization - ONLY run once when template is first loaded
   useEffect(() => {
-    console.log('🔄 Template loading effect triggered:', {
-      hasTemplate: !!template,
-      configLength: configuration.items.length,
-      initialLoadComplete,
-      userHasEditedLayout: userHasEditedLayoutRef.current,
-      hasLayoutConfig: !!template?.layoutConfiguration
-    });
-    
-    // NEVER reload if user has made any edits - their changes take priority
-    if (userHasEditedLayoutRef.current) {
-      console.log('🛡️ USER HAS EDITED LAYOUT - NEVER RELOAD FROM DATABASE');
-      return;
-    }
-    
-    if (template && configuration.items.length === 0 && !initialLoadComplete) {
-      // First check if we have saved configuration from showSettings (database)
-      if (showSettings?.layoutConfiguration) {
-        console.log('🎯 INITIAL LOAD: Using saved configuration from DATABASE (showSettings)');
-        console.log('💾 Database saved config FULL DETAILS:', {
-          totalItems: showSettings.layoutConfiguration.items.length,
-          updatedAt: showSettings.updatedAt,
-          fullConfig: JSON.stringify(showSettings.layoutConfiguration, null, 2),
-          allItems: showSettings.layoutConfiguration.items.map((item: any) => ({ 
-            id: item.id, 
-            y: item.y, 
-            type: item.type,
-            fieldId: item.content?.fieldId 
-          }))
-        });
-        
-        const savedConfig = showSettings.layoutConfiguration;
-        
-        // Use the saved configuration directly - no filtering to preserve all user changes
-        setConfiguration(savedConfig);
-        setIsLayoutMounted(true);
-        hasLoadedFromDatabaseRef.current = true;
-        console.log('✅ APPLIED DATABASE CONFIG WITH Y POSITIONS:', 
-          savedConfig.items.map((item: any) => ({ id: item.id, y: item.y }))
-        );
-        
-      } else if (template?.layoutConfiguration) {
-        console.log('🎯 INITIAL LOAD: Using saved configuration from TEMPLATE');
-        const savedConfig = template.layoutConfiguration;
-        setConfiguration(savedConfig);
-        setIsLayoutMounted(true);
-        hasLoadedFromDatabaseRef.current = true;
-        
-      } else {
-        console.log('🎯 INITIAL LOAD: No saved configuration found, generating new layout');
-        const initialConfig = {
-          items: generateLayoutFromTemplate(),
-          gridCols: 12,
-          gridRows: 20,
-          gridGap: 8
-        };
-        setConfiguration(initialConfig);
-        setIsLayoutMounted(true);
-      }
+    if (template && !initialLoadComplete) {
+      console.log('🎯 INITIAL TEMPLATE LOAD');
+      
+      // Use saved config from template if it exists, otherwise generate new
+      const config = template.layoutConfiguration || {
+        items: generateLayoutFromTemplate(),
+        gridCols: 12,
+        gridRows: 20,
+        gridGap: 8
+      };
+      
+      setConfiguration(config);
+      setIsLayoutMounted(true);
       setInitialLoadComplete(true);
+      
+      console.log('✅ Template loaded with config:', config.items.map((item: any) => ({ id: item.id, y: item.y })));
     }
-  }, [template, generateLayoutFromTemplate, configuration.items.length, initialLoadComplete, showSettings]);
+  }, [template, generateLayoutFromTemplate, initialLoadComplete]);
 
   // Track if we're in the middle of an edit mode transition to prevent unwanted reloads
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -783,11 +740,17 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     setUserHasEditedLayout(true); // Mark that user has made layout changes
     userHasEditedLayoutRef.current = true; // Immediately protect against database reloads
     
+    // IMMEDIATELY save to database via callback
+    if (onConfigurationChange) {
+      console.log('💾 Configuration changed - saving immediately to database');
+      onConfigurationChange(newConfig);
+    }
+    
     // Immediately update layouts to prevent snap-back
     const newLayouts = convertToGridLayouts(newConfig.items);
     setLayouts(newLayouts);
     
-    console.log('👤 User has edited layout - changes stored locally (will save on lock)');
+    console.log('✅ Layout changes saved immediately - no waiting for lock');
   };
 
   const handleDragStart = () => {

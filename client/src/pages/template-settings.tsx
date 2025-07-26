@@ -915,10 +915,8 @@ export default function TemplateSettings() {
                             
                             console.log('✅ Configuration saved to database and local state updated');
                             
-                            // Force immediate cache refresh to get the latest data
-                            console.log('🔄 Forcing immediate cache refresh');
-                            queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
-                            queryClient.refetchQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
+                            // DON'T invalidate cache during edit sessions - causes reloads that override user changes
+                            // Cache will be invalidated when user exits edit mode or navigates away
                             
                           } catch (error) {
                             console.error('❌ Failed to save configuration:', error);
