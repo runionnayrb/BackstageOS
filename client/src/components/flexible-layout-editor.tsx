@@ -891,14 +891,13 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
           effectiveEditMode && "bg-gray-50/50"
         )}>
           {isLayoutMounted && (
-            <div className="w-full" style={{ width: '1200px', maxWidth: '100%' }}>
+            <div className="w-full">
               <ResponsiveGridLayout
                 className="layout"
                 layouts={layouts}
                 breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
                 cols={{ lg: 12, md: 12, sm: 12, xs: 12, xxs: 12 }}
                 rowHeight={18}
-                width={1200}
                 margin={[2, 2]}
                 containerPadding={[0, 0]}
                 isDraggable={effectiveEditMode}
