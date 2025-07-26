@@ -874,43 +874,44 @@ export default function TemplateSettings() {
                           // Note: No cache invalidation to prevent data reload conflicts
                         }}
                         onConfigurationChange={async (config) => {
-                          console.log('💾 Configuration changed - saving to unified showSettings:', {
+                          console.log('🚀 OPTIMISTIC Configuration update - UI updates immediately:', {
                             projectId,
                             configItems: config.items.length,
                             yPositions: config.items.map((item: any) => ({ id: item.id, y: item.y }))
                           });
                           
+                          // OPTIMISTIC UPDATE: Update UI immediately for instant visual feedback
+                          const updatedTemplate = {
+                            ...template,
+                            layoutConfiguration: config
+                          };
+                          setTemplates(prev => ({
+                            ...prev,
+                            [selectedPhase]: updatedTemplate
+                          }));
+                          
+                          // Background database save without blocking UI
                           try {
-                            // SIMPLIFIED APPROACH: Save to showSettings table only - single source of truth
-                            await apiRequest("PUT", `/api/projects/${projectId}/settings/layout-configuration`, {
+                            console.log('💾 Background save to database...');
+                            // Don't await - let it happen in background for instant UI response
+                            apiRequest("PUT", `/api/projects/${projectId}/settings/layout-configuration`, {
                               layoutConfiguration: config,
                               templateType: selectedPhase
+                            }).then(() => {
+                              console.log('✅ Background configuration save completed');
+                              // Cache invalidation after successful save
+                              setTimeout(() => {
+                                queryClient.invalidateQueries({
+                                  queryKey: ['/api/projects', projectId, 'settings']
+                                });
+                              }, 200);
+                            }).catch((error) => {
+                              console.error('❌ Background save failed:', error);
+                              // Could show subtle error notification here if needed
                             });
                             
-                            // Update local template state for immediate UI response
-                            const updatedTemplate = {
-                              ...template,
-                              layoutConfiguration: config
-                            };
-                            setTemplates(prev => ({
-                              ...prev,
-                              [selectedPhase]: updatedTemplate
-                            }));
-                            
-                            console.log('✅ Configuration saved to unified showSettings - ensuring database completion');
-                            
-                            // Small delay to ensure database write completion before user can lock template
-                            await new Promise(resolve => setTimeout(resolve, 300));
-                            
-                            // Invalidate showSettings cache for consistency
-                            setTimeout(() => {
-                              queryClient.invalidateQueries({
-                                queryKey: ['/api/projects', projectId, 'settings']
-                              });
-                            }, 500);
-                            
                           } catch (error) {
-                            console.error('❌ Failed to save configuration:', error);
+                            console.error('❌ Failed to initiate background save:', error);
                           }
                         }}
                         externalEditMode={isEditMode}
