@@ -247,15 +247,17 @@ export default function TemplateSettings() {
 
     // Add saved layoutConfiguration from showSettings if available
     if (showSettings?.layoutConfiguration) {
-      console.log('🔄 Loading saved layoutConfiguration from database:', showSettings.layoutConfiguration);
+      console.log('🔄 Loading saved layoutConfiguration from database:', JSON.stringify(showSettings.layoutConfiguration, null, 2));
       // Apply the saved layoutConfiguration to the tech template
       if (initialTemplates.tech) {
         initialTemplates.tech = {
           ...initialTemplates.tech,
           layoutConfiguration: showSettings.layoutConfiguration
         };
-        console.log('✅ Applied saved layoutConfiguration to tech template');
+        console.log('✅ Applied saved layoutConfiguration to tech template:', JSON.stringify(initialTemplates.tech.layoutConfiguration, null, 2));
       }
+    } else {
+      console.log('❌ No layoutConfiguration found in showSettings');
     }
     
     setTemplates(initialTemplates);
