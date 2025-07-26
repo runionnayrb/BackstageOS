@@ -690,6 +690,8 @@ export default function TemplateSettings() {
                             variant="ghost"
                             size="sm"
                             onClick={async () => {
+                              console.log('🔒 Lock button clicked, current isEditMode:', isEditMode);
+                              
                               // If we're locking the template (transitioning from edit to locked mode)
                               if (isEditMode) {
                                 console.log('🔒 Locking template - forcing save and updating timestamp');
@@ -713,6 +715,7 @@ export default function TemplateSettings() {
                                   }
                                 } catch (error) {
                                   console.error('❌ Failed to save configuration before lock:', error);
+                                  return; // Don't change edit mode if save failed
                                 }
                                 
                                 // Then update timestamp
@@ -733,7 +736,8 @@ export default function TemplateSettings() {
                                 }, 500);
                               }
                               
-                              // Toggle edit mode
+                              // Toggle edit mode only after successful save (or when unlocking)
+                              console.log('🔄 Toggling edit mode from', isEditMode, 'to', !isEditMode);
                               setIsEditMode(!isEditMode);
                             }}
                             className="h-6 w-6 p-0"
