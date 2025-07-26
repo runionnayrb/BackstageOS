@@ -241,26 +241,16 @@ export default function TemplateSettings() {
             description: userTemplate.description || "",
             header: userTemplate.header || "",
             footer: userTemplate.footer || "",
-            fields: userTemplate.fields || []
+            fields: userTemplate.fields || [],
+            // CRITICAL FIX: Load layoutConfiguration from the actual template record, not showSettings
+            layoutConfiguration: userTemplate.layoutConfiguration || null
           };
+          console.log(`🔄 Loading layoutConfiguration for ${userTemplate.phase} template:`, JSON.stringify(userTemplate.layoutConfiguration, null, 2));
         }
       });
     }
 
-    // Add saved layoutConfiguration from showSettings if available
-    if (showSettings?.layoutConfiguration) {
-      console.log('🔄 Loading saved layoutConfiguration from database:', JSON.stringify(showSettings.layoutConfiguration, null, 2));
-      // Apply the saved layoutConfiguration to the tech template
-      if (initialTemplates.tech) {
-        initialTemplates.tech = {
-          ...initialTemplates.tech,
-          layoutConfiguration: showSettings.layoutConfiguration
-        };
-        console.log('✅ Applied saved layoutConfiguration to tech template:', JSON.stringify(initialTemplates.tech.layoutConfiguration, null, 2));
-      }
-    } else {
-      console.log('❌ No layoutConfiguration found in showSettings');
-    }
+    console.log('✅ Templates initialized with layout configurations from template records, not showSettings');
     
     setTemplates(initialTemplates);
   }, [projectId, userTemplates, showSettings]);
@@ -856,35 +846,39 @@ export default function TemplateSettings() {
                           // Note: No cache invalidation to prevent data reload conflicts
                         }}
                         onConfigurationChange={async (config) => {
-                          console.log('💾 Configuration changed - saving immediately to database:', {
+                          console.log('💾 Configuration changed - saving directly to template record:', {
+                            templateId: template.id,
                             configItems: config.items.length,
                             yPositions: config.items.map((item: any) => ({ id: item.id, y: item.y }))
                           });
                           
                           try {
-                            // Save configuration to database immediately
-                            await apiRequest("PUT", `/api/projects/${projectId}/settings/layout-configuration`, {
-                              layoutConfiguration: config,
-                              templateType: selectedPhase
-                            });
-                            
-                            // Update local template state
+                            // CRITICAL FIX: Save configuration directly to the template record, not showSettings
                             const updatedTemplate = {
                               ...template,
                               layoutConfiguration: config
                             };
+                            
+                            // Save the complete template with layout configuration
+                            const response = await apiRequest("PUT", `/api/templates/${template.id}`, updatedTemplate);
+                            
+                            // Update local template state
                             setTemplates(prev => ({
                               ...prev,
                               [selectedPhase]: updatedTemplate
                             }));
                             
-                            console.log('✅ Configuration saved to database and local state updated');
+                            console.log('✅ Configuration saved directly to template record - no more data source mismatch!');
                             
-                            // DON'T invalidate cache during edit sessions - causes reloads that override user changes
-                            // Cache will be invalidated when user exits edit mode or navigates away
+                            // Invalidate template cache to ensure fresh data on reload
+                            setTimeout(() => {
+                              queryClient.invalidateQueries({
+                                queryKey: [`/api/projects/${projectId}/templates`]
+                              });
+                            }, 500);
                             
                           } catch (error) {
-                            console.error('❌ Failed to save configuration:', error);
+                            console.error('❌ Failed to save configuration to template:', error);
                           }
                         }}
                         externalEditMode={isEditMode}

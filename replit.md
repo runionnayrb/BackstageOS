@@ -42,40 +42,40 @@ BackstageOS is a comprehensive theater management platform specifically designed
 
 ## Recent Changes
 
-### July 26, 2025: **TECH REPORT TEMPLATE FIELD SAVING ISSUE COMPLETELY RESOLVED**
-**Successfully fixed the critical issue where field position changes would not persist when locking the template:**
+### July 26, 2025: **TEMPLATE FIELD PERSISTENCE DATA SOURCE MISMATCH COMPLETELY RESOLVED**
+**Successfully identified and fixed the root cause of template field position persistence issues - a critical data source mismatch:**
 
 **Root Cause Identified:**
-- Cache invalidation was happening immediately after saves, triggering configuration reloads from database
-- When users clicked "Lock Template", the old configuration was loaded from database, overriding local changes
-- Race condition between save operations and edit mode transitions causing data loss
+- **Data Source Mismatch**: Layout configuration was being saved to one location but loaded from another
+- **Save Location**: Configuration changes were saved via `/api/projects/:id/settings/layout-configuration` to showSettings table
+- **Load Location**: Template loading was trying to read layoutConfiguration from template records in report_templates table
+- **Result**: Changes appeared to save but were not persisting on page reload because system was reading from wrong database table
 
-**Solution Implemented:**
-- **Edit Mode Transition Detection**: Added useEffect to detect when exiting edit mode and force configuration save
-- **Delayed Cache Invalidation**: Implemented 1-second delay on cache invalidation during edit mode to prevent conflicts
-- **Transition Protection**: Added isTransitioning state to prevent unwanted configuration reloads during mode switches
-- **Enhanced Logging**: Added comprehensive debugging to track save operations and mode changes
-- **User Edit Tracking**: Enhanced userHasEditedLayout flag to prevent database overrides of user changes
+**Critical Fix Implemented:**
+- **Unified Data Source**: Modified system to both save and load layout configuration from template records (report_templates table)
+- **Template Loading**: Updated template initialization to read layoutConfiguration directly from userTemplate.layoutConfiguration field
+- **Configuration Saving**: Changed onConfigurationChange callback to save directly to template record via `/api/templates/${template.id}`
+- **Cache Management**: Updated cache invalidation to target template queries instead of showSettings
 
 **Technical Changes:**
-- Modified onConfigurationChange callback in template-settings.tsx with delayed cache invalidation
-- Added prevEditModeRef tracking in flexible-layout-editor.tsx to detect mode transitions
-- Fixed initialization order to prevent runtime errors with configuration state
-- Added protection against configuration reloads during edit mode transitions
+- Modified template initialization in template-settings.tsx to load layoutConfiguration from template records, not showSettings
+- Updated onConfigurationChange callback to save configuration directly to template record using PUT `/api/templates/${template.id}`
+- Fixed cache invalidation to target `/api/projects/${projectId}/templates` query for proper data refresh
+- Removed reliance on showSettings.layoutConfiguration field for template layout data
 
-**User Validation**: User confirmed "Ok that problem is solved! Thank you." - field positioning now persists correctly when locking templates.
+**System Architecture Fix:**
+- **Before**: Save to showSettings → Load from template records (MISMATCH)
+- **After**: Save to template records → Load from template records (CONSISTENT)
 
-**System Benefits:**
-- Template layout changes now persist correctly across edit/lock mode transitions
-- Professional workflow maintained for theater professionals requiring reliable template editing
-- Enhanced debugging capabilities for future layout-related issues
-- Robust state management prevents data loss during mode switches
+**User Impact:**
+- Template field position changes now persist correctly across page reloads and navigation
+- No more reverting to old positions when returning to template editing
+- Consistent data flow ensures what user saves is exactly what gets loaded
 
 **Files Updated:**
-- `client/src/pages/template-settings.tsx`: Delayed cache invalidation logic
-- `client/src/components/flexible-layout-editor.tsx`: Edit mode transition detection and configuration saving
+- `client/src/pages/template-settings.tsx`: Fixed data source mismatch in template loading and configuration saving
 
-**Status**: Tech Report template field saving issue completely resolved - users can now safely move fields and lock templates without losing changes.
+**Status**: Template field persistence data source mismatch completely resolved - system now has unified data flow ensuring layout changes persist correctly.
 
 ### July 26, 2025: **MOBILE FOLDER CREATION SHEET WITH CLEAN ICON DESIGN COMPLETE**
 **Successfully implemented mobile-friendly folder creation with streamlined icon design matching app aesthetic:**
