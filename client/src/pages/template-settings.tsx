@@ -865,18 +865,23 @@ export default function TemplateSettings() {
                             });
                             console.log('✅ Layout configuration saved successfully:', response);
                             
+                            // Update local template state immediately with new configuration
+                            const updatedTemplate = {
+                              ...template,
+                              layoutConfiguration: config
+                            };
+                            setTemplates(prev => ({
+                              ...prev,
+                              [selectedPhase]: updatedTemplate
+                            }));
+                            console.log('✅ Template state updated with new configuration');
+                            
                             setLastSaved(new Date());
                             
-                            // Delay cache invalidation to prevent immediate reload during edit mode transitions
-                            setTimeout(() => {
-                              // Only invalidate if not currently in edit mode to prevent conflicts
-                              if (!isEditMode) {
-                                queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/templates`] });
-                                console.log('📝 Layout change timestamp updated after mode transition');
-                              } else {
-                                console.log('🛡️ Skipping cache invalidation during edit mode to preserve changes');
-                              }
-                            }, 1000);
+                            // Invalidate cache immediately to show updated data
+                            queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/templates`] });
+                            queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
+                            console.log('📝 Cache invalidated to show updated configuration');
                             
                           } catch (error) {
                             console.error('❌ Failed to save layout configuration:', error);

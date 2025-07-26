@@ -569,24 +569,18 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     }
   }, [effectiveEditMode]);
   
-  // Load configuration from settings ONLY on the very first load, never again
+  // Load configuration from template when navigating between tabs or on initial load
   useEffect(() => {
-    // Once user has edited layout, NEVER load from database again
-    if (userHasEditedLayout) {
-      console.log('🛡️ User has edited layout - NEVER loading from database again');
-      return;
-    }
-    
     // Don't load during edit mode transitions
     if (isTransitioning) {
       console.log('🚫 Skipping configuration load during edit mode transition');
       return;
     }
     
-    // Only load if we haven't completed initial load and user hasn't made changes
-    if (template?.layoutConfiguration && !initialLoadComplete) {
+    // Always load from template if it has a layoutConfiguration (this ensures tab navigation works)
+    if (template?.layoutConfiguration) {
+      console.log('🔄 Loading layout configuration from template:', template.layoutConfiguration);
       const savedConfig = template.layoutConfiguration;
-      console.log('🔄 First-time loading saved layout configuration:', savedConfig);
       
       // Check if saved config uses old format (individual items) or new format (grouped sections)
       const hasGroupedSections = savedConfig.items?.some((item: any) => item.type === 'grouped-section');
@@ -625,7 +619,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
           onConfigurationChange?.(newConfig);
           setIsLayoutMounted(true);
         } else {
-          console.log('🔄 Using saved configuration directly');
+          console.log('✅ Using saved configuration from template - preserving user changes');
           // Filter out footer items AND date/day fields permanently
           const filteredConfig = {
             ...savedConfig,
@@ -648,23 +642,24 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
             })
           };
           
-          // Check if we actually filtered out any items
-          const hadFilteredItems = savedConfig.items.length !== filteredConfig.items.length;
-          if (hadFilteredItems) {
-            console.log('🧹 Filtered out unwanted items from saved configuration - forcing save');
-            // Reset user edit flag to allow this cleanup save
-            setUserHasEditedLayout(false);
-            // Save the filtered configuration to permanently remove unwanted items
-            onConfigurationChange?.(filteredConfig);
-          }
-          
           setConfiguration(filteredConfig);
           setIsLayoutMounted(true);
         }
       }
       setInitialLoadComplete(true);
-    } else if (initialLoadComplete || userHasEditedLayout) {
-      console.log('🚫 Skipping configuration reload - user changes are protected');
+    } else if (!template?.layoutConfiguration && template) {
+      // No saved configuration - generate from template
+      console.log('🔄 No saved configuration - generating from template');
+      const newLayoutItems = generateLayoutFromTemplate();
+      const newConfig = {
+        gridCols: 12,
+        gridRows: 20,
+        gridGap: 4,
+        items: newLayoutItems
+      };
+      setConfiguration(newConfig);
+      setIsLayoutMounted(true);
+      setInitialLoadComplete(true);
     }
   }, [template, initialLoadComplete, userHasEditedLayout, isTransitioning, generateLayoutFromTemplate, onConfigurationChange]);
 
