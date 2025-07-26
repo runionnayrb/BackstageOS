@@ -69,49 +69,51 @@ export function TaskManagement() {
   const urlParams = new URLSearchParams(location.split('?')[1] || '');
   const projectId = showId || urlParams.get('projectId');
 
-  // Fetch the main task database - prioritize existing database with tasks
-  const { data: database, isLoading: loadingDatabase } = useQuery({
-    queryKey: ['/api/task-databases', 'main'],
+  // Fetch the main task database - use database ID 3 which contains your existing tasks
+  const { data: database, isLoading: loadingDatabase, error: databaseError } = useQuery({
+    queryKey: ['/api/task-databases', 3],
     queryFn: async () => {
-      // Fetch all databases to find the one with existing tasks
-      const response = await apiRequest('GET', `/api/task-databases`);
-      const data = await response.json();
-      const databases = Array.isArray(data) ? data : [];
-      
-      // First, try to find an existing global database that has tasks
-      let mainDatabase = databases.find((db: TaskDatabase) => 
-        db.name === 'Tasks' && db.isGlobal && db.id === 3
-      );
-      
-      // If that specific database exists, use it (it contains your existing tasks)
-      if (mainDatabase) {
-        console.log('Found existing database with tasks:', mainDatabase);
-        return mainDatabase;
-      }
-      
-      // Otherwise, find any global main database
-      mainDatabase = databases.find((db: TaskDatabase) => 
-        db.name === 'Tasks' && db.isGlobal
-      );
-      
-      // If still no global main database exists, create one
-      if (!mainDatabase) {
-        const createResponse = await apiRequest('POST', '/api/task-databases', {
-          name: 'Tasks',
-          description: 'Main task database',
-          color: '#3B82F6',
-          templateType: 'custom',
-          projectId: null,
-          isGlobal: true
+      console.log('Fetching task database ID 3 directly...');
+      try {
+        // Directly fetch database ID 3 which contains your tasks
+        const response = await fetch(`/api/task-databases/3`, {
+          credentials: 'same-origin'
         });
-        mainDatabase = await createResponse.json();
+        console.log('Response status:', response.status, response.statusText);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const database = await response.json();
+        console.log('Found database 3:', database);
+        return database;
+      } catch (error) {
+        console.error('Error fetching database 3:', error);
+        // Fallback: try to get all databases and find database 3
+        console.log('Fallback: Fetching all databases...');
+        try {
+          const response = await fetch(`/api/task-databases`, {
+            credentials: 'same-origin'
+          });
+          if (response.ok) {
+            const databases = await response.json();
+            const db3 = databases.find((db: TaskDatabase) => db.id === 3);
+            if (db3) {
+              console.log('Found database 3 in list:', db3);
+              return db3;
+            }
+          }
+        } catch (fallbackError) {
+          console.error('Fallback also failed:', fallbackError);
+        }
+        throw error;
       }
-      
-      console.log('Main database resolved:', mainDatabase);
-      return mainDatabase;
     },
-    staleTime: Infinity, // Cache the result since we want consistency
-    gcTime: Infinity  // Keep in cache to prevent recreation
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes  
+    gcTime: 10 * 60 * 1000,   // Keep in cache for 10 minutes
+    retry: 2,                  // Retry failed requests
+    retryDelay: 1000
   });
 
   // Fetch views for the main database
@@ -186,6 +188,32 @@ export function TaskManagement() {
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
           <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (databaseError) {
+    console.error('Database error:', databaseError);
+    return (
+      <div className="px-4 sm:px-6 lg:px-8 py-4">
+        <div className="text-center py-12">
+          <Database className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2 text-red-600">Error Loading Tasks</h3>
+          <p className="text-muted-foreground mb-4">
+            There was an issue accessing your task database.
+          </p>
+          <p className="text-sm text-red-500 mb-4">
+            {databaseError instanceof Error ? databaseError.message : 'Unknown error'}
+          </p>
+          <Button 
+            onClick={() => window.location.reload()} 
+            variant="outline"
+            className="mx-auto"
+          >
+            Reload Page
+          </Button>
         </div>
       </div>
     );
