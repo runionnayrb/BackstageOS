@@ -31,10 +31,7 @@ export function CreateFolderDialog({
   const [description, setDescription] = useState("");
 
   const createFolderMutation = useMutation({
-    mutationFn: (folderData: any) => apiRequest('/api/note-folders', {
-      method: 'POST',
-      body: folderData
-    }),
+    mutationFn: (folderData: any) => apiRequest('POST', '/api/note-folders', folderData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/note-folders'] });
       onOpenChange(false);
