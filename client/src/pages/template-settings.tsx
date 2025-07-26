@@ -863,7 +863,10 @@ export default function TemplateSettings() {
                         projectId={parseInt(params.id)}
                         reportType="tech"
                         isEditing={true}
-                        template={template}
+                        template={{
+                          ...template,
+                          layoutConfiguration: showSettings?.layoutConfiguration || template.layoutConfiguration
+                        }}
                         onTemplateUpdate={(updatedTemplate) => {
                           // This only triggers when lock button is pressed
                           setTemplates(prev => ({
