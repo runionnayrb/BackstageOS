@@ -709,9 +709,25 @@ export default function TemplateSettings() {
                             variant="ghost"
                             size="sm"
                             onClick={() => {
-                              // SIMPLE TOGGLE - All saving happens in real-time via onConfigurationChange
-                              console.log(`🔄 SIMPLE EDIT MODE TOGGLE: ${isEditMode ? 'LOCKING' : 'UNLOCKING'}`);
-                              setIsEditMode(!isEditMode);
+                              // OPTIMISTIC UPDATE - UI responds instantly, database save happens in background
+                              const newEditMode = !isEditMode;
+                              console.log(`🔄 OPTIMISTIC EDIT MODE TOGGLE: ${isEditMode ? 'LOCKING' : 'UNLOCKING'} - UI updates immediately`);
+                              
+                              // Immediate UI update for instant user feedback
+                              setIsEditMode(newEditMode);
+                              
+                              // If locking (newEditMode = false), ensure any final configuration saves
+                              if (!newEditMode && templates[selectedPhase]?.layoutConfiguration) {
+                                console.log('💾 Background save on lock to ensure persistence');
+                                // Background save without blocking UI
+                                apiRequest("PUT", `/api/projects/${projectId}/settings/layout-configuration`, {
+                                  layoutConfiguration: templates[selectedPhase].layoutConfiguration,
+                                  templateType: selectedPhase
+                                }).catch(error => {
+                                  console.error('❌ Background save failed:', error);
+                                  // Could show subtle error toast here if needed
+                                });
+                              }
                             }}
                             className="h-6 w-6 p-0"
                           >
