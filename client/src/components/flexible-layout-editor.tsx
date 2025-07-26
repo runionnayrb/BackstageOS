@@ -103,7 +103,7 @@ const DraggableGridItem: React.FC<{
 
   return (
     <div 
-      className="relative transition-all duration-200"
+      className="relative"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -533,7 +533,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     gridRows: 20,
     gridGap: 4
   }));
-  const [isLayoutMounted, setIsLayoutMounted] = useState(false);
+  const [isLayoutMounted, setIsLayoutMounted] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
   
   const { toast } = useToast();
@@ -908,7 +908,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
                 onDragStart={effectiveEditMode ? handleDragStart : undefined}
                 onDragStop={effectiveEditMode ? handleDragStop : undefined}
                 draggableHandle=".drag-handle"
-                useCSSTransforms={true}
+                useCSSTransforms={false}
                 compactType={null}
                 preventCollision={false}
                 allowOverlap={true}
