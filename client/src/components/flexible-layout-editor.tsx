@@ -613,90 +613,42 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         setConfiguration(newConfig);
         setIsLayoutMounted(true);
       } else {
-        // Check if saved configuration has fields that no longer exist in template - if so, regenerate
-        const templateFieldIds = template.fields.map((f: any) => f.id.toLowerCase());
-        const savedFieldIds = savedConfig.items
-          ?.filter((item: any) => item.type === 'grouped-section' && item.content?.fieldId)
-          ?.map((item: any) => item.content.fieldId.toLowerCase()) || [];
+        console.log('✅ Using saved configuration from template - preserving user changes');
+        console.log('💾 Saved configuration details:', {
+          totalItems: savedConfig.items.length,
+          yPositions: savedConfig.items.map((item: any) => ({ id: item.id, y: item.y }))
+        });
         
-        const hasObsoleteFields = savedFieldIds.some(fieldId => !templateFieldIds.includes(fieldId));
-        const hasMissingFields = templateFieldIds.some(fieldId => !savedFieldIds.includes(fieldId));
-        
-        if (hasObsoleteFields || hasMissingFields) {
-          console.log('🔄 Template structure mismatch detected but preserving user layout');
-          console.log('Template fields:', templateFieldIds);
-          console.log('Saved fields:', savedFieldIds);
-          console.log('💾 Saved configuration Y positions (preserving user changes):', 
-            savedConfig.items.map((item: any) => ({ id: item.id, y: item.y }))
-          );
-          
-          // Filter out footer items AND date/day fields but keep all other saved items
-          const preservedConfig = {
-            ...savedConfig,
-            items: savedConfig.items.filter((item: any) => {
-              // Remove footer items
-              if (item.type === 'footer' || item.id === 'template-footer') {
+        // Always use the saved configuration if it exists, regardless of field mismatches
+        // This ensures user customizations are preserved even if template structure changes
+        const filteredConfig = {
+          ...savedConfig,
+          items: savedConfig.items.filter((item: any) => {
+            // Remove footer items
+            if (item.type === 'footer' || item.id === 'template-footer') {
+              return false;
+            }
+            
+            // Remove date and day field sections permanently
+            if (item.type === 'grouped-section' && item.content?.fieldId) {
+              const fieldId = item.content.fieldId.toLowerCase();
+              if (fieldId === 'date' || fieldId === 'day' || fieldId.includes('date') || fieldId.includes('day')) {
+                console.log(`🗑️ Permanently removing ${fieldId} field from layout`);
                 return false;
               }
-              
-              // Remove date and day field sections permanently
-              if (item.type === 'grouped-section' && item.content?.fieldId) {
-                const fieldId = item.content.fieldId.toLowerCase();
-                if (fieldId === 'date' || fieldId === 'day' || fieldId.includes('date') || fieldId.includes('day')) {
-                  console.log(`🗑️ Permanently removing ${fieldId} field from layout`);
-                  return false;
-                }
-              }
-              
-              return true;
-            })
-          };
-          
-          console.log('🎯 Preserved configuration after filtering:', 
-            preservedConfig.items.map((item: any) => ({ id: item.id, y: item.y }))
-          );
-          
-          // Keep existing layout even if fields are missing/obsolete to preserve user changes
-          setConfiguration(preservedConfig);
-          setIsLayoutMounted(true);
-          hasLoadedFromDatabaseRef.current = true;
-        } else {
-          console.log('✅ Using saved configuration from template - preserving user changes');
-          console.log('💾 Saved configuration details:', {
-            totalItems: savedConfig.items.length,
-            yPositions: savedConfig.items.map((item: any) => ({ id: item.id, y: item.y }))
-          });
-          
-          // Filter out footer items AND date/day fields permanently
-          const filteredConfig = {
-            ...savedConfig,
-            items: savedConfig.items.filter((item: any) => {
-              // Remove footer items
-              if (item.type === 'footer' || item.id === 'template-footer') {
-                return false;
-              }
-              
-              // Remove date and day field sections permanently
-              if (item.type === 'grouped-section' && item.content?.fieldId) {
-                const fieldId = item.content.fieldId.toLowerCase();
-                if (fieldId === 'date' || fieldId === 'day' || fieldId.includes('date') || fieldId.includes('day')) {
-                  console.log(`🗑️ Permanently removing ${fieldId} field from layout`);
-                  return false;
-                }
-              }
-              
-              return true;
-            })
-          };
-          
-          console.log('🎯 Applied filtered configuration with Y positions:', 
-            filteredConfig.items.map((item: any) => ({ id: item.id, y: item.y }))
-          );
-          
-          setConfiguration(filteredConfig);
-          setIsLayoutMounted(true);
-          hasLoadedFromDatabaseRef.current = true;
-        }
+            }
+            
+            return true;
+          })
+        };
+        
+        console.log('🎯 Applied filtered configuration with Y positions:', 
+          filteredConfig.items.map((item: any) => ({ id: item.id, y: item.y }))
+        );
+        
+        setConfiguration(filteredConfig);
+        setIsLayoutMounted(true);
+        hasLoadedFromDatabaseRef.current = true;
       }
       setInitialLoadComplete(true);
     } else if (!template?.layoutConfiguration && template) {
