@@ -807,6 +807,11 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
 
     setConfiguration(newConfig);
     setUserHasEditedLayout(true); // Mark that user has made layout changes
+    
+    // Immediately update layouts to prevent snap-back
+    const newLayouts = convertToGridLayouts(newConfig.items);
+    setLayouts(newLayouts);
+    
     console.log('👤 User has edited layout - changes stored locally (will save on lock)');
   };
 
