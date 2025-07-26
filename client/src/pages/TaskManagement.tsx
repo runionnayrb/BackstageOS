@@ -254,48 +254,11 @@ export function TaskManagement() {
         {/* Header - matching Reports page structure */}
         <div className="px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <h2 className="text-2xl font-bold text-gray-900">
-                {showId && showData ? `Tasks - ${showData.name}` : 'Tasks'}
-              </h2>
-              {/* Mobile inline icons - only show on mobile */}
-              <div className="flex items-center space-x-1 sm:hidden">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => setIsSearchExpanded(!isSearchExpanded)}
-                  className="hover:bg-transparent group p-1"
-                >
-                  <Search className="h-4 w-4 group-hover:text-blue-600" />
-                </Button>
-                <Button variant="ghost" size="sm" className="hover:bg-transparent group p-1">
-                  <Filter className="h-4 w-4 group-hover:text-blue-600" />
-                </Button>
-                <TaskViewSettings
-                  currentView={selectedView?.type || 'table'}
-                  onViewChange={(viewType) => {
-                    const tempView = { ...selectedView, type: viewType } as TaskView;
-                    setSelectedView(tempView);
-                  }}
-                  propertyVisibility={propertyVisibility}
-                  onPropertyVisibilityChange={setPropertyVisibility}
-                >
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="hover:bg-transparent group p-1"
-                  >
-                    <Settings className="h-4 w-4 group-hover:text-blue-600" />
-                  </Button>
-                </TaskViewSettings>
-                <Button variant="ghost" size="sm" onClick={handleCreateTask} className="hover:bg-transparent group p-1">
-                  <Plus className="h-4 w-4 group-hover:text-blue-600" />
-                </Button>
-              </div>
-            </div>
+            <h2 className="text-2xl font-bold text-gray-900">
+              {showId && showData ? `Tasks - ${showData.name}` : 'Tasks'}
+            </h2>
             
-            {/* Desktop icons - hidden on mobile */}
-            <div className="hidden sm:flex items-center space-x-2">
+            <div className="flex items-center space-x-2">
               {/* Expandable Search */}
               <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
                 isSearchExpanded ? 'w-64 opacity-100' : 'w-0 opacity-0'
