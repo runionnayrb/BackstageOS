@@ -69,21 +69,32 @@ export function TaskManagement() {
   const urlParams = new URLSearchParams(location.split('?')[1] || '');
   const projectId = showId || urlParams.get('projectId');
 
-  // Fetch or create the main task database - always use global database for consistency
+  // Fetch the main task database - prioritize existing database with tasks
   const { data: database, isLoading: loadingDatabase } = useQuery({
-    queryKey: ['/api/task-databases', 'main', 'global'],
+    queryKey: ['/api/task-databases', 'main'],
     queryFn: async () => {
-      // Always fetch the global database to ensure consistency
+      // Fetch all databases to find the one with existing tasks
       const response = await apiRequest('GET', `/api/task-databases`);
       const data = await response.json();
       const databases = Array.isArray(data) ? data : [];
       
-      // Look for existing global main database
+      // First, try to find an existing global database that has tasks
       let mainDatabase = databases.find((db: TaskDatabase) => 
+        db.name === 'Tasks' && db.isGlobal && db.id === 3
+      );
+      
+      // If that specific database exists, use it (it contains your existing tasks)
+      if (mainDatabase) {
+        console.log('Found existing database with tasks:', mainDatabase);
+        return mainDatabase;
+      }
+      
+      // Otherwise, find any global main database
+      mainDatabase = databases.find((db: TaskDatabase) => 
         db.name === 'Tasks' && db.isGlobal
       );
       
-      // If no global main database exists, create one
+      // If still no global main database exists, create one
       if (!mainDatabase) {
         const createResponse = await apiRequest('POST', '/api/task-databases', {
           name: 'Tasks',
@@ -96,11 +107,11 @@ export function TaskManagement() {
         mainDatabase = await createResponse.json();
       }
       
-      console.log('Main database created/fetched:', mainDatabase);
+      console.log('Main database resolved:', mainDatabase);
       return mainDatabase;
     },
-    staleTime: 0, // Always refetch to get fresh data
-    cacheTime: 0  // Don't cache results
+    staleTime: Infinity, // Cache the result since we want consistency
+    gcTime: Infinity  // Keep in cache to prevent recreation
   });
 
   // Fetch views for the main database
