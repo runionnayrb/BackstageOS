@@ -103,7 +103,7 @@ const DraggableGridItem: React.FC<{
 
   return (
     <div 
-      className="relative"
+      className="relative transition-all duration-200"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -526,33 +526,39 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     return items;
   }, [template]);
 
-  // IMMEDIATE CONFIGURATION - No delays or useEffects
-  const [configuration, setConfiguration] = useState<FlexibleLayoutConfiguration>(() => {
-    if (template?.layoutConfiguration) {
-      console.log('📋 IMMEDIATE load from saved template config');
-      return template.layoutConfiguration;
-    } else if (template) {
-      console.log('🏗️ IMMEDIATE generate new layout from template');
-      const config = {
+  // SINGLE SOURCE OF TRUTH - Configuration state that never gets overridden
+  const [configuration, setConfiguration] = useState<FlexibleLayoutConfiguration>(() => ({
+    items: [],
+    gridCols: 12,
+    gridRows: 20,
+    gridGap: 4
+  }));
+  const [isLayoutMounted, setIsLayoutMounted] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+  
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // ONE-TIME INITIALIZATION ONLY
+  useEffect(() => {
+    if (template && !isInitialized) {
+      console.log('🎯 ONE-TIME INITIALIZATION');
+      
+      // Use saved config from template if it exists, otherwise generate new
+      const config = template.layoutConfiguration || {
         items: generateLayoutFromTemplate(),
         gridCols: 12,
         gridRows: 20,
         gridGap: 8
       };
-      return config;
-    } else {
-      // Default empty config
-      return {
-        items: [],
-        gridCols: 12,
-        gridRows: 20,
-        gridGap: 4
-      };
+      
+      setConfiguration(config);
+      setIsLayoutMounted(true);
+      setIsInitialized(true);
+      
+      console.log('✅ INITIALIZED with config:', config.items.map((item: any) => ({ id: item.id, y: item.y })));
     }
-  });
-  
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
+  }, [template, generateLayoutFromTemplate, isInitialized]);
 
   // NO MORE COMPLEX TRACKING - Keep it simple
 
@@ -884,7 +890,8 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
           "bg-white",
           effectiveEditMode && "bg-gray-50/50"
         )}>
-          <div className="w-full" style={{ width: '1200px', maxWidth: '100%' }}>
+          {isLayoutMounted && (
+            <div className="w-full" style={{ width: '1200px', maxWidth: '100%' }}>
               <ResponsiveGridLayout
                 className="layout"
                 layouts={layouts}
@@ -901,7 +908,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
                 onDragStart={effectiveEditMode ? handleDragStart : undefined}
                 onDragStop={effectiveEditMode ? handleDragStop : undefined}
                 draggableHandle=".drag-handle"
-                useCSSTransforms={false}
+                useCSSTransforms={true}
                 compactType={null}
                 preventCollision={false}
                 allowOverlap={true}
@@ -933,7 +940,8 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
                   </div>
                 ))}
               </ResponsiveGridLayout>
-          </div>
+            </div>
+          )}
         </div>
 
 

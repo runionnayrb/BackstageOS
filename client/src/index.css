@@ -42,12 +42,13 @@
 
 /* React Grid Layout and Resizable Styles */
 .react-grid-item {
-  transition: none !important;
+  transition: all 200ms ease;
+  transition-property: left, top;
   border: 1px solid transparent;
 }
 
 .react-grid-item.cssTransforms {
-  transition: none !important;
+  transition-property: transform;
 }
 
 .react-grid-item > .react-resizable-handle {
@@ -661,11 +662,12 @@ textarea:active {
 }
 
 .react-grid-item {
-  transition: none !important;
+  transition: all 200ms ease;
+  transition-property: left, top, width, height;
 }
 
 .react-grid-item.cssTransforms {
-  transition: none !important;
+  transition-property: transform, width, height;
 }
 
 .react-grid-item > .react-resizable-handle {
