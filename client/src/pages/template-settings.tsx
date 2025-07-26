@@ -244,9 +244,22 @@ export default function TemplateSettings() {
         }
       });
     }
+
+    // Add saved layoutConfiguration from showSettings if available
+    if (showSettings?.layoutConfiguration) {
+      console.log('🔄 Loading saved layoutConfiguration from database:', showSettings.layoutConfiguration);
+      // Apply the saved layoutConfiguration to the tech template
+      if (initialTemplates.tech) {
+        initialTemplates.tech = {
+          ...initialTemplates.tech,
+          layoutConfiguration: showSettings.layoutConfiguration
+        };
+        console.log('✅ Applied saved layoutConfiguration to tech template');
+      }
+    }
     
     setTemplates(initialTemplates);
-  }, [projectId, userTemplates]);
+  }, [projectId, userTemplates, showSettings]);
 
   // Update departments list when settings change (only if not currently reordering)
   useEffect(() => {
