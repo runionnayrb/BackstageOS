@@ -555,14 +555,21 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     enabled: !!projectId
   });
 
-  // Initialize layout when template is available (only on first load)
+  // Initialize layout when template is available (ONLY ON FIRST LOAD - never reload after user edits)
   useEffect(() => {
     console.log('🔄 Template loading effect triggered:', {
       hasTemplate: !!template,
       configLength: configuration.items.length,
       initialLoadComplete,
+      userHasEditedLayout: userHasEditedLayoutRef.current,
       hasLayoutConfig: !!template?.layoutConfiguration
     });
+    
+    // NEVER reload if user has made any edits - their changes take priority
+    if (userHasEditedLayoutRef.current) {
+      console.log('🛡️ USER HAS EDITED LAYOUT - NEVER RELOAD FROM DATABASE');
+      return;
+    }
     
     if (template && configuration.items.length === 0 && !initialLoadComplete) {
       // First check if we have saved configuration from showSettings (database)
@@ -581,8 +588,6 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         });
         
         const savedConfig = showSettings.layoutConfiguration;
-        // Force a fresh cache check - ignore cached version
-        console.log('🔄 FORCING FRESH DATABASE LOAD - IGNORING CACHE');
         
         // Use the saved configuration directly - no filtering to preserve all user changes
         setConfiguration(savedConfig);
@@ -776,6 +781,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
 
     setConfiguration(newConfig);
     setUserHasEditedLayout(true); // Mark that user has made layout changes
+    userHasEditedLayoutRef.current = true; // Immediately protect against database reloads
     
     // Immediately update layouts to prevent snap-back
     const newLayouts = convertToGridLayouts(newConfig.items);
