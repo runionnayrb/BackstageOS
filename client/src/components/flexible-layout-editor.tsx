@@ -557,15 +557,47 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
 
   // Initialize layout when template is available (only on first load)
   useEffect(() => {
-    if (template && configuration.items.length === 0 && !initialLoadComplete && !template?.layoutConfiguration) {
-      const initialConfig = {
-        items: generateLayoutFromTemplate(),
-        gridCols: 12,
-        gridRows: 20,
-        gridGap: 8
-      };
-      setConfiguration(initialConfig);
-      setIsLayoutMounted(true);
+    if (template && configuration.items.length === 0 && !initialLoadComplete) {
+      if (template?.layoutConfiguration) {
+        console.log('🎯 INITIAL LOAD: Found saved configuration, loading immediately');
+        const savedConfig = template.layoutConfiguration;
+        
+        // Filter out footer items and date/day fields
+        const filteredConfig = {
+          ...savedConfig,
+          items: savedConfig.items.filter((item: any) => {
+            if (item.type === 'footer' || item.id === 'template-footer') {
+              return false;
+            }
+            if (item.type === 'grouped-section' && item.content?.fieldId) {
+              const fieldId = item.content.fieldId.toLowerCase();
+              if (fieldId === 'date' || fieldId === 'day' || fieldId.includes('date') || fieldId.includes('day')) {
+                return false;
+              }
+            }
+            return true;
+          })
+        };
+        
+        console.log('🎯 INITIAL LOAD: Applied saved Y positions:', 
+          filteredConfig.items.map((item: any) => ({ id: item.id, y: item.y }))
+        );
+        
+        setConfiguration(filteredConfig);
+        setIsLayoutMounted(true);
+        hasLoadedFromDatabaseRef.current = true;
+      } else {
+        console.log('🎯 INITIAL LOAD: No saved configuration, generating new layout');
+        const initialConfig = {
+          items: generateLayoutFromTemplate(),
+          gridCols: 12,
+          gridRows: 20,
+          gridGap: 8
+        };
+        setConfiguration(initialConfig);
+        setIsLayoutMounted(true);
+      }
+      setInitialLoadComplete(true);
     }
   }, [template, generateLayoutFromTemplate, configuration.items.length, initialLoadComplete]);
 
@@ -580,93 +612,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     }
   }, [effectiveEditMode]);
   
-  // Load configuration from template when navigating between tabs or on initial load
-  useEffect(() => {
-    // Don't load during edit mode transitions
-    if (isTransitioning) {
-      console.log('🚫 Skipping configuration load during edit mode transition');
-      return;
-    }
-    
-    // If user has edited the layout during THIS SESSION, prevent reloads (but allow initial load)
-    if (userHasEditedLayoutRef.current && hasLoadedFromDatabaseRef.current) {
-      console.log('🛡️ User has edited layout this session - blocking template reload');
-      return;
-    }
-    
-    // Load from template (including updated configuration from database)
-    if (template?.layoutConfiguration) {
-      console.log('🔄 Loading layout configuration from template:', template.layoutConfiguration);
-      const savedConfig = template.layoutConfiguration;
-      
-      // Check if saved config uses old format (individual items) or new format (grouped sections)
-      const hasGroupedSections = savedConfig.items?.some((item: any) => item.type === 'grouped-section');
-      
-      if (!hasGroupedSections && template) {
-        // Migration needed: convert to grouped format
-        console.log('🔄 Migrating layout to grouped format');
-        const newLayoutItems = generateLayoutFromTemplate();
-        const newConfig = {
-          ...savedConfig,
-          items: newLayoutItems
-        };
-        setConfiguration(newConfig);
-        setIsLayoutMounted(true);
-      } else {
-        console.log('✅ Using saved configuration from template - preserving user changes');
-        console.log('💾 Saved configuration details:', {
-          totalItems: savedConfig.items.length,
-          yPositions: savedConfig.items.map((item: any) => ({ id: item.id, y: item.y }))
-        });
-        
-        // Always use the saved configuration if it exists, regardless of field mismatches
-        // This ensures user customizations are preserved even if template structure changes
-        const filteredConfig = {
-          ...savedConfig,
-          items: savedConfig.items.filter((item: any) => {
-            // Remove footer items
-            if (item.type === 'footer' || item.id === 'template-footer') {
-              return false;
-            }
-            
-            // Remove date and day field sections permanently
-            if (item.type === 'grouped-section' && item.content?.fieldId) {
-              const fieldId = item.content.fieldId.toLowerCase();
-              if (fieldId === 'date' || fieldId === 'day' || fieldId.includes('date') || fieldId.includes('day')) {
-                console.log(`🗑️ Permanently removing ${fieldId} field from layout`);
-                return false;
-              }
-            }
-            
-            return true;
-          })
-        };
-        
-        console.log('🎯 Applied filtered configuration with Y positions:', 
-          filteredConfig.items.map((item: any) => ({ id: item.id, y: item.y }))
-        );
-        
-        setConfiguration(filteredConfig);
-        setIsLayoutMounted(true);
-        hasLoadedFromDatabaseRef.current = true;
-      }
-      setInitialLoadComplete(true);
-    } else if (!template?.layoutConfiguration && template) {
-      // No saved configuration - generate from template
-      console.log('🔄 No saved configuration - generating from template');
-      const newLayoutItems = generateLayoutFromTemplate();
-      const newConfig = {
-        gridCols: 12,
-        gridRows: 20,
-        gridGap: 4,
-        items: newLayoutItems
-      };
-      setConfiguration(newConfig);
-      setIsLayoutMounted(true);
-      setInitialLoadComplete(true);
-      hasLoadedFromDatabaseRef.current = true;
-    }
-  }, [template, initialLoadComplete, userHasEditedLayout, isTransitioning, generateLayoutFromTemplate, onConfigurationChange]);
+  // This duplicate configuration loading has been removed to prevent overriding saved layouts
 
   // Update ref for edit mode tracking (removed auto-save on exit)
   useEffect(() => {
