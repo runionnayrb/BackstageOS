@@ -169,6 +169,7 @@ const LayoutItemRenderer: React.FC<{
   onDateChange?: (date: string) => void;
   configuration?: FlexibleLayoutConfiguration;
   setConfiguration?: React.Dispatch<React.SetStateAction<FlexibleLayoutConfiguration>>;
+  setUserHasEditedLayout?: React.Dispatch<React.SetStateAction<boolean>>;
   onConfigurationChange?: (config: FlexibleLayoutConfiguration) => void;
 }> = ({ 
   item, 
@@ -182,6 +183,7 @@ const LayoutItemRenderer: React.FC<{
   onDateChange,
   configuration,
   setConfiguration,
+  setUserHasEditedLayout,
   onConfigurationChange
 }) => {
   switch (item.type) {
@@ -202,6 +204,7 @@ const LayoutItemRenderer: React.FC<{
                 onDateChange={onDateChange}
                 configuration={configuration}
                 setConfiguration={setConfiguration}
+                setUserHasEditedLayout={setUserHasEditedLayout}
                 onConfigurationChange={onConfigurationChange}
               />
             </div>
@@ -289,6 +292,7 @@ const LayoutItemRenderer: React.FC<{
             
             console.log(`🔗 Updated field relationship: "${currentFieldId}" → "${newFieldId}"`);
             setConfiguration(newConfig);
+            setUserHasEditedLayout(true); // Mark that user has made layout changes
             onConfigurationChange?.(newConfig);
           }}
           projectId={String(projectId)}
@@ -522,13 +526,22 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     return items;
   }, [template]);
 
-  // IMMEDIATE CONFIGURATION - Load from template if available
+  // IMMEDIATE CONFIGURATION - No delays or useEffects
   const [configuration, setConfiguration] = useState<FlexibleLayoutConfiguration>(() => {
     if (template?.layoutConfiguration) {
       console.log('📋 IMMEDIATE load from saved template config');
       return template.layoutConfiguration;
+    } else if (template) {
+      console.log('🏗️ IMMEDIATE generate new layout from template');
+      const config = {
+        items: generateLayoutFromTemplate(),
+        gridCols: 12,
+        gridRows: 20,
+        gridGap: 8
+      };
+      return config;
     } else {
-      // Start with empty config, will be populated when template loads
+      // Default empty config
       return {
         items: [],
         gridCols: 12,
@@ -540,20 +553,6 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  // Initialize configuration when template becomes available
-  useEffect(() => {
-    if (template && !template.layoutConfiguration && configuration.items.length === 0) {
-      console.log('🏗️ Initializing configuration from template');
-      const newConfig = {
-        items: generateLayoutFromTemplate(),
-        gridCols: 12,
-        gridRows: 20,
-        gridGap: 8
-      };
-      setConfiguration(newConfig);
-    }
-  }, [template, generateLayoutFromTemplate, configuration.items.length]);
 
   // NO MORE COMPLEX TRACKING - Keep it simple
 
