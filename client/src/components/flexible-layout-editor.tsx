@@ -373,6 +373,28 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
   
   // Use external edit mode if provided, otherwise use internal state
   const effectiveEditMode = externalEditMode !== undefined ? externalEditMode : isEditMode;
+  
+  // Track previous edit mode state to detect transitions
+  const prevEditModeRef = useRef(effectiveEditMode);
+  
+  // Detect edit mode exit and save configuration
+  useEffect(() => {
+    const previousEditMode = prevEditModeRef.current;
+    const currentEditMode = effectiveEditMode;
+    
+    // Detect transition from edit mode to locked mode
+    if (previousEditMode && !currentEditMode) {
+      console.log('🔒 Edit mode exited - ensuring configuration is saved before lock');
+      // Save current configuration to ensure changes persist
+      if (configuration.items.length > 0) {
+        onConfigurationChange?.(configuration);
+        console.log('💾 Configuration saved on edit mode exit');
+      }
+    }
+    
+    // Update ref for next comparison
+    prevEditModeRef.current = currentEditMode;
+  }, [effectiveEditMode, configuration, onConfigurationChange]);
 
   // Helper function to convert date to day of week
   const formatDayOfWeek = useCallback((dateString: string) => {
@@ -555,11 +577,28 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     }
   }, [template, generateLayoutFromTemplate, configuration.items.length, initialLoadComplete]);
 
+  // Track if we're in the middle of an edit mode transition to prevent unwanted reloads
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  
+  useEffect(() => {
+    if (prevEditModeRef.current !== effectiveEditMode) {
+      setIsTransitioning(true);
+      const timer = setTimeout(() => setIsTransitioning(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [effectiveEditMode]);
+  
   // Load configuration from settings ONLY on the very first load, never again
   useEffect(() => {
     // Once user has edited layout, NEVER load from database again
     if (userHasEditedLayout) {
       console.log('🛡️ User has edited layout - NEVER loading from database again');
+      return;
+    }
+    
+    // Don't load during edit mode transitions
+    if (isTransitioning) {
+      console.log('🚫 Skipping configuration load during edit mode transition');
       return;
     }
     
@@ -646,7 +685,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     } else if (initialLoadComplete || userHasEditedLayout) {
       console.log('🚫 Skipping configuration reload - user changes are protected');
     }
-  }, [template, initialLoadComplete, userHasEditedLayout, generateLayoutFromTemplate, onConfigurationChange]);
+  }, [template, initialLoadComplete, userHasEditedLayout, isTransitioning, generateLayoutFromTemplate, onConfigurationChange]);
 
   // Helper function to snap width to quarters (25%, 50%, 75%, 100%)
   const snapToQuarters = useCallback((width: number) => {

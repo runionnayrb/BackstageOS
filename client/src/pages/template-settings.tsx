@@ -846,10 +846,16 @@ export default function TemplateSettings() {
                             
                             setLastSaved(new Date());
                             
-                            // Layout change automatically saved to template table
-                            // Invalidate template queries to update timestamp display
-                            queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/templates`] });
-                            console.log('📝 Layout change permanently saved to template - timestamp will update');
+                            // Delay cache invalidation to prevent immediate reload during edit mode transitions
+                            setTimeout(() => {
+                              // Only invalidate if not currently in edit mode to prevent conflicts
+                              if (!isEditMode) {
+                                queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/templates`] });
+                                console.log('📝 Layout change timestamp updated after mode transition');
+                              } else {
+                                console.log('🛡️ Skipping cache invalidation during edit mode to preserve changes');
+                              }
+                            }, 1000);
                             
                           } catch (error) {
                             console.error('❌ Failed to save layout configuration:', error);
@@ -857,8 +863,7 @@ export default function TemplateSettings() {
                             setIsSaving(false);
                           }
                         }}
-                        setIsSaving={setIsSaving}
-                        setLastSaved={setLastSaved}
+
                         externalEditMode={isEditMode}
                       />
                     ) : (
