@@ -535,6 +535,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
   }));
   const [isLayoutMounted, setIsLayoutMounted] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [userHasEditedLayout, setUserHasEditedLayout] = useState(false);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -934,6 +935,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
                         onDateChange={handleDateChange}
                         configuration={configuration}
                         setConfiguration={setConfiguration}
+                        setUserHasEditedLayout={setUserHasEditedLayout}
                         onConfigurationChange={onConfigurationChange}
                       />
                     </DraggableGridItem>
