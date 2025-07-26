@@ -41,9 +41,22 @@ export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTa
   const { data: tasks = [], isLoading: loadingTasks } = useQuery({
     queryKey: ['/api/task-databases', database.id, 'tasks'],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/task-databases/${database.id}/tasks`);
-      return await response.json();
-    }
+      console.log('Fetching tasks for database', database.id);
+      const response = await fetch(`/api/task-databases/${database.id}/tasks`, {
+        credentials: 'same-origin',
+        cache: 'no-cache'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch tasks: ${response.status}`);
+      }
+      
+      const tasks = await response.json();
+      console.log('Tasks fetched:', tasks.length, 'tasks');
+      return tasks;
+    },
+    staleTime: 0, // Always fetch fresh data
+    refetchOnMount: true
   });
 
   // Fetch properties for this database

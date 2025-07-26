@@ -181,8 +181,9 @@ export function TaskManagement() {
       setNewTaskId(newTask.id);
       setIsCreateTaskOpen(true);
       
-      // Also invalidate to get fresh data from server
+      // Force refresh tasks to ensure they show up
       queryClient.invalidateQueries({ queryKey: ['/api/task-databases', database?.id, 'tasks'] });
+      queryClient.refetchQueries({ queryKey: ['/api/task-databases', database?.id, 'tasks'] });
     },
     onError: (error) => {
       console.error('Task creation failed:', error);
