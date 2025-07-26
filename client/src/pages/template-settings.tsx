@@ -183,7 +183,7 @@ export default function TemplateSettings() {
   const [newDepartmentName, setNewDepartmentName] = useState("");
 
   // Ref to connect to FlexibleLayoutEditor
-  const flexibleLayoutRef = useRef<{ addNewItem: (type: string) => void; removeItem: (id: string) => void; resetLayout: () => void } | null>(null);
+  const flexibleLayoutRef = useRef<{ addNewItem: (type: string) => void; removeItem: (id: string) => void; resetLayout: () => void; getCurrentConfiguration: () => any } | null>(null);
 
   // Toolbar functions
   const addNewItem = (type: string) => {
@@ -690,27 +690,39 @@ export default function TemplateSettings() {
                             variant="ghost"
                             size="sm"
                             onClick={async () => {
-                              // If locking (going from edit to locked), save everything
+                              // If locking (going from edit to locked), save current configuration
                               if (isEditMode) {
-                                console.log('🔒 Saving template before locking');
+                                console.log('🔒 Saving current configuration before locking');
                                 
                                 try {
-                                  // Save current template with layout configuration
-                                  await apiRequest("PUT", `/api/projects/${projectId}/settings/layout-configuration`, {
-                                    layoutConfiguration: template.layoutConfiguration,
-                                    templateType: selectedPhase
-                                  });
-                                  
-                                  // Update timestamp
-                                  await apiRequest("PUT", `/api/projects/${projectId}/settings`, {
-                                    updatedAt: new Date().toISOString()
-                                  });
-                                  
-                                  console.log('✅ Template saved and locked');
-                                  
-                                  // Refresh data to show updates
-                                  queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/templates`] });
-                                  queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
+                                  // Get current configuration from FlexibleLayoutEditor
+                                  const currentConfig = flexibleLayoutRef.current?.getCurrentConfiguration();
+                                  if (currentConfig) {
+                                    console.log('💾 Saving current layout configuration:', currentConfig);
+                                    
+                                    // Save the CURRENT configuration, not the old template one
+                                    await apiRequest("PUT", `/api/projects/${projectId}/settings/layout-configuration`, {
+                                      layoutConfiguration: currentConfig,
+                                      templateType: selectedPhase
+                                    });
+                                    
+                                    // Update the local template with current config
+                                    const updatedTemplate = {
+                                      ...template,
+                                      layoutConfiguration: currentConfig
+                                    };
+                                    setTemplates(prev => ({
+                                      ...prev,
+                                      [selectedPhase]: updatedTemplate
+                                    }));
+                                    
+                                    // Update timestamp only after save
+                                    await apiRequest("PUT", `/api/projects/${projectId}/settings`, {
+                                      updatedAt: new Date().toISOString()
+                                    });
+                                    
+                                    console.log('✅ Current configuration saved and locked');
+                                  }
                                   
                                 } catch (error) {
                                   console.error('❌ Failed to save template:', error);
