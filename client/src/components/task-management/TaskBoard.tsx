@@ -71,7 +71,19 @@ export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTa
   const updateTaskMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
       console.log('Mutation sending to server:', { id, data });
-      const response = await apiRequest('PUT', `/api/tasks/${id}`, data);
+      const response = await fetch(`/api/tasks/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify(data)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to update task: ${response.status}`);
+      }
+      
       const result = await response.json();
       console.log('Server response:', result);
       return result;
