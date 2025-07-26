@@ -526,6 +526,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     return items;
   }, [template]);
 
+  // SINGLE SOURCE OF TRUTH - Configuration state that never gets overridden
   const [configuration, setConfiguration] = useState<FlexibleLayoutConfiguration>(() => ({
     items: [],
     gridCols: 12,
@@ -533,32 +534,15 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     gridGap: 4
   }));
   const [isLayoutMounted, setIsLayoutMounted] = useState(false);
-  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
-  const [userHasEditedLayout, setUserHasEditedLayout] = useState(false);
-  
-  // Track if user has edited layout during THIS session (resets on page reload)
-  const userHasEditedLayoutRef = useRef(false);
-  const hasLoadedFromDatabaseRef = useRef(false);
-  
-  useEffect(() => {
-    if (userHasEditedLayout) {
-      userHasEditedLayoutRef.current = true;
-    }
-  }, [userHasEditedLayout]);
+  const [isInitialized, setIsInitialized] = useState(false);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Load saved layout configuration
-  const { data: showSettings } = useQuery({
-    queryKey: ['/api/projects', projectId, 'settings'],
-    enabled: !!projectId
-  });
-
-  // Simple initialization - ONLY run once when template is first loaded
+  // ONE-TIME INITIALIZATION ONLY
   useEffect(() => {
-    if (template && !initialLoadComplete) {
-      console.log('🎯 INITIAL TEMPLATE LOAD');
+    if (template && !isInitialized) {
+      console.log('🎯 ONE-TIME INITIALIZATION');
       
       // Use saved config from template if it exists, otherwise generate new
       const config = template.layoutConfiguration || {
@@ -570,29 +554,13 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       
       setConfiguration(config);
       setIsLayoutMounted(true);
-      setInitialLoadComplete(true);
+      setIsInitialized(true);
       
-      console.log('✅ Template loaded with config:', config.items.map((item: any) => ({ id: item.id, y: item.y })));
+      console.log('✅ INITIALIZED with config:', config.items.map((item: any) => ({ id: item.id, y: item.y })));
     }
-  }, [template, generateLayoutFromTemplate, initialLoadComplete]);
+  }, [template, generateLayoutFromTemplate, isInitialized]);
 
-  // Track if we're in the middle of an edit mode transition to prevent unwanted reloads
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  
-  useEffect(() => {
-    if (prevEditModeRef.current !== effectiveEditMode) {
-      setIsTransitioning(true);
-      const timer = setTimeout(() => setIsTransitioning(false), 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [effectiveEditMode]);
-  
-  // This duplicate configuration loading has been removed to prevent overriding saved layouts
-
-  // Update ref for edit mode tracking (removed auto-save on exit)
-  useEffect(() => {
-    prevEditModeRef.current = effectiveEditMode;
-  }, [effectiveEditMode]);
+  // NO MORE COMPLEX TRACKING - Keep it simple
 
   // Helper function to snap width to quarters (25%, 50%, 75%, 100%)
   const snapToQuarters = useCallback((width: number) => {
@@ -736,21 +704,20 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       itemCount: updatedItems.length
     });
 
+    // UPDATE STATE AND SAVE IMMEDIATELY
     setConfiguration(newConfig);
-    setUserHasEditedLayout(true); // Mark that user has made layout changes
-    userHasEditedLayoutRef.current = true; // Immediately protect against database reloads
     
     // IMMEDIATELY save to database via callback
     if (onConfigurationChange) {
-      console.log('💾 Configuration changed - saving immediately to database');
+      console.log('💾 SAVING CHANGES IMMEDIATELY TO DATABASE');
       onConfigurationChange(newConfig);
     }
     
-    // Immediately update layouts to prevent snap-back
+    // Update layouts to prevent snap-back
     const newLayouts = convertToGridLayouts(newConfig.items);
     setLayouts(newLayouts);
     
-    console.log('✅ Layout changes saved immediately - no waiting for lock');
+    console.log('✅ CONFIGURATION UPDATED AND SAVED');
   };
 
   const handleDragStart = () => {

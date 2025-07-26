@@ -706,44 +706,9 @@ export default function TemplateSettings() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={async () => {
-                              // If locking (going from edit to locked), save current configuration
-                              if (isEditMode) {
-                                try {
-                                  // Add a small delay to ensure any pending layout changes are processed
-                                  await new Promise(resolve => setTimeout(resolve, 100));
-                                  
-                                  // Get current configuration from FlexibleLayoutEditor
-                                  const currentConfig = flexibleLayoutRef.current?.getCurrentConfiguration();
-                                  if (currentConfig) {
-                                    // Save the CURRENT configuration, not the old template one
-                                    await apiRequest("PUT", `/api/projects/${projectId}/settings/layout-configuration`, {
-                                      layoutConfiguration: currentConfig,
-                                      templateType: selectedPhase
-                                    });
-                                    
-                                    // Update the local template with current config immediately
-                                    setTemplates(prev => ({
-                                      ...prev,
-                                      [selectedPhase]: {
-                                        ...template,
-                                        layoutConfiguration: currentConfig
-                                      }
-                                    }));
-                                    
-                                    // Update timestamp only after save
-                                    await apiRequest("PUT", `/api/projects/${projectId}/settings`, {
-                                      updatedAt: new Date().toISOString()
-                                    });
-                                  }
-                                  
-                                } catch (error) {
-                                  console.error('❌ Failed to save template:', error);
-                                  return;
-                                }
-                              }
-                              
-                              // Toggle edit mode
+                            onClick={() => {
+                              // SIMPLE TOGGLE - All saving happens in real-time via onConfigurationChange
+                              console.log(`🔄 SIMPLE EDIT MODE TOGGLE: ${isEditMode ? 'LOCKING' : 'UNLOCKING'}`);
                               setIsEditMode(!isEditMode);
                             }}
                             className="h-6 w-6 p-0"
