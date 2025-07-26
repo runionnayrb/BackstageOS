@@ -376,25 +376,6 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
   
   // Track previous edit mode state to detect transitions
   const prevEditModeRef = useRef(effectiveEditMode);
-  
-  // Detect edit mode exit and save configuration
-  useEffect(() => {
-    const previousEditMode = prevEditModeRef.current;
-    const currentEditMode = effectiveEditMode;
-    
-    // Detect transition from edit mode to locked mode
-    if (previousEditMode && !currentEditMode) {
-      console.log('🔒 Edit mode exited - ensuring configuration is saved before lock');
-      // Save current configuration to ensure changes persist
-      if (configuration.items.length > 0) {
-        onConfigurationChange?.(configuration);
-        console.log('💾 Configuration saved on edit mode exit');
-      }
-    }
-    
-    // Update ref for next comparison
-    prevEditModeRef.current = currentEditMode;
-  }, [effectiveEditMode, configuration, onConfigurationChange]);
 
   // Helper function to convert date to day of week
   const formatDayOfWeek = useCallback((dateString: string) => {
@@ -686,6 +667,25 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       console.log('🚫 Skipping configuration reload - user changes are protected');
     }
   }, [template, initialLoadComplete, userHasEditedLayout, isTransitioning, generateLayoutFromTemplate, onConfigurationChange]);
+
+  // Detect edit mode exit and save configuration
+  useEffect(() => {
+    const previousEditMode = prevEditModeRef.current;
+    const currentEditMode = effectiveEditMode;
+    
+    // Detect transition from edit mode to locked mode
+    if (previousEditMode && !currentEditMode) {
+      console.log('🔒 Edit mode exited - ensuring configuration is saved before lock');
+      // Save current configuration to ensure changes persist
+      if (configuration.items.length > 0) {
+        onConfigurationChange?.(configuration);
+        console.log('💾 Configuration saved on edit mode exit');
+      }
+    }
+    
+    // Update ref for next comparison
+    prevEditModeRef.current = currentEditMode;
+  }, [effectiveEditMode, configuration, onConfigurationChange]);
 
   // Helper function to snap width to quarters (25%, 50%, 75%, 100%)
   const snapToQuarters = useCallback((width: number) => {
