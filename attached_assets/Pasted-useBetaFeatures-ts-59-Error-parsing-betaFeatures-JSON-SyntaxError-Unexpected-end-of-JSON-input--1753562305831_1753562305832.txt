@@ -1,0 +1,2140 @@
+useBetaFeatures.ts:59 Error parsing betaFeatures JSON: SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:56:62)
+    at canAccessFeature (useBetaFeatures.ts:82:19)
+    at EnhancedHeader (enhanced-header.tsx:319:24)
+    at renderWithHooks (chunk-276SZO74.js?v=d8c7dc2a:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d8c7dc2a:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d8c7dc2a:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d8c7dc2a:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d8c7dc2a:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d8c7dc2a:19137:13) Raw value: []
+hasUserAccess @ useBetaFeatures.ts:59
+canAccessFeature @ useBetaFeatures.ts:82
+EnhancedHeader @ enhanced-header.tsx:319
+renderWithHooks @ chunk-276SZO74.js?v=d8c7dc2a:11548
+updateFunctionComponent @ chunk-276SZO74.js?v=d8c7dc2a:14582
+beginWork @ chunk-276SZO74.js?v=d8c7dc2a:15924
+beginWork$1 @ chunk-276SZO74.js?v=d8c7dc2a:19753
+performUnitOfWork @ chunk-276SZO74.js?v=d8c7dc2a:19198
+workLoopSync @ chunk-276SZO74.js?v=d8c7dc2a:19137
+renderRootSync @ chunk-276SZO74.js?v=d8c7dc2a:19116
+performSyncWorkOnRoot @ chunk-276SZO74.js?v=d8c7dc2a:18874
+flushSyncCallbacks @ chunk-276SZO74.js?v=d8c7dc2a:9119
+(anonymous) @ chunk-276SZO74.js?v=d8c7dc2a:18627Understand this warning
+useBetaFeatures.ts:74 🔍 Beta Access Check for performance-tracker: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: true, …}
+useBetaFeatures.ts:92 🔍 Admin bypass check: {userIsAdmin: true, isOriginalAdmin: false, isViewingAsAdmin: true, canBypass: true}
+useBetaFeatures.ts:100 ✅ Admin bypass - full access granted for performance-tracker
+mobile-bottom-nav.tsx:52 🔍 Mobile Nav Debug: {location: '/shows/3', currentShowId: '3', currentShowIdNumber: 3}
+useBetaFeatures.ts:59 Error parsing betaFeatures JSON: SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:56:62)
+    at canAccessFeature (useBetaFeatures.ts:82:19)
+    at EnhancedHeader (enhanced-header.tsx:319:24)
+    at renderWithHooks (chunk-276SZO74.js?v=d8c7dc2a:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d8c7dc2a:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d8c7dc2a:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d8c7dc2a:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d8c7dc2a:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d8c7dc2a:19137:13) Raw value: []
+hasUserAccess @ useBetaFeatures.ts:59
+canAccessFeature @ useBetaFeatures.ts:82
+EnhancedHeader @ enhanced-header.tsx:319
+renderWithHooks @ chunk-276SZO74.js?v=d8c7dc2a:11548
+updateFunctionComponent @ chunk-276SZO74.js?v=d8c7dc2a:14582
+beginWork @ chunk-276SZO74.js?v=d8c7dc2a:15924
+beginWork$1 @ chunk-276SZO74.js?v=d8c7dc2a:19753
+performUnitOfWork @ chunk-276SZO74.js?v=d8c7dc2a:19198
+workLoopSync @ chunk-276SZO74.js?v=d8c7dc2a:19137
+renderRootSync @ chunk-276SZO74.js?v=d8c7dc2a:19116
+performSyncWorkOnRoot @ chunk-276SZO74.js?v=d8c7dc2a:18874
+flushSyncCallbacks @ chunk-276SZO74.js?v=d8c7dc2a:9119
+(anonymous) @ chunk-276SZO74.js?v=d8c7dc2a:18627Understand this warning
+useBetaFeatures.ts:74 🔍 Beta Access Check for performance-tracker: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: true, …}
+useBetaFeatures.ts:92 🔍 Admin bypass check: {userIsAdmin: true, isOriginalAdmin: false, isViewingAsAdmin: true, canBypass: true}
+useBetaFeatures.ts:100 ✅ Admin bypass - full access granted for performance-tracker
+mobile-bottom-nav.tsx:52 🔍 Mobile Nav Debug: {location: '/shows/3/reports', currentShowId: '3', currentShowIdNumber: 3}
+useBetaFeatures.ts:59 Error parsing betaFeatures JSON: SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:56:62)
+    at canAccessFeature (useBetaFeatures.ts:82:19)
+    at EnhancedHeader (enhanced-header.tsx:319:24)
+    at renderWithHooks (chunk-276SZO74.js?v=d8c7dc2a:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d8c7dc2a:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d8c7dc2a:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d8c7dc2a:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d8c7dc2a:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d8c7dc2a:19137:13) Raw value: []
+hasUserAccess @ useBetaFeatures.ts:59
+canAccessFeature @ useBetaFeatures.ts:82
+EnhancedHeader @ enhanced-header.tsx:319
+renderWithHooks @ chunk-276SZO74.js?v=d8c7dc2a:11548
+updateFunctionComponent @ chunk-276SZO74.js?v=d8c7dc2a:14582
+beginWork @ chunk-276SZO74.js?v=d8c7dc2a:15924
+beginWork$1 @ chunk-276SZO74.js?v=d8c7dc2a:19753
+performUnitOfWork @ chunk-276SZO74.js?v=d8c7dc2a:19198
+workLoopSync @ chunk-276SZO74.js?v=d8c7dc2a:19137
+renderRootSync @ chunk-276SZO74.js?v=d8c7dc2a:19116
+performSyncWorkOnRoot @ chunk-276SZO74.js?v=d8c7dc2a:18874
+flushSyncCallbacks @ chunk-276SZO74.js?v=d8c7dc2a:9119
+(anonymous) @ chunk-276SZO74.js?v=d8c7dc2a:18627Understand this warning
+useBetaFeatures.ts:74 🔍 Beta Access Check for performance-tracker: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: true, …}
+useBetaFeatures.ts:92 🔍 Admin bypass check: {userIsAdmin: true, isOriginalAdmin: false, isViewingAsAdmin: true, canBypass: true}
+useBetaFeatures.ts:100 ✅ Admin bypass - full access granted for performance-tracker
+mobile-bottom-nav.tsx:52 🔍 Mobile Nav Debug: {location: '/shows/3/templates', currentShowId: '3', currentShowIdNumber: 3}
+template-settings.tsx:250 🔄 Loading saved layoutConfiguration from database: {
+  "items": [
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 0,
+      "id": "field-section-location",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "label": "Location",
+        "fieldId": "location"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 12,
+          "x": 0,
+          "y": 0,
+          "id": "field-header-location",
+          "minH": 1,
+          "minW": 3,
+          "type": "field-header",
+          "content": {
+            "label": "Location",
+            "fieldId": "location"
+          }
+        },
+        {
+          "h": 3,
+          "w": 12,
+          "x": 0,
+          "y": 1,
+          "id": "field-notes-location",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "fieldId": "location",
+            "placeholder": "Rehearsal room/venue"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 5,
+      "id": "field-section-scenes",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "label": "Scenes Worked",
+        "fieldId": "scenes"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 12,
+          "x": 0,
+          "y": 0,
+          "id": "field-header-scenes",
+          "minH": 1,
+          "minW": 3,
+          "type": "field-header",
+          "content": {
+            "label": "Scenes Worked",
+            "fieldId": "scenes"
+          }
+        },
+        {
+          "h": 3,
+          "w": 12,
+          "x": 0,
+          "y": 1,
+          "id": "field-notes-scenes",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "fieldId": "scenes",
+            "placeholder": "Act I, Scene 1-3"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 10,
+      "id": "field-section-notes",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "label": "Director's Notes",
+        "fieldId": "notes"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 12,
+          "x": 0,
+          "y": 0,
+          "id": "field-header-notes",
+          "minH": 1,
+          "minW": 3,
+          "type": "field-header",
+          "content": {
+            "label": "Director's Notes",
+            "fieldId": "notes"
+          }
+        },
+        {
+          "h": 3,
+          "w": 12,
+          "x": 0,
+          "y": 1,
+          "id": "field-notes-notes",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "fieldId": "notes",
+            "placeholder": "Sample content..."
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 15,
+      "id": "field-section-technical",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "label": "Technical Notes",
+        "fieldId": "technical"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 12,
+          "x": 0,
+          "y": 0,
+          "id": "field-header-technical",
+          "minH": 1,
+          "minW": 3,
+          "type": "field-header",
+          "content": {
+            "label": "Technical Notes",
+            "fieldId": "technical"
+          }
+        },
+        {
+          "h": 3,
+          "w": 12,
+          "x": 0,
+          "y": 1,
+          "id": "field-notes-technical",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "fieldId": "technical",
+            "placeholder": "Props, costumes, set pieces"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 20,
+      "id": "field-section-attendance",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "label": "Attendance Notes",
+        "fieldId": "attendance"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 12,
+          "x": 0,
+          "y": 0,
+          "id": "field-header-attendance",
+          "minH": 1,
+          "minW": 3,
+          "type": "field-header",
+          "content": {
+            "label": "Attendance Notes",
+            "fieldId": "attendance"
+          }
+        },
+        {
+          "h": 3,
+          "w": 12,
+          "x": 0,
+          "y": 1,
+          "id": "field-notes-attendance",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "fieldId": "attendance",
+            "placeholder": "Late arrivals, absences"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 6,
+      "x": 0,
+      "y": 25,
+      "id": "dept-section-scenic",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "department": "scenic",
+        "displayName": "Scenic"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 6,
+          "x": 0,
+          "y": 0,
+          "id": "dept-header-scenic",
+          "minH": 1,
+          "minW": 2,
+          "type": "department-header",
+          "content": {
+            "department": "scenic",
+            "displayName": "Scenic"
+          }
+        },
+        {
+          "h": 3,
+          "w": 6,
+          "x": 0,
+          "y": 1,
+          "id": "dept-notes-scenic",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "department": "scenic"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 6,
+      "x": 6,
+      "y": 25,
+      "id": "dept-section-lighting",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "department": "lighting",
+        "displayName": "Lighting"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 6,
+          "x": 0,
+          "y": 0,
+          "id": "dept-header-lighting",
+          "minH": 1,
+          "minW": 2,
+          "type": "department-header",
+          "content": {
+            "department": "lighting",
+            "displayName": "Lighting"
+          }
+        },
+        {
+          "h": 3,
+          "w": 6,
+          "x": 0,
+          "y": 1,
+          "id": "dept-notes-lighting",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "department": "lighting"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 6,
+      "x": 0,
+      "y": 30,
+      "id": "dept-section-audio",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "department": "audio",
+        "displayName": "Audio"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 6,
+          "x": 0,
+          "y": 0,
+          "id": "dept-header-audio",
+          "minH": 1,
+          "minW": 2,
+          "type": "department-header",
+          "content": {
+            "department": "audio",
+            "displayName": "Audio"
+          }
+        },
+        {
+          "h": 3,
+          "w": 6,
+          "x": 0,
+          "y": 1,
+          "id": "dept-notes-audio",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "department": "audio"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 6,
+      "x": 6,
+      "y": 30,
+      "id": "dept-section-video",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "department": "video",
+        "displayName": "Video"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 6,
+          "x": 0,
+          "y": 0,
+          "id": "dept-header-video",
+          "minH": 1,
+          "minW": 2,
+          "type": "department-header",
+          "content": {
+            "department": "video",
+            "displayName": "Video"
+          }
+        },
+        {
+          "h": 3,
+          "w": 6,
+          "x": 0,
+          "y": 1,
+          "id": "dept-notes-video",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "department": "video"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 6,
+      "x": 0,
+      "y": 35,
+      "id": "dept-section-props",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "department": "props",
+        "displayName": "Props"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 6,
+          "x": 0,
+          "y": 0,
+          "id": "dept-header-props",
+          "minH": 1,
+          "minW": 2,
+          "type": "department-header",
+          "content": {
+            "department": "props",
+            "displayName": "Props"
+          }
+        },
+        {
+          "h": 3,
+          "w": 6,
+          "x": 0,
+          "y": 1,
+          "id": "dept-notes-props",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "department": "props"
+          }
+        }
+      ]
+    }
+  ],
+  "gridGap": 4,
+  "gridCols": 12,
+  "gridRows": 20
+}
+template-settings.tsx:257 ✅ Applied saved layoutConfiguration to tech template: {
+  "items": [
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 0,
+      "id": "field-section-location",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "label": "Location",
+        "fieldId": "location"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 12,
+          "x": 0,
+          "y": 0,
+          "id": "field-header-location",
+          "minH": 1,
+          "minW": 3,
+          "type": "field-header",
+          "content": {
+            "label": "Location",
+            "fieldId": "location"
+          }
+        },
+        {
+          "h": 3,
+          "w": 12,
+          "x": 0,
+          "y": 1,
+          "id": "field-notes-location",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "fieldId": "location",
+            "placeholder": "Rehearsal room/venue"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 5,
+      "id": "field-section-scenes",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "label": "Scenes Worked",
+        "fieldId": "scenes"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 12,
+          "x": 0,
+          "y": 0,
+          "id": "field-header-scenes",
+          "minH": 1,
+          "minW": 3,
+          "type": "field-header",
+          "content": {
+            "label": "Scenes Worked",
+            "fieldId": "scenes"
+          }
+        },
+        {
+          "h": 3,
+          "w": 12,
+          "x": 0,
+          "y": 1,
+          "id": "field-notes-scenes",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "fieldId": "scenes",
+            "placeholder": "Act I, Scene 1-3"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 10,
+      "id": "field-section-notes",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "label": "Director's Notes",
+        "fieldId": "notes"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 12,
+          "x": 0,
+          "y": 0,
+          "id": "field-header-notes",
+          "minH": 1,
+          "minW": 3,
+          "type": "field-header",
+          "content": {
+            "label": "Director's Notes",
+            "fieldId": "notes"
+          }
+        },
+        {
+          "h": 3,
+          "w": 12,
+          "x": 0,
+          "y": 1,
+          "id": "field-notes-notes",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "fieldId": "notes",
+            "placeholder": "Sample content..."
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 15,
+      "id": "field-section-technical",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "label": "Technical Notes",
+        "fieldId": "technical"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 12,
+          "x": 0,
+          "y": 0,
+          "id": "field-header-technical",
+          "minH": 1,
+          "minW": 3,
+          "type": "field-header",
+          "content": {
+            "label": "Technical Notes",
+            "fieldId": "technical"
+          }
+        },
+        {
+          "h": 3,
+          "w": 12,
+          "x": 0,
+          "y": 1,
+          "id": "field-notes-technical",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "fieldId": "technical",
+            "placeholder": "Props, costumes, set pieces"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 20,
+      "id": "field-section-attendance",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "label": "Attendance Notes",
+        "fieldId": "attendance"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 12,
+          "x": 0,
+          "y": 0,
+          "id": "field-header-attendance",
+          "minH": 1,
+          "minW": 3,
+          "type": "field-header",
+          "content": {
+            "label": "Attendance Notes",
+            "fieldId": "attendance"
+          }
+        },
+        {
+          "h": 3,
+          "w": 12,
+          "x": 0,
+          "y": 1,
+          "id": "field-notes-attendance",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "fieldId": "attendance",
+            "placeholder": "Late arrivals, absences"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 6,
+      "x": 0,
+      "y": 25,
+      "id": "dept-section-scenic",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "department": "scenic",
+        "displayName": "Scenic"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 6,
+          "x": 0,
+          "y": 0,
+          "id": "dept-header-scenic",
+          "minH": 1,
+          "minW": 2,
+          "type": "department-header",
+          "content": {
+            "department": "scenic",
+            "displayName": "Scenic"
+          }
+        },
+        {
+          "h": 3,
+          "w": 6,
+          "x": 0,
+          "y": 1,
+          "id": "dept-notes-scenic",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "department": "scenic"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 6,
+      "x": 6,
+      "y": 25,
+      "id": "dept-section-lighting",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "department": "lighting",
+        "displayName": "Lighting"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 6,
+          "x": 0,
+          "y": 0,
+          "id": "dept-header-lighting",
+          "minH": 1,
+          "minW": 2,
+          "type": "department-header",
+          "content": {
+            "department": "lighting",
+            "displayName": "Lighting"
+          }
+        },
+        {
+          "h": 3,
+          "w": 6,
+          "x": 0,
+          "y": 1,
+          "id": "dept-notes-lighting",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "department": "lighting"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 6,
+      "x": 0,
+      "y": 30,
+      "id": "dept-section-audio",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "department": "audio",
+        "displayName": "Audio"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 6,
+          "x": 0,
+          "y": 0,
+          "id": "dept-header-audio",
+          "minH": 1,
+          "minW": 2,
+          "type": "department-header",
+          "content": {
+            "department": "audio",
+            "displayName": "Audio"
+          }
+        },
+        {
+          "h": 3,
+          "w": 6,
+          "x": 0,
+          "y": 1,
+          "id": "dept-notes-audio",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "department": "audio"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 6,
+      "x": 6,
+      "y": 30,
+      "id": "dept-section-video",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "department": "video",
+        "displayName": "Video"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 6,
+          "x": 0,
+          "y": 0,
+          "id": "dept-header-video",
+          "minH": 1,
+          "minW": 2,
+          "type": "department-header",
+          "content": {
+            "department": "video",
+            "displayName": "Video"
+          }
+        },
+        {
+          "h": 3,
+          "w": 6,
+          "x": 0,
+          "y": 1,
+          "id": "dept-notes-video",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "department": "video"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 6,
+      "x": 0,
+      "y": 35,
+      "id": "dept-section-props",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "department": "props",
+        "displayName": "Props"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 6,
+          "x": 0,
+          "y": 0,
+          "id": "dept-header-props",
+          "minH": 1,
+          "minW": 2,
+          "type": "department-header",
+          "content": {
+            "department": "props",
+            "displayName": "Props"
+          }
+        },
+        {
+          "h": 3,
+          "w": 6,
+          "x": 0,
+          "y": 1,
+          "id": "dept-notes-props",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "department": "props"
+          }
+        }
+      ]
+    }
+  ],
+  "gridGap": 4,
+  "gridCols": 12,
+  "gridRows": 20
+}
+6editable-field-heading.tsx:28 🔍 EditableFieldHeading mounted with onApplyToAll: true
+inline-formatting-toolbar.tsx:52 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+editable-field-heading.tsx:40 Applying saved field header formatting: {color: '#ffffff', fontSize: '14px', fontStyle: 'normal', textAlign: 'left', fontFamily: 'Arial', …}
+inline-formatting-toolbar.tsx:52 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+editable-field-heading.tsx:40 Applying saved field header formatting: {color: '#ffffff', fontSize: '14px', fontStyle: 'normal', textAlign: 'left', fontFamily: 'Arial', …}
+inline-formatting-toolbar.tsx:52 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+editable-field-heading.tsx:40 Applying saved field header formatting: {color: '#ffffff', fontSize: '14px', fontStyle: 'normal', textAlign: 'left', fontFamily: 'Arial', …}
+inline-formatting-toolbar.tsx:52 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+editable-field-heading.tsx:40 Applying saved field header formatting: {color: '#ffffff', fontSize: '14px', fontStyle: 'normal', textAlign: 'left', fontFamily: 'Arial', …}
+inline-formatting-toolbar.tsx:52 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+editable-field-heading.tsx:40 Applying saved field header formatting: {color: '#ffffff', fontSize: '14px', fontStyle: 'normal', textAlign: 'left', fontFamily: 'Arial', …}
+inline-formatting-toolbar.tsx:52 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+editable-field-heading.tsx:40 Applying saved field header formatting: {color: '#ffffff', fontSize: '14px', fontStyle: 'normal', textAlign: 'left', fontFamily: 'Arial', …}
+flexible-layout-editor.tsx:458 🗑️ Skipping date field during layout generation - permanently excluded
+flexible-layout-editor.tsx:665 🔄 No saved configuration - generating from template
+flexible-layout-editor.tsx:458 🗑️ Skipping date field during layout generation - permanently excluded
+flexible-layout-editor.tsx:738 ✅ Allowing automatic layout update
+flexible-layout-editor.tsx:700 🔍 Converting to grid layouts: {effectiveEditMode: false, itemCount: 0, items: Array(0)}
+flexible-layout-editor.tsx:719 🔍 Layout items created: []
+flexible-layout-editor.tsx:748 🔄 MODE SWITCH DETECTED - Edit Mode: false, User Has Edited This Session: false
+flexible-layout-editor.tsx:599 🔄 Loading layout configuration from template: {items: Array(10), gridGap: 4, gridCols: 12, gridRows: 20}
+flexible-layout-editor.tsx:626 🔄 Template structure mismatch detected but preserving user layout
+flexible-layout-editor.tsx:627 Template fields: (11) ['date', 'day', 'sessionoverview', 'cuesrun', 'scenicnotes', 'lightingnotes', 'audionotes', 'videonotes', 'propsnotes', 'outstandingissues', 'notes']
+flexible-layout-editor.tsx:628 Saved fields: (5) ['location', 'scenes', 'notes', 'technical', 'attendance']
+flexible-layout-editor.tsx:738 ✅ Allowing automatic layout update
+flexible-layout-editor.tsx:700 🔍 Converting to grid layouts: {effectiveEditMode: false, itemCount: 0, items: Array(0)}
+flexible-layout-editor.tsx:719 🔍 Layout items created: []
+flexible-layout-editor.tsx:748 🔄 MODE SWITCH DETECTED - Edit Mode: false, User Has Edited This Session: false
+5editable-field-heading.tsx:28 🔍 EditableFieldHeading mounted with onApplyToAll: false
+inline-formatting-toolbar.tsx:52 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+editable-field-heading.tsx:40 Applying saved field header formatting: {color: '#ffffff', fontSize: '14px', fontStyle: 'normal', textAlign: 'left', fontFamily: 'Arial', …}
+inline-formatting-toolbar.tsx:52 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+editable-field-heading.tsx:40 Applying saved field header formatting: {color: '#ffffff', fontSize: '14px', fontStyle: 'normal', textAlign: 'left', fontFamily: 'Arial', …}
+inline-formatting-toolbar.tsx:52 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+editable-field-heading.tsx:40 Applying saved field header formatting: {color: '#ffffff', fontSize: '14px', fontStyle: 'normal', textAlign: 'left', fontFamily: 'Arial', …}
+inline-formatting-toolbar.tsx:52 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+editable-field-heading.tsx:40 Applying saved field header formatting: {color: '#ffffff', fontSize: '14px', fontStyle: 'normal', textAlign: 'left', fontFamily: 'Arial', …}
+inline-formatting-toolbar.tsx:52 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+editable-field-heading.tsx:40 Applying saved field header formatting: {color: '#ffffff', fontSize: '14px', fontStyle: 'normal', textAlign: 'left', fontFamily: 'Arial', …}
+queryClient.ts:69 🎯 Query URL constructed: /api/projects/3/settings from queryKey: (3) ['/api/projects', 3, 'settings']
+editable-department-header.tsx:97 🎨 ShowSettings for scenic: {id: 2, projectId: 3, sharingEnabled: false, shareLink: null, shareLinkExpiry: null, …}
+editable-department-header.tsx:98 🎨 DepartmentFormatting object: {audio: {…}, props: {…}, video: {…}, scenic: {…}, lighting: {…}}
+editable-department-header.tsx:101 🎨 Loading saved formatting for scenic: {bold: true, italic: false, fontSize: '14px', borderTop: false, textAlign: 'left', …}
+editable-department-header.tsx:97 🎨 ShowSettings for lighting: {id: 2, projectId: 3, sharingEnabled: false, shareLink: null, shareLinkExpiry: null, …}
+editable-department-header.tsx:98 🎨 DepartmentFormatting object: {audio: {…}, props: {…}, video: {…}, scenic: {…}, lighting: {…}}
+editable-department-header.tsx:101 🎨 Loading saved formatting for lighting: {bold: true, italic: false, fontSize: '14px', borderTop: false, textAlign: 'left', …}
+editable-department-header.tsx:97 🎨 ShowSettings for audio: {id: 2, projectId: 3, sharingEnabled: false, shareLink: null, shareLinkExpiry: null, …}
+editable-department-header.tsx:98 🎨 DepartmentFormatting object: {audio: {…}, props: {…}, video: {…}, scenic: {…}, lighting: {…}}
+editable-department-header.tsx:101 🎨 Loading saved formatting for audio: {bold: true, italic: false, fontSize: '14px', borderTop: false, textAlign: 'left', …}
+editable-department-header.tsx:97 🎨 ShowSettings for video: {id: 2, projectId: 3, sharingEnabled: false, shareLink: null, shareLinkExpiry: null, …}
+editable-department-header.tsx:98 🎨 DepartmentFormatting object: {audio: {…}, props: {…}, video: {…}, scenic: {…}, lighting: {…}}
+editable-department-header.tsx:101 🎨 Loading saved formatting for video: {bold: true, italic: false, fontSize: '14px', borderTop: false, textAlign: 'left', …}
+editable-department-header.tsx:97 🎨 ShowSettings for props: {id: 2, projectId: 3, sharingEnabled: false, shareLink: null, shareLinkExpiry: null, …}
+editable-department-header.tsx:98 🎨 DepartmentFormatting object: {audio: {…}, props: {…}, video: {…}, scenic: {…}, lighting: {…}}
+editable-department-header.tsx:101 🎨 Loading saved formatting for props: {bold: true, italic: false, fontSize: '14px', borderTop: false, textAlign: 'left', …}
+flexible-layout-editor.tsx:599 🔄 Loading layout configuration from template: {items: Array(10), gridGap: 4, gridCols: 12, gridRows: 20}
+flexible-layout-editor.tsx:626 🔄 Template structure mismatch detected but preserving user layout
+flexible-layout-editor.tsx:627 Template fields: (11) ['date', 'day', 'sessionoverview', 'cuesrun', 'scenicnotes', 'lightingnotes', 'audionotes', 'videonotes', 'propsnotes', 'outstandingissues', 'notes']
+flexible-layout-editor.tsx:628 Saved fields: (5) ['location', 'scenes', 'notes', 'technical', 'attendance']
+flexible-layout-editor.tsx:738 ✅ Allowing automatic layout update
+flexible-layout-editor.tsx:700 🔍 Converting to grid layouts: {effectiveEditMode: false, itemCount: 10, items: Array(10)}
+flexible-layout-editor.tsx:719 🔍 Layout items created: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+flexible-layout-editor.tsx:748 🔄 MODE SWITCH DETECTED - Edit Mode: false, User Has Edited This Session: false
+5editable-field-heading.tsx:28 🔍 EditableFieldHeading mounted with onApplyToAll: false
+5editable-field-heading.tsx:28 🔍 EditableFieldHeading mounted with onApplyToAll: false
+5editable-field-heading.tsx:28 🔍 EditableFieldHeading mounted with onApplyToAll: false
+flexible-layout-editor.tsx:599 🔄 Loading layout configuration from template: {items: Array(10), gridGap: 4, gridCols: 12, gridRows: 20}
+flexible-layout-editor.tsx:626 🔄 Template structure mismatch detected but preserving user layout
+flexible-layout-editor.tsx:627 Template fields: (11) ['date', 'day', 'sessionoverview', 'cuesrun', 'scenicnotes', 'lightingnotes', 'audionotes', 'videonotes', 'propsnotes', 'outstandingissues', 'notes']
+flexible-layout-editor.tsx:628 Saved fields: (5) ['location', 'scenes', 'notes', 'technical', 'attendance']
+flexible-layout-editor.tsx:738 ✅ Allowing automatic layout update
+flexible-layout-editor.tsx:700 🔍 Converting to grid layouts: {effectiveEditMode: true, itemCount: 10, items: Array(10)}
+flexible-layout-editor.tsx:719 🔍 Layout items created: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+flexible-layout-editor.tsx:748 🔄 MODE SWITCH DETECTED - Edit Mode: true, User Has Edited This Session: false
+5editable-field-heading.tsx:28 🔍 EditableFieldHeading mounted with onApplyToAll: false
+flexible-layout-editor.tsx:587 🚫 Skipping configuration load during edit mode transition
+flexible-layout-editor.tsx:757 🔄 Refreshing layout due to mode switch
+flexible-layout-editor.tsx:700 🔍 Converting to grid layouts: {effectiveEditMode: true, itemCount: 10, items: Array(10)}
+flexible-layout-editor.tsx:719 🔍 Layout items created: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+5editable-field-heading.tsx:28 🔍 EditableFieldHeading mounted with onApplyToAll: false
+5editable-field-heading.tsx:28 🔍 EditableFieldHeading mounted with onApplyToAll: false
+5editable-field-heading.tsx:28 🔍 EditableFieldHeading mounted with onApplyToAll: false
+flexible-layout-editor.tsx:599 🔄 Loading layout configuration from template: {items: Array(10), gridGap: 4, gridCols: 12, gridRows: 20}
+flexible-layout-editor.tsx:626 🔄 Template structure mismatch detected but preserving user layout
+flexible-layout-editor.tsx:627 Template fields: (11) ['date', 'day', 'sessionoverview', 'cuesrun', 'scenicnotes', 'lightingnotes', 'audionotes', 'videonotes', 'propsnotes', 'outstandingissues', 'notes']
+flexible-layout-editor.tsx:628 Saved fields: (5) ['location', 'scenes', 'notes', 'technical', 'attendance']
+flexible-layout-editor.tsx:784 🔥 Y POSITION CHANGE DETECTED for dept-section-video: {oldY: 30, newY: 39, oldX: 6, newX: 0}
+flexible-layout-editor.tsx:804 💡 All layout changes preserved - no automatic recalculation
+flexible-layout-editor.tsx:821 🔧 Layout changed, updating configuration and saving: {editMode: true, hasChanges: true, itemCount: 10}
+flexible-layout-editor.tsx:700 🔍 Converting to grid layouts: {effectiveEditMode: true, itemCount: 10, items: Array(10)}
+flexible-layout-editor.tsx:719 🔍 Layout items created: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+flexible-layout-editor.tsx:834 👤 User has edited layout - changes stored locally (will save on lock)
+5editable-field-heading.tsx:28 🔍 EditableFieldHeading mounted with onApplyToAll: false
+flexible-layout-editor.tsx:804 💡 All layout changes preserved - no automatic recalculation
+flexible-layout-editor.tsx:821 🔧 Layout changed, updating configuration and saving: {editMode: true, hasChanges: true, itemCount: 10}
+flexible-layout-editor.tsx:700 🔍 Converting to grid layouts: {effectiveEditMode: true, itemCount: 10, items: Array(10)}
+flexible-layout-editor.tsx:719 🔍 Layout items created: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+flexible-layout-editor.tsx:834 👤 User has edited layout - changes stored locally (will save on lock)
+flexible-layout-editor.tsx:593 🛡️ User has edited layout this session - blocking template reload
+flexible-layout-editor.tsx:734 🛡️ BLOCKING automatic layout update - user has edited layout this session
+flexible-layout-editor.tsx:748 🔄 MODE SWITCH DETECTED - Edit Mode: true, User Has Edited This Session: true
+flexible-layout-editor.tsx:752 🛡️ Preserving user layout changes - no refresh on mode switch
+5editable-field-heading.tsx:28 🔍 EditableFieldHeading mounted with onApplyToAll: false
+flexible-layout-editor.tsx:734 🛡️ BLOCKING automatic layout update - user has edited layout this session
+flexible-layout-editor.tsx:748 🔄 MODE SWITCH DETECTED - Edit Mode: true, User Has Edited This Session: true
+flexible-layout-editor.tsx:752 🛡️ Preserving user layout changes - no refresh on mode switch
+flexible-layout-editor.tsx:1015 🔍 getCurrentConfiguration called
+flexible-layout-editor.tsx:1016 📊 Current configuration positions: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+5editable-field-heading.tsx:28 🔍 EditableFieldHeading mounted with onApplyToAll: false
+flexible-layout-editor.tsx:593 🛡️ User has edited layout this session - blocking template reload
+5editable-field-heading.tsx:28 🔍 EditableFieldHeading mounted with onApplyToAll: false
+flexible-layout-editor.tsx:593 🛡️ User has edited layout this session - blocking template reload
+flexible-layout-editor.tsx:738 ✅ Allowing automatic layout update
+flexible-layout-editor.tsx:700 🔍 Converting to grid layouts: {effectiveEditMode: false, itemCount: 10, items: Array(10)}
+flexible-layout-editor.tsx:719 🔍 Layout items created: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+flexible-layout-editor.tsx:748 🔄 MODE SWITCH DETECTED - Edit Mode: false, User Has Edited This Session: true
+flexible-layout-editor.tsx:752 🛡️ Preserving user layout changes - no refresh on mode switch
+5editable-field-heading.tsx:28 🔍 EditableFieldHeading mounted with onApplyToAll: false
+flexible-layout-editor.tsx:587 🚫 Skipping configuration load during edit mode transition
+useBetaFeatures.ts:59 Error parsing betaFeatures JSON: SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:56:62)
+    at canAccessFeature (useBetaFeatures.ts:82:19)
+    at EnhancedHeader (enhanced-header.tsx:319:24)
+    at renderWithHooks (chunk-276SZO74.js?v=d8c7dc2a:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d8c7dc2a:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d8c7dc2a:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d8c7dc2a:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d8c7dc2a:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d8c7dc2a:19137:13) Raw value: []
+hasUserAccess @ useBetaFeatures.ts:59
+canAccessFeature @ useBetaFeatures.ts:82
+EnhancedHeader @ enhanced-header.tsx:319
+renderWithHooks @ chunk-276SZO74.js?v=d8c7dc2a:11548
+updateFunctionComponent @ chunk-276SZO74.js?v=d8c7dc2a:14582
+beginWork @ chunk-276SZO74.js?v=d8c7dc2a:15924
+beginWork$1 @ chunk-276SZO74.js?v=d8c7dc2a:19753
+performUnitOfWork @ chunk-276SZO74.js?v=d8c7dc2a:19198
+workLoopSync @ chunk-276SZO74.js?v=d8c7dc2a:19137
+renderRootSync @ chunk-276SZO74.js?v=d8c7dc2a:19116
+performSyncWorkOnRoot @ chunk-276SZO74.js?v=d8c7dc2a:18874
+flushSyncCallbacks @ chunk-276SZO74.js?v=d8c7dc2a:9119
+(anonymous) @ chunk-276SZO74.js?v=d8c7dc2a:18627Understand this warning
+useBetaFeatures.ts:74 🔍 Beta Access Check for performance-tracker: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: true, …}
+useBetaFeatures.ts:92 🔍 Admin bypass check: {userIsAdmin: true, isOriginalAdmin: false, isViewingAsAdmin: true, canBypass: true}
+useBetaFeatures.ts:100 ✅ Admin bypass - full access granted for performance-tracker
+mobile-bottom-nav.tsx:52 🔍 Mobile Nav Debug: {location: '/shows/3', currentShowId: '3', currentShowIdNumber: 3}
+useBetaFeatures.ts:59 Error parsing betaFeatures JSON: SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:56:62)
+    at canAccessFeature (useBetaFeatures.ts:82:19)
+    at EnhancedHeader (enhanced-header.tsx:319:24)
+    at renderWithHooks (chunk-276SZO74.js?v=d8c7dc2a:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d8c7dc2a:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d8c7dc2a:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d8c7dc2a:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d8c7dc2a:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d8c7dc2a:19137:13) Raw value: []
+hasUserAccess @ useBetaFeatures.ts:59
+canAccessFeature @ useBetaFeatures.ts:82
+EnhancedHeader @ enhanced-header.tsx:319
+renderWithHooks @ chunk-276SZO74.js?v=d8c7dc2a:11548
+updateFunctionComponent @ chunk-276SZO74.js?v=d8c7dc2a:14582
+beginWork @ chunk-276SZO74.js?v=d8c7dc2a:15924
+beginWork$1 @ chunk-276SZO74.js?v=d8c7dc2a:19753
+performUnitOfWork @ chunk-276SZO74.js?v=d8c7dc2a:19198
+workLoopSync @ chunk-276SZO74.js?v=d8c7dc2a:19137
+renderRootSync @ chunk-276SZO74.js?v=d8c7dc2a:19116
+performSyncWorkOnRoot @ chunk-276SZO74.js?v=d8c7dc2a:18874
+flushSyncCallbacks @ chunk-276SZO74.js?v=d8c7dc2a:9119
+(anonymous) @ chunk-276SZO74.js?v=d8c7dc2a:18627Understand this warning
+useBetaFeatures.ts:74 🔍 Beta Access Check for performance-tracker: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: true, …}
+useBetaFeatures.ts:92 🔍 Admin bypass check: {userIsAdmin: true, isOriginalAdmin: false, isViewingAsAdmin: true, canBypass: true}
+useBetaFeatures.ts:100 ✅ Admin bypass - full access granted for performance-tracker
+mobile-bottom-nav.tsx:52 🔍 Mobile Nav Debug: {location: '/shows/3/reports', currentShowId: '3', currentShowIdNumber: 3}
+useBetaFeatures.ts:59 Error parsing betaFeatures JSON: SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:56:62)
+    at canAccessFeature (useBetaFeatures.ts:82:19)
+    at EnhancedHeader (enhanced-header.tsx:319:24)
+    at renderWithHooks (chunk-276SZO74.js?v=d8c7dc2a:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d8c7dc2a:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d8c7dc2a:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d8c7dc2a:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d8c7dc2a:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d8c7dc2a:19137:13) Raw value: []
+hasUserAccess @ useBetaFeatures.ts:59
+canAccessFeature @ useBetaFeatures.ts:82
+EnhancedHeader @ enhanced-header.tsx:319
+renderWithHooks @ chunk-276SZO74.js?v=d8c7dc2a:11548
+updateFunctionComponent @ chunk-276SZO74.js?v=d8c7dc2a:14582
+beginWork @ chunk-276SZO74.js?v=d8c7dc2a:15924
+beginWork$1 @ chunk-276SZO74.js?v=d8c7dc2a:19753
+performUnitOfWork @ chunk-276SZO74.js?v=d8c7dc2a:19198
+workLoopSync @ chunk-276SZO74.js?v=d8c7dc2a:19137
+renderRootSync @ chunk-276SZO74.js?v=d8c7dc2a:19116
+performSyncWorkOnRoot @ chunk-276SZO74.js?v=d8c7dc2a:18874
+flushSyncCallbacks @ chunk-276SZO74.js?v=d8c7dc2a:9119
+(anonymous) @ chunk-276SZO74.js?v=d8c7dc2a:18627Understand this warning
+useBetaFeatures.ts:74 🔍 Beta Access Check for performance-tracker: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: true, …}
+useBetaFeatures.ts:92 🔍 Admin bypass check: {userIsAdmin: true, isOriginalAdmin: false, isViewingAsAdmin: true, canBypass: true}
+useBetaFeatures.ts:100 ✅ Admin bypass - full access granted for performance-tracker
+mobile-bottom-nav.tsx:52 🔍 Mobile Nav Debug: {location: '/shows/3/templates', currentShowId: '3', currentShowIdNumber: 3}
+template-settings.tsx:250 🔄 Loading saved layoutConfiguration from database: {
+  "items": [
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 0,
+      "id": "field-section-location",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "label": "Location",
+        "fieldId": "location"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 12,
+          "x": 0,
+          "y": 0,
+          "id": "field-header-location",
+          "minH": 1,
+          "minW": 3,
+          "type": "field-header",
+          "content": {
+            "label": "Location",
+            "fieldId": "location"
+          }
+        },
+        {
+          "h": 3,
+          "w": 12,
+          "x": 0,
+          "y": 1,
+          "id": "field-notes-location",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "fieldId": "location",
+            "placeholder": "Rehearsal room/venue"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 5,
+      "id": "field-section-scenes",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "label": "Scenes Worked",
+        "fieldId": "scenes"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 12,
+          "x": 0,
+          "y": 0,
+          "id": "field-header-scenes",
+          "minH": 1,
+          "minW": 3,
+          "type": "field-header",
+          "content": {
+            "label": "Scenes Worked",
+            "fieldId": "scenes"
+          }
+        },
+        {
+          "h": 3,
+          "w": 12,
+          "x": 0,
+          "y": 1,
+          "id": "field-notes-scenes",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "fieldId": "scenes",
+            "placeholder": "Act I, Scene 1-3"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 10,
+      "id": "field-section-notes",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "label": "Director's Notes",
+        "fieldId": "notes"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 12,
+          "x": 0,
+          "y": 0,
+          "id": "field-header-notes",
+          "minH": 1,
+          "minW": 3,
+          "type": "field-header",
+          "content": {
+            "label": "Director's Notes",
+            "fieldId": "notes"
+          }
+        },
+        {
+          "h": 3,
+          "w": 12,
+          "x": 0,
+          "y": 1,
+          "id": "field-notes-notes",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "fieldId": "notes",
+            "placeholder": "Sample content..."
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 15,
+      "id": "field-section-technical",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "label": "Technical Notes",
+        "fieldId": "technical"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 12,
+          "x": 0,
+          "y": 0,
+          "id": "field-header-technical",
+          "minH": 1,
+          "minW": 3,
+          "type": "field-header",
+          "content": {
+            "label": "Technical Notes",
+            "fieldId": "technical"
+          }
+        },
+        {
+          "h": 3,
+          "w": 12,
+          "x": 0,
+          "y": 1,
+          "id": "field-notes-technical",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "fieldId": "technical",
+            "placeholder": "Props, costumes, set pieces"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 20,
+      "id": "field-section-attendance",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "label": "Attendance Notes",
+        "fieldId": "attendance"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 12,
+          "x": 0,
+          "y": 0,
+          "id": "field-header-attendance",
+          "minH": 1,
+          "minW": 3,
+          "type": "field-header",
+          "content": {
+            "label": "Attendance Notes",
+            "fieldId": "attendance"
+          }
+        },
+        {
+          "h": 3,
+          "w": 12,
+          "x": 0,
+          "y": 1,
+          "id": "field-notes-attendance",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "fieldId": "attendance",
+            "placeholder": "Late arrivals, absences"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 6,
+      "x": 0,
+      "y": 25,
+      "id": "dept-section-scenic",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "department": "scenic",
+        "displayName": "Scenic"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 6,
+          "x": 0,
+          "y": 0,
+          "id": "dept-header-scenic",
+          "minH": 1,
+          "minW": 2,
+          "type": "department-header",
+          "content": {
+            "department": "scenic",
+            "displayName": "Scenic"
+          }
+        },
+        {
+          "h": 3,
+          "w": 6,
+          "x": 0,
+          "y": 1,
+          "id": "dept-notes-scenic",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "department": "scenic"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 6,
+      "x": 6,
+      "y": 25,
+      "id": "dept-section-lighting",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "department": "lighting",
+        "displayName": "Lighting"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 6,
+          "x": 0,
+          "y": 0,
+          "id": "dept-header-lighting",
+          "minH": 1,
+          "minW": 2,
+          "type": "department-header",
+          "content": {
+            "department": "lighting",
+            "displayName": "Lighting"
+          }
+        },
+        {
+          "h": 3,
+          "w": 6,
+          "x": 0,
+          "y": 1,
+          "id": "dept-notes-lighting",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "department": "lighting"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 6,
+      "x": 0,
+      "y": 30,
+      "id": "dept-section-audio",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "department": "audio",
+        "displayName": "Audio"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 6,
+          "x": 0,
+          "y": 0,
+          "id": "dept-header-audio",
+          "minH": 1,
+          "minW": 2,
+          "type": "department-header",
+          "content": {
+            "department": "audio",
+            "displayName": "Audio"
+          }
+        },
+        {
+          "h": 3,
+          "w": 6,
+          "x": 0,
+          "y": 1,
+          "id": "dept-notes-audio",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "department": "audio"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 6,
+      "x": 6,
+      "y": 30,
+      "id": "dept-section-video",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "department": "video",
+        "displayName": "Video"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 6,
+          "x": 0,
+          "y": 0,
+          "id": "dept-header-video",
+          "minH": 1,
+          "minW": 2,
+          "type": "department-header",
+          "content": {
+            "department": "video",
+            "displayName": "Video"
+          }
+        },
+        {
+          "h": 3,
+          "w": 6,
+          "x": 0,
+          "y": 1,
+          "id": "dept-notes-video",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "department": "video"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 6,
+      "x": 0,
+      "y": 35,
+      "id": "dept-section-props",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "department": "props",
+        "displayName": "Props"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 6,
+          "x": 0,
+          "y": 0,
+          "id": "dept-header-props",
+          "minH": 1,
+          "minW": 2,
+          "type": "department-header",
+          "content": {
+            "department": "props",
+            "displayName": "Props"
+          }
+        },
+        {
+          "h": 3,
+          "w": 6,
+          "x": 0,
+          "y": 1,
+          "id": "dept-notes-props",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "department": "props"
+          }
+        }
+      ]
+    }
+  ],
+  "gridGap": 4,
+  "gridCols": 12,
+  "gridRows": 20
+}
+template-settings.tsx:257 ✅ Applied saved layoutConfiguration to tech template: {
+  "items": [
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 0,
+      "id": "field-section-location",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "label": "Location",
+        "fieldId": "location"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 12,
+          "x": 0,
+          "y": 0,
+          "id": "field-header-location",
+          "minH": 1,
+          "minW": 3,
+          "type": "field-header",
+          "content": {
+            "label": "Location",
+            "fieldId": "location"
+          }
+        },
+        {
+          "h": 3,
+          "w": 12,
+          "x": 0,
+          "y": 1,
+          "id": "field-notes-location",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "fieldId": "location",
+            "placeholder": "Rehearsal room/venue"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 5,
+      "id": "field-section-scenes",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "label": "Scenes Worked",
+        "fieldId": "scenes"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 12,
+          "x": 0,
+          "y": 0,
+          "id": "field-header-scenes",
+          "minH": 1,
+          "minW": 3,
+          "type": "field-header",
+          "content": {
+            "label": "Scenes Worked",
+            "fieldId": "scenes"
+          }
+        },
+        {
+          "h": 3,
+          "w": 12,
+          "x": 0,
+          "y": 1,
+          "id": "field-notes-scenes",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "fieldId": "scenes",
+            "placeholder": "Act I, Scene 1-3"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 10,
+      "id": "field-section-notes",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "label": "Director's Notes",
+        "fieldId": "notes"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 12,
+          "x": 0,
+          "y": 0,
+          "id": "field-header-notes",
+          "minH": 1,
+          "minW": 3,
+          "type": "field-header",
+          "content": {
+            "label": "Director's Notes",
+            "fieldId": "notes"
+          }
+        },
+        {
+          "h": 3,
+          "w": 12,
+          "x": 0,
+          "y": 1,
+          "id": "field-notes-notes",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "fieldId": "notes",
+            "placeholder": "Sample content..."
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 15,
+      "id": "field-section-technical",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "label": "Technical Notes",
+        "fieldId": "technical"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 12,
+          "x": 0,
+          "y": 0,
+          "id": "field-header-technical",
+          "minH": 1,
+          "minW": 3,
+          "type": "field-header",
+          "content": {
+            "label": "Technical Notes",
+            "fieldId": "technical"
+          }
+        },
+        {
+          "h": 3,
+          "w": 12,
+          "x": 0,
+          "y": 1,
+          "id": "field-notes-technical",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "fieldId": "technical",
+            "placeholder": "Props, costumes, set pieces"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 20,
+      "id": "field-section-attendance",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "label": "Attendance Notes",
+        "fieldId": "attendance"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 12,
+          "x": 0,
+          "y": 0,
+          "id": "field-header-attendance",
+          "minH": 1,
+          "minW": 3,
+          "type": "field-header",
+          "content": {
+            "label": "Attendance Notes",
+            "fieldId": "attendance"
+          }
+        },
+        {
+          "h": 3,
+          "w": 12,
+          "x": 0,
+          "y": 1,
+          "id": "field-notes-attendance",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "fieldId": "attendance",
+            "placeholder": "Late arrivals, absences"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 6,
+      "x": 0,
+      "y": 25,
+      "id": "dept-section-scenic",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "department": "scenic",
+        "displayName": "Scenic"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 6,
+          "x": 0,
+          "y": 0,
+          "id": "dept-header-scenic",
+          "minH": 1,
+          "minW": 2,
+          "type": "department-header",
+          "content": {
+            "department": "scenic",
+            "displayName": "Scenic"
+          }
+        },
+        {
+          "h": 3,
+          "w": 6,
+          "x": 0,
+          "y": 1,
+          "id": "dept-notes-scenic",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "department": "scenic"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 6,
+      "x": 6,
+      "y": 25,
+      "id": "dept-section-lighting",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "department": "lighting",
+        "displayName": "Lighting"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 6,
+          "x": 0,
+          "y": 0,
+          "id": "dept-header-lighting",
+          "minH": 1,
+          "minW": 2,
+          "type": "department-header",
+          "content": {
+            "department": "lighting",
+            "displayName": "Lighting"
+          }
+        },
+        {
+          "h": 3,
+          "w": 6,
+          "x": 0,
+          "y": 1,
+          "id": "dept-notes-lighting",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "department": "lighting"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 6,
+      "x": 0,
+      "y": 30,
+      "id": "dept-section-audio",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "department": "audio",
+        "displayName": "Audio"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 6,
+          "x": 0,
+          "y": 0,
+          "id": "dept-header-audio",
+          "minH": 1,
+          "minW": 2,
+          "type": "department-header",
+          "content": {
+            "department": "audio",
+            "displayName": "Audio"
+          }
+        },
+        {
+          "h": 3,
+          "w": 6,
+          "x": 0,
+          "y": 1,
+          "id": "dept-notes-audio",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "department": "audio"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 6,
+      "x": 6,
+      "y": 30,
+      "id": "dept-section-video",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "department": "video",
+        "displayName": "Video"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 6,
+          "x": 0,
+          "y": 0,
+          "id": "dept-header-video",
+          "minH": 1,
+          "minW": 2,
+          "type": "department-header",
+          "content": {
+            "department": "video",
+            "displayName": "Video"
+          }
+        },
+        {
+          "h": 3,
+          "w": 6,
+          "x": 0,
+          "y": 1,
+          "id": "dept-notes-video",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "department": "video"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 6,
+      "x": 0,
+      "y": 35,
+      "id": "dept-section-props",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "department": "props",
+        "displayName": "Props"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 6,
+          "x": 0,
+          "y": 0,
+          "id": "dept-header-props",
+          "minH": 1,
+          "minW": 2,
+          "type": "department-header",
+          "content": {
+            "department": "props",
+            "displayName": "Props"
+          }
+        },
+        {
+          "h": 3,
+          "w": 6,
+          "x": 0,
+          "y": 1,
+          "id": "dept-notes-props",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "department": "props"
+          }
+        }
+      ]
+    }
+  ],
+  "gridGap": 4,
+  "gridCols": 12,
+  "gridRows": 20
+}
+6editable-field-heading.tsx:28 🔍 EditableFieldHeading mounted with onApplyToAll: true
+inline-formatting-toolbar.tsx:52 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+editable-field-heading.tsx:40 Applying saved field header formatting: {color: '#ffffff', fontSize: '14px', fontStyle: 'normal', textAlign: 'left', fontFamily: 'Arial', …}
+inline-formatting-toolbar.tsx:52 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+editable-field-heading.tsx:40 Applying saved field header formatting: {color: '#ffffff', fontSize: '14px', fontStyle: 'normal', textAlign: 'left', fontFamily: 'Arial', …}
+inline-formatting-toolbar.tsx:52 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+editable-field-heading.tsx:40 Applying saved field header formatting: {color: '#ffffff', fontSize: '14px', fontStyle: 'normal', textAlign: 'left', fontFamily: 'Arial', …}
+inline-formatting-toolbar.tsx:52 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+editable-field-heading.tsx:40 Applying saved field header formatting: {color: '#ffffff', fontSize: '14px', fontStyle: 'normal', textAlign: 'left', fontFamily: 'Arial', …}
+inline-formatting-toolbar.tsx:52 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+editable-field-heading.tsx:40 Applying saved field header formatting: {color: '#ffffff', fontSize: '14px', fontStyle: 'normal', textAlign: 'left', fontFamily: 'Arial', …}
+inline-formatting-toolbar.tsx:52 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+editable-field-heading.tsx:40 Applying saved field header formatting: {color: '#ffffff', fontSize: '14px', fontStyle: 'normal', textAlign: 'left', fontFamily: 'Arial', …}
+flexible-layout-editor.tsx:458 🗑️ Skipping date field during layout generation - permanently excluded
+flexible-layout-editor.tsx:665 🔄 No saved configuration - generating from template
+flexible-layout-editor.tsx:458 🗑️ Skipping date field during layout generation - permanently excluded
+flexible-layout-editor.tsx:738 ✅ Allowing automatic layout update
+flexible-layout-editor.tsx:700 🔍 Converting to grid layouts: {effectiveEditMode: false, itemCount: 0, items: Array(0)}
+flexible-layout-editor.tsx:719 🔍 Layout items created: []
+flexible-layout-editor.tsx:748 🔄 MODE SWITCH DETECTED - Edit Mode: false, User Has Edited This Session: false
+flexible-layout-editor.tsx:599 🔄 Loading layout configuration from template: {items: Array(10), gridGap: 4, gridCols: 12, gridRows: 20}
+flexible-layout-editor.tsx:626 🔄 Template structure mismatch detected but preserving user layout
+flexible-layout-editor.tsx:627 Template fields: (11) ['date', 'day', 'sessionoverview', 'cuesrun', 'scenicnotes', 'lightingnotes', 'audionotes', 'videonotes', 'propsnotes', 'outstandingissues', 'notes']
+flexible-layout-editor.tsx:628 Saved fields: (5) ['location', 'scenes', 'notes', 'technical', 'attendance']
+flexible-layout-editor.tsx:738 ✅ Allowing automatic layout update
+flexible-layout-editor.tsx:700 🔍 Converting to grid layouts: {effectiveEditMode: false, itemCount: 0, items: Array(0)}
+flexible-layout-editor.tsx:719 🔍 Layout items created: []
+flexible-layout-editor.tsx:748 🔄 MODE SWITCH DETECTED - Edit Mode: false, User Has Edited This Session: false
+5editable-field-heading.tsx:28 🔍 EditableFieldHeading mounted with onApplyToAll: false
+inline-formatting-toolbar.tsx:52 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+editable-field-heading.tsx:40 Applying saved field header formatting: {color: '#ffffff', fontSize: '14px', fontStyle: 'normal', textAlign: 'left', fontFamily: 'Arial', …}
+inline-formatting-toolbar.tsx:52 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+editable-field-heading.tsx:40 Applying saved field header formatting: {color: '#ffffff', fontSize: '14px', fontStyle: 'normal', textAlign: 'left', fontFamily: 'Arial', …}
+inline-formatting-toolbar.tsx:52 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+editable-field-heading.tsx:40 Applying saved field header formatting: {color: '#ffffff', fontSize: '14px', fontStyle: 'normal', textAlign: 'left', fontFamily: 'Arial', …}
+inline-formatting-toolbar.tsx:52 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+editable-field-heading.tsx:40 Applying saved field header formatting: {color: '#ffffff', fontSize: '14px', fontStyle: 'normal', textAlign: 'left', fontFamily: 'Arial', …}
+inline-formatting-toolbar.tsx:52 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+editable-field-heading.tsx:40 Applying saved field header formatting: {color: '#ffffff', fontSize: '14px', fontStyle: 'normal', textAlign: 'left', fontFamily: 'Arial', …}
+queryClient.ts:69 🎯 Query URL constructed: /api/projects/3/settings from queryKey: (3) ['/api/projects', 3, 'settings']
+editable-department-header.tsx:97 🎨 ShowSettings for scenic: {id: 2, projectId: 3, sharingEnabled: false, shareLink: null, shareLinkExpiry: null, …}
+editable-department-header.tsx:98 🎨 DepartmentFormatting object: {audio: {…}, props: {…}, video: {…}, scenic: {…}, lighting: {…}}
+editable-department-header.tsx:101 🎨 Loading saved formatting for scenic: {bold: true, italic: false, fontSize: '14px', borderTop: false, textAlign: 'left', …}
+editable-department-header.tsx:97 🎨 ShowSettings for lighting: {id: 2, projectId: 3, sharingEnabled: false, shareLink: null, shareLinkExpiry: null, …}
+editable-department-header.tsx:98 🎨 DepartmentFormatting object: {audio: {…}, props: {…}, video: {…}, scenic: {…}, lighting: {…}}
+editable-department-header.tsx:101 🎨 Loading saved formatting for lighting: {bold: true, italic: false, fontSize: '14px', borderTop: false, textAlign: 'left', …}
+editable-department-header.tsx:97 🎨 ShowSettings for audio: {id: 2, projectId: 3, sharingEnabled: false, shareLink: null, shareLinkExpiry: null, …}
+editable-department-header.tsx:98 🎨 DepartmentFormatting object: {audio: {…}, props: {…}, video: {…}, scenic: {…}, lighting: {…}}
+editable-department-header.tsx:101 🎨 Loading saved formatting for audio: {bold: true, italic: false, fontSize: '14px', borderTop: false, textAlign: 'left', …}
+editable-department-header.tsx:97 🎨 ShowSettings for video: {id: 2, projectId: 3, sharingEnabled: false, shareLink: null, shareLinkExpiry: null, …}
+editable-department-header.tsx:98 🎨 DepartmentFormatting object: {audio: {…}, props: {…}, video: {…}, scenic: {…}, lighting: {…}}
+editable-department-header.tsx:101 🎨 Loading saved formatting for video: {bold: true, italic: false, fontSize: '14px', borderTop: false, textAlign: 'left', …}
+editable-department-header.tsx:97 🎨 ShowSettings for props: {id: 2, projectId: 3, sharingEnabled: false, shareLink: null, shareLinkExpiry: null, …}
+editable-department-header.tsx:98 🎨 DepartmentFormatting object: {audio: {…}, props: {…}, video: {…}, scenic: {…}, lighting: {…}}
+editable-department-header.tsx:101 🎨 Loading saved formatting for props: {bold: true, italic: false, fontSize: '14px', borderTop: false, textAlign: 'left', …}
+flexible-layout-editor.tsx:599 🔄 Loading layout configuration from template: {items: Array(10), gridGap: 4, gridCols: 12, gridRows: 20}
+flexible-layout-editor.tsx:626 🔄 Template structure mismatch detected but preserving user layout
+flexible-layout-editor.tsx:627 Template fields: (11) ['date', 'day', 'sessionoverview', 'cuesrun', 'scenicnotes', 'lightingnotes', 'audionotes', 'videonotes', 'propsnotes', 'outstandingissues', 'notes']
+flexible-layout-editor.tsx:628 Saved fields: (5) ['location', 'scenes', 'notes', 'technical', 'attendance']
+flexible-layout-editor.tsx:738 ✅ Allowing automatic layout update
+flexible-layout-editor.tsx:700 🔍 Converting to grid layouts: {effectiveEditMode: false, itemCount: 10, items: Array(10)}
+flexible-layout-editor.tsx:719 🔍 Layout items created: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+flexible-layout-editor.tsx:748 🔄 MODE SWITCH DETECTED - Edit Mode: false, User Has Edited This Session: false
+5editable-field-heading.tsx:28 🔍 EditableFieldHeading mounted with onApplyToAll: false
+5editable-field-heading.tsx:28 🔍 EditableFieldHeading mounted with onApplyToAll: false
+flexible-layout-editor.tsx:757 🔄 Refreshing layout due to mode switch
+flexible-layout-editor.tsx:700 🔍 Converting to grid layouts: {effectiveEditMode: false, itemCount: 10, items: Array(10)}
+flexible-layout-editor.tsx:719 🔍 Layout items created: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+5editable-field-heading.tsx:28 🔍 EditableFieldHeading mounted with onApplyToAll: false
+5editable-field-heading.tsx:28 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:97 🎨 ShowSettings for scenic: {id: 2, projectId: 3, sharingEnabled: false, shareLink: null, shareLinkExpiry: null, …}
+editable-department-header.tsx:98 🎨 DepartmentFormatting object: {audio: {…}, props: {…}, video: {…}, scenic: {…}, lighting: {…}}
+editable-department-header.tsx:101 🎨 Loading saved formatting for scenic: {bold: true, italic: false, fontSize: '14px', borderTop: false, textAlign: 'left', …}
+editable-department-header.tsx:97 🎨 ShowSettings for lighting: {id: 2, projectId: 3, sharingEnabled: false, shareLink: null, shareLinkExpiry: null, …}
+editable-department-header.tsx:98 🎨 DepartmentFormatting object: {audio: {…}, props: {…}, video: {…}, scenic: {…}, lighting: {…}}
+editable-department-header.tsx:101 🎨 Loading saved formatting for lighting: {bold: true, italic: false, fontSize: '14px', borderTop: false, textAlign: 'left', …}
+editable-department-header.tsx:97 🎨 ShowSettings for audio: {id: 2, projectId: 3, sharingEnabled: false, shareLink: null, shareLinkExpiry: null, …}
+editable-department-header.tsx:98 🎨 DepartmentFormatting object: {audio: {…}, props: {…}, video: {…}, scenic: {…}, lighting: {…}}
+editable-department-header.tsx:101 🎨 Loading saved formatting for audio: {bold: true, italic: false, fontSize: '14px', borderTop: false, textAlign: 'left', …}
+editable-department-header.tsx:97 🎨 ShowSettings for video: {id: 2, projectId: 3, sharingEnabled: false, shareLink: null, shareLinkExpiry: null, …}
+editable-department-header.tsx:98 🎨 DepartmentFormatting object: {audio: {…}, props: {…}, video: {…}, scenic: {…}, lighting: {…}}
+editable-department-header.tsx:101 🎨 Loading saved formatting for video: {bold: true, italic: false, fontSize: '14px', borderTop: false, textAlign: 'left', …}
+editable-department-header.tsx:97 🎨 ShowSettings for props: {id: 2, projectId: 3, sharingEnabled: false, shareLink: null, shareLinkExpiry: null, …}
+editable-department-header.tsx:98 🎨 DepartmentFormatting object: {audio: {…}, props: {…}, video: {…}, scenic: {…}, lighting: {…}}
+editable-department-header.tsx:101 🎨 Loading saved formatting for props: {bold: true, italic: false, fontSize: '14px', borderTop: false, textAlign: 'left', …}
