@@ -889,16 +889,38 @@ export default function TemplateSettings() {
                           // Note: No cache invalidation to prevent data reload conflicts
                         }}
                         onConfigurationChange={async (config) => {
-                          // Only update local state immediately - no API calls during editing
-                          const updatedTemplate = {
-                            ...template,
-                            layoutConfiguration: config
-                          };
-                          setTemplates(prev => ({
-                            ...prev,
-                            [selectedPhase]: updatedTemplate
-                          }));
-                          console.log('✅ Template state updated locally (no save during edit mode)');
+                          console.log('💾 Configuration changed - saving immediately to database:', {
+                            configItems: config.items.length,
+                            yPositions: config.items.map((item: any) => ({ id: item.id, y: item.y }))
+                          });
+                          
+                          try {
+                            // Save configuration to database immediately
+                            await apiRequest("PUT", `/api/projects/${projectId}/settings/layout-configuration`, {
+                              layoutConfiguration: config,
+                              templateType: selectedPhase
+                            });
+                            
+                            // Update local template state
+                            const updatedTemplate = {
+                              ...template,
+                              layoutConfiguration: config
+                            };
+                            setTemplates(prev => ({
+                              ...prev,
+                              [selectedPhase]: updatedTemplate
+                            }));
+                            
+                            console.log('✅ Configuration saved to database and local state updated');
+                            
+                            // Delay cache invalidation to prevent immediate reload
+                            setTimeout(() => {
+                              queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
+                            }, 1000);
+                            
+                          } catch (error) {
+                            console.error('❌ Failed to save configuration:', error);
+                          }
                         }}
                         externalEditMode={isEditMode}
                       />
