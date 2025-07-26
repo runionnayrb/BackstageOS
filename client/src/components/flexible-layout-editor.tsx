@@ -536,8 +536,9 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [userHasEditedLayout, setUserHasEditedLayout] = useState(false);
   
-  // Once user has edited layout, this flag should NEVER be reset
+  // Track if user has edited layout during THIS session (resets on page reload)
   const userHasEditedLayoutRef = useRef(false);
+  const hasLoadedFromDatabaseRef = useRef(false);
   
   useEffect(() => {
     if (userHasEditedLayout) {
@@ -587,13 +588,13 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       return;
     }
     
-    // If user has EVER edited the layout, never reload from template - preserve user changes permanently
-    if (userHasEditedLayoutRef.current) {
-      console.log('🛡️ User has edited layout - NEVER loading from template again');
+    // If user has edited the layout during THIS SESSION, prevent reloads (but allow initial load)
+    if (userHasEditedLayoutRef.current && hasLoadedFromDatabaseRef.current) {
+      console.log('🛡️ User has edited layout this session - blocking template reload');
       return;
     }
     
-    // Only load from template if user has never edited the layout
+    // Load from template (including updated configuration from database)
     if (template?.layoutConfiguration) {
       console.log('🔄 Loading layout configuration from template:', template.layoutConfiguration);
       const savedConfig = template.layoutConfiguration;
@@ -628,6 +629,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
           // Keep existing layout even if fields are missing/obsolete to preserve user changes
           setConfiguration(savedConfig);
           setIsLayoutMounted(true);
+          hasLoadedFromDatabaseRef.current = true;
         } else {
           console.log('✅ Using saved configuration from template - preserving user changes');
           // Filter out footer items AND date/day fields permanently
@@ -654,6 +656,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
           
           setConfiguration(filteredConfig);
           setIsLayoutMounted(true);
+          hasLoadedFromDatabaseRef.current = true;
         }
       }
       setInitialLoadComplete(true);
@@ -670,6 +673,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       setConfiguration(newConfig);
       setIsLayoutMounted(true);
       setInitialLoadComplete(true);
+      hasLoadedFromDatabaseRef.current = true;
     }
   }, [template, initialLoadComplete, userHasEditedLayout, isTransitioning, generateLayoutFromTemplate, onConfigurationChange]);
 
@@ -725,13 +729,13 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
 
   // Update layouts when configuration changes (but never during edit mode if user has edited)
   useEffect(() => {
-    // If we're in edit mode and user has EVER made changes, never update layouts automatically
-    if (effectiveEditMode && userHasEditedLayoutRef.current) {
-      console.log('🛡️ BLOCKING automatic layout update - user has edited layout');
+    // If we're in edit mode and user has edited this session, don't override with automatic updates
+    if (effectiveEditMode && userHasEditedLayoutRef.current && hasLoadedFromDatabaseRef.current) {
+      console.log('🛡️ BLOCKING automatic layout update - user has edited layout this session');
       return;
     }
     
-    console.log('✅ Allowing automatic layout update - no user edits detected');
+    console.log('✅ Allowing automatic layout update');
     const newLayouts = convertToGridLayouts(configuration.items);
     setLayouts(newLayouts);
   }, [configuration, convertToGridLayouts, effectiveEditMode]);
@@ -741,10 +745,10 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
 
   // Force layout refresh when switching between edit/view modes - but preserve user changes
   useEffect(() => {
-    console.log(`🔄 MODE SWITCH DETECTED - Edit Mode: ${effectiveEditMode}, User Has Ever Edited: ${userHasEditedLayoutRef.current}`);
+    console.log(`🔄 MODE SWITCH DETECTED - Edit Mode: ${effectiveEditMode}, User Has Edited This Session: ${userHasEditedLayoutRef.current}`);
     
-    // Only refresh layout if user has NEVER made any changes - preserve user edits completely
-    if (userHasEditedLayoutRef.current) {
+    // Only refresh layout if user hasn't edited this session (allow initial refresh but prevent after editing)
+    if (userHasEditedLayoutRef.current && hasLoadedFromDatabaseRef.current) {
       console.log('🛡️ Preserving user layout changes - no refresh on mode switch');
       return;
     }
