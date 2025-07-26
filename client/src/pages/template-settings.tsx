@@ -692,13 +692,17 @@ export default function TemplateSettings() {
                             onClick={async () => {
                               // If locking (going from edit to locked), save current configuration
                               if (isEditMode) {
-                                console.log('🔒 Saving current configuration before locking');
+                                console.log('🔒 LOCK BUTTON CLICKED - Saving current configuration before locking');
                                 
                                 try {
                                   // Get current configuration from FlexibleLayoutEditor
                                   const currentConfig = flexibleLayoutRef.current?.getCurrentConfiguration();
                                   if (currentConfig) {
-                                    console.log('💾 Saving current layout configuration:', currentConfig);
+                                    console.log('💾 Lock button got configuration with positions:', currentConfig.items.map(item => ({ 
+                                      id: item.id, 
+                                      x: item.x, 
+                                      y: item.y 
+                                    })));
                                     
                                     // Save the CURRENT configuration, not the old template one
                                     await apiRequest("PUT", `/api/projects/${projectId}/settings/layout-configuration`, {

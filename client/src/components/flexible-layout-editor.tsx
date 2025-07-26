@@ -999,7 +999,15 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     addNewItem,
     removeItem,
     resetLayout,
-    getCurrentConfiguration: () => configuration
+    getCurrentConfiguration: () => {
+      console.log('🔍 getCurrentConfiguration called');
+      console.log('📊 Current configuration positions:', configuration.items.map(item => ({ 
+        id: item.id, 
+        x: item.x, 
+        y: item.y 
+      })));
+      return configuration;
+    }
   }), [addNewItem, removeItem, resetLayout, configuration]);
 
   return (
