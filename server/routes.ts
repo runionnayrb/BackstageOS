@@ -4025,11 +4025,16 @@ Best regards,
         return res.status(403).json({ message: "Access denied" });
       }
 
-      // Update the template layout configuration
-      const updatedTemplate = await storage.updateTemplateLayoutConfiguration(projectId, templateType || 'tech', layoutConfiguration);
+      // UNIFIED APPROACH: Save layout configuration directly to showSettings table
+      // This creates a single source of truth instead of split across multiple tables
+      const updatedSettings = await storage.updateShowSettings(projectId, {
+        layoutConfiguration: layoutConfiguration
+      });
 
-      // Return the complete updated template object for cache consistency
-      res.json(updatedTemplate);
+      console.log(`✅ Layout configuration saved to unified showSettings for ${templateType || 'tech'} template`);
+
+      // Return the complete updated settings object for cache consistency
+      res.json(updatedSettings);
     } catch (error) {
       console.error("Error updating template layout configuration:", error);
       res.status(500).json({ message: "Failed to update template layout configuration" });

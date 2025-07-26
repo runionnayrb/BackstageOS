@@ -57,15 +57,22 @@ BackstageOS is a comprehensive theater management platform specifically designed
 - **Configuration Saving**: Changed onConfigurationChange callback to save directly to template record via `/api/templates/${template.id}`
 - **Cache Management**: Updated cache invalidation to target template queries instead of showSettings
 
+**Critical Fix Implemented:**
+- **Unified Data Source**: Modified system to both save and load layout configuration from showSettings table only
+- **Simplified Architecture**: Eliminated complex multi-table approach by consolidating all template layout data into showSettings.layoutConfiguration field
+- **Single Source of Truth**: Both saving and loading now happen through showSettings table, eliminating data source mismatch completely
+- **Backend Streamlining**: Updated API endpoint to save directly to showSettings instead of complex template-specific storage
+
 **Technical Changes:**
-- Modified template initialization in template-settings.tsx to load layoutConfiguration from template records, not showSettings
-- Updated onConfigurationChange callback to save configuration directly to template record using PUT `/api/templates/${template.id}`
-- Fixed cache invalidation to target `/api/projects/${projectId}/templates` query for proper data refresh
-- Removed reliance on showSettings.layoutConfiguration field for template layout data
+- Modified template initialization in template-settings.tsx to load layoutConfiguration from showSettings.layoutConfiguration field
+- Updated onConfigurationChange callback to save directly to showSettings via `/api/projects/:id/settings/layout-configuration`
+- Simplified backend endpoint to use `storage.updateShowSettings()` instead of complex template-specific methods  
+- Updated cache invalidation to target showSettings queries for proper data refresh
+- Removed unnecessary complexity of managing layout data across multiple database tables
 
 **System Architecture Fix:**
 - **Before**: Save to showSettings → Load from template records (MISMATCH)
-- **After**: Save to template records → Load from template records (CONSISTENT)
+- **After**: Save to showSettings → Load from showSettings (UNIFIED)
 
 **User Impact:**
 - Template field position changes now persist correctly across page reloads and navigation

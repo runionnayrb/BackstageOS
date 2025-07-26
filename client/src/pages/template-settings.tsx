@@ -241,16 +241,28 @@ export default function TemplateSettings() {
             description: userTemplate.description || "",
             header: userTemplate.header || "",
             footer: userTemplate.footer || "",
-            fields: userTemplate.fields || [],
-            // CRITICAL FIX: Load layoutConfiguration from the actual template record, not showSettings
-            layoutConfiguration: userTemplate.layoutConfiguration || null
+            fields: userTemplate.fields || []
           };
-          console.log(`🔄 Loading layoutConfiguration for ${userTemplate.phase} template:`, JSON.stringify(userTemplate.layoutConfiguration, null, 2));
         }
       });
     }
 
-    console.log('✅ Templates initialized with layout configurations from template records, not showSettings');
+    // UNIFIED APPROACH: Load layoutConfiguration from showSettings for ALL templates
+    if (showSettings?.layoutConfiguration) {
+      console.log('🔄 Loading layoutConfiguration from unified showSettings:', JSON.stringify(showSettings.layoutConfiguration, null, 2));
+      // Apply the saved layoutConfiguration to the tech template
+      if (initialTemplates.tech) {
+        initialTemplates.tech = {
+          ...initialTemplates.tech,
+          layoutConfiguration: showSettings.layoutConfiguration
+        };
+        console.log('✅ Applied unified layoutConfiguration to tech template');
+      }
+    } else {
+      console.log('❌ No layoutConfiguration found in unified showSettings');
+    }
+
+    console.log('✅ Templates initialized with unified showSettings approach - single database table!');
     
     setTemplates(initialTemplates);
   }, [projectId, userTemplates, showSettings]);
@@ -846,39 +858,40 @@ export default function TemplateSettings() {
                           // Note: No cache invalidation to prevent data reload conflicts
                         }}
                         onConfigurationChange={async (config) => {
-                          console.log('💾 Configuration changed - saving directly to template record:', {
-                            templateId: template.id,
+                          console.log('💾 Configuration changed - saving to unified showSettings:', {
+                            projectId,
                             configItems: config.items.length,
                             yPositions: config.items.map((item: any) => ({ id: item.id, y: item.y }))
                           });
                           
                           try {
-                            // CRITICAL FIX: Save configuration directly to the template record, not showSettings
+                            // SIMPLIFIED APPROACH: Save to showSettings table only - single source of truth
+                            await apiRequest("PUT", `/api/projects/${projectId}/settings/layout-configuration`, {
+                              layoutConfiguration: config,
+                              templateType: selectedPhase
+                            });
+                            
+                            // Update local template state for immediate UI response
                             const updatedTemplate = {
                               ...template,
                               layoutConfiguration: config
                             };
-                            
-                            // Save the complete template with layout configuration
-                            const response = await apiRequest("PUT", `/api/templates/${template.id}`, updatedTemplate);
-                            
-                            // Update local template state
                             setTemplates(prev => ({
                               ...prev,
                               [selectedPhase]: updatedTemplate
                             }));
                             
-                            console.log('✅ Configuration saved directly to template record - no more data source mismatch!');
+                            console.log('✅ Configuration saved to unified showSettings - single database table!');
                             
-                            // Invalidate template cache to ensure fresh data on reload
+                            // Invalidate showSettings cache for consistency
                             setTimeout(() => {
                               queryClient.invalidateQueries({
-                                queryKey: [`/api/projects/${projectId}/templates`]
+                                queryKey: ['/api/projects', projectId, 'settings']
                               });
                             }, 500);
                             
                           } catch (error) {
-                            console.error('❌ Failed to save configuration to template:', error);
+                            console.error('❌ Failed to save configuration:', error);
                           }
                         }}
                         externalEditMode={isEditMode}
