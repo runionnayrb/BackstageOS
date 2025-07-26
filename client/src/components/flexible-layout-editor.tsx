@@ -367,13 +367,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
   externalEditMode
 }, ref) => {
   const [isEditMode, setIsEditMode] = useState(isEditing);
-  const [layouts, setLayouts] = useState<Layouts>({
-    lg: [],
-    md: [],
-    sm: [],
-    xs: [],
-    xxs: []
-  });
+  const [layouts, setLayouts] = useState<Layouts>({});
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [dayOfWeek, setDayOfWeek] = useState<string>('');
@@ -559,16 +553,10 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       };
       
       setConfiguration(config);
-      
-      // Initialize layouts immediately with the configuration
-      const initialLayouts = convertToGridLayouts(config.items);
-      setLayouts(initialLayouts);
-      
       setIsLayoutMounted(true);
       setIsInitialized(true);
       
       console.log('✅ INITIALIZED with config:', config.items.map((item: any) => ({ id: item.id, y: item.y })));
-      console.log('✅ INITIALIZED layouts:', initialLayouts.lg?.map((l: any) => ({ id: l.i, x: l.x, y: l.y })));
     }
   }, [template, generateLayoutFromTemplate, isInitialized]);
 
@@ -903,7 +891,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
           effectiveEditMode && "bg-gray-50/50"
         )}>
           {isLayoutMounted && (
-            <div className="w-full" style={{ minWidth: '800px' }}>
+            <div className="w-full" style={{ width: '1200px', maxWidth: '100%' }}>
               <ResponsiveGridLayout
                 className="layout"
                 layouts={layouts}
