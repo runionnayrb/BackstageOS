@@ -702,47 +702,67 @@ const PageItem = ({
   page, 
   level = 0, 
   onUpdateURL, 
-  onDelete 
+  onDelete,
+  collapsedState,
+  onToggleCollapse
 }: { 
   page: Page; 
   level?: number; 
   onUpdateURL: (pageId: string, newSlug: string) => void;
   onDelete: (pageId: string) => void;
+  collapsedState: Record<string, boolean>;
+  onToggleCollapse: (pageId: string) => void;
 }) => {
-  const indentClass = level > 0 ? `ml-${level * 6}` : '';
-  const indent = '  '.repeat(level);
+  const hasChildren = page.children && page.children.length > 0;
+  const isCollapsed = collapsedState?.[page.id] ?? true; // Default to collapsed
   
   return (
-    <div className="space-y-2">
-      <div className={`flex flex-col lg:flex-row lg:items-center lg:justify-between py-3 border-l-2 border-gray-200 pl-4 ${level > 0 ? 'ml-6 border-gray-300' : ''}`}>
+    <div className="space-y-1">
+      <div className={`flex flex-col lg:flex-row lg:items-center lg:justify-between py-2 border-l-2 border-gray-200 pl-4 ${level > 0 ? 'ml-6 border-gray-300' : ''}`}>
         <div className="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0 lg:space-x-4 flex-1">
-          <div className="flex items-center space-x-2">
-            {page.children && page.children.length > 0 ? (
-              <Folder className="h-4 w-4 text-blue-500" />
-            ) : (
-              <File className="h-4 w-4 text-gray-500" />
-            )}
-            <span className="font-medium text-sm lg:text-base">
-              {indent}{page.name}
-            </span>
-            <Badge variant="secondary" className="text-xs">
-              System
-            </Badge>
-          </div>
-          <div className="flex items-center space-x-2 text-xs lg:text-sm text-gray-600 font-mono bg-gray-50 px-2 py-1 rounded">
-            <span>{page.slug}</span>
+          <div className="flex items-center space-x-2 flex-1">
+            <div className="flex items-center space-x-1">
+              {hasChildren && (
+                <button
+                  onClick={() => onToggleCollapse(page.id)}
+                  className="p-1 hover:bg-gray-100 rounded transition-colors"
+                >
+                  <ChevronRight className={`h-3 w-3 text-gray-500 transition-transform ${isCollapsed ? '' : 'rotate-90'}`} />
+                </button>
+              )}
+              {hasChildren ? (
+                <Folder className="h-4 w-4 text-blue-500" />
+              ) : (
+                <File className="h-4 w-4 text-gray-500" />
+              )}
+            </div>
+            <div className="flex items-center justify-between flex-1">
+              <div className="flex items-center space-x-3">
+                <span className="font-medium text-sm lg:text-base">
+                  {page.name}
+                </span>
+                <div className="text-xs lg:text-sm text-gray-600 font-mono bg-gray-50 px-2 py-1 rounded">
+                  {page.slug}
+                </div>
+              </div>
+              <Badge variant="outline" className="text-xs text-purple-600 border-transparent bg-transparent ml-auto">
+                System
+              </Badge>
+            </div>
           </div>
         </div>
       </div>
       
-      {/* Render children recursively */}
-      {page.children && page.children.map((child) => (
+      {/* Render children recursively when not collapsed */}
+      {hasChildren && !isCollapsed && page.children!.map((child) => (
         <PageItem
           key={child.id}
           page={child}
           level={level + 1}
           onUpdateURL={onUpdateURL}
           onDelete={onDelete}
+          collapsedState={collapsedState}
+          onToggleCollapse={onToggleCollapse}
         />
       ))}
     </div>
@@ -753,6 +773,7 @@ export default function PageManager() {
   const [pages, setPages] = useState<Page[]>(SYSTEM_PAGES);
   const [editedPages, setEditedPages] = useState<Page[]>(SYSTEM_PAGES);
   const [hasChanges, setHasChanges] = useState(false);
+  const [collapsedState, setCollapsedState] = useState<Record<string, boolean>>({});
   const [newPage, setNewPage] = useState<Partial<Page>>({
     name: '',
     slug: '',
@@ -766,6 +787,13 @@ export default function PageManager() {
     pageName: string;
   }>({ isOpen: false, pageId: '', pageName: '' });
   const { toast } = useToast();
+
+  const toggleCollapse = (pageId: string) => {
+    setCollapsedState(prev => ({
+      ...prev,
+      [pageId]: !prev[pageId]
+    }));
+  };
 
   // Load pages from localStorage on mount
   useEffect(() => {
@@ -972,6 +1000,8 @@ export default function PageManager() {
                     level={0}
                     onUpdateURL={updateURL}
                     onDelete={deletePage}
+                    collapsedState={collapsedState}
+                    onToggleCollapse={toggleCollapse}
                   />
                 ))}
               
