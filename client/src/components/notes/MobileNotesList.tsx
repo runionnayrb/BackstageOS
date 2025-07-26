@@ -16,6 +16,7 @@ import { useHapticFeedback } from "@/hooks/useHapticFeedback";
 import { MobileNoteEditor } from "./MobileNoteEditor";
 import { MobileNoteCreationSheet } from "./MobileNoteCreationSheet";
 import { CreateFolderDialog } from "./CreateFolderDialog";
+import { MobileFolderCreationSheet } from "./MobileFolderCreationSheet";
 import { MobilePullToRefresh } from "./MobilePullToRefresh";
 import type { Note, NoteFolder } from "@shared/schema";
 
@@ -427,10 +428,10 @@ export function MobileNotesList({ projectId, viewMode }: MobileNotesListProps) {
           folderId={selectedFolder}
         />
         
-        <CreateFolderDialog 
-          open={isCreateFolderOpen}
-          onOpenChange={setIsCreateFolderOpen}
-          projectId={projectId}
+        <MobileFolderCreationSheet 
+          isOpen={isCreateFolderOpen}
+          onClose={() => setIsCreateFolderOpen(false)}
+          projectId={projectId ? parseInt(projectId) : undefined}
         />
       </div>
     </MobilePullToRefresh>
