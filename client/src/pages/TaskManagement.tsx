@@ -145,28 +145,52 @@ export function TaskManagement() {
   // Create task mutation
   const createTaskMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('POST', `/api/task-databases/${database?.id}/tasks`, {
-        title: "New Task",
-        content: "",
-        properties: {
-          status: "not_started",
-          priority: "medium",
-          project: showId || "none",
-          assignee: currentUser?.id || null
-        }
+      console.log('Creating new task...');
+      const response = await fetch(`/api/task-databases/${database?.id}/tasks`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+          title: "New Task",
+          content: "",
+          properties: {
+            status: "not_started",
+            priority: "medium",
+            project: showId || "none",
+            assignee: currentUser?.id || null
+          }
+        })
       });
-      return await response.json();
+      
+      if (!response.ok) {
+        throw new Error(`Failed to create task: ${response.status}`);
+      }
+      
+      const newTask = await response.json();
+      console.log('Task created successfully:', newTask);
+      return newTask;
     },
     onSuccess: (newTask) => {
+      console.log('Task creation successful, updating cache...');
       queryClient.invalidateQueries({ queryKey: ['/api/task-databases', database?.id, 'tasks'] });
       setNewTaskId(newTask.id);
       setIsCreateTaskOpen(true);
+    },
+    onError: (error) => {
+      console.error('Task creation failed:', error);
     }
   });
 
   const handleCreateTask = () => {
+    console.log('Handle create task clicked!');
+    console.log('Database:', database);
     if (database?.id) {
+      console.log('Triggering task creation mutation...');
       createTaskMutation.mutate();
+    } else {
+      console.error('No database ID available for task creation');
     }
   };
 
