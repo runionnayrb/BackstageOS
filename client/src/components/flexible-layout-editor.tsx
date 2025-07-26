@@ -632,6 +632,11 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
           hasLoadedFromDatabaseRef.current = true;
         } else {
           console.log('✅ Using saved configuration from template - preserving user changes');
+          console.log('💾 Saved configuration details:', {
+            totalItems: savedConfig.items.length,
+            yPositions: savedConfig.items.map((item: any) => ({ id: item.id, y: item.y }))
+          });
+          
           // Filter out footer items AND date/day fields permanently
           const filteredConfig = {
             ...savedConfig,
@@ -653,6 +658,10 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
               return true;
             })
           };
+          
+          console.log('🎯 Applied filtered configuration with Y positions:', 
+            filteredConfig.items.map((item: any) => ({ id: item.id, y: item.y }))
+          );
           
           setConfiguration(filteredConfig);
           setIsLayoutMounted(true);
