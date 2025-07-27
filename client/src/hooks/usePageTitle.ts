@@ -61,10 +61,7 @@ export function usePageTitle(dynamicTitle?: string) {
         }
       }
       
-      // Show detail page - include venue if available
-      if (showData?.venue) {
-        return `${showName} - ${showData.venue}`;
-      }
+      // Show detail page - show name only
       return showName || 'Show';
     }
     
