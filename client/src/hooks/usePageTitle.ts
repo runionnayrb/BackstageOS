@@ -68,7 +68,7 @@ export function usePageTitle(dynamicTitle?: string) {
     // Top-level pages
     switch (pathParts[1]) {
       case 'email':
-        return 'Email';
+        return dynamicTitle || 'Email';
       case 'tasks':
         return 'Tasks';
       case 'notes':
