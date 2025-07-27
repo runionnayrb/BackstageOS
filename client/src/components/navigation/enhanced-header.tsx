@@ -566,6 +566,19 @@ export default function EnhancedHeader() {
                 <GripVertical className="h-4 w-4" />
               </Button>
             )}
+
+            {/* Template Settings button - Only show on reports page */}
+            {navContext.showId && navContext.sectionId === 'reports' && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 hover:bg-gray-100"
+                title="Template Settings"
+                onClick={() => setLocation(`/shows/${navContext.showId}/templates`)}
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
+            )}
             
             <GlobalSearchBar />
           </div>

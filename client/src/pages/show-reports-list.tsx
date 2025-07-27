@@ -58,21 +58,7 @@ export default function ShowReportsList() {
 
   return (
     <div className="w-full">
-      <div className="px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-3xl font-bold text-gray-900">Reports</h1>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setLocation(`/shows/${projectId}/templates`)}
-            className="flex items-center gap-2"
-          >
-            <Settings className="h-4 w-4" />
-            Template Settings
-          </Button>
-        </div>
-      </div>
+
 
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="space-y-1">
