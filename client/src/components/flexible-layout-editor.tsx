@@ -761,6 +761,53 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
 
       setConfiguration(newConfig);
       onConfigurationChange?.(newConfig);
+    } else if (type === 'field-header') {
+      // Create a new field header/property above the first department
+      const departmentSections = configuration.items.filter(item => item.type === 'grouped-section');
+      const nonDepartmentSections = configuration.items.filter(item => item.type !== 'grouped-section');
+      
+      // Find the Y position to insert before first department
+      const firstDepartmentY = departmentSections.length > 0 
+        ? Math.min(...departmentSections.map(item => item.y))
+        : Math.max(...configuration.items.map(i => i.y + i.h), 0);
+      
+      // Create new field header item
+      const newFieldItem: LayoutItem = {
+        id: `field-header-${Date.now()}`,
+        type: 'field-header',
+        content: { fieldId: 'new-property', label: 'New Property' },
+        x: 0,
+        y: Math.max(firstDepartmentY - 1, Math.max(...nonDepartmentSections.map(i => i.y + i.h), 0)),
+        w: 12,
+        h: 1,
+        minW: 3,
+        minH: 1,
+        maxW: 12
+      };
+
+      // Shift all department sections down by 1 row to make room
+      const adjustedItems = configuration.items.map(item => {
+        if (item.type === 'grouped-section' && item.y >= firstDepartmentY) {
+          return { ...item, y: item.y + 1 };
+        }
+        return item;
+      });
+
+      const newConfig = {
+        ...configuration,
+        items: [...adjustedItems, newFieldItem]
+      };
+
+      console.log('🚀 Added new field header:', {
+        id: newFieldItem.id,
+        x: newFieldItem.x,
+        y: newFieldItem.y,
+        w: newFieldItem.w,
+        h: newFieldItem.h
+      });
+
+      setConfiguration(newConfig);
+      onConfigurationChange?.(newConfig);
     } else if (type === 'empty-space') {
       // Create a simple empty space item
       const newItem: LayoutItem = {

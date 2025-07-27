@@ -20,6 +20,12 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -736,19 +742,37 @@ export default function TemplateSettings() {
                           
                           {isEditMode && (
                             <>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                  console.log('🔥 PLUS BUTTON CLICKED - template-settings.tsx');
-                                  console.log('🔍 Ref current:', flexibleLayoutRef.current);
-                                  console.log('🔍 addNewItem function:', flexibleLayoutRef.current?.addNewItem);
-                                  flexibleLayoutRef.current?.addNewItem('department-header');
-                                }}
-                                className="h-6 w-6 p-0"
-                              >
-                                <Plus className="h-4 w-4" />
-                              </Button>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0"
+                                  >
+                                    <Plus className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      console.log('🏢 ADD DEPARTMENT clicked');
+                                      flexibleLayoutRef.current?.addNewItem('department-header');
+                                    }}
+                                  >
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Add Department
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      console.log('📝 ADD PROPERTY clicked');
+                                      flexibleLayoutRef.current?.addNewItem('field-header');
+                                    }}
+                                  >
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Add Property
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                               
                               <Button
                                 variant="ghost"
