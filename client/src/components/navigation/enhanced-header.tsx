@@ -383,7 +383,7 @@ export default function EnhancedHeader() {
             
             {/* Venue row - Show underneath title when in show context */}
             {showData?.venue && (
-              <div className="mt-1">
+              <div>
                 <p className="text-base text-foreground">{showData.venue}</p>
               </div>
             )}
