@@ -16,6 +16,7 @@ import BreadcrumbNavigation from "./breadcrumb-navigation";
 import { useAdminView } from "@/contexts/AdminViewContext";
 import GlobalSearchBar from "@/components/search/GlobalSearchBar";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import { useHeaderIcons } from "@/hooks/useHeaderIcons";
 
 interface SwitchStatus {
   isViewingAs: boolean;
@@ -48,6 +49,7 @@ export default function EnhancedHeader() {
   const { selectedBetaAccess, setSelectedBetaAccess, selectedProfileType, setSelectedProfileType } = useAdminView();
   const [defaultUserId, setDefaultUserId] = useState<string>("");
   const { pageTitle } = usePageTitle();
+  const { headerIcons } = useHeaderIcons();
   
   const headerRef = useRef<HTMLDivElement>(null);
 
@@ -501,8 +503,25 @@ export default function EnhancedHeader() {
             )}
           </div>
 
-          {/* Mobile Right side - Search only */}
-          <div className="md:hidden flex items-center flex-shrink-0">
+          {/* Mobile Right side - Search and dynamic header icons */}
+          <div className="md:hidden flex items-center gap-2 flex-shrink-0">
+            {/* Page-specific header icons */}
+            {headerIcons && headerIcons.length > 0 && (
+              <div className="flex items-center gap-1">
+                {headerIcons.map((iconConfig, index) => (
+                  <Button
+                    key={index}
+                    variant="ghost"
+                    size="sm"
+                    onClick={iconConfig.onClick}
+                    className="h-8 w-8 p-0 hover:bg-gray-100"
+                    title={iconConfig.title}
+                  >
+                    <iconConfig.icon className="h-4 w-4" />
+                  </Button>
+                ))}
+              </div>
+            )}
             <GlobalSearchBar />
           </div>
         </div>

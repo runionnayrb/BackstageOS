@@ -18,6 +18,8 @@ import { SharedInboxManager } from "@/components/email/shared-inbox-manager";
 import { apiRequest } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { usePageTitle } from "@/hooks/usePageTitle";
+import { setPageHeaderIcons, clearPageHeaderIcons } from "@/hooks/useHeaderIcons";
 import {
   Mail,
   Plus,
@@ -297,6 +299,24 @@ export default function EmailManager() {
     }, 300);
   };
   const [activeFolder, setActiveFolder] = useState("inbox");
+  
+  // Set dynamic page title for mobile header
+  usePageTitle(getFolderDisplayName(activeFolder));
+  
+  // Set header icons for mobile header
+  useEffect(() => {
+    setPageHeaderIcons([
+      {
+        icon: Menu,
+        onClick: openMobileMenu,
+        title: 'Open menu'
+      }
+    ]);
+    
+    return () => {
+      clearPageHeaderIcons();
+    };
+  }, []);  
   const [showTheaterFeatures, setShowTheaterFeatures] = useState(false);
   const [showGroupManager, setShowGroupManager] = useState(false);
   const [showTemplateManager, setShowTemplateManager] = useState(false);
@@ -834,27 +854,11 @@ export default function EmailManager() {
         >
 
           <div className="px-1 md:px-4 py-2 md:py-4">
-          {/* Header - Mobile with hamburger left, search right */}
-          <div>
+          {/* Header - Desktop Only (Mobile header now in enhanced-header) */}
+          <div className="hidden md:block">
             <div className="flex items-center justify-between mb-4">
-              {/* Left side - hamburger, title/selection controls */}
+              {/* Left side - title/selection controls */}
               <div className="flex items-center gap-1.5">
-                {/* Mobile hamburger menu - left side */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={openMobileMenu}
-                  className={cn(
-                    "md:hidden h-8 w-8 p-0 hover:bg-gray-100 flex-shrink-0 transition-transform duration-300 border-0 !border-none focus:border-0 focus:!border-none active:border-0 active:!border-none hover:border-0 hover:!border-none",
-                    isMobileMenuOpen && "scale-110"
-                  )}
-                >
-                  <Menu className={cn(
-                    "h-4 w-4 transition-all duration-300",
-                    isMobileMenuOpen && "rotate-90 opacity-75"
-                  )} />
-                </Button>
-                
                 {/* Dynamic header content - title or selection controls */}
                 {selectedMessages?.size > 0 ? (
                   // Selection mode - show select all checkbox and bulk actions on same line
@@ -1010,8 +1014,71 @@ export default function EmailManager() {
                 />
               </div>
             </div>
-
-
+          </div>
+          
+          {/* Mobile - Selection mode only (no folder title or hamburger) */}
+          <div className="md:hidden">
+            {selectedMessages?.size > 0 && (
+              <div className="flex items-center justify-between mb-4 px-1">
+                {/* Selection controls */}
+                <div className="flex items-center gap-1">
+                  <div className="w-6 h-6 flex-shrink-0">
+                    <Checkbox
+                      checked={selectedMessages.size === filteredMessages?.length && filteredMessages?.length > 0}
+                      onCheckedChange={toggleSelectAll}
+                      className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                    />
+                  </div>
+                  <span className="text-sm font-medium text-gray-600 ml-2 mr-4">
+                    {selectedMessages.size} of {filteredMessages?.length || 0} selected
+                  </span>
+                </div>
+                
+                {/* Mobile bulk actions */}
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleBulkAction('markRead')}
+                    disabled={bulkActionMutation?.isPending}
+                    className="h-8 w-8 p-0 hover:bg-transparent group"
+                    title="Mark as read"
+                  >
+                    <MailOpen className="h-4 w-4 text-gray-600 group-hover:text-blue-600 transition-colors" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleBulkAction('markUnread')}
+                    disabled={bulkActionMutation?.isPending}
+                    className="h-8 w-8 p-0 hover:bg-transparent group"
+                    title="Mark as unread"
+                  >
+                    <Mail className="h-4 w-4 text-gray-600 group-hover:text-blue-600 transition-colors" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleBulkAction('archive')}
+                    disabled={bulkActionMutation?.isPending}
+                    className="h-8 w-8 p-0 hover:bg-transparent group"
+                    title="Archive"
+                  >
+                    <Archive className="h-4 w-4 text-gray-600 group-hover:text-blue-600 transition-colors" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleBulkAction('delete')}
+                    disabled={bulkActionMutation?.isPending}
+                    className="h-8 w-8 p-0 hover:bg-transparent group"
+                    title="Delete"
+                  >
+                    <Trash2 className="h-4 w-4 text-gray-600 group-hover:text-blue-600 transition-colors" />
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Main Content - Email Interface */}

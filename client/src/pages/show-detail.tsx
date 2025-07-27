@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useFeatureSettings } from "@/hooks/useFeatureSettings";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 interface ShowDetailParams {
   id: string;
@@ -44,6 +45,9 @@ export default function ShowDetail() {
   // State for drag and drop reordering
   const [isReordering, setIsReordering] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  
+  // Set page title for mobile header
+  usePageTitle();
 
   // Import feature settings hook
   const { isFeatureEnabled } = useFeatureSettings(projectId);
@@ -269,16 +273,9 @@ export default function ShowDetail() {
 
   return (
     <div className="w-full">
-      {/* Mobile Header */}
+      {/* Mobile Header - Title moved to enhanced-header */}
       <div className="md:hidden px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
-            {project.venue && (
-              <p className="text-gray-600 mt-1">{project.venue}</p>
-            )}
-          </div>
-          
+        <div className="flex items-center justify-end mb-4">
           <Button
             variant="ghost"
             size="sm"

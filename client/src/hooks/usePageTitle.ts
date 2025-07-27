@@ -1,7 +1,7 @@
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 
-export function usePageTitle() {
+export function usePageTitle(dynamicTitle?: string) {
   const [location] = useLocation();
   
   // Get show data if we're in a show context
@@ -15,6 +15,11 @@ export function usePageTitle() {
   });
 
   const getPageTitle = (): string => {
+    // If dynamic title is provided, use it
+    if (dynamicTitle) {
+      return dynamicTitle;
+    }
+    
     const pathParts = location.split('/');
     
     // Root dashboard
@@ -56,7 +61,10 @@ export function usePageTitle() {
         }
       }
       
-      // Show detail page
+      // Show detail page - include venue if available
+      if (showData?.venue) {
+        return `${showName} - ${showData.venue}`;
+      }
       return showName || 'Show';
     }
     

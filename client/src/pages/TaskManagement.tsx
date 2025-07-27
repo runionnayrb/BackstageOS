@@ -10,6 +10,7 @@ import { TaskViewSettings } from "@/components/task-management/TaskViewSettings"
 import { apiRequest } from "@/lib/queryClient";
 import type { TaskDatabase, TaskView } from "@shared/schema";
 import { FloatingActionButton } from "@/components/navigation/floating-action-button";
+import { setPageHeaderIcons, clearPageHeaderIcons } from "@/hooks/useHeaderIcons";
 
 interface PropertyVisibility {
   id: number;
@@ -198,6 +199,31 @@ export function TaskManagement() {
       console.error('No database ID available for task creation');
     }
   };
+  
+  // Set header icons for mobile
+  useEffect(() => {
+    setPageHeaderIcons([
+      {
+        icon: Search,
+        onClick: () => setIsSearchExpanded(!isSearchExpanded),
+        title: 'Search tasks'
+      },
+      {
+        icon: Filter,
+        onClick: () => {}, // TODO: Add filter functionality
+        title: 'Filter tasks'
+      },
+      {
+        icon: Settings,
+        onClick: () => {}, // TODO: Add settings functionality  
+        title: 'Task settings'
+      }
+    ]);
+    
+    return () => {
+      clearPageHeaderIcons();
+    };
+  }, [isSearchExpanded]);
 
   const getViewIcon = (type: string) => {
     switch (type) {
