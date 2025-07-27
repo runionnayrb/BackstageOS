@@ -295,8 +295,8 @@ export function TaskManagement() {
     return (
       <div className="h-full flex flex-col">
         {/* Header */}
-        <div className="px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between mb-4">
+        <div className="px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between">
             {/* Desktop Title */}
             <h2 className="hidden md:block text-2xl font-bold text-gray-900">
               {showId && showData ? `Tasks - ${showData.name}` : 'Tasks'}
@@ -359,7 +359,7 @@ export function TaskManagement() {
           
           {/* Mobile Search Bar */}
           {isSearchExpanded && (
-            <div className="md:hidden mb-4">
+            <div className="md:hidden">
               <Input
                 placeholder="Search tasks..."
                 value={searchQuery}
@@ -377,7 +377,7 @@ export function TaskManagement() {
 
           {/* Views */}
           {views.length > 0 && (
-            <div className="flex items-center space-x-2 mb-4">
+            <div className="flex items-center space-x-2">
               <span className="text-sm text-muted-foreground">Views:</span>
               {views.map((view) => (
                 <Button
