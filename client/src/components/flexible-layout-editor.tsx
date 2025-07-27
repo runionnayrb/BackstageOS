@@ -577,7 +577,8 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     console.log('🔍 Converting to grid layouts:', { 
       effectiveEditMode, 
       itemCount: finalItems.length, 
-      items: finalItems.map(item => ({ id: item.id, x: item.x, y: item.y, w: item.w, h: item.h }))
+      gridCols: configuration.gridCols,
+      items: finalItems.map(item => ({ id: item.id, x: item.x, y: item.y, w: item.w, h: item.h, actualWidthPercent: `${(item.w / configuration.gridCols) * 100}%` }))
     });
     
     const layout = finalItems.map(item => ({
@@ -840,8 +841,10 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       };
 
       console.log('🚀 Added new field group:', {
-        header: { id: fieldGroupItem.id, y: fieldGroupItem.y },
-        adjustedDepartments: adjustedItems.filter(item => item.type === 'grouped-section').map(d => ({ id: d.id, y: d.y }))
+        newItem: { id: fieldGroupItem.id, x: fieldGroupItem.x, y: fieldGroupItem.y, w: fieldGroupItem.w, h: fieldGroupItem.h },
+        gridCols: configuration.gridCols,
+        shouldBe100Percent: fieldGroupItem.w === configuration.gridCols,
+        adjustedDepartments: adjustedItems.filter(item => item.type === 'grouped-section').map(d => ({ id: d.id, y: d.y, w: d.w }))
       });
 
       setConfiguration(newConfig);
