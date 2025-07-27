@@ -785,14 +785,17 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         ? Math.max(...fieldRelatedItems.map(item => item.y + item.h))
         : 0; // Start at 0 if no fields exist
       
-      // Insert position: right after existing field-related items
-      const insertY = lastFieldRelatedY;
+      // Insert position: Use a safe position that ensures visibility
+      // If firstDepartmentY is very low (0-2), place at beginning, otherwise place before departments
+      const insertY = firstDepartmentY <= 2 ? 0 : Math.max(0, firstDepartmentY - 6);
       
       console.log('📍 Positioning calculation:', {
         firstDepartmentY,
         lastFieldRelatedY,
         insertY,
-        willShiftDepartments: firstDepartmentY <= insertY + 1
+        willShiftDepartments: firstDepartmentY <= insertY + 1,
+        visibleGridRows: configuration.gridRows,
+        insertYWithinBounds: insertY < configuration.gridRows
       });
       
       // Create a single grouped section containing both header and text field
