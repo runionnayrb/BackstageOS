@@ -615,11 +615,6 @@ export default function EmailManager() {
 
               {/* Scrollable Content */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 min-h-0">
-                {/* Debug Info */}
-                <div className="text-xs text-red-600 p-2 bg-yellow-100">
-                  Debug: Folders count: {folders.length}, Selected: {selectedAccount?.displayName || 'None'}
-                </div>
-                
                 {/* Account Selector Section */}
                 <div className="bg-white p-3 rounded">
                   <div className="text-sm font-medium mb-2">Account</div>
