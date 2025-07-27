@@ -600,24 +600,11 @@ export default function EmailManager() {
               : "-translate-x-full scale-75 opacity-0"
           )}>
             <div className="w-full bg-white p-4 space-y-4 h-full overflow-y-auto">
-            {/* Header */}
+            {/* Header with Account Selector and Close Button */}
             <div className="flex items-center justify-between pb-3 border-b border-gray-200">
-              <Button 
-                variant="ghost"
-                size="sm"
-                onClick={closeMobileMenu}
-                className="p-2 ml-auto"
-              >
-                <X className="w-5 h-5" />
-              </Button>
-            </div>
-            
-            {/* Account Selector - Hidden on desktop per user request */}
-            <div className="mb-4 md:hidden">
-              <div className="flex items-center justify-between mb-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="flex-1 justify-between mr-2 border-none">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex-1 justify-between mr-2 border-none">
                       <div className="flex items-center space-x-2">
                         <div className="text-left">
                           <div className="font-medium text-sm">
@@ -731,20 +718,15 @@ export default function EmailManager() {
                   </DropdownMenuContent>
                 </DropdownMenu>
                 
-                {/* Compose Button */}
-                {selectedAccount && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setShowCompose(true);
-                      closeMobileMenu();
-                    }}
-                    className="p-2 h-auto"
-                  >
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                )}
+                {/* Close Button */}
+                <Button 
+                  variant="ghost"
+                  size="sm"
+                  onClick={closeMobileMenu}
+                  className="p-2"
+                >
+                  <X className="w-5 h-5" />
+                </Button>
               </div>
             </div>
 
@@ -825,7 +807,6 @@ export default function EmailManager() {
                 </button>
               </div>
             </div>
-          </div>
           </div>
         </div>
         )}
