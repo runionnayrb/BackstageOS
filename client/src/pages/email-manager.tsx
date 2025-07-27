@@ -734,7 +734,7 @@ export default function EmailManager() {
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {/* Folders Section */}
               <div className="space-y-1">
-              {folders.map((folder) => (
+                {folders.map((folder) => (
                 <button
                   key={folder.id}
                   onClick={() => {
@@ -758,55 +758,57 @@ export default function EmailManager() {
                     </Badge>
                   )}
                 </button>
-              ))}
-            </div>
-            
-            {/* Theater Tools Section */}
-            <div className="border-t border-gray-200 pt-4">
-              <div className="space-y-1">
-                <button
-                  onClick={() => {
-                    window.location.href = '/email-contacts';
-                    closeMobileMenu();
-                  }}
-                  className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
-                >
-                  <Contact className="w-4 h-4" />
-                  <span>Contacts</span>
-                </button>
-
-                <button
-                  onClick={() => {
-                    setShowGroupManager(true);
-                    closeMobileMenu();
-                  }}
-                  className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
-                >
-                  <Users className="w-4 h-4" />
-                  <span>Distro Management</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setShowTemplateManager(true);
-                    closeMobileMenu();
-                  }}
-                  className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
-                >
-                  <FileText className="w-4 h-4" />
-                  <span>Email Templates</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setShowMobileSettings(true);
-                    closeMobileMenu();
-                  }}
-                  className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
-                >
-                  <Settings className="w-4 h-4" />
-                  <span>Settings</span>
-                </button>
+                ))}
               </div>
-            </div>
+              
+              {/* Theater Tools Section */}
+              <div className="border-t border-gray-200 pt-4">
+                <div className="space-y-1">
+                  <button
+                    onClick={() => {
+                      window.location.href = '/email-contacts';
+                      closeMobileMenu();
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
+                  >
+                    <Contact className="w-4 h-4" />
+                    <span>Contacts</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setShowGroupManager(true);
+                      closeMobileMenu();
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
+                  >
+                    <Users className="w-4 h-4" />
+                    <span>Distro Management</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      setShowTemplateManager(true);
+                      closeMobileMenu();
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
+                  >
+                    <FileText className="w-4 h-4" />
+                    <span>Email Templates</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      setShowMobileSettings(true);
+                      closeMobileMenu();
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
+                  >
+                    <Settings className="w-4 h-4" />
+                    <span>Settings</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
