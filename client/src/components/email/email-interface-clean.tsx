@@ -798,14 +798,39 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                 const hasDropdownOpen = moveDropdownOpen === message.id;
                 const revealedType = isRevealed ? revealedActions.type : null;
                 
-                // Format date in "Jul 23" format
+                // Format date in "Jul 23" format for desktop, time-only for today on mobile
                 const formatDate = (dateString: string | null) => {
                   if (!dateString) return '';
                   const date = new Date(dateString);
+                  const today = new Date();
+                  const isToday = date.toDateString() === today.toDateString();
+                  
+                  // For mobile: show time if today, date if not today
+                  // For desktop: always show "Jul 23" format
                   return date.toLocaleDateString('en-US', { 
                     month: 'short', 
                     day: 'numeric' 
                   });
+                };
+
+                const formatMobileDateTime = (dateString: string | null) => {
+                  if (!dateString) return '';
+                  const date = new Date(dateString);
+                  const today = new Date();
+                  const isToday = date.toDateString() === today.toDateString();
+                  
+                  if (isToday) {
+                    return date.toLocaleTimeString('en-US', { 
+                      hour: 'numeric', 
+                      minute: '2-digit',
+                      hour12: true 
+                    });
+                  } else {
+                    return date.toLocaleDateString('en-US', { 
+                      month: 'short', 
+                      day: 'numeric' 
+                    });
+                  }
                 };
                 
                 return (
@@ -887,9 +912,10 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                             : 'translateX(0)',
                     }}
                   >
-                    <div className="flex items-center gap-1">
+                    {/* Desktop Layout - Keep existing horizontal layout */}
+                    <div className="hidden md:flex items-center gap-1">
                       {/* Hover Checkbox - Desktop only */}
-                      <div className="hidden md:block w-6 h-6 flex-shrink-0">
+                      <div className="w-6 h-6 flex-shrink-0">
                         {isSelectionMode ? (
                           <Checkbox
                             checked={selectedMessages.has(message.id)}
@@ -912,25 +938,13 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                         )}
                       </div>
 
-                      {/* Mobile selection checkbox */}
-                      {isSelectionMode && (
-                        <div className="md:hidden">
-                          <Checkbox
-                            checked={selectedMessages.has(message.id)}
-                            onCheckedChange={() => toggleSelectMessage(message.id)}
-                            onClick={(e) => e.stopPropagation()}
-                            className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-                          />
-                        </div>
-                      )}
-
                       {/* Unread indicator */}
                       {!message.isRead && !isSelectionMode && (
                         <div className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0"></div>
                       )}
 
                       {/* Sender name - fixed width */}
-                      <div className="w-32 md:w-40 flex-shrink-0">
+                      <div className="w-40 flex-shrink-0">
                         <span className={`text-sm font-medium truncate block ${!message.isRead ? 'font-semibold text-black' : 'text-gray-700'}`}>
                           <ContactPreview emailAddress={message.fromAddress || ''}>
                             <span className="hover:text-blue-600 transition-colors cursor-pointer">
@@ -952,10 +966,6 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                           {message.isImportant && (
                             <span className="text-xs text-yellow-500 flex-shrink-0">⭐</span>
                           )}
-                        </div>
-                        {/* Mobile preview text */}
-                        <div className="md:hidden mt-1">
-                          <span className="text-xs text-gray-500 truncate block">{message.content?.slice(0, 60) || 'No preview'}</span>
                         </div>
                       </div>
 
@@ -1143,6 +1153,66 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                         <span className="text-sm text-gray-500">
                           {formatDate(message.dateSent)}
                         </span>
+                      </div>
+                    </div>
+
+                    {/* Mobile Layout - Gmail-style vertical layout */}
+                    <div className="md:hidden flex flex-col py-4 px-3">
+                      {/* Top row: Sender (bold) + Date/Time + Chevron */}
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                          {/* Mobile selection checkbox */}
+                          {isSelectionMode && (
+                            <Checkbox
+                              checked={selectedMessages.has(message.id)}
+                              onCheckedChange={() => toggleSelectMessage(message.id)}
+                              onClick={(e) => e.stopPropagation()}
+                              className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                            />
+                          )}
+
+                          {/* Unread indicator */}
+                          {!message.isRead && !isSelectionMode && (
+                            <div className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0"></div>
+                          )}
+
+                          {/* Sender name - Bold */}
+                          <span className={`font-bold text-black truncate ${!message.isRead ? 'font-bold' : 'font-bold'}`}>
+                            <ContactPreview emailAddress={message.fromAddress || ''}>
+                              <span className="hover:text-blue-600 transition-colors cursor-pointer">
+                                {getDisplayName(message.fromAddress || '')}
+                              </span>
+                            </ContactPreview>
+                          </span>
+                        </div>
+
+                        {/* Date/Time + Chevron */}
+                        <div className="flex items-center gap-1 text-gray-600">
+                          <span className="text-sm">
+                            {formatMobileDateTime(message.dateSent)}
+                          </span>
+                          <ChevronRight className="h-4 w-4" />
+                        </div>
+                      </div>
+
+                      {/* Subject line - Medium weight */}
+                      <div className="mb-1">
+                        <div className="flex items-center gap-2">
+                          <span className={`font-medium text-black text-sm ${!message.isRead ? 'font-semibold' : 'font-medium'}`}>
+                            {message.subject || 'No Subject'}
+                          </span>
+                          {message.hasAttachments && (
+                            <span className="text-xs text-gray-500 flex-shrink-0">📎</span>
+                          )}
+                          {message.isImportant && (
+                            <span className="text-xs text-yellow-500 flex-shrink-0">⭐</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Message preview - Normal weight */}
+                      <div className="text-sm text-gray-600 truncate">
+                        {message.content?.slice(0, 80) || 'No preview available'}
                       </div>
                     </div>
                   </button>
