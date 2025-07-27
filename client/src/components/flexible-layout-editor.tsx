@@ -764,20 +764,27 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     } else if (type === 'field-header') {
       // Create a new field header/property above the first department
       const departmentSections = configuration.items.filter(item => item.type === 'grouped-section');
-      const nonDepartmentSections = configuration.items.filter(item => item.type !== 'grouped-section');
+      const fieldItems = configuration.items.filter(item => item.type === 'field-header');
       
-      // Find the Y position to insert before first department
+      // Find the Y position to insert after existing field headers but before departments
       const firstDepartmentY = departmentSections.length > 0 
         ? Math.min(...departmentSections.map(item => item.y))
-        : Math.max(...configuration.items.map(i => i.y + i.h), 0);
+        : 20; // Default high Y if no departments exist
+      
+      const lastFieldY = fieldItems.length > 0
+        ? Math.max(...fieldItems.map(item => item.y + item.h))
+        : 0; // Start at 0 if no fields exist
+      
+      // Insert position: after existing fields but before departments
+      const insertY = Math.max(lastFieldY, Math.min(firstDepartmentY - 2, lastFieldY));
       
       // Create new field header item
-      const newFieldItem: LayoutItem = {
+      const fieldHeaderItem: LayoutItem = {
         id: `field-header-${Date.now()}`,
         type: 'field-header',
         content: { fieldId: 'new-property', label: 'New Property' },
         x: 0,
-        y: Math.max(firstDepartmentY - 1, Math.max(...nonDepartmentSections.map(i => i.y + i.h), 0)),
+        y: insertY,
         w: 12,
         h: 1,
         minW: 3,
@@ -785,25 +792,36 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         maxW: 12
       };
 
-      // Shift all department sections down by 1 row to make room
+      // Create corresponding text field below the header
+      const textFieldItem: LayoutItem = {
+        id: `text-field-${Date.now()}`,
+        type: 'notes', // Use notes type for text fields
+        content: { fieldId: 'new-property' },
+        x: 0,
+        y: insertY + 1,
+        w: 12,
+        h: 1,
+        minW: 3,
+        minH: 1,
+        maxW: 12
+      };
+
+      // Shift all department sections down by 2 rows to make room for header + field
       const adjustedItems = configuration.items.map(item => {
         if (item.type === 'grouped-section' && item.y >= firstDepartmentY) {
-          return { ...item, y: item.y + 1 };
+          return { ...item, y: item.y + 2 };
         }
         return item;
       });
 
       const newConfig = {
         ...configuration,
-        items: [...adjustedItems, newFieldItem]
+        items: [...adjustedItems, fieldHeaderItem, textFieldItem]
       };
 
-      console.log('🚀 Added new field header:', {
-        id: newFieldItem.id,
-        x: newFieldItem.x,
-        y: newFieldItem.y,
-        w: newFieldItem.w,
-        h: newFieldItem.h
+      console.log('🚀 Added new field header + text field:', {
+        header: { id: fieldHeaderItem.id, y: fieldHeaderItem.y },
+        field: { id: textFieldItem.id, y: textFieldItem.y }
       });
 
       setConfiguration(newConfig);
