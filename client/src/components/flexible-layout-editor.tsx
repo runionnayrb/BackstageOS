@@ -794,32 +794,35 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         willShiftDepartments: firstDepartmentY <= insertY + 1
       });
       
-      // Create new field header item
-      const fieldHeaderItem: LayoutItem = {
-        id: `field-header-${Date.now()}`,
-        type: 'field-header',
-        content: { fieldId: 'new-property', label: 'New Property' },
+      // Create a single grouped section containing both header and text field
+      const fieldId = 'new-property';
+      const fieldGroupItem: LayoutItem = {
+        id: `field-group-${Date.now()}`,
+        type: 'grouped-section',
+        content: { fieldId: fieldId, label: 'New Property' },
         x: 0,
         y: insertY,
-        w: 12,
-        h: 1,
+        w: 12, // Full 12 columns
+        h: 2,  // Height for header + text field
         minW: 3,
-        minH: 1,
-        maxW: 12
-      };
-
-      // Create corresponding text field below the header
-      const textFieldItem: LayoutItem = {
-        id: `text-field-${Date.now()}`,
-        type: 'notes', // Use notes type for text fields
-        content: { fieldId: 'new-property' },
-        x: 0,
-        y: insertY + 1,
-        w: 12,
-        h: 1,
-        minW: 3,
-        minH: 1,
-        maxW: 12
+        minH: 2,
+        maxW: 12,
+        children: [
+          {
+            id: `field-header-${Date.now()}`,
+            type: 'field-header' as const,
+            content: { fieldId: fieldId, label: 'New Property' },
+            x: 0, y: 0, w: 12, h: 1,
+            minW: 3, minH: 1, maxW: 12
+          },
+          {
+            id: `field-notes-${Date.now()}`,
+            type: 'notes' as const,
+            content: { fieldId: fieldId },
+            x: 0, y: 1, w: 12, h: 1,
+            minW: 3, minH: 1, maxW: 12
+          }
+        ]
       };
 
       // Shift department sections down if they would overlap with new items
@@ -833,12 +836,11 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
 
       const newConfig = {
         ...configuration,
-        items: [...adjustedItems, fieldHeaderItem, textFieldItem]
+        items: [...adjustedItems, fieldGroupItem]
       };
 
-      console.log('🚀 Added new field header + text field:', {
-        header: { id: fieldHeaderItem.id, y: fieldHeaderItem.y },
-        field: { id: textFieldItem.id, y: textFieldItem.y },
+      console.log('🚀 Added new field group:', {
+        group: { id: fieldGroupItem.id, y: fieldGroupItem.y, w: fieldGroupItem.w, h: fieldGroupItem.h },
         adjustedDepartments: adjustedItems.filter(item => item.type === 'grouped-section').map(d => ({ id: d.id, y: d.y }))
       });
 
