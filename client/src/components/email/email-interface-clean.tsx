@@ -786,7 +786,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                     onTouchStart={(e) => handleTouchStart(e, message.id)}
                     onTouchMove={handleTouchMove}
                     onTouchEnd={handleTouchEnd}
-                    className={`block text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none group pl-1 pr-4 py-3 border-b border-gray-100 transition-transform duration-75 ease-out overflow-hidden ${
+                    className={`block text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none group pl-1 pr-4 py-3 border-b border-gray-100 transition-transform duration-75 ease-out overflow-hidden select-none ${
                       isSelectionMode && selectedMessages.has(message.id) ? 'bg-blue-50' : ''
                     }`}
                     style={{
@@ -799,7 +799,11 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                             : 'translateX(0)',
                       width: '100%',
                       maxWidth: '100vw',
-                      boxSizing: 'border-box'
+                      boxSizing: 'border-box',
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      MozUserSelect: 'none',
+                      msUserSelect: 'none'
                     }}
                   >
                     {/* Desktop Layout - Keep existing horizontal layout */}
