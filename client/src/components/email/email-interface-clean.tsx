@@ -769,10 +769,10 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
         </div>
 
         {/* Content Area - Mobile Responsive */}
-        <div className="pt-0 h-full">
+        <div className="pt-0 h-full overflow-hidden">
           {/* Full-Width Email List */}
           <ScrollArea className="h-full">
-            <div className="space-y-0">
+            <div className="space-y-0 max-w-full overflow-hidden">
               {isLoading && (
                 <div className="p-3 md:p-4 text-center text-muted-foreground text-sm">
                   Loading messages...
@@ -836,7 +836,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                 return (
                 <div
                   key={message.id}
-                  className="relative overflow-hidden"
+                  className="relative overflow-hidden w-full max-w-full"
                 >
                   {/* Background actions that appear during swipe, when revealed, or when dropdown is open */}
                   {(isCurrentSwipe || isRevealed || hasDropdownOpen) && (
@@ -899,7 +899,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                     onTouchStart={(e) => handleTouchStart(e, message.id)}
                     onTouchMove={handleTouchMove}
                     onTouchEnd={handleTouchEnd}
-                    className={`w-full block text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none group pl-1 pr-4 py-3 border-b border-gray-100 transition-transform duration-75 ease-out ${
+                    className={`w-full max-w-full block text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none group pl-1 pr-4 py-3 border-b border-gray-100 transition-transform duration-75 ease-out overflow-hidden ${
                       isSelectionMode && selectedMessages.has(message.id) ? 'bg-blue-50' : ''
                     }`}
                     style={{
