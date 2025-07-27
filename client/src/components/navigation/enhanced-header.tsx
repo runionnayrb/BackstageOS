@@ -381,7 +381,12 @@ export default function EnhancedHeader() {
               )}
             </div>
             
-
+            {/* Venue row - Show underneath title when in show context */}
+            {showData?.venue && (
+              <div>
+                <p className="text-base text-foreground">{showData.venue}</p>
+              </div>
+            )}
           </div>
 
           {/* Admin Dropdowns - Only visible to original admins */}
