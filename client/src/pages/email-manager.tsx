@@ -599,9 +599,9 @@ export default function EmailManager() {
               ? "translate-x-0 scale-100 opacity-100" 
               : "-translate-x-full scale-75 opacity-0"
           )}>
-            <div className="w-full bg-white p-4 space-y-4 h-full overflow-y-auto">
+            <div className="w-full bg-white h-full flex flex-col">
             {/* Header with Account Selector and Close Button */}
-            <div className="flex items-center justify-between pb-3 border-b border-gray-200">
+            <div className="flex items-center justify-between p-4 pb-3 border-b border-gray-200 flex-shrink-0">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex-1 justify-between mr-2 border-none">
@@ -730,10 +730,10 @@ export default function EmailManager() {
               </div>
             </div>
 
-  
-
-            {/* Folders Section */}
-            <div className="space-y-1">
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {/* Folders Section */}
+              <div className="space-y-1">
               {folders.map((folder) => (
                 <button
                   key={folder.id}
@@ -806,6 +806,7 @@ export default function EmailManager() {
                   <span>Settings</span>
                 </button>
               </div>
+            </div>
             </div>
           </div>
         </div>
