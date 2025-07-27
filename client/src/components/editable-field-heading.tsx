@@ -10,6 +10,7 @@ interface EditableFieldHeadingProps {
   className?: string;
   projectId: string;
   onApplyToAll?: () => void;
+  isEditing?: boolean;
 }
 
 export default function EditableFieldHeading({ 
@@ -17,7 +18,8 @@ export default function EditableFieldHeading({
   onChange, 
   className = "text-sm font-medium text-gray-700 mb-1",
   projectId,
-  onApplyToAll
+  onApplyToAll,
+  isEditing = true
 }: EditableFieldHeadingProps) {
   const [editingElement, setEditingElement] = useState<HTMLElement | null>(null);
   const [showToolbar, setShowToolbar] = useState(false);
@@ -232,11 +234,11 @@ export default function EditableFieldHeading({
     <>
       <div className="relative group">
         <div 
-          className={`drag-handle ${className} cursor-move hover:opacity-80 transition-opacity p-1 rounded min-h-[24px] outline-none editable-field-heading`}
-          contentEditable
+          className={`drag-handle ${className} ${isEditing ? 'cursor-move hover:opacity-80' : 'cursor-default'} transition-opacity p-1 rounded min-h-[24px] outline-none editable-field-heading`}
+          contentEditable={isEditing}
           suppressContentEditableWarning
           data-field-heading="true"
-          onClick={(e) => {
+          onClick={isEditing ? (e) => {
             // Only handle click if no text is currently selected
             const selection = window.getSelection();
             if (!selection || selection.toString().length === 0) {
@@ -246,8 +248,8 @@ export default function EditableFieldHeading({
               // Set content for editing
               e.currentTarget.innerHTML = content.replace(/\n/g, '<br>');
             }
-          }}
-          onDoubleClick={(e) => {
+          } : undefined}
+          onDoubleClick={isEditing ? (e) => {
             // Handle double-click for text selection
             e.preventDefault();
             const range = document.createRange();
@@ -255,13 +257,13 @@ export default function EditableFieldHeading({
             const selection = window.getSelection();
             selection?.removeAllRanges();
             selection?.addRange(range);
-          }}
-          onBlur={(e) => {
+          } : undefined}
+          onBlur={isEditing ? (e) => {
             if (!showToolbar) {
               const newContent = e.currentTarget.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
               onChange(newContent);
             }
-          }}
+          } : undefined}
           dangerouslySetInnerHTML={{
             __html: content.replace(/\n/g, '<br>')
           }}
@@ -269,24 +271,26 @@ export default function EditableFieldHeading({
 
       </div>
 
-      {/* Inline Formatting Toolbar */}
-      <InlineFormattingToolbar
-        targetElement={editingElement}
-        isVisible={showToolbar}
-        onAutoSave={() => {
-          if (editingElement) {
-            const content = editingElement.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
-            onChange(content);
-            handleAutoSave(); // Auto-save formatting changes
-          }
-        }}
-        onApplyToAll={onApplyToAll || applyFormattingToAllHeaders}
-        showVariables={false}
-        onClose={() => {
-          setShowToolbar(false);
-          setEditingElement(null);
-        }}
-      />
+      {/* Inline Formatting Toolbar - only show when editing is enabled */}
+      {isEditing && (
+        <InlineFormattingToolbar
+          targetElement={editingElement}
+          isVisible={showToolbar}
+          onAutoSave={() => {
+            if (editingElement) {
+              const content = editingElement.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
+              onChange(content);
+              handleAutoSave(); // Auto-save formatting changes
+            }
+          }}
+          onApplyToAll={onApplyToAll || applyFormattingToAllHeaders}
+          showVariables={false}
+          onClose={() => {
+            setShowToolbar(false);
+            setEditingElement(null);
+          }}
+        />
+      )}
     </>
   );
 }

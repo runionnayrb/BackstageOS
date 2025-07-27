@@ -223,6 +223,7 @@ const LayoutItemRenderer: React.FC<{
       return (
         <EditableFieldHeading
           content={item.content?.label || 'Field Header'}
+          isEditing={effectiveEditMode}
           onChange={(newContent) => {
             // Handle field header content changes
             console.log('Field header changed:', newContent);
