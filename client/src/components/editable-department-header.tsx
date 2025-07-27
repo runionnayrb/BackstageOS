@@ -62,6 +62,9 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
   const [isEditingText, setIsEditingText] = useState(false);
   const [editValue, setEditValue] = useState(displayName);
   const [showToolbar, setShowToolbar] = useState(false);
+  const [isMouseDown, setIsMouseDown] = useState(false);
+  const [dragMode, setDragMode] = useState(false);
+  const [mouseDownTime, setMouseDownTime] = useState(0);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const editableRef = useRef<HTMLDivElement>(null);
@@ -627,8 +630,54 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
   return (
     <div className="mb-2 group relative">
       <div 
-        className={`drag-handle w-full transition-opacity ${isEditing ? 'cursor-move hover:opacity-80' : 'cursor-default'}`}
-        onClick={handleHeaderClick}
+        className={`drag-handle w-full transition-all ${isEditing ? (dragMode ? 'cursor-move scale-105 shadow-md' : 'cursor-text') : 'cursor-default'}`}
+        onMouseDown={isEditing ? () => {
+          setIsMouseDown(true);
+          setMouseDownTime(Date.now());
+          
+          // Set timeout for drag mode activation
+          setTimeout(() => {
+            if (isMouseDown) {
+              setDragMode(true);
+            }
+          }, 300);
+        } : undefined}
+        onMouseUp={isEditing ? () => {
+          setIsMouseDown(false);
+          const holdTime = Date.now() - mouseDownTime;
+          
+          // If it was a quick click (not a hold), enable text editing
+          if (holdTime < 300 && !dragMode) {
+            setIsEditingText(true);
+            setShowToolbar(true);
+            setEditValue(displayName);
+            
+            // Focus the editable element after a short delay
+            setTimeout(() => {
+              if (editableRef.current) {
+                editableRef.current.focus();
+                // Place cursor at click position instead of selecting all
+                const range = document.createRange();
+                range.setStart(editableRef.current.firstChild || editableRef.current, 0);
+                range.collapse(true);
+                const selection = window.getSelection();
+                selection?.removeAllRanges();
+                selection?.addRange(range);
+              }
+            }, 50);
+          }
+          
+          // Reset drag mode after a delay
+          if (dragMode) {
+            setTimeout(() => setDragMode(false), 100);
+          }
+        } : undefined}
+        onMouseLeave={isEditing ? () => {
+          setIsMouseDown(false);
+          if (dragMode) {
+            setTimeout(() => setDragMode(false), 100);
+          }
+        } : undefined}
         style={{
           fontWeight: formatting.bold ? 'bold' : 'normal',
           fontStyle: formatting.italic ? 'italic' : 'normal',
