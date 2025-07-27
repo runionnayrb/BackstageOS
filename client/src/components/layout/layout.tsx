@@ -1,5 +1,5 @@
 import EnhancedHeader from "../navigation/enhanced-header";
-import MobileBottomNav from "../navigation/mobile-bottom-nav";
+import MobileFooterNav from "../navigation/mobile-footer-nav";
 import VersionFooter from "../version-footer";
 import PageTransition from "../transitions/page-transition";
 
@@ -17,7 +17,7 @@ export default function Layout({ children }: LayoutProps) {
         </PageTransition>
       </main>
       <VersionFooter />
-      <MobileBottomNav />
+      <MobileFooterNav />
     </div>
   );
 }

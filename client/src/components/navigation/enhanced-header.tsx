@@ -15,6 +15,7 @@ import { useBetaFeatures } from "@/hooks/useBetaFeatures";
 import BreadcrumbNavigation from "./breadcrumb-navigation";
 import { useAdminView } from "@/contexts/AdminViewContext";
 import GlobalSearchBar from "@/components/search/GlobalSearchBar";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 interface SwitchStatus {
   isViewingAs: boolean;
@@ -46,6 +47,7 @@ export default function EnhancedHeader() {
   const queryClient = useQueryClient();
   const { selectedBetaAccess, setSelectedBetaAccess, selectedProfileType, setSelectedProfileType } = useAdminView();
   const [defaultUserId, setDefaultUserId] = useState<string>("");
+  const { pageTitle } = usePageTitle();
   
   const headerRef = useRef<HTMLDivElement>(null);
 
@@ -213,8 +215,8 @@ export default function EnhancedHeader() {
       {/* Main Header */}
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Left side - Logo and Navigation */}
-          <div className="flex items-center gap-1 flex-1 min-w-0">
+          {/* Desktop Layout - Left side - Logo and Navigation */}
+          <div className="hidden md:flex items-center gap-1 flex-1 min-w-0">
             <div 
               className="text-xl font-bold text-gray-900 cursor-pointer hover:text-gray-700 transition-colors flex-shrink-0"
               onClick={() => setLocation('/')}
@@ -222,9 +224,7 @@ export default function EnhancedHeader() {
               BackstageOS
             </div>
             
-
-
-            {/* Navigation Menu - Moved after BackstageOS */}
+            {/* Navigation Menu - Desktop only */}
             <div className="flex-shrink-0">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -342,13 +342,29 @@ export default function EnhancedHeader() {
               </DropdownMenu>
             </div>
 
-            {/* Breadcrumb Navigation */}
+            {/* Breadcrumb Navigation - Desktop only */}
             {breadcrumbs.length > 0 && (
               <div className="flex items-center ml-2 sm:ml-4 flex-1 min-w-0 overflow-hidden">
                 <BreadcrumbNavigation items={breadcrumbs} className="text-sm" />
               </div>
             )}
 
+          </div>
+
+          {/* Mobile Layout - Page Title and Breadcrumbs */}
+          <div className="md:hidden flex items-center flex-1 min-w-0">
+            <div className="flex flex-col flex-1 min-w-0">
+              {/* Page Title */}
+              <h1 className="text-lg font-semibold text-gray-900 truncate">
+                {pageTitle}
+              </h1>
+              {/* Breadcrumbs - Mobile (subtle) */}
+              {breadcrumbs.length > 0 && (
+                <div className="flex items-center overflow-hidden">
+                  <BreadcrumbNavigation items={breadcrumbs} className="text-xs text-gray-500" />
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Admin Dropdowns - Only visible to original admins */}
@@ -384,8 +400,8 @@ export default function EnhancedHeader() {
             </div>
           )}
 
-          {/* Right side - Search, User menu and admin controls */}
-          <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Desktop Right side - Search, User menu and admin controls */}
+          <div className="hidden md:flex items-center gap-2 flex-shrink-0">
             {/* Expandable Search Icon */}
             <GlobalSearchBar />
             {/* Show Settings Button - appears when in a show, hidden on mobile */}
@@ -485,6 +501,11 @@ export default function EnhancedHeader() {
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
+          </div>
+
+          {/* Mobile Right side - Search only */}
+          <div className="md:hidden flex items-center flex-shrink-0">
+            <GlobalSearchBar />
           </div>
         </div>
       </div>
