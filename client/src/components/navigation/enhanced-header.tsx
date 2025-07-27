@@ -354,27 +354,37 @@ export default function EnhancedHeader() {
           </div>
 
           {/* Mobile Layout - Page Title and Breadcrumbs */}
-          <div className="md:hidden flex items-center flex-1 min-w-0 gap-2">
-            {/* Page Title */}
-            <h1 className="text-2xl font-bold text-gray-900 truncate flex-shrink-0">
-              {pageTitle}
-            </h1>
-            {/* Hamburger icon directly to the right of title (email page only) */}
-            {headerIcons && headerIcons.length > 0 && headerIcons[0].icon === Menu && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={headerIcons[0].onClick}
-                className="h-8 w-8 p-0 hover:bg-gray-100 flex-shrink-0"
-                title={headerIcons[0].title}
-              >
-                <Menu className="h-4 w-4" />
-              </Button>
-            )}
-            {/* Breadcrumbs - Mobile (subtle, to the right of title) */}
-            {breadcrumbs.length > 0 && (
-              <div className="flex items-center overflow-hidden min-w-0">
-                <BreadcrumbNavigation items={breadcrumbs} className="text-xs text-gray-500" />
+          <div className="md:hidden flex-1 min-w-0">
+            {/* Title row */}
+            <div className="flex items-center gap-2">
+              {/* Page Title */}
+              <h1 className="text-2xl font-bold text-gray-900 truncate flex-shrink-0">
+                {pageTitle}
+              </h1>
+              {/* Hamburger icon directly to the right of title (email page only) */}
+              {headerIcons && headerIcons.length > 0 && headerIcons[0].icon === Menu && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={headerIcons[0].onClick}
+                  className="h-8 w-8 p-0 hover:bg-gray-100 flex-shrink-0"
+                  title={headerIcons[0].title}
+                >
+                  <Menu className="h-4 w-4" />
+                </Button>
+              )}
+              {/* Breadcrumbs - Mobile (subtle, to the right of title) */}
+              {breadcrumbs.length > 0 && (
+                <div className="flex items-center overflow-hidden min-w-0">
+                  <BreadcrumbNavigation items={breadcrumbs} className="text-xs text-gray-500" />
+                </div>
+              )}
+            </div>
+            
+            {/* Venue row - Show underneath title when in show context */}
+            {showData?.venue && (
+              <div className="mt-1">
+                <p className="text-base text-foreground">{showData.venue}</p>
               </div>
             )}
           </div>

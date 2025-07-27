@@ -299,9 +299,6 @@ export default function ShowDetail() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex-1">
             <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
-            {project.venue && (
-              <p className="text-gray-600 mt-1">{project.venue}</p>
-            )}
           </div>
           
           <Button
