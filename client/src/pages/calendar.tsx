@@ -3,7 +3,7 @@ import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ArrowLeft, Users, MapPin, ChevronDown } from "lucide-react";
+import { ArrowLeft, Users, MapPin, ChevronDown, User } from "lucide-react";
 import AvailabilityComparison from "@/components/availability-comparison";
 import LocationAvailabilityPage from "@/components/location-availability";
 
@@ -95,21 +95,23 @@ export default function Calendar() {
           <div className="fixed top-16 right-4 bg-white rounded-lg shadow-lg border min-w-48">
             <div className="py-1">
               <button
-                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 transition-colors"
+                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 transition-colors flex items-center gap-2"
                 onClick={() => {
                   setShowAvailabilityComparison(true);
                   setShowAvailabilityDropdown(false);
                 }}
               >
+                <Users className="h-4 w-4 text-gray-700" />
                 Team Availability
               </button>
               <button
-                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 transition-colors"
+                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 transition-colors flex items-center gap-2"
                 onClick={() => {
                   setShowLocationAvailability(true);
                   setShowAvailabilityDropdown(false);
                 }}
               >
+                <MapPin className="h-4 w-4 text-gray-700" />
                 Location Availability
               </button>
             </div>
