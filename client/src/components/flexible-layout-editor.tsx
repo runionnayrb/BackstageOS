@@ -587,7 +587,8 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       y: item.y,
       w: item.w,
       h: item.h,
-      minW: item.minW || 1, // Reduced default minimum to avoid constraint conflicts
+      // Remove width constraints that could conflict with full-width items
+      minW: item.minW, // Only apply if explicitly set
       minH: item.minH || 1,
       maxW: item.maxW, // Don't set default maxW to avoid width constraints
       maxH: item.maxH
@@ -778,6 +779,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         y: 0, // Will be positioned correctly by insertion logic
         w: configuration.gridCols, // Full width
         h: 4,  // Match existing template field height
+        // Remove all width constraints to prevent conflicts
         children: [
           {
             id: `field-header-${Date.now()}`,
@@ -821,9 +823,20 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       };
 
       console.log('🚀 Added new property above departments:', {
-        newItem: { id: newItem.id, w: newItem.w, h: newItem.h },
+        newItem: { 
+          id: newItem.id, 
+          w: newItem.w, 
+          h: newItem.h,
+          x: newItem.x,
+          y: newItem.y,
+          minW: newItem.minW,
+          maxW: newItem.maxW,
+          type: newItem.type
+        },
         insertedAt: insertIndex,
-        fullWidth: newItem.w === configuration.gridCols
+        fullWidth: newItem.w === configuration.gridCols,
+        gridCols: configuration.gridCols,
+        shouldBe100Percent: `${(newItem.w / configuration.gridCols) * 100}%`
       });
 
       setConfiguration(newConfig);
