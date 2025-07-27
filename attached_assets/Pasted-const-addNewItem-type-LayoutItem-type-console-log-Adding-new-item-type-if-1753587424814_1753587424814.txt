@@ -1,0 +1,115 @@
+const addNewItem = (type: LayoutItem['type']) => {
+  console.log('🆕 Adding new item:', type);
+
+  if (type === 'department-header') {
+    // EXISTING LOGIC FOR DEPARTMENT HEADERS
+    const allItems = configuration.items;
+    const lastItemY = allItems.length > 0 ? Math.max(...allItems.map(i => i.y + i.h)) : 0;
+    const insertY = lastItemY + 1;
+
+    const deptName = 'new-dept';
+
+    const newItem: LayoutItem = {
+      id: `section-${Date.now()}`,
+      type: 'grouped-section',
+      content: { department: deptName, displayName: deptName },
+      x: 0,
+      y: insertY,
+      w: configuration.gridCols,
+      h: 3,
+      minW: 4,
+      minH: 3,
+      children: [
+        {
+          id: `${deptName}-header`,
+          type: 'department-header',
+          content: { department: deptName, displayName: deptName },
+          x: 0,
+          y: 0,
+          w: configuration.gridCols,
+          h: 1,
+          minW: 2,
+          minH: 1
+        },
+        {
+          id: `${deptName}-notes`,
+          type: 'notes',
+          content: { department: deptName },
+          x: 0,
+          y: 1,
+          w: configuration.gridCols,
+          h: 2,
+          minW: 3,
+          minH: 2
+        }
+      ]
+    };
+
+    const newConfig = {
+      ...configuration,
+      items: [...configuration.items, newItem]
+    };
+
+    setConfiguration(newConfig);
+    onConfigurationChange?.(newConfig);
+  } else if (type === 'empty-space') {
+    // EXISTING LOGIC FOR EMPTY SPACE
+    const newItem: LayoutItem = {
+      id: `empty-space-${Date.now()}`,
+      type: 'empty-space',
+      content: {},
+      x: 0,
+      y: Math.max(...configuration.items.map(i => i.y + i.h), 0),
+      w: 2,
+      h: 2,
+      minW: 1,
+      minH: 1
+    };
+
+    const newConfig = {
+      ...configuration,
+      items: [...configuration.items, newItem]
+    };
+
+    setConfiguration(newConfig);
+    onConfigurationChange?.(newConfig);
+  } else {
+    // 👇 THIS IS THE NEW LOGIC FOR OTHER FIELDS
+    const newItem: LayoutItem = {
+      id: `${type}-${Date.now()}`,
+      type,
+      content: {},
+      x: 0,
+      y: 0,
+      w: configuration.gridCols, // full width
+      h: 2,
+      minW: 3,
+      minH: 1,
+      isResizable: true,
+      isDraggable: true
+    };
+
+    // Find first grouped-section to insert above
+    const firstGroupedSectionIndex = configuration.items.findIndex(
+      (item) => item.type === 'grouped-section'
+    );
+
+    const insertIndex = firstGroupedSectionIndex !== -1
+      ? firstGroupedSectionIndex
+      : configuration.items.length;
+
+    const newItems = [
+      ...configuration.items.slice(0, insertIndex),
+      newItem,
+      ...configuration.items.slice(insertIndex)
+    ];
+
+    const newConfig = {
+      ...configuration,
+      items: newItems
+    };
+
+    setConfiguration(newConfig);
+    onConfigurationChange?.(newConfig);
+  }
+};

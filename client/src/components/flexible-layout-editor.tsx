@@ -768,89 +768,62 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       setConfiguration(newConfig);
       onConfigurationChange?.(newConfig);
     } else if (type === 'field-header') {
-      // Create a new field header/property above the first department
-      const departmentSections = configuration.items.filter(item => item.type === 'grouped-section');
-      const fieldItems = configuration.items.filter(item => item.type === 'field-header');
-      const noteItems = configuration.items.filter(item => item.type === 'notes' && !item.content?.department);
-      
-      console.log('📊 Current layout analysis:', {
-        departments: departmentSections.map(d => ({ id: d.id, y: d.y })),
-        fieldHeaders: fieldItems.map(f => ({ id: f.id, y: f.y })),
-        notes: noteItems.map(n => ({ id: n.id, y: n.y }))
-      });
-      
-      // Find the Y position to insert after existing field headers but before departments
-      const firstDepartmentY = departmentSections.length > 0 
-        ? Math.min(...departmentSections.map(item => item.y))
-        : 20; // Default high Y if no departments exist
-      
-      // Find last field-related item (field-header or non-department notes)
-      const fieldRelatedItems = [...fieldItems, ...noteItems];
-      const lastFieldRelatedY = fieldRelatedItems.length > 0
-        ? Math.max(...fieldRelatedItems.map(item => item.y + item.h))
-        : 0; // Start at 0 if no fields exist
-      
-      // Insert position: Place above departments but after any existing properties
-      const insertY = firstDepartmentY > 0 ? Math.max(0, firstDepartmentY - 5) : 0;
-      
-      console.log('📍 Positioning calculation:', {
-        firstDepartmentY,
-        lastFieldRelatedY,
-        insertY,
-        willShiftDepartments: firstDepartmentY <= insertY + 1,
-        visibleGridRows: configuration.gridRows,
-        insertYWithinBounds: insertY < configuration.gridRows
-      });
-      
-      // Create a single grouped section containing both header and text field
-      // Match exact structure of existing template fields (w: 12, h: 4, minW: 3, minH: 4)
+      // Create a new property as grouped section above departments
       const fieldId = 'new-property';
-      const fieldGroupItem: LayoutItem = {
+      const newItem: LayoutItem = {
         id: `field-group-${Date.now()}`,
         type: 'grouped-section',
         content: { fieldId: fieldId, label: 'New Property' },
         x: 0,
-        y: insertY,
-        w: 12, // Full 12 columns like existing template fields
+        y: 0, // Will be positioned correctly by insertion logic
+        w: configuration.gridCols, // Full width
         h: 4,  // Match existing template field height
         children: [
           {
             id: `field-header-${Date.now()}`,
             type: 'field-header' as const,
             content: { fieldId: fieldId, label: 'New Property' },
-            x: 0, y: 0, w: 12, h: 1
+            x: 0, y: 0, w: configuration.gridCols, h: 1
           },
           {
             id: `field-notes-${Date.now()}`,
             type: 'notes' as const,
             content: { fieldId: fieldId, placeholder: "Sample content..." },
-            x: 0, y: 1, w: 12, h: 3
+            x: 0, y: 1, w: configuration.gridCols, h: 3
           }
         ]
       };
 
-      // Shift departments down if they would overlap with new property
-      const adjustedItems = configuration.items.map(item => {
-        if (item.type === 'grouped-section' && 
-            item.content?.department && // Only shift actual departments
-            item.y >= insertY) {
-          const newY = item.y + 5; // Shift down by 5 rows
-          console.log(`⬇️ Shifting department ${item.id} from y:${item.y} to y:${newY}`);
-          return { ...item, y: newY };
-        }
-        return item;
+      // Find first department section to insert above
+      const firstDepartmentIndex = configuration.items.findIndex(
+        (item) => item.type === 'grouped-section' && item.content?.department
+      );
+
+      const insertIndex = firstDepartmentIndex !== -1
+        ? firstDepartmentIndex
+        : configuration.items.length;
+
+      console.log('📍 Property positioning:', {
+        firstDepartmentIndex,
+        insertIndex,
+        totalItems: configuration.items.length
       });
+
+      const newItems = [
+        ...configuration.items.slice(0, insertIndex),
+        newItem,
+        ...configuration.items.slice(insertIndex)
+      ];
 
       const newConfig = {
         ...configuration,
-        items: [...adjustedItems, fieldGroupItem]
+        items: newItems
       };
 
-      console.log('🚀 Added new field group:', {
-        newItem: { id: fieldGroupItem.id, x: fieldGroupItem.x, y: fieldGroupItem.y, w: fieldGroupItem.w, h: fieldGroupItem.h },
-        gridCols: configuration.gridCols,
-        shouldBe100Percent: fieldGroupItem.w === configuration.gridCols,
-        adjustedDepartments: adjustedItems.filter(item => item.type === 'grouped-section').map(d => ({ id: d.id, y: d.y, w: d.w }))
+      console.log('🚀 Added new property above departments:', {
+        newItem: { id: newItem.id, w: newItem.w, h: newItem.h },
+        insertedAt: insertIndex,
+        fullWidth: newItem.w === configuration.gridCols
       });
 
       setConfiguration(newConfig);

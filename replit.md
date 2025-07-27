@@ -66,7 +66,7 @@ BackstageOS is a comprehensive theater management platform specifically designed
 - Added `const [userHasEditedLayout, setUserHasEditedLayout] = useState(false);` to component state
 - Updated LayoutItemRenderer props to include `setUserHasEditedLayout={setUserHasEditedLayout}`
 
-### July 27, 2025: **DROPDOWN PROPERTY ADDITION WITH FULL-WIDTH DISPLAY COMPLETE**
+### July 27, 2025: **DROPDOWN PROPERTY ADDITION WITH SIMPLIFIED POSITIONING LOGIC COMPLETE**
 **Successfully implemented dropdown functionality for adding new properties with proper full-width display in tech report templates:**
 
 **Dropdown Implementation:**
@@ -75,11 +75,11 @@ BackstageOS is a comprehensive theater management platform specifically designed
 - Properties positioned above departments but below existing field headers for logical organization
 - Dropdown appears when plus button is clicked during template edit mode
 
-**Full-Width Display Fix:**
-- Resolved React Grid Layout constraint conflict causing new properties to appear as small boxes instead of full width
-- Root cause: `minW: 3` constraint was conflicting with `w: 12` setting, creating "minWidth larger than item width/maxWidth" error
-- Solution: Removed all minW/minH constraints from new property creation, allowing React Grid Layout to properly apply width settings
-- New properties now display at correct full width (12 columns) matching existing template fields
+**Simplified Positioning Logic:**
+- Resolved complex Y-coordinate calculations with cleaner array insertion approach
+- Root cause: Previous logic used complex Y-coordinate math and department shifting that was error-prone
+- Solution: Replaced with findIndex + array slicing approach, letting React Grid Layout handle automatic positioning
+- New properties positioned above departments using simple array insertion without manual coordinate management
 
 **Property Structure:**
 - Each new property creates a grouped section containing field header and text area
