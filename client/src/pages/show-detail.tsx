@@ -121,6 +121,16 @@ export default function ShowDetail() {
 
   // Effects - always called in same order
   useEffect(() => {
+    // Listen for toggle reorder event from enhanced header
+    const handleToggleReorder = () => {
+      setIsReordering(!isReordering);
+    };
+
+    window.addEventListener('toggleReorder', handleToggleReorder);
+    return () => window.removeEventListener('toggleReorder', handleToggleReorder);
+  }, [isReordering]);
+
+  useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       toast({
         title: "Unauthorized",
@@ -273,26 +283,14 @@ export default function ShowDetail() {
 
   return (
     <div className="w-full">
-      {/* Mobile Header - Title moved to enhanced-header */}
-      <div className="md:hidden px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex items-center justify-end mb-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsReordering(!isReordering)}
-            className="flex items-center gap-2"
-          >
-            <GripVertical className="h-4 w-4" />
-            {isReordering ? "Done Reordering" : "Reorder"}
-          </Button>
-        </div>
-        
-        {isReordering && (
-          <div className="mb-2 px-3 py-1 bg-blue-100 text-blue-800 text-xs rounded-full inline-block">
+      {/* Mobile reorder indicator */}
+      {isReordering && (
+        <div className="md:hidden px-4 sm:px-6 lg:px-8 pt-2 pb-1">
+          <div className="px-3 py-1 bg-blue-100 text-blue-800 text-xs rounded-full inline-block">
             Drag sections to reorder
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Desktop Header */}
       <div className="hidden md:block px-4 sm:px-6 lg:px-8 py-4">
@@ -314,7 +312,7 @@ export default function ShowDetail() {
       </div>
 
       {/* Mobile Sections List */}
-      <div className="md:hidden px-4 sm:px-6 lg:px-8">
+      <div className="md:hidden px-4 sm:px-6 lg:px-8 pb-4">
         <div className="space-y-1">
           {sections.map((section, index) => (
             <div

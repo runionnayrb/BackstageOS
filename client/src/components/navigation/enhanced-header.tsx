@@ -1,4 +1,4 @@
-import { Settings, Users, LogOut, ChevronDown, MessageSquare, UserCheck, Shield, Globe, Search, Bot, Menu, Mail, FolderOpen, Plus, FileText, Calendar, TrendingUp, CheckSquare, CreditCard } from "lucide-react";
+import { Settings, Users, LogOut, ChevronDown, MessageSquare, UserCheck, Shield, Globe, Search, Bot, Menu, Mail, FolderOpen, Plus, FileText, Calendar, TrendingUp, CheckSquare, CreditCard, GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -550,6 +550,23 @@ export default function EnhancedHeader() {
                 })}
               </div>
             )}
+            
+            {/* Reorder button - Only show on show details page */}
+            {navContext.showId && !navContext.sectionId && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 hover:bg-gray-100"
+                title="Reorder sections"
+                onClick={() => {
+                  // Dispatch custom event to toggle reordering in show details page
+                  window.dispatchEvent(new CustomEvent('toggleReorder'));
+                }}
+              >
+                <GripVertical className="h-4 w-4" />
+              </Button>
+            )}
+            
             <GlobalSearchBar />
           </div>
         </div>
