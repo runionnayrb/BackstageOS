@@ -17,6 +17,7 @@ import { useAdminView } from "@/contexts/AdminViewContext";
 import GlobalSearchBar from "@/components/search/GlobalSearchBar";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { useHeaderIcons } from "@/hooks/useHeaderIcons";
+import { useFolderName } from "@/hooks/useFolderName";
 
 interface SwitchStatus {
   isViewingAs: boolean;
@@ -50,6 +51,7 @@ export default function EnhancedHeader() {
   const [defaultUserId, setDefaultUserId] = useState<string>("");
   const { pageTitle } = usePageTitle();
   const { headerIcons } = useHeaderIcons();
+  const folderName = useFolderName();
   
   const headerRef = useRef<HTMLDivElement>(null);
 
@@ -359,7 +361,7 @@ export default function EnhancedHeader() {
             <div className="flex items-center gap-2">
               {/* Page Title */}
               <h1 className="text-2xl font-bold text-gray-900 truncate flex-shrink-0">
-                {pageTitle}
+                {location === '/email' ? folderName : pageTitle}
               </h1>
               {/* Hamburger icon directly to the right of title (email page only) */}
               {headerIcons && headerIcons.length > 0 && headerIcons[0].icon === Menu && (

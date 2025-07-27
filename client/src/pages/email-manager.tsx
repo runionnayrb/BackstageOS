@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { setPageHeaderIcons, clearPageHeaderIcons } from "@/hooks/useHeaderIcons";
+import { setFolderName } from "@/hooks/useFolderName";
 import { FloatingActionButton } from "@/components/navigation/floating-action-button";
 import {
   Mail,
@@ -302,12 +303,12 @@ export default function EmailManager() {
   };
   const [activeFolder, setActiveFolder] = useState("inbox");
   
-  // Set dynamic page title for mobile header
+  // Set dynamic folder name for mobile header
   const folderDisplayName = getFolderDisplayName(activeFolder);
-  usePageTitle(folderDisplayName);
   
-  // Debug logging to verify the title is updating
+  // Update folder name for mobile header
   useEffect(() => {
+    setFolderName(folderDisplayName);
     console.log('📧 Email page - Active folder changed to:', activeFolder, '→', folderDisplayName);
   }, [activeFolder, folderDisplayName]);
   
