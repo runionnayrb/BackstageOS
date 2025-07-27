@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { setPageHeaderIcons, clearPageHeaderIcons } from "@/hooks/useHeaderIcons";
+import { FloatingActionButton } from "@/components/navigation/floating-action-button";
 import {
   Mail,
   Plus,
@@ -42,6 +43,7 @@ import {
   MailOpen,
   Folder,
   FolderOpen,
+  PenTool,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -1788,7 +1790,13 @@ export default function EmailManager() {
         </DialogContent>
       </Dialog>
 
-
+      {/* Floating Action Button for Compose Email */}
+      {selectedAccount && (
+        <FloatingActionButton
+          onClick={() => setShowCompose(true)}
+          icon={Edit}
+        />
+      )}
 
     </div>
   );
