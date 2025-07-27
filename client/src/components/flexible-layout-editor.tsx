@@ -588,7 +588,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       h: item.h,
       minW: item.minW || 3, // Default minimum 25% width
       minH: item.minH || 1,
-      maxW: item.maxW || 12, // Default maximum 100% width
+      maxW: item.maxW, // Don't set default maxW to avoid width constraints
       maxH: item.maxH
       // No isResizable, isDraggable, or static properties - let the grid handle this via global props
     }));
