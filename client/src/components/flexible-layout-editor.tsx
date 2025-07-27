@@ -806,22 +806,18 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         y: insertY,
         w: 12, // Full 12 columns like existing template fields
         h: 4,  // Match existing template field height
-        minW: 3,
-        minH: 4,
         children: [
           {
             id: `field-header-${Date.now()}`,
             type: 'field-header' as const,
             content: { fieldId: fieldId, label: 'New Property' },
-            x: 0, y: 0, w: 12, h: 1,
-            minW: 3, minH: 1
+            x: 0, y: 0, w: 12, h: 1
           },
           {
             id: `field-notes-${Date.now()}`,
             type: 'notes' as const,
             content: { fieldId: fieldId, placeholder: "Sample content..." },
-            x: 0, y: 1, w: 12, h: 3,
-            minW: 3, minH: 2
+            x: 0, y: 1, w: 12, h: 3
           }
         ]
       };

@@ -1,0 +1,628 @@
+🔄 OPTIMISTIC EDIT MODE TOGGLE: UNLOCKING - UI updates immediately
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+inline-formatting-toolbar.tsx:52 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+inline-formatting-toolbar.tsx:52 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+inline-formatting-toolbar.tsx:52 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+flexible-layout-editor.tsx:610 ✅ Updating layouts from configuration
+flexible-layout-editor.tsx:577 🔍 Converting to grid layouts: {effectiveEditMode: true, itemCount: 8, gridCols: 12, items: Array(8)}
+flexible-layout-editor.tsx:597 🔍 Layout items created: (8) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+template-settings.tsx:767 📝 ADD PROPERTY clicked
+flexible-layout-editor.tsx:706 🆕 Adding new item: field-header
+flexible-layout-editor.tsx:707 🔍 Current configuration before adding: {itemCount: 8, items: Array(8)}
+flexible-layout-editor.tsx:771 📊 Current layout analysis: {departments: Array(8), fieldHeaders: Array(0), notes: Array(0)}
+flexible-layout-editor.tsx:791 📍 Positioning calculation: {firstDepartmentY: 0, lastFieldRelatedY: 0, insertY: 0, willShiftDepartments: true}
+flexible-layout-editor.tsx:832 ⬇️ Shifting department field-group-1753586299304 from y:0 to y:5
+flexible-layout-editor.tsx:843 🚀 Added new field group: {newItem: {…}, gridCols: 12, shouldBe100Percent: true, adjustedDepartments: Array(8)}
+template-settings.tsx:901 💾 Configuration changed - saving to unified showSettings: {projectId: '3', configItems: 9, yPositions: Array(9)}
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+flexible-layout-editor.tsx:635 🔥 Y POSITION CHANGE DETECTED for field-group-1753586299304: {oldY: 5, newY: 0, oldX: 0, newX: 0}
+flexible-layout-editor.tsx:635 🔥 Y POSITION CHANGE DETECTED for field-group-1753586421444: {oldY: 0, newY: 32, oldX: 0, newX: 0}
+flexible-layout-editor.tsx:655 💡 All layout changes preserved - no automatic recalculation
+flexible-layout-editor.tsx:672 🔧 Layout changed, updating configuration and saving: {editMode: true, hasChanges: true, itemCount: 9}
+flexible-layout-editor.tsx:683 💾 SAVING CHANGES IMMEDIATELY TO DATABASE
+template-settings.tsx:901 💾 Configuration changed - saving to unified showSettings: {projectId: '3', configItems: 9, yPositions: Array(9)}
+flexible-layout-editor.tsx:577 🔍 Converting to grid layouts: {effectiveEditMode: true, itemCount: 9, gridCols: 12, items: Array(9)}
+flexible-layout-editor.tsx:597 🔍 Layout items created: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+flexible-layout-editor.tsx:691 ✅ CONFIGURATION UPDATED AND SAVED
+inline-formatting-toolbar.tsx:52 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+editable-field-heading.tsx:43 Applying saved field header formatting: {color: '#ffffff', fontSize: '14px', fontStyle: 'normal', textAlign: 'left', fontFamily: 'Arial', …}
+flexible-layout-editor.tsx:610 ✅ Updating layouts from configuration
+flexible-layout-editor.tsx:577 🔍 Converting to grid layouts: {effectiveEditMode: true, itemCount: 9, gridCols: 12, items: Array(9)}
+flexible-layout-editor.tsx:597 🔍 Layout items created: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+chunk-ZMLY2J2T.js?v=d8c7dc2a:136 Warning: Failed prop type: minWidth larger than item width/maxWidth
+    at GridItem (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-grid-layout.js?v=d8c7dc2a:2971:9)
+    at ReactGridLayout (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-grid-layout.js?v=d8c7dc2a:3502:9)
+    at ResponsiveReactGridLayout (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-grid-layout.js?v=d8c7dc2a:4215:9)
+    at WidthProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-grid-layout.js?v=d8c7dc2a:4953:11)
+    at div
+    at div
+    at div
+    at DndProvider2 (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-dnd.js?v=d8c7dc2a:1507:9)
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/flexible-layout-editor.tsx:402:3
+    at div
+    at div
+    at _c9 (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/ui/card.tsx:114:12)
+    at div
+    at _c (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/ui/card.tsx:20:11)
+    at div
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=d8c7dc2a:232:13
+    at Presence (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=d8c7dc2a:543:11)
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=d8c7dc2a:794:13
+    at _c5 (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/ui/tabs.tsx:72:12)
+    at div
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=d8c7dc2a:232:13
+    at Provider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-3RXG37ZK.js?v=d8c7dc2a:38:15)
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=d8c7dc2a:671:7
+    at div
+    at div
+    at TemplateSettings (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/pages/template-settings.tsx:129:21)
+    at Route (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=d8c7dc2a:191:16)
+    at Switch (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=d8c7dc2a:247:17)
+    at PageTransition (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/transitions/page-transition.tsx:21:42)
+    at main
+    at div
+    at Layout (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/layout/layout.tsx:21:34)
+    at ErrorBoundary (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/error-boundary.tsx:10:5)
+    at Router (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/App.tsx?v=dXtDrMj73YMenCAtOl_Ew:98:31)
+    at PWAManager (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/pwa-manager.tsx:23:30)
+    at Provider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-3RXG37ZK.js?v=d8c7dc2a:38:15)
+    at TooltipProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=d8c7dc2a:66:5)
+    at SearchProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/search/SearchContext.tsx:22:34)
+    at AdminViewProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/contexts/AdminViewContext.tsx:20:37)
+    at AuthProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/hooks/useAuth.tsx:26:32)
+    at QueryClientProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=d8c7dc2a:2805:3)
+    at App
+printWarning @ chunk-ZMLY2J2T.js?v=d8c7dc2a:136
+error @ chunk-ZMLY2J2T.js?v=d8c7dc2a:120
+checkPropTypes @ chunk-ZMLY2J2T.js?v=d8c7dc2a:1407
+validatePropTypes @ chunk-ZMLY2J2T.js?v=d8c7dc2a:1531
+createElementWithValidation @ chunk-ZMLY2J2T.js?v=d8c7dc2a:1601
+processGridItem @ react-grid-layout.js?v=d8c7dc2a:3994
+(anonymous) @ react-grid-layout.js?v=d8c7dc2a:4050
+(anonymous) @ chunk-ZMLY2J2T.js?v=d8c7dc2a:737
+mapIntoArray @ chunk-ZMLY2J2T.js?v=d8c7dc2a:660
+mapIntoArray @ chunk-ZMLY2J2T.js?v=d8c7dc2a:701
+mapChildren @ chunk-ZMLY2J2T.js?v=d8c7dc2a:736
+render @ react-grid-layout.js?v=d8c7dc2a:4050
+finishClassComponent @ chunk-276SZO74.js?v=d8c7dc2a:14699
+updateClassComponent @ chunk-276SZO74.js?v=d8c7dc2a:14664
+beginWork @ chunk-276SZO74.js?v=d8c7dc2a:15930
+beginWork$1 @ chunk-276SZO74.js?v=d8c7dc2a:19753
+performUnitOfWork @ chunk-276SZO74.js?v=d8c7dc2a:19198
+workLoopSync @ chunk-276SZO74.js?v=d8c7dc2a:19137
+renderRootSync @ chunk-276SZO74.js?v=d8c7dc2a:19116
+performSyncWorkOnRoot @ chunk-276SZO74.js?v=d8c7dc2a:18874
+flushSyncCallbacks @ chunk-276SZO74.js?v=d8c7dc2a:9119
+flushSync @ chunk-276SZO74.js?v=d8c7dc2a:18959
+flushSync$1 @ chunk-276SZO74.js?v=d8c7dc2a:21538
+dispatchDiscreteCustomEvent @ chunk-7O3VHJ4X.js?v=d8c7dc2a:53
+handleSelect @ chunk-MBGBWPBR.js?v=d8c7dc2a:635
+handleEvent @ chunk-5Q5YC75F.js?v=d8c7dc2a:6
+callCallback2 @ chunk-276SZO74.js?v=d8c7dc2a:3674
+invokeGuardedCallbackDev @ chunk-276SZO74.js?v=d8c7dc2a:3699
+invokeGuardedCallback @ chunk-276SZO74.js?v=d8c7dc2a:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-276SZO74.js?v=d8c7dc2a:3736
+executeDispatch @ chunk-276SZO74.js?v=d8c7dc2a:7014
+processDispatchQueueItemsInOrder @ chunk-276SZO74.js?v=d8c7dc2a:7034
+processDispatchQueue @ chunk-276SZO74.js?v=d8c7dc2a:7043
+dispatchEventsForPlugins @ chunk-276SZO74.js?v=d8c7dc2a:7051
+(anonymous) @ chunk-276SZO74.js?v=d8c7dc2a:7174
+batchedUpdates$1 @ chunk-276SZO74.js?v=d8c7dc2a:18913
+batchedUpdates @ chunk-276SZO74.js?v=d8c7dc2a:3579
+dispatchEventForPluginEventSystem @ chunk-276SZO74.js?v=d8c7dc2a:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-276SZO74.js?v=d8c7dc2a:5478
+dispatchEvent @ chunk-276SZO74.js?v=d8c7dc2a:5472
+dispatchDiscreteEvent @ chunk-276SZO74.js?v=d8c7dc2a:5449Understand this error
+chunk-ZMLY2J2T.js?v=d8c7dc2a:136 Warning: Failed prop type: minHeight larger than item height/maxHeight
+    at GridItem (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-grid-layout.js?v=d8c7dc2a:2971:9)
+    at ReactGridLayout (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-grid-layout.js?v=d8c7dc2a:3502:9)
+    at ResponsiveReactGridLayout (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-grid-layout.js?v=d8c7dc2a:4215:9)
+    at WidthProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-grid-layout.js?v=d8c7dc2a:4953:11)
+    at div
+    at div
+    at div
+    at DndProvider2 (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-dnd.js?v=d8c7dc2a:1507:9)
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/flexible-layout-editor.tsx:402:3
+    at div
+    at div
+    at _c9 (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/ui/card.tsx:114:12)
+    at div
+    at _c (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/ui/card.tsx:20:11)
+    at div
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=d8c7dc2a:232:13
+    at Presence (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=d8c7dc2a:543:11)
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=d8c7dc2a:794:13
+    at _c5 (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/ui/tabs.tsx:72:12)
+    at div
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=d8c7dc2a:232:13
+    at Provider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-3RXG37ZK.js?v=d8c7dc2a:38:15)
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=d8c7dc2a:671:7
+    at div
+    at div
+    at TemplateSettings (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/pages/template-settings.tsx:129:21)
+    at Route (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=d8c7dc2a:191:16)
+    at Switch (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=d8c7dc2a:247:17)
+    at PageTransition (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/transitions/page-transition.tsx:21:42)
+    at main
+    at div
+    at Layout (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/layout/layout.tsx:21:34)
+    at ErrorBoundary (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/error-boundary.tsx:10:5)
+    at Router (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/App.tsx?v=dXtDrMj73YMenCAtOl_Ew:98:31)
+    at PWAManager (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/pwa-manager.tsx:23:30)
+    at Provider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-3RXG37ZK.js?v=d8c7dc2a:38:15)
+    at TooltipProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=d8c7dc2a:66:5)
+    at SearchProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/search/SearchContext.tsx:22:34)
+    at AdminViewProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/contexts/AdminViewContext.tsx:20:37)
+    at AuthProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/hooks/useAuth.tsx:26:32)
+    at QueryClientProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=d8c7dc2a:2805:3)
+    at App
+printWarning @ chunk-ZMLY2J2T.js?v=d8c7dc2a:136
+error @ chunk-ZMLY2J2T.js?v=d8c7dc2a:120
+checkPropTypes @ chunk-ZMLY2J2T.js?v=d8c7dc2a:1407
+validatePropTypes @ chunk-ZMLY2J2T.js?v=d8c7dc2a:1531
+createElementWithValidation @ chunk-ZMLY2J2T.js?v=d8c7dc2a:1601
+processGridItem @ react-grid-layout.js?v=d8c7dc2a:3994
+(anonymous) @ react-grid-layout.js?v=d8c7dc2a:4050
+(anonymous) @ chunk-ZMLY2J2T.js?v=d8c7dc2a:737
+mapIntoArray @ chunk-ZMLY2J2T.js?v=d8c7dc2a:660
+mapIntoArray @ chunk-ZMLY2J2T.js?v=d8c7dc2a:701
+mapChildren @ chunk-ZMLY2J2T.js?v=d8c7dc2a:736
+render @ react-grid-layout.js?v=d8c7dc2a:4050
+finishClassComponent @ chunk-276SZO74.js?v=d8c7dc2a:14699
+updateClassComponent @ chunk-276SZO74.js?v=d8c7dc2a:14664
+beginWork @ chunk-276SZO74.js?v=d8c7dc2a:15930
+beginWork$1 @ chunk-276SZO74.js?v=d8c7dc2a:19753
+performUnitOfWork @ chunk-276SZO74.js?v=d8c7dc2a:19198
+workLoopSync @ chunk-276SZO74.js?v=d8c7dc2a:19137
+renderRootSync @ chunk-276SZO74.js?v=d8c7dc2a:19116
+performSyncWorkOnRoot @ chunk-276SZO74.js?v=d8c7dc2a:18874
+flushSyncCallbacks @ chunk-276SZO74.js?v=d8c7dc2a:9119
+flushSync @ chunk-276SZO74.js?v=d8c7dc2a:18959
+flushSync$1 @ chunk-276SZO74.js?v=d8c7dc2a:21538
+dispatchDiscreteCustomEvent @ chunk-7O3VHJ4X.js?v=d8c7dc2a:53
+handleSelect @ chunk-MBGBWPBR.js?v=d8c7dc2a:635
+handleEvent @ chunk-5Q5YC75F.js?v=d8c7dc2a:6
+callCallback2 @ chunk-276SZO74.js?v=d8c7dc2a:3674
+invokeGuardedCallbackDev @ chunk-276SZO74.js?v=d8c7dc2a:3699
+invokeGuardedCallback @ chunk-276SZO74.js?v=d8c7dc2a:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-276SZO74.js?v=d8c7dc2a:3736
+executeDispatch @ chunk-276SZO74.js?v=d8c7dc2a:7014
+processDispatchQueueItemsInOrder @ chunk-276SZO74.js?v=d8c7dc2a:7034
+processDispatchQueue @ chunk-276SZO74.js?v=d8c7dc2a:7043
+dispatchEventsForPlugins @ chunk-276SZO74.js?v=d8c7dc2a:7051
+(anonymous) @ chunk-276SZO74.js?v=d8c7dc2a:7174
+batchedUpdates$1 @ chunk-276SZO74.js?v=d8c7dc2a:18913
+batchedUpdates @ chunk-276SZO74.js?v=d8c7dc2a:3579
+dispatchEventForPluginEventSystem @ chunk-276SZO74.js?v=d8c7dc2a:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-276SZO74.js?v=d8c7dc2a:5478
+dispatchEvent @ chunk-276SZO74.js?v=d8c7dc2a:5472
+dispatchDiscreteEvent @ chunk-276SZO74.js?v=d8c7dc2a:5449Understand this error
+4editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+flexible-layout-editor.tsx:655 💡 All layout changes preserved - no automatic recalculation
+flexible-layout-editor.tsx:672 🔧 Layout changed, updating configuration and saving: {editMode: true, hasChanges: true, itemCount: 9}
+flexible-layout-editor.tsx:683 💾 SAVING CHANGES IMMEDIATELY TO DATABASE
+template-settings.tsx:901 💾 Configuration changed - saving to unified showSettings: {projectId: '3', configItems: 9, yPositions: Array(9)}
+flexible-layout-editor.tsx:577 🔍 Converting to grid layouts: {effectiveEditMode: true, itemCount: 9, gridCols: 12, items: Array(9)}
+flexible-layout-editor.tsx:597 🔍 Layout items created: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+flexible-layout-editor.tsx:691 ✅ CONFIGURATION UPDATED AND SAVED
+flexible-layout-editor.tsx:610 ✅ Updating layouts from configuration
+flexible-layout-editor.tsx:577 🔍 Converting to grid layouts: {effectiveEditMode: true, itemCount: 9, gridCols: 12, items: Array(9)}
+flexible-layout-editor.tsx:597 🔍 Layout items created: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+4editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+flexible-layout-editor.tsx:610 ✅ Updating layouts from configuration
+flexible-layout-editor.tsx:577 🔍 Converting to grid layouts: {effectiveEditMode: true, itemCount: 9, gridCols: 12, items: Array(9)}
+flexible-layout-editor.tsx:597 🔍 Layout items created: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+4editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+template-settings.tsx:924 ✅ Configuration saved to unified showSettings - ensuring database completion
+4editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+template-settings.tsx:924 ✅ Configuration saved to unified showSettings - ensuring database completion
+4editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+template-settings.tsx:924 ✅ Configuration saved to unified showSettings - ensuring database completion
+4editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+queryClient.ts:69 🎯 Query URL constructed: /api/projects/3/settings from queryKey: (3) ['/api/projects', '3', 'settings']
+queryClient.ts:69 🎯 Query URL constructed: /api/projects/3/settings from queryKey: (3) ['/api/projects', '3', 'settings']
+queryClient.ts:69 🎯 Query URL constructed: /api/projects/3/settings from queryKey: (3) ['/api/projects', '3', 'settings']
+4editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+template-settings.tsx:258 🔄 Loading layoutConfiguration from unified showSettings: {
+  "items": [
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 5,
+      "id": "field-section-late",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "label": "Late",
+        "fieldId": "late"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 12,
+          "x": 0,
+          "y": 0,
+          "id": "field-header-late",
+          "minH": 1,
+          "minW": 3,
+          "type": "field-header",
+          "content": {
+            "label": "Late",
+            "fieldId": "late"
+          }
+        },
+        {
+          "h": 3,
+          "w": 12,
+          "x": 0,
+          "y": 1,
+          "id": "field-notes-late",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "fieldId": "late",
+            "placeholder": "1. No notes. Thank you."
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 5,
+      "id": "field-section-injuryIllness",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "label": "Injury / Illness",
+        "fieldId": "injuryillness"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 12,
+          "x": 0,
+          "y": 0,
+          "id": "field-header-injuryIllness",
+          "minH": 1,
+          "minW": 3,
+          "type": "field-header",
+          "content": {
+            "label": "Injury / Illness",
+            "fieldId": "injuryillness"
+          }
+        },
+        {
+          "h": 3,
+          "w": 12,
+          "x": 0,
+          "y": 1,
+          "id": "field-notes-injuryIllness",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "fieldId": "injuryillness",
+            "placeholder": "1. No notes. Thank you."
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 12,
+      "id": "dept-section-scenic",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "department": "scenic",
+        "displayName": "Scenic"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 6,
+          "x": 0,
+          "y": 0,
+          "id": "dept-header-scenic",
+          "minH": 1,
+          "minW": 2,
+          "type": "department-header",
+          "content": {
+            "department": "scenic",
+            "displayName": "Scenic"
+          }
+        },
+        {
+          "h": 3,
+          "w": 6,
+          "x": 0,
+          "y": 1,
+          "id": "dept-notes-scenic",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "department": "scenic"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 20,
+      "id": "dept-section-lighting",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "department": "lighting",
+        "displayName": "Lighting"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 6,
+          "x": 0,
+          "y": 0,
+          "id": "dept-header-lighting",
+          "minH": 1,
+          "minW": 2,
+          "type": "department-header",
+          "content": {
+            "department": "lighting",
+            "displayName": "Lighting"
+          }
+        },
+        {
+          "h": 3,
+          "w": 6,
+          "x": 0,
+          "y": 1,
+          "id": "dept-notes-lighting",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "department": "lighting"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 24,
+      "id": "dept-section-audio",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "department": "audio",
+        "displayName": "Audio"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 6,
+          "x": 0,
+          "y": 0,
+          "id": "dept-header-audio",
+          "minH": 1,
+          "minW": 2,
+          "type": "department-header",
+          "content": {
+            "department": "audio",
+            "displayName": "Audio"
+          }
+        },
+        {
+          "h": 3,
+          "w": 6,
+          "x": 0,
+          "y": 1,
+          "id": "dept-notes-audio",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "department": "audio"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 28,
+      "id": "dept-section-video",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "department": "video",
+        "displayName": "Video"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 6,
+          "x": 0,
+          "y": 0,
+          "id": "dept-header-video",
+          "minH": 1,
+          "minW": 2,
+          "type": "department-header",
+          "content": {
+            "department": "video",
+            "displayName": "Video"
+          }
+        },
+        {
+          "h": 3,
+          "w": 6,
+          "x": 0,
+          "y": 1,
+          "id": "dept-notes-video",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "department": "video"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 16,
+      "id": "dept-section-props",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "department": "props",
+        "displayName": "Props"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 6,
+          "x": 0,
+          "y": 0,
+          "id": "dept-header-props",
+          "minH": 1,
+          "minW": 2,
+          "type": "department-header",
+          "content": {
+            "department": "props",
+            "displayName": "Props"
+          }
+        },
+        {
+          "h": 3,
+          "w": 6,
+          "x": 0,
+          "y": 1,
+          "id": "dept-notes-props",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "department": "props"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 5,
+      "id": "field-group-1753586299304",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "label": "New Property",
+        "fieldId": "new-property"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 12,
+          "x": 0,
+          "y": 0,
+          "id": "field-header-1753586299304",
+          "minH": 1,
+          "minW": 3,
+          "type": "field-header",
+          "content": {
+            "label": "New Property",
+            "fieldId": "new-property"
+          }
+        },
+        {
+          "h": 3,
+          "w": 12,
+          "x": 0,
+          "y": 1,
+          "id": "field-notes-1753586299304",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "fieldId": "new-property",
+            "placeholder": "Sample content..."
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 0,
+      "id": "field-group-1753586421444",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "label": "New Property",
+        "fieldId": "new-property"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 12,
+          "x": 0,
+          "y": 0,
+          "id": "field-header-1753586421444",
+          "minH": 1,
+          "minW": 3,
+          "type": "field-header",
+          "content": {
+            "label": "New Property",
+            "fieldId": "new-property"
+          }
+        },
+        {
+          "h": 3,
+          "w": 12,
+          "x": 0,
+          "y": 1,
+          "id": "field-notes-1753586421444",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "fieldId": "new-property",
+            "placeholder": "Sample content..."
+          }
+        }
+      ]
+    }
+  ],
+  "gridGap": 8,
+  "gridCols": 12,
+  "gridRows": 20
+}
+template-settings.tsx:265 ✅ Applied unified layoutConfiguration to tech template
+template-settings.tsx:271 ✅ Templates initialized with unified showSettings approach - single database table!
+4editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
