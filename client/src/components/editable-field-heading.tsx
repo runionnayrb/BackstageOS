@@ -23,9 +23,6 @@ export default function EditableFieldHeading({
 }: EditableFieldHeadingProps) {
   const [editingElement, setEditingElement] = useState<HTMLElement | null>(null);
   const [showToolbar, setShowToolbar] = useState(false);
-  const [isMouseDown, setIsMouseDown] = useState(false);
-  const [dragMode, setDragMode] = useState(false);
-  const [mouseDownTime, setMouseDownTime] = useState(0);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -235,54 +232,32 @@ export default function EditableFieldHeading({
 
   return (
     <>
-      <div className="relative group">
+      <div className="relative group flex items-center">
+        {/* Move handle - only visible on hover when editing */}
+        {isEditing && (
+          <div className="drag-handle opacity-0 group-hover:opacity-100 transition-opacity mr-2 cursor-move flex-shrink-0">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="3" cy="3" r="1" fill="currentColor"/>
+              <circle cx="9" cy="3" r="1" fill="currentColor"/>
+              <circle cx="3" cy="6" r="1" fill="currentColor"/>
+              <circle cx="9" cy="6" r="1" fill="currentColor"/>
+              <circle cx="3" cy="9" r="1" fill="currentColor"/>
+              <circle cx="9" cy="9" r="1" fill="currentColor"/>
+            </svg>
+          </div>
+        )}
+        
         <div 
-          className={`drag-handle ${className} ${isEditing ? (dragMode ? 'cursor-move' : 'cursor-text') : 'cursor-default'} transition-all p-1 rounded min-h-[24px] outline-none editable-field-heading ${dragMode ? 'shadow-md scale-105' : ''}`}
-          contentEditable={isEditing && !dragMode}
+          className={`${className} ${isEditing ? 'cursor-text' : 'cursor-default'} transition-all p-1 rounded min-h-[24px] outline-none editable-field-heading flex-1`}
+          contentEditable={isEditing}
           suppressContentEditableWarning
           data-field-heading="true"
-          onMouseDown={isEditing ? (e) => {
-            setIsMouseDown(true);
-            setMouseDownTime(Date.now());
-            
-            // Set timeout for drag mode activation
-            setTimeout(() => {
-              if (isMouseDown) {
-                setDragMode(true);
-                e.currentTarget.blur(); // Remove focus to prevent text editing
-              }
-            }, 300);
-          } : undefined}
-          onMouseUp={isEditing ? (e) => {
-            setIsMouseDown(false);
-            const holdTime = Date.now() - mouseDownTime;
-            
-            // If it was a quick click (not a hold), enable text editing
-            if (holdTime < 300 && !dragMode) {
-              setEditingElement(e.currentTarget);
-              // Don't auto-show toolbar, let user naturally start editing
-              e.currentTarget.focus();
-            }
-            
-            // Reset drag mode after a delay to allow drag operation to complete
-            if (dragMode) {
-              setTimeout(() => setDragMode(false), 100);
-            }
-          } : undefined}
-          onMouseLeave={isEditing ? () => {
-            setIsMouseDown(false);
-            if (dragMode) {
-              setTimeout(() => setDragMode(false), 100);
-            }
-          } : undefined}
           onFocus={isEditing ? (e) => {
-            if (!dragMode) {
-              setEditingElement(e.currentTarget);
-              setShowToolbar(true);
-            }
+            setEditingElement(e.currentTarget);
+            setShowToolbar(true);
           } : undefined}
           onBlur={isEditing ? (e) => {
-            if (!showToolbar && !dragMode) {
+            if (!showToolbar) {
               const newContent = e.currentTarget.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
               onChange(newContent);
             }
