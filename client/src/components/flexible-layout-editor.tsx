@@ -104,8 +104,8 @@ const DraggableGridItem: React.FC<{
   return (
     <div 
       className="relative transition-all duration-200"
-      onMouseEnter={effectiveEditMode ? () => setIsHovered(true) : undefined}
-      onMouseLeave={effectiveEditMode ? () => setIsHovered(false) : undefined}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       {/* Delete control overlay inside the element */}
       {effectiveEditMode && isHovered && (
@@ -887,7 +887,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
           effectiveEditMode && "bg-gray-50/50"
         )}>
           {isLayoutMounted && (
-            <div className={cn("w-full layout-editor", effectiveEditMode && "edit-mode")} style={{ width: '1200px', maxWidth: '100%' }}>
+            <div className="w-full" style={{ width: '1200px', maxWidth: '100%' }}>
               <ResponsiveGridLayout
                 className="layout"
                 layouts={layouts}

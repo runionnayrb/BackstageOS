@@ -797,12 +797,6 @@ textarea:active {
   opacity: 1;
 }
 
-/* Hide drag handles and prevent hover effects when layout is locked */
-.layout-editor:not(.edit-mode) .react-grid-item:hover .drag-handle,
-.layout-editor:not(.edit-mode) .drag-handle {
-  opacity: 0 !important;
-}
-
 .layout-editor .react-grid-item.react-draggable-dragging {
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   transform: rotate(5deg);
