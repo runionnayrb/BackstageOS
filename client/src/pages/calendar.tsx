@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -15,8 +15,22 @@ export default function Calendar() {
   const [, setLocation] = useLocation();
   const [showAvailabilityComparison, setShowAvailabilityComparison] = useState(false);
   const [showLocationAvailability, setShowLocationAvailability] = useState(false);
+  const [showAvailabilityDropdown, setShowAvailabilityDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const params = useParams<CalendarParams>();
   const projectId = params.id;
+
+  // Listen for header button click
+  useEffect(() => {
+    const handleAvailabilityDropdown = () => {
+      setShowAvailabilityDropdown(!showAvailabilityDropdown);
+    };
+
+    window.addEventListener('openAvailabilityDropdown', handleAvailabilityDropdown);
+    return () => {
+      window.removeEventListener('openAvailabilityDropdown', handleAvailabilityDropdown);
+    };
+  }, [showAvailabilityDropdown]);
 
   const { data: project } = useQuery({
     queryKey: [`/api/projects/${projectId}`],
@@ -74,28 +88,34 @@ export default function Calendar() {
 
   return (
     <div className="w-full">
-      <div className="px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-3xl font-bold text-gray-900">Calendar</h1>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button className="flex items-center gap-2">
-                Availability
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setShowAvailabilityComparison(true)}>
+      {/* Floating Availability Dropdown */}
+      {showAvailabilityDropdown && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div className="fixed inset-0 bg-black/20" onClick={() => setShowAvailabilityDropdown(false)} />
+          <div className="fixed top-16 right-4 bg-white rounded-lg shadow-lg border min-w-48">
+            <div className="py-1">
+              <button
+                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 transition-colors"
+                onClick={() => {
+                  setShowAvailabilityComparison(true);
+                  setShowAvailabilityDropdown(false);
+                }}
+              >
                 Team Availability
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setShowLocationAvailability(true)}>
+              </button>
+              <button
+                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 transition-colors"
+                onClick={() => {
+                  setShowLocationAvailability(true);
+                  setShowAvailabilityDropdown(false);
+                }}
+              >
                 Location Availability
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="space-y-1">

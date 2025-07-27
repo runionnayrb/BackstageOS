@@ -1,4 +1,4 @@
-import { Settings, Users, LogOut, ChevronDown, MessageSquare, UserCheck, Shield, Globe, Search, Bot, Menu, Mail, FolderOpen, Plus, FileText, Calendar, TrendingUp, CheckSquare, CreditCard, GripVertical } from "lucide-react";
+import { Settings, Users, LogOut, ChevronDown, MessageSquare, UserCheck, Shield, Globe, Search, Bot, Menu, Mail, FolderOpen, Plus, FileText, Calendar, TrendingUp, CheckSquare, CreditCard, GripVertical, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -577,6 +577,22 @@ export default function EnhancedHeader() {
                 onClick={() => setLocation(`/shows/${navContext.showId}/templates`)}
               >
                 <Settings className="h-4 w-4" />
+              </Button>
+            )}
+
+            {/* Availability button - Only show on calendar page */}
+            {navContext.showId && navContext.sectionId === 'calendar' && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 hover:bg-gray-100"
+                title="Availability"
+                onClick={() => {
+                  // Dispatch custom event to open availability dropdown in calendar page
+                  window.dispatchEvent(new CustomEvent('openAvailabilityDropdown'));
+                }}
+              >
+                <CalendarDays className="h-4 w-4" />
               </Button>
             )}
             
