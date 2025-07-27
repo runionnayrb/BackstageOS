@@ -768,9 +768,10 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       const noteItems = configuration.items.filter(item => item.type === 'notes' && !item.content?.department);
       
       console.log('📊 Current layout analysis:', {
-        departments: departmentSections.map(d => ({ id: d.id, y: d.y })),
-        fieldHeaders: fieldItems.map(f => ({ id: f.id, y: f.y })),
-        notes: noteItems.map(n => ({ id: n.id, y: n.y }))
+        gridCols: configuration.gridCols,
+        departments: departmentSections.map(d => ({ id: d.id, y: d.y, w: d.w, actualWidth: `${(d.w / configuration.gridCols) * 100}%` })),
+        fieldHeaders: fieldItems.map(f => ({ id: f.id, y: f.y, w: f.w, actualWidth: `${(f.w / configuration.gridCols) * 100}%` })),
+        notes: noteItems.map(n => ({ id: n.id, y: n.y, w: n.w, actualWidth: `${(n.w / configuration.gridCols) * 100}%` }))
       });
       
       // Find the Y position to insert after existing field headers but before departments
@@ -840,8 +841,10 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       };
 
       console.log('🚀 Added new field group:', {
-        group: { id: fieldGroupItem.id, y: fieldGroupItem.y, w: fieldGroupItem.w, h: fieldGroupItem.h },
-        adjustedDepartments: adjustedItems.filter(item => item.type === 'grouped-section').map(d => ({ id: d.id, y: d.y }))
+        group: { id: fieldGroupItem.id, x: fieldGroupItem.x, y: fieldGroupItem.y, w: fieldGroupItem.w, h: fieldGroupItem.h },
+        gridCols: configuration.gridCols,
+        percentageWidth: `${(fieldGroupItem.w / configuration.gridCols) * 100}%`,
+        adjustedDepartments: adjustedItems.filter(item => item.type === 'grouped-section').map(d => ({ id: d.id, y: d.y, w: d.w }))
       });
 
       setConfiguration(newConfig);
