@@ -359,6 +359,18 @@ export default function EnhancedHeader() {
             <h1 className="text-2xl font-bold text-gray-900 truncate flex-shrink-0">
               {pageTitle}
             </h1>
+            {/* Hamburger icon directly to the right of title (email page only) */}
+            {headerIcons && headerIcons.length > 0 && headerIcons[0].icon === Menu && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={headerIcons[0].onClick}
+                className="h-8 w-8 p-0 hover:bg-gray-100 flex-shrink-0"
+                title={headerIcons[0].title}
+              >
+                <Menu className="h-4 w-4" />
+              </Button>
+            )}
             {/* Breadcrumbs - Mobile (subtle, to the right of title) */}
             {breadcrumbs.length > 0 && (
               <div className="flex items-center overflow-hidden min-w-0">
@@ -503,23 +515,29 @@ export default function EnhancedHeader() {
             )}
           </div>
 
-          {/* Mobile Right side - Search and dynamic header icons */}
+          {/* Mobile Right side - Search and dynamic header icons (excluding hamburger when next to title) */}
           <div className="md:hidden flex items-center gap-2 flex-shrink-0">
-            {/* Page-specific header icons */}
+            {/* Page-specific header icons (excluding hamburger if it's the first icon) */}
             {headerIcons && headerIcons.length > 0 && (
               <div className="flex items-center gap-1">
-                {headerIcons.map((iconConfig, index) => (
-                  <Button
-                    key={index}
-                    variant="ghost"
-                    size="sm"
-                    onClick={iconConfig.onClick}
-                    className="h-8 w-8 p-0 hover:bg-gray-100"
-                    title={iconConfig.title}
-                  >
-                    <iconConfig.icon className="h-4 w-4" />
-                  </Button>
-                ))}
+                {headerIcons.map((iconConfig, index) => {
+                  // Skip hamburger icon if it's the first one (it's shown next to title)
+                  if (index === 0 && iconConfig.icon === Menu) {
+                    return null;
+                  }
+                  return (
+                    <Button
+                      key={index}
+                      variant="ghost"
+                      size="sm"
+                      onClick={iconConfig.onClick}
+                      className="h-8 w-8 p-0 hover:bg-gray-100"
+                      title={iconConfig.title}
+                    >
+                      <iconConfig.icon className="h-4 w-4" />
+                    </Button>
+                  );
+                })}
               </div>
             )}
             <GlobalSearchBar />

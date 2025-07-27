@@ -303,7 +303,7 @@ export default function EmailManager() {
   // Set dynamic page title for mobile header
   usePageTitle(getFolderDisplayName(activeFolder));
   
-  // Set header icons for mobile header
+  // Set header icons for mobile header - hamburger icon positioned right of folder title
   useEffect(() => {
     setPageHeaderIcons([
       {
@@ -316,7 +316,7 @@ export default function EmailManager() {
     return () => {
       clearPageHeaderIcons();
     };
-  }, []);  
+  }, []);
   const [showTheaterFeatures, setShowTheaterFeatures] = useState(false);
   const [showGroupManager, setShowGroupManager] = useState(false);
   const [showTemplateManager, setShowTemplateManager] = useState(false);
