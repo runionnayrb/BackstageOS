@@ -692,7 +692,7 @@ The Production Team`
           {/* Left side - Dynamic Date/Range display */}
           <div className="flex items-center">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="hidden md:block text-3xl font-bold text-gray-900">
                 {getHeaderText()}
               </h1>
               {currentPublishedVersion && (

@@ -108,7 +108,7 @@ export default function Projects() {
         <div className="px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center mb-2">
             <div>
-              <h1 className="text-3xl font-bold">{projectLabel}</h1>
+              <h1 className="hidden md:block text-3xl font-bold">{projectLabel}</h1>
             </div>
             <div className="flex gap-2">
               {isFullTime && (

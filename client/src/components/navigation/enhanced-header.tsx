@@ -355,7 +355,7 @@ export default function EnhancedHeader() {
           <div className="md:hidden flex items-center flex-1 min-w-0">
             <div className="flex flex-col flex-1 min-w-0">
               {/* Page Title */}
-              <h1 className="text-lg font-semibold text-gray-900 truncate">
+              <h1 className="text-2xl font-bold text-gray-900 truncate">
                 {pageTitle}
               </h1>
               {/* Breadcrumbs - Mobile (subtle) */}

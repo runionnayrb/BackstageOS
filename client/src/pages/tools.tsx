@@ -101,7 +101,7 @@ export default function ToolsPage() {
   return (
     <div className="container mx-auto px-4 py-6 max-w-4xl">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Tools</h1>
+        <h1 className="hidden md:block text-3xl font-bold text-gray-900 mb-2">Tools</h1>
         <p className="text-gray-600">
           Access all your theater management tools and features in one place.
         </p>

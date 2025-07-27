@@ -962,7 +962,7 @@ export default function PageManager() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl lg:text-3xl font-bold">Page Manager</h1>
+            <h1 className="hidden md:block text-2xl lg:text-3xl font-bold">Page Manager</h1>
             <p className="text-sm lg:text-base text-gray-600">View all application pages in hierarchical structure</p>
           </div>
         </div>

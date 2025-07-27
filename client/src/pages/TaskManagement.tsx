@@ -254,7 +254,7 @@ export function TaskManagement() {
         {/* Header - matching Reports page structure */}
         <div className="px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-gray-900">
+            <h2 className="hidden md:block text-2xl font-bold text-gray-900">
               {showId && showData ? `Tasks - ${showData.name}` : 'Tasks'}
             </h2>
             

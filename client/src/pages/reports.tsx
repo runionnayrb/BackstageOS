@@ -80,7 +80,7 @@ export default function Reports() {
       <div className="container mx-auto p-6">
         <div className="mb-8 flex justify-between items-start">
           <div>
-            <h1 className="text-3xl font-bold">Reports</h1>
+            <h1 className="hidden md:block text-3xl font-bold">Reports</h1>
             <p className="text-gray-500 mt-2">View and manage all production reports</p>
           </div>
           <Button onClick={() => setLocation("/report-builder")}>
