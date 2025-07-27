@@ -777,21 +777,23 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         content: { fieldId: fieldId, label: 'New Property' },
         x: 0,
         y: 0, // Will be positioned correctly by insertion logic
-        w: configuration.gridCols, // Full width
+        w: 12, // Explicitly set to 12 instead of using configuration.gridCols
         h: 4,  // Match existing template field height
-        // Remove all width constraints to prevent conflicts
+        // Force full width with no constraints
+        minW: undefined,
+        maxW: undefined,
         children: [
           {
             id: `field-header-${Date.now()}`,
             type: 'field-header' as const,
             content: { fieldId: fieldId, label: 'New Property' },
-            x: 0, y: 0, w: configuration.gridCols, h: 1
+            x: 0, y: 0, w: 12, h: 1
           },
           {
             id: `field-notes-${Date.now()}`,
             type: 'notes' as const,
             content: { fieldId: fieldId, placeholder: "Sample content..." },
-            x: 0, y: 1, w: configuration.gridCols, h: 3
+            x: 0, y: 1, w: 12, h: 3
           }
         ]
       };
@@ -834,13 +836,20 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
           type: newItem.type
         },
         insertedAt: insertIndex,
-        fullWidth: newItem.w === configuration.gridCols,
+        fullWidth: newItem.w === 12,
         gridCols: configuration.gridCols,
-        shouldBe100Percent: `${(newItem.w / configuration.gridCols) * 100}%`
+        shouldBe100Percent: `${(newItem.w / 12) * 100}%`
       });
 
       setConfiguration(newConfig);
       onConfigurationChange?.(newConfig);
+      
+      // Force layout recalculation to ensure React Grid Layout processes the new item
+      setTimeout(() => {
+        const refreshedLayouts = convertToGridLayouts(newConfig.items);
+        setLayouts(refreshedLayouts);
+        console.log('🔄 Forced layout refresh for new property');
+      }, 100);
     } else if (type === 'empty-space') {
       // Create a simple empty space item
       const newItem: LayoutItem = {
