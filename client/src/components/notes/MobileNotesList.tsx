@@ -377,8 +377,8 @@ export function MobileNotesList({ projectId, viewMode }: MobileNotesListProps) {
   }
 
   return (
-    <MobilePullToRefresh onRefresh={handleRefresh}>
-      <div className="h-screen flex flex-col bg-white mobile-notes-container">
+    <div className="h-screen flex flex-col bg-white mobile-notes-container">
+      <MobilePullToRefresh onRefresh={handleRefresh}>
         <MobileHeader />
         
         {currentView === "folders" ? <FoldersView /> : <NotesView />}
@@ -396,18 +396,18 @@ export function MobileNotesList({ projectId, viewMode }: MobileNotesListProps) {
           onClose={() => setIsCreateFolderOpen(false)}
           projectId={projectId ? parseInt(projectId) : undefined}
         />
-        
-        {/* Floating Action Button */}
-        <FloatingActionButton 
-          onClick={() => {
-            if (currentView === "folders") {
-              setIsCreateNoteSheetOpen(true);
-            } else if (currentView === "notes") {
-              setIsCreateNoteSheetOpen(true);
-            }
-          }} 
-        />
-      </div>
-    </MobilePullToRefresh>
+      </MobilePullToRefresh>
+      
+      {/* Floating Action Button - Outside scrolling container */}
+      <FloatingActionButton 
+        onClick={() => {
+          if (currentView === "folders") {
+            setIsCreateNoteSheetOpen(true);
+          } else if (currentView === "notes") {
+            setIsCreateNoteSheetOpen(true);
+          }
+        }} 
+      />
+    </div>
   );
 }
