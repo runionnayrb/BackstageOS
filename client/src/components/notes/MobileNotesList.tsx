@@ -397,21 +397,16 @@ export function MobileNotesList({ projectId, viewMode }: MobileNotesListProps) {
           projectId={projectId ? parseInt(projectId) : undefined}
         />
         
-        {/* Floating Action Button - positioned outside container for proper visibility */}
-        <div className="fixed bottom-20 right-4 z-50 md:hidden">
-          <button
-            onClick={() => {
-              if (currentView === "folders") {
-                setIsCreateNoteSheetOpen(true);
-              } else if (currentView === "notes") {
-                setIsCreateNoteSheetOpen(true);
-              }
-            }}
-            className="h-14 w-14 rounded-full bg-blue-500 hover:bg-blue-600 shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
-          >
-            <Plus className="h-6 w-6 text-white" />
-          </button>
-        </div>
+        {/* Floating Action Button */}
+        <FloatingActionButton 
+          onClick={() => {
+            if (currentView === "folders") {
+              setIsCreateNoteSheetOpen(true);
+            } else if (currentView === "notes") {
+              setIsCreateNoteSheetOpen(true);
+            }
+          }} 
+        />
       </div>
     </MobilePullToRefresh>
   );
