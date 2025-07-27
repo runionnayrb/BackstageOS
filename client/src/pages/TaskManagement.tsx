@@ -225,11 +225,6 @@ export function TaskManagement() {
 
     setPageHeaderIcons([
       {
-        icon: Search,
-        onClick: () => setIsSearchExpanded(!isSearchExpanded),
-        title: 'Search tasks'
-      },
-      {
         icon: Filter,
         onClick: () => {}, // TODO: Add filter functionality
         title: 'Filter tasks'
