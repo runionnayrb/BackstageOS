@@ -303,7 +303,13 @@ export default function EmailManager() {
   const [activeFolder, setActiveFolder] = useState("inbox");
   
   // Set dynamic page title for mobile header
-  usePageTitle(getFolderDisplayName(activeFolder));
+  const folderDisplayName = getFolderDisplayName(activeFolder);
+  usePageTitle(folderDisplayName);
+  
+  // Debug logging to verify the title is updating
+  useEffect(() => {
+    console.log('📧 Email page - Active folder changed to:', activeFolder, '→', folderDisplayName);
+  }, [activeFolder, folderDisplayName]);
   
   // Set header icons for mobile header - hamburger icon positioned right of folder title
   useEffect(() => {
