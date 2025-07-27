@@ -731,9 +731,15 @@ export default function EmailManager() {
             </div>
 
             {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+              {/* Debug Info */}
+              <div className="text-xs text-red-600 p-2 bg-yellow-100">
+                Debug: Folders count: {folders.length}, Selected: {selectedAccount?.displayName || 'None'}
+              </div>
+              
               {/* Folders Section */}
-              <div className="space-y-1">
+              <div className="space-y-1 bg-white p-2 rounded">
+                <div className="text-sm font-medium mb-2">Email Folders</div>
                 {folders.map((folder) => (
                 <button
                   key={folder.id}
@@ -762,7 +768,8 @@ export default function EmailManager() {
               </div>
               
               {/* Theater Tools Section */}
-              <div className="border-t border-gray-200 pt-4">
+              <div className="border-t border-gray-200 pt-4 bg-white p-2 rounded">
+                <div className="text-sm font-medium mb-2">Theater Tools</div>
                 <div className="space-y-1">
                   <button
                     onClick={() => {
