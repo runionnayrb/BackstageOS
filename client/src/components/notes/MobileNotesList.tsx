@@ -150,7 +150,7 @@ export function MobileNotesList({ projectId, viewMode }: MobileNotesListProps) {
 
   // Mobile header component - simplified, no title or search
   const MobileHeader = () => (
-    <div className="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 py-3">
+    <div className="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 py-3 -mt-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           {(currentView === "notes" || currentView === "editor") && (
@@ -201,7 +201,7 @@ export function MobileNotesList({ projectId, viewMode }: MobileNotesListProps) {
   // Folders view
   const FoldersView = () => (
     <ScrollArea className="flex-1">
-      <div className="-mt-4">
+      <div>
         {/* All Notes option */}
         <div 
           className="flex items-center justify-between p-4 active:bg-gray-50 transition-colors"
@@ -397,16 +397,21 @@ export function MobileNotesList({ projectId, viewMode }: MobileNotesListProps) {
           projectId={projectId ? parseInt(projectId) : undefined}
         />
         
-        {/* Floating Action Button */}
-        <FloatingActionButton 
-          onClick={() => {
-            if (currentView === "folders") {
-              setIsCreateNoteSheetOpen(true);
-            } else if (currentView === "notes") {
-              setIsCreateNoteSheetOpen(true);
-            }
-          }} 
-        />
+        {/* Floating Action Button - positioned outside container for proper visibility */}
+        <div className="fixed bottom-20 right-4 z-50 md:hidden">
+          <button
+            onClick={() => {
+              if (currentView === "folders") {
+                setIsCreateNoteSheetOpen(true);
+              } else if (currentView === "notes") {
+                setIsCreateNoteSheetOpen(true);
+              }
+            }}
+            className="h-14 w-14 rounded-full bg-blue-500 hover:bg-blue-600 shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+          >
+            <Plus className="h-6 w-6 text-white" />
+          </button>
+        </div>
       </div>
     </MobilePullToRefresh>
   );
