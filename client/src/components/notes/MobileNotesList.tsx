@@ -201,7 +201,7 @@ export function MobileNotesList({ projectId, viewMode }: MobileNotesListProps) {
   // Folders view
   const FoldersView = () => (
     <ScrollArea className="flex-1">
-      <div>
+      <div className="-mt-4">
         {/* All Notes option */}
         <div 
           className="flex items-center justify-between p-4 active:bg-gray-50 transition-colors"
@@ -266,7 +266,7 @@ export function MobileNotesList({ projectId, viewMode }: MobileNotesListProps) {
   // Notes view
   const NotesView = () => (
     <ScrollArea className="flex-1">
-      <div className="p-4">
+      <div className="p-4 -mt-4 pt-0">
         {pinnedNotes.length > 0 && (
           <div className="mb-6">
             <h3 className="text-sm font-medium text-gray-500 mb-3 px-1">PINNED</h3>
