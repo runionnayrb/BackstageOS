@@ -813,15 +813,27 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         totalItems: configuration.items.length
       });
 
+      // Insert the new item in the array
       const newItems = [
         ...configuration.items.slice(0, insertIndex),
         newItem,
         ...configuration.items.slice(insertIndex)
       ];
 
+      // Recalculate Y positions to prevent overlapping
+      let currentY = 0;
+      const spacedItems = newItems.map(item => {
+        const adjustedItem = {
+          ...item,
+          y: currentY
+        };
+        currentY += item.h + 1; // Add height plus 1 row spacing
+        return adjustedItem;
+      });
+
       const newConfig = {
         ...configuration,
-        items: newItems
+        items: spacedItems
       };
 
       console.log('🚀 Added new property above departments:', {
@@ -838,7 +850,8 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         insertedAt: insertIndex,
         fullWidth: newItem.w === 12,
         gridCols: configuration.gridCols,
-        shouldBe100Percent: `${(newItem.w / 12) * 100}%`
+        shouldBe100Percent: `${(newItem.w / 12) * 100}%`,
+        spacingAdjustment: spacedItems.map(item => ({ id: item.id, y: item.y, h: item.h }))
       });
 
       setConfiguration(newConfig);
