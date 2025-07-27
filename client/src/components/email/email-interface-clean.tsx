@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -112,21 +112,21 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   const [moveDropdownOpen, setMoveDropdownOpen] = useState<number | null>(null);
   const [bulkMoveDropdownOpen, setBulkMoveDropdownOpen] = useState(false);
   
+  // Scroll detection state
+  const [isScrolling, setIsScrolling] = useState(false);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   // Mobile swipe state
   const [swipeState, setSwipeState] = useState<{
     messageId: number | null;
     startX: number;
-    startY: number;
     currentX: number;
-    currentY: number;
     isDragging: boolean;
     direction: 'left' | 'right' | null;
   }>({
     messageId: null,
     startX: 0,
-    startY: 0,
     currentX: 0,
-    currentY: 0,
     isDragging: false,
     direction: null
   });
@@ -157,18 +157,21 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   const [composeMode, setComposeMode] = useState<'compose' | 'reply' | 'replyAll' | 'forward'>('compose');
   const queryClient = useQueryClient();
 
-  // Cleanup long press timer on unmount
+  // Cleanup timers on unmount
   useEffect(() => {
     return () => {
       if (longPressState.timer) {
         clearTimeout(longPressState.timer);
+      }
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
       }
     };
   }, [longPressState.timer]);
 
   // Mobile swipe handlers with long press detection
   const handleTouchStart = (e: React.TouchEvent, messageId: number) => {
-    if (isSelectionMode) return;
+    if (isSelectionMode || isScrolling) return; // Don't allow swipe during scrolling
     
     const touch = e.touches[0];
     const startTime = Date.now();
@@ -201,58 +204,33 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
     setSwipeState({
       messageId,
       startX: touch.clientX,
-      startY: touch.clientY,
       currentX: touch.clientX,
-      currentY: touch.clientY,
       isDragging: true,
       direction: null
     });
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (!swipeState.isDragging || isSelectionMode) return;
+    if (!swipeState.isDragging || isSelectionMode || isScrolling) return;
     
     const touch = e.touches[0];
     const deltaX = touch.clientX - swipeState.startX;
-    const deltaY = touch.clientY - swipeState.startY;
     const direction = deltaX < 0 ? 'left' : 'right';
     
-    // Calculate the absolute distances
-    const absX = Math.abs(deltaX);
-    const absY = Math.abs(deltaY);
-    
-    // Only process as horizontal swipe if:
-    // 1. Horizontal movement is significantly greater than vertical movement (3:1 ratio)
-    // 2. Horizontal movement is at least 20px
-    const isHorizontalSwipe = absX > absY * 3 && absX > 20;
-    const isVerticalScroll = absY > absX * 2;
-    
-    // If this is clearly vertical scrolling, don't treat as swipe
-    if (isVerticalScroll) {
-      // Reset swipe state but allow normal scrolling
-      if (longPressState.timer && !longPressState.triggered) {
-        clearTimeout(longPressState.timer);
-        setLongPressState(prev => ({ ...prev, timer: null }));
-      }
-      return;
+    // Cancel long press if the user moves their finger (indicating swipe gesture)
+    if (Math.abs(deltaX) > 10 && longPressState.timer && !longPressState.triggered) {
+      clearTimeout(longPressState.timer);
+      setLongPressState(prev => ({ ...prev, timer: null }));
     }
     
-    // Only update swipe state and prevent scrolling if it's a clear horizontal swipe
-    if (isHorizontalSwipe) {
-      // Cancel long press if the user is making a horizontal swipe gesture
-      if (longPressState.timer && !longPressState.triggered) {
-        clearTimeout(longPressState.timer);
-        setLongPressState(prev => ({ ...prev, timer: null }));
-      }
-      
-      setSwipeState(prev => ({
-        ...prev,
-        currentX: touch.clientX,
-        currentY: touch.clientY,
-        direction
-      }));
-      
-      // Prevent scrolling during horizontal swipe
+    setSwipeState(prev => ({
+      ...prev,
+      currentX: touch.clientX,
+      direction
+    }));
+    
+    // Prevent scrolling during swipe
+    if (Math.abs(deltaX) > 10) {
       e.preventDefault();
     }
   };
@@ -271,21 +249,16 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
       return;
     }
     
-    if (!swipeState.isDragging || !swipeState.messageId || isSelectionMode) {
+    if (!swipeState.isDragging || !swipeState.messageId || isSelectionMode || isScrolling) {
       setSwipeState(prev => ({ ...prev, isDragging: false, messageId: null }));
       return;
     }
     
     const deltaX = swipeState.currentX - swipeState.startX;
-    const deltaY = swipeState.currentY - swipeState.startY;
     const absX = Math.abs(deltaX);
-    const absY = Math.abs(deltaY);
-    
-    // Only process swipe actions if this was a clear horizontal gesture
-    const isHorizontalSwipe = absX > absY * 3 && absX > 20;
     const swipeThreshold = 50; // Minimum distance to reveal actions
     
-    if (isHorizontalSwipe && absX >= swipeThreshold) {
+    if (absX >= swipeThreshold) {
       if (deltaX < -swipeThreshold) {
         // Swipe left - reveal actions for tapping
         if (Math.abs(deltaX) >= 120) {
@@ -320,9 +293,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
     setSwipeState({
       messageId: null,
       startX: 0,
-      startY: 0,
       currentX: 0,
-      currentY: 0,
       isDragging: false,
       direction: null
     });
@@ -695,7 +666,18 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
         {/* Content Area - Mobile Responsive */}
         <div className="pt-0 h-full overflow-hidden">
           {/* Full-Width Email List - Force mobile container width */}
-          <ScrollArea className="h-full">
+          <ScrollArea 
+            className="h-full"
+            onScroll={() => {
+              setIsScrolling(true);
+              if (scrollTimeoutRef.current) {
+                clearTimeout(scrollTimeoutRef.current);
+              }
+              scrollTimeoutRef.current = setTimeout(() => {
+                setIsScrolling(false);
+              }, 150);
+            }}
+          >
             <div className="space-y-0 w-full max-w-full overflow-hidden md:max-w-none" style={{maxWidth: '100vw'}}>
               {isLoading && (
                 <div className="p-3 md:p-4 text-center text-muted-foreground text-sm">
