@@ -592,9 +592,9 @@ export default function EmailManager() {
             onClick={closeMobileMenu}
           />
           
-          {/* Mobile Menu Panel */}
+          {/* Mobile Menu Panel - Now covers full height from top */}
           <div className={cn(
-            "fixed top-16 left-0 bottom-0 w-80 bg-white border-r border-gray-200 shadow-xl overflow-hidden transform transition-all duration-300 ease-out origin-top-left",
+            "fixed top-0 left-0 bottom-0 w-80 bg-white border-r border-gray-200 shadow-xl overflow-hidden transform transition-all duration-300 ease-out origin-top-left",
             isMobileMenuOpen 
               ? "translate-x-0 scale-100 opacity-100" 
               : "-translate-x-full scale-75 opacity-0"
@@ -602,12 +602,11 @@ export default function EmailManager() {
             <div className="w-full bg-white p-4 space-y-4 h-full overflow-y-auto">
             {/* Header */}
             <div className="flex items-center justify-between pb-3 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900" style={{ paddingLeft: '16px' }}>{getFolderDisplayName(activeFolder)}</h2>
               <Button 
                 variant="ghost"
                 size="sm"
                 onClick={closeMobileMenu}
-                className="p-2"
+                className="p-2 ml-auto"
               >
                 <X className="w-5 h-5" />
               </Button>
