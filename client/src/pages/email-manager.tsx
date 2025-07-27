@@ -594,15 +594,36 @@ export default function EmailManager() {
           
           {/* Mobile Menu Panel - Now covers full height from top */}
           <div className={cn(
-            "fixed top-0 left-0 bottom-0 w-80 bg-white border-r border-gray-200 shadow-xl overflow-hidden transform transition-all duration-300 ease-out origin-top-left",
+            "fixed top-0 left-0 bottom-0 w-80 bg-white border-r border-gray-200 shadow-xl transform transition-all duration-300 ease-out origin-top-left",
             isMobileMenuOpen 
               ? "translate-x-0 scale-100 opacity-100" 
               : "-translate-x-full scale-75 opacity-0"
           )}>
             <div className="w-full bg-white h-full flex flex-col">
-            {/* Header with Account Selector and Close Button */}
-            <div className="flex items-center justify-between p-4 pb-3 border-b border-gray-200 flex-shrink-0">
-              <DropdownMenu>
+              {/* Simple Header with Close Button Only */}
+              <div className="flex items-center justify-between p-4 border-b border-gray-200 flex-shrink-0">
+                <span className="font-medium text-lg">Email Menu</span>
+                <Button 
+                  variant="ghost"
+                  size="sm"
+                  onClick={closeMobileMenu}
+                  className="p-2"
+                >
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+
+              {/* Scrollable Content */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 min-h-0">
+                {/* Debug Info */}
+                <div className="text-xs text-red-600 p-2 bg-yellow-100">
+                  Debug: Folders count: {folders.length}, Selected: {selectedAccount?.displayName || 'None'}
+                </div>
+                
+                {/* Account Selector Section */}
+                <div className="bg-white p-3 rounded">
+                  <div className="text-sm font-medium mb-2">Account</div>
+                  <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex-1 justify-between mr-2 border-none">
                       <div className="flex items-center space-x-2">
@@ -717,103 +738,86 @@ export default function EmailManager() {
                     )}
                   </DropdownMenuContent>
                 </DropdownMenu>
+                </div>
+
+                {/* Folders Section */}
+                <div className="space-y-1 bg-white p-2 rounded">
+                  <div className="text-sm font-medium mb-2">Email Folders</div>
+                  {folders.map((folder) => (
+                    <button
+                      key={folder.id}
+                      onClick={() => {
+                        setActiveFolder(folder.id);
+                        closeMobileMenu();
+                      }}
+                      className={cn(
+                        "w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-between",
+                        activeFolder === folder.id
+                          ? 'bg-blue-50 text-blue-600'
+                          : 'hover:bg-gray-50 text-gray-700'
+                      )}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <folder.icon className="w-4 h-4" />
+                        <span>{folder.name}</span>
+                      </div>
+                      {folder.count > 0 && (
+                        <Badge variant="secondary" className="text-xs">
+                          {folder.count}
+                        </Badge>
+                      )}
+                    </button>
+                  ))}
+                </div>
                 
-                {/* Close Button */}
-                <Button 
-                  variant="ghost"
-                  size="sm"
-                  onClick={closeMobileMenu}
-                  className="p-2"
-                >
-                  <X className="w-5 h-5" />
-                </Button>
-              </div>
-            </div>
+                {/* Theater Tools Section */}
+                <div className="border-t border-gray-200 pt-4 bg-white p-2 rounded">
+                  <div className="text-sm font-medium mb-2">Theater Tools</div>
+                  <div className="space-y-1">
+                    <button
+                      onClick={() => {
+                        window.location.href = '/email-contacts';
+                        closeMobileMenu();
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
+                    >
+                      <Contact className="w-4 h-4" />
+                      <span>Contacts</span>
+                    </button>
 
-            {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
-              {/* Debug Info */}
-              <div className="text-xs text-red-600 p-2 bg-yellow-100">
-                Debug: Folders count: {folders.length}, Selected: {selectedAccount?.displayName || 'None'}
-              </div>
-              
-              {/* Folders Section */}
-              <div className="space-y-1 bg-white p-2 rounded">
-                <div className="text-sm font-medium mb-2">Email Folders</div>
-                {folders.map((folder) => (
-                <button
-                  key={folder.id}
-                  onClick={() => {
-                    setActiveFolder(folder.id);
-                    closeMobileMenu();
-                  }}
-                  className={cn(
-                    "w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-between",
-                    activeFolder === folder.id
-                      ? 'bg-blue-50 text-blue-600'
-                      : 'hover:bg-gray-50 text-gray-700'
-                  )}
-                >
-                  <div className="flex items-center space-x-2">
-                    <folder.icon className="w-4 h-4" />
-                    <span>{folder.name}</span>
+                    <button
+                      onClick={() => {
+                        setShowGroupManager(true);
+                        closeMobileMenu();
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
+                    >
+                      <Users className="w-4 h-4" />
+                      <span>Distro Management</span>
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        setShowTemplateManager(true);
+                        closeMobileMenu();
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
+                    >
+                      <FileText className="w-4 h-4" />
+                      <span>Email Templates</span>
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        setShowMobileSettings(true);
+                        closeMobileMenu();
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
+                    >
+                      <Settings className="w-4 h-4" />
+                      <span>Settings</span>
+                    </button>
                   </div>
-                  {folder.count > 0 && (
-                    <Badge variant="secondary" className="text-xs">
-                      {folder.count}
-                    </Badge>
-                  )}
-                </button>
-                ))}
-              </div>
-              
-              {/* Theater Tools Section */}
-              <div className="border-t border-gray-200 pt-4 bg-white p-2 rounded">
-                <div className="text-sm font-medium mb-2">Theater Tools</div>
-                <div className="space-y-1">
-                  <button
-                    onClick={() => {
-                      window.location.href = '/email-contacts';
-                      closeMobileMenu();
-                    }}
-                    className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
-                  >
-                    <Contact className="w-4 h-4" />
-                    <span>Contacts</span>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setShowGroupManager(true);
-                      closeMobileMenu();
-                    }}
-                    className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
-                  >
-                    <Users className="w-4 h-4" />
-                    <span>Distro Management</span>
-                  </button>
-                  
-                  <button
-                    onClick={() => {
-                      setShowTemplateManager(true);
-                      closeMobileMenu();
-                    }}
-                    className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
-                  >
-                    <FileText className="w-4 h-4" />
-                    <span>Email Templates</span>
-                  </button>
-                  
-                  <button
-                    onClick={() => {
-                      setShowMobileSettings(true);
-                      closeMobileMenu();
-                    }}
-                    className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
-                  >
-                    <Settings className="w-4 h-4" />
-                    <span>Settings</span>
-                  </button>
                 </div>
               </div>
             </div>
