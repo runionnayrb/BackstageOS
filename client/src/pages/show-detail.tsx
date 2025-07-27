@@ -275,11 +275,6 @@ export default function ShowDetail() {
     <div className="w-full">
       {/* Mobile Header - Title moved to enhanced-header */}
       <div className="md:hidden px-4 sm:px-6 lg:px-8 py-4">
-        {project.venue && (
-          <div className="mb-4">
-            <p className="text-base text-foreground">{project.venue}</p>
-          </div>
-        )}
         <div className="flex items-center justify-end mb-4">
           <Button
             variant="ghost"
@@ -305,7 +300,7 @@ export default function ShowDetail() {
           <div className="flex-1">
             <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
             {project.venue && (
-              <p className="text-base text-foreground mt-1">{project.venue}</p>
+              <p className="text-gray-600 mt-1">{project.venue}</p>
             )}
           </div>
           
