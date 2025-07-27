@@ -236,7 +236,7 @@ export default function EditableFieldHeading({
       <div className="relative group flex items-center">
         {/* Move handle - only visible on hover when editing */}
         {isEditing && (
-          <div className="drag-handle opacity-0 group-hover:opacity-100 transition-opacity mr-2 cursor-move flex-shrink-0">
+          <div className="drag-handle opacity-0 group-hover:opacity-100 transition-opacity mr-2 cursor-move flex-shrink-0 flex items-center">
             <GripVertical className="h-4 w-4 text-gray-400" />
           </div>
         )}
