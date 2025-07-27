@@ -187,9 +187,9 @@ const LayoutItemRenderer: React.FC<{
   switch (item.type) {
     case 'grouped-section':
       return (
-        <div className="w-full h-full p-2 space-y-2">
+        <div className="w-full h-full p-2 space-y-2" style={{ width: '100%', minWidth: '100%' }}>
           {item.children?.map((child, index) => (
-            <div key={child.id}>
+            <div key={child.id} style={{ width: '100%' }}>
               <LayoutItemRenderer
                 item={child}
                 projectId={projectId}
@@ -587,7 +587,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       y: item.y,
       w: item.w,
       h: item.h,
-      minW: item.minW || 3, // Default minimum 25% width
+      minW: item.minW || 1, // Reduced default minimum to avoid constraint conflicts
       minH: item.minH || 1,
       maxW: item.maxW, // Don't set default maxW to avoid width constraints
       maxH: item.maxH
