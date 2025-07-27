@@ -537,6 +537,13 @@ export default function EnhancedHeader() {
                   if (index === 0 && iconConfig.icon === Menu) {
                     return null;
                   }
+                  
+                  // If it has a component, render the component directly
+                  if (iconConfig.component) {
+                    return <iconConfig.component key={index} />;
+                  }
+                  
+                  // Otherwise render the default button
                   return (
                     <Button
                       key={index}

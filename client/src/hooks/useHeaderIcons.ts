@@ -3,7 +3,8 @@ import { LucideIcon } from "lucide-react";
 
 interface HeaderIcon {
   icon: LucideIcon;
-  onClick: () => void;
+  onClick?: () => void;
+  component?: () => JSX.Element;
   title: string;
 }
 

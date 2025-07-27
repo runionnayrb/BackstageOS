@@ -200,22 +200,33 @@ export function TaskManagement() {
     }
   };
   
-  // Set header icons for mobile
+  // Set header icons for mobile - only settings now
   useEffect(() => {
+    // Create settings component for header
+    const SettingsComponent = () => (
+      <TaskViewSettings
+        currentView={selectedView?.type || 'table'}
+        onViewChange={(viewType) => {
+          const tempView = { ...selectedView, type: viewType } as TaskView;
+          setSelectedView(tempView);
+        }}
+        propertyVisibility={propertyVisibility}
+        onPropertyVisibilityChange={setPropertyVisibility}
+      >
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="hover:bg-transparent group p-1"
+        >
+          <Settings className="h-5 w-5 group-hover:text-blue-600" />
+        </Button>
+      </TaskViewSettings>
+    );
+
     setPageHeaderIcons([
       {
-        icon: Search,
-        onClick: () => setIsSearchExpanded(!isSearchExpanded),
-        title: 'Search tasks'
-      },
-      {
-        icon: Filter,
-        onClick: () => {}, // TODO: Add filter functionality
-        title: 'Filter tasks'
-      },
-      {
         icon: Settings,
-        onClick: () => {}, // TODO: Add settings functionality  
+        component: SettingsComponent,
         title: 'Task settings'
       }
     ]);
@@ -223,7 +234,7 @@ export function TaskManagement() {
     return () => {
       clearPageHeaderIcons();
     };
-  }, [isSearchExpanded]);
+  }, [selectedView, propertyVisibility]);
 
   const getViewIcon = (type: string) => {
     switch (type) {
@@ -338,7 +349,7 @@ export function TaskManagement() {
               </Button>
             </div>
             
-            {/* Mobile Actions - In Header */}
+            {/* Mobile Actions - Only search and filter in content, settings moved to header */}
             <div className="md:hidden flex items-center space-x-1">
               <Button 
                 variant="ghost" 
@@ -351,24 +362,8 @@ export function TaskManagement() {
               <Button variant="ghost" size="sm" className="hover:bg-transparent group p-1">
                 <Filter className="h-5 w-5 group-hover:text-blue-600" />
               </Button>
-              <TaskViewSettings
-                currentView={selectedView?.type || 'table'}
-                onViewChange={(viewType) => {
-                  const tempView = { ...selectedView, type: viewType } as TaskView;
-                  setSelectedView(tempView);
-                }}
-                propertyVisibility={propertyVisibility}
-                onPropertyVisibilityChange={setPropertyVisibility}
-              >
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="hover:bg-transparent group p-1"
-                >
-                  <Settings className="h-5 w-5 group-hover:text-blue-600" />
-                </Button>
-              </TaskViewSettings>
             </div>
+
           </div>
           
           {/* Mobile Search Bar */}
