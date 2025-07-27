@@ -381,8 +381,8 @@ export default function EnhancedHeader() {
               )}
             </div>
             
-            {/* Venue row - Show underneath title when in show context */}
-            {showData?.venue && (
+            {/* Venue row - Show underneath title only on show details page */}
+            {showData?.venue && navContext.showId && !navContext.sectionId && (
               <div>
                 <p className="text-base text-foreground">{showData.venue}</p>
               </div>
