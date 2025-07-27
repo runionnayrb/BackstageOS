@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { GripVertical } from 'lucide-react';
 import InlineFormattingToolbar from "./inline-formatting-toolbar";
 
 interface EditableFieldHeadingProps {
@@ -236,14 +237,7 @@ export default function EditableFieldHeading({
         {/* Move handle - only visible on hover when editing */}
         {isEditing && (
           <div className="drag-handle opacity-0 group-hover:opacity-100 transition-opacity mr-2 cursor-move flex-shrink-0">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="3" cy="3" r="1" fill="currentColor"/>
-              <circle cx="9" cy="3" r="1" fill="currentColor"/>
-              <circle cx="3" cy="6" r="1" fill="currentColor"/>
-              <circle cx="9" cy="6" r="1" fill="currentColor"/>
-              <circle cx="3" cy="9" r="1" fill="currentColor"/>
-              <circle cx="9" cy="9" r="1" fill="currentColor"/>
-            </svg>
+            <GripVertical className="h-4 w-4 text-gray-400" />
           </div>
         )}
         
