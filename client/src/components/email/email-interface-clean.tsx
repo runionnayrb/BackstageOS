@@ -116,13 +116,17 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   const [swipeState, setSwipeState] = useState<{
     messageId: number | null;
     startX: number;
+    startY: number;
     currentX: number;
+    currentY: number;
     isDragging: boolean;
     direction: 'left' | 'right' | null;
   }>({
     messageId: null,
     startX: 0,
+    startY: 0,
     currentX: 0,
+    currentY: 0,
     isDragging: false,
     direction: null
   });
@@ -197,7 +201,9 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
     setSwipeState({
       messageId,
       startX: touch.clientX,
+      startY: touch.clientY,
       currentX: touch.clientX,
+      currentY: touch.clientY,
       isDragging: true,
       direction: null
     });
@@ -208,22 +214,45 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
     
     const touch = e.touches[0];
     const deltaX = touch.clientX - swipeState.startX;
+    const deltaY = touch.clientY - swipeState.startY;
     const direction = deltaX < 0 ? 'left' : 'right';
     
-    // Cancel long press if the user moves their finger (indicating swipe gesture)
-    if (Math.abs(deltaX) > 10 && longPressState.timer && !longPressState.triggered) {
-      clearTimeout(longPressState.timer);
-      setLongPressState(prev => ({ ...prev, timer: null }));
+    // Calculate the absolute distances
+    const absX = Math.abs(deltaX);
+    const absY = Math.abs(deltaY);
+    
+    // Only process as horizontal swipe if:
+    // 1. Horizontal movement is significantly greater than vertical movement (3:1 ratio)
+    // 2. Horizontal movement is at least 20px
+    const isHorizontalSwipe = absX > absY * 3 && absX > 20;
+    const isVerticalScroll = absY > absX * 2;
+    
+    // If this is clearly vertical scrolling, don't treat as swipe
+    if (isVerticalScroll) {
+      // Reset swipe state but allow normal scrolling
+      if (longPressState.timer && !longPressState.triggered) {
+        clearTimeout(longPressState.timer);
+        setLongPressState(prev => ({ ...prev, timer: null }));
+      }
+      return;
     }
     
-    setSwipeState(prev => ({
-      ...prev,
-      currentX: touch.clientX,
-      direction
-    }));
-    
-    // Prevent scrolling during swipe
-    if (Math.abs(deltaX) > 10) {
+    // Only update swipe state and prevent scrolling if it's a clear horizontal swipe
+    if (isHorizontalSwipe) {
+      // Cancel long press if the user is making a horizontal swipe gesture
+      if (longPressState.timer && !longPressState.triggered) {
+        clearTimeout(longPressState.timer);
+        setLongPressState(prev => ({ ...prev, timer: null }));
+      }
+      
+      setSwipeState(prev => ({
+        ...prev,
+        currentX: touch.clientX,
+        currentY: touch.clientY,
+        direction
+      }));
+      
+      // Prevent scrolling during horizontal swipe
       e.preventDefault();
     }
   };
@@ -248,9 +277,15 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
     }
     
     const deltaX = swipeState.currentX - swipeState.startX;
+    const deltaY = swipeState.currentY - swipeState.startY;
+    const absX = Math.abs(deltaX);
+    const absY = Math.abs(deltaY);
+    
+    // Only process swipe actions if this was a clear horizontal gesture
+    const isHorizontalSwipe = absX > absY * 3 && absX > 20;
     const swipeThreshold = 50; // Minimum distance to reveal actions
     
-    if (Math.abs(deltaX) >= swipeThreshold) {
+    if (isHorizontalSwipe && absX >= swipeThreshold) {
       if (deltaX < -swipeThreshold) {
         // Swipe left - reveal actions for tapping
         if (Math.abs(deltaX) >= 120) {
@@ -285,7 +320,9 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
     setSwipeState({
       messageId: null,
       startX: 0,
+      startY: 0,
       currentX: 0,
+      currentY: 0,
       isDragging: false,
       direction: null
     });
