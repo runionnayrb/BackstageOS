@@ -710,33 +710,38 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     });
     
     if (type === 'department-header') {
-      // Create a new department section with header and notes
+      // Create a new department section at the bottom with full width
+      const allItems = configuration.items;
+      const lastItemY = allItems.length > 0 ? Math.max(...allItems.map(i => i.y + i.h)) : 0;
+      const insertY = lastItemY + 1; // Place at bottom with 1 row spacing
+      
       const deptName = 'new-dept';
+      console.log('📍 Department positioning:', {
+        lastItemY,
+        insertY,
+        allItemsCount: allItems.length
+      });
+      
       const newItem: LayoutItem = {
         id: `dept-section-${deptName}-${Date.now()}`,
         type: 'grouped-section',
         content: { department: deptName, displayName: 'New Department' },
         x: 0,
-        y: Math.max(...configuration.items.map(i => i.y + i.h), 0),
-        w: 12,
-        h: 3,
-        minW: 3,
-        minH: 3,
-        maxW: 12,
+        y: insertY,
+        w: 12, // Full width
+        h: 4,  // Increased height for better proportion
         children: [
           {
             id: `dept-header-${deptName}-${Date.now()}`,
             type: 'department-header' as const,
             content: { department: deptName, displayName: 'New Department' },
-            x: 0, y: 0, w: 12, h: 1,
-            minW: 3, minH: 1, maxW: 12
+            x: 0, y: 0, w: 12, h: 1 // Full width header
           },
           {
             id: `dept-notes-${deptName}-${Date.now()}`,
             type: 'notes' as const,
             content: { department: deptName },
-            x: 0, y: 1, w: 12, h: 2,
-            minW: 3, minH: 1, maxW: 12
+            x: 0, y: 1, w: 12, h: 3 // Full width notes area
           }
         ]
       };
@@ -785,8 +790,8 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         ? Math.max(...fieldRelatedItems.map(item => item.y + item.h))
         : 0; // Start at 0 if no fields exist
       
-      // Insert position: Always place at the very top for visibility
-      const insertY = 0;
+      // Insert position: Place above departments but after any existing properties
+      const insertY = firstDepartmentY > 0 ? Math.max(0, firstDepartmentY - 5) : 0;
       
       console.log('📍 Positioning calculation:', {
         firstDepartmentY,
@@ -824,11 +829,14 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         ]
       };
 
-      // Shift department sections down if they would overlap with new items
+      // Shift departments down if they would overlap with new property
       const adjustedItems = configuration.items.map(item => {
-        if (item.type === 'grouped-section' && item.y <= insertY + 4) {
-          console.log(`⬇️ Shifting department ${item.id} from y:${item.y} to y:${insertY + 5}`);
-          return { ...item, y: insertY + 5 };
+        if (item.type === 'grouped-section' && 
+            item.content?.department && // Only shift actual departments
+            item.y >= insertY) {
+          const newY = item.y + 5; // Shift down by 5 rows
+          console.log(`⬇️ Shifting department ${item.id} from y:${item.y} to y:${newY}`);
+          return { ...item, y: newY };
         }
         return item;
       });
