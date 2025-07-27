@@ -1157,17 +1157,17 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                     </div>
 
                     {/* Mobile Layout - Gmail-style vertical layout */}
-                    <div className="md:hidden flex flex-col py-4 px-3">
+                    <div className="md:hidden py-4 px-3 w-full max-w-full overflow-hidden">
                       {/* Top row: Sender (bold) + Date/Time + Chevron */}
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-3">
+                      <div className="flex items-center justify-between mb-2 w-full">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
                           {/* Mobile selection checkbox */}
                           {isSelectionMode && (
                             <Checkbox
                               checked={selectedMessages.has(message.id)}
                               onCheckedChange={() => toggleSelectMessage(message.id)}
                               onClick={(e) => e.stopPropagation()}
-                              className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                              className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 flex-shrink-0"
                             />
                           )}
 
@@ -1176,8 +1176,8 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                             <div className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0"></div>
                           )}
 
-                          {/* Sender name - Bold */}
-                          <span className={`font-bold text-black truncate ${!message.isRead ? 'font-bold' : 'font-bold'}`}>
+                          {/* Sender name - Bold - Allow to truncate */}
+                          <span className="font-bold text-black truncate min-w-0">
                             <ContactPreview emailAddress={message.fromAddress || ''}>
                               <span className="hover:text-blue-600 transition-colors cursor-pointer">
                                 {getDisplayName(message.fromAddress || '')}
@@ -1186,9 +1186,9 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                           </span>
                         </div>
 
-                        {/* Date/Time + Chevron */}
-                        <div className="flex items-center gap-1 text-gray-600">
-                          <span className="text-sm">
+                        {/* Date/Time + Chevron - Fixed width, no overflow */}
+                        <div className="flex items-center gap-1 text-gray-600 flex-shrink-0 ml-2">
+                          <span className="text-sm whitespace-nowrap">
                             {formatMobileDateTime(message.dateSent)}
                           </span>
                           <ChevronRight className="h-4 w-4" />
@@ -1196,9 +1196,9 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                       </div>
 
                       {/* Subject line - Medium weight */}
-                      <div className="mb-1">
-                        <div className="flex items-center gap-2">
-                          <span className={`font-medium text-black text-sm ${!message.isRead ? 'font-semibold' : 'font-medium'}`}>
+                      <div className="mb-1 w-full">
+                        <div className="flex items-center gap-2 w-full min-w-0">
+                          <span className={`font-medium text-black text-sm truncate min-w-0 ${!message.isRead ? 'font-semibold' : 'font-medium'}`}>
                             {message.subject || 'No Subject'}
                           </span>
                           {message.hasAttachments && (
@@ -1211,7 +1211,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                       </div>
 
                       {/* Message preview - Normal weight */}
-                      <div className="text-sm text-gray-600 truncate">
+                      <div className="text-sm text-gray-600 truncate w-full">
                         {message.content?.slice(0, 80) || 'No preview available'}
                       </div>
                     </div>
