@@ -770,9 +770,9 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
 
         {/* Content Area - Mobile Responsive */}
         <div className="pt-0 h-full overflow-hidden">
-          {/* Full-Width Email List */}
+          {/* Full-Width Email List - Force mobile container width */}
           <ScrollArea className="h-full">
-            <div className="space-y-0 max-w-full overflow-hidden">
+            <div className="space-y-0 w-full max-w-full overflow-hidden md:max-w-none" style={{maxWidth: '100vw'}}>
               {isLoading && (
                 <div className="p-3 md:p-4 text-center text-muted-foreground text-sm">
                   Loading messages...
@@ -899,7 +899,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                     onTouchStart={(e) => handleTouchStart(e, message.id)}
                     onTouchMove={handleTouchMove}
                     onTouchEnd={handleTouchEnd}
-                    className={`w-full max-w-full block text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none group pl-1 pr-4 py-3 border-b border-gray-100 transition-transform duration-75 ease-out overflow-hidden ${
+                    className={`block text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none group pl-1 pr-4 py-3 border-b border-gray-100 transition-transform duration-75 ease-out overflow-hidden ${
                       isSelectionMode && selectedMessages.has(message.id) ? 'bg-blue-50' : ''
                     }`}
                     style={{
@@ -910,6 +910,9 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                           : hasDropdownOpen
                             ? 'translateX(-160px)'
                             : 'translateX(0)',
+                      width: '100%',
+                      maxWidth: '100vw',
+                      boxSizing: 'border-box'
                     }}
                   >
                     {/* Desktop Layout - Keep existing horizontal layout */}
@@ -1157,7 +1160,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                     </div>
 
                     {/* Mobile Layout - Gmail-style vertical layout */}
-                    <div className="md:hidden py-3 px-4 w-full">
+                    <div className="md:hidden py-3 px-4" style={{width: '100%', maxWidth: '100vw', boxSizing: 'border-box'}}>
                       {/* Top row: Sender (bold) + Date/Time + Chevron - Fixed within screen width */}
                       <div className="flex items-center mb-2 w-full">
                         <div className="flex items-center gap-2 min-w-0" style={{width: 'calc(100% - 80px)'}}>
