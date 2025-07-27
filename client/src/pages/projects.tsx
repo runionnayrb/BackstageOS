@@ -7,6 +7,7 @@ import { useLocation } from "wouter";
 import { Plus, FolderOpen, Settings } from "lucide-react";
 import { useAdminView } from "@/contexts/AdminViewContext";
 import { isAdmin } from "@/lib/admin";
+import { FloatingActionButton } from "@/components/navigation/floating-action-button";
 
 export default function Projects() {
   const { user } = useAuth();
@@ -105,10 +106,11 @@ export default function Projects() {
   return (
     <div className="min-h-screen bg-background">
       <div className="w-full">
-        <div className="px-4 sm:px-6 lg:px-8 py-4">
+        {/* Desktop Header Only */}
+        <div className="hidden md:block px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center mb-2">
             <div>
-              <h1 className="hidden md:block text-3xl font-bold">{projectLabel}</h1>
+              <h1 className="text-3xl font-bold">{projectLabel}</h1>
             </div>
             <div className="flex gap-2">
               {isFullTime && (
@@ -171,6 +173,9 @@ export default function Projects() {
           )}
         </div>
       </div>
+      
+      {/* Floating Action Button - Mobile Only */}
+      <FloatingActionButton onClick={() => setLocation("/create-project")} />
     </div>
   );
 }

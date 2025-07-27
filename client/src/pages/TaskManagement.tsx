@@ -9,6 +9,7 @@ import { TaskBoard } from "@/components/task-management/TaskBoard";
 import { TaskViewSettings } from "@/components/task-management/TaskViewSettings";
 import { apiRequest } from "@/lib/queryClient";
 import type { TaskDatabase, TaskView } from "@shared/schema";
+import { FloatingActionButton } from "@/components/navigation/floating-action-button";
 
 interface PropertyVisibility {
   id: number;
@@ -251,14 +252,16 @@ export function TaskManagement() {
   if (database) {
     return (
       <div className="h-full flex flex-col">
-        {/* Header - matching Reports page structure */}
+        {/* Header */}
         <div className="px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between mb-4">
+            {/* Desktop Title */}
             <h2 className="hidden md:block text-2xl font-bold text-gray-900">
               {showId && showData ? `Tasks - ${showData.name}` : 'Tasks'}
             </h2>
             
-            <div className="flex items-center space-x-2">
+            {/* Desktop Actions */}
+            <div className="hidden md:flex items-center space-x-2">
               {/* Expandable Search */}
               <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
                 isSearchExpanded ? 'w-64 opacity-100' : 'w-0 opacity-0'
@@ -308,7 +311,57 @@ export function TaskManagement() {
                 <Plus className="h-4 w-4 group-hover:text-blue-600" />
               </Button>
             </div>
+            
+            {/* Mobile Actions - In Header */}
+            <div className="md:hidden flex items-center space-x-1">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setIsSearchExpanded(!isSearchExpanded)}
+                className="hover:bg-transparent group p-1"
+              >
+                <Search className="h-5 w-5 group-hover:text-blue-600" />
+              </Button>
+              <Button variant="ghost" size="sm" className="hover:bg-transparent group p-1">
+                <Filter className="h-5 w-5 group-hover:text-blue-600" />
+              </Button>
+              <TaskViewSettings
+                currentView={selectedView?.type || 'table'}
+                onViewChange={(viewType) => {
+                  const tempView = { ...selectedView, type: viewType } as TaskView;
+                  setSelectedView(tempView);
+                }}
+                propertyVisibility={propertyVisibility}
+                onPropertyVisibilityChange={setPropertyVisibility}
+              >
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="hover:bg-transparent group p-1"
+                >
+                  <Settings className="h-5 w-5 group-hover:text-blue-600" />
+                </Button>
+              </TaskViewSettings>
+            </div>
           </div>
+          
+          {/* Mobile Search Bar */}
+          {isSearchExpanded && (
+            <div className="md:hidden mb-4">
+              <Input
+                placeholder="Search tasks..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full"
+                autoFocus
+                onBlur={() => {
+                  if (!searchQuery) {
+                    setIsSearchExpanded(false);
+                  }
+                }}
+              />
+            </div>
+          )}
 
           {/* Views */}
           {views.length > 0 && (
@@ -348,6 +401,9 @@ export function TaskManagement() {
             projectId={showId ? parseInt(showId) : undefined}
           />
         </div>
+        
+        {/* Floating Action Button - Mobile Only */}
+        <FloatingActionButton onClick={handleCreateTask} />
       </div>
     );
   }

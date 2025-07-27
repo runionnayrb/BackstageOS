@@ -4,6 +4,7 @@ import {
   Search, Plus, FileText, Folder, MoreVertical, Pin, Archive, Tag, 
   ArrowLeft, ChevronRight, X, Edit3, Share2, Eye
 } from "lucide-react";
+import { FloatingActionButton } from "@/components/navigation/floating-action-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -147,11 +148,11 @@ export function MobileNotesList({ projectId, viewMode }: MobileNotesListProps) {
     ]);
   };
 
-  // Mobile header component
+  // Mobile header component - simplified, no title or search
   const MobileHeader = () => (
     <div className="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 py-3">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center">
           {(currentView === "notes" || currentView === "editor") && (
             <Button
               variant="ghost"
@@ -162,55 +163,11 @@ export function MobileNotesList({ projectId, viewMode }: MobileNotesListProps) {
               <ArrowLeft className="h-5 w-5" />
             </Button>
           )}
-          <h1 className="text-lg font-semibold">
-            {currentView === "folders" ? (viewMode === "all" ? "Notes" : "Show Notes") : 
-             currentView === "notes" ? getSelectedFolderName() : 
-             selectedNote?.title || "Note"}
-          </h1>
         </div>
         
+        {/* No header icons on mobile - they will be in FAB and header context */}
         <div className="flex items-center gap-2">
-          {currentView !== "editor" && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowSearch(!showSearch)}
-              className="p-1 h-8 w-8"
-            >
-              <Search className="h-5 w-5" />
-            </Button>
-          )}
-          
-          {currentView === "folders" && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="p-1 h-8 w-8">
-                  <Plus className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setIsCreateNoteSheetOpen(true)}>
-                  <FileText className="w-4 h-4 mr-2" />
-                  New Note
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setIsCreateFolderOpen(true)}>
-                  <Folder className="w-4 h-4 mr-2" />
-                  New Folder
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-          
-          {currentView === "notes" && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsCreateNoteSheetOpen(true)}
-              className="p-1 h-8 w-8"
-            >
-              <Plus className="h-5 w-5" />
-            </Button>
-          )}
+          {/* Empty for now - actions will be in FAB */}
         </div>
       </div>
       
@@ -428,6 +385,17 @@ export function MobileNotesList({ projectId, viewMode }: MobileNotesListProps) {
           isOpen={isCreateFolderOpen}
           onClose={() => setIsCreateFolderOpen(false)}
           projectId={projectId ? parseInt(projectId) : undefined}
+        />
+        
+        {/* Floating Action Button */}
+        <FloatingActionButton 
+          onClick={() => {
+            if (currentView === "folders") {
+              setIsCreateNoteSheetOpen(true);
+            } else if (currentView === "notes") {
+              setIsCreateNoteSheetOpen(true);
+            }
+          }} 
         />
       </div>
     </MobilePullToRefresh>

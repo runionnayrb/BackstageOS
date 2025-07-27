@@ -352,19 +352,17 @@ export default function EnhancedHeader() {
           </div>
 
           {/* Mobile Layout - Page Title and Breadcrumbs */}
-          <div className="md:hidden flex items-center flex-1 min-w-0">
-            <div className="flex flex-col flex-1 min-w-0">
-              {/* Page Title */}
-              <h1 className="text-2xl font-bold text-gray-900 truncate">
-                {pageTitle}
-              </h1>
-              {/* Breadcrumbs - Mobile (subtle) */}
-              {breadcrumbs.length > 0 && (
-                <div className="flex items-center overflow-hidden">
-                  <BreadcrumbNavigation items={breadcrumbs} className="text-xs text-gray-500" />
-                </div>
-              )}
-            </div>
+          <div className="md:hidden flex items-center flex-1 min-w-0 gap-2">
+            {/* Page Title */}
+            <h1 className="text-2xl font-bold text-gray-900 truncate flex-shrink-0">
+              {pageTitle}
+            </h1>
+            {/* Breadcrumbs - Mobile (subtle, to the right of title) */}
+            {breadcrumbs.length > 0 && (
+              <div className="flex items-center overflow-hidden min-w-0">
+                <BreadcrumbNavigation items={breadcrumbs} className="text-xs text-gray-500" />
+              </div>
+            )}
           </div>
 
           {/* Admin Dropdowns - Only visible to original admins */}
