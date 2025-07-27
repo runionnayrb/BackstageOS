@@ -786,7 +786,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                     onTouchStart={(e) => handleTouchStart(e, message.id)}
                     onTouchMove={handleTouchMove}
                     onTouchEnd={handleTouchEnd}
-                    className={`block text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none group pl-1 pr-4 py-3 border-b border-gray-100 transition-transform duration-75 ease-out overflow-hidden select-none ${
+                    className={`block text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none group pl-1 pr-4 py-2 border-b border-gray-100 transition-transform duration-75 ease-out overflow-hidden select-none ${
                       isSelectionMode && selectedMessages.has(message.id) ? 'bg-blue-50' : ''
                     }`}
                     style={{
