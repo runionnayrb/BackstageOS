@@ -752,7 +752,7 @@ export default function TemplateSettings() {
                                     <Plus className="h-4 w-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent>
+                                <DropdownMenuContent align="start">
                                   <DropdownMenuItem
                                     onClick={() => {
                                       console.log('🏢 ADD DEPARTMENT clicked');
