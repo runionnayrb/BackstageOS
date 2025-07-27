@@ -795,6 +795,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       });
       
       // Create a single grouped section containing both header and text field
+      // Match exact structure of existing template fields (w: 12, h: 4, minW: 3, minH: 4)
       const fieldId = 'new-property';
       const fieldGroupItem: LayoutItem = {
         id: `field-group-${Date.now()}`,
@@ -802,34 +803,33 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         content: { fieldId: fieldId, label: 'New Property' },
         x: 0,
         y: insertY,
-        w: 12, // Full 12 columns
-        h: 2,  // Height for header + text field
+        w: 12, // Full 12 columns like existing template fields
+        h: 4,  // Match existing template field height
         minW: 3,
-        minH: 2,
-        maxW: 12,
+        minH: 4,
         children: [
           {
             id: `field-header-${Date.now()}`,
             type: 'field-header' as const,
             content: { fieldId: fieldId, label: 'New Property' },
             x: 0, y: 0, w: 12, h: 1,
-            minW: 3, minH: 1, maxW: 12
+            minW: 3, minH: 1
           },
           {
             id: `field-notes-${Date.now()}`,
             type: 'notes' as const,
-            content: { fieldId: fieldId },
-            x: 0, y: 1, w: 12, h: 1,
-            minW: 3, minH: 1, maxW: 12
+            content: { fieldId: fieldId, placeholder: "Sample content..." },
+            x: 0, y: 1, w: 12, h: 3,
+            minW: 3, minH: 2
           }
         ]
       };
 
       // Shift department sections down if they would overlap with new items
       const adjustedItems = configuration.items.map(item => {
-        if (item.type === 'grouped-section' && item.y <= insertY + 1) {
-          console.log(`⬇️ Shifting department ${item.id} from y:${item.y} to y:${insertY + 2}`);
-          return { ...item, y: insertY + 2 };
+        if (item.type === 'grouped-section' && item.y <= insertY + 4) {
+          console.log(`⬇️ Shifting department ${item.id} from y:${item.y} to y:${insertY + 5}`);
+          return { ...item, y: insertY + 5 };
         }
         return item;
       });
