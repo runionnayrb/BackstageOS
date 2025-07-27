@@ -785,9 +785,8 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         ? Math.max(...fieldRelatedItems.map(item => item.y + item.h))
         : 0; // Start at 0 if no fields exist
       
-      // Insert position: Use a safe position that ensures visibility
-      // If firstDepartmentY is very low (0-2), place at beginning, otherwise place before departments
-      const insertY = firstDepartmentY <= 2 ? 0 : Math.max(0, firstDepartmentY - 6);
+      // Insert position: Always place at the very top for visibility
+      const insertY = 0;
       
       console.log('📍 Positioning calculation:', {
         firstDepartmentY,
@@ -997,7 +996,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
                 preventCollision={false}
                 allowOverlap={true}
                 resizeHandles={effectiveEditMode ? ['se'] : []}
-                style={{ minHeight: '400px', width: '100%' }}
+                style={{ minHeight: '800px', width: '100%' }}
               >
                 {configuration.items.map((item) => (
                   <div key={item.id} className="group" style={{ width: '100%' }}>
