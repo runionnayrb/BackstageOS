@@ -1,0 +1,162 @@
+      items: [
+        {
+          id: 'scenic-section',
+          type: 'grouped-section',
+          content: { department: 'scenic', displayName: 'Scenic' },
+          x: 0, y: 0, w: 6, h: 3,
+          minW: 4, minH: 3,
+          children: [
+            {
+              id: 'scenic-header',
+              type: 'department-header',
+              content: { department: 'scenic', displayName: 'Scenic' },
+              x: 0, y: 0, w: 6, h: 1,
+              minW: 2, minH: 1
+            },
+            {
+              id: 'scenic-notes',
+              type: 'notes',
+              content: { department: 'scenic' },
+              x: 0, y: 1, w: 6, h: 2,
+              minW: 3, minH: 2
+            }
+          ]
+        },
+        {
+          id: 'lighting-section',
+          type: 'grouped-section',
+          content: { department: 'lighting', displayName: 'Lighting' },
+          x: 6, y: 0, w: 6, h: 3,
+          minW: 4, minH: 3,
+          children: [
+            {
+              id: 'lighting-header',
+              type: 'department-header', 
+              content: { department: 'lighting', displayName: 'Lighting' },
+              x: 0, y: 0, w: 6, h: 1,
+              minW: 2, minH: 1
+            },
+            {
+              id: 'lighting-notes',
+              type: 'notes',
+              content: { department: 'lighting' },
+              x: 0, y: 1, w: 6, h: 2,
+              minW: 3, minH: 2
+            }
+          ]
+        }
+      ],
+      gridCols: 12,
+      gridRows: 20,
+      gridGap: 4
+    };
+
+    setConfiguration(defaultConfig);
+    onConfigurationChange?.(defaultConfig);
+    setShowResetDialog(false); // Close the dialog
+  };
+
+  // Expose functions to parent component via ref
+  useImperativeHandle(ref, () => ({
+    addNewItem,
+    removeItem,
+    resetLayout,
+    getCurrentConfiguration: () => {
+      console.log('🔍 getCurrentConfiguration called');
+      console.log('📊 Current configuration positions:', configuration.items.map(item => ({ 
+        id: item.id, 
+        x: item.x, 
+        y: item.y 
+      })));
+      return configuration;
+    }
+  }), [addNewItem, removeItem, resetLayout, configuration]);
+
+  return (
+    <DndProvider backend={HTML5Backend}>
+      <div className="space-y-2">
+
+        {/* Grid Layout */}
+        <div className={cn(
+          "bg-white",
+          effectiveEditMode && "bg-gray-50/50"
+        )}>
+          {isLayoutMounted && (
+            <div className="w-full" style={{ width: '1200px', maxWidth: '100%' }}>
+              <ResponsiveGridLayout
+                className="layout"
+                layouts={layouts}
+                breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+                cols={{ lg: 12, md: 12, sm: 12, xs: 12, xxs: 12 }}
+                rowHeight={18}
+                width={1200}
+                margin={[2, 2]}
+                containerPadding={[0, 0]}
+                isDraggable={effectiveEditMode}
+                isResizable={effectiveEditMode}
+                onLayoutChange={effectiveEditMode ? handleLayoutChange : undefined}
+                onResizeStop={effectiveEditMode ? handleLayoutChange : undefined}
+                onDragStart={effectiveEditMode ? handleDragStart : undefined}
+                onDragStop={effectiveEditMode ? handleDragStop : undefined}
+                draggableHandle=".drag-handle"
+                useCSSTransforms={true}
+                compactType={null}
+                preventCollision={false}
+                allowOverlap={true}
+                resizeHandles={effectiveEditMode ? ['se'] : []}
+                style={{ minHeight: '800px', width: '100%' }}
+              >
+                {configuration.items.map((item) => (
+                  <div key={item.id} className="group" style={{ width: '100%' }}>
+                    <DraggableGridItem
+                      item={item}
+                      effectiveEditMode={effectiveEditMode}
+                      onDelete={() => removeItem(item.id)}
+                    >
+                      <LayoutItemRenderer
+                        item={item}
+                        projectId={projectId}
+                        reportId={reportId}
+                        reportType={reportType}
+                        effectiveEditMode={effectiveEditMode}
+                        template={template}
+                        selectedDate={selectedDate}
+                        dayOfWeek={dayOfWeek}
+                        onDateChange={handleDateChange}
+                        configuration={configuration}
+                        setConfiguration={setConfiguration}
+                        onConfigurationChange={onConfigurationChange}
+                      />
+                    </DraggableGridItem>
+                  </div>
+                ))}
+              </ResponsiveGridLayout>
+            </div>
+          )}
+        </div>
+
+
+      </div>
+
+      {/* Reset Confirmation Dialog */}
+      <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset Layout</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to reset to default settings? This will remove all your custom layout changes. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={resetLayout} className="bg-red-600 hover:bg-red-700">
+              Reset Layout
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </DndProvider>
+  );
+});
+
+export default FlexibleLayoutEditor;

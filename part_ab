@@ -1,0 +1,300 @@
+      return (
+        <AutoNumberingTextarea
+          projectId={projectId}
+          reportId={reportId || undefined}
+          department={item.content?.department || item.content?.fieldId}
+          placeholder="1. No notes. Thank you."
+          className="w-full h-full resize-none border-0 shadow-none focus:ring-0"
+          isEditing={effectiveEditMode}
+          template={template}
+        />
+      );
+    
+    case 'footer':
+      return (
+        <EditableHeaderFooter
+          content={item.content?.text || 'Click to edit footer'}
+          onChange={(newContent: string) => {
+            // Handle footer content changes
+            console.log('🎯 FOOTER CONTENT CHANGED:', newContent);
+          }}
+          className="text-sm text-gray-600 text-center"
+          projectId={String(projectId)}
+          type="footer"
+          effectiveEditMode={effectiveEditMode}
+        />
+      );
+
+    case 'empty-space':
+      return (
+        <div className={cn(
+          "w-full h-full border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center min-h-[20px] relative",
+          effectiveEditMode ? "bg-gray-50" : "bg-transparent border-transparent"
+        )}>
+          {effectiveEditMode && (
+            <div className="text-gray-500 text-sm">Empty Space</div>
+          )}
+          {/* Invisible clickable area to ensure hover detection works */}
+          {effectiveEditMode && (
+            <div className="absolute inset-0 bg-transparent" />
+          )}
+        </div>
+      );
+    
+    default:
+      return (
+        <div className="p-4 border border-gray-200 rounded bg-gray-100">
+          <div className="text-sm text-gray-600">Unknown item type: {item.type}</div>
+        </div>
+      );
+  }
+};
+
+export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, FlexibleLayoutEditorProps>(({
+  projectId,
+  reportId,
+  reportType = 'tech',
+  initialConfiguration,
+  isEditing = true,
+  onConfigurationChange,
+  template,
+  onTemplateUpdate,
+  setIsSaving,
+  setLastSaved,
+  externalEditMode
+}, ref) => {
+  const [isEditMode, setIsEditMode] = useState(isEditing);
+  const [layouts, setLayouts] = useState<Layouts>({});
+  const [showResetDialog, setShowResetDialog] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [dayOfWeek, setDayOfWeek] = useState<string>('');
+  
+  // Use external edit mode if provided, otherwise use internal state
+  const effectiveEditMode = externalEditMode !== undefined ? externalEditMode : isEditMode;
+  
+  // Track previous edit mode state to detect transitions
+  const prevEditModeRef = useRef(effectiveEditMode);
+
+  // Helper function to convert date to day of week
+  const formatDayOfWeek = useCallback((dateString: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { weekday: 'long' });
+  }, []);
+
+  // Handle date changes and auto-populate day
+  const handleDateChange = useCallback((newDate: string) => {
+    setSelectedDate(newDate);
+    const day = formatDayOfWeek(newDate);
+    setDayOfWeek(day);
+  }, [formatDayOfWeek]);
+  
+  // Generate layout from template data with grouped sections
+  const generateLayoutFromTemplate = useCallback(() => {
+    if (!template) {
+      // Fallback to basic layout with grouped sections
+      return [
+        {
+          id: 'scenic-section',
+          type: 'grouped-section' as const,
+          content: { department: 'scenic', displayName: 'Scenic' },
+          x: 0, y: 0, w: 6, h: 3,
+          minW: 4, minH: 3,
+          children: [
+            {
+              id: 'scenic-header',
+              type: 'department-header' as const,
+              content: { department: 'scenic', displayName: 'Scenic' },
+              x: 0, y: 0, w: 6, h: 1,
+              minW: 2, minH: 1
+            },
+            {
+              id: 'scenic-notes',
+              type: 'notes' as const,
+              content: { department: 'scenic' },
+              x: 0, y: 1, w: 6, h: 2,
+              minW: 3, minH: 2
+            }
+          ]
+        },
+        {
+          id: 'lighting-section',
+          type: 'grouped-section' as const,
+          content: { department: 'lighting', displayName: 'Lighting' },
+          x: 6, y: 0, w: 6, h: 3,
+          minW: 4, minH: 3,
+          children: [
+            {
+              id: 'lighting-header',
+              type: 'department-header' as const,
+              content: { department: 'lighting', displayName: 'Lighting' },
+              x: 0, y: 0, w: 6, h: 1,
+              minW: 2, minH: 1
+            },
+            {
+              id: 'lighting-notes',
+              type: 'notes' as const,
+              content: { department: 'lighting' },
+              x: 0, y: 1, w: 6, h: 2,
+              minW: 3, minH: 2
+            }
+          ]
+        }
+      ];
+    }
+    
+    const items: LayoutItem[] = [];
+    let currentY = 0;
+    
+    // Add all template fields as grouped sections (full width) - EXCLUDE date and day fields permanently
+    const templateFields = template.fields
+      .filter((field: any) => {
+        const fieldId = field.id.toLowerCase();
+        // Exclude date and day fields permanently
+        if (fieldId === 'date' || fieldId === 'day' || fieldId.includes('date') || fieldId.includes('day')) {
+          console.log(`🗑️ Skipping ${field.id} field during layout generation - permanently excluded`);
+          return false;
+        }
+        // Include regular fields
+        return !field.id.includes('Notes') || field.id === 'notes';
+      })
+      .sort((a: any, b: any) => a.order - b.order);
+    
+    templateFields.forEach((field: any, index: number) => {
+      // All fields now use the same grouped section structure since date/day fields have been removed
+      items.push({
+        id: `field-section-${field.id}`,
+        type: 'grouped-section' as const,
+        content: { fieldId: field.id, label: field.label },
+        x: 0, y: currentY, w: 12, h: 4,
+        minW: 3, minH: 4,
+        children: [
+          {
+            id: `field-header-${field.id}`,
+            type: 'field-header' as const,
+            content: { fieldId: field.id, label: field.label },
+            x: 0, y: 0, w: 12, h: 1,
+            minW: 3, minH: 1
+          },
+          {
+            id: `field-notes-${field.id}`,
+            type: 'notes' as const,
+            content: { fieldId: field.id, placeholder: field.placeholder || "Sample content..." },
+            x: 0, y: 1, w: 12, h: 3,
+            minW: 3, minH: 2
+          }
+        ]
+      });
+      currentY += 5;
+    });
+    
+    // Add department sections (wider for better visibility)
+    const departments = ['scenic', 'lighting', 'audio', 'video', 'props'];
+    departments.forEach((dept, index) => {
+      const xPos = (index % 2) * 6; // Alternate between left (0) and right (6)
+      const yPos = currentY + Math.floor(index / 2) * 5;
+      
+      // Create grouped section containing department header and notes
+      items.push({
+        id: `dept-section-${dept}`,
+        type: 'grouped-section' as const,
+        content: { department: dept, displayName: dept.charAt(0).toUpperCase() + dept.slice(1) },
+        x: xPos, y: yPos, w: 6, h: 4,
+        minW: 3, minH: 4,
+        children: [
+          {
+            id: `dept-header-${dept}`,
+            type: 'department-header' as const,
+            content: { department: dept, displayName: dept.charAt(0).toUpperCase() + dept.slice(1) },
+            x: 0, y: 0, w: 6, h: 1,
+            minW: 2, minH: 1
+          },
+          {
+            id: `dept-notes-${dept}`,
+            type: 'notes' as const,
+            content: { department: dept },
+            x: 0, y: 1, w: 6, h: 3,
+            minW: 3, minH: 2
+          }
+        ]
+      });
+    });
+    
+    return items;
+  }, [template]);
+
+  // SINGLE SOURCE OF TRUTH - Configuration state that never gets overridden
+  const [configuration, setConfiguration] = useState<FlexibleLayoutConfiguration>(() => ({
+    items: [],
+    gridCols: 12,
+    gridRows: 20,
+    gridGap: 4
+  }));
+  const [isLayoutMounted, setIsLayoutMounted] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+  
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // ONE-TIME INITIALIZATION ONLY
+  useEffect(() => {
+    if (template && !isInitialized) {
+      console.log('🎯 ONE-TIME INITIALIZATION');
+      
+      // Use saved config from template if it exists, otherwise generate new
+      const config = template.layoutConfiguration || {
+        items: generateLayoutFromTemplate(),
+        gridCols: 12,
+        gridRows: 20,
+        gridGap: 8
+      };
+      
+      setConfiguration(config);
+      setIsLayoutMounted(true);
+      setIsInitialized(true);
+      
+      console.log('✅ INITIALIZED with config:', config.items.map((item: any) => ({ id: item.id, y: item.y })));
+    }
+  }, [template, generateLayoutFromTemplate, isInitialized]);
+
+  // NO MORE COMPLEX TRACKING - Keep it simple
+
+  // Helper function to snap width to quarters (25%, 50%, 75%, 100%)
+  const snapToQuarters = useCallback((width: number) => {
+    const quarterSnapPoints = [3, 6, 9, 12]; // 25%, 50%, 75%, 100% of 12-column grid
+    return quarterSnapPoints.reduce((closest, snap) => 
+      Math.abs(width - snap) < Math.abs(width - closest) ? snap : closest
+    );
+  }, []);
+
+  // Removed intelligent width calculation - users now have full manual control via resize handles
+
+  // Convert configuration items to react-grid-layout format
+  const convertToGridLayouts = useCallback((items: LayoutItem[]) => {
+    // Filter out footer items at render time since footers are handled by template-settings.tsx
+    const finalItems = items.filter(item => item.type !== 'footer' && item.id !== 'template-footer');
+    
+    console.log('🔍 Converting to grid layouts:', { 
+      effectiveEditMode, 
+      itemCount: finalItems.length, 
+      gridCols: configuration.gridCols,
+      items: finalItems.map(item => ({ id: item.id, x: item.x, y: item.y, w: item.w, h: item.h, actualWidthPercent: `${(item.w / configuration.gridCols) * 100}%` }))
+    });
+    
+    const layout = finalItems.map(item => ({
+      i: item.id,
+      x: item.x,
+      y: item.y,
+      w: item.w,
+      h: item.h,
+      minW: item.minW || 1, // Reduced default minimum to avoid constraint conflicts
+      minH: item.minH || 1,
+      maxW: item.maxW, // Don't set default maxW to avoid width constraints
+      maxH: item.maxH
+      // No isResizable, isDraggable, or static properties - let the grid handle this via global props
+    }));
+    
+    console.log('🔍 Layout items created:', layout.map(l => ({ id: l.i, x: l.x, y: l.y, static: l.static })));
+
+    return {
+      lg: layout,
