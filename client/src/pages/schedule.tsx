@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Clock, Plus, Calendar, X, History, Settings, FileText, User, Send, Crown, Megaphone, Bell } from "lucide-react";
+import { FloatingActionButton } from "@/components/navigation/floating-action-button";
 import { ChangeSummaryEditor } from "@/components/ChangeSummaryEditor";
 import WeeklyScheduleView from "@/components/weekly-schedule-view";
 import MobileWeeklyScheduleView from "@/components/mobile-weekly-schedule-view";
@@ -1021,14 +1022,7 @@ The Production Team`
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setCreateEventDialog(true)}
-                className="p-2"
-              >
-                <Plus className="h-5 w-5" />
-              </Button>
+
             </div>
           </div>
         </div>
@@ -1139,13 +1133,7 @@ The Production Team`
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* New Event Button - leftmost */}
-              <button
-                onClick={() => setCreateEventDialog(true)}
-                className="p-2 h-8 border-0 bg-transparent hover:bg-gray-100 rounded-md transition-colors"
-              >
-                <Plus className="h-4 w-4 text-gray-600" />
-              </button>
+
             </div>
           </div>
         </div>
@@ -2238,6 +2226,9 @@ The Production Team`}
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* Floating Action Button - Mobile Only */}
+      <FloatingActionButton onClick={() => setCreateEventDialog(true)} />
     </div>
   );
 }
