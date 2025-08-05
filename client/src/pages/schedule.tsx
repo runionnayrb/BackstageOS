@@ -675,20 +675,6 @@ The Production Team`
     <div className="w-full">
       {/* Desktop Header - Unified Weekly View Style */}
       <div className="hidden md:block px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex items-center justify-end mb-4">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowScheduleSettings(true)}
-              className="text-xs px-2 py-1 h-auto"
-            >
-              <Settings className="h-3 w-3 mr-1" />
-              Settings
-            </Button>
-          </div>
-        </div>
-        
         <div className="flex items-center justify-between mb-4">
           {/* Left side - Dynamic Date/Range display */}
           <div className="flex items-center">
