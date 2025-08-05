@@ -59,7 +59,7 @@ export default function ShowReportsList() {
   return (
     <div className="w-full">
       {/* Header */}
-      <div className="px-4 sm:px-6 lg:px-8 mb-6">
+      <div className="px-4 sm:px-6 lg:px-8 pt-6 mb-6">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold">Reports</h1>
