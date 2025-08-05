@@ -63,7 +63,6 @@ export default function ShowReportsList() {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold">Reports</h1>
-            <p className="text-gray-500 mt-2">Manage production reports for {project.name}</p>
           </div>
           <div className="flex gap-2">
             <Button 
