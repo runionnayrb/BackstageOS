@@ -58,7 +58,25 @@ export default function ShowReportsList() {
 
   return (
     <div className="w-full">
-
+      {/* Header */}
+      <div className="px-4 sm:px-6 lg:px-8 mb-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">Reports</h1>
+            <p className="text-gray-500 mt-2">Manage production reports for {project.name}</p>
+          </div>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline"
+              onClick={() => setLocation(`/shows/${projectId}/templates`)}
+              className="flex items-center gap-2"
+            >
+              <Settings className="w-4 h-4" />
+              Template Settings
+            </Button>
+          </div>
+        </div>
+      </div>
 
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="space-y-1">
