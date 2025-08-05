@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useLocation } from "wouter";
-import { Edit3, FileText, Download } from "lucide-react";
+import { Edit3, FileText, Download, Settings } from "lucide-react";
 import { useState } from "react";
 
 export default function Reports() {
@@ -83,10 +83,26 @@ export default function Reports() {
             <h1 className="hidden md:block text-3xl font-bold">Reports</h1>
             <p className="text-gray-500 mt-2">View and manage all production reports</p>
           </div>
-          <Button onClick={() => setLocation("/report-builder")}>
-            <Edit3 className="w-5 h-5 mr-2" />
-            Create Report
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline"
+              onClick={() => {
+                // Navigate to template settings for the first available project
+                const firstProject = projects?.[0];
+                if (firstProject) {
+                  setLocation(`/shows/${firstProject.id}/template-settings`);
+                }
+              }}
+              className="hidden md:flex items-center gap-2"
+            >
+              <Settings className="w-4 h-4" />
+              Template Settings
+            </Button>
+            <Button onClick={() => setLocation("/report-builder")}>
+              <Edit3 className="w-5 h-5 mr-2" />
+              Create Report
+            </Button>
+          </div>
         </div>
 
       {/* Filter Bar */}
