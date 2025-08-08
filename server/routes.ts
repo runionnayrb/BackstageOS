@@ -15120,5 +15120,79 @@ The Production Team`;
     console.error('❌ Failed to start email cleanup service:', error);
   }
   
+  // IMAP Server Management API endpoints
+  app.get('/api/email/imap-server/status', isAuthenticated, async (req: any, res) => {
+    try {
+      const { imapServerManager } = await import('./services/imapServerManager.js');
+      const status = imapServerManager.getStatus();
+      res.json(status);
+    } catch (error) {
+      console.error('Error getting IMAP server status:', error);
+      res.status(500).json({ message: 'Failed to get IMAP server status' });
+    }
+  });
+
+  app.post('/api/email/imap-server/restart', isAdmin, async (req: any, res) => {
+    try {
+      const { imapServerManager } = await import('./services/imapServerManager.js');
+      await imapServerManager.shutdown();
+      await imapServerManager.initialize();
+      res.json({ message: 'IMAP server restarted successfully' });
+    } catch (error) {
+      console.error('Error restarting IMAP server:', error);
+      res.status(500).json({ message: 'Failed to restart IMAP server' });
+    }
+  });
+
+  app.get('/api/email/imap-setup-instructions', isAuthenticated, async (req: any, res) => {
+    try {
+      // Get user's email account
+      const emailAccounts = await storage.getEmailAccountsByUserId(req.user.id);
+      const primaryAccount = emailAccounts.find(account => account.isDefault) || emailAccounts[0];
+      
+      if (!primaryAccount) {
+        return res.status(404).json({ 
+          message: 'No email account found. Create an email account first to use Apple Mail integration.' 
+        });
+      }
+
+      const instructions = {
+        emailAddress: primaryAccount.emailAddress,
+        serverSettings: {
+          incomingServer: {
+            server: process.env.REPLIT_HOST || 'backstageos.com',
+            port: 993,
+            security: 'SSL/TLS',
+            authentication: 'Password'
+          },
+          outgoingServer: {
+            server: process.env.REPLIT_HOST || 'backstageos.com', 
+            port: 587,
+            security: 'STARTTLS',
+            authentication: 'Password'
+          },
+          credentials: {
+            username: primaryAccount.emailAddress,
+            password: 'Your BackstageOS password'
+          }
+        },
+        appleMailSteps: [
+          'Open Apple Mail',
+          'Go to Mail → Preferences → Accounts',
+          'Click the "+" button to add a new account',
+          'Select "Other Mail Account"',
+          'Enter your BackstageOS email and password',
+          'Use the server settings provided above',
+          'Your BackstageOS emails will now sync with Apple Mail'
+        ]
+      };
+
+      res.json(instructions);
+    } catch (error) {
+      console.error('Error getting IMAP setup instructions:', error);
+      res.status(500).json({ message: 'Failed to get setup instructions' });
+    }
+  });
+
   return server;
 }
