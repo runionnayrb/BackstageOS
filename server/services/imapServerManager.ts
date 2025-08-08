@@ -1,50 +1,57 @@
 import { imapServerService } from './imapServerService.js';
+import { smtpServerService } from './smtpServerService.js';
 
 export class ImapServerManager {
   private isInitialized = false;
 
   /**
-   * Initialize and start the IMAP server
+   * Initialize and start the email servers (IMAP + SMTP)
    */
   async initialize(): Promise<void> {
     if (this.isInitialized) {
-      console.log('IMAP server already initialized');
+      console.log('Email servers already initialized');
       return;
     }
 
     try {
-      console.log('🚀 Starting IMAP server...');
+      console.log('🚀 Starting email servers...');
       
       // Start IMAP server on ports 143 (plain) and 993 (TLS)
       await imapServerService.start(143, 993);
       
+      // Start SMTP server on port 587
+      await smtpServerService.start();
+      
       this.isInitialized = true;
-      console.log('✅ IMAP server started successfully');
+      console.log('✅ Email servers started successfully');
       console.log('📧 Users can now add their BackstageOS email to Apple Mail:');
-      console.log('   Server: backstageos.com (or your domain)');
-      console.log('   Port: 993 (SSL) or 143 (plain)');
+      console.log('   IMAP Server: backstageos.com, Port: 993 (SSL) or 143 (plain)');
+      console.log('   SMTP Server: backstageos.com, Port: 587 (STARTTLS)');
       console.log('   Username: their@backstageos.com email address');
       console.log('   Password: their BackstageOS password');
       
     } catch (error) {
-      console.error('❌ Failed to start IMAP server:', error);
+      console.error('❌ Failed to start email servers:', error);
       throw error;
     }
   }
 
   /**
-   * Stop the IMAP server
+   * Stop the email servers
    */
   async shutdown(): Promise<void> {
     if (!this.isInitialized) return;
 
     try {
-      console.log('🛑 Stopping IMAP server...');
-      await imapServerService.stop();
+      console.log('🛑 Stopping email servers...');
+      await Promise.all([
+        imapServerService.stop(),
+        smtpServerService.stop()
+      ]);
       this.isInitialized = false;
-      console.log('✅ IMAP server stopped');
+      console.log('✅ Email servers stopped');
     } catch (error) {
-      console.error('❌ Error stopping IMAP server:', error);
+      console.error('❌ Error stopping email servers:', error);
       throw error;
     }
   }
@@ -55,15 +62,18 @@ export class ImapServerManager {
   getStatus() {
     return {
       isInitialized: this.isInitialized,
-      ...imapServerService.getStatus()
+      imap: imapServerService.getStatus(),
+      smtp: smtpServerService.getStatus()
     };
   }
 
   /**
-   * Check if the IMAP server is healthy
+   * Check if the email servers are healthy
    */
   isHealthy(): boolean {
-    return this.isInitialized && imapServerService.getStatus().isRunning;
+    return this.isInitialized && 
+           imapServerService.getStatus().isRunning && 
+           smtpServerService.getStatus().isRunning;
   }
 }
 
