@@ -77,6 +77,41 @@ export default function EmailSetupPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Smartphone className="h-5 w-5" />
+                Apple Mail Setup
+              </CardTitle>
+              <CardDescription>
+                Important update about native email client integration
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="p-4 bg-yellow-50 dark:bg-yellow-950 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200 mb-2">
+                  Platform Limitation Notice
+                </p>
+                <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                  Due to Replit's deployment platform limitations, direct IMAP/SMTP server connections aren't supported. 
+                  Email ports like 587 and 993 aren't accessible from external mail clients.
+                </p>
+              </div>
+              
+              <div className="flex gap-3">
+                <Button asChild variant="outline">
+                  <a href="/email-setup/apple-mail">
+                    Learn More
+                  </a>
+                </Button>
+                <Button asChild>
+                  <a href="/email">
+                    Use Web Email Instead
+                  </a>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Smartphone className="h-5 w-5" />
                 Apple Mail Setup (iOS/macOS)
               </CardTitle>
               <CardDescription>
