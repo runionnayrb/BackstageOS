@@ -15160,13 +15160,13 @@ The Production Team`;
         emailAddress: primaryAccount.emailAddress,
         serverSettings: {
           incomingServer: {
-            server: process.env.REPLIT_HOST || 'backstageos.com',
+            server: 'backstageos.com',
             port: 993,
             security: 'SSL/TLS',
             authentication: 'Password'
           },
           outgoingServer: {
-            server: process.env.REPLIT_HOST || 'backstageos.com', 
+            server: 'backstageos.com', 
             port: 587,
             security: 'STARTTLS',
             authentication: 'Password'
