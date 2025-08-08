@@ -659,6 +659,20 @@ export const dailyCalls = pgTable("daily_calls", {
 
 // ========== EMAIL SYSTEM TABLES ==========
 
+// Email forwarding rules for external client integration
+export const emailForwardingRules = pgTable("email_forwarding_rules", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  accountId: integer("account_id").notNull().references(() => emailAccounts.id, { onDelete: "cascade" }),
+  forwardToEmail: varchar("forward_to_email").notNull(), // User's external email (like Gmail, Apple Mail)
+  isActive: boolean("is_active").default(true),
+  forwardIncoming: boolean("forward_incoming").default(true), // Forward incoming emails
+  forwardOutgoing: boolean("forward_outgoing").default(false), // Forward outgoing emails
+  keepOriginal: boolean("keep_original").default(true), // Keep copy in BackstageOS
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Email accounts (user@backstageos.com, showname@backstageos.com)
 export const emailAccounts = pgTable("email_accounts", {
   id: serial("id").primaryKey(),

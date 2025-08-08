@@ -83,6 +83,7 @@ import NotesTracking from "@/pages/notes-tracking";
 import EmailContacts from "@/pages/email-contacts";
 import EmailSetupPage from "@/pages/EmailSetupPage";
 import AppleMailSetupPage from "@/pages/AppleMailSetupPage";
+import EmailForwardingSetupPage from "@/pages/EmailForwardingSetupPage";
 import ScheduleRelationshipMapping from "@/components/schedule-relationship-mapping";
 
 
@@ -260,6 +261,7 @@ function Router() {
         <Route path="/email-contacts" component={EmailContacts} />
         <Route path="/email-setup" component={EmailSetupPage} />
         <Route path="/email-setup/apple-mail" component={AppleMailSetupPage} />
+        <Route path="/email-setup/forwarding" component={EmailForwardingSetupPage} />
         <Route path="/tools" component={Tools} />
         <Route path="/chat" component={Chat} />
         <Route path="/shows/:showId/theater-email" component={TheaterEmail} />

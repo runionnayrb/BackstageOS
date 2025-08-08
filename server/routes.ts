@@ -844,7 +844,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const standaloneEmailService = new StandaloneEmailService();
       
       // Process incoming email and store in BackstageOS
-      await standaloneEmailService.processIncomingEmail(emailData);
+      const messageId = await standaloneEmailService.processIncomingEmail(emailData);
+      
+      // Forward email to external clients if forwarding rules exist
+      if (messageId) {
+        try {
+          const { emailForwardingService } = await import('./services/emailForwardingService.js');
+          await emailForwardingService.forwardIncomingEmail(messageId);
+        } catch (forwardingError) {
+          console.error('❌ Error forwarding email:', forwardingError);
+          // Don't fail the main webhook - forwarding is optional
+        }
+      }
       
       console.log('✅ PRIORITY webhook processed successfully');
       res.status(200).json({ success: true, message: "Email processed successfully" });
@@ -15193,6 +15204,10 @@ The Production Team`;
       res.status(500).json({ message: 'Failed to get setup instructions' });
     }
   });
+
+  // Email forwarding routes
+  const { default: emailForwardingRoutes } = await import("./routes/emailForwarding.js");
+  app.use("/api/email-forwarding", emailForwardingRoutes);
 
   return server;
 }

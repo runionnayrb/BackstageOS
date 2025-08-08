@@ -127,7 +127,7 @@ export default function AppleMailSetupPage() {
                 <p className="text-sm text-muted-foreground mb-3">
                   Forward BackstageOS emails to your personal Apple Mail account
                 </p>
-                <Link href="/email/settings">
+                <Link href="/email-setup/forwarding">
                   <Button size="sm" variant="outline">
                     Configure Forwarding
                   </Button>
