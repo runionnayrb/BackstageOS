@@ -50,12 +50,52 @@
 /* Ensure full width items take full container width */
 .react-grid-item.full-width {
   width: 100% !important;
+  left: 0 !important;
+  transform: translate3d(0px, var(--y-pos, 0px), 0px) !important;
 }
 
 /* Force grid items to respect their calculated width */
 .react-grid-layout {
   position: relative !important;
   width: 100% !important;
+}
+
+/* Force full-width items in React Grid Layout */
+.react-grid-item[data-grid*='"w":12'] {
+  width: 100% !important;
+  left: 0 !important;
+}
+
+/* Specific styling for department sections that should be full width */
+[data-testid*="dept-section"] .react-grid-item,
+.react-grid-item[class*="dept-section"],
+.react-grid-item.department-section,
+.react-grid-item.dept-section-item {
+  width: 100% !important;
+  left: 0 !important;
+}
+
+/* Force full width for items with data-width="12" */
+.react-grid-item[data-width="12"] {
+  width: 100% !important;
+  left: 0 !important;
+}
+
+/* Ensure the container respects full width */
+.react-grid-layout-container {
+  width: 100% !important;
+}
+
+/* Force position and width for grid items based on their grid width */
+.react-grid-layout .react-grid-item {
+  position: absolute !important;
+}
+
+/* Additional targeting for department sections created dynamically */
+.react-grid-item[data-testid*="dept-section"],
+div[id*="dept-section"] {
+  width: 100% !important;
+  left: 0 !important;
 }
 
 .react-grid-item.cssTransforms {

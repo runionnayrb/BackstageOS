@@ -1,0 +1,309 @@
+template-settings.tsx:786 🏢 ADD DEPARTMENT clicked
+flexible-layout-editor.tsx:731 🆕 Adding new item: department-header
+flexible-layout-editor.tsx:732 🔍 Current configuration before adding: {itemCount: 11, items: Array(11)}
+flexible-layout-editor.tsx:741 📍 Department positioning: {lastItemY: 34, insertY: 35, allItemsCount: 11}
+flexible-layout-editor.tsx:795 🚀 New configuration after adding: {itemCount: 12, items: Array(12)}
+flexible-layout-editor.tsx:799 🔍 New item details: {id: 'dept-section-new-dept-1754769179520', x: 0, y: 35, w: 12, h: 4, …}
+template-settings.tsx:929 💾 Configuration changed - saving to unified showSettings: {projectId: '3', configItems: 12, yPositions: Array(12)}
+5editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+flexible-layout-editor.tsx:680 🔥 Y POSITION CHANGE DETECTED for dept-section-new-dept-1754769179520: {oldY: 35, newY: 34, oldX: 0, newX: 0}
+flexible-layout-editor.tsx:697 💡 All layout changes preserved - no automatic recalculation
+flexible-layout-editor.tsx:710 🔧 Layout changed, updating configuration and saving: {editMode: true, hasChanges: true, itemCount: 12}
+flexible-layout-editor.tsx:717 💾 SAVING CHANGES IMMEDIATELY TO DATABASE
+template-settings.tsx:929 💾 Configuration changed - saving to unified showSettings: {projectId: '3', configItems: 12, yPositions: Array(12)}
+flexible-layout-editor.tsx:630 🔍 Converting to grid layouts: {effectiveEditMode: true, itemCount: 12, gridCols: 12, items: Array(12)}
+flexible-layout-editor.tsx:653 🔍 Layout items created: (12) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+flexible-layout-editor.tsx:722 ✅ CONFIGURATION UPDATED AND SAVED
+queryClient.ts:69 🎯 Query URL constructed: /api/projects/3/settings from queryKey: (3) ['/api/projects', 3, 'settings']
+editable-department-header.tsx:98 🎨 ShowSettings for new-dept: {id: 2, projectId: 3, sharingEnabled: false, shareLink: null, shareLinkExpiry: null, …}
+editable-department-header.tsx:99 🎨 DepartmentFormatting object: {audio: {…}, props: {…}, video: {…}, scenic: {…}, lighting: {…}}
+editable-department-header.tsx:105 🎨 No saved formatting found for new-dept, using defaults
+flexible-layout-editor.tsx:663 ✅ Updating layouts from configuration
+flexible-layout-editor.tsx:630 🔍 Converting to grid layouts: {effectiveEditMode: true, itemCount: 12, gridCols: 12, items: Array(12)}
+flexible-layout-editor.tsx:653 🔍 Layout items created: (12) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+5editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+flexible-layout-editor.tsx:697 💡 All layout changes preserved - no automatic recalculation
+flexible-layout-editor.tsx:710 🔧 Layout changed, updating configuration and saving: {editMode: true, hasChanges: true, itemCount: 12}
+flexible-layout-editor.tsx:717 💾 SAVING CHANGES IMMEDIATELY TO DATABASE
+template-settings.tsx:929 💾 Configuration changed - saving to unified showSettings: {projectId: '3', configItems: 12, yPositions: Array(12)}
+flexible-layout-editor.tsx:630 🔍 Converting to grid layouts: {effectiveEditMode: true, itemCount: 12, gridCols: 12, items: Array(12)}
+flexible-layout-editor.tsx:653 🔍 Layout items created: (12) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+flexible-layout-editor.tsx:722 ✅ CONFIGURATION UPDATED AND SAVED
+flexible-layout-editor.tsx:663 ✅ Updating layouts from configuration
+flexible-layout-editor.tsx:630 🔍 Converting to grid layouts: {effectiveEditMode: true, itemCount: 12, gridCols: 12, items: Array(12)}
+flexible-layout-editor.tsx:653 🔍 Layout items created: (12) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+5editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+flexible-layout-editor.tsx:663 ✅ Updating layouts from configuration
+flexible-layout-editor.tsx:630 🔍 Converting to grid layouts: {effectiveEditMode: true, itemCount: 12, gridCols: 12, items: Array(12)}
+flexible-layout-editor.tsx:653 🔍 Layout items created: (12) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+5editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+template-settings.tsx:952 ✅ Configuration saved to unified showSettings - ensuring database completion
+5editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+template-settings.tsx:952 ✅ Configuration saved to unified showSettings - ensuring database completion
+editable-department-header.tsx:98 🎨 ShowSettings for scenic: {id: 2, projectId: 3, sharingEnabled: false, shareLink: null, shareLinkExpiry: null, …}
+editable-department-header.tsx:99 🎨 DepartmentFormatting object: {audio: {…}, props: {…}, video: {…}, scenic: {…}, lighting: {…}}
+editable-department-header.tsx:102 🎨 Loading saved formatting for scenic: {bold: true, italic: false, fontSize: '14px', borderTop: false, textAlign: 'left', …}
+editable-department-header.tsx:98 🎨 ShowSettings for lighting: {id: 2, projectId: 3, sharingEnabled: false, shareLink: null, shareLinkExpiry: null, …}
+editable-department-header.tsx:99 🎨 DepartmentFormatting object: {audio: {…}, props: {…}, video: {…}, scenic: {…}, lighting: {…}}
+editable-department-header.tsx:102 🎨 Loading saved formatting for lighting: {bold: true, italic: false, fontSize: '14px', borderTop: false, textAlign: 'left', …}
+editable-department-header.tsx:98 🎨 ShowSettings for audio: {id: 2, projectId: 3, sharingEnabled: false, shareLink: null, shareLinkExpiry: null, …}
+editable-department-header.tsx:99 🎨 DepartmentFormatting object: {audio: {…}, props: {…}, video: {…}, scenic: {…}, lighting: {…}}
+editable-department-header.tsx:102 🎨 Loading saved formatting for audio: {bold: true, italic: false, fontSize: '14px', borderTop: false, textAlign: 'left', …}
+editable-department-header.tsx:98 🎨 ShowSettings for video: {id: 2, projectId: 3, sharingEnabled: false, shareLink: null, shareLinkExpiry: null, …}
+editable-department-header.tsx:99 🎨 DepartmentFormatting object: {audio: {…}, props: {…}, video: {…}, scenic: {…}, lighting: {…}}
+editable-department-header.tsx:102 🎨 Loading saved formatting for video: {bold: true, italic: false, fontSize: '14px', borderTop: false, textAlign: 'left', …}
+editable-department-header.tsx:98 🎨 ShowSettings for props: {id: 2, projectId: 3, sharingEnabled: false, shareLink: null, shareLinkExpiry: null, …}
+editable-department-header.tsx:99 🎨 DepartmentFormatting object: {audio: {…}, props: {…}, video: {…}, scenic: {…}, lighting: {…}}
+editable-department-header.tsx:102 🎨 Loading saved formatting for props: {bold: true, italic: false, fontSize: '14px', borderTop: false, textAlign: 'left', …}
+editable-department-header.tsx:98 🎨 ShowSettings for new-dept: {id: 2, projectId: 3, sharingEnabled: false, shareLink: null, shareLinkExpiry: null, …}
+editable-department-header.tsx:99 🎨 DepartmentFormatting object: {audio: {…}, props: {…}, video: {…}, scenic: {…}, lighting: {…}}
+editable-department-header.tsx:105 🎨 No saved formatting found for new-dept, using defaults
+editable-department-header.tsx:98 🎨 ShowSettings for new-dept: {id: 2, projectId: 3, sharingEnabled: false, shareLink: null, shareLinkExpiry: null, …}
+editable-department-header.tsx:99 🎨 DepartmentFormatting object: {audio: {…}, props: {…}, video: {…}, scenic: {…}, lighting: {…}}
+editable-department-header.tsx:105 🎨 No saved formatting found for new-dept, using defaults
+5editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+template-settings.tsx:952 ✅ Configuration saved to unified showSettings - ensuring database completion
+5editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+queryClient.ts:69 🎯 Query URL constructed: /api/projects/3/settings from queryKey: (3) ['/api/projects', '3', 'settings']
+queryClient.ts:69 🎯 Query URL constructed: /api/projects/3/settings from queryKey: (3) ['/api/projects', '3', 'settings']
+queryClient.ts:69 🎯 Query URL constructed: /api/projects/3/settings from queryKey: (3) ['/api/projects', '3', 'settings']
+5editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+template-settings.tsx:258 🔄 Loading layoutConfiguration from unified showSettings: {
+  "items": [
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 0,
+      "id": "field-section-late",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "label": "Late",
+        "fieldId": "late"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 12,
+          "x": 0,
+          "y": 0,
+          "id": "field-header-late",
+          "minH": 1,
+          "minW": 3,
+          "type": "field-header",
+          "content": {
+            "label": "Late",
+            "fieldId": "late"
+          }
+        },
+        {
+          "h": 3,
+          "w": 12,
+          "x": 0,
+          "y": 1,
+          "id": "field-notes-late",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "fieldId": "late",
+            "placeholder": "1. No notes. Thank you."
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 5,
+      "id": "field-section-injuryIllness",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "label": "Injury / Illness",
+        "fieldId": "injuryIllness"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 12,
+          "x": 0,
+          "y": 0,
+          "id": "field-header-injuryIllness",
+          "minH": 1,
+          "minW": 3,
+          "type": "field-header",
+          "content": {
+            "label": "Injury / Illness",
+            "fieldId": "injuryIllness"
+          }
+        },
+        {
+          "h": 3,
+          "w": 12,
+          "x": 0,
+          "y": 1,
+          "id": "field-notes-injuryIllness",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "fieldId": "injuryIllness",
+            "placeholder": "1. No notes. Thank you."
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 0,
+      "id": "field-group-1753587760912",
+      "type": "grouped-section",
+      "content": {
+        "label": "New Property",
+        "fieldId": "new-property"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 12,
+          "x": 0,
+          "y": 0,
+          "id": "field-header-1753587760912",
+          "type": "field-header",
+          "content": {
+            "label": "New Property",
+            "fieldId": "new-property"
+          }
+        },
+        {
+          "h": 3,
+          "w": 12,
+          "x": 0,
+          "y": 1,
+          "id": "field-notes-1753587760912",
+          "type": "notes",
+          "content": {
+            "fieldId": "new-property",
+            "placeholder": "Sample content..."
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 12,
+      "x": 0,
+      "y": 0,
+      "id": "field-group-1753587774054",
+      "type": "grouped-section",
+      "content": {
+        "label": "New Property",
+        "fieldId": "new-property"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 12,
+          "x": 0,
+          "y": 0,
+          "id": "field-header-1753587774054",
+          "type": "field-header",
+          "content": {
+            "label": "New Property",
+            "fieldId": "new-property"
+          }
+        },
+        {
+          "h": 3,
+          "w": 12,
+          "x": 0,
+          "y": 1,
+          "id": "field-notes-1753587774054",
+          "type": "notes",
+          "content": {
+            "fieldId": "new-property",
+            "placeholder": "Sample content..."
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 6,
+      "x": 0,
+      "y": 15,
+      "id": "dept-section-scenic",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "department": "scenic",
+        "displayName": "Scenic"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 6,
+          "x": 0,
+          "y": 0,
+          "id": "dept-header-scenic",
+          "minH": 1,
+          "minW": 2,
+          "type": "department-header",
+          "content": {
+            "department": "scenic",
+            "displayName": "Scenic"
+          }
+        },
+        {
+          "h": 3,
+          "w": 6,
+          "x": 0,
+          "y": 1,
+          "id": "dept-notes-scenic",
+          "minH": 2,
+          "minW": 3,
+          "type": "notes",
+          "content": {
+            "department": "scenic"
+          }
+        }
+      ]
+    },
+    {
+      "h": 4,
+      "w": 6,
+      "x": 6,
+      "y": 15,
+      "id": "dept-section-lighting",
+      "minH": 4,
+      "minW": 3,
+      "type": "grouped-section",
+      "content": {
+        "department": "lighting",
+        "displayName": "Lighting"
+      },
+      "children": [
+        {
+          "h": 1,
+          "w": 6,
+          "x": 0,
+          "y": 0,
+          "id": "dept-header-lighting",
+          "minH": 1,
+          "minW": 2,
+          "type": "department-header",
+          "content": {
+            "department": "lighting",
+            "di
+template-settings.tsx:265 ✅ Applied unified layoutConfiguration to tech template
+template-settings.tsx:271 ✅ Templates initialized with unified showSettings approach - single database table!
+5editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+5editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
