@@ -3,6 +3,9 @@
 ## Overview
 BackstageOS is a comprehensive theater management platform designed for professional stage managers. Its primary purpose is to streamline production workflows by offering show-centric organization with complete data isolation, ensuring no information cross-contamination between productions. Built as a modern full-stack application, it provides professional-grade stage management tools within an intuitive, document-style interface. Key capabilities include production and team management, a robust report system, and advanced tools for script editing, props, costume tracking, and notes. The project aims to revolutionize backstage operations by providing a unified, efficient, and intuitive digital environment for theater professionals, enhancing productivity and communication.
 
+## Recent Changes (August 2025)
+- **Global Template Margin Synchronization**: Completed implementation of adjustable margin controls in Global Template Settings that synchronize with all report templates. Margins now use dynamic values from global settings instead of hardcoded "1in" padding, with proper cache invalidation ensuring real-time updates across all template interfaces.
+
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 Dashboard design: Remove statistics/metrics - focus on recent projects and reports only.
