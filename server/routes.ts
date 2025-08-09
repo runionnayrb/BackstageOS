@@ -5008,30 +5008,16 @@ Best regards,
         return res.status(400).json({ message: "pageMargins is required" });
       }
 
-      // Update the show settings to include global margin settings
+      // Update the show settings to include both global margins and regular page margins
       const currentSettings = await storage.getShowSettingsByProjectId(projectId);
       if (currentSettings) {
         const updatedSettings = {
           ...currentSettings,
           globalPageMargins: pageMargins,
+          pageMargins: pageMargins, // This is what template settings page uses
           updatedAt: new Date()
         };
         await storage.updateShowSettings(projectId, updatedSettings);
-      }
-
-      // Also update all existing report templates with the new margins
-      const templates = await storage.getReportTemplatesByProjectId(projectId);
-      for (const template of templates) {
-        if (template.pageSettings) {
-          const updatedPageSettings = {
-            ...template.pageSettings,
-            margins: pageMargins
-          };
-          await storage.updateReportTemplate(template.id, {
-            pageSettings: updatedPageSettings,
-            updatedAt: new Date()
-          });
-        }
       }
 
       res.json({ success: true, pageMargins, templatesUpdated: templates.length });
