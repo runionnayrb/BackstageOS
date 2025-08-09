@@ -225,7 +225,8 @@ export default function GlobalTemplateSettings() {
   }, [globalSettings]);
 
   const saveSettings = useMutation({
-    mutationFn: async (settingsData: GlobalTemplateSettings) => {
+    mutationFn: async (data: { settingsData: GlobalTemplateSettings, showToast?: boolean }) => {
+      const { settingsData, showToast = false } = data;
       // Remove id, createdAt, updatedAt and transform to match schema
       const { id, createdAt, updatedAt, ...cleanData } = settingsData as any;
       
@@ -247,12 +248,23 @@ export default function GlobalTemplateSettings() {
       };
       
       await apiRequest("POST", `/api/projects/${projectId}/global-template-settings`, transformedData);
+      
+      // Also update template margins if they exist
+      if (cleanData.pageMargins) {
+        await apiRequest("PUT", `/api/projects/${projectId}/settings/global-margins`, {
+          pageMargins: cleanData.pageMargins
+        });
+      }
+      
+      return { showToast };
     },
-    onSuccess: () => {
-      toast({
-        title: "Settings Saved",
-        description: "Global template settings saved successfully",
-      });
+    onSuccess: (result) => {
+      if (result?.showToast) {
+        toast({
+          title: "Settings Saved",
+          description: "Global template settings and margins updated successfully",
+        });
+      }
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/global-template-settings`] });
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/settings`] });
     },
@@ -267,23 +279,7 @@ export default function GlobalTemplateSettings() {
     },
   });
 
-  // Function to update all template margins
-  const updateAllTemplateMargins = useMutation({
-    mutationFn: async (newMargins: { top: string; bottom: string; left: string; right: string }) => {
-      // Update show settings to apply margins to all templates
-      await apiRequest("PUT", `/api/projects/${projectId}/settings/global-margins`, {
-        pageMargins: newMargins
-      });
-    },
-    onSuccess: () => {
-      // Invalidate template-related queries to refresh all templates
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/settings`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/templates`] });
-    },
-    onError: (error: any) => {
-      console.error("Failed to update template margins:", error);
-    },
-  });
+
 
   const addEmailAddress = (listType: "to" | "cc" | "bcc", email: string) => {
     if (email.trim()) {
@@ -348,7 +344,7 @@ export default function GlobalTemplateSettings() {
             </div>
           </div>
           <Button
-            onClick={() => saveSettings.mutate(settings)}
+            onClick={() => saveSettings.mutate({ settingsData: settings, showToast: true })}
             disabled={saveSettings.isPending}
             className="flex items-center gap-2"
           >
@@ -590,16 +586,6 @@ export default function GlobalTemplateSettings() {
                           ...prev,
                           pageMargins: { ...(prev.pageMargins || {}), [margin]: newMarginValue }
                         }));
-                        
-                        // Auto-save with both global settings and template updates
-                        setTimeout(() => {
-                          const updatedSettings = {
-                            ...settings,
-                            pageMargins: { ...settings.pageMargins, [margin]: newMarginValue }
-                          };
-                          saveSettings.mutate(updatedSettings);
-                          updateAllTemplateMargins.mutate(updatedSettings.pageMargins);
-                        }, 1000);
                       };
                       
                       return (
