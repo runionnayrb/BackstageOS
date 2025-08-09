@@ -581,22 +581,25 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       items: finalItems.map(item => ({ id: item.id, x: item.x, y: item.y, w: item.w, h: item.h, actualWidthPercent: `${(item.w / configuration.gridCols) * 100}%` }))
     });
     
-    const layout = finalItems.map(item => ({
-      i: item.id,
-      x: item.x,
-      y: item.y,
-      w: item.w,
-      h: item.h,
-      // Apply width constraints from item configuration
-      minW: item.minW || (item.w === configuration.gridCols ? configuration.gridCols : 1), // Force full width items to stay full width
-      minH: item.minH || 1,
-      maxW: item.maxW || (item.w === configuration.gridCols ? configuration.gridCols : undefined), // Force full width items to stay full width
-      maxH: item.maxH,
-      // For full-width items, make them static to prevent resizing
-      static: item.w === configuration.gridCols && item.minW === configuration.gridCols,
-      // Disable resizing for full-width items
-      isResizable: item.w === configuration.gridCols ? false : undefined
-    }));
+    const layout = finalItems.map(item => {
+      const isFullWidth = item.w === configuration.gridCols;
+      return {
+        i: item.id,
+        x: item.x,
+        y: item.y,
+        w: item.w,
+        h: item.h,
+        // Apply width constraints from item configuration
+        minW: item.minW || (isFullWidth ? configuration.gridCols : 1),
+        minH: item.minH || 1,
+        maxW: item.maxW || (isFullWidth ? configuration.gridCols : undefined),
+        maxH: item.maxH,
+        // For full-width items, make them static to prevent resizing
+        static: isFullWidth && item.minW === configuration.gridCols,
+        // Disable resizing for full-width items
+        isResizable: isFullWidth ? false : undefined
+      };
+    });
     
     console.log('🔍 Layout items created:', layout.map(l => ({ id: l.i, x: l.x, y: l.y, static: l.static })));
 
@@ -788,22 +791,12 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       setConfiguration(newConfig);
       onConfigurationChange?.(newConfig);
       
-      // Force a complete re-render by unmounting and remounting the grid
-      setIsLayoutMounted(false);
-      setTimeout(() => {
-        const newLayouts = convertToGridLayouts(newConfig.items);
-        setLayouts(newLayouts);
-        console.log('🔄 FORCED LAYOUT UPDATE after adding department');
-        console.log('🔍 Layout for new item:', newLayouts.lg?.find(l => l.i === newItem.id));
-        console.log('🔍 All layout items:', newLayouts.lg?.map(l => ({ i: l.i, w: l.w, x: l.x })));
-        
-        setIsLayoutMounted(true);
-        
-        // Force React Grid Layout to recalculate
-        setTimeout(() => {
-          window.dispatchEvent(new Event('resize'));
-        }, 50);
-      }, 50);
+      // Update layouts immediately without unmounting
+      const newLayouts = convertToGridLayouts(newConfig.items);
+      setLayouts(newLayouts);
+      console.log('🔄 IMMEDIATE LAYOUT UPDATE after adding department');
+      console.log('🔍 Layout for new item:', newLayouts.lg?.find(l => l.i === newItem.id));
+      console.log('🔍 All layout items:', newLayouts.lg?.map(l => ({ i: l.i, w: l.w, x: l.x })));
     } else if (type === 'field-header') {
       // Create a new property as grouped section above departments
       const fieldId = 'new-property';
@@ -1060,11 +1053,13 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
                       item.id.includes('dept-section') ? "dept-section-item" : ""
                     )} 
                     style={{ 
-                      width: item.w === configuration.gridCols ? '100%' : 'auto',
-                      position: 'relative'
+                      width: item.w === configuration.gridCols ? '100%' : `${(item.w / configuration.gridCols) * 100}%`,
+                      position: 'relative',
+                      left: item.w === configuration.gridCols ? '0px' : undefined
                     }}
                     data-width={item.w}
                     data-grid-cols={configuration.gridCols}
+                    data-is-full-width={item.w === configuration.gridCols}
                   >
                     <DraggableGridItem
                       item={item}

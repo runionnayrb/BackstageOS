@@ -98,6 +98,35 @@ div[id*="dept-section"] {
   left: 0 !important;
 }
 
+/* Prevent width transition flash on new items */
+.react-grid-item {
+  transition: none !important;
+}
+
+/* Force immediate width calculation for full-width items */
+.react-grid-layout .react-grid-item[style*="width: 8.33333%"] {
+  width: 100% !important;
+  left: 0 !important;
+}
+
+/* Target items with transform containing width calculation errors */
+.react-grid-layout .react-grid-item[style*="transform: translate3d(0px"] {
+  width: 100% !important;
+}
+
+/* Force full width for items marked as full width */
+.react-grid-item[data-is-full-width="true"] {
+  width: 100% !important;
+  left: 0 !important;
+}
+
+/* Override React Grid Layout's inline styles for full-width items */
+.react-grid-layout .react-grid-item[data-is-full-width="true"] {
+  width: 100% !important;
+  left: 0 !important;
+  transform: translate3d(0px, var(--grid-y, 0px), 0px) !important;
+}
+
 .react-grid-item.cssTransforms {
   transition-property: transform;
 }
