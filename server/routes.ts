@@ -5008,13 +5008,12 @@ Best regards,
         return res.status(400).json({ message: "pageMargins is required" });
       }
 
-      // Update the show settings to include both global margins and regular page margins
+      // Update the show settings global page margins
       const currentSettings = await storage.getShowSettingsByProjectId(projectId);
       if (currentSettings) {
         const updatedSettings = {
           ...currentSettings,
           globalPageMargins: pageMargins,
-          pageMargins: pageMargins, // This is what template settings page uses
           updatedAt: new Date()
         };
         await storage.updateShowSettings(projectId, updatedSettings);

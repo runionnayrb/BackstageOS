@@ -207,6 +207,11 @@ export default function GlobalTemplateSettings() {
     queryKey: [`/api/projects/${projectId}/global-template-settings`],
   });
 
+  // Also query show settings to get globalPageMargins
+  const { data: showSettings } = useQuery({
+    queryKey: ['/api/projects', projectId, 'settings'],
+  });
+
   const showName = project?.name || "Loading...";
 
   useEffect(() => {
@@ -215,14 +220,14 @@ export default function GlobalTemplateSettings() {
         ...prev,
         ...globalSettings,
         branding: globalSettings.branding || prev.branding,
-        pageMargins: globalSettings.pageMargins || prev.pageMargins,
+        pageMargins: showSettings?.globalPageMargins || globalSettings.pageMargins || prev.pageMargins,
         pageNumbering: globalSettings.pageNumbering || prev.pageNumbering,
         fonts: globalSettings.fonts || prev.fonts,
         lists: globalSettings.lists || prev.lists,
         email: globalSettings.email || prev.email
       }));
     }
-  }, [globalSettings]);
+  }, [globalSettings, showSettings]);
 
   const saveSettings = useMutation({
     mutationFn: async (data: { settingsData: GlobalTemplateSettings, showToast?: boolean }) => {
