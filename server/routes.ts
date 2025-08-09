@@ -5019,7 +5019,22 @@ Best regards,
         await storage.updateShowSettings(projectId, updatedSettings);
       }
 
-      res.json({ success: true, pageMargins });
+      // Also update all existing report templates with the new margins
+      const templates = await storage.getReportTemplatesByProjectId(projectId);
+      for (const template of templates) {
+        if (template.pageSettings) {
+          const updatedPageSettings = {
+            ...template.pageSettings,
+            margins: pageMargins
+          };
+          await storage.updateReportTemplate(template.id, {
+            pageSettings: updatedPageSettings,
+            updatedAt: new Date()
+          });
+        }
+      }
+
+      res.json({ success: true, pageMargins, templatesUpdated: templates.length });
     } catch (error) {
       console.error("Error updating global margins:", error);
       res.status(500).json({ message: "Failed to update global margins" });
