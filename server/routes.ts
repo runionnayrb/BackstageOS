@@ -5008,7 +5008,7 @@ Best regards,
         return res.status(400).json({ message: "pageMargins is required" });
       }
 
-      // Update the show settings global page margins
+      // Update both show settings AND global template settings for proper synchronization
       const currentSettings = await storage.getShowSettingsByProjectId(projectId);
       if (currentSettings) {
         const updatedSettings = {
@@ -5017,6 +5017,26 @@ Best regards,
           updatedAt: new Date()
         };
         await storage.updateShowSettings(projectId, updatedSettings);
+      }
+
+      // Also update the global template settings table so the UI displays correctly
+      const currentGlobalSettings = await storage.getGlobalTemplateSettingsByProjectId(projectId);
+      if (currentGlobalSettings) {
+        const updatedGlobalSettings = {
+          ...currentGlobalSettings,
+          pageMargins: pageMargins,
+          updatedAt: new Date()
+        };
+        await storage.upsertGlobalTemplateSettings(updatedGlobalSettings);
+      } else {
+        // Create new global template settings with the margins
+        const newGlobalSettings = {
+          projectId,
+          pageMargins: pageMargins,
+          createdBy: req.user.id,
+          updatedAt: new Date()
+        };
+        await storage.upsertGlobalTemplateSettings(newGlobalSettings);
       }
 
       res.json({ success: true, pageMargins, templatesUpdated: templates.length });
