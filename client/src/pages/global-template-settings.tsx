@@ -215,18 +215,20 @@ export default function GlobalTemplateSettings() {
   const showName = project?.name || "Loading...";
 
   useEffect(() => {
-    if (globalSettings) {
-      setSettings(prev => ({
-        ...prev,
-        ...globalSettings,
-        branding: globalSettings.branding || prev.branding,
-        pageMargins: showSettings?.globalPageMargins || globalSettings.pageMargins || prev.pageMargins,
-        pageNumbering: globalSettings.pageNumbering || prev.pageNumbering,
-        fonts: globalSettings.fonts || prev.fonts,
-        lists: globalSettings.lists || prev.lists,
-        email: globalSettings.email || prev.email
-      }));
-    }
+    // Always update settings when either globalSettings or showSettings change
+    setSettings(prev => {
+      const base = globalSettings ? { ...prev, ...globalSettings } : prev;
+      
+      return {
+        ...base,
+        branding: globalSettings?.branding || base.branding,
+        pageMargins: showSettings?.globalPageMargins || globalSettings?.pageMargins || base.pageMargins,
+        pageNumbering: globalSettings?.pageNumbering || base.pageNumbering,
+        fonts: globalSettings?.fonts || base.fonts,
+        lists: globalSettings?.lists || base.lists,
+        email: globalSettings?.email || base.email
+      };
+    });
   }, [globalSettings, showSettings]);
 
   const saveSettings = useMutation({
