@@ -124,12 +124,15 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
     style.borderBottom = formatting.borderBottom ? `${formatting.borderWeight} solid ${formatting.borderColor}` : 'none';
     style.borderLeft = formatting.borderLeft ? `${formatting.borderWeight} solid ${formatting.borderColor}` : 'none';
     
-    // Full width styling
-    style.padding = '8px 12px';
-    style.minHeight = '28px';
+    // Full width styling with consistent height
+    style.padding = '4px 8px';
+    style.minHeight = '24px';
+    style.height = '24px'; // Fixed height to prevent expansion
+    style.lineHeight = '16px'; // Consistent line height
     style.display = 'block';
     style.width = '100%';
     style.boxSizing = 'border-box';
+    style.overflow = 'hidden'; // Prevent content overflow from changing height
   };
 
   const updateFormatting = (key: keyof HeaderFormatting, value: any) => {
@@ -617,6 +620,11 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
           onBlur={(e) => {
             const newText = e.currentTarget.textContent?.trim() || '';
             setEditValue(newText);
+            
+            // Auto-save the name change if it's different
+            if (newText && newText !== displayName) {
+              updateDepartmentNameMutation.mutate({ newName: newText });
+            }
           }}
         >
           {editValue}

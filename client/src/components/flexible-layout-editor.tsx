@@ -216,6 +216,46 @@ const LayoutItemRenderer: React.FC<{
           department={item.content?.department || 'scenic'}
           displayName={item.content?.displayName || 'Department'}
           isEditing={effectiveEditMode}
+          onNameChange={(newName) => {
+            // Update the item's displayName in the configuration
+            if (configuration && setConfiguration) {
+              const updatedItems = configuration.items.map(configItem => {
+                if (configItem.id === item.id) {
+                  return {
+                    ...configItem,
+                    content: {
+                      ...configItem.content,
+                      displayName: newName
+                    }
+                  };
+                }
+                // Also update children if this is a grouped section
+                if (configItem.children) {
+                  return {
+                    ...configItem,
+                    children: configItem.children.map(child => 
+                      child.id === item.id ? {
+                        ...child,
+                        content: {
+                          ...child.content,
+                          displayName: newName
+                        }
+                      } : child
+                    )
+                  };
+                }
+                return configItem;
+              });
+              
+              const newConfig = {
+                ...configuration,
+                items: updatedItems
+              };
+              
+              setConfiguration(newConfig);
+              onConfigurationChange?.(newConfig);
+            }
+          }}
         />
       );
     
