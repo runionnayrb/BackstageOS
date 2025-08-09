@@ -867,7 +867,10 @@ export default function TemplateSettings() {
                   {/* Document-style Preview */}
                   <div className="bg-white min-h-[500px] shadow-lg border border-gray-200 mx-auto" style={{ 
                     width: "8.5in", 
-                    padding: "1in",
+                    paddingTop: showSettings?.globalPageMargins?.top || globalSettings?.pageMargins?.top || "1in",
+                    paddingBottom: showSettings?.globalPageMargins?.bottom || globalSettings?.pageMargins?.bottom || "1in",
+                    paddingLeft: showSettings?.globalPageMargins?.left || globalSettings?.pageMargins?.left || "1in",
+                    paddingRight: showSettings?.globalPageMargins?.right || globalSettings?.pageMargins?.right || "1in",
                     fontFamily: "Arial, sans-serif"
                   }}>
                     {/* Header - Inline Editable */}

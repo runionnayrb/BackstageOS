@@ -208,12 +208,7 @@ export default function GlobalTemplateSettings() {
     enabled: !!projectId,
   });
   
-  console.log('🔍 GLOBAL SETTINGS QUERY STATUS:', { 
-    globalSettings, 
-    globalSettingsError, 
-    isLoadingGlobalSettings,
-    projectId 
-  });
+
 
   // Also query show settings to get globalPageMargins
   const { data: showSettings } = useQuery({
@@ -223,25 +218,18 @@ export default function GlobalTemplateSettings() {
   const showName = project?.name || "Loading...";
 
   useEffect(() => {
-    console.log('🔍 GLOBAL SETTINGS DATA:', globalSettings);
-    console.log('🔍 GLOBAL SETTINGS PAGE MARGINS:', globalSettings?.pageMargins);
-    console.log('🔍 CURRENT SETTINGS STATE:', settings.pageMargins);
-    
     // Load data from globalSettings when available
     if (globalSettings) {
-      const newSettings = {
-        ...settings,
+      setSettings(prev => ({
+        ...prev,
         ...globalSettings,
-        branding: globalSettings.branding || settings.branding,
-        pageMargins: globalSettings.pageMargins || settings.pageMargins,
-        pageNumbering: globalSettings.pageNumbering || settings.pageNumbering,
-        fonts: globalSettings.fonts || settings.fonts,
-        lists: globalSettings.lists || settings.lists,
-        email: globalSettings.email || settings.email
-      };
-      
-      console.log('🔍 NEW SETTINGS TO SET:', newSettings.pageMargins);
-      setSettings(newSettings);
+        branding: globalSettings.branding || prev.branding,
+        pageMargins: globalSettings.pageMargins || prev.pageMargins,
+        pageNumbering: globalSettings.pageNumbering || prev.pageNumbering,
+        fonts: globalSettings.fonts || prev.fonts,
+        lists: globalSettings.lists || prev.lists,
+        email: globalSettings.email || prev.email
+      }));
     }
   }, [globalSettings]);
 
