@@ -587,12 +587,14 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       y: item.y,
       w: item.w,
       h: item.h,
-      // Remove width constraints that could conflict with full-width items
-      minW: item.minW, // Only apply if explicitly set
+      // Apply width constraints from item configuration
+      minW: item.minW || (item.w === 12 ? 12 : 1), // Force full width items to stay full width
       minH: item.minH || 1,
-      maxW: item.maxW, // Don't set default maxW to avoid width constraints
-      maxH: item.maxH
-      // No isResizable, isDraggable, or static properties - let the grid handle this via global props
+      maxW: item.maxW || (item.w === 12 ? 12 : undefined), // Force full width items to stay full width
+      maxH: item.maxH,
+      // Ensure full-width items are not resizable in width
+      static: item.w === 12 && item.minW === 12 && item.maxW === 12 ? false : false
+      // No isResizable, isDraggable properties - let the grid handle this via global props
     }));
     
     console.log('🔍 Layout items created:', layout.map(l => ({ id: l.i, x: l.x, y: l.y, static: l.static })));
@@ -731,18 +733,24 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         y: insertY,
         w: 12, // Full width
         h: 4,  // Increased height for better proportion
+        minW: 12, // Force minimum width to be full width
+        maxW: 12, // Force maximum width to be full width
         children: [
           {
             id: `dept-header-${deptName}-${Date.now()}`,
             type: 'department-header' as const,
             content: { department: deptName, displayName: 'New Department' },
-            x: 0, y: 0, w: 12, h: 1 // Full width header
+            x: 0, y: 0, w: 12, h: 1, // Full width header
+            minW: 12, // Force minimum width to be full width
+            maxW: 12  // Force maximum width to be full width
           },
           {
             id: `dept-notes-${deptName}-${Date.now()}`,
             type: 'notes' as const,
             content: { department: deptName },
-            x: 0, y: 1, w: 12, h: 3 // Full width notes area
+            x: 0, y: 1, w: 12, h: 3, // Full width notes area
+            minW: 12, // Force minimum width to be full width
+            maxW: 12  // Force maximum width to be full width
           }
         ]
       };
@@ -1015,7 +1023,14 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
                 style={{ minHeight: '800px', width: '100%' }}
               >
                 {configuration.items.map((item) => (
-                  <div key={item.id} className="group" style={{ width: '100%' }}>
+                  <div 
+                    key={item.id} 
+                    className={cn(
+                      "group", 
+                      item.w === 12 ? "full-width" : ""
+                    )} 
+                    style={{ width: '100%' }}
+                  >
                     <DraggableGridItem
                       item={item}
                       effectiveEditMode={effectiveEditMode}

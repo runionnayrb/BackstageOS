@@ -47,6 +47,17 @@
   border: 1px solid transparent;
 }
 
+/* Ensure full width items take full container width */
+.react-grid-item.full-width {
+  width: 100% !important;
+}
+
+/* Force grid items to respect their calculated width */
+.react-grid-layout {
+  position: relative !important;
+  width: 100% !important;
+}
+
 .react-grid-item.cssTransforms {
   transition-property: transform;
 }
