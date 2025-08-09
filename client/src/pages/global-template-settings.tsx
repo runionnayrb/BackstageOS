@@ -32,7 +32,9 @@ import {
   X,
   Image,
   Hash,
-  Calendar as CalendarIcon
+  Calendar as CalendarIcon,
+  ChevronUp,
+  ChevronDown
 } from "lucide-react";
 
 interface GlobalTemplateSettingsParams {
@@ -252,6 +254,7 @@ export default function GlobalTemplateSettings() {
         description: "Global template settings saved successfully",
       });
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/global-template-settings`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/settings`] });
     },
     onError: (error: any) => {
       console.error("Settings save error:", error);
@@ -261,6 +264,24 @@ export default function GlobalTemplateSettings() {
         description: errorMessage,
         variant: "destructive",
       });
+    },
+  });
+
+  // Function to update all template margins
+  const updateAllTemplateMargins = useMutation({
+    mutationFn: async (newMargins: { top: string; bottom: string; left: string; right: string }) => {
+      // Update show settings to apply margins to all templates
+      await apiRequest("PUT", `/api/projects/${projectId}/settings/global-margins`, {
+        pageMargins: newMargins
+      });
+    },
+    onSuccess: () => {
+      // Invalidate template-related queries to refresh all templates
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/settings`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/templates`] });
+    },
+    onError: (error: any) => {
+      console.error("Failed to update template margins:", error);
     },
   });
 
@@ -551,59 +572,77 @@ export default function GlobalTemplateSettings() {
               <CardContent className="space-y-6">
                 <div>
                   <Label className="text-base font-medium">Page Margins</Label>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Adjust margins for all report templates. Changes apply globally to all templates.
+                  </p>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="margin-top">Top</Label>
-                      <Input
-                        id="margin-top"
-                        name="margin-top"
-                        value={settings.pageMargins?.top || ''}
-                        onChange={(e) => setSettings(prev => ({
+                    {(['top', 'bottom', 'left', 'right'] as const).map((margin) => {
+                      const currentValue = settings.pageMargins?.[margin] || '1in';
+                      const numericValue = parseFloat(currentValue.replace(/[^\d.]/g, '')) || 1;
+                      const unit = currentValue.replace(/[\d.]/g, '') || 'in';
+                      
+                      const adjustMargin = (increment: boolean) => {
+                        const step = 0.1;
+                        const newValue = increment ? numericValue + step : Math.max(0.1, numericValue - step);
+                        const newMarginValue = `${newValue.toFixed(1)}${unit}`;
+                        
+                        setSettings(prev => ({
                           ...prev,
-                          pageMargins: { ...(prev.pageMargins || {}), top: e.target.value }
-                        }))}
-                        placeholder="1in"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="margin-bottom">Bottom</Label>
-                      <Input
-                        id="margin-bottom"
-                        name="margin-bottom"
-                        value={settings.pageMargins?.bottom || ''}
-                        onChange={(e) => setSettings(prev => ({
-                          ...prev,
-                          pageMargins: { ...(prev.pageMargins || {}), bottom: e.target.value }
-                        }))}
-                        placeholder="1in"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="margin-left">Left</Label>
-                      <Input
-                        id="margin-left"
-                        name="margin-left"
-                        value={settings.pageMargins?.left || ''}
-                        onChange={(e) => setSettings(prev => ({
-                          ...prev,
-                          pageMargins: { ...(prev.pageMargins || {}), left: e.target.value }
-                        }))}
-                        placeholder="1in"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="margin-right">Right</Label>
-                      <Input
-                        id="margin-right"
-                        name="margin-right"
-                        value={settings.pageMargins?.right || ''}
-                        onChange={(e) => setSettings(prev => ({
-                          ...prev,
-                          pageMargins: { ...(prev.pageMargins || {}), right: e.target.value }
-                        }))}
-                        placeholder="1in"
-                      />
-                    </div>
+                          pageMargins: { ...(prev.pageMargins || {}), [margin]: newMarginValue }
+                        }));
+                        
+                        // Auto-save with both global settings and template updates
+                        setTimeout(() => {
+                          const updatedSettings = {
+                            ...settings,
+                            pageMargins: { ...settings.pageMargins, [margin]: newMarginValue }
+                          };
+                          saveSettings.mutate(updatedSettings);
+                          updateAllTemplateMargins.mutate(updatedSettings.pageMargins);
+                        }, 1000);
+                      };
+                      
+                      return (
+                        <div key={margin} className="space-y-2">
+                          <Label className="capitalize">{margin}</Label>
+                          <div className="flex items-center space-x-1">
+                            <div className="flex flex-col">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-6 w-8 p-0 rounded-t-md rounded-b-none border-b-0"
+                                onClick={() => adjustMargin(true)}
+                              >
+                                <ChevronUp className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-6 w-8 p-0 rounded-b-md rounded-t-none"
+                                onClick={() => adjustMargin(false)}
+                              >
+                                <ChevronDown className="h-3 w-3" />
+                              </Button>
+                            </div>
+                            <Input
+                              value={currentValue}
+                              onChange={(e) => setSettings(prev => ({
+                                ...prev,
+                                pageMargins: { ...(prev.pageMargins || {}), [margin]: e.target.value }
+                              }))}
+                              className="flex-1 text-center"
+                              placeholder="1in"
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                      💡 <strong>Global Updates:</strong> Margin changes here will update all report templates automatically. 
+                      Use the arrows for precise 0.1" increments or type custom values.
+                    </p>
                   </div>
                 </div>
 

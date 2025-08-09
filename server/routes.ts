@@ -4988,6 +4988,44 @@ Best regards,
     }
   });
 
+  // Update global margins for all templates
+  app.put('/api/projects/:id/settings/global-margins', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const { pageMargins } = req.body;
+      if (!pageMargins) {
+        return res.status(400).json({ message: "pageMargins is required" });
+      }
+
+      // Update the show settings to include global margin settings
+      const currentSettings = await storage.getShowSettings(projectId);
+      if (currentSettings) {
+        const updatedSettings = {
+          ...currentSettings,
+          globalPageMargins: pageMargins,
+          updatedAt: new Date()
+        };
+        await storage.updateShowSettings(projectId, updatedSettings);
+      }
+
+      res.json({ success: true, pageMargins });
+    } catch (error) {
+      console.error("Error updating global margins:", error);
+      res.status(500).json({ message: "Failed to update global margins" });
+    }
+  });
+
   // Beta feature settings API (admin only)
   app.get('/api/admin/beta-settings', isAuthenticated, async (req: any, res) => {
     try {

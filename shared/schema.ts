@@ -371,6 +371,7 @@ export const showSettings = pgTable("show_settings", {
   headerFormatting: jsonb("header_formatting"), // Template header formatting settings
   footerFormatting: jsonb("footer_formatting"), // Template footer formatting settings
   layoutConfiguration: jsonb("layout_configuration"), // Drag-and-drop layout positioning for headers and notes
+  globalPageMargins: jsonb("global_page_margins"), // Global page margins that apply to all templates
   featureSettings: jsonb("feature_settings").notNull().default('{"email":{"team":true},"chat":true,"reports":true,"calendar":true,"script":true,"props":true,"contacts":true}'), // Toggle settings for app features
   createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
