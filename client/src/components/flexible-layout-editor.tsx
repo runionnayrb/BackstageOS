@@ -736,32 +736,30 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         content: { department: deptName, displayName: 'New Department' },
         x: 0,
         y: insertY,
-        w: configuration.gridCols, // Use actual grid columns instead of hardcoded 12
-        h: 4,  // Increased height for better proportion
-        minW: configuration.gridCols, // Force minimum width to be full width
-        maxW: configuration.gridCols, // Force maximum width to be full width
-        isResizable: false, // Prevent resizing
-        isDraggable: true,  // Allow dragging
+        w: 6, // Start with 6 columns like existing departments
+        h: 4,
+        minW: 3, // Allow resizing with same constraints as existing departments
+        minH: 4,
+        isResizable: true, // Allow resizing like existing departments
+        isDraggable: true, // Allow dragging
         children: [
           {
             id: `dept-header-${deptName}-${Date.now()}`,
             type: 'department-header' as const,
             content: { department: deptName, displayName: 'New Department' },
-            x: 0, y: 0, w: configuration.gridCols, h: 1, // Full width header
-            minW: configuration.gridCols, // Force minimum width to be full width
-            maxW: configuration.gridCols,  // Force maximum width to be full width
-            isResizable: false,
-            isDraggable: false
+            x: 0, y: 0, w: 6, h: 1,
+            minW: 2, minH: 1, // Allow resizing like existing department headers
+            isResizable: true,
+            isDraggable: true
           },
           {
             id: `dept-notes-${deptName}-${Date.now()}`,
             type: 'notes' as const,
             content: { department: deptName },
-            x: 0, y: 1, w: configuration.gridCols, h: 3, // Full width notes area
-            minW: configuration.gridCols, // Force minimum width to be full width
-            maxW: configuration.gridCols,  // Force maximum width to be full width
-            isResizable: false,
-            isDraggable: false
+            x: 0, y: 1, w: 6, h: 3,
+            minW: 3, minH: 2, // Allow resizing like existing department notes
+            isResizable: true,
+            isDraggable: true
           }
         ]
       };
