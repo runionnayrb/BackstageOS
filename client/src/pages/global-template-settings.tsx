@@ -203,8 +203,16 @@ export default function GlobalTemplateSettings() {
     queryKey: [`/api/projects/${projectId}`],
   });
 
-  const { data: globalSettings } = useQuery({
+  const { data: globalSettings, error: globalSettingsError, isLoading: isLoadingGlobalSettings } = useQuery({
     queryKey: [`/api/projects/${projectId}/global-template-settings`],
+    enabled: !!projectId,
+  });
+  
+  console.log('🔍 GLOBAL SETTINGS QUERY STATUS:', { 
+    globalSettings, 
+    globalSettingsError, 
+    isLoadingGlobalSettings,
+    projectId 
   });
 
   // Also query show settings to get globalPageMargins
@@ -215,18 +223,25 @@ export default function GlobalTemplateSettings() {
   const showName = project?.name || "Loading...";
 
   useEffect(() => {
+    console.log('🔍 GLOBAL SETTINGS DATA:', globalSettings);
+    console.log('🔍 GLOBAL SETTINGS PAGE MARGINS:', globalSettings?.pageMargins);
+    console.log('🔍 CURRENT SETTINGS STATE:', settings.pageMargins);
+    
     // Load data from globalSettings when available
     if (globalSettings) {
-      setSettings(prev => ({
-        ...prev,
+      const newSettings = {
+        ...settings,
         ...globalSettings,
-        branding: globalSettings.branding || prev.branding,
-        pageMargins: globalSettings.pageMargins || prev.pageMargins,
-        pageNumbering: globalSettings.pageNumbering || prev.pageNumbering,
-        fonts: globalSettings.fonts || prev.fonts,
-        lists: globalSettings.lists || prev.lists,
-        email: globalSettings.email || prev.email
-      }));
+        branding: globalSettings.branding || settings.branding,
+        pageMargins: globalSettings.pageMargins || settings.pageMargins,
+        pageNumbering: globalSettings.pageNumbering || settings.pageNumbering,
+        fonts: globalSettings.fonts || settings.fonts,
+        lists: globalSettings.lists || settings.lists,
+        email: globalSettings.email || settings.email
+      };
+      
+      console.log('🔍 NEW SETTINGS TO SET:', newSettings.pageMargins);
+      setSettings(newSettings);
     }
   }, [globalSettings]);
 
