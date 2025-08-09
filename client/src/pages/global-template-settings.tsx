@@ -612,10 +612,17 @@ export default function GlobalTemplateSettings() {
                             </div>
                             <Input
                               value={currentValue}
-                              onChange={(e) => setSettings(prev => ({
-                                ...prev,
-                                pageMargins: { ...(prev.pageMargins || {}), [margin]: e.target.value }
-                              }))}
+                              onChange={(e) => {
+                                let value = e.target.value;
+                                // If user types just a number like ".5", auto-add "in" unit
+                                if (/^\d*\.?\d*$/.test(value) && value !== '' && !value.includes('in') && !value.includes('cm') && !value.includes('mm') && !value.includes('px')) {
+                                  value = value + 'in';
+                                }
+                                setSettings(prev => ({
+                                  ...prev,
+                                  pageMargins: { ...(prev.pageMargins || {}), [margin]: value }
+                                }));
+                              }}
                               className="flex-1 text-center"
                               placeholder="1in"
                             />

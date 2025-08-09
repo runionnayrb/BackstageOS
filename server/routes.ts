@@ -5009,7 +5009,7 @@ Best regards,
       }
 
       // Update the show settings to include global margin settings
-      const currentSettings = await storage.getShowSettings(projectId);
+      const currentSettings = await storage.getShowSettingsByProjectId(projectId);
       if (currentSettings) {
         const updatedSettings = {
           ...currentSettings,
