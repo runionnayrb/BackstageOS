@@ -5039,7 +5039,7 @@ Best regards,
         await storage.upsertGlobalTemplateSettings(newGlobalSettings);
       }
 
-      res.json({ success: true, pageMargins, templatesUpdated: templates.length });
+      res.json({ success: true, pageMargins });
     } catch (error) {
       console.error("Error updating global margins:", error);
       res.status(500).json({ message: "Failed to update global margins" });
