@@ -63,6 +63,7 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
   const [isEditingText, setIsEditingText] = useState(false);
   const [editValue, setEditValue] = useState(displayName);
   const [showToolbar, setShowToolbar] = useState(false);
+  const [actualDisplayName, setActualDisplayName] = useState(displayName);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const editableRef = useRef<HTMLDivElement>(null);
@@ -93,10 +94,12 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
     staleTime: 0 // Always fetch fresh data
   });
 
-  // Apply saved formatting when loaded
+  // Apply saved formatting and department name when loaded
   useEffect(() => {
     console.log(`🎨 ShowSettings for ${department}:`, showSettings);
     console.log(`🎨 DepartmentFormatting object:`, (showSettings as any)?.departmentFormatting);
+    
+    // Load saved formatting
     if (showSettings && (showSettings as any).departmentFormatting?.[department]) {
       const savedFormatting = (showSettings as any).departmentFormatting[department];
       console.log(`🎨 Loading saved formatting for ${department}:`, savedFormatting);
@@ -104,7 +107,19 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
     } else {
       console.log(`🎨 No saved formatting found for ${department}, using defaults`);
     }
-  }, [showSettings, department]);
+    
+    // Load saved department name from departmentNames
+    if (showSettings && (showSettings as any).departmentNames?.[department]) {
+      const savedName = (showSettings as any).departmentNames[department];
+      console.log(`📝 Loading saved department name for ${department}:`, savedName);
+      setActualDisplayName(savedName);
+      setEditValue(savedName);
+    } else {
+      console.log(`📝 No saved name found for ${department}, using displayName:`, displayName);
+      setActualDisplayName(displayName);
+      setEditValue(displayName);
+    }
+  }, [showSettings, department, displayName]);
 
   // Apply styles to the editable element
   const applyFormatting = (element: HTMLElement) => {
@@ -142,7 +157,7 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
   };
 
   const updateDepartmentNameMutation = useMutation({
-    mutationFn: async (newName: string) => {
+    mutationFn: async ({ newName }: { newName: string }) => {
       const response = await fetch(`/api/projects/${projectId}/settings/department-names`, {
         method: 'PUT',
         headers: {
@@ -167,6 +182,7 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
       });
       setIsEditingText(false);
       setShowToolbar(false);
+      setActualDisplayName(editValue);
       onNameChange?.(editValue);
       // Delayed cache invalidation to prevent overwriting user changes
       setTimeout(() => {
@@ -261,7 +277,7 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
       const newText = editableRef.current.textContent?.trim() || '';
       if (newText && newText !== displayName) {
         setEditValue(newText);
-        updateDepartmentNameMutation.mutate(newText);
+        updateDepartmentNameMutation.mutate({ newName: newText });
       }
       updateFormattingMutation.mutate({ formatting, applyToAll: false });
     }
@@ -647,7 +663,7 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
         onClick={isEditing ? () => {
           setIsEditingText(true);
           setShowToolbar(true);
-          setEditValue(displayName);
+          setEditValue(actualDisplayName);
           
           // Focus the editable element after a short delay
           setTimeout(() => {
@@ -683,7 +699,7 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
           borderRadius: '4px'
         }}
       >
-        {displayName}
+        {actualDisplayName}
       </div>
 
     </div>
