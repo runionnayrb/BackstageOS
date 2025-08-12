@@ -261,8 +261,20 @@ const LayoutItemRenderer: React.FC<{
                 items: updatedItems
               };
               
+              console.log('🔄 Department name changed, updating layout configuration:', {
+                department,
+                oldName: item.content?.displayName,
+                newName,
+                itemId: item.id
+              });
+              
               setConfiguration(newConfig);
-              onConfigurationChange?.(newConfig);
+              
+              // Save the updated configuration immediately
+              if (onConfigurationChange) {
+                console.log('💾 Saving updated layout configuration with new department name');
+                onConfigurationChange(newConfig);
+              }
             }
           }}
         />
@@ -772,7 +784,9 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       const lastItemY = allItems.length > 0 ? Math.max(...allItems.map(i => i.y + i.h)) : 0;
       const insertY = lastItemY + 1; // Place at bottom with 1 row spacing
       
-      const deptName = 'new-dept';
+      // Generate a unique department key that will be used in departmentNames
+      const timestamp = Date.now();
+      const deptName = `new-dept-${timestamp}`;
       console.log('📍 Department positioning:', {
         lastItemY,
         insertY,
