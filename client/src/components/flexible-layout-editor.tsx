@@ -78,6 +78,7 @@ interface FlexibleLayoutEditorProps {
   onConfigurationChange?: (config: FlexibleLayoutConfiguration) => void;
   template?: any;
   onTemplateUpdate?: (template: any) => void;
+  showSettings?: any; // Added to access department names
 
   // External edit mode control
   externalEditMode?: boolean;
@@ -170,6 +171,7 @@ const LayoutItemRenderer: React.FC<{
   configuration?: FlexibleLayoutConfiguration;
   setConfiguration?: React.Dispatch<React.SetStateAction<FlexibleLayoutConfiguration>>;
   onConfigurationChange?: (config: FlexibleLayoutConfiguration) => void;
+  showSettings?: any; // Added to access department names
 }> = ({ 
   item, 
   projectId, 
@@ -182,7 +184,8 @@ const LayoutItemRenderer: React.FC<{
   onDateChange,
   configuration,
   setConfiguration,
-  onConfigurationChange
+  onConfigurationChange,
+  showSettings
 }) => {
   switch (item.type) {
     case 'grouped-section':
@@ -203,6 +206,7 @@ const LayoutItemRenderer: React.FC<{
                 configuration={configuration}
                 setConfiguration={setConfiguration}
                 onConfigurationChange={onConfigurationChange}
+                showSettings={showSettings}
               />
             </div>
           ))}
@@ -210,11 +214,16 @@ const LayoutItemRenderer: React.FC<{
       );
 
     case 'department-header':
+      // Use saved department name from showSettings if available, otherwise fall back to displayName
+      const department = item.content?.department || 'scenic';
+      const savedDepartmentName = showSettings?.departmentNames?.[department];
+      const effectiveDisplayName = savedDepartmentName || item.content?.displayName || 'Department';
+      
       return (
         <EditableDepartmentHeader
           projectId={projectId}
-          department={item.content?.department || 'scenic'}
-          displayName={item.content?.displayName || 'Department'}
+          department={department}
+          displayName={effectiveDisplayName}
           isEditing={effectiveEditMode}
           onNameChange={(newName) => {
             // Update the item's displayName in the configuration
@@ -401,7 +410,8 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
   onTemplateUpdate,
   setIsSaving,
   setLastSaved,
-  externalEditMode
+  externalEditMode,
+  showSettings
 }, ref) => {
   const [isEditMode, setIsEditMode] = useState(isEditing);
   const [layouts, setLayouts] = useState<Layouts>({});
@@ -1117,6 +1127,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
                         configuration={configuration}
                         setConfiguration={setConfiguration}
                         onConfigurationChange={onConfigurationChange}
+                        showSettings={showSettings}
                       />
                     </DraggableGridItem>
                   </div>

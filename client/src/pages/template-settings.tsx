@@ -919,6 +919,7 @@ export default function TemplateSettings() {
                         reportType="tech"
                         isEditing={true}
                         template={template}
+                        showSettings={showSettings}
                         onTemplateUpdate={(updatedTemplate) => {
                           // This only triggers when lock button is pressed
                           setTemplates(prev => ({
