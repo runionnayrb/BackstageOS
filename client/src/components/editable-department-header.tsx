@@ -688,13 +688,22 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
               newText,
               actualDisplayName,
               displayName,
-              needsUpdate: newText && newText !== actualDisplayName
+              needsUpdate: newText && newText !== actualDisplayName,
+              contentEditable: e.currentTarget.contentEditable,
+              isEditing,
+              disableEditing
             });
             
             // Auto-save the name change if it's different from actualDisplayName
-            if (newText && newText !== actualDisplayName) {
+            if (newText && newText !== actualDisplayName && !disableEditing) {
               console.log(`📝 Triggering department name update: ${department} -> "${newText}"`);
               updateDepartmentNameMutation.mutate({ newName: newText });
+            } else {
+              console.log(`❌ Not saving because:`, {
+                sameText: newText === actualDisplayName,
+                disabled: disableEditing,
+                emptyText: !newText
+              });
             }
           }}
           onInput={(e) => {
