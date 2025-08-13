@@ -642,11 +642,20 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
             boxSizing: 'border-box'
           }}
           onBlur={(e) => {
+            console.log(`🔍 Department header onBlur triggered for ${department}`);
             const newText = e.currentTarget.textContent?.trim() || '';
             setEditValue(newText);
             
-            // Auto-save the name change if it's different
-            if (newText && newText !== displayName) {
+            console.log(`🔍 Blur comparison for department ${department}:`, {
+              newText,
+              actualDisplayName,
+              displayName,
+              needsUpdate: newText && newText !== actualDisplayName
+            });
+            
+            // Auto-save the name change if it's different from actualDisplayName
+            if (newText && newText !== actualDisplayName) {
+              console.log(`📝 Triggering department name update: ${department} -> "${newText}"`);
               updateDepartmentNameMutation.mutate({ newName: newText });
             }
           }}
