@@ -42,7 +42,7 @@ export default function EditableFieldHeading({
       const formatting = showSettings.fieldHeaderFormatting;
       console.log('Applying saved field header formatting:', formatting);
       
-      // Apply formatting to all field headers
+      // Apply formatting only to field headers (not department headers)
       const fieldHeaders = document.querySelectorAll('[data-field-heading]');
       fieldHeaders.forEach((element) => {
         const htmlElement = element as HTMLElement;
@@ -193,17 +193,11 @@ export default function EditableFieldHeading({
         }),
       });
 
-      // Immediately apply formatting to all headers on the page
-      const allHeaders = document.querySelectorAll('[data-field-heading], [data-department-header]');
-      allHeaders.forEach((element) => {
-        const htmlElement = element as HTMLElement;
-        Object.entries(fieldFormatting).forEach(([property, value]) => {
-          if (value && value !== 'rgba(0, 0, 0, 0)') {
-            const cssProperty = property.replace(/([A-Z])/g, '-$1').toLowerCase();
-            htmlElement.style.setProperty(cssProperty, value as string);
-          }
-        });
-      });
+      // Let React re-render naturally - no DOM manipulation needed
+      // The backend updates will trigger re-renders through React Query
+
+      // Invalidate queries to trigger React re-renders
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
 
       toast({
         title: "Formatting applied",
@@ -213,13 +207,6 @@ export default function EditableFieldHeading({
       // Close the toolbar after successful update
       setShowToolbar(false);
       setEditingElement(null);
-      
-      // Trigger auto-save to ensure the formatting persists
-      if (editingElement) {
-        setTimeout(() => {
-          handleAutoSave();
-        }, 50);
-      }
 
     } catch (error) {
       console.error('Error applying formatting to all headers:', error);
