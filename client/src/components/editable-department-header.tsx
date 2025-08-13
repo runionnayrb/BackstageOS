@@ -613,21 +613,13 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
           </div>
         )}
 
-        {/* Editable Header */}
+        {/* Editable Header - Simplified like field headers */}
         <div
           ref={editableRef}
-          contentEditable={!disableEditing}
+          contentEditable={isEditing && !disableEditing}
           suppressContentEditableWarning
           className="outline-none cursor-text w-full editable-department-header"
           data-department-header="true"
-          onMouseDown={(e) => {
-            console.log(`🐭 Mouse down on department header ${department}`);
-            e.stopPropagation(); // Prevent grid layout drag interference
-          }}
-          onMouseUp={(e) => {
-            console.log(`🐭 Mouse up on department header ${department}`);
-            e.stopPropagation(); // Prevent grid layout drag interference
-          }}
           style={{
             border: 'none',
             borderRadius: '4px',
@@ -649,73 +641,32 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
             width: '100%',
             boxSizing: 'border-box'
           }}
-          onClick={(e) => {
-            console.log(`🖱️ Department header clicked for ${department}:`, {
-              contentEditable: !disableEditing,
-              disableEditing,
-              isEditing,
-              currentText: editableRef.current?.textContent
-            });
-            e.stopPropagation(); // Prevent grid layout from handling this
-            if (!disableEditing && isEditing) {
-              setIsEditingText(true);
-              setShowToolbar(true);
-              setEditValue(actualDisplayName);
-              
-              // Focus the editable element after a short delay
-              setTimeout(() => {
-                if (editableRef.current) {
-                  editableRef.current.focus();
-                  // Select all text
-                  const range = document.createRange();
-                  range.selectNodeContents(editableRef.current);
-                  const selection = window.getSelection();
-                  selection?.removeAllRanges();
-                  selection?.addRange(range);
-                }
-              }, 50);
-            }
-          }}
-          onFocus={() => {
+          onFocus={(isEditing && !disableEditing) ? (e) => {
             console.log(`🎯 Department header focused for ${department}`);
-          }}
-          onBlur={(e) => {
+            setShowToolbar(true);
+          } : undefined}
+          onBlur={(isEditing && !disableEditing) ? (e) => {
             console.log(`🔍 Department header onBlur triggered for ${department}`);
-            const newText = e.currentTarget.textContent?.trim() || '';
+            const newText = e.currentTarget.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
             
             console.log(`🔍 Blur comparison for department ${department}:`, {
               newText,
               actualDisplayName,
-              displayName,
-              needsUpdate: newText && newText !== actualDisplayName,
-              contentEditable: e.currentTarget.contentEditable,
-              isEditing,
-              disableEditing
+              needsUpdate: newText !== actualDisplayName
             });
             
             // Use the same approach as field headers - just call onNameChange directly
-            if (newText && newText !== actualDisplayName && !disableEditing) {
+            if (newText !== actualDisplayName) {
               console.log(`📝 Calling onNameChange for department: ${department} -> "${newText}"`);
+              onNameChange(newText); // Simple callback like field headers
               setActualDisplayName(newText);
               setEditValue(newText);
-              onNameChange(newText); // Simple callback like field headers
-            } else {
-              console.log(`❌ Not saving because:`, {
-                sameText: newText === actualDisplayName,
-                disabled: disableEditing,
-                emptyText: !newText
-              });
             }
+          } : undefined}
+          dangerouslySetInnerHTML={{
+            __html: editValue.replace(/\n/g, '<br>')
           }}
-          onInput={(e) => {
-            console.log(`⌨️ Department header input for ${department}:`, {
-              newText: e.currentTarget.textContent,
-              isContentEditable: e.currentTarget.contentEditable
-            });
-          }}
-        >
-          {editValue}
-        </div>
+        />
       </div>
     );
   }
