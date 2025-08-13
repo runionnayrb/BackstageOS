@@ -28,7 +28,7 @@ interface EditableDepartmentHeaderProps {
   projectId: number;
   department: string;
   displayName: string;
-  onNameChange?: (newName: string) => void;
+  onNameChange: (newName: string) => void; // Make this required like field headers
   onFormattingChange?: (formatting: HeaderFormatting) => void;
   isEditing?: boolean;
   disableEditing?: boolean; // Disable editing when in grouped sections
@@ -682,7 +682,6 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
           onBlur={(e) => {
             console.log(`🔍 Department header onBlur triggered for ${department}`);
             const newText = e.currentTarget.textContent?.trim() || '';
-            setEditValue(newText);
             
             console.log(`🔍 Blur comparison for department ${department}:`, {
               newText,
@@ -694,10 +693,12 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
               disableEditing
             });
             
-            // Auto-save the name change if it's different from actualDisplayName
+            // Use the same approach as field headers - just call onNameChange directly
             if (newText && newText !== actualDisplayName && !disableEditing) {
-              console.log(`📝 Triggering department name update: ${department} -> "${newText}"`);
-              updateDepartmentNameMutation.mutate({ newName: newText });
+              console.log(`📝 Calling onNameChange for department: ${department} -> "${newText}"`);
+              setActualDisplayName(newText);
+              setEditValue(newText);
+              onNameChange(newText); // Simple callback like field headers
             } else {
               console.log(`❌ Not saving because:`, {
                 sameText: newText === actualDisplayName,
