@@ -620,6 +620,14 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
           suppressContentEditableWarning
           className="outline-none cursor-text w-full editable-department-header"
           data-department-header="true"
+          onMouseDown={(e) => {
+            console.log(`🐭 Mouse down on department header ${department}`);
+            e.stopPropagation(); // Prevent grid layout drag interference
+          }}
+          onMouseUp={(e) => {
+            console.log(`🐭 Mouse up on department header ${department}`);
+            e.stopPropagation(); // Prevent grid layout drag interference
+          }}
           style={{
             border: 'none',
             borderRadius: '4px',
@@ -641,13 +649,32 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
             width: '100%',
             boxSizing: 'border-box'
           }}
-          onClick={() => {
+          onClick={(e) => {
             console.log(`🖱️ Department header clicked for ${department}:`, {
               contentEditable: !disableEditing,
               disableEditing,
               isEditing,
               currentText: editableRef.current?.textContent
             });
+            e.stopPropagation(); // Prevent grid layout from handling this
+            if (!disableEditing && isEditing) {
+              setIsEditingText(true);
+              setShowToolbar(true);
+              setEditValue(actualDisplayName);
+              
+              // Focus the editable element after a short delay
+              setTimeout(() => {
+                if (editableRef.current) {
+                  editableRef.current.focus();
+                  // Select all text
+                  const range = document.createRange();
+                  range.selectNodeContents(editableRef.current);
+                  const selection = window.getSelection();
+                  selection?.removeAllRanges();
+                  selection?.addRange(range);
+                }
+              }, 50);
+            }
           }}
           onFocus={() => {
             console.log(`🎯 Department header focused for ${department}`);
