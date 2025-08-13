@@ -275,7 +275,15 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
   const handleAutoSave = () => {
     if (editableRef.current) {
       const newText = editableRef.current.textContent?.trim() || '';
-      if (newText && newText !== displayName) {
+      console.log(`🔍 Auto-save triggered for department ${department}:`, {
+        newText,
+        currentDisplayName: displayName,
+        actualDisplayName,
+        needsNameUpdate: newText && newText !== actualDisplayName
+      });
+      
+      if (newText && newText !== actualDisplayName) {
+        console.log(`📝 Updating department name: ${department} -> "${newText}"`);
         setEditValue(newText);
         updateDepartmentNameMutation.mutate({ newName: newText });
       }
