@@ -64,6 +64,13 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
   const [editValue, setEditValue] = useState(displayName);
   const [showToolbar, setShowToolbar] = useState(false);
   const [actualDisplayName, setActualDisplayName] = useState(displayName);
+  
+  // Debug: Log whenever props change
+  console.log(`🔍 Department header ${department} props:`, {
+    displayName,
+    editValue,
+    actualDisplayName
+  });
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const editableRef = useRef<HTMLDivElement>(null);
@@ -647,20 +654,26 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
           } : undefined}
           onBlur={(isEditing && !disableEditing) ? (e) => {
             console.log(`🔍 Department header onBlur triggered for ${department}`);
-            const newText = e.currentTarget.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
+            const newText = e.currentTarget.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '').trim();
             
             console.log(`🔍 Blur comparison for department ${department}:`, {
               newText,
               actualDisplayName,
-              needsUpdate: newText !== actualDisplayName
+              editValue,
+              displayName,
+              needsUpdate: newText !== actualDisplayName && newText !== ''
             });
             
-            // Use the same approach as field headers - just call onNameChange directly
-            if (newText !== actualDisplayName) {
+            // Only save if the text actually changed and is not empty
+            if (newText && newText !== actualDisplayName) {
               console.log(`📝 Calling onNameChange for department: ${department} -> "${newText}"`);
-              onNameChange(newText); // Simple callback like field headers
-              setActualDisplayName(newText);
-              setEditValue(newText);
+              onNameChange(newText); // This will save to database
+              // Don't update local state here - let the parent re-render with fresh data
+            } else {
+              console.log(`❌ Not saving. Reason:`, {
+                emptyText: !newText,
+                sameText: newText === actualDisplayName
+              });
             }
           } : undefined}
           dangerouslySetInnerHTML={{
