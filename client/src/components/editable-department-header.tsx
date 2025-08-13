@@ -616,7 +616,7 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
         {/* Editable Header */}
         <div
           ref={editableRef}
-          contentEditable
+          contentEditable={!disableEditing}
           suppressContentEditableWarning
           className="outline-none cursor-text w-full editable-department-header"
           data-department-header="true"
@@ -641,6 +641,17 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
             width: '100%',
             boxSizing: 'border-box'
           }}
+          onClick={() => {
+            console.log(`🖱️ Department header clicked for ${department}:`, {
+              contentEditable: !disableEditing,
+              disableEditing,
+              isEditing,
+              currentText: editableRef.current?.textContent
+            });
+          }}
+          onFocus={() => {
+            console.log(`🎯 Department header focused for ${department}`);
+          }}
           onBlur={(e) => {
             console.log(`🔍 Department header onBlur triggered for ${department}`);
             const newText = e.currentTarget.textContent?.trim() || '';
@@ -658,6 +669,12 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
               console.log(`📝 Triggering department name update: ${department} -> "${newText}"`);
               updateDepartmentNameMutation.mutate({ newName: newText });
             }
+          }}
+          onInput={(e) => {
+            console.log(`⌨️ Department header input for ${department}:`, {
+              newText: e.currentTarget.textContent,
+              isContentEditable: e.currentTarget.contentEditable
+            });
           }}
         >
           {editValue}
