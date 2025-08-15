@@ -264,17 +264,23 @@ export default function TemplateSettings() {
 
     // UNIFIED APPROACH: Load layoutConfiguration from showSettings for ALL templates
     if (showSettings?.layoutConfiguration) {
-      console.log('🔄 Loading layoutConfiguration from unified showSettings:', JSON.stringify(showSettings.layoutConfiguration, null, 2));
+      console.log('🔄 TEMPLATE INIT: Loading layoutConfiguration from database');
+      console.log('🔍 DB Layout items:', showSettings.layoutConfiguration.items?.map((item: any) => ({ 
+        id: item.id, 
+        type: item.type, 
+        x: item.x, 
+        y: item.y 
+      })));
       // Apply the saved layoutConfiguration to the tech template
       if (initialTemplates.tech) {
         initialTemplates.tech = {
           ...initialTemplates.tech,
           layoutConfiguration: showSettings.layoutConfiguration
         };
-        console.log('✅ Applied unified layoutConfiguration to tech template');
+        console.log('✅ TEMPLATE INIT: Applied database layout to tech template');
       }
     } else {
-      console.log('❌ No layoutConfiguration found in unified showSettings');
+      console.log('❌ TEMPLATE INIT: No layoutConfiguration found in database');
     }
 
     console.log('✅ Templates initialized with unified showSettings approach - single database table!');

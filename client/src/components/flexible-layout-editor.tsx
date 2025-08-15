@@ -590,18 +590,33 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
   // This handles cases where user navigates away and back with fresh database data
   useEffect(() => {
     if (template?.layoutConfiguration && isInitialized) {
-      console.log('🔄 TEMPLATE LAYOUT UPDATED - refreshing configuration from fresh database data');
+      console.log('🔄 LAYOUT REFRESH: Template layout configuration changed');
       console.log('🔍 Fresh layout items from DB:', template.layoutConfiguration.items?.map((item: any) => ({ 
         id: item.id, 
         type: item.type, 
         x: item.x, 
         y: item.y 
       })));
+      console.log('🔍 Current config items:', configuration.items?.map((item: any) => ({ 
+        id: item.id, 
+        type: item.type, 
+        x: item.x, 
+        y: item.y 
+      })));
       
-      setConfiguration(template.layoutConfiguration);
-      console.log('✅ Configuration updated from fresh template data');
+      // Check if there's actually a meaningful difference
+      const currentPositions = JSON.stringify(configuration.items?.map(item => ({ id: item.id, x: item.x, y: item.y })) || []);
+      const newPositions = JSON.stringify(template.layoutConfiguration.items?.map((item: any) => ({ id: item.id, x: item.x, y: item.y })) || []);
+      
+      if (currentPositions !== newPositions) {
+        console.log('🔥 POSITION CHANGE DETECTED - updating configuration');
+        setConfiguration(template.layoutConfiguration);
+      } else {
+        console.log('📋 No position changes detected - keeping current configuration');
+      }
+      console.log('✅ Layout refresh check complete');
     }
-  }, [template?.layoutConfiguration, isInitialized]);
+  }, [template?.layoutConfiguration, isInitialized, configuration.items]);
 
   // NO MORE COMPLEX TRACKING - Keep it simple
 

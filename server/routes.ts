@@ -4108,6 +4108,14 @@ Best regards,
       const projectId = parseInt(req.params.id);
       const { layoutConfiguration, templateType } = req.body;
       
+      console.log('💾 BACKEND SAVE: Layout configuration save request received');
+      console.log('🔍 Layout items being saved:', layoutConfiguration?.items?.map((item: any) => ({ 
+        id: item.id, 
+        type: item.type, 
+        x: item.x, 
+        y: item.y 
+      })));
+      
       const project = await storage.getProjectById(projectId);
       if (!project) {
         return res.status(404).json({ message: "Project not found" });
@@ -4124,7 +4132,13 @@ Best regards,
         layoutConfiguration: layoutConfiguration
       });
 
-      console.log(`✅ Layout configuration saved to unified showSettings for ${templateType || 'tech'} template`);
+      console.log(`✅ BACKEND SAVE: Layout configuration saved to database for ${templateType || 'tech'} template`);
+      console.log('🔍 Saved layout items in DB:', updatedSettings.layoutConfiguration?.items?.map((item: any) => ({ 
+        id: item.id, 
+        type: item.type, 
+        x: item.x, 
+        y: item.y 
+      })));
 
       // Return the complete updated settings object for cache consistency
       res.json(updatedSettings);
