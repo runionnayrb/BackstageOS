@@ -12,6 +12,7 @@ import { ContactDetailModal } from "@/components/contact-detail-modal";
 import { WeeklyAvailabilityEditor } from "@/components/weekly-availability-editor";
 import { ContactForm } from "@/components/contact-form";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { setPageHeaderIcons, clearPageHeaderIcons } from "@/hooks/useHeaderIcons";
 
 
 interface PersonnelParams {
@@ -103,6 +104,49 @@ export default function Personnel() {
       setCategories([...reorderedCategories, ...newCategories]);
     }
   }, [projectSettings]);
+
+  // Set header icons for mobile header 
+  useEffect(() => {
+    if (isMobile) {
+      setPageHeaderIcons([
+        {
+          icon: FileText,
+          component: () => (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="p-1 hover:text-blue-600 transition-colors">
+                  <FileText className="h-5 w-5" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => setLocation(`/shows/${projectId}/contact-sheet`)}>
+                  Contact Sheet
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLocation(`/shows/${projectId}/company-list`)}>
+                  Company List
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ),
+          title: 'Create reports'
+        },
+        {
+          icon: GripVertical,
+          onClick: () => setIsReordering(!isReordering),
+          title: 'Reorder categories'
+        },
+        {
+          icon: Plus,
+          onClick: () => handleNewContactClick(),
+          title: 'Add contact'
+        }
+      ]);
+    } else {
+      clearPageHeaderIcons();
+    }
+
+    return () => clearPageHeaderIcons();
+  }, [isMobile, projectId, isReordering]);
 
   // Save category order mutation
   const saveCategoryOrderMutation = useMutation({
@@ -245,48 +289,6 @@ export default function Personnel() {
 
   return (
     <div className="w-full">
-      {/* Mobile Header */}
-      <div className="md:hidden px-4 pb-4">
-        <div className="flex items-center justify-between mb-4">
-          
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleNewContactClick}
-              className="hover:bg-transparent hover:text-blue-600 transition-colors p-1"
-            >
-              <Plus className="w-5 h-5" />
-            </Button>
-            {allContacts.length > 0 && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="flex items-center gap-1">
-                    <FileText className="h-4 w-4" />
-                    <ChevronDown className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => setLocation(`/shows/${projectId}/contact-sheet`)}>
-                    Contact Sheet
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setLocation(`/shows/${projectId}/company-list`)}>
-                    Company List
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-            <Button
-              variant={isReordering ? "default" : "ghost"}
-              onClick={() => setIsReordering(!isReordering)}
-              size="sm"
-              className="flex items-center gap-1"
-            >
-              <GripVertical className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
 
       {/* Desktop Header */}
       <div className="hidden md:block px-4 sm:px-6 lg:px-8 py-4">
@@ -334,7 +336,7 @@ export default function Personnel() {
       </div>
 
       {/* Mobile Contact List */}
-      <div className="md:hidden px-4">
+      <div className="md:hidden px-4 pb-4">
         <div className="space-y-6">
           {categories.map((category, categoryIndex) => {
             const categoryContacts = contactsByCategory[category.id] || [];
