@@ -486,11 +486,11 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         let itemType = it.type;
         let itemContent = it.content || {};
         
-        if (!itemType && it.id) {
+        if ((!itemType || itemType === undefined) && it.id) {
           // Parse type from ID patterns
           if (it.id.includes('dept-section-')) {
             itemType = 'department-header';
-            const dept = it.id.replace('dept-section-', '');
+            const dept = it.id.replace('dept-section-', '').replace(/-\d+$/, ''); // Remove timestamp suffix
             itemContent = { 
               department: dept, 
               displayName: dept.charAt(0).toUpperCase() + dept.slice(1) 
@@ -515,7 +515,13 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
           content: itemContent,
           ...it // preserve all fields
         };
-        console.log('Processing item:', { id: item.id, type: item.type, content: item.content });
+        console.log('Processing item:', { 
+          id: item.id, 
+          originalType: it.type, 
+          detectedType: itemType, 
+          finalType: item.type, 
+          content: item.content 
+        });
         return item;
       });
       
