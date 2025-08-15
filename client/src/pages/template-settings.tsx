@@ -186,7 +186,7 @@ export default function TemplateSettings() {
     departmentNames: {} as Record<string, string>,
     departmentFormatting: {} as Record<string, any>,
     fieldHeaderFormatting: {} as any,
-    layoutConfiguration: {} as any,
+    layoutConfiguration: null as any,
     hasChanges: false
   });
   
@@ -690,6 +690,9 @@ export default function TemplateSettings() {
         console.log('⚠️ GLOBAL SAVE: No layout configuration changes to save');
         console.log('🔍 pendingChanges.layoutConfiguration:', pendingChanges.layoutConfiguration);
         console.log('🔍 Has items?:', pendingChanges.layoutConfiguration?.items?.length);
+        console.log('🔍 Type check:', typeof pendingChanges.layoutConfiguration);
+        console.log('🔍 Is null?:', pendingChanges.layoutConfiguration === null);
+        console.log('🔍 Is empty object?:', pendingChanges.layoutConfiguration && Object.keys(pendingChanges.layoutConfiguration).length === 0);
       }
       
       // Save department names if there are changes
@@ -736,7 +739,7 @@ export default function TemplateSettings() {
         departmentNames: {},
         departmentFormatting: {},
         fieldHeaderFormatting: {},
-        layoutConfiguration: {},
+        layoutConfiguration: null,
         hasChanges: false
       });
       
