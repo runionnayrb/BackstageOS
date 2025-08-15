@@ -688,11 +688,20 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
   const lastLayoutRef = useRef<{[key: string]: {x: number, y: number, w: number, h: number}}>({});
 
   const handleLayoutChange = (layout: Layout[], allLayouts: Layouts) => {
+    console.log('🔄 LAYOUT CHANGE:', {
+      effectiveEditMode,
+      externalEditMode,
+      layoutItemCount: layout.length,
+      firstFewItems: layout.slice(0, 3).map(l => ({ id: l.i, x: l.x, y: l.y }))
+    });
+    
     if (!effectiveEditMode) {
-      console.log('🚨 Layout change triggered in VIEW mode - this may be causing position reversion!');
+      console.log('🚨 BLOCKING layout change - NOT in edit mode');
       console.log('🔍 View mode layout data:', layout.map(l => ({ id: l.i, x: l.x, y: l.y })));
       return;
     }
+    
+    console.log('✅ PROCESSING layout change - in edit mode');
 
     let updatedItems = configuration.items.map(item => {
       const layoutItem = layout.find(l => l.i === item.id);
