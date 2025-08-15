@@ -59,11 +59,29 @@ export default function InlineFormattingToolbar({
       const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
       console.log(`🔧 Element rect:`, rect, `scroll: ${scrollX}, ${scrollY}`);
       
-      // Absolute position that stays with the header regardless of scroll
-      setPosition({ 
-        top: rect.top + scrollY - 64, // 64px above the header in document coordinates
-        left: rect.left + scrollX // Aligned to left edge of header in document coordinates
-      });
+      // Improved positioning - place toolbar below the element instead of above
+      const toolbarHeight = 50; // estimated toolbar height
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      
+      let top, left;
+      
+      if (spaceBelow >= toolbarHeight) {
+        // Position below the element
+        top = rect.bottom + scrollY + 8;
+      } else if (spaceAbove >= toolbarHeight) {
+        // Position above the element
+        top = rect.top + scrollY - toolbarHeight - 8;
+      } else {
+        // Position at bottom of viewport
+        top = scrollY + window.innerHeight - toolbarHeight - 16;
+      }
+      
+      // Ensure toolbar doesn't go off screen horizontally
+      left = Math.max(16, Math.min(rect.left + scrollX, window.innerWidth - 400));
+      
+      console.log(`🔧 Positioning toolbar at: top=${top}, left=${left}`);
+      setPosition({ top, left });
 
       // Update active states when toolbar becomes visible
       updateActiveStates();
@@ -93,7 +111,7 @@ export default function InlineFormattingToolbar({
 
   // Removed auto-save to prevent infinite loops
 
-  // Handle click outside to close toolbar
+  // Handle click outside to close toolbar - DISABLED FOR NOW to fix flashing issue
   useEffect(() => {
     if (!isVisible) return;
 
@@ -117,10 +135,10 @@ export default function InlineFormattingToolbar({
         return;
       }
       
-      // Close the toolbar
-      if (onClose) {
-        onClose();
-      }
+      // TEMPORARILY DISABLED - Close the toolbar
+      // if (onClose) {
+      //   onClose();
+      // }
     };
 
     // Add event listener
@@ -269,11 +287,12 @@ export default function InlineFormattingToolbar({
   return (
     <div
       ref={toolbarRef}
-      className="absolute z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-2 flex flex-wrap items-center gap-1 min-w-max"
+      className="fixed z-[9999] bg-white border border-gray-200 rounded-lg shadow-xl p-2 flex flex-wrap items-center gap-1 min-w-max"
       style={{ 
         top: `${position.top}px`, 
         left: `${position.left}px`,
-        maxWidth: 'calc(100vw - 16px)'
+        maxWidth: 'calc(100vw - 32px)',
+        minWidth: '300px'
       }}
     >
       {/* Text Style Controls */}
@@ -533,6 +552,18 @@ export default function InlineFormattingToolbar({
           </Button>
           <div className="w-px h-6 bg-gray-300 mx-1" />
         </>
+      )}
+      
+      {/* Close Button */}
+      {onClose && (
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={onClose}
+          className="h-8 w-8 p-0 ml-2"
+        >
+          <X className="h-4 w-4" />
+        </Button>
       )}
     </div>
   );
