@@ -106,14 +106,14 @@ export default function PropsTracker() {
     }
   }, [isAuthenticated, isLoading, toast]);
 
-  // Set header icons for mobile header - search, plus, and filter (right to left)
+  // Set header icons for mobile header - filter, plus, search (left to right)
   useEffect(() => {
     if (isMobile) {
       setPageHeaderIcons([
         {
-          icon: Search,
+          icon: Filter,
           onClick: () => setShowFilters(!showFilters),
-          title: 'Search props'
+          title: 'Filter props'
         },
         {
           icon: Plus,
@@ -121,9 +121,9 @@ export default function PropsTracker() {
           title: 'Add prop'
         },
         {
-          icon: Filter,
+          icon: Search,
           onClick: () => setShowFilters(!showFilters),
-          title: 'Filter props'
+          title: 'Search props'
         }
       ]);
     } else {
