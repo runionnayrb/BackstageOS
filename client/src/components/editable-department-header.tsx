@@ -98,6 +98,12 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
   };
 
   // Simple rendering matching field headers approach
+  console.log(`🔧 DEPARTMENT HEADER RENDER: ${department}`, {
+    isEditing,
+    displayName,
+    hasDragHandle: isEditing
+  });
+  
   return (
     <div className="relative group flex items-center">
       {/* Move handle - only visible on hover when editing */}
