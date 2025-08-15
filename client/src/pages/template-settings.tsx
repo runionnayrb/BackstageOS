@@ -666,14 +666,24 @@ export default function TemplateSettings() {
       const savePromises = [];
       
       // Save layout configuration if there are changes
-      if (pendingChanges.layoutConfiguration && Object.keys(pendingChanges.layoutConfiguration).length > 0) {
-        console.log('💾 Saving layout configuration...', pendingChanges.layoutConfiguration);
+      if (pendingChanges.layoutConfiguration && pendingChanges.layoutConfiguration.items && pendingChanges.layoutConfiguration.items.length > 0) {
+        console.log('💾 GLOBAL SAVE: Saving layout configuration...');
+        console.log('🔍 Layout items to save:', pendingChanges.layoutConfiguration.items?.map(item => ({ 
+          id: item.id, 
+          type: item.type, 
+          x: item.x, 
+          y: item.y 
+        })));
         savePromises.push(
           apiRequest("PUT", `/api/projects/${projectId}/settings/layout-configuration`, {
             layoutConfiguration: pendingChanges.layoutConfiguration,
             templateType: selectedPhase
           })
         );
+      } else {
+        console.log('⚠️ GLOBAL SAVE: No layout configuration changes to save');
+        console.log('🔍 pendingChanges.layoutConfiguration:', pendingChanges.layoutConfiguration);
+        console.log('🔍 Has items?:', pendingChanges.layoutConfiguration?.items?.length);
       }
       
       // Save department names if there are changes
@@ -723,6 +733,8 @@ export default function TemplateSettings() {
         layoutConfiguration: {},
         hasChanges: false
       });
+      
+      console.log('🧹 GLOBAL SAVE: Pending changes cleared after successful save');
       
       // Refresh data
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
@@ -1049,7 +1061,14 @@ export default function TemplateSettings() {
                           }));
                         }}
                         onConfigurationChange={(config) => {
-                          console.log('📝 Layout configuration changed - stored locally for global save');
+                          console.log('📝 DRAG-DROP: Layout configuration changed!');
+                          console.log('🔍 New config items:', config.items?.map(item => ({ 
+                            id: item.id, 
+                            type: item.type, 
+                            x: item.x, 
+                            y: item.y 
+                          })));
+                          
                           // Update local template state only - no database save
                           const updatedTemplate = {
                             ...template,
@@ -1066,6 +1085,8 @@ export default function TemplateSettings() {
                             layoutConfiguration: config,
                             hasChanges: true
                           }));
+                          
+                          console.log('✅ DRAG-DROP: Layout changes tracked in pendingChanges');
                         }}
                         onDepartmentNameChange={updateDepartmentName}
                         onDepartmentFormattingChange={updateDepartmentFormatting}
