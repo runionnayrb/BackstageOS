@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
-  GripVertical
+  GripVertical,
+  Lock
 } from 'lucide-react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
@@ -284,12 +285,8 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
           setShowToolbar(true);
         } : undefined}
         onBlur={isEditing ? (e) => {
-          if (!showToolbar) {
-            const newContent = e.currentTarget.textContent?.trim() || '';
-            if (newContent !== displayName) {
-              updateDepartmentNameMutation.mutate({ newName: newContent });
-            }
-          }
+          // Only show toolbar on blur, don't save automatically
+          // Save only happens when user clicks the lock button
         } : undefined}
         style={{
           fontWeight: formatting.bold ? 'bold' : 'normal',
@@ -318,28 +315,52 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
         }}
       />
 
-      {/* Inline Formatting Toolbar */}
-      {isEditing && (
-        <InlineFormattingToolbar
-          targetElement={editingElement}
-          isVisible={showToolbar}
-          onAutoSave={() => {
-            if (editingElement) {
-              const content = editingElement.textContent?.trim() || '';
-              if (content !== displayName) {
-                onNameChange(content);
-                updateDepartmentNameMutation.mutate({ newName: content });
+      {/* Inline Formatting Toolbar with Custom Save Button */}
+      {isEditing && showToolbar && (
+        <div 
+          className="fixed z-[9999] bg-white rounded-lg shadow-lg border border-gray-200 p-2 flex items-center space-x-2"
+          style={{
+            top: `${editingElement?.getBoundingClientRect().top - 64}px`,
+            left: `${editingElement?.getBoundingClientRect().left}px`
+          }}
+        >
+          <InlineFormattingToolbar
+            targetElement={editingElement}
+            isVisible={showToolbar}
+            onAutoSave={() => {
+              // Only auto-save formatting changes, not department name changes
+              handleAutoSave();
+            }}
+            onApplyToAll={handleApplyToAll}
+            showVariables={false}
+            onClose={() => {
+              setShowToolbar(false);
+              setEditingElement(null);
+            }}
+          />
+          
+          {/* Custom Save Button for Department Name */}
+          <div className="w-px h-6 bg-gray-300 mx-1" />
+          <Button
+            size="sm"
+            onClick={() => {
+              if (editingElement) {
+                const newContent = editingElement.textContent?.trim() || '';
+                if (newContent !== displayName) {
+                  console.log(`💾 Saving department name: ${department} -> "${newContent}"`);
+                  updateDepartmentNameMutation.mutate({ newName: newContent });
+                }
+                setShowToolbar(false);
+                setEditingElement(null);
               }
-              handleAutoSave(); // Auto-save formatting changes
-            }
-          }}
-          onApplyToAll={handleApplyToAll}
-          showVariables={false}
-          onClose={() => {
-            setShowToolbar(false);
-            setEditingElement(null);
-          }}
-        />
+            }}
+            className="h-8 px-3"
+            disabled={updateDepartmentNameMutation.isPending}
+          >
+            <Lock className="h-4 w-4 mr-1" />
+            {updateDepartmentNameMutation.isPending ? 'Saving...' : 'Save'}
+          </Button>
+        </div>
       )}
     </div>
   );
