@@ -502,8 +502,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
             const displayLabel = fieldId.charAt(0).toUpperCase() + fieldId.slice(1);
             itemContent = { 
               fieldId: fieldId, 
-              label: displayLabel,
-              content: displayLabel // Add content property for rendering
+              label: displayLabel // This is what gets passed as content to EditableFieldHeading
             };
           } else if (it.id.includes('field-group-')) {
             itemType = 'notes';
