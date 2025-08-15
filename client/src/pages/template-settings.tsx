@@ -910,13 +910,11 @@ export default function TemplateSettings() {
                             onClick={async () => {
                               const newEditMode = !isEditMode;
 
-                              // On lock, save immediately from the editor, normalized
                               if (!newEditMode && selectedPhase === "tech") {
                                 try {
                                   const currentConfig = flexibleLayoutRef.current?.getCurrentConfiguration();
                                   const normalized = normalizeLayout(currentConfig);
 
-                                  // Update local state so UI reflects saved order
                                   setTemplates(prev => ({
                                     ...prev,
                                     [selectedPhase]: {
@@ -931,7 +929,8 @@ export default function TemplateSettings() {
                                     templateType: selectedPhase
                                   });
 
-                                  queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
+                                  // Refetch settings so hydration reads the exact thing we just saved
+                                  await queryClient.refetchQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
 
                                   toast({
                                     title: "Template saved",
@@ -944,7 +943,7 @@ export default function TemplateSettings() {
                                     description: "Could not save the layout positions.",
                                     variant: "destructive",
                                   });
-                                  return;
+                                  return; // remain in edit mode if save failed
                                 }
                               }
 
@@ -1101,7 +1100,7 @@ export default function TemplateSettings() {
                     {selectedPhase === 'tech' ? (
                       /* Flexible Layout Editor for entire tech template - NO AUTO-SAVE */
                       <FlexibleLayoutEditor
-                        key={`tech-editor-${layoutHash(template?.layoutConfiguration)}`}
+                        key={`tech-editor-${layoutHash(template?.layoutConfiguration)}-${showSettings?.updatedAt || '0'}`}
                         ref={flexibleLayoutRef}
                         projectId={parseInt(params.id)}
                         reportType="tech"

@@ -38,6 +38,45 @@ import AutoNumberingTextarea from './auto-numbering-textarea';
 import EditableHeaderFooter from './editable-header-footer';
 import { cn } from '@/lib/utils';
 
+const COLS = 6; // keep consistent with your visual design
+
+type CanonItem = {
+  id: string;
+  x: number; y: number; w: number; h: number;
+  type?: string;
+  // include any extra domain fields you attach to each block
+  [key: string]: any;
+};
+
+// Canonical config -> RGL layout array
+function toRglLayout(items: CanonItem[]) {
+  return items.map(it => ({
+    i: it.id,
+    x: Number(it.x), y: Number(it.y),
+    w: Number(it.w), h: Number(it.h),
+    static: false
+  }));
+}
+
+// RGL layout + item meta -> canonical config
+function fromRglLayout(layout: any[], metaById: Record<string, Partial<CanonItem>> = {}) {
+  const items: CanonItem[] = layout.map((n: any, idx: number) => {
+    const meta = metaById[n.i] || {};
+    return {
+      id: String(n.i),
+      x: Number.isFinite(n.x) ? n.x : 0,
+      y: Number.isFinite(n.y) ? n.y : idx,
+      w: Number.isFinite(n.w) ? n.w : 6,
+      h: Number.isFinite(n.h) ? n.h : 1,
+      type: meta.type as string | undefined,
+      ...meta
+    };
+  });
+  // stable order by y then x
+  items.sort((a, b) => (a.y - b.y) || (a.x - b.x));
+  return { items };
+}
+
 // Layout normalization helper (duplicated from template-settings.tsx)
 function normalizeLayout(config: any) {
   if (!config || !Array.isArray(config.items)) return config;
@@ -409,7 +448,6 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
   onFieldHeaderFormattingChange
 }, ref) => {
   const [isEditMode, setIsEditMode] = useState(isEditing);
-  const [layouts, setLayouts] = useState<Layouts>({});
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [dayOfWeek, setDayOfWeek] = useState<string>('');
@@ -419,6 +457,32 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
   
   // Track previous edit mode state to detect transitions
   const prevEditModeRef = useRef(effectiveEditMode);
+  
+  // Controlled layout state and meta tracking
+  const metaByIdRef = useRef<Record<string, any>>({});
+  
+  const [layout, setLayout] = useState<any[]>(
+    toRglLayout((template?.layoutConfiguration?.items || []).map((it: any) => ({
+      id: it.id || it.i,
+      x: +it.x, y: +it.y, w: +it.w, h: +it.h, type: it.type
+    })))
+  );
+  
+  // keep in sync with props
+  useEffect(() => {
+    const items = (template?.layoutConfiguration?.items || []).map((it: any) => ({
+      id: it.id || it.i,
+      x: +it.x, y: +it.y, w: +it.w, h: +it.h, type: it.type,
+      ...it // preserve other fields like department, fieldId, etc
+    }));
+    const next = toRglLayout(items);
+    setLayout(next);
+    // store meta for round trip
+    metaByIdRef.current = items.reduce((acc: any, it: any) => {
+      acc[it.id] = { type: it.type, ...it };
+      return acc;
+    }, {});
+  }, [template?.layoutConfiguration]);
 
   // Helper function to convert date to day of week
   const formatDayOfWeek = useCallback((dateString: string) => {
@@ -1081,113 +1145,98 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     setShowResetDialog(false); // Close the dialog
   };
 
-  // Expose functions to parent component via ref
+  // expose freshest configuration to parent
   useImperativeHandle(ref, () => ({
-    addNewItem,
-    removeItem,
-    resetLayout,
     getCurrentConfiguration: () => {
-      const items = configuration.items.map((item) => {
-        const id = item.id || `${item.type}:${item.content?.fieldId || item.content?.department || Date.now()}`;
-        return {
-          ...item,
-          id,
-          x: Number(item.x),
-          y: Number(item.y),
-          w: Number(item.w),
-          h: Number(item.h),
-          type: item.type
-        };
-      });
-      return normalizeLayout({ ...configuration, items });
+      return fromRglLayout(layout, metaByIdRef.current);
+    },
+    addNewItem: (type: string) => {
+      const id = `${type}:${Date.now()}`;
+      const newNode = { i: id, x: 0, y: layout.length ? Math.max(...layout.map(n => n.y + n.h)) : 0, w: 6, h: 1, static: false };
+      metaByIdRef.current[id] = { type };
+      const next = [...layout, newNode];
+      setLayout(next);
+      onConfigurationChange?.(fromRglLayout(next, metaByIdRef.current));
+    },
+    removeItem: (id: string) => {
+      const next = layout.filter(n => n.i !== id);
+      delete metaByIdRef.current[id];
+      setLayout(next);
+      onConfigurationChange?.(fromRglLayout(next, metaByIdRef.current));
+    },
+    resetLayout: () => {
+      const next: any[] = [];
+      metaByIdRef.current = {};
+      setLayout(next);
+      onConfigurationChange?.({ items: [] });
     }
-  }), [addNewItem, removeItem, resetLayout, configuration]);
+  }), [layout, onConfigurationChange]);
+
+  // build a single canonical layout for all breakpoints
+  const layouts = {
+    lg: layout,
+    md: layout,
+    sm: layout,
+    xs: layout,
+    xxs: layout
+  };
+
+  // Helper function to render grid items by ID and meta
+  const renderGridItemById = useCallback((id: string, meta: any) => {
+    const item = {
+      id,
+      type: meta?.type || 'empty-space',
+      content: meta || {},
+      x: 0, y: 0, w: 6, h: 1
+    };
+    
+    return renderItemByType(item, {
+      effectiveEditMode,
+      onDepartmentNameChange,
+      onDepartmentFormattingChange,
+      onFieldHeaderFormattingChange,
+      projectId,
+      showSettings
+    });
+  }, [effectiveEditMode, onDepartmentNameChange, onDepartmentFormattingChange, onFieldHeaderFormattingChange, projectId, showSettings]);
 
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="space-y-2">
 
-        {/* Grid Layout */}
+        {/* Controlled Grid Layout */}
         <div className={cn(
           "bg-white",
           effectiveEditMode && "bg-gray-50/50"
         )}>
-          {configuration.items.length > 0 && (
-            <div className="w-full" style={{ width: '1200px', maxWidth: '100%' }}>
-              <ResponsiveGridLayout
-                className="layout react-grid-layout-container"
-                layouts={layouts}
-                breakpoints={{ lg: 1200, md: 1200, sm: 1200, xs: 1200, xxs: 1200 }}
-                cols={{ lg: 12, md: 12, sm: 12, xs: 12, xxs: 12 }}
-                rowHeight={18}
-                width={1200}
-                margin={[2, 2]}
-                containerPadding={[0, 0]}
-                isDraggable={effectiveEditMode}
-                isResizable={effectiveEditMode}
-                onLayoutChange={effectiveEditMode ? handleLayoutChange : undefined}
-                onResizeStop={effectiveEditMode ? handleLayoutChange : undefined}
-                onDragStart={effectiveEditMode ? handleDragStart : undefined}
-                onDragStop={effectiveEditMode ? handleDragStop : undefined}
-                draggableHandle=".drag-handle"
-                useCSSTransforms={false}
-                compactType={null}
-                preventCollision={true}
-                allowOverlap={true}
-                resizeHandles={effectiveEditMode ? ['se'] : []}
-                style={{ minHeight: '800px', width: '100%' }}
-              >
-                {configuration.items.map((item) => {
-                  const id = item.id || item.i || `${item.type}:${item.content?.fieldId || item.content?.department}`;
-                  return (
-                    <div 
-                      key={id} 
-                      data-grid={{ x: +item.x, y: +item.y, w: +item.w, h: +item.h, i: id }}
-                      className={cn(
-                        "group", 
-                        item.w === configuration.gridCols ? "full-width" : "",
-                        item.type === 'grouped-section' && item.content?.department ? "department-section" : "",
-                        item.id.includes('dept-section') ? "dept-section-item" : ""
-                      )} 
-                      style={{ 
-                        width: item.w === configuration.gridCols ? '100%' : `${(item.w / configuration.gridCols) * 100}%`,
-                        position: 'relative',
-                        left: item.w === configuration.gridCols ? '0px' : undefined
-                      }}
-                      data-width={item.w}
-                      data-grid-cols={configuration.gridCols}
-                      data-is-full-width={item.w === configuration.gridCols}
-                    >
-                      <DraggableGridItem
-                        item={item}
-                        effectiveEditMode={effectiveEditMode}
-                        onDelete={() => removeItem(item.id)}
-                      >
-                      <LayoutItemRenderer
-                        item={item}
-                        projectId={projectId}
-                        reportId={reportId}
-                        reportType={reportType}
-                        effectiveEditMode={effectiveEditMode}
-                        template={template}
-                        selectedDate={selectedDate}
-                        dayOfWeek={dayOfWeek}
-                        onDateChange={handleDateChange}
-                        configuration={configuration}
-                        setConfiguration={setConfiguration}
-                        onConfigurationChange={onConfigurationChange}
-                        showSettings={showSettings}
-                        onDepartmentNameChange={onDepartmentNameChange}
-                        onDepartmentFormattingChange={onDepartmentFormattingChange}
-                        onFieldHeaderFormattingChange={onFieldHeaderFormattingChange}
-                      />
-                      </DraggableGridItem>
-                    </div>
-                  );
-                })}
-              </ResponsiveGridLayout>
-            </div>
-          )}
+          <ResponsiveGridLayout
+            className="layout"
+            layouts={layouts}
+            cols={{ lg: COLS, md: COLS, sm: COLS, xs: COLS, xxs: COLS }}
+            breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+            rowHeight={30}
+            compactType={null}
+            preventCollision={true}
+            margin={[8, 8]}
+            containerPadding={[0, 0]}
+            isDraggable={!!effectiveEditMode}
+            isResizable={!!effectiveEditMode}
+            onLayoutChange={(curLayout /*, allLayouts */) => {
+              setLayout(curLayout);
+              const cfg = fromRglLayout(curLayout, metaByIdRef.current);
+              onConfigurationChange?.(cfg);
+            }}
+          >
+            {layout.map(node => {
+              const id = node.i;
+              return (
+                <div key={id} data-grid={node}>
+                  {/* The inner component for department header, field header, etc */}
+                  {renderGridItemById(id, metaByIdRef.current[id])}
+                </div>
+              );
+            })}
+          </ResponsiveGridLayout>
         </div>
 
 

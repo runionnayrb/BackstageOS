@@ -1,0 +1,354 @@
+You are an expert React, TypeScript, and react grid layout engineer. Fix my Tech tab drag and save bug, where items do not reload at their saved positions after I lock and navigate away.
+
+The root causes we must fix:
+
+We must save the freshest layout directly from the editor, not from possibly stale state.
+
+We must hydrate the editor as a controlled layout and turn off compaction so the grid does not move items.
+
+We must eliminate breakpoint layout surprises by driving a single canonical layout across all breakpoints or by using a fixed non responsive grid.
+
+We must keep stable ids and numeric coordinates at all times.
+
+Make these exact edits.
+
+Part 1. TemplateSettings: keep my normalize helpers, but after saving the layout on lock, also refetch settings before toggling off edit mode and key the editor on both the layout hash and updatedAt.
+
+Find the Tech Lock button inside TemplateSettings and replace it with this version.
+
+<Button
+  variant="ghost"
+  size="sm"
+  onClick={async () => {
+    const newEditMode = !isEditMode;
+
+    if (!newEditMode && selectedPhase === "tech") {
+      try {
+        const currentConfig = flexibleLayoutRef.current?.getCurrentConfiguration();
+        const normalized = normalizeLayout(currentConfig);
+
+        setTemplates(prev => ({
+          ...prev,
+          [selectedPhase]: {
+            ...prev[selectedPhase],
+            // @ts-ignore
+            layoutConfiguration: normalized
+          }
+        }));
+
+        await apiRequest("PUT", `/api/projects/${projectId}/settings/layout-configuration`, {
+          layoutConfiguration: normalized,
+          templateType: selectedPhase
+        });
+
+        // Refetch settings so hydration reads the exact thing we just saved
+        await queryClient.refetchQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
+
+        toast({
+          title: "Template saved",
+          description: "Layout positions saved successfully.",
+        });
+      } catch (err) {
+        console.error("Failed to save layout configuration", err);
+        toast({
+          title: "Error",
+          description: "Could not save the layout positions.",
+          variant: "destructive",
+        });
+        return; // remain in edit mode if save failed
+      }
+    }
+
+    setIsEditMode(newEditMode);
+  }}
+  className="h-6 w-6 p-0"
+>
+  {isEditMode ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+</Button>
+
+
+Find the FlexibleLayoutEditor usage for Tech and replace it with this version that keys on the layout hash plus updatedAt.
+
+<FlexibleLayoutEditor
+  key={`tech-editor-${layoutHash(template?.layoutConfiguration)}-${showSettings?.updatedAt || '0'}`}
+  ref={flexibleLayoutRef}
+  projectId={parseInt(params.id)}
+  reportType="tech"
+  isEditing={true}
+  template={template}
+  showSettings={showSettings}
+  onTemplateUpdate={(updatedTemplate) => {
+    setTemplates(prev => ({
+      ...prev,
+      [phase]: updatedTemplate
+    }));
+  }}
+  onConfigurationChange={(config) => {
+    const normalized = normalizeLayout(config);
+    const updatedTemplate = {
+      ...template,
+      // @ts-ignore
+      layoutConfiguration: normalized
+    };
+    setTemplates(prev => ({
+      ...prev,
+      [selectedPhase]: updatedTemplate
+    }));
+    setPendingChanges(prev => ({
+      ...prev,
+      layoutConfiguration: normalized,
+      hasChanges: true
+    }));
+  }}
+  onDepartmentNameChange={updateDepartmentName}
+  onDepartmentFormattingChange={updateDepartmentFormatting}
+  onFieldHeaderFormattingChange={updateFieldHeaderFormatting}
+  externalEditMode={isEditMode}
+/>
+
+
+Part 2. FlexibleLayoutEditor: make the grid fully controlled, disable compaction, and unify breakpoints. If you are using ResponsiveGridLayout, drive the same canonical layout across all breakpoints. If you are using ReactGridLayout, just keep it non responsive.
+
+Open @/components/flexible-layout-editor.tsx and apply these edits.
+
+Add these helpers at the top of the file if they do not exist.
+
+const COLS = 6; // keep consistent with your visual design
+
+type CanonItem = {
+  id: string;
+  x: number; y: number; w: number; h: number;
+  type?: string;
+  // include any extra domain fields you attach to each block
+};
+
+// Canonical config -> RGL layout array
+function toRglLayout(items: CanonItem[]) {
+  return items.map(it => ({
+    i: it.id,
+    x: Number(it.x), y: Number(it.y),
+    w: Number(it.w), h: Number(it.h),
+    static: false
+  }));
+}
+
+// RGL layout + item meta -> canonical config
+function fromRglLayout(layout: any[], metaById: Record<string, Partial<CanonItem>> = {}) {
+  const items: CanonItem[] = layout.map((n: any, idx: number) => {
+    const meta = metaById[n.i] || {};
+    return {
+      id: String(n.i),
+      x: Number.isFinite(n.x) ? n.x : 0,
+      y: Number.isFinite(n.y) ? n.y : idx,
+      w: Number.isFinite(n.w) ? n.w : 6,
+      h: Number.isFinite(n.h) ? n.h : 1,
+      type: meta.type as string | undefined
+    };
+  });
+  // stable order by y then x
+  items.sort((a, b) => (a.y - b.y) || (a.x - b.x));
+  return { items };
+}
+
+
+Inside the component, create a controlled layout state that is always derived from the template.layoutConfiguration. When props change, update the state. Also expose getCurrentConfiguration on the ref. Turn off compaction and prevent collisions.
+
+Find where you currently render the grid. Replace that entire section with this version. If you use ResponsiveGridLayout, use the first version. If you use plain ReactGridLayout, use the second.
+
+Version A, ResponsiveGridLayout controlled
+
+import { Responsive, WidthProvider } from "react-grid-layout";
+const ResponsiveGridLayout = WidthProvider(Responsive);
+
+// inside component
+const metaByIdRef = useRef<Record<string, any>>({}); // keep any per item meta like type, fieldId, department
+
+const [layout, setLayout] = useState<any[]>(
+  toRglLayout((template?.layoutConfiguration?.items || []).map((it: any) => ({
+    id: it.id || it.i,
+    x: +it.x, y: +it.y, w: +it.w, h: +it.h, type: it.type
+  })))
+);
+
+// keep in sync with props
+useEffect(() => {
+  const items = (template?.layoutConfiguration?.items || []).map((it: any) => ({
+    id: it.id || it.i,
+    x: +it.x, y: +it.y, w: +it.w, h: +it.h, type: it.type
+  }));
+  const next = toRglLayout(items);
+  setLayout(next);
+  // store meta for round trip
+  metaByIdRef.current = items.reduce((acc: any, it: any) => {
+    acc[it.id] = { type: it.type };
+    return acc;
+  }, {});
+}, [template?.layoutConfiguration]);
+
+// expose freshest configuration to parent
+useImperativeHandle(ref, () => ({
+  getCurrentConfiguration: () => {
+    return fromRglLayout(layout, metaByIdRef.current);
+  },
+  addNewItem: (type: string) => {
+    const id = `${type}:${Date.now()}`;
+    const newNode = { i: id, x: 0, y: layout.length ? Math.max(...layout.map(n => n.y + n.h)) : 0, w: 6, h: 1, static: false };
+    metaByIdRef.current[id] = { type };
+    const next = [...layout, newNode];
+    setLayout(next);
+    onConfigurationChange?.(fromRglLayout(next, metaByIdRef.current));
+  },
+  removeItem: (id: string) => {
+    const next = layout.filter(n => n.i !== id);
+    delete metaByIdRef.current[id];
+    setLayout(next);
+    onConfigurationChange?.(fromRglLayout(next, metaByIdRef.current));
+  },
+  resetLayout: () => {
+    const next: any[] = [];
+    metaByIdRef.current = {};
+    setLayout(next);
+    onConfigurationChange?.({ items: [] });
+  }
+}), [layout, onConfigurationChange]);
+
+// build a single canonical layout for all breakpoints
+const layouts = {
+  lg: layout,
+  md: layout,
+  sm: layout,
+  xs: layout,
+  xxs: layout
+};
+
+return (
+  <ResponsiveGridLayout
+    className="layout"
+    layouts={layouts}
+    cols={{ lg: COLS, md: COLS, sm: COLS, xs: COLS, xxs: COLS }}
+    breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+    rowHeight={30}
+    compactType={null}
+    preventCollision={true}
+    margin={[8, 8]}
+    containerPadding={[0, 0]}
+    isDraggable={!!externalEditMode}
+    isResizable={!!externalEditMode}
+    onLayoutChange={(curLayout /*, allLayouts */) => {
+      setLayout(curLayout);
+      const cfg = fromRglLayout(curLayout, metaByIdRef.current);
+      onConfigurationChange?.(cfg);
+    }}
+  >
+    {layout.map(node => {
+      const id = node.i;
+      // Render your block by id and meta type
+      return (
+        <div key={id} data-grid={node}>
+          {/* The inner component for department header, field header, etc */}
+          {renderGridItemById(id, metaByIdRef.current[id])}
+        </div>
+      );
+    })}
+  </ResponsiveGridLayout>
+);
+
+
+Version B, plain ReactGridLayout controlled
+
+import GridLayout from "react-grid-layout";
+
+// inside component
+const metaByIdRef = useRef<Record<string, any>>({});
+
+const [layout, setLayout] = useState<any[]>(
+  toRglLayout((template?.layoutConfiguration?.items || []).map((it: any) => ({
+    id: it.id || it.i,
+    x: +it.x, y: +it.y, w: +it.w, h: +it.h, type: it.type
+  })))
+);
+
+useEffect(() => {
+  const items = (template?.layoutConfiguration?.items || []).map((it: any) => ({
+    id: it.id || it.i,
+    x: +it.x, y: +it.y, w: +it.w, h: +it.h, type: it.type
+  }));
+  const next = toRglLayout(items);
+  setLayout(next);
+  metaByIdRef.current = items.reduce((acc: any, it: any) => {
+    acc[it.id] = { type: it.type };
+    return acc;
+  }, {});
+}, [template?.layoutConfiguration]);
+
+useImperativeHandle(ref, () => ({
+  getCurrentConfiguration: () => fromRglLayout(layout, metaByIdRef.current),
+  addNewItem: (type: string) => {
+    const id = `${type}:${Date.now()}`;
+    const newNode = { i: id, x: 0, y: layout.length ? Math.max(...layout.map(n => n.y + n.h)) : 0, w: 6, h: 1, static: false };
+    metaByIdRef.current[id] = { type };
+    const next = [...layout, newNode];
+    setLayout(next);
+    onConfigurationChange?.(fromRglLayout(next, metaByIdRef.current));
+  },
+  removeItem: (id: string) => {
+    const next = layout.filter(n => n.i !== id);
+    delete metaByIdRef.current[id];
+    setLayout(next);
+    onConfigurationChange?.(fromRglLayout(next, metaByIdRef.current));
+  },
+  resetLayout: () => {
+    metaByIdRef.current = {};
+    setLayout([]);
+    onConfigurationChange?.({ items: [] });
+  }
+}), [layout, onConfigurationChange]);
+
+return (
+  <GridLayout
+    className="layout"
+    layout={layout}
+    cols={COLS}
+    rowHeight={30}
+    width={800} // or measure container width if needed
+    compactType={null}
+    preventCollision={true}
+    margin={[8, 8]}
+    containerPadding={[0, 0]}
+    isDraggable={!!externalEditMode}
+    isResizable={!!externalEditMode}
+    onLayoutChange={(curLayout) => {
+      setLayout(curLayout);
+      const cfg = fromRglLayout(curLayout, metaByIdRef.current);
+      onConfigurationChange?.(cfg);
+    }}
+  >
+    {layout.map(node => {
+      const id = node.i;
+      return (
+        <div key={id} data-grid={node}>
+          {renderGridItemById(id, metaByIdRef.current[id])}
+        </div>
+      );
+    })}
+  </GridLayout>
+);
+
+
+Important notes for FlexibleLayoutEditor
+
+The grid is fully controlled. It always renders exactly the layout state you provide.
+
+Compaction is disabled and collisions are prevented, so the grid does not move items on its own.
+
+Breakpoints are unified to the same canonical layout. If you want true responsive behavior later, persist a layouts object per breakpoint instead of a single canonical config.
+
+getCurrentConfiguration returns numeric coordinates and stable ids. This is what TemplateSettings saves on lock.
+
+After applying these edits, test this flow.
+
+Tech tab, unlock, move a few items, lock. Confirm a single PUT with numeric x, y, w, h and stable ids.
+
+Navigate away and back. The items should render exactly where you saved them.
+
+Resize the window. Because we are using a unified layout and compaction is off, positions remain stable.
