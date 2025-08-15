@@ -20,7 +20,6 @@ import Projects from "@/pages/projects";
 import CreateProject from "@/pages/create-project";
 import Team from "@/pages/team";
 import Invitations from "@/pages/invitations";
-import Reports from "@/pages/reports";
 import ReportBuilder from "@/pages/report-builder";
 import Templates from "@/pages/templates";
 import TemplateBuilder from "@/pages/template-builder";

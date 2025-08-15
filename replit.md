@@ -5,6 +5,8 @@ BackstageOS is a comprehensive theater management platform designed for professi
 
 ## Recent Changes (August 2025)
 - **Global Template Margin Synchronization**: Completed implementation of adjustable margin controls in Global Template Settings that synchronize with all report templates. Margins now use dynamic values from global settings instead of hardcoded "1in" padding, with proper cache invalidation ensuring real-time updates across all template interfaces.
+- **Mobile UI Optimization**: Completed mobile header optimization by removing redundant page titles from mobile views and implementing clean icon-only mobile headers. Applied to Personnel, Reports, and all show-specific pages with proper mobile detection using useIsMobile hook.
+- **Global Reports Page Removal**: Removed the unnecessary global reports page (reports.tsx) to eliminate confusion and maintain strict show-centric architecture. All reports functionality now exists only within specific show contexts, ensuring complete data isolation between productions.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
