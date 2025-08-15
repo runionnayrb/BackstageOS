@@ -1078,6 +1078,7 @@ export default function TemplateSettings() {
                     {selectedPhase === 'tech' ? (
                       /* Flexible Layout Editor for entire tech template - NO AUTO-SAVE */
                       <FlexibleLayoutEditor
+                        key={`tech-editor-${template?.layoutConfiguration?.items?.length || 0}`}
                         ref={flexibleLayoutRef}
                         projectId={parseInt(params.id)}
                         reportType="tech"

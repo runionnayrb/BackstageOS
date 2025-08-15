@@ -552,30 +552,67 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     return items;
   }, [template]);
 
-  // Configuration state - will be populated from template when available
-  const [configuration, setConfiguration] = useState<FlexibleLayoutConfiguration>(() => ({
-    items: [],
-    gridCols: 12,
-    gridRows: 20,
-    gridGap: 4
-  }));
-  const [isLayoutMounted, setIsLayoutMounted] = useState(false);
-  const [layoutLoadedFromDb, setLayoutLoadedFromDb] = useState(false);
+  // Configuration state - initialize from template if available
+  const [configuration, setConfiguration] = useState<FlexibleLayoutConfiguration>(() => {
+    // Check if template already has saved layout configuration
+    if (template?.layoutConfiguration?.items?.length > 0) {
+      console.log('🎯 INIT STATE: Using saved layout from template');
+      console.log('📊 INIT STATE: Items count:', template.layoutConfiguration.items.length);
+      console.log('📊 INIT STATE: First 3 items:', template.layoutConfiguration.items.slice(0, 3).map((item: any) => ({
+        id: item.id,
+        type: item.type,
+        x: item.x,
+        y: item.y
+      })));
+      return template.layoutConfiguration;
+    }
+    // Otherwise start with empty configuration
+    console.log('🎯 INIT STATE: No saved layout, starting empty');
+    return {
+      items: [],
+      gridCols: 12,
+      gridRows: 20,
+      gridGap: 4
+    };
+  });
+  const [hasInitialized, setHasInitialized] = useState(() => {
+    // Mark as initialized if we already have a saved layout
+    return template?.layoutConfiguration?.items?.length > 0;
+  });
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Load saved layout when template has layoutConfiguration
+  // Component lifecycle logging
   useEffect(() => {
-    if (!template) return;
+    console.log('🚀 FlexibleLayoutEditor MOUNTED');
+    console.log('📊 Initial template:', template ? 'Has template' : 'No template');
+    console.log('📊 Initial layoutConfiguration:', template?.layoutConfiguration ? 
+      `Has ${template.layoutConfiguration.items?.length} items` : 'None');
     
-    // Check if template has a saved layoutConfiguration
-    const hasSavedLayout = template.layoutConfiguration?.items?.length > 0;
+    return () => {
+      console.log('🛑 FlexibleLayoutEditor UNMOUNTING');
+    };
+  }, []);
+  
+  // Initialize layout from template - SINGLE SOURCE OF TRUTH
+  useEffect(() => {
+    // Only initialize once when template with layout becomes available
+    if (!template) {
+      console.log('⏳ Waiting for template...');
+      return;
+    }
     
-    if (hasSavedLayout) {
-      // ALWAYS apply saved layout when it exists, even if we've already loaded something
-      console.log('🎯 APPLYING SAVED LAYOUT from database');
-      console.log('🔍 Database layout items:', template.layoutConfiguration.items?.map((item: any) => ({ 
+    if (hasInitialized) {
+      console.log('✅ Already initialized, skipping');
+      return;
+    }
+    
+    // If template has saved layout, use it
+    if (template.layoutConfiguration?.items?.length > 0) {
+      console.log('🎯 APPLYING SAVED LAYOUT from template prop');
+      console.log('📊 Saved items count:', template.layoutConfiguration.items.length);
+      console.log('📊 Saved items preview:', template.layoutConfiguration.items.slice(0, 3).map((item: any) => ({ 
         id: item.id, 
         type: item.type, 
         x: item.x, 
@@ -584,14 +621,13 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         h: item.h
       })));
       
-      // Apply the saved configuration
       setConfiguration(template.layoutConfiguration);
-      setIsLayoutMounted(true);
-      setLayoutLoadedFromDb(true);
-      console.log('✅ DATABASE LAYOUT LOADED -', template.layoutConfiguration.items.length, 'items now in state');
-    } else if (configuration.items.length === 0 && !layoutLoadedFromDb) {
-      // Generate new layout only if we have no items and haven't initialized yet
-      console.log('🎯 GENERATING NEW LAYOUT - no saved configuration in database');
+      setHasInitialized(true);
+      console.log('✅ SAVED LAYOUT APPLIED successfully');
+    } 
+    // Generate new layout if none exists
+    else {
+      console.log('🎯 GENERATING NEW LAYOUT - no saved configuration');
       const config = {
         items: generateLayoutFromTemplate(),
         gridCols: 12,
@@ -599,11 +635,10 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         gridGap: 8
       };
       setConfiguration(config);
-      setIsLayoutMounted(true);
-      setLayoutLoadedFromDb(true);
+      setHasInitialized(true);
       console.log('✅ NEW LAYOUT GENERATED -', config.items.length, 'items');
     }
-  }, [template, configuration.items.length, generateLayoutFromTemplate]); // Proper dependencies
+  }, [template, hasInitialized, generateLayoutFromTemplate]); // Simple dependencies
 
   // NO MORE COMPLEX TRACKING - Keep it simple
 

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Layout Persistence Test</title>
+</head>
+<body>
+    <h1>Testing Layout Persistence</h1>
+    <button onclick="testPersistence()">Run Test</button>
+    <div id="results"></div>
+    
+    <script>
+    async function testPersistence() {
+        const results = document.getElementById('results');
+        results.innerHTML = 'Testing...';
+        
+        try {
+            // Test 1: Check current saved layout
+            const response1 = await fetch('/api/projects/3/settings');
+            const data1 = await response1.json();
+            const itemCount = data1.layoutConfiguration?.items?.length || 0;
+            
+            results.innerHTML += `<br>Test 1: Database has ${itemCount} items saved`;
+            
+            // Test 2: Navigate to template settings
+            window.location.href = '/shows/3/template-settings';
+            
+        } catch (error) {
+            results.innerHTML += `<br>Error: ${error.message}`;
+        }
+    }
+    </script>
+</body>
+</html>
