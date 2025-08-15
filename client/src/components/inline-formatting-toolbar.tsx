@@ -57,6 +57,7 @@ export default function InlineFormattingToolbar({
       const rect = targetElement.getBoundingClientRect();
       const scrollY = window.pageYOffset || document.documentElement.scrollTop;
       const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+      console.log(`🔧 Element rect:`, rect, `scroll: ${scrollX}, ${scrollY}`);
       
       // Absolute position that stays with the header regardless of scroll
       setPosition({ 

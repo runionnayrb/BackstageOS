@@ -113,6 +113,7 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
         suppressContentEditableWarning
         data-department-header="true"
         onFocus={isEditing ? (e) => {
+          console.log(`📝 Department header focused for "${department}" - showing toolbar`);
           setEditingElement(e.currentTarget);
           setShowToolbar(true);
         } : undefined}
@@ -152,29 +153,32 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
       />
 
       {/* Inline Formatting Toolbar */}
-      {isEditing && (
-        <InlineFormattingToolbar
-          targetElement={editingElement}
-          isVisible={showToolbar}
-          onAutoSave={() => {
-            // Don't auto-save anything - wait for global lock button save
-          }}
-          onApplyToAll={handleApplyToAll}
-          showVariables={false}
-          onClose={() => {
-            setShowToolbar(false);
-            setEditingElement(null);
-          }}
-          onFormatChange={(newFormatting: any) => {
-            console.log(`🎨 Department ${department} format changing:`, newFormatting);
-            setFormatting(newFormatting);
-            // Call the callback to accumulate changes for global save
-            if (onFormattingChange) {
-              onFormattingChange(department, newFormatting);
-            }
-          }}
-        />
-      )}
+      {isEditing && (() => {
+        console.log(`🔧 Rendering toolbar for ${department}: editingElement=${!!editingElement}, showToolbar=${showToolbar}, isEditing=${isEditing}`);
+        return (
+          <InlineFormattingToolbar
+            targetElement={editingElement}
+            isVisible={showToolbar}
+            onAutoSave={() => {
+              // Don't auto-save anything - wait for global lock button save
+            }}
+            onApplyToAll={handleApplyToAll}
+            showVariables={false}
+            onClose={() => {
+              setShowToolbar(false);
+              setEditingElement(null);
+            }}
+            onFormatChange={(newFormatting: any) => {
+              console.log(`🎨 Department ${department} format changing:`, newFormatting);
+              setFormatting(newFormatting);
+              // Call the callback to accumulate changes for global save
+              if (onFormattingChange) {
+                onFormattingChange(department, newFormatting);
+              }
+            }}
+          />
+        );
+      })()}
     </div>
   );
 };
