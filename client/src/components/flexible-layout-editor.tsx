@@ -586,6 +586,28 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     }
   }, [template, generateLayoutFromTemplate, isInitialized]);
 
+  // CRITICAL FIX: Update configuration when template layout configuration changes
+  // This handles cases where user navigates away and back with fresh database data
+  useEffect(() => {
+    if (template?.layoutConfiguration && isInitialized) {
+      console.log('🔄 TEMPLATE LAYOUT UPDATED - refreshing configuration from fresh database data');
+      console.log('🔍 Fresh layout items from DB:', template.layoutConfiguration.items?.map((item: any) => ({ 
+        id: item.id, 
+        type: item.type, 
+        x: item.x, 
+        y: item.y 
+      })));
+      
+      setConfiguration(template.layoutConfiguration);
+      
+      // Update layouts immediately to prevent snap-back
+      const newLayouts = convertToGridLayouts(template.layoutConfiguration.items);
+      setLayouts(newLayouts);
+      
+      console.log('✅ Configuration updated from fresh template data');
+    }
+  }, [template?.layoutConfiguration, isInitialized, convertToGridLayouts]);
+
   // NO MORE COMPLEX TRACKING - Keep it simple
 
   // Helper function to snap width to quarters (25%, 50%, 75%, 100%)
