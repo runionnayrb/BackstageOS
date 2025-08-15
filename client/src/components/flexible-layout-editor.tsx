@@ -470,19 +470,51 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
   
   // keep in sync with props
   useEffect(() => {
-    const items = (template?.layoutConfiguration?.items || []).map((it: any) => ({
-      id: it.id || it.i,
-      x: +it.x, y: +it.y, w: +it.w, h: +it.h, type: it.type,
-      ...it // preserve other fields like department, fieldId, etc
-    }));
-    const next = toRglLayout(items);
-    setLayout(next);
-    // store meta for round trip
-    metaByIdRef.current = items.reduce((acc: any, it: any) => {
-      acc[it.id] = { type: it.type, ...it };
-      return acc;
-    }, {});
-  }, [template?.layoutConfiguration]);
+    // Try showSettings first (for tech templates), then template
+    const layoutConfig = showSettings?.layoutConfiguration || template?.layoutConfiguration;
+    
+    console.log('🔍 Layout initialization effect triggered');
+    console.log('ShowSettings layoutConfig:', showSettings?.layoutConfiguration?.items?.length || 0, 'items');
+    console.log('Template layoutConfig:', template?.layoutConfiguration?.items?.length || 0, 'items');
+    console.log('Using layoutConfig:', layoutConfig?.items?.length || 0, 'items');
+    
+    if (layoutConfig?.items?.length > 0) {
+      console.log('First item data:', layoutConfig.items[0]);
+      
+      const items = layoutConfig.items.map((it: any) => {
+        const item = {
+          id: it.id || it.i,
+          x: +it.x, y: +it.y, w: +it.w, h: +it.h, 
+          type: it.type,
+          content: it.content,
+          ...it // preserve all fields
+        };
+        console.log('Processing item:', { id: item.id, type: item.type, content: item.content });
+        return item;
+      });
+      
+      const next = toRglLayout(items);
+      setLayout(next);
+      
+      // store meta for round trip with all item data
+      metaByIdRef.current = items.reduce((acc: any, it: any) => {
+        acc[it.id] = { 
+          type: it.type, 
+          content: it.content,
+          department: it.content?.department,
+          fieldId: it.content?.fieldId,
+          ...it 
+        };
+        console.log('Storing meta for', it.id, ':', acc[it.id]);
+        return acc;
+      }, {});
+      
+      console.log('✅ Layout initialized with', items.length, 'items');
+      console.log('Meta stored:', Object.keys(metaByIdRef.current).length, 'entries');
+    } else {
+      console.log('⚠️ No layout configuration found, keeping empty layout');
+    }
+  }, [template?.layoutConfiguration, showSettings?.layoutConfiguration]);
 
   // Helper function to convert date to day of week
   const formatDayOfWeek = useCallback((dateString: string) => {
