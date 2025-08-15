@@ -106,10 +106,14 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
   
   return (
     <div className="relative group flex items-center">
-      {/* Move handle - only visible on hover when editing */}
+      {/* Move handle - visible when editing */}
       {isEditing && (
-        <div className="drag-handle opacity-0 group-hover:opacity-100 transition-opacity mr-2 cursor-move flex-shrink-0 flex items-center">
-          <GripVertical className="h-4 w-4 text-gray-400" />
+        <div 
+          className="drag-handle opacity-60 hover:opacity-100 transition-opacity mr-2 cursor-move flex-shrink-0 flex items-center bg-gray-100 rounded px-1"
+          onMouseDown={() => console.log(`🖱️ DRAG HANDLE CLICKED for ${department}`)}
+          onDragStart={() => console.log(`🚀 DRAG START for ${department}`)}
+        >
+          <GripVertical className="h-4 w-4 text-gray-600" />
         </div>
       )}
       
