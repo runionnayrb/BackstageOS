@@ -7,12 +7,14 @@ import { Input } from "@/components/ui/input";
 import { useLocation } from "wouter";
 import { Edit3, FileText, Download, Settings } from "lucide-react";
 import { useState } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Reports() {
   const [, setLocation] = useLocation();
   const [selectedProject, setSelectedProject] = useState<string>("all");
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedDate, setSelectedDate] = useState<string>("");
+  const isMobile = useIsMobile();
 
   const { data: projects = [] } = useQuery<any[]>({
     queryKey: ["/api/projects"],
@@ -78,32 +80,44 @@ export default function Reports() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6">
-        <div className="mb-8 flex justify-between items-start">
-          <div>
-            <h1 className="text-3xl font-bold">Reports</h1>
-            <p className="text-gray-500 mt-2">View and manage all production reports</p>
+        {!isMobile && (
+          <div className="mb-8 flex justify-between items-start">
+            <div>
+              <h1 className="text-3xl font-bold">Reports</h1>
+              <p className="text-gray-500 mt-2">View and manage all production reports</p>
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline"
+                onClick={() => {
+                  // Navigate to template settings for the first available project
+                  const firstProject = projects?.[0];
+                  if (firstProject) {
+                    setLocation(`/shows/${firstProject.id}/template-settings`);
+                  }
+                }}
+                className="flex items-center gap-2"
+              >
+                <Settings className="w-4 h-4" />
+                Template Settings
+              </Button>
+              <Button onClick={() => setLocation("/report-builder")}>
+                <Edit3 className="w-5 h-5 mr-2" />
+                Create Report
+              </Button>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <Button 
-              variant="outline"
-              onClick={() => {
-                // Navigate to template settings for the first available project
-                const firstProject = projects?.[0];
-                if (firstProject) {
-                  setLocation(`/shows/${firstProject.id}/template-settings`);
-                }
-              }}
-              className="flex items-center gap-2"
-            >
-              <Settings className="w-4 h-4" />
-              Template Settings
-            </Button>
+        )}
+
+        {/* Mobile version without title and template settings */}
+        {isMobile && (
+          <div className="mb-6 flex justify-end">
             <Button onClick={() => setLocation("/report-builder")}>
               <Edit3 className="w-5 h-5 mr-2" />
               Create Report
             </Button>
           </div>
-        </div>
+        )}
 
       {/* Filter Bar */}
       <Card className="mb-6">
