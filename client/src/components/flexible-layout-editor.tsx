@@ -565,58 +565,38 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // ONE-TIME INITIALIZATION ONLY
+  // SIMPLIFIED INITIALIZATION - Always prefer saved layout over generated
   useEffect(() => {
-    if (template && !isInitialized) {
-      console.log('🎯 ONE-TIME INITIALIZATION');
-      
-      // Use saved config from template if it exists, otherwise generate new
-      const config = template.layoutConfiguration || {
+    if (!template) return;
+    
+    // If template has a saved layoutConfiguration, use it
+    // Otherwise generate a new layout from template fields
+    if (template.layoutConfiguration && template.layoutConfiguration.items) {
+      console.log('🎯 LOADING SAVED LAYOUT from database');
+      console.log('🔍 Saved layout items:', template.layoutConfiguration.items?.map((item: any) => ({ 
+        id: item.id, 
+        type: item.type, 
+        x: item.x, 
+        y: item.y 
+      })));
+      setConfiguration(template.layoutConfiguration);
+      setIsLayoutMounted(true);
+      console.log('✅ SAVED LAYOUT APPLIED successfully');
+    } else if (!isInitialized) {
+      console.log('🎯 GENERATING NEW LAYOUT - no saved configuration found');
+      const config = {
         items: generateLayoutFromTemplate(),
         gridCols: 12,
         gridRows: 20,
         gridGap: 8
       };
-      
       setConfiguration(config);
       setIsLayoutMounted(true);
-      setIsInitialized(true);
-      
-      console.log('✅ INITIALIZED with config:', config.items.map((item: any) => ({ id: item.id, y: item.y })));
+      console.log('✅ NEW LAYOUT GENERATED');
     }
-  }, [template, generateLayoutFromTemplate, isInitialized]);
-
-  // CRITICAL FIX: Update configuration when template layout configuration changes
-  // This handles cases where user navigates away and back with fresh database data
-  useEffect(() => {
-    if (template?.layoutConfiguration && isInitialized) {
-      console.log('🔄 LAYOUT REFRESH: Template layout configuration changed');
-      console.log('🔍 Fresh layout items from DB:', template.layoutConfiguration.items?.map((item: any) => ({ 
-        id: item.id, 
-        type: item.type, 
-        x: item.x, 
-        y: item.y 
-      })));
-      console.log('🔍 Current config items:', configuration.items?.map((item: any) => ({ 
-        id: item.id, 
-        type: item.type, 
-        x: item.x, 
-        y: item.y 
-      })));
-      
-      // Check if there's actually a meaningful difference
-      const currentPositions = JSON.stringify(configuration.items?.map(item => ({ id: item.id, x: item.x, y: item.y })) || []);
-      const newPositions = JSON.stringify(template.layoutConfiguration.items?.map((item: any) => ({ id: item.id, x: item.x, y: item.y })) || []);
-      
-      if (currentPositions !== newPositions) {
-        console.log('🔥 POSITION CHANGE DETECTED - updating configuration');
-        setConfiguration(template.layoutConfiguration);
-      } else {
-        console.log('📋 No position changes detected - keeping current configuration');
-      }
-      console.log('✅ Layout refresh check complete');
-    }
-  }, [template?.layoutConfiguration, isInitialized, configuration.items]);
+    
+    setIsInitialized(true);
+  }, [template, generateLayoutFromTemplate, isInitialized]); // Proper dependencies
 
   // NO MORE COMPLEX TRACKING - Keep it simple
 
