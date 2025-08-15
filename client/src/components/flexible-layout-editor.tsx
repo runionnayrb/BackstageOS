@@ -1048,15 +1048,57 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       x: 0, y: 0, w: 6, h: 1
     };
     
-    return renderItemByType(item, {
-      effectiveEditMode,
-      onDepartmentNameChange,
-      onDepartmentFormattingChange,
-      onFieldHeaderFormattingChange,
-      projectId,
-      showSettings
-    });
-  }, [effectiveEditMode, onDepartmentNameChange, onDepartmentFormattingChange, onFieldHeaderFormattingChange, projectId, showSettings]);
+    // Simple renderer based on item type
+    switch (item.type) {
+      case 'department-header':
+        return (
+          <EditableDepartmentHeader
+            key={id}
+            department={item.content?.department || 'Unknown'}
+            isEditMode={effectiveEditMode}
+            onNameChange={onDepartmentNameChange}
+            onFormattingChange={onDepartmentFormattingChange}
+            projectId={projectId}
+          />
+        );
+      case 'field-header':
+        return (
+          <EditableFieldHeading
+            key={id}
+            fieldId={item.content?.fieldId || 'unknown'}
+            label={item.content?.label || 'Field'}
+            isEditMode={effectiveEditMode}
+            onFormattingChange={onFieldHeaderFormattingChange}
+            projectId={projectId}
+          />
+        );
+      case 'notes':
+        return (
+          <ReportNotesManager
+            key={id}
+            reportId={reportId}
+            reportType={reportType}
+            projectId={projectId}
+            isEditMode={effectiveEditMode}
+          />
+        );
+      case 'header-footer':
+        return (
+          <EditableHeaderFooter
+            key={id}
+            type={item.content?.headerType || 'header'}
+            projectId={projectId}
+            isEditMode={effectiveEditMode}
+          />
+        );
+      default:
+        return (
+          <div key={id} className="p-2 bg-gray-100 border border-dashed border-gray-300 rounded text-center text-sm text-gray-500">
+            {item.type || 'Empty Space'}
+          </div>
+        );
+    }
+  }, [effectiveEditMode, onDepartmentNameChange, onDepartmentFormattingChange, onFieldHeaderFormattingChange, projectId, reportId, reportType]);
 
   return (
     <DndProvider backend={HTML5Backend}>
