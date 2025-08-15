@@ -69,25 +69,42 @@ export default function ShowReports() {
 
   return (
     <div className="w-full">
-      <div className="px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex items-center justify-between mb-4">
-          <ContextAwareBackButton 
-            showName={project?.name}
-          />
-          
-          <Button onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}/new`)}>
-            <Plus className="h-4 w-4 mr-2" />
-            New Report
-          </Button>
+      {/* Mobile: Only show buttons container with minimal padding */}
+      {isMobile && (
+        <div className="px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between mb-4">
+            <ContextAwareBackButton 
+              showName={project?.name}
+            />
+            
+            <Button onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}/new`)}>
+              <Plus className="h-4 w-4 mr-2" />
+              New Report
+            </Button>
+          </div>
         </div>
-        
-        {!isMobile && (
+      )}
+
+      {/* Desktop: Full header with title */}
+      {!isMobile && (
+        <div className="px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between mb-4">
+            <ContextAwareBackButton 
+              showName={project?.name}
+            />
+            
+            <Button onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}/new`)}>
+              <Plus className="h-4 w-4 mr-2" />
+              New Report
+            </Button>
+          </div>
+          
           <div className="mb-2">
             <h1 className="text-3xl font-bold text-gray-900">{reportTypeName}</h1>
             <p className="text-gray-600 mt-1">{project.name}</p>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="px-4 sm:px-6 lg:px-8">
         {reportsLoading ? (

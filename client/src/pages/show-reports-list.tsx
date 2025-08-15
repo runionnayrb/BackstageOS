@@ -60,9 +60,9 @@ export default function ShowReportsList() {
 
   return (
     <div className="w-full">
-      {/* Header */}
-      <div className="px-4 sm:px-6 lg:px-8 pt-6 mb-6">
-        {!isMobile && (
+      {/* Desktop Header */}
+      {!isMobile && (
+        <div className="px-4 sm:px-6 lg:px-8 pt-6 mb-6">
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold">Reports</h1>
@@ -78,8 +78,11 @@ export default function ShowReportsList() {
               </Button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* Mobile: Add minimal top padding */}
+      {isMobile && <div className="pt-4"></div>}
 
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="space-y-1">
