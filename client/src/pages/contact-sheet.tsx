@@ -11,6 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ContactSheetParams {
   id: string;
@@ -66,6 +67,7 @@ export default function ContactSheet() {
   const projectId = params.id;
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
 
   const defaultCategories = [
     { id: "cast", title: "Cast" },
@@ -957,7 +959,7 @@ export default function ContactSheet() {
 
         <div className="mb-8 flex justify-between items-start">
           <div>
-            <h1 className="text-3xl font-bold">Contact Sheet - {(project as any)?.name}</h1>
+            {!isMobile && <h1 className="text-3xl font-bold">Contact Sheet - {(project as any)?.name}</h1>}
             <div className="flex items-center gap-2 mt-2">
               <span className="text-sm text-muted-foreground">Version {currentVersion}</span>
               <span className="text-xs text-muted-foreground">•</span>
