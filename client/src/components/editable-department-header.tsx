@@ -73,7 +73,7 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
     staleTime: 0
   });
 
-  // Apply saved formatting when loaded (but not department names to avoid overriding user input)
+  // Apply saved formatting when loaded
   useEffect(() => {
     if (showSettings && (showSettings as any).departmentFormatting?.[department]) {
       const savedFormatting = (showSettings as any).departmentFormatting[department];
@@ -81,6 +81,11 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
       setFormatting(savedFormatting);
     }
   }, [showSettings?.departmentFormatting, department]);
+
+  // Log when displayName prop changes to debug
+  useEffect(() => {
+    console.log(`📝 Department ${department} displayName prop updated to:`, displayName);
+  }, [displayName, department]);
 
   const updateDepartmentNameMutation = useMutation({
     mutationFn: async ({ newName }: { newName: string }) => {
@@ -311,9 +316,10 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
           boxSizing: 'border-box',
           overflow: 'hidden'
         }}
-      >
-        {displayName}
-      </div>
+        dangerouslySetInnerHTML={{
+          __html: displayName.replace(/\n/g, '<br>')
+        }}
+      />
 
       {/* Inline Formatting Toolbar */}
       {isEditing && (
