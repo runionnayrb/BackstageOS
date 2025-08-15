@@ -499,9 +499,11 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
           } else if (it.id.includes('field-section-')) {
             itemType = 'field-header';
             const fieldId = it.id.replace('field-section-', '');
+            const displayLabel = fieldId.charAt(0).toUpperCase() + fieldId.slice(1);
             itemContent = { 
               fieldId: fieldId, 
-              label: fieldId.charAt(0).toUpperCase() + fieldId.slice(1) 
+              label: displayLabel,
+              content: displayLabel // Add content property for rendering
             };
           } else if (it.id.includes('field-group-')) {
             itemType = 'notes';
