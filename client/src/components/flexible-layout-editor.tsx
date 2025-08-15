@@ -569,10 +569,11 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
   useEffect(() => {
     if (!template) return;
     
-    // Check if template has a saved layoutConfiguration that we haven't loaded yet
+    // Check if template has a saved layoutConfiguration
     const hasSavedLayout = template.layoutConfiguration?.items?.length > 0;
     
-    if (hasSavedLayout && !layoutLoadedFromDb) {
+    if (hasSavedLayout) {
+      // ALWAYS apply saved layout when it exists, even if we've already loaded something
       console.log('🎯 APPLYING SAVED LAYOUT from database');
       console.log('🔍 Database layout items:', template.layoutConfiguration.items?.map((item: any) => ({ 
         id: item.id, 
@@ -588,8 +589,8 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       setIsLayoutMounted(true);
       setLayoutLoadedFromDb(true);
       console.log('✅ DATABASE LAYOUT LOADED -', template.layoutConfiguration.items.length, 'items now in state');
-    } else if (!hasSavedLayout && configuration.items.length === 0 && !layoutLoadedFromDb) {
-      // Generate new layout only if no saved layout and we haven't initialized yet
+    } else if (configuration.items.length === 0 && !layoutLoadedFromDb) {
+      // Generate new layout only if we have no items and haven't initialized yet
       console.log('🎯 GENERATING NEW LAYOUT - no saved configuration in database');
       const config = {
         items: generateLayoutFromTemplate(),
@@ -602,7 +603,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       setLayoutLoadedFromDb(true);
       console.log('✅ NEW LAYOUT GENERATED -', config.items.length, 'items');
     }
-  }, [template?.layoutConfiguration, layoutLoadedFromDb, generateLayoutFromTemplate]); // React to layoutConfiguration changes
+  }, [template, configuration.items.length, generateLayoutFromTemplate]); // Proper dependencies
 
   // NO MORE COMPLEX TRACKING - Keep it simple
 

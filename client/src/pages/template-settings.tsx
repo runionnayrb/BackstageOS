@@ -282,6 +282,7 @@ export default function TemplateSettings() {
         };
         console.log('✅ TEMPLATE INIT: Applied database layout to tech template');
         console.log('📊 Tech template now has layoutConfiguration:', !!initialTemplates.tech.layoutConfiguration);
+        console.log('📊 Tech template layoutConfiguration items:', initialTemplates.tech.layoutConfiguration?.items?.length);
       }
     } else {
       console.log('❌ TEMPLATE INIT: No layoutConfiguration found in database');
