@@ -2,6 +2,7 @@ import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Settings } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ShowReportsListParams {
   id: string;
@@ -11,6 +12,7 @@ export default function ShowReportsList() {
   const [, setLocation] = useLocation();
   const params = useParams<ShowReportsListParams>();
   const projectId = params.id;
+  const isMobile = useIsMobile();
 
   const { data: project } = useQuery({
     queryKey: [`/api/projects/${projectId}`],
@@ -60,21 +62,23 @@ export default function ShowReportsList() {
     <div className="w-full">
       {/* Header */}
       <div className="px-4 sm:px-6 lg:px-8 pt-6 mb-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">Reports</h1>
+        {!isMobile && (
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold">Reports</h1>
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline"
+                onClick={() => setLocation(`/shows/${projectId}/templates`)}
+                className="flex items-center gap-2"
+              >
+                <Settings className="w-4 h-4" />
+                Template Settings
+              </Button>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <Button 
-              variant="outline"
-              onClick={() => setLocation(`/shows/${projectId}/templates`)}
-              className="flex items-center gap-2"
-            >
-              <Settings className="w-4 h-4" />
-              Template Settings
-            </Button>
-          </div>
-        </div>
+        )}
       </div>
 
       <div className="px-4 sm:px-6 lg:px-8">

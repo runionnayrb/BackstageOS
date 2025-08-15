@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Plus, FileText } from "lucide-react";
 import ContextAwareBackButton from "@/components/navigation/context-aware-back-button";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ShowReportsParams {
   id: string;
@@ -21,6 +22,7 @@ export default function ShowReports() {
   const params = useParams<ShowReportsParams>();
   const projectId = params.id;
   const reportType = params.type;
+  const isMobile = useIsMobile();
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -79,10 +81,12 @@ export default function ShowReports() {
           </Button>
         </div>
         
-        <div className="mb-2">
-          <h1 className="text-3xl font-bold text-gray-900">{reportTypeName}</h1>
-          <p className="text-gray-600 mt-1">{project.name}</p>
-        </div>
+        {!isMobile && (
+          <div className="mb-2">
+            <h1 className="text-3xl font-bold text-gray-900">{reportTypeName}</h1>
+            <p className="text-gray-600 mt-1">{project.name}</p>
+          </div>
+        )}
       </div>
 
       <div className="px-4 sm:px-6 lg:px-8">
