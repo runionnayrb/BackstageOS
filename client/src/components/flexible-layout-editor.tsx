@@ -565,24 +565,34 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // SIMPLIFIED INITIALIZATION - Always prefer saved layout over generated
+  // FIXED INITIALIZATION - Load saved layout when template changes
   useEffect(() => {
     if (!template) return;
     
-    // If template has a saved layoutConfiguration, use it
-    // Otherwise generate a new layout from template fields
-    if (template.layoutConfiguration && template.layoutConfiguration.items) {
+    // Check if template has a saved layoutConfiguration with items
+    const hasSavedLayout = template.layoutConfiguration && 
+                           template.layoutConfiguration.items && 
+                           template.layoutConfiguration.items.length > 0;
+    
+    if (hasSavedLayout) {
       console.log('🎯 LOADING SAVED LAYOUT from database');
       console.log('🔍 Saved layout items:', template.layoutConfiguration.items?.map((item: any) => ({ 
         id: item.id, 
         type: item.type, 
         x: item.x, 
-        y: item.y 
+        y: item.y,
+        w: item.w,
+        h: item.h
       })));
+      
+      // ALWAYS apply saved layout when it exists, regardless of initialization state
       setConfiguration(template.layoutConfiguration);
       setIsLayoutMounted(true);
+      setIsInitialized(true);
       console.log('✅ SAVED LAYOUT APPLIED successfully');
+      console.log('📊 Configuration now has', template.layoutConfiguration.items.length, 'items');
     } else if (!isInitialized) {
+      // Only generate new layout if we haven't initialized yet AND there's no saved layout
       console.log('🎯 GENERATING NEW LAYOUT - no saved configuration found');
       const config = {
         items: generateLayoutFromTemplate(),
@@ -592,11 +602,10 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       };
       setConfiguration(config);
       setIsLayoutMounted(true);
-      console.log('✅ NEW LAYOUT GENERATED');
+      setIsInitialized(true);
+      console.log('✅ NEW LAYOUT GENERATED with', config.items.length, 'items');
     }
-    
-    setIsInitialized(true);
-  }, [template, generateLayoutFromTemplate, isInitialized]); // Proper dependencies
+  }, [template?.layoutConfiguration, generateLayoutFromTemplate]); // Watch for layoutConfiguration changes
 
   // NO MORE COMPLEX TRACKING - Keep it simple
 
