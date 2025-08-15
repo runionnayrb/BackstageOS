@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,6 +68,7 @@ export default function PropsTracker() {
   const params = useParams<PropsTrackerParams>();
   const projectId = params.id;
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
 
   const [isAddingProp, setIsAddingProp] = useState(false);
   const [editingProp, setEditingProp] = useState<Prop | null>(null);
@@ -275,9 +277,11 @@ export default function PropsTracker() {
           </div>
         </div>
         
-        <div className="mb-2">
-          <h1 className="text-3xl font-bold text-gray-900">Props</h1>
-        </div>
+        {!isMobile && (
+          <div className="mb-2">
+            <h1 className="text-3xl font-bold text-gray-900">Props</h1>
+          </div>
+        )}
       </div>
 
       <div className="px-4 sm:px-6 lg:px-8">
