@@ -552,34 +552,14 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     return items;
   }, [template]);
 
-  // Configuration state - initialize from template if available
-  const [configuration, setConfiguration] = useState<FlexibleLayoutConfiguration>(() => {
-    // Check if template already has saved layout configuration
-    if (template?.layoutConfiguration?.items?.length > 0) {
-      console.log('🎯 INIT STATE: Using saved layout from template');
-      console.log('📊 INIT STATE: Items count:', template.layoutConfiguration.items.length);
-      console.log('📊 INIT STATE: First 3 items:', template.layoutConfiguration.items.slice(0, 3).map((item: any) => ({
-        id: item.id,
-        type: item.type,
-        x: item.x,
-        y: item.y
-      })));
-      return template.layoutConfiguration;
-    }
-    // Otherwise start with empty configuration
-    console.log('🎯 INIT STATE: No saved layout, starting empty');
-    return {
-      items: [],
-      gridCols: 12,
-      gridRows: 20,
-      gridGap: 4
-    };
+  // Configuration state - start with empty and let useEffect handle initialization
+  const [configuration, setConfiguration] = useState<FlexibleLayoutConfiguration>({
+    items: [],
+    gridCols: 12,
+    gridRows: 20,
+    gridGap: 4
   });
-  const [hasInitialized, setHasInitialized] = useState(() => {
-    // Mark as initialized if we already have a saved layout
-    return template?.layoutConfiguration?.items?.length > 0;
-  });
-  const [isLayoutMounted, setIsLayoutMounted] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -596,9 +576,17 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     };
   }, []);
   
-  // Initialize layout from template - SINGLE SOURCE OF TRUTH
+  // Initialize layout from template or showSettings
   useEffect(() => {
-    // Only initialize once when template with layout becomes available
+    console.log('🔄 Initialization effect triggered');
+    console.log('Template:', template ? 'exists' : 'null');
+    console.log('ShowSettings:', showSettings ? 'exists' : 'null');
+    console.log('Has initialized:', hasInitialized);
+    
+    // Look for layout configuration in showSettings first (for tech templates), then template
+    const savedLayout = showSettings?.layoutConfiguration || template?.layoutConfiguration;
+    console.log('Saved layout config:', savedLayout?.items?.length || 0, 'items');
+    
     if (!template) {
       console.log('⏳ Waiting for template...');
       return;
@@ -609,39 +597,28 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       return;
     }
     
-    // If template has saved layout, use it
-    if (template.layoutConfiguration?.items?.length > 0) {
-      console.log('🎯 APPLYING SAVED LAYOUT from template prop');
-      console.log('📊 Saved items count:', template.layoutConfiguration.items.length);
-      console.log('📊 Saved items preview:', template.layoutConfiguration.items.slice(0, 3).map((item: any) => ({ 
-        id: item.id, 
-        type: item.type, 
-        x: item.x, 
-        y: item.y,
-        w: item.w,
-        h: item.h
-      })));
-      
-      setConfiguration(template.layoutConfiguration);
+    // If we have a saved layout, use it
+    if (savedLayout?.items?.length > 0) {
+      console.log('🎯 Using saved layout:', savedLayout.items.length, 'items');
+      console.log('First item:', savedLayout.items[0]);
+      setConfiguration(savedLayout);
       setHasInitialized(true);
-      setIsLayoutMounted(true);
-      console.log('✅ SAVED LAYOUT APPLIED successfully');
     } 
-    // Generate new layout if none exists
+    // Otherwise generate new layout
     else {
-      console.log('🎯 GENERATING NEW LAYOUT - no saved configuration');
+      console.log('🎯 Generating new layout from template');
+      const newItems = generateLayoutFromTemplate();
+      console.log('Generated items:', newItems.length);
       const config = {
-        items: generateLayoutFromTemplate(),
+        items: newItems,
         gridCols: 12,
         gridRows: 20,
         gridGap: 8
       };
       setConfiguration(config);
       setHasInitialized(true);
-      setIsLayoutMounted(true);
-      console.log('✅ NEW LAYOUT GENERATED -', config.items.length, 'items');
     }
-  }, [template, hasInitialized, generateLayoutFromTemplate]); // Simple dependencies
+  }, [template, showSettings, hasInitialized]); // Added showSettings to dependencies
 
   // NO MORE COMPLEX TRACKING - Keep it simple
 
@@ -1113,7 +1090,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
           "bg-white",
           effectiveEditMode && "bg-gray-50/50"
         )}>
-          {isLayoutMounted && (
+          {configuration.items.length > 0 && (
             <div className="w-full" style={{ width: '1200px', maxWidth: '100%' }}>
               <ResponsiveGridLayout
                 className="layout react-grid-layout-container"
