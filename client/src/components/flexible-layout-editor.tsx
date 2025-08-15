@@ -225,85 +225,10 @@ const LayoutItemRenderer: React.FC<{
           department={department}
           displayName={effectiveDisplayName}
           isEditing={effectiveEditMode}
-          onNameChange={async (newName) => {
+          onNameChange={(newName) => {
             console.log(`📝 Department name change triggered: ${department} -> "${newName}"`);
-            
-            try {
-              // Save to database FIRST using the department names API endpoint (like field headers do)
-              const response = await fetch(`/api/projects/${projectId}/settings/department-names`, {
-                method: 'PUT',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  department,
-                  name: newName
-                })
-              });
-              
-              if (!response.ok) {
-                throw new Error('Failed to update department name in database');
-              }
-              
-              console.log(`✅ Department name saved to database: ${department} -> "${newName}"`);
-              
-              // Invalidate cache to trigger re-fetch
-              queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
-              
-              // Also update the layout configuration (secondary)
-              if (configuration && setConfiguration) {
-                const updatedItems = configuration.items.map(configItem => {
-                  if (configItem.id === item.id) {
-                    return {
-                      ...configItem,
-                      content: {
-                        ...configItem.content,
-                        displayName: newName
-                      }
-                    };
-                  }
-                  // Also update children if this is a grouped section
-                  if (configItem.children) {
-                    return {
-                      ...configItem,
-                      children: configItem.children.map(child => 
-                        child.id === item.id ? {
-                          ...child,
-                          content: {
-                            ...child.content,
-                            displayName: newName
-                          }
-                        } : child
-                      )
-                    };
-                  }
-                  return configItem;
-                });
-                
-                const newConfig = {
-                  ...configuration,
-                  items: updatedItems
-                };
-                
-                console.log('🔄 Department name changed, updating layout configuration:', {
-                  department,
-                  oldName: item.content?.displayName,
-                  newName,
-                  itemId: item.id
-                });
-                
-                setConfiguration(newConfig);
-                
-                // Save the updated configuration
-                if (onConfigurationChange) {
-                  console.log('💾 Saving updated layout configuration with new department name');
-                  onConfigurationChange(newConfig);
-                }
-              }
-            } catch (error) {
-              console.error('❌ Error saving department name:', error);
-              // Note: Could add toast notification here, but keeping it simple like field headers
-            }
+            // Let the EditableDepartmentHeader component handle the database save
+            // This prevents duplicate saves and race conditions
           }}
         />
       );

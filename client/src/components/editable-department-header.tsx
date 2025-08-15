@@ -113,10 +113,8 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
       });
       setShowToolbar(false);
       setEditingElement(null);
-      // Delayed cache invalidation to prevent overwriting user changes
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
-      }, 500);
+      // Immediate cache invalidation
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
     },
     onError: (error) => {
       toast({
@@ -289,7 +287,6 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
           if (!showToolbar) {
             const newContent = e.currentTarget.textContent?.trim() || '';
             if (newContent !== displayName) {
-              onNameChange(newContent);
               updateDepartmentNameMutation.mutate({ newName: newContent });
             }
           }
