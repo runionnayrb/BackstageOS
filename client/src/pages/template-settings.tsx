@@ -672,8 +672,11 @@ export default function TemplateSettings() {
       const savePromises = [];
       
       // Save layout configuration if there are changes
-      if (pendingChanges.layoutConfiguration && pendingChanges.layoutConfiguration.items && pendingChanges.layoutConfiguration.items.length > 0) {
+      // CRITICAL FIX: Check if layoutConfiguration exists, not just if it has items
+      // The configuration object itself is what needs to be saved, regardless of item count
+      if (pendingChanges.layoutConfiguration) {
         console.log('💾 GLOBAL SAVE: Saving layout configuration...');
+        console.log('🔍 Layout config to save:', pendingChanges.layoutConfiguration);
         console.log('🔍 Layout items to save:', pendingChanges.layoutConfiguration.items?.map(item => ({ 
           id: item.id, 
           type: item.type, 
@@ -689,10 +692,6 @@ export default function TemplateSettings() {
       } else {
         console.log('⚠️ GLOBAL SAVE: No layout configuration changes to save');
         console.log('🔍 pendingChanges.layoutConfiguration:', pendingChanges.layoutConfiguration);
-        console.log('🔍 Has items?:', pendingChanges.layoutConfiguration?.items?.length);
-        console.log('🔍 Type check:', typeof pendingChanges.layoutConfiguration);
-        console.log('🔍 Is null?:', pendingChanges.layoutConfiguration === null);
-        console.log('🔍 Is empty object?:', pendingChanges.layoutConfiguration && Object.keys(pendingChanges.layoutConfiguration).length === 0);
       }
       
       // Save department names if there are changes
@@ -896,10 +895,28 @@ export default function TemplateSettings() {
                               const newEditMode = !isEditMode;
                               console.log(`🔄 GLOBAL SAVE TOGGLE: ${isEditMode ? 'LOCKING (SAVE ALL)' : 'UNLOCKING'} - UI updates immediately`);
                               
-                              // If locking (saving), trigger global save before disabling edit mode
+                              // If locking (saving), get the latest configuration and trigger global save
                               if (!newEditMode) {
+                                console.log('🔒 LOCKING: Getting latest configuration before save...');
+                                
+                                // Get the latest configuration from the FlexibleLayoutEditor
+                                if (flexibleLayoutRef.current) {
+                                  const currentConfig = flexibleLayoutRef.current.getCurrentConfiguration();
+                                  console.log('📊 Latest configuration from editor:', currentConfig);
+                                  
+                                  // Update pending changes with latest config before saving
+                                  setPendingChanges(prev => ({
+                                    ...prev,
+                                    layoutConfiguration: currentConfig,
+                                    hasChanges: true
+                                  }));
+                                }
+                                
                                 console.log('🔒 LOCKING: Saving all template changes...');
-                                globalSaveMutation.mutate();
+                                // Use a timeout to ensure state update completes before mutation
+                                setTimeout(() => {
+                                  globalSaveMutation.mutate();
+                                }, 0);
                               }
                               
                               // Update edit mode immediately for responsive UI
