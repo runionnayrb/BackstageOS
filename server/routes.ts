@@ -3929,6 +3929,88 @@ Best regards,
     }
   });
 
+  // Bulk department names endpoint for global save
+  app.put("/api/projects/:id/settings/department-names-bulk", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const { departmentNames } = req.body;
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Get current settings
+      const settings = await storage.getShowSettingsByProjectId(projectId);
+      const currentDepartmentNames = settings?.departmentNames || {};
+      
+      // Merge with current department names
+      const updatedDepartmentNames = {
+        ...currentDepartmentNames,
+        ...departmentNames
+      };
+
+      // Update the settings
+      const updatedSettings = await storage.updateShowSettings(projectId, {
+        departmentNames: updatedDepartmentNames
+      });
+
+      res.json({
+        success: true,
+        departmentNames: updatedSettings.departmentNames
+      });
+    } catch (error) {
+      console.error("Error updating department names bulk:", error);
+      res.status(500).json({ message: "Failed to update department names" });
+    }
+  });
+
+  // Bulk department formatting endpoint for global save
+  app.put("/api/projects/:id/settings/department-formatting-bulk", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const { departmentFormatting } = req.body;
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Get current settings
+      const settings = await storage.getShowSettingsByProjectId(projectId);
+      const currentDepartmentFormatting = settings?.departmentFormatting || {};
+      
+      // Merge with current department formatting
+      const updatedDepartmentFormatting = {
+        ...currentDepartmentFormatting,
+        ...departmentFormatting
+      };
+
+      // Update the settings
+      const updatedSettings = await storage.updateShowSettings(projectId, {
+        departmentFormatting: updatedDepartmentFormatting
+      });
+
+      res.json({
+        success: true,
+        departmentFormatting: updatedSettings.departmentFormatting
+      });
+    } catch (error) {
+      console.error("Error updating department formatting bulk:", error);
+      res.status(500).json({ message: "Failed to update department formatting" });
+    }
+  });
+
   // Header formatting endpoints
   app.put("/api/projects/:id/settings/header-formatting", isAuthenticated, async (req: any, res) => {
     try {

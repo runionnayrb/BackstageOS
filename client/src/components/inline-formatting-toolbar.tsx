@@ -26,6 +26,7 @@ interface InlineFormattingToolbarProps {
   showVariables?: boolean;
   onAutoSave?: () => void;
   onClose?: () => void;
+  onFormatChange?: (formatting: any) => void;
 }
 
 export default function InlineFormattingToolbar({
@@ -36,6 +37,7 @@ export default function InlineFormattingToolbar({
   showVariables = true,
   onAutoSave,
   onClose,
+  onFormatChange
 }: InlineFormattingToolbarProps) {
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const [activeStates, setActiveStates] = useState({
@@ -204,6 +206,14 @@ export default function InlineFormattingToolbar({
         updateActiveStates();
       }, 50);
       
+      // Call the format change callback with updated formatting
+      if (onFormatChange) {
+        setTimeout(() => {
+          const newFormatting = extractFormattingFromElement(targetElement);
+          onFormatChange(newFormatting);
+        }, 100);
+      }
+      
       // Trigger auto-save if provided
       if (onAutoSave) {
         setTimeout(onAutoSave, 100);
@@ -214,6 +224,29 @@ export default function InlineFormattingToolbar({
   };
 
 
+
+  // Extract current formatting from element 
+  const extractFormattingFromElement = (element: HTMLElement) => {
+    const styles = window.getComputedStyle(element);
+    const elementStyles = element.style;
+    
+    return {
+      bold: elementStyles.fontWeight === 'bold' || elementStyles.fontWeight === '700',
+      italic: elementStyles.fontStyle === 'italic',
+      underline: elementStyles.textDecoration?.includes('underline') || false,
+      textAlign: elementStyles.textAlign || 'left',
+      fontFamily: elementStyles.fontFamily || 'Arial',
+      fontSize: elementStyles.fontSize || '14px',
+      textColor: elementStyles.color || '#ffffff',
+      backgroundColor: elementStyles.backgroundColor || '#000000',
+      borderTop: elementStyles.borderTopStyle !== 'none' && elementStyles.borderTopWidth !== '0px',
+      borderRight: elementStyles.borderRightStyle !== 'none' && elementStyles.borderRightWidth !== '0px',
+      borderBottom: elementStyles.borderBottomStyle !== 'none' && elementStyles.borderBottomWidth !== '0px',
+      borderLeft: elementStyles.borderLeftStyle !== 'none' && elementStyles.borderLeftWidth !== '0px',
+      borderWeight: elementStyles.borderTopWidth || '1px',
+      borderColor: elementStyles.borderTopColor || '#d1d5db'
+    };
+  };
 
   const insertVariable = (variable: string) => {
     if (targetElement) {

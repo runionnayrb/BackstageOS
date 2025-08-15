@@ -181,6 +181,15 @@ export default function TemplateSettings() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
   
+  // Global save state - track all pending changes
+  const [pendingChanges, setPendingChanges] = useState({
+    departmentNames: {} as Record<string, string>,
+    departmentFormatting: {} as Record<string, any>,
+    fieldHeaderFormatting: {} as any,
+    layoutConfiguration: {} as any,
+    hasChanges: false
+  });
+  
   // Department reordering state
   const [isReordering, setIsReordering] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -647,6 +656,129 @@ export default function TemplateSettings() {
     },
   });
 
+  // Global save mutation - handles all template changes at once
+  const globalSaveMutation = useMutation({
+    mutationFn: async () => {
+      setIsSaving(true);
+      console.log('🔒 GLOBAL SAVE: Starting comprehensive template save...');
+      
+      // Collect current layout configuration from the FlexibleLayoutEditor
+      const currentLayoutConfiguration = flexibleLayoutRef.current?.getCurrentConfiguration();
+      
+      // Prepare all changes to save
+      const savePromises = [];
+      
+      // Save layout configuration if available
+      if (currentLayoutConfiguration) {
+        console.log('💾 Saving layout configuration...');
+        savePromises.push(
+          apiRequest("PUT", `/api/projects/${projectId}/settings/layout-configuration`, {
+            layoutConfiguration: currentLayoutConfiguration,
+            templateType: selectedPhase
+          })
+        );
+      }
+      
+      // Save department names if there are changes
+      if (Object.keys(pendingChanges.departmentNames).length > 0) {
+        console.log('📝 Saving department names...', pendingChanges.departmentNames);
+        savePromises.push(
+          apiRequest("PUT", `/api/projects/${projectId}/settings/department-names-bulk`, {
+            departmentNames: pendingChanges.departmentNames
+          })
+        );
+      }
+      
+      // Save department formatting if there are changes
+      if (Object.keys(pendingChanges.departmentFormatting).length > 0) {
+        console.log('🎨 Saving department formatting...', pendingChanges.departmentFormatting);
+        savePromises.push(
+          apiRequest("PUT", `/api/projects/${projectId}/settings/department-formatting-bulk`, {
+            departmentFormatting: pendingChanges.departmentFormatting
+          })
+        );
+      }
+      
+      // Save field header formatting if there are changes
+      if (pendingChanges.fieldHeaderFormatting && Object.keys(pendingChanges.fieldHeaderFormatting).length > 0) {
+        console.log('📋 Saving field header formatting...', pendingChanges.fieldHeaderFormatting);
+        savePromises.push(
+          apiRequest("PUT", `/api/projects/${projectId}/settings/field-header-formatting`, {
+            formatting: pendingChanges.fieldHeaderFormatting
+          })
+        );
+      }
+      
+      // Execute all saves simultaneously
+      await Promise.all(savePromises);
+      return true;
+    },
+    onSuccess: () => {
+      console.log('✅ GLOBAL SAVE: All template changes saved successfully');
+      setIsSaving(false);
+      setLastSaved(new Date());
+      
+      // Clear pending changes
+      setPendingChanges({
+        departmentNames: {},
+        departmentFormatting: {},
+        fieldHeaderFormatting: {},
+        layoutConfiguration: {},
+        hasChanges: false
+      });
+      
+      // Refresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
+      
+      toast({
+        title: "Template saved",
+        description: "All template changes have been saved successfully.",
+      });
+    },
+    onError: (error) => {
+      console.error('❌ GLOBAL SAVE: Failed to save template changes:', error);
+      setIsSaving(false);
+      toast({
+        title: "Error saving template",
+        description: "Failed to save template changes. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Track department name changes
+  const updateDepartmentName = (department: string, newName: string) => {
+    setPendingChanges(prev => ({
+      ...prev,
+      departmentNames: {
+        ...prev.departmentNames,
+        [department]: newName
+      },
+      hasChanges: true
+    }));
+  };
+  
+  // Track department formatting changes
+  const updateDepartmentFormatting = (department: string, formatting: any) => {
+    setPendingChanges(prev => ({
+      ...prev,
+      departmentFormatting: {
+        ...prev.departmentFormatting,
+        [department]: formatting
+      },
+      hasChanges: true
+    }));
+  };
+  
+  // Track field header formatting changes
+  const updateFieldHeaderFormatting = (formatting: any) => {
+    setPendingChanges(prev => ({
+      ...prev,
+      fieldHeaderFormatting: formatting,
+      hasChanges: true
+    }));
+  };
+
   const currentTemplate = templates[selectedPhase];
 
   if (!project || !currentTemplate) {
@@ -743,25 +875,17 @@ export default function TemplateSettings() {
                             variant="ghost"
                             size="sm"
                             onClick={() => {
-                              // OPTIMISTIC UPDATE - UI responds instantly, database save happens in background
                               const newEditMode = !isEditMode;
-                              console.log(`🔄 OPTIMISTIC EDIT MODE TOGGLE: ${isEditMode ? 'LOCKING' : 'UNLOCKING'} - UI updates immediately`);
+                              console.log(`🔄 GLOBAL SAVE TOGGLE: ${isEditMode ? 'LOCKING (SAVE ALL)' : 'UNLOCKING'} - UI updates immediately`);
                               
-                              // Immediate UI update for instant user feedback
-                              setIsEditMode(newEditMode);
-                              
-                              // If locking (newEditMode = false), ensure any final configuration saves
-                              if (!newEditMode && templates[selectedPhase]?.layoutConfiguration) {
-                                console.log('💾 Background save on lock to ensure persistence');
-                                // Background save without blocking UI
-                                apiRequest("PUT", `/api/projects/${projectId}/settings/layout-configuration`, {
-                                  layoutConfiguration: templates[selectedPhase].layoutConfiguration,
-                                  templateType: selectedPhase
-                                }).catch(error => {
-                                  console.error('❌ Background save failed:', error);
-                                  // Could show subtle error toast here if needed
-                                });
+                              // If locking (saving), trigger global save before disabling edit mode
+                              if (!newEditMode) {
+                                console.log('🔒 LOCKING: Saving all template changes...');
+                                globalSaveMutation.mutate();
                               }
+                              
+                              // Update edit mode immediately for responsive UI
+                              setIsEditMode(newEditMode);
                             }}
                             className="h-6 w-6 p-0"
                           >
@@ -912,7 +1036,7 @@ export default function TemplateSettings() {
 
                     {/* Fields Preview */}
                     {selectedPhase === 'tech' ? (
-                      /* Flexible Layout Editor for entire tech template */
+                      /* Flexible Layout Editor for entire tech template - NO AUTO-SAVE */
                       <FlexibleLayoutEditor
                         ref={flexibleLayoutRef}
                         projectId={parseInt(params.id)}
@@ -921,54 +1045,27 @@ export default function TemplateSettings() {
                         template={template}
                         showSettings={showSettings}
                         onTemplateUpdate={(updatedTemplate) => {
-                          // This only triggers when lock button is pressed
+                          // Local state update only - no database save until global save
                           setTemplates(prev => ({
                             ...prev,
                             [phase]: updatedTemplate
                           }));
-                          saveTemplate.mutate(updatedTemplate);
-                          // Note: No cache invalidation to prevent data reload conflicts
                         }}
-                        onConfigurationChange={async (config) => {
-                          console.log('💾 Configuration changed - saving to unified showSettings:', {
-                            projectId,
-                            configItems: config.items.length,
-                            yPositions: config.items.map((item: any) => ({ id: item.id, y: item.y }))
-                          });
-                          
-                          try {
-                            // SIMPLIFIED APPROACH: Save to showSettings table only - single source of truth
-                            await apiRequest("PUT", `/api/projects/${projectId}/settings/layout-configuration`, {
-                              layoutConfiguration: config,
-                              templateType: selectedPhase
-                            });
-                            
-                            // Update local template state for immediate UI response
-                            const updatedTemplate = {
-                              ...template,
-                              layoutConfiguration: config
-                            };
-                            setTemplates(prev => ({
-                              ...prev,
-                              [selectedPhase]: updatedTemplate
-                            }));
-                            
-                            console.log('✅ Configuration saved to unified showSettings - ensuring database completion');
-                            
-                            // Small delay to ensure database write completion before user can lock template
-                            await new Promise(resolve => setTimeout(resolve, 300));
-                            
-                            // Invalidate showSettings cache for consistency
-                            setTimeout(() => {
-                              queryClient.invalidateQueries({
-                                queryKey: ['/api/projects', projectId, 'settings']
-                              });
-                            }, 500);
-                            
-                          } catch (error) {
-                            console.error('❌ Failed to save configuration:', error);
-                          }
+                        onConfigurationChange={(config) => {
+                          console.log('📝 Layout configuration changed - stored locally for global save');
+                          // Update local template state only - no database save
+                          const updatedTemplate = {
+                            ...template,
+                            layoutConfiguration: config
+                          };
+                          setTemplates(prev => ({
+                            ...prev,
+                            [selectedPhase]: updatedTemplate
+                          }));
                         }}
+                        onDepartmentNameChange={updateDepartmentName}
+                        onDepartmentFormattingChange={updateDepartmentFormatting}
+                        onFieldHeaderFormattingChange={updateFieldHeaderFormatting}
                         externalEditMode={isEditMode}
                       />
                     ) : (

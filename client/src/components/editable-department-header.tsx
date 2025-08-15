@@ -11,8 +11,8 @@ interface EditableDepartmentHeaderProps {
   projectId: number;
   department: string;
   displayName: string;
-  onNameChange: (newName: string) => void;
-  onFormattingChange?: (formatting: HeaderFormatting) => void;
+  onNameChange?: (department: string, newName: string) => void;
+  onFormattingChange?: (department: string, formatting: HeaderFormatting) => void;
   isEditing?: boolean;
   disableEditing?: boolean;
 }
@@ -117,8 +117,12 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
           setShowToolbar(true);
         } : undefined}
         onBlur={isEditing ? (e) => {
-          // Only show toolbar on blur, don't save automatically
-          // Save only happens when user clicks the lock button
+          // Call the callback with the new name but don't save to database
+          const newName = e.currentTarget.textContent || displayName;
+          if (newName !== displayName && onNameChange) {
+            console.log(`📝 Department name changed: ${department} -> "${newName}"`);
+            onNameChange(department, newName);
+          }
         } : undefined}
         style={{
           fontWeight: formatting.bold ? 'bold' : 'normal',
@@ -160,6 +164,14 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
           onClose={() => {
             setShowToolbar(false);
             setEditingElement(null);
+          }}
+          onFormatChange={(newFormatting: any) => {
+            console.log(`🎨 Department ${department} format changing:`, newFormatting);
+            setFormatting(newFormatting);
+            // Call the callback to accumulate changes for global save
+            if (onFormattingChange) {
+              onFormattingChange(department, newFormatting);
+            }
           }}
         />
       )}

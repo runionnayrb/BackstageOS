@@ -82,6 +82,11 @@ interface FlexibleLayoutEditorProps {
 
   // External edit mode control
   externalEditMode?: boolean;
+
+  // Global save system callbacks
+  onDepartmentNameChange?: (department: string, newName: string) => void;
+  onDepartmentFormattingChange?: (department: string, formatting: any) => void;
+  onFieldHeaderFormattingChange?: (formatting: any) => void;
 }
 
 export interface FlexibleLayoutEditorRef {
@@ -172,6 +177,9 @@ const LayoutItemRenderer: React.FC<{
   setConfiguration?: React.Dispatch<React.SetStateAction<FlexibleLayoutConfiguration>>;
   onConfigurationChange?: (config: FlexibleLayoutConfiguration) => void;
   showSettings?: any; // Added to access department names
+  onDepartmentNameChange?: (department: string, newName: string) => void;
+  onDepartmentFormattingChange?: (department: string, formatting: any) => void;
+  onFieldHeaderFormattingChange?: (formatting: any) => void;
 }> = ({ 
   item, 
   projectId, 
@@ -185,7 +193,10 @@ const LayoutItemRenderer: React.FC<{
   configuration,
   setConfiguration,
   onConfigurationChange,
-  showSettings
+  showSettings,
+  onDepartmentNameChange,
+  onDepartmentFormattingChange,
+  onFieldHeaderFormattingChange
 }) => {
   switch (item.type) {
     case 'grouped-section':
@@ -207,6 +218,9 @@ const LayoutItemRenderer: React.FC<{
                 setConfiguration={setConfiguration}
                 onConfigurationChange={onConfigurationChange}
                 showSettings={showSettings}
+                onDepartmentNameChange={onDepartmentNameChange}
+                onDepartmentFormattingChange={onDepartmentFormattingChange}
+                onFieldHeaderFormattingChange={onFieldHeaderFormattingChange}
               />
             </div>
           ))}
@@ -225,11 +239,8 @@ const LayoutItemRenderer: React.FC<{
           department={department}
           displayName={effectiveDisplayName}
           isEditing={effectiveEditMode}
-          onNameChange={(newName) => {
-            console.log(`📝 Department name change triggered: ${department} -> "${newName}"`);
-            // Let the EditableDepartmentHeader component handle the database save
-            // This prevents duplicate saves and race conditions
-          }}
+          onNameChange={onDepartmentNameChange}
+          onFormattingChange={onDepartmentFormattingChange}
         />
       );
     
@@ -376,7 +387,10 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
   setIsSaving,
   setLastSaved,
   externalEditMode,
-  showSettings
+  showSettings,
+  onDepartmentNameChange,
+  onDepartmentFormattingChange,
+  onFieldHeaderFormattingChange
 }, ref) => {
   const [isEditMode, setIsEditMode] = useState(isEditing);
   const [layouts, setLayouts] = useState<Layouts>({});
@@ -1095,6 +1109,9 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
                         setConfiguration={setConfiguration}
                         onConfigurationChange={onConfigurationChange}
                         showSettings={showSettings}
+                        onDepartmentNameChange={onDepartmentNameChange}
+                        onDepartmentFormattingChange={onDepartmentFormattingChange}
+                        onFieldHeaderFormattingChange={onFieldHeaderFormattingChange}
                       />
                     </DraggableGridItem>
                   </div>
