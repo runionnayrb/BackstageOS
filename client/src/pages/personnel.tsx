@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ContactDetailModal } from "@/components/contact-detail-modal";
 import { WeeklyAvailabilityEditor } from "@/components/weekly-availability-editor";
 import { ContactForm } from "@/components/contact-form";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 
 interface PersonnelParams {
@@ -36,6 +37,7 @@ export default function Personnel() {
   const projectId = params.id;
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
 
   // Guard against missing projectId
   if (!projectId) {
@@ -244,9 +246,8 @@ export default function Personnel() {
   return (
     <div className="w-full">
       {/* Mobile Header */}
-      <div className="md:hidden px-4 py-4">
+      <div className="md:hidden px-4 pb-4">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold text-gray-900">Contacts</h1>
           
           <div className="flex items-center gap-2">
             <Button
