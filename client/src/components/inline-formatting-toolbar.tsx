@@ -50,25 +50,41 @@ export default function InlineFormattingToolbar({
   });
   const toolbarRef = useRef<HTMLDivElement>(null);
 
+  const updateToolbarPosition = useCallback(() => {
+    if (isVisible && targetElement) {
+      const rect = targetElement.getBoundingClientRect();
+      setPosition({ 
+        top: rect.top - 64, // 64px above the header in viewport coordinates
+        left: rect.left // Aligned to left edge of header in viewport coordinates
+      });
+    }
+  }, [isVisible, targetElement]);
+
   useEffect(() => {
     console.log(`🔧 Toolbar visibility changed - isVisible: ${isVisible}, targetElement:`, targetElement);
     if (isVisible && targetElement) {
-      // Simple positioning without complex calculations
-      const rect = targetElement.getBoundingClientRect();
-      const scrollY = window.pageYOffset || document.documentElement.scrollTop;
-      const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
-      console.log(`🔧 Element rect:`, rect, `scroll: ${scrollX}, ${scrollY}`);
-      
-      // Position toolbar directly above the header like before
-      setPosition({ 
-        top: rect.top + scrollY - 64, // 64px above the header in document coordinates
-        left: rect.left + scrollX // Aligned to left edge of header in document coordinates
-      });
-
+      updateToolbarPosition();
       // Update active states when toolbar becomes visible
       updateActiveStates();
     }
-  }, [isVisible, targetElement]);
+  }, [isVisible, targetElement, updateToolbarPosition]);
+
+  // Add scroll listener to keep toolbar positioned correctly
+  useEffect(() => {
+    if (!isVisible || !targetElement) return;
+
+    const handleScroll = () => {
+      updateToolbarPosition();
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('resize', handleScroll);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, [isVisible, targetElement, updateToolbarPosition]);
 
   // Add event listeners to track formatting changes only
   useEffect(() => {
@@ -272,7 +288,7 @@ export default function InlineFormattingToolbar({
   return (
     <div
       ref={toolbarRef}
-      className="absolute z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-2 flex flex-wrap items-center gap-1 min-w-max"
+      className="fixed z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-2 flex flex-wrap items-center gap-1 min-w-max"
       style={{ 
         top: `${position.top}px`, 
         left: `${position.left}px`,
