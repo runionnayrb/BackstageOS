@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
-  GripVertical,
-  Lock
+  GripVertical
 } from 'lucide-react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
@@ -88,181 +87,14 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
     console.log(`📝 Department ${department} displayName prop updated to:`, displayName);
   }, [displayName, department]);
 
-  const updateDepartmentNameMutation = useMutation({
-    mutationFn: async ({ newName }: { newName: string }) => {
-      const response = await fetch(`/api/projects/${projectId}/settings/department-names`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          department,
-          name: newName
-        })
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to update department name');
-      }
-      
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Department name updated",
-        description: "The department name has been successfully updated.",
-      });
-      setShowToolbar(false);
-      setEditingElement(null);
-      // Immediate cache invalidation
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error updating department name",
-        description: "Failed to update the department name. Please try again.",
-        variant: "destructive",
-      });
-      console.error('Failed to update department name:', error);
-    }
-  });
-
-  // Update formatting mutation
-  const updateFormattingMutation = useMutation({
-    mutationFn: async ({ formatting: newFormatting, applyToAll = false }: { formatting: HeaderFormatting; applyToAll?: boolean }) => {
-      const response = await fetch(`/api/projects/${projectId}/settings/department-formatting`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          department,
-          formatting: newFormatting,
-          applyToAll
-        })
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to update department formatting');
-      }
-      
-      return response.json();
-    },
-    onSuccess: (_, variables) => {
-      const { applyToAll } = variables;
-      toast({
-        title: "Formatting updated",
-        description: applyToAll ? "Formatting applied to all departments" : "Department formatting updated successfully",
-      });
-      onFormattingChange?.(formatting);
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
-      }, 500);
-    },
-    onError: (error) => {
-      toast({
-        title: "Error updating formatting",
-        description: "Failed to update the department formatting. Please try again.",
-        variant: "destructive",
-      });
-      console.error('Failed to update department formatting:', error);
-    }
-  });
+  // No individual mutations - global save will handle all template changes
 
   const handleAutoSave = () => {
-    if (editingElement) {
-      // Get all computed styles from the current element
-      const computedStyle = window.getComputedStyle(editingElement);
-      const newFormatting = {
-        bold: computedStyle.fontWeight === 'bold' || computedStyle.fontWeight === '700',
-        italic: computedStyle.fontStyle === 'italic',
-        underline: computedStyle.textDecoration.includes('underline'),
-        textAlign: computedStyle.textAlign as 'left' | 'center' | 'right',
-        fontFamily: computedStyle.fontFamily,
-        fontSize: computedStyle.fontSize,
-        textColor: computedStyle.color,
-        backgroundColor: computedStyle.backgroundColor,
-        borderTop: false,
-        borderRight: false,
-        borderBottom: false,
-        borderLeft: false,
-        borderWeight: '1px',
-        borderColor: '#d1d5db'
-      };
-      
-      setFormatting(newFormatting);
-      updateFormattingMutation.mutate({ formatting: newFormatting, applyToAll: false });
-    }
+    // Don't auto-save - wait for global lock button save
   };
 
-  const handleApplyToAll = async () => {
-    try {
-      if (!editingElement) return;
-      
-      // Get computed styles from the current element
-      const computedStyle = window.getComputedStyle(editingElement);
-      const newFormatting = {
-        bold: computedStyle.fontWeight === 'bold' || computedStyle.fontWeight === '700',
-        italic: computedStyle.fontStyle === 'italic',
-        underline: computedStyle.textDecoration.includes('underline'),
-        textAlign: computedStyle.textAlign as 'left' | 'center' | 'right',
-        fontFamily: computedStyle.fontFamily,
-        fontSize: computedStyle.fontSize,
-        textColor: computedStyle.color,
-        backgroundColor: computedStyle.backgroundColor,
-        borderTop: false,
-        borderRight: false,
-        borderBottom: false,
-        borderLeft: false,
-        borderWeight: '1px',
-        borderColor: '#d1d5db'
-      };
-
-      // Apply formatting to all department headers
-      await updateFormattingMutation.mutateAsync({ formatting: newFormatting, applyToAll: true });
-      
-      // Also apply formatting to field headers
-      const fieldFormatting = {
-        fontWeight: newFormatting.bold ? 'bold' : 'normal',
-        fontStyle: newFormatting.italic ? 'italic' : 'normal',
-        textDecoration: newFormatting.underline ? 'underline' : 'none',
-        textAlign: newFormatting.textAlign,
-        fontFamily: newFormatting.fontFamily,
-        fontSize: newFormatting.fontSize,
-        color: newFormatting.textColor,
-        backgroundColor: newFormatting.backgroundColor,
-      };
-
-      const fieldResponse = await fetch(`/api/projects/${projectId}/settings/field-header-formatting`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          formatting: fieldFormatting,
-          applyToAll: true
-        }),
-      });
-
-      if (!fieldResponse.ok) {
-        throw new Error(`Failed to update field header formatting: ${fieldResponse.status}`);
-      }
-
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
-
-      toast({
-        title: "Formatting applied",
-        description: "Formatting applied to all headers (department and field headers)",
-      });
-
-    } catch (error) {
-      console.error('Error applying formatting to all headers:', error);
-      toast({
-        title: "Error",
-        description: "Failed to apply formatting to all headers",
-        variant: "destructive"
-      });
-    }
+  const handleApplyToAll = () => {
+    // Don't auto-save - wait for global lock button save
   };
 
   // Simple rendering matching field headers approach
@@ -315,52 +147,21 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
         }}
       />
 
-      {/* Inline Formatting Toolbar with Custom Save Button */}
-      {isEditing && showToolbar && (
-        <div 
-          className="fixed z-[9999] bg-white rounded-lg shadow-lg border border-gray-200 p-2 flex items-center space-x-2"
-          style={{
-            top: `${editingElement?.getBoundingClientRect().top - 64}px`,
-            left: `${editingElement?.getBoundingClientRect().left}px`
+      {/* Inline Formatting Toolbar */}
+      {isEditing && (
+        <InlineFormattingToolbar
+          targetElement={editingElement}
+          isVisible={showToolbar}
+          onAutoSave={() => {
+            // Don't auto-save anything - wait for global lock button save
           }}
-        >
-          <InlineFormattingToolbar
-            targetElement={editingElement}
-            isVisible={showToolbar}
-            onAutoSave={() => {
-              // Only auto-save formatting changes, not department name changes
-              handleAutoSave();
-            }}
-            onApplyToAll={handleApplyToAll}
-            showVariables={false}
-            onClose={() => {
-              setShowToolbar(false);
-              setEditingElement(null);
-            }}
-          />
-          
-          {/* Custom Save Button for Department Name */}
-          <div className="w-px h-6 bg-gray-300 mx-1" />
-          <Button
-            size="sm"
-            onClick={() => {
-              if (editingElement) {
-                const newContent = editingElement.textContent?.trim() || '';
-                if (newContent !== displayName) {
-                  console.log(`💾 Saving department name: ${department} -> "${newContent}"`);
-                  updateDepartmentNameMutation.mutate({ newName: newContent });
-                }
-                setShowToolbar(false);
-                setEditingElement(null);
-              }
-            }}
-            className="h-8 px-3"
-            disabled={updateDepartmentNameMutation.isPending}
-          >
-            <Lock className="h-4 w-4 mr-1" />
-            {updateDepartmentNameMutation.isPending ? 'Saving...' : 'Save'}
-          </Button>
-        </div>
+          onApplyToAll={handleApplyToAll}
+          showVariables={false}
+          onClose={() => {
+            setShowToolbar(false);
+            setEditingElement(null);
+          }}
+        />
       )}
     </div>
   );
