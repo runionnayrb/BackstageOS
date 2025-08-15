@@ -281,7 +281,7 @@ export default function PropsTracker() {
 
   return (
     <div className="w-full">
-      <div className="px-4 sm:px-6 lg:px-8 py-4">
+      <div className={`px-4 sm:px-6 lg:px-8 ${isMobile ? 'pb-4' : 'py-4'}`}>
         {!isMobile && (
           <div className="flex items-center justify-between mb-4">
             <div></div>
