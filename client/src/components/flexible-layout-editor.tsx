@@ -599,14 +599,9 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       })));
       
       setConfiguration(template.layoutConfiguration);
-      
-      // Update layouts immediately to prevent snap-back
-      const newLayouts = convertToGridLayouts(template.layoutConfiguration.items);
-      setLayouts(newLayouts);
-      
       console.log('✅ Configuration updated from fresh template data');
     }
-  }, [template?.layoutConfiguration, isInitialized, convertToGridLayouts]);
+  }, [template?.layoutConfiguration, isInitialized]);
 
   // NO MORE COMPLEX TRACKING - Keep it simple
 
