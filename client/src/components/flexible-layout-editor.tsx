@@ -491,9 +491,10 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
           if (it.id.includes('dept-section-')) {
             itemType = 'department-header';
             const dept = it.id.replace('dept-section-', '').replace(/-\d+$/, ''); // Remove timestamp suffix
+            const cleanDept = dept.replace(/-\d+$/, ''); // Handle additional timestamp suffixes
             itemContent = { 
-              department: dept, 
-              displayName: dept.charAt(0).toUpperCase() + dept.slice(1) 
+              department: cleanDept, 
+              displayName: cleanDept.charAt(0).toUpperCase() + cleanDept.slice(1) 
             };
           } else if (it.id.includes('field-section-')) {
             itemType = 'field-header';
