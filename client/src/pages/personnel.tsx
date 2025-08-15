@@ -336,7 +336,7 @@ export default function Personnel() {
       </div>
 
       {/* Mobile Contact List */}
-      <div className="md:hidden px-4 pb-4">
+      <div className="md:hidden px-4 pt-4 pb-4">
         <div className="space-y-6">
           {categories.map((category, categoryIndex) => {
             const categoryContacts = contactsByCategory[category.id] || [];
