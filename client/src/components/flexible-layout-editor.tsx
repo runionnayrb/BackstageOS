@@ -38,6 +38,24 @@ import AutoNumberingTextarea from './auto-numbering-textarea';
 import EditableHeaderFooter from './editable-header-footer';
 import { cn } from '@/lib/utils';
 
+// Layout normalization helper (duplicated from template-settings.tsx)
+function normalizeLayout(config: any) {
+  if (!config || !Array.isArray(config.items)) return config;
+  const items = config.items.map((it: any, idx: number) => {
+    const x = typeof it.x === "string" ? parseInt(it.x, 10) : Number.isFinite(it.x) ? it.x : 0;
+    const y = typeof it.y === "string" ? parseInt(it.y, 10) : Number.isFinite(it.y) ? it.y : idx;
+    const w = typeof it.w === "string" ? parseInt(it.w, 10) : Number.isFinite(it.w) ? it.w : 6;
+    const h = typeof it.h === "string" ? parseInt(it.h, 10) : Number.isFinite(it.h) ? it.h : 1;
+    const stableId =
+      it.id ||
+      it.i ||
+      `${it.type || "item"}:${it.key || it.fieldId || it.department || idx}`;
+    return { ...it, id: stableId, x, y, w, h };
+  });
+  items.sort((a: any, b: any) => (a.y - b.y) || (a.x - b.x));
+  return { ...config, items };
+}
+
 // Make ResponsiveGridLayout responsive to container width changes
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -384,8 +402,6 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
   onConfigurationChange,
   template,
   onTemplateUpdate,
-  setIsSaving,
-  setLastSaved,
   externalEditMode,
   showSettings,
   onDepartmentNameChange,
@@ -1071,13 +1087,19 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     removeItem,
     resetLayout,
     getCurrentConfiguration: () => {
-      console.log('🔍 getCurrentConfiguration called');
-      console.log('📊 Current configuration positions:', configuration.items.map(item => ({ 
-        id: item.id, 
-        x: item.x, 
-        y: item.y 
-      })));
-      return configuration;
+      const items = configuration.items.map((item) => {
+        const id = item.id || `${item.type}:${item.content?.fieldId || item.content?.department || Date.now()}`;
+        return {
+          ...item,
+          id,
+          x: Number(item.x),
+          y: Number(item.y),
+          w: Number(item.w),
+          h: Number(item.h),
+          type: item.type
+        };
+      });
+      return normalizeLayout({ ...configuration, items });
     }
   }), [addNewItem, removeItem, resetLayout, configuration]);
 
@@ -1110,34 +1132,37 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
                 draggableHandle=".drag-handle"
                 useCSSTransforms={false}
                 compactType={null}
-                preventCollision={false}
+                preventCollision={true}
                 allowOverlap={true}
                 resizeHandles={effectiveEditMode ? ['se'] : []}
                 style={{ minHeight: '800px', width: '100%' }}
               >
-                {configuration.items.map((item) => (
-                  <div 
-                    key={item.id} 
-                    className={cn(
-                      "group", 
-                      item.w === configuration.gridCols ? "full-width" : "",
-                      item.type === 'grouped-section' && item.content?.department ? "department-section" : "",
-                      item.id.includes('dept-section') ? "dept-section-item" : ""
-                    )} 
-                    style={{ 
-                      width: item.w === configuration.gridCols ? '100%' : `${(item.w / configuration.gridCols) * 100}%`,
-                      position: 'relative',
-                      left: item.w === configuration.gridCols ? '0px' : undefined
-                    }}
-                    data-width={item.w}
-                    data-grid-cols={configuration.gridCols}
-                    data-is-full-width={item.w === configuration.gridCols}
-                  >
-                    <DraggableGridItem
-                      item={item}
-                      effectiveEditMode={effectiveEditMode}
-                      onDelete={() => removeItem(item.id)}
+                {configuration.items.map((item) => {
+                  const id = item.id || item.i || `${item.type}:${item.content?.fieldId || item.content?.department}`;
+                  return (
+                    <div 
+                      key={id} 
+                      data-grid={{ x: +item.x, y: +item.y, w: +item.w, h: +item.h, i: id }}
+                      className={cn(
+                        "group", 
+                        item.w === configuration.gridCols ? "full-width" : "",
+                        item.type === 'grouped-section' && item.content?.department ? "department-section" : "",
+                        item.id.includes('dept-section') ? "dept-section-item" : ""
+                      )} 
+                      style={{ 
+                        width: item.w === configuration.gridCols ? '100%' : `${(item.w / configuration.gridCols) * 100}%`,
+                        position: 'relative',
+                        left: item.w === configuration.gridCols ? '0px' : undefined
+                      }}
+                      data-width={item.w}
+                      data-grid-cols={configuration.gridCols}
+                      data-is-full-width={item.w === configuration.gridCols}
                     >
+                      <DraggableGridItem
+                        item={item}
+                        effectiveEditMode={effectiveEditMode}
+                        onDelete={() => removeItem(item.id)}
+                      >
                       <LayoutItemRenderer
                         item={item}
                         projectId={projectId}
@@ -1156,9 +1181,10 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
                         onDepartmentFormattingChange={onDepartmentFormattingChange}
                         onFieldHeaderFormattingChange={onFieldHeaderFormattingChange}
                       />
-                    </DraggableGridItem>
-                  </div>
-                ))}
+                      </DraggableGridItem>
+                    </div>
+                  );
+                })}
               </ResponsiveGridLayout>
             </div>
           )}

@@ -1,0 +1,251 @@
+You are an expert React, TypeScript, and react-grid-layout engineer. Fix the following bug in my app.
+
+Symptom. In the Tech tab, when I unlock edit mode, drag department headers or field headers, click the lock button to save, then navigate away and back, the items do not reload in the saved positions.
+
+Root cause. We were saving a stale layout from state, coordinates came back as strings or unsorted which lets the grid re-compact, and the editor reused a cached internal layout on mount.
+
+Goal. Persist and rehydrate the exact positions. Save the freshest layout directly from the editor on lock, normalize and sort coordinates, and force a clean remount keyed by a hash of positions. Also turn off grid compaction.
+
+Make the following changes exactly.
+
+File. TemplateSettings component file that renders the Tech template and FlexibleLayoutEditor.
+
+Add these helpers right after the imports.
+
+// Layout normalization and stable key
+function normalizeLayout(config: any) {
+  if (!config || !Array.isArray(config.items)) return config;
+  const items = config.items.map((it: any, idx: number) => {
+    const x = typeof it.x === "string" ? parseInt(it.x, 10) : Number.isFinite(it.x) ? it.x : 0;
+    const y = typeof it.y === "string" ? parseInt(it.y, 10) : Number.isFinite(it.y) ? it.y : idx;
+    const w = typeof it.w === "string" ? parseInt(it.w, 10) : Number.isFinite(it.w) ? it.w : 6;
+    const h = typeof it.h === "string" ? parseInt(it.h, 10) : Number.isFinite(it.h) ? it.h : 1;
+    const stableId =
+      it.id ||
+      it.i ||
+      `${it.type || "item"}:${it.key || it.fieldId || it.department || idx}`;
+    return { ...it, id: stableId, x, y, w, h };
+  });
+  items.sort((a: any, b: any) => (a.y - b.y) || (a.x - b.x));
+  return { ...config, items };
+}
+
+function layoutHash(config: any): string {
+  if (!config || !Array.isArray(config.items)) return "empty";
+  const sig = config.items.map((it: any) => `${it.id}:${it.x},${it.y},${it.w},${it.h}`).join("|");
+  let h = 0;
+  for (let i = 0; i < sig.length; i++) {
+    h = ((h << 5) - h) + sig.charCodeAt(i);
+    h |= 0;
+  }
+  return String(h);
+}
+
+
+Replace the useEffect that initializes templates so it normalizes the Tech layout and prefers a phase scoped value if present. Find the effect that logs “TEMPLATE INIT” and applies showSettings.layoutConfiguration to Tech. Replace the whole effect body with this one.
+
+useEffect(() => {
+  const initialTemplates: Record<string, ProductionTemplate> = {};
+
+  Object.entries(defaultTemplates).forEach(([phase, template]) => {
+    initialTemplates[phase] = {
+      ...template,
+      id: `default-${phase}`,
+    } as ProductionTemplate;
+  });
+
+  if (userTemplates && Array.isArray(userTemplates)) {
+    userTemplates.forEach((userTemplate: any) => {
+      if (userTemplate.phase) {
+        initialTemplates[userTemplate.phase] = {
+          id: userTemplate.id.toString(),
+          phase: userTemplate.phase as any,
+          name: userTemplate.name,
+          description: userTemplate.description || "",
+          header: userTemplate.header || "",
+          footer: userTemplate.footer || "",
+          fields: userTemplate.fields || []
+        };
+      }
+    });
+  }
+
+  // Prefer per phase tech config when available
+  const dbTechConfig =
+    showSettings?.layoutConfigurations?.tech ??
+    showSettings?.layoutConfiguration ??
+    null;
+
+  if (dbTechConfig && initialTemplates.tech) {
+    const normalized = normalizeLayout(dbTechConfig);
+    // @ts-ignore allow on the template object
+    initialTemplates.tech.layoutConfiguration = normalized;
+  }
+
+  setTemplates(initialTemplates);
+}, [projectId, userTemplates, showSettings]);
+
+
+Save the freshest layout on lock. Find the Tech lock Toggle button with the comment “GLOBAL SAVE TOGGLE”. Replace that entire Button element with this version.
+
+<Button
+  variant="ghost"
+  size="sm"
+  onClick={async () => {
+    const newEditMode = !isEditMode;
+
+    // On lock, save immediately from the editor, normalized
+    if (!newEditMode && selectedPhase === "tech") {
+      try {
+        const currentConfig = flexibleLayoutRef.current?.getCurrentConfiguration();
+        const normalized = normalizeLayout(currentConfig);
+
+        // Update local state so UI reflects saved order
+        setTemplates(prev => ({
+          ...prev,
+          [selectedPhase]: {
+            ...prev[selectedPhase],
+            // @ts-ignore
+            layoutConfiguration: normalized
+          }
+        }));
+
+        await apiRequest("PUT", `/api/projects/${projectId}/settings/layout-configuration`, {
+          layoutConfiguration: normalized,
+          templateType: selectedPhase
+        });
+
+        queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
+
+        toast({
+          title: "Template saved",
+          description: "Layout positions saved successfully.",
+        });
+      } catch (err) {
+        console.error("Failed to save layout configuration", err);
+        toast({
+          title: "Error",
+          description: "Could not save the layout positions.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    setIsEditMode(newEditMode);
+  }}
+  className="h-6 w-6 p-0"
+>
+  {isEditMode ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+</Button>
+
+
+Force a clean remount of the editor keyed by a position hash, and normalize incoming config during drag. Find the FlexibleLayoutEditor usage for Tech where key currently uses items length. Replace that entire component usage with this version.
+
+<FlexibleLayoutEditor
+  key={`tech-editor-${layoutHash(template?.layoutConfiguration)}`}
+  ref={flexibleLayoutRef}
+  projectId={parseInt(params.id)}
+  reportType="tech"
+  isEditing={true}
+  template={template}
+  showSettings={showSettings}
+  onTemplateUpdate={(updatedTemplate) => {
+    setTemplates(prev => ({
+      ...prev,
+      [phase]: updatedTemplate
+    }));
+  }}
+  onConfigurationChange={(config) => {
+    const normalized = normalizeLayout(config);
+    const updatedTemplate = {
+      ...template,
+      // @ts-ignore
+      layoutConfiguration: normalized
+    };
+    setTemplates(prev => ({
+      ...prev,
+      [selectedPhase]: updatedTemplate
+    }));
+    setPendingChanges(prev => ({
+      ...prev,
+      layoutConfiguration: normalized,
+      hasChanges: true
+    }));
+  }}
+  onDepartmentNameChange={updateDepartmentName}
+  onDepartmentFormattingChange={updateDepartmentFormatting}
+  onFieldHeaderFormattingChange={updateFieldHeaderFormatting}
+  externalEditMode={isEditMode}
+/>
+
+
+Inside the FlexibleLayoutEditor component file, enforce no compaction and stable IDs.
+
+Open the file at "@/components/flexible-layout-editor" and make these edits.
+
+a) Wherever you render ReactGridLayout or ResponsiveGridLayout, add these props. If both exist, add to the one that actually renders the grid.
+
+<ResponsiveGridLayout
+  compactType={null}
+  preventCollision={true}
+  // keep your existing props
+>
+  {/* children */}
+</ResponsiveGridLayout>
+
+
+or
+
+<ReactGridLayout
+  compactType={null}
+  preventCollision={true}
+  // keep your existing props
+>
+  {/* children */}
+</ReactGridLayout>
+
+
+b) Ensure each layout item has a stable key and id. When mapping items to grid children, set both key and data id from a stable field.
+
+{layout.items.map((item) => {
+  const id = item.id || item.i || `${item.type}:${item.fieldId || item.department}`;
+  return (
+    <div key={id} data-grid={{ x: +item.x, y: +item.y, w: +item.w, h: +item.h, i: id }}>
+      {/* render item */}
+    </div>
+  );
+})}
+
+
+c) Ensure getCurrentConfiguration returns numeric coordinates and the stable id. If you already expose getCurrentConfiguration on the ref, replace its body with this.
+
+const getCurrentConfiguration = () => {
+  const items = internalLayout.map((node) => {
+    const id = node.i || node.id;
+    return {
+      ...node.meta, // preserve your domain data if stored here
+      id,
+      x: Number(node.x),
+      y: Number(node.y),
+      w: Number(node.w),
+      h: Number(node.h),
+      type: node.meta?.type || node.type
+    };
+  });
+  return normalizeLayout({ items });
+};
+
+
+If normalizeLayout is not in scope inside FlexibleLayoutEditor, add a minimal version at the top of that file or duplicate the same helper there.
+
+Optional but recommended. If the backend stores per phase configurations, persist as showSettings.layoutConfigurations.tech on save, and also read from there. You already send templateType in the PUT. Confirm the server associates the stored layout with that phase.
+
+Test plan.
+
+A. Unlock Tech, drag several items, lock.
+B. Confirm a single PUT to /settings/layout-configuration includes numeric x, y, w, h and stable ids.
+C. Navigate away and return to Tech. Items render exactly where you saved them.
+D. Repeat with more moves to confirm the key hash forces a fresh mount each time.
+
+Make only the edits above. Do not change unrelated logic.
