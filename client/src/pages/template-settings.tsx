@@ -662,18 +662,15 @@ export default function TemplateSettings() {
       setIsSaving(true);
       console.log('🔒 GLOBAL SAVE: Starting comprehensive template save...');
       
-      // Collect current layout configuration from the FlexibleLayoutEditor
-      const currentLayoutConfiguration = flexibleLayoutRef.current?.getCurrentConfiguration();
-      
       // Prepare all changes to save
       const savePromises = [];
       
-      // Save layout configuration if available
-      if (currentLayoutConfiguration) {
-        console.log('💾 Saving layout configuration...');
+      // Save layout configuration if there are changes
+      if (pendingChanges.layoutConfiguration && Object.keys(pendingChanges.layoutConfiguration).length > 0) {
+        console.log('💾 Saving layout configuration...', pendingChanges.layoutConfiguration);
         savePromises.push(
           apiRequest("PUT", `/api/projects/${projectId}/settings/layout-configuration`, {
-            layoutConfiguration: currentLayoutConfiguration,
+            layoutConfiguration: pendingChanges.layoutConfiguration,
             templateType: selectedPhase
           })
         );
@@ -1061,6 +1058,13 @@ export default function TemplateSettings() {
                           setTemplates(prev => ({
                             ...prev,
                             [selectedPhase]: updatedTemplate
+                          }));
+                          
+                          // Track layout configuration changes for global save
+                          setPendingChanges(prev => ({
+                            ...prev,
+                            layoutConfiguration: config,
+                            hasChanges: true
                           }));
                         }}
                         onDepartmentNameChange={updateDepartmentName}
