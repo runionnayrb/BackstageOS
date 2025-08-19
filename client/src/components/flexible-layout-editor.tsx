@@ -863,7 +863,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       });
 
       setConfiguration(newConfig);
-      onConfigurationChange?.(newConfig);
+      // DO NOT auto-save - only save when Lock button is clicked
       
       // Update layouts immediately without unmounting
       const newLayouts = convertToGridLayouts(newConfig.items);
@@ -958,7 +958,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       });
 
       setConfiguration(newConfig);
-      onConfigurationChange?.(newConfig);
+      // DO NOT auto-save - only save when Lock button is clicked
       
       // Force layout recalculation to ensure React Grid Layout processes the new item
       setTimeout(() => {
@@ -986,7 +986,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       };
 
       setConfiguration(newConfig);
-      onConfigurationChange?.(newConfig);
+      // DO NOT auto-save - only save when Lock button is clicked
     }
   };
 
@@ -998,7 +998,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     };
 
     setConfiguration(newConfig);
-    onConfigurationChange?.(newConfig);
+    // DO NOT auto-save - only save when Lock button is clicked
   };
 
   // Show reset confirmation dialog
@@ -1073,7 +1073,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     });
 
     setConfiguration(defaultConfig);
-    onConfigurationChange?.(defaultConfig);
+    // DO NOT auto-save - only save when Lock button is clicked
     setShowResetDialog(false); // Close the dialog
   };
 
