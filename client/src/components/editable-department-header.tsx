@@ -75,8 +75,8 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
 
   // Apply saved formatting when loaded
   useEffect(() => {
-    if (showSettings && (showSettings as any).departmentFormatting?.[department]) {
-      const savedFormatting = (showSettings as any).departmentFormatting[department];
+    if (showSettings && showSettings.departmentFormatting?.[department]) {
+      const savedFormatting = showSettings.departmentFormatting[department];
       console.log(`🎨 Loading saved formatting for ${department}:`, savedFormatting);
       setFormatting(savedFormatting);
     }
