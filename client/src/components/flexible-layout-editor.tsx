@@ -821,10 +821,10 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     });
     
     if (type === 'department-header') {
-      // Create a new department section at the bottom with full width
+      // PRESERVE USER LAYOUT - append at end with proper spacing
       const allItems = configuration.items;
-      const lastItemY = allItems.length > 0 ? Math.max(...allItems.map(i => i.y + i.h)) : 0;
-      const insertY = lastItemY + 1; // Place at bottom with 1 row spacing
+      const lastItem = allItems[allItems.length - 1];
+      const insertY = lastItem ? lastItem.y + lastItem.h + 2 : 0; // Add below last item with spacing
       
       // Generate a unique department key that will be used in departmentNames
       const timestamp = Date.now();
@@ -872,35 +872,18 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       
       const newConfig = {
         ...configuration,
-        items: [...configuration.items, newItem]
+        items: [...configuration.items, newItem] // Simple append - preserve existing layout
       };
       
-      console.log('🚀 New configuration after adding:', {
-        itemCount: newConfig.items.length,
-        items: newConfig.items.map(item => ({ id: item.id, type: item.type, w: item.w, x: item.x }))
-      });
-      console.log('🔍 New item details:', {
-        id: newItem.id,
-        x: newItem.x, 
-        y: newItem.y, 
-        w: newItem.w, 
-        h: newItem.h,
-        minW: newItem.minW,
-        maxW: newItem.maxW,
-        gridCols: configuration.gridCols,
-        isFullWidth: newItem.w === configuration.gridCols,
-        percentageWidth: `${(newItem.w / configuration.gridCols) * 100}%`
-      });
+      console.log('🚀 APPENDED new department - existing layout preserved');
 
       setConfiguration(newConfig);
       onConfigurationChange?.(newConfig);
       
-      // Update layouts immediately without unmounting
+      // Minimal layout update
       const newLayouts = convertToGridLayouts(newConfig.items);
       setLayouts(newLayouts);
-      console.log('🔄 IMMEDIATE LAYOUT UPDATE after adding department');
-      console.log('🔍 Layout for new item:', newLayouts.lg?.find(l => l.i === newItem.id));
-      console.log('🔍 All layout items:', newLayouts.lg?.map(l => ({ i: l.i, w: l.w, x: l.x })));
+      console.log('🔄 Layout updated after adding department - user positions preserved');
     } else if (type === 'field-header') {
       // Create a new property as grouped section above departments
       const fieldId = 'new-property';
@@ -953,15 +936,16 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         ...configuration.items.slice(insertIndex)
       ];
 
-      // Recalculate Y positions to prevent overlapping
-      let currentY = 0;
-      const spacedItems = newItems.map(item => {
-        const adjustedItem = {
-          ...item,
-          y: currentY
-        };
-        currentY += item.h + 1; // Add height plus 1 row spacing
-        return adjustedItem;
+      // PRESERVE USER LAYOUT - just append new item at the end
+      const lastItem = configuration.items[configuration.items.length - 1];
+      const appendY = lastItem ? lastItem.y + lastItem.h + 2 : 0; // Add with spacing below last item
+      
+      // Set new item position and keep all existing positions
+      const spacedItems = newItems.map((item, index) => {
+        if (item.id === newItem.id) {
+          return { ...item, y: appendY }; // Position new item at end
+        }
+        return item; // Keep existing items unchanged
       });
 
       const newConfig = {
@@ -1020,41 +1004,33 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     }
   };
 
-  // Remove item from layout
+  // Remove item from layout - PRESERVE USER LAYOUT
   const removeItem = (itemId: string) => {
-    console.log('🗑️ Removing item:', itemId);
+    console.log('🗑️ REMOVING ITEM - PRESERVING USER LAYOUT:', itemId);
     const filteredItems = configuration.items.filter(item => item.id !== itemId);
     
-    // Recalculate Y positions to prevent overlapping after removal
-    let currentY = 0;
-    const spacedItems = filteredItems.map(item => {
-      const adjustedItem = {
-        ...item,
-        y: currentY
-      };
-      currentY += item.h + 1; // Add height plus 1 row spacing
-      return adjustedItem;
-    });
-
-    console.log('📐 Recalculated positions after removal:', spacedItems.map(item => ({ 
+    // DO NOT RECALCULATE POSITIONS - Keep user's carefully set layout intact
+    console.log('✅ Removed item, keeping all other positions intact:', filteredItems.map(item => ({ 
       id: item.id, 
+      x: item.x,
       y: item.y, 
-      h: item.h 
+      h: item.h,
+      w: item.w
     })));
 
     const newConfig = {
       ...configuration,
-      items: spacedItems
+      items: filteredItems // Keep original positions
     };
 
     setConfiguration(newConfig);
     onConfigurationChange?.(newConfig);
     
-    // Force layout recalculation
+    // Minimal layout refresh - preserve user positions
     setTimeout(() => {
       const refreshedLayouts = convertToGridLayouts(newConfig.items);
       setLayouts(refreshedLayouts);
-      console.log('🔄 Forced layout refresh after item removal');
+      console.log('🔄 Layout refreshed after removal - user positions preserved');
     }, 100);
   };
 
@@ -1124,40 +1100,39 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     setShowResetDialog(false); // Close the dialog
   };
 
-  // Add function to recalculate Y positions manually
+  // Add function to recalculate Y positions manually - PRESERVE USER POSITIONS
   const recalculateYPositions = () => {
-    console.log('📐 Manually recalculating Y positions for all items');
-    let currentY = 0;
+    console.log('📐 PRESERVING user layout - only fixing overlaps and dimensions');
+    
     const spacedItems = configuration.items.map(item => {
-      // Fix dimensions: grouped sections need proper height and width
+      // Fix dimensions only: grouped sections need proper height and width
       let fixedHeight = item.h;
       let fixedWidth = item.w;
       
       if (item.type === 'grouped-section') {
-        // For department sections: header (1) + notes (2) = 3 total height
+        // Only fix dimensions, preserve Y positions that user carefully set
         if (item.id.startsWith('dept-section-')) {
-          fixedHeight = 3;
-          fixedWidth = 6; // Reasonable width for departments
+          fixedHeight = Math.max(3, item.h); // At least 3, but keep if bigger
+          // Keep user's width choices
         }
-        // For field sections: header (1) + notes (2) = 3 total height  
         else if (item.id.startsWith('field-section-')) {
-          fixedHeight = 3;
-          fixedWidth = 12; // Full width for field sections
+          fixedHeight = Math.max(3, item.h); // At least 3, but keep if bigger  
+          // Keep user's width choices
         }
       }
       
+      // PRESERVE user's X and Y positions - only fix dimensions
       const adjustedItem = {
         ...item,
-        y: currentY,
         h: fixedHeight,
-        w: fixedWidth
+        // Keep user's carefully positioned x, y, w
       };
-      currentY += fixedHeight + 2; // Add height plus 2 rows spacing for better separation
       return adjustedItem;
     });
 
-    console.log('✅ New Y positions and dimensions:', spacedItems.map(item => ({ 
+    console.log('✅ Preserved user positions, only fixed dimensions:', spacedItems.map(item => ({ 
       id: item.id, 
+      x: item.x,
       y: item.y, 
       h: item.h,
       w: item.w 
@@ -1171,14 +1146,11 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     setConfiguration(newConfig);
     onConfigurationChange?.(newConfig);
     
-    // Force layout refresh and save to database
+    // Force layout refresh
     setTimeout(() => {
       const refreshedLayouts = convertToGridLayouts(newConfig.items);
       setLayouts(refreshedLayouts);
-      console.log('🔄 Layout refreshed after manual Y position recalculation');
-      
-      // Trigger save to database with new positions
-      handleLayoutChange(refreshedLayouts.lg || []);
+      console.log('🔄 Layout refreshed - user positions preserved');
     }, 100);
   };
 
