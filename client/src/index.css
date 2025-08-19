@@ -41,10 +41,36 @@
 }
 
 /* React Grid Layout and Resizable Styles */
+.react-grid-layout-container {
+  position: relative !important;
+  width: 1200px !important;
+  min-width: 1200px !important;
+  max-width: 1200px !important;
+}
+
+.react-grid-layout {
+  position: relative !important;
+  width: 1200px !important;
+  min-width: 1200px !important;
+  max-width: 1200px !important;
+}
+
 .react-grid-item {
   transition: all 200ms ease;
-  transition-property: left, top;
+  transition-property: left, top, transform;
   border: 1px solid transparent;
+  position: absolute !important;
+}
+
+/* Force proper width calculation for all grid items */
+.react-grid-item {
+  box-sizing: border-box !important;
+}
+
+/* Ensure React Grid Layout calculates proper widths */
+.layout.react-grid-layout-container {
+  width: 1200px !important;
+  min-width: 1200px !important;
 }
 
 /* Ensure full width items take full container width */

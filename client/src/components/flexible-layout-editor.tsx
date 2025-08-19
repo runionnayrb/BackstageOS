@@ -707,6 +707,21 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     };
   }, [effectiveEditMode, configuration.gridCols]);
 
+  // Force layout recalculation on mount and configuration changes
+  useEffect(() => {
+    if (isLayoutMounted) {
+      // Force immediate layout recalculation and trigger resize event
+      setTimeout(() => {
+        const refreshedLayouts = convertToGridLayouts(configuration.items);
+        setLayouts(refreshedLayouts);
+        
+        // Force React Grid Layout to recalculate by triggering window resize
+        window.dispatchEvent(new Event('resize'));
+        console.log('🔄 Forced layout recalculation and window resize after mount/config change');
+      }, 100);
+    }
+  }, [isLayoutMounted, configuration.items.length]);
+
   // Update layouts when configuration changes
   useEffect(() => {
     console.log('✅ Updating layouts from configuration - item count:', configuration.items.length);
@@ -889,6 +904,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       setTimeout(() => {
         const refreshedLayouts = convertToGridLayouts(newConfig.items);
         setLayouts(refreshedLayouts);
+        window.dispatchEvent(new Event('resize'));
         console.log('🔄 Grid layout updated after department addition');
       }, 50);
       
@@ -945,6 +961,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       setTimeout(() => {
         const refreshedLayouts = convertToGridLayouts(newConfig.items);
         setLayouts(refreshedLayouts);
+        window.dispatchEvent(new Event('resize'));
         console.log('🔄 Grid layout updated after property addition');
       }, 50);
       
@@ -978,6 +995,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       setTimeout(() => {
         const refreshedLayouts = convertToGridLayouts(newConfig.items);
         setLayouts(refreshedLayouts);
+        window.dispatchEvent(new Event('resize'));
         console.log('🔄 Grid layout updated after empty space addition');
       }, 50);
     }
@@ -1009,6 +1027,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     setTimeout(() => {
       const refreshedLayouts = convertToGridLayouts(newConfig.items);
       setLayouts(refreshedLayouts);
+      window.dispatchEvent(new Event('resize'));
       console.log('🔄 Grid layout updated after item removal');
     }, 50);
     
@@ -1084,6 +1103,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     setTimeout(() => {
       const refreshedLayouts = convertToGridLayouts(defaultConfig.items);
       setLayouts(refreshedLayouts);
+      window.dispatchEvent(new Event('resize'));
       console.log('🔄 Grid layout updated after reset');
     }, 50);
   };
@@ -1138,6 +1158,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     setTimeout(() => {
       const refreshedLayouts = convertToGridLayouts(newConfig.items);
       setLayouts(refreshedLayouts);
+      window.dispatchEvent(new Event('resize'));
       console.log('🔄 Layout refreshed - user positions preserved');
     }, 100);
   };
@@ -1165,12 +1186,13 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
 
         {/* Grid Layout */}
         <div className={cn(
-          "bg-white",
+          "bg-white w-full overflow-x-auto",
           effectiveEditMode && "bg-gray-50/50"
         )}>
           {isLayoutMounted && (
-            <div className="w-full" style={{ width: '1200px', maxWidth: '100%' }}>
+            <div className="min-w-full" style={{ width: '1200px', minWidth: '1200px' }}>
               <ResponsiveGridLayout
+                key={`grid-${configuration.items.length}`}
                 className="layout react-grid-layout-container"
                 layouts={layouts}
                 breakpoints={{ lg: 1200, md: 1200, sm: 1200, xs: 1200, xxs: 1200 }}
@@ -1190,9 +1212,14 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
                 onDragStart={effectiveEditMode ? handleDragStart : undefined}
                 onDragStop={effectiveEditMode ? handleDragStop : undefined}
                 draggableHandle=""
-                useCSSTransforms={false}
+                useCSSTransforms={true}
                 resizeHandles={effectiveEditMode ? ['se', 'sw', 'ne', 'nw', 's', 'e'] : []}
-                style={{ minHeight: '800px', width: '100%' }}
+                autoSize={true}
+                style={{ 
+                  minHeight: '800px', 
+                  width: '1200px !important', 
+                  position: 'relative'
+                }}
               >
                 {configuration.items.map((item) => (
                   <div 
