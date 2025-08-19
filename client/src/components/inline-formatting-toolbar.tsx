@@ -234,10 +234,8 @@ export default function InlineFormattingToolbar({
         }, 100);
       }
       
-      // Trigger auto-save if provided
-      if (onAutoSave) {
-        setTimeout(onAutoSave, 100);
-      }
+      // DO NOT auto-save - only save when Lock button is clicked
+      // Removed onAutoSave call to prevent template corruption
     } catch (error) {
       console.error('Error executing command:', command, error);
     }
