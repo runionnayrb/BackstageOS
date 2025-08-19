@@ -634,6 +634,12 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       setHasInitialized(true);
       setIsLayoutMounted(true);
       console.log('✅ SAVED LAYOUT APPLIED successfully');
+      console.log('🔍 INIT: Props department position on load:', template.layoutConfiguration.items.find((item: any) => item.id?.includes('props') || item.content?.department === 'props'));
+      console.log('🔍 INIT: All department positions on load:', template.layoutConfiguration.items.filter((item: any) => item.type === 'grouped-section').map((item: any) => ({
+        id: item.id,
+        department: item.content?.department,
+        position: { x: item.x, y: item.y, w: item.w, h: item.h }
+      })));
     } 
     // Generate new layout if none exists
     else {

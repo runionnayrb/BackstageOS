@@ -912,6 +912,12 @@ export default function TemplateSettings() {
                                 if (flexibleLayoutRef.current) {
                                   const currentConfig = flexibleLayoutRef.current.getCurrentConfiguration();
                                   console.log('📊 Latest configuration from editor:', currentConfig);
+                                  console.log('🔍 DETAILED: Props department position:', currentConfig?.items.find(item => item.id?.includes('props') || item.content?.department === 'props'));
+                                  console.log('🔍 DETAILED: All department positions:', currentConfig?.items.filter(item => item.type === 'grouped-section').map(item => ({
+                                    id: item.id,
+                                    department: item.content?.department,
+                                    position: { x: item.x, y: item.y, w: item.w, h: item.h }
+                                  })));
                                   
                                   // Update pending changes with latest config before saving
                                   setPendingChanges(prev => ({
