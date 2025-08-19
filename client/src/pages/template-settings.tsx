@@ -65,35 +65,6 @@ import {
   RotateCcw
 } from "lucide-react";
 
-// Layout normalization and stable key
-function normalizeLayout(config: any) {
-  if (!config || !Array.isArray(config.items)) return config;
-  const items = config.items.map((it: any, idx: number) => {
-    const x = typeof it.x === "string" ? parseInt(it.x, 10) : Number.isFinite(it.x) ? it.x : 0;
-    const y = typeof it.y === "string" ? parseInt(it.y, 10) : Number.isFinite(it.y) ? it.y : idx;
-    const w = typeof it.w === "string" ? parseInt(it.w, 10) : Number.isFinite(it.w) ? it.w : 6;
-    const h = typeof it.h === "string" ? parseInt(it.h, 10) : Number.isFinite(it.h) ? it.h : 1;
-    const stableId =
-      it.id ||
-      it.i ||
-      `${it.type || "item"}:${it.key || it.fieldId || it.department || idx}`;
-    return { ...it, id: stableId, x, y, w, h };
-  });
-  items.sort((a: any, b: any) => (a.y - b.y) || (a.x - b.x));
-  return { ...config, items };
-}
-
-function layoutHash(config: any): string {
-  if (!config || !Array.isArray(config.items)) return "empty";
-  const sig = config.items.map((it: any) => `${it.id}:${it.x},${it.y},${it.w},${it.h}`).join("|");
-  let h = 0;
-  for (let i = 0; i < sig.length; i++) {
-    h = ((h << 5) - h) + sig.charCodeAt(i);
-    h |= 0;
-  }
-  return String(h);
-}
-
 interface TemplateSettingsParams {
   id: string;
 }
@@ -265,19 +236,21 @@ export default function TemplateSettings() {
   // Initialize templates with defaults and merge with user templates
   useEffect(() => {
     const initialTemplates: Record<string, ProductionTemplate> = {};
-
+    
+    // Start with default templates
     Object.entries(defaultTemplates).forEach(([phase, template]) => {
       initialTemplates[phase] = {
         ...template,
-        id: `default-${phase}`,
-      } as ProductionTemplate;
+        id: `default-${phase}`, // Use string ID for defaults (will be created as new)
+      };
     });
 
+    // Override with user-created templates if they exist
     if (userTemplates && Array.isArray(userTemplates)) {
       userTemplates.forEach((userTemplate: any) => {
         if (userTemplate.phase) {
           initialTemplates[userTemplate.phase] = {
-            id: userTemplate.id.toString(),
+            id: userTemplate.id.toString(), // Keep actual DB ID for existing templates
             phase: userTemplate.phase as any,
             name: userTemplate.name,
             description: userTemplate.description || "",
@@ -289,18 +262,34 @@ export default function TemplateSettings() {
       });
     }
 
-    // Prefer per phase tech config when available
-    const dbTechConfig =
-      showSettings?.layoutConfigurations?.tech ??
-      showSettings?.layoutConfiguration ??
-      null;
-
-    if (dbTechConfig && initialTemplates.tech) {
-      const normalized = normalizeLayout(dbTechConfig);
-      // @ts-ignore allow on the template object
-      initialTemplates.tech.layoutConfiguration = normalized;
+    // UNIFIED APPROACH: Load layoutConfiguration from showSettings for ALL templates
+    if (showSettings?.layoutConfiguration) {
+      console.log('🔄 TEMPLATE INIT: Loading layoutConfiguration from database');
+      console.log('🔍 FULL DB Layout config:', JSON.stringify(showSettings.layoutConfiguration, null, 2));
+      console.log('🔍 DB Layout items summary:', showSettings.layoutConfiguration.items?.map((item: any) => ({ 
+        id: item.id, 
+        type: item.type, 
+        x: item.x, 
+        y: item.y,
+        w: item.w,
+        h: item.h
+      })));
+      // Apply the saved layoutConfiguration to the tech template
+      if (initialTemplates.tech) {
+        initialTemplates.tech = {
+          ...initialTemplates.tech,
+          layoutConfiguration: showSettings.layoutConfiguration
+        };
+        console.log('✅ TEMPLATE INIT: Applied database layout to tech template');
+        console.log('📊 Tech template now has layoutConfiguration:', !!initialTemplates.tech.layoutConfiguration);
+        console.log('📊 Tech template layoutConfiguration items:', initialTemplates.tech.layoutConfiguration?.items?.length);
+      }
+    } else {
+      console.log('❌ TEMPLATE INIT: No layoutConfiguration found in database');
     }
 
+    console.log('✅ Templates initialized with unified showSettings approach - single database table!');
+    
     setTemplates(initialTemplates);
   }, [projectId, userTemplates, showSettings]);
 
@@ -907,46 +896,35 @@ export default function TemplateSettings() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={async () => {
+                            onClick={() => {
                               const newEditMode = !isEditMode;
-
-                              if (!newEditMode && selectedPhase === "tech") {
-                                try {
-                                  const currentConfig = flexibleLayoutRef.current?.getCurrentConfiguration();
-                                  const normalized = normalizeLayout(currentConfig);
-
-                                  setTemplates(prev => ({
+                              console.log(`🔄 GLOBAL SAVE TOGGLE: ${isEditMode ? 'LOCKING (SAVE ALL)' : 'UNLOCKING'} - UI updates immediately`);
+                              
+                              // If locking (saving), get the latest configuration and trigger global save
+                              if (!newEditMode) {
+                                console.log('🔒 LOCKING: Getting latest configuration before save...');
+                                
+                                // Get the latest configuration from the FlexibleLayoutEditor
+                                if (flexibleLayoutRef.current) {
+                                  const currentConfig = flexibleLayoutRef.current.getCurrentConfiguration();
+                                  console.log('📊 Latest configuration from editor:', currentConfig);
+                                  
+                                  // Update pending changes with latest config before saving
+                                  setPendingChanges(prev => ({
                                     ...prev,
-                                    [selectedPhase]: {
-                                      ...prev[selectedPhase],
-                                      // @ts-ignore
-                                      layoutConfiguration: normalized
-                                    }
+                                    layoutConfiguration: currentConfig,
+                                    hasChanges: true
                                   }));
-
-                                  await apiRequest("PUT", `/api/projects/${projectId}/settings/layout-configuration`, {
-                                    layoutConfiguration: normalized,
-                                    templateType: selectedPhase
-                                  });
-
-                                  // Refetch settings so hydration reads the exact thing we just saved
-                                  await queryClient.refetchQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
-
-                                  toast({
-                                    title: "Template saved",
-                                    description: "Layout positions saved successfully.",
-                                  });
-                                } catch (err) {
-                                  console.error("Failed to save layout configuration", err);
-                                  toast({
-                                    title: "Error",
-                                    description: "Could not save the layout positions.",
-                                    variant: "destructive",
-                                  });
-                                  return; // remain in edit mode if save failed
                                 }
+                                
+                                console.log('🔒 LOCKING: Saving all template changes...');
+                                // Use a timeout to ensure state update completes before mutation
+                                setTimeout(() => {
+                                  globalSaveMutation.mutate();
+                                }, 0);
                               }
-
+                              
+                              // Update edit mode immediately for responsive UI
                               setIsEditMode(newEditMode);
                             }}
                             className="h-6 w-6 p-0"
@@ -1100,7 +1078,7 @@ export default function TemplateSettings() {
                     {selectedPhase === 'tech' ? (
                       /* Flexible Layout Editor for entire tech template - NO AUTO-SAVE */
                       <FlexibleLayoutEditor
-                        key={`tech-editor-${layoutHash(template?.layoutConfiguration)}-${showSettings?.updatedAt || '0'}`}
+                        key={`tech-editor-${template?.layoutConfiguration?.items?.length || 0}`}
                         ref={flexibleLayoutRef}
                         projectId={parseInt(params.id)}
                         reportType="tech"
@@ -1108,27 +1086,39 @@ export default function TemplateSettings() {
                         template={template}
                         showSettings={showSettings}
                         onTemplateUpdate={(updatedTemplate) => {
+                          // Local state update only - no database save until global save
                           setTemplates(prev => ({
                             ...prev,
                             [phase]: updatedTemplate
                           }));
                         }}
                         onConfigurationChange={(config) => {
-                          const normalized = normalizeLayout(config);
+                          console.log('📝 DRAG-DROP: Layout configuration changed!');
+                          console.log('🔍 New config items:', config.items?.map(item => ({ 
+                            id: item.id, 
+                            type: item.type, 
+                            x: item.x, 
+                            y: item.y 
+                          })));
+                          
+                          // Update local template state only - no database save
                           const updatedTemplate = {
                             ...template,
-                            // @ts-ignore
-                            layoutConfiguration: normalized
+                            layoutConfiguration: config
                           };
                           setTemplates(prev => ({
                             ...prev,
                             [selectedPhase]: updatedTemplate
                           }));
+                          
+                          // Track layout configuration changes for global save
                           setPendingChanges(prev => ({
                             ...prev,
-                            layoutConfiguration: normalized,
+                            layoutConfiguration: config,
                             hasChanges: true
                           }));
+                          
+                          console.log('✅ DRAG-DROP: Layout changes tracked in pendingChanges');
                         }}
                         onDepartmentNameChange={updateDepartmentName}
                         onDepartmentFormattingChange={updateDepartmentFormatting}

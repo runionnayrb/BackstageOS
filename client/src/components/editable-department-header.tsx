@@ -158,7 +158,7 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
           overflow: 'hidden'
         }}
         dangerouslySetInnerHTML={{
-          __html: (displayName || department || 'Unknown').replace(/\n/g, '<br>')
+          __html: displayName.replace(/\n/g, '<br>')
         }}
       />
 
