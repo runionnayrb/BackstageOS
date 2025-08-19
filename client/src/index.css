@@ -904,26 +904,12 @@ textarea:active {
   background: rgba(248, 250, 252, 1) !important;
 }
 
-/* Prevent excessive height in grouped sections */
-.react-grid-item[data-testid*="dept-section"] {
-  max-height: 72px !important; /* 3 rows * 18px rowHeight + margins */
-}
+/* Remove height constraints that are breaking the layout */
 
-.react-grid-item[data-testid*="field-section"] {
-  max-height: 72px !important; /* 3 rows * 18px rowHeight + margins */
-}
-
-/* Compact grouped sections */
-.grouped-section-container {
-  height: 100% !important;
-  overflow: hidden !important;
-  position: relative !important;
-}
-
-/* Prevent draggable areas from extending beyond content */
-.react-grid-item .grouped-section-container {
-  padding: 2px !important;
-  height: calc(100% - 4px) !important;
+/* Grouped section layout fixes - minimal constraints */
+.react-grid-item[data-testid*="grouped-section"] {
+  min-width: 200px !important;
+  min-height: 60px !important;
 }
 
 /* Mobile Notes optimizations */
