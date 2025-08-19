@@ -699,7 +699,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       xs: layout,
       xxs: layout
     };
-  }, [effectiveEditMode]);
+  }, [effectiveEditMode, configuration.gridCols]);
 
   // Update layouts when configuration changes
   useEffect(() => {
@@ -720,33 +720,28 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       effectiveEditMode,
       externalEditMode,
       layoutItemCount: layout.length,
-      firstFewItems: layout.slice(0, 3).map(l => ({ id: l.i, x: l.x, y: l.y }))
+      firstFewItems: layout.slice(0, 3).map(l => ({ id: l.i, x: l.x, y: l.y, w: l.w, h: l.h }))
     });
     
     if (!effectiveEditMode) {
       console.log('🚨 BLOCKING layout change - NOT in edit mode');
-      console.log('🔍 View mode layout data:', layout.map(l => ({ id: l.i, x: l.x, y: l.y })));
       return;
     }
     
     console.log('✅ PROCESSING layout change - in edit mode');
 
+    // CRITICAL: Preserve all original item properties and only update position/size
     let updatedItems = configuration.items.map(item => {
       const layoutItem = layout.find(l => l.i === item.id);
       if (layoutItem) {
-        // Log position changes, especially Y changes
-        const yChanged = item.y !== layoutItem.y;
-        if (yChanged) {
-          console.log(`🔥 Y POSITION CHANGE DETECTED for ${item.id}:`, {
-            oldY: item.y,
-            newY: layoutItem.y,
-            oldX: item.x,
-            newX: layoutItem.x
-          });
-        }
+        console.log(`📦 Updating ${item.id}:`, {
+          oldPosition: { x: item.x, y: item.y, w: item.w, h: item.h },
+          newPosition: { x: layoutItem.x, y: layoutItem.y, w: layoutItem.w, h: layoutItem.h }
+        });
         
+        // PRESERVE ALL ORIGINAL PROPERTIES - only update grid position/size
         return {
-          ...item,
+          ...item, // Keep all original properties (type, content, children, etc.)
           x: layoutItem.x,
           y: layoutItem.y,
           w: layoutItem.w,
@@ -756,42 +751,21 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       return item;
     });
 
-    // No intelligent width calculation needed - users have manual resize controls
-    console.log('💡 All layout changes preserved - no automatic recalculation');
-
-    // Update position tracking
-    updatedItems.forEach(item => {
-      lastLayoutRef.current[item.id] = {
-        x: item.x,
-        y: item.y,
-        w: item.w,
-        h: item.h
-      };
-    });
-
     const newConfig = {
       ...configuration,
       items: updatedItems
     };
 
-    console.log('🔧 Layout changed, updating configuration and saving:', { 
-      editMode: effectiveEditMode, 
-      hasChanges: true,
-      itemCount: updatedItems.length
-    });
-
-    // UPDATE STATE AND SAVE IMMEDIATELY
+    console.log('🔧 Layout updated - ONLY updating local state (no auto-save during drag)');
+    
+    // ONLY update local state - DO NOT auto-save during dragging
     setConfiguration(newConfig);
     
-    // IMMEDIATELY save to database via callback
+    // ONLY notify parent of changes for tracking - parent handles save timing
     if (onConfigurationChange) {
-      console.log('💾 SAVING CHANGES IMMEDIATELY TO DATABASE');
+      console.log('📢 Notifying parent of changes (local only)');
       onConfigurationChange(newConfig);
     }
-    
-    // Update layouts to prevent snap-back
-    const newLayouts = convertToGridLayouts(newConfig.items);
-    setLayouts(newLayouts);
     
     console.log('✅ CONFIGURATION UPDATED AND SAVED');
   };
