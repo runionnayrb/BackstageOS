@@ -470,8 +470,8 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
   
   // keep in sync with props
   useEffect(() => {
-    // Try showSettings first (for tech templates), then template
-    const layoutConfig = showSettings?.layoutConfiguration || template?.layoutConfiguration;
+    // Try template first (has complete metadata), then showSettings as fallback
+    const layoutConfig = template?.layoutConfiguration || showSettings?.layoutConfiguration;
     
     console.log('🔍 Layout initialization effect triggered');
     console.log('ShowSettings layoutConfig:', showSettings?.layoutConfiguration?.items?.length || 0, 'items');
@@ -479,51 +479,14 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     console.log('Using layoutConfig:', layoutConfig?.items?.length || 0, 'items');
     
     if (layoutConfig?.items?.length > 0) {
-      console.log('First item data:', layoutConfig.items[0]);
-      
       const items = layoutConfig.items.map((it: any) => {
-        // Determine type and content from ID if missing
-        let itemType = it.type;
-        let itemContent = it.content || {};
-        
-        if ((!itemType || itemType === undefined) && it.id) {
-          // Parse type from ID patterns
-          if (it.id.includes('dept-section-')) {
-            itemType = 'department-header';
-            const dept = it.id.replace('dept-section-', '').replace(/-\d+$/, ''); // Remove timestamp suffix
-            const cleanDept = dept.replace(/-\d+$/, ''); // Handle additional timestamp suffixes
-            itemContent = { 
-              department: cleanDept, 
-              displayName: cleanDept.charAt(0).toUpperCase() + cleanDept.slice(1) 
-            };
-          } else if (it.id.includes('field-section-')) {
-            itemType = 'field-header';
-            const fieldId = it.id.replace('field-section-', '');
-            const displayLabel = fieldId.charAt(0).toUpperCase() + fieldId.slice(1);
-            itemContent = { 
-              fieldId: fieldId, 
-              label: displayLabel // This is what gets passed as content to EditableFieldHeading
-            };
-          } else if (it.id.includes('field-group-')) {
-            itemType = 'notes';
-            itemContent = { placeholder: 'Notes...' };
-          }
-        }
-        
         const item = {
           id: it.id || it.i,
           x: +it.x, y: +it.y, w: +it.w, h: +it.h, 
-          type: itemType || 'empty-space',
-          content: itemContent,
-          ...it // preserve all fields
+          type: it.type,
+          content: it.content,
+          ...it // preserve all fields including children for grouped-section
         };
-        console.log('Processing item:', { 
-          id: item.id, 
-          originalType: it.type, 
-          detectedType: itemType, 
-          finalType: item.type, 
-          content: item.content 
-        });
         return item;
       });
       
@@ -537,14 +500,13 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
           content: it.content,
           department: it.content?.department,
           fieldId: it.content?.fieldId,
+          children: it.children, // preserve children for grouped sections
           ...it 
         };
-        console.log('Storing meta for', it.id, ':', acc[it.id]);
         return acc;
       }, {});
       
       console.log('✅ Layout initialized with', items.length, 'items');
-      console.log('Meta stored:', Object.keys(metaByIdRef.current).length, 'entries');
     } else {
       console.log('⚠️ No layout configuration found, keeping empty layout');
     }
