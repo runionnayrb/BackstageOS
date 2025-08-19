@@ -1136,6 +1136,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
                 isDraggable={effectiveEditMode}
                 isResizable={effectiveEditMode}
                 onLayoutChange={effectiveEditMode ? handleLayoutChange : undefined}
+                onResize={effectiveEditMode ? handleLayoutChange : undefined}
                 onResizeStop={effectiveEditMode ? handleLayoutChange : undefined}
                 onDragStart={effectiveEditMode ? handleDragStart : undefined}
                 onDragStop={effectiveEditMode ? handleDragStop : undefined}
@@ -1144,7 +1145,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
                 compactType={null}
                 preventCollision={false}
                 allowOverlap={true}
-                resizeHandles={effectiveEditMode ? ['se'] : []}
+                resizeHandles={effectiveEditMode ? ['se', 'sw', 'ne', 'nw', 's', 'e'] : []}
                 style={{ minHeight: '800px', width: '100%' }}
               >
                 {configuration.items.map((item) => (

@@ -770,10 +770,16 @@ textarea:active {
   position: absolute;
   right: 3px;
   bottom: 3px;
-  width: 5px;
-  height: 5px;
-  border-right: 2px solid rgba(0, 0, 0, 0.4);
-  border-bottom: 2px solid rgba(0, 0, 0, 0.4);
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid rgba(59, 130, 246, 0.6);
+  border-bottom: 2px solid rgba(59, 130, 246, 0.6);
+  background: white;
+  border-radius: 0 0 3px 0;
+}
+
+.react-grid-item:hover > .react-resizable-handle::after {
+  border-color: rgba(59, 130, 246, 0.9);
 }
 
 .react-grid-item.react-draggable-dragging {
