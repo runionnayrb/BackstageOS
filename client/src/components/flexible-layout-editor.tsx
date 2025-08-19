@@ -307,7 +307,7 @@ const LayoutItemRenderer: React.FC<{
               return configItem;
             });
             
-            // Update the configuration and save immediately
+            // Update the configuration locally - NO DATABASE SAVE
             const newConfig = {
               ...configuration,
               items: updatedItems
@@ -315,7 +315,8 @@ const LayoutItemRenderer: React.FC<{
             
             console.log(`🔗 Updated field relationship: "${currentFieldId}" → "${newFieldId}"`);
             setConfiguration(newConfig);
-            onConfigurationChange?.(newConfig);
+            // REMOVED: onConfigurationChange call that was triggering auto-save corruption
+            console.log('🚨 FIELD HEADER CHANGE: Configuration updated locally, NO onConfigurationChange callback called');
           }}
           projectId={String(projectId)}
         />
