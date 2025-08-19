@@ -756,16 +756,14 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       items: updatedItems
     };
 
-    console.log('🔧 Layout updated - ONLY updating local state (no auto-save during drag)');
+    console.log('🔧 Layout updated - ONLY updating local state (no database save during drag)');
     
-    // ONLY update local state - DO NOT auto-save during dragging
+    // ONLY update local state - DO NOT save to database during dragging
     setConfiguration(newConfig);
     
-    // ONLY notify parent of changes for tracking - parent handles save timing
-    if (onConfigurationChange) {
-      console.log('📢 Notifying parent of changes (local only)');
-      onConfigurationChange(newConfig);
-    }
+    // DO NOT call onConfigurationChange during drag operations
+    // This will only be called when user clicks "Lock" button
+    console.log('📝 Layout change tracked locally - will save only when user clicks Lock');
     
     console.log('✅ CONFIGURATION UPDATED AND SAVED');
   };
