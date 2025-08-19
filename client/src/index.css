@@ -892,6 +892,40 @@ textarea:active {
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
+/* Grouped section layout fixes */
+.react-grid-item[data-testid*="grouped-section"] {
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  background: rgba(248, 250, 252, 0.8) !important;
+  overflow: hidden !important;
+}
+
+.react-grid-item[data-testid*="grouped-section"]:hover {
+  border: 1px solid rgba(59, 130, 246, 0.5) !important;
+  background: rgba(248, 250, 252, 1) !important;
+}
+
+/* Prevent excessive height in grouped sections */
+.react-grid-item[data-testid*="dept-section"] {
+  max-height: 72px !important; /* 3 rows * 18px rowHeight + margins */
+}
+
+.react-grid-item[data-testid*="field-section"] {
+  max-height: 72px !important; /* 3 rows * 18px rowHeight + margins */
+}
+
+/* Compact grouped sections */
+.grouped-section-container {
+  height: 100% !important;
+  overflow: hidden !important;
+  position: relative !important;
+}
+
+/* Prevent draggable areas from extending beyond content */
+.react-grid-item .grouped-section-container {
+  padding: 2px !important;
+  height: calc(100% - 4px) !important;
+}
+
 /* Mobile Notes optimizations */
 @media (max-width: 768px) {
   /* Prevent text selection during swipe gestures */

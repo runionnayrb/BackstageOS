@@ -1134,14 +1134,14 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       let fixedWidth = item.w;
       
       if (item.type === 'grouped-section') {
-        // For department sections: header (1) + notes (3) = 4 total height
+        // For department sections: header (1) + notes (2) = 3 total height
         if (item.id.startsWith('dept-section-')) {
-          fixedHeight = 4;
+          fixedHeight = 3;
           fixedWidth = 6; // Reasonable width for departments
         }
-        // For field sections: header (1) + notes (3) = 4 total height
+        // For field sections: header (1) + notes (2) = 3 total height  
         else if (item.id.startsWith('field-section-')) {
-          fixedHeight = 4;
+          fixedHeight = 3;
           fixedWidth = 12; // Full width for field sections
         }
       }
@@ -1214,10 +1214,12 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
                 cols={{ lg: 12, md: 12, sm: 12, xs: 12, xxs: 12 }}
                 rowHeight={18}
                 width={1200}
-                margin={[2, 2]}
+                margin={[4, 4]}
                 containerPadding={[0, 0]}
                 isDraggable={effectiveEditMode}
                 isResizable={effectiveEditMode}
+                compactType="vertical"
+                preventCollision={true}
                 onLayoutChange={effectiveEditMode ? handleLayoutChange : undefined}
                 onResize={effectiveEditMode ? handleLayoutChange : undefined}
                 onResizeStop={effectiveEditMode ? handleLayoutChange : undefined}
