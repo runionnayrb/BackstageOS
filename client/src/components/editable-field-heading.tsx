@@ -244,7 +244,7 @@ export default function EditableFieldHeading({
             }
           } : undefined}
           dangerouslySetInnerHTML={{
-            __html: (content || fieldId || 'Field').replace(/\n/g, '<br>')
+            __html: (content || 'Field').replace(/\n/g, '<br>')
           }}
         />
 
