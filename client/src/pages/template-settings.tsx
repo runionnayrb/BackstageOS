@@ -198,7 +198,7 @@ export default function TemplateSettings() {
   const [newDepartmentName, setNewDepartmentName] = useState("");
 
   // Ref to connect to FlexibleLayoutEditor
-  const flexibleLayoutRef = useRef<{ addNewItem: (type: string) => void; removeItem: (id: string) => void; resetLayout: () => void; getCurrentConfiguration: () => any } | null>(null);
+  const flexibleLayoutRef = useRef<{ addNewItem: (type: string) => void; removeItem: (id: string) => void; resetLayout: () => void; recalculateYPositions: () => void; getCurrentConfiguration: () => any } | null>(null);
 
   // Toolbar functions
   const addNewItem = (type: string) => {
@@ -982,6 +982,25 @@ export default function TemplateSettings() {
                                 className="h-6 w-6 p-0"
                               >
                                 <RotateCcw className="h-4 w-4" />
+                              </Button>
+                              
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  if (flexibleLayoutRef.current) {
+                                    console.log('🔧 Manually triggering layout fix');
+                                    flexibleLayoutRef.current.recalculateYPositions();
+                                    toast({
+                                      title: "Layout Fixed",
+                                      description: "Section positions and sizes have been recalculated and saved.",
+                                    });
+                                  }
+                                }}
+                                className="h-6 w-6 p-0"
+                                title="Fix Layout"
+                              >
+                                🔧
                               </Button>
                             </>
                           )}

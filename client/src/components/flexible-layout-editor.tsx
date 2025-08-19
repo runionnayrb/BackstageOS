@@ -1124,11 +1124,67 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     setShowResetDialog(false); // Close the dialog
   };
 
+  // Add function to recalculate Y positions manually
+  const recalculateYPositions = () => {
+    console.log('📐 Manually recalculating Y positions for all items');
+    let currentY = 0;
+    const spacedItems = configuration.items.map(item => {
+      // Fix dimensions: grouped sections need proper height and width
+      let fixedHeight = item.h;
+      let fixedWidth = item.w;
+      
+      if (item.type === 'grouped-section') {
+        // For department sections: header (1) + notes (3) = 4 total height
+        if (item.id.startsWith('dept-section-')) {
+          fixedHeight = 4;
+          fixedWidth = 6; // Reasonable width for departments
+        }
+        // For field sections: header (1) + notes (3) = 4 total height
+        else if (item.id.startsWith('field-section-')) {
+          fixedHeight = 4;
+          fixedWidth = 12; // Full width for field sections
+        }
+      }
+      
+      const adjustedItem = {
+        ...item,
+        y: currentY,
+        h: fixedHeight,
+        w: fixedWidth
+      };
+      currentY += fixedHeight + 1; // Add height plus 1 row spacing
+      return adjustedItem;
+    });
+
+    console.log('✅ New Y positions and dimensions:', spacedItems.map(item => ({ 
+      id: item.id, 
+      y: item.y, 
+      h: item.h,
+      w: item.w 
+    })));
+
+    const newConfig = {
+      ...configuration,
+      items: spacedItems
+    };
+
+    setConfiguration(newConfig);
+    onConfigurationChange?.(newConfig);
+    
+    // Force layout refresh
+    setTimeout(() => {
+      const refreshedLayouts = convertToGridLayouts(newConfig.items);
+      setLayouts(refreshedLayouts);
+      console.log('🔄 Layout refreshed after manual Y position recalculation');
+    }, 100);
+  };
+
   // Expose functions to parent component via ref
   useImperativeHandle(ref, () => ({
     addNewItem,
     removeItem,
     resetLayout,
+    recalculateYPositions,
     getCurrentConfiguration: () => {
       console.log('🔍 getCurrentConfiguration called');
       console.log('📊 Current configuration positions:', configuration.items.map(item => ({ 
@@ -1138,7 +1194,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       })));
       return configuration;
     }
-  }), [addNewItem, removeItem, resetLayout, configuration]);
+  }), [addNewItem, removeItem, resetLayout, recalculateYPositions, configuration]);
 
   return (
     <DndProvider backend={HTML5Backend}>
