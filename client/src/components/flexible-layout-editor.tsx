@@ -689,10 +689,10 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         minH: item.minH || 1,
         maxW: item.maxW || (isFullWidth ? configuration.gridCols : undefined),
         maxH: item.maxH,
-        // For full-width items, make them static to prevent resizing
-        static: isFullWidth && item.minW === configuration.gridCols,
-        // Disable resizing for full-width items
-        isResizable: isFullWidth ? false : undefined
+        // Allow all items to be resizable in edit mode
+        static: false,
+        // Enable resizing for all items when in edit mode
+        isResizable: effectiveEditMode ? true : false
       };
     });
     
