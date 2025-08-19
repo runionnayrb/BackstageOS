@@ -421,55 +421,59 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
   // Generate layout from template data with grouped sections
   const generateLayoutFromTemplate = useCallback(() => {
     if (!template) {
-      // Fallback to basic layout with grouped sections
-      return [
-        {
-          id: 'scenic-section',
+      // Use saved department names for fallback layout
+      const departmentNames = showSettings?.departmentNames || {
+        scenic: 'Scenic',
+        lighting: 'Lighting',
+        audio: 'Audio',
+        props: 'Props',
+        costumes: 'Costumes',
+        video: 'Video'
+      };
+
+      console.log('🎯 Generating fallback layout with saved departments:', departmentNames);
+
+      // Generate layout items from saved department names
+      const departmentKeys = Object.keys(departmentNames);
+      const items: LayoutItem[] = [];
+      
+      // Create sections in 2-column layout
+      departmentKeys.forEach((deptKey, index) => {
+        const displayName = departmentNames[deptKey];
+        const isLeftColumn = index % 2 === 0;
+        const rowIndex = Math.floor(index / 2);
+        
+        items.push({
+          id: `${deptKey}-section`,
           type: 'grouped-section' as const,
-          content: { department: 'scenic', displayName: 'Scenic' },
-          x: 0, y: 0, w: 6, h: 3,
-          minW: 4, minH: 3,
+          content: { department: deptKey, displayName: displayName },
+          x: isLeftColumn ? 0 : 6,
+          y: rowIndex * 3,
+          w: 6,
+          h: 3,
+          minW: 4,
+          minH: 3,
           children: [
             {
-              id: 'scenic-header',
+              id: `${deptKey}-header`,
               type: 'department-header' as const,
-              content: { department: 'scenic', displayName: 'Scenic' },
+              content: { department: deptKey, displayName: displayName },
               x: 0, y: 0, w: 6, h: 1,
               minW: 2, minH: 1
             },
             {
-              id: 'scenic-notes',
+              id: `${deptKey}-notes`,
               type: 'notes' as const,
-              content: { department: 'scenic' },
+              content: { department: deptKey },
               x: 0, y: 1, w: 6, h: 2,
               minW: 3, minH: 2
             }
           ]
-        },
-        {
-          id: 'lighting-section',
-          type: 'grouped-section' as const,
-          content: { department: 'lighting', displayName: 'Lighting' },
-          x: 6, y: 0, w: 6, h: 3,
-          minW: 4, minH: 3,
-          children: [
-            {
-              id: 'lighting-header',
-              type: 'department-header' as const,
-              content: { department: 'lighting', displayName: 'Lighting' },
-              x: 0, y: 0, w: 6, h: 1,
-              minW: 2, minH: 1
-            },
-            {
-              id: 'lighting-notes',
-              type: 'notes' as const,
-              content: { department: 'lighting' },
-              x: 0, y: 1, w: 6, h: 2,
-              minW: 3, minH: 2
-            }
-          ]
-        }
-      ];
+        });
+      });
+
+      console.log('📋 Generated fallback layout items:', items.length);
+      return items;
     }
     
     const items: LayoutItem[] = [];
@@ -550,7 +554,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     });
     
     return items;
-  }, [template]);
+  }, [template, showSettings?.departmentNames]);
 
   // Configuration state - initialize from template if available
   const [configuration, setConfiguration] = useState<FlexibleLayoutConfiguration>(() => {
@@ -1002,61 +1006,71 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     setShowResetDialog(true);
   };
 
-  // Reset to default layout with grouped sections
+  // Reset to default layout with grouped sections using saved department names
   const resetLayout = () => {
+    console.log('🔄 Resetting layout with user departments:', showSettings?.departmentNames);
+    
+    // Use saved department names or fallback to defaults
+    const departmentNames = showSettings?.departmentNames || {
+      scenic: 'Scenic',
+      lighting: 'Lighting',
+      audio: 'Audio',
+      props: 'Props',
+      costumes: 'Costumes',
+      video: 'Video'
+    };
+
+    // Generate layout items from saved department names
+    const departmentKeys = Object.keys(departmentNames);
+    const items: LayoutItem[] = [];
+    
+    // Create sections in 2-column layout
+    departmentKeys.forEach((deptKey, index) => {
+      const displayName = departmentNames[deptKey];
+      const isLeftColumn = index % 2 === 0;
+      const rowIndex = Math.floor(index / 2);
+      
+      items.push({
+        id: `${deptKey}-section`,
+        type: 'grouped-section',
+        content: { department: deptKey, displayName: displayName },
+        x: isLeftColumn ? 0 : 6,
+        y: rowIndex * 3,
+        w: 6,
+        h: 3,
+        minW: 4,
+        minH: 3,
+        children: [
+          {
+            id: `${deptKey}-header`,
+            type: 'department-header',
+            content: { department: deptKey, displayName: displayName },
+            x: 0, y: 0, w: 6, h: 1,
+            minW: 2, minH: 1
+          },
+          {
+            id: `${deptKey}-notes`,
+            type: 'notes',
+            content: { department: deptKey },
+            x: 0, y: 1, w: 6, h: 2,
+            minW: 3, minH: 2
+          }
+        ]
+      });
+    });
+
     const defaultConfig: FlexibleLayoutConfiguration = {
-      items: [
-        {
-          id: 'scenic-section',
-          type: 'grouped-section',
-          content: { department: 'scenic', displayName: 'Scenic' },
-          x: 0, y: 0, w: 6, h: 3,
-          minW: 4, minH: 3,
-          children: [
-            {
-              id: 'scenic-header',
-              type: 'department-header',
-              content: { department: 'scenic', displayName: 'Scenic' },
-              x: 0, y: 0, w: 6, h: 1,
-              minW: 2, minH: 1
-            },
-            {
-              id: 'scenic-notes',
-              type: 'notes',
-              content: { department: 'scenic' },
-              x: 0, y: 1, w: 6, h: 2,
-              minW: 3, minH: 2
-            }
-          ]
-        },
-        {
-          id: 'lighting-section',
-          type: 'grouped-section',
-          content: { department: 'lighting', displayName: 'Lighting' },
-          x: 6, y: 0, w: 6, h: 3,
-          minW: 4, minH: 3,
-          children: [
-            {
-              id: 'lighting-header',
-              type: 'department-header', 
-              content: { department: 'lighting', displayName: 'Lighting' },
-              x: 0, y: 0, w: 6, h: 1,
-              minW: 2, minH: 1
-            },
-            {
-              id: 'lighting-notes',
-              type: 'notes',
-              content: { department: 'lighting' },
-              x: 0, y: 1, w: 6, h: 2,
-              minW: 3, minH: 2
-            }
-          ]
-        }
-      ],
+      items,
       gridCols: 12,
       gridRows: 20,
       gridGap: 4
     };
+
+    console.log('🎯 Generated layout with user departments:', {
+      departmentCount: departmentKeys.length,
+      departments: departmentKeys,
+      itemsGenerated: items.length
+    });
 
     setConfiguration(defaultConfig);
     onConfigurationChange?.(defaultConfig);
