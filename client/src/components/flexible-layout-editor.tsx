@@ -1152,7 +1152,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         h: fixedHeight,
         w: fixedWidth
       };
-      currentY += fixedHeight + 1; // Add height plus 1 row spacing
+      currentY += fixedHeight + 2; // Add height plus 2 rows spacing for better separation
       return adjustedItem;
     });
 
@@ -1171,11 +1171,14 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     setConfiguration(newConfig);
     onConfigurationChange?.(newConfig);
     
-    // Force layout refresh
+    // Force layout refresh and save to database
     setTimeout(() => {
       const refreshedLayouts = convertToGridLayouts(newConfig.items);
       setLayouts(refreshedLayouts);
       console.log('🔄 Layout refreshed after manual Y position recalculation');
+      
+      // Trigger save to database with new positions
+      handleLayoutChange(refreshedLayouts.lg || []);
     }, 100);
   };
 
@@ -1218,8 +1221,9 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
                 containerPadding={[0, 0]}
                 isDraggable={effectiveEditMode}
                 isResizable={effectiveEditMode}
-                compactType="vertical"
-                preventCollision={true}
+                compactType={null}
+                preventCollision={false}
+                allowOverlap={true}
                 onLayoutChange={effectiveEditMode ? handleLayoutChange : undefined}
                 onResize={effectiveEditMode ? handleLayoutChange : undefined}
                 onResizeStop={effectiveEditMode ? handleLayoutChange : undefined}
@@ -1227,9 +1231,6 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
                 onDragStop={effectiveEditMode ? handleDragStop : undefined}
                 draggableHandle=""
                 useCSSTransforms={false}
-                compactType={null}
-                preventCollision={false}
-                allowOverlap={true}
                 resizeHandles={effectiveEditMode ? ['se', 'sw', 'ne', 'nw', 's', 'e'] : []}
                 style={{ minHeight: '800px', width: '100%' }}
               >
