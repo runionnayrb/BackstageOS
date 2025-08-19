@@ -218,8 +218,10 @@ export default function EditableFieldHeading({
             setShowToolbar(true);
           } : undefined}
           onBlur={isEditing ? (e) => {
+            console.log('🚨 FIELD HEADING onBlur triggered!', { showToolbar });
             if (!showToolbar) {
               const newContent = e.currentTarget.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
+              console.log('🚨 FIELD HEADING calling onChange with:', newContent);
               onChange(newContent);
             }
           } : undefined}

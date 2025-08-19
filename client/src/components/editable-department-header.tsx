@@ -128,10 +128,11 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
           setShowToolbar(true);
         } : undefined}
         onBlur={isEditing ? (e) => {
+          console.log('🚨 DEPARTMENT HEADER onBlur triggered for:', department);
           // Call the callback with the new name but don't save to database
           const newName = e.currentTarget.textContent || displayName;
           if (newName !== displayName && onNameChange) {
-            console.log(`📝 Department name changed: ${department} -> "${newName}"`);
+            console.log(`🚨 DEPARTMENT HEADER calling onNameChange: ${department} -> "${newName}"`);
             onNameChange(department, newName);
           }
         } : undefined}

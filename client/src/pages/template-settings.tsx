@@ -770,6 +770,7 @@ export default function TemplateSettings() {
   
   // Track department name changes
   const updateDepartmentName = (department: string, newName: string) => {
+    console.log('🚨 TEMPLATE-SETTINGS: updateDepartmentName called!', { department, newName });
     setPendingChanges(prev => ({
       ...prev,
       departmentNames: {
@@ -778,6 +779,7 @@ export default function TemplateSettings() {
       },
       hasChanges: true
     }));
+    console.log('🚨 TEMPLATE-SETTINGS: Department name updated in pendingChanges only - NO DATABASE SAVE');
   };
   
   // Track department formatting changes
@@ -794,11 +796,13 @@ export default function TemplateSettings() {
   
   // Track field header formatting changes
   const updateFieldHeaderFormatting = (formatting: any) => {
+    console.log('🚨 TEMPLATE-SETTINGS: updateFieldHeaderFormatting called!', formatting);
     setPendingChanges(prev => ({
       ...prev,
       fieldHeaderFormatting: formatting,
       hasChanges: true
     }));
+    console.log('🚨 TEMPLATE-SETTINGS: Field header formatting updated in pendingChanges only - NO DATABASE SAVE');
   };
 
   const currentTemplate = templates[selectedPhase];
