@@ -41,36 +41,10 @@
 }
 
 /* React Grid Layout and Resizable Styles */
-.react-grid-layout-container {
-  position: relative !important;
-  width: 1200px !important;
-  min-width: 1200px !important;
-  max-width: 1200px !important;
-}
-
-.react-grid-layout {
-  position: relative !important;
-  width: 1200px !important;
-  min-width: 1200px !important;
-  max-width: 1200px !important;
-}
-
 .react-grid-item {
   transition: all 200ms ease;
-  transition-property: left, top, transform;
+  transition-property: left, top;
   border: 1px solid transparent;
-  position: absolute !important;
-}
-
-/* Force proper width calculation for all grid items */
-.react-grid-item {
-  box-sizing: border-box !important;
-}
-
-/* Ensure React Grid Layout calculates proper widths */
-.layout.react-grid-layout-container {
-  width: 1200px !important;
-  min-width: 1200px !important;
 }
 
 /* Ensure full width items take full container width */
@@ -796,16 +770,10 @@ textarea:active {
   position: absolute;
   right: 3px;
   bottom: 3px;
-  width: 8px;
-  height: 8px;
-  border-right: 2px solid rgba(59, 130, 246, 0.6);
-  border-bottom: 2px solid rgba(59, 130, 246, 0.6);
-  background: white;
-  border-radius: 0 0 3px 0;
-}
-
-.react-grid-item:hover > .react-resizable-handle::after {
-  border-color: rgba(59, 130, 246, 0.9);
+  width: 5px;
+  height: 5px;
+  border-right: 2px solid rgba(0, 0, 0, 0.4);
+  border-bottom: 2px solid rgba(0, 0, 0, 0.4);
 }
 
 .react-grid-item.react-draggable-dragging {
@@ -916,26 +884,6 @@ textarea:active {
 
 .layout-editor .react-grid-item.react-resizable-resizing {
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-/* Grouped section layout fixes */
-.react-grid-item[data-testid*="grouped-section"] {
-  border: 1px solid rgba(0, 0, 0, 0.1) !important;
-  background: rgba(248, 250, 252, 0.8) !important;
-  overflow: hidden !important;
-}
-
-.react-grid-item[data-testid*="grouped-section"]:hover {
-  border: 1px solid rgba(59, 130, 246, 0.5) !important;
-  background: rgba(248, 250, 252, 1) !important;
-}
-
-/* Remove height constraints that are breaking the layout */
-
-/* Grouped section layout fixes - minimal constraints */
-.react-grid-item[data-testid*="grouped-section"] {
-  min-width: 200px !important;
-  min-height: 60px !important;
 }
 
 /* Mobile Notes optimizations */
