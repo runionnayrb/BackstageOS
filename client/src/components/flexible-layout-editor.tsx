@@ -1022,13 +1022,40 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
 
   // Remove item from layout
   const removeItem = (itemId: string) => {
+    console.log('🗑️ Removing item:', itemId);
+    const filteredItems = configuration.items.filter(item => item.id !== itemId);
+    
+    // Recalculate Y positions to prevent overlapping after removal
+    let currentY = 0;
+    const spacedItems = filteredItems.map(item => {
+      const adjustedItem = {
+        ...item,
+        y: currentY
+      };
+      currentY += item.h + 1; // Add height plus 1 row spacing
+      return adjustedItem;
+    });
+
+    console.log('📐 Recalculated positions after removal:', spacedItems.map(item => ({ 
+      id: item.id, 
+      y: item.y, 
+      h: item.h 
+    })));
+
     const newConfig = {
       ...configuration,
-      items: configuration.items.filter(item => item.id !== itemId)
+      items: spacedItems
     };
 
     setConfiguration(newConfig);
     onConfigurationChange?.(newConfig);
+    
+    // Force layout recalculation
+    setTimeout(() => {
+      const refreshedLayouts = convertToGridLayouts(newConfig.items);
+      setLayouts(refreshedLayouts);
+      console.log('🔄 Forced layout refresh after item removal');
+    }, 100);
   };
 
   // Show reset confirmation dialog
