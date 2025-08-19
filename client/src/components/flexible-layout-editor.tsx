@@ -705,14 +705,14 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       xs: layout,
       xxs: layout
     };
-  }, [effectiveEditMode]);
+  }, [effectiveEditMode, configuration.gridCols]);
 
   // Update layouts when configuration changes
   useEffect(() => {
-    console.log('✅ Updating layouts from configuration');
+    console.log('✅ Updating layouts from configuration - item count:', configuration.items.length);
     const newLayouts = convertToGridLayouts(configuration.items);
     setLayouts(newLayouts);
-  }, [configuration, convertToGridLayouts]);
+  }, [configuration.items.length, configuration.gridCols, configuration.gridRows, convertToGridLayouts]);
 
   // Handle layout changes from react-grid-layout
 
@@ -812,29 +812,34 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     // The handleLayoutChange will have already handled this appropriately
   };
 
-  // Add new item to layout (creates grouped sections)
+  // Add new item to layout (creates grouped sections) - SIMPLIFIED FOR STABILITY
   const addNewItem = (type: LayoutItem['type']) => {
     console.log('🆕 Adding new item:', type);
     console.log('🔍 Current configuration before adding:', {
       itemCount: configuration.items.length,
-      items: configuration.items.map(item => ({ id: item.id, type: item.type, w: item.w, x: item.x }))
+      items: configuration.items.map(item => ({ id: item.id, type: item.type, w: item.w, x: item.x, y: item.y }))
+    });
+    
+    // SIMPLIFIED APPROACH: Always append at the end to avoid layout conflicts
+    const calculateInsertY = () => {
+      if (configuration.items.length === 0) return 0;
+      
+      // Find the bottom-most item
+      const maxBottom = Math.max(...configuration.items.map(item => item.y + item.h));
+      return maxBottom + 1; // Add 1 row spacing
+    };
+    
+    const insertY = calculateInsertY();
+    console.log('📍 Item positioning:', {
+      insertY,
+      currentItemCount: configuration.items.length,
+      calculatedFromMaxY: insertY - 1
     });
     
     if (type === 'department-header') {
-      // PRESERVE USER LAYOUT - append at end with proper spacing
-      const allItems = configuration.items;
-      const lastItem = allItems[allItems.length - 1];
-      const insertY = lastItem ? lastItem.y + lastItem.h + 2 : 0; // Add below last item with spacing
-      
       // Generate a unique department key that will be used in departmentNames
       const timestamp = Date.now();
       const deptName = `new-dept-${timestamp}`;
-      console.log('📍 Department positioning:', {
-        lastItemY,
-        insertY,
-        allItemsCount: allItems.length,
-        gridCols: configuration.gridCols
-      });
       
       const newItem: LayoutItem = {
         id: `dept-section-${deptName}-${Date.now()}`,
@@ -844,17 +849,17 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         y: insertY,
         w: 6, // Start with 6 columns like existing departments
         h: 4,
-        minW: 3, // Allow resizing with same constraints as existing departments
+        minW: 3,
         minH: 4,
-        isResizable: true, // Allow resizing like existing departments
-        isDraggable: true, // Allow dragging
+        isResizable: true,
+        isDraggable: true,
         children: [
           {
             id: `dept-header-${deptName}-${Date.now()}`,
             type: 'department-header' as const,
             content: { department: deptName, displayName: 'New Department' },
             x: 0, y: 0, w: 6, h: 1,
-            minW: 2, minH: 1, // Allow resizing like existing department headers
+            minW: 2, minH: 1,
             isResizable: true,
             isDraggable: true
           },
@@ -863,7 +868,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
             type: 'notes' as const,
             content: { department: deptName },
             x: 0, y: 1, w: 6, h: 3,
-            minW: 3, minH: 2, // Allow resizing like existing department notes
+            minW: 3, minH: 2,
             isResizable: true,
             isDraggable: true
           }
@@ -872,126 +877,58 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       
       const newConfig = {
         ...configuration,
-        items: [...configuration.items, newItem] // Simple append - preserve existing layout
+        items: [...configuration.items, newItem]
       };
       
-      console.log('🚀 APPENDED new department - existing layout preserved');
+      console.log('✅ Added new department at bottom - layout preserved');
 
       setConfiguration(newConfig);
       onConfigurationChange?.(newConfig);
       
-      // Minimal layout update
-      const newLayouts = convertToGridLayouts(newConfig.items);
-      setLayouts(newLayouts);
-      console.log('🔄 Layout updated after adding department - user positions preserved');
-    } else if (type === 'field-header') {
-      // Create a new property as grouped section above departments
-      const fieldId = 'new-property';
-      const newItem: LayoutItem = {
-        id: `field-group-${Date.now()}`,
-        type: 'grouped-section',
-        content: { fieldId: fieldId, label: 'New Property' },
-        x: 0,
-        y: 0, // Will be positioned correctly by insertion logic
-        w: 12, // Explicitly set to 12 instead of using configuration.gridCols
-        h: 4,  // Match existing template field height
-        // Force full width with no constraints
-        minW: undefined,
-        maxW: undefined,
-        children: [
-          {
-            id: `field-header-${Date.now()}`,
-            type: 'field-header' as const,
-            content: { fieldId: fieldId, label: 'New Property' },
-            x: 0, y: 0, w: 12, h: 1
-          },
-          {
-            id: `field-notes-${Date.now()}`,
-            type: 'notes' as const,
-            content: { fieldId: fieldId, placeholder: "Sample content..." },
-            x: 0, y: 1, w: 12, h: 3
-          }
-        ]
-      };
-
-      // Find first department section to insert above
-      const firstDepartmentIndex = configuration.items.findIndex(
-        (item) => item.type === 'grouped-section' && item.content?.department
-      );
-
-      const insertIndex = firstDepartmentIndex !== -1
-        ? firstDepartmentIndex
-        : configuration.items.length;
-
-      console.log('📍 Property positioning:', {
-        firstDepartmentIndex,
-        insertIndex,
-        totalItems: configuration.items.length
-      });
-
-      // Insert the new item in the array
-      const newItems = [
-        ...configuration.items.slice(0, insertIndex),
-        newItem,
-        ...configuration.items.slice(insertIndex)
-      ];
-
-      // PRESERVE USER LAYOUT - just append new item at the end
-      const lastItem = configuration.items[configuration.items.length - 1];
-      const appendY = lastItem ? lastItem.y + lastItem.h + 2 : 0; // Add with spacing below last item
-      
-      // Set new item position and keep all existing positions
-      const spacedItems = newItems.map((item, index) => {
-        if (item.id === newItem.id) {
-          return { ...item, y: appendY }; // Position new item at end
-        }
-        return item; // Keep existing items unchanged
-      });
-
-      const newConfig = {
-        ...configuration,
-        items: spacedItems
-      };
-
-      console.log('🚀 Added new property above departments:', {
-        newItem: { 
-          id: newItem.id, 
-          w: newItem.w, 
-          h: newItem.h,
-          x: newItem.x,
-          y: newItem.y,
-          minW: newItem.minW,
-          maxW: newItem.maxW,
-          type: newItem.type
-        },
-        insertedAt: insertIndex,
-        fullWidth: newItem.w === 12,
-        gridCols: configuration.gridCols,
-        shouldBe100Percent: `${(newItem.w / 12) * 100}%`,
-        spacingAdjustment: spacedItems.map(item => ({ id: item.id, y: item.y, h: item.h }))
-      });
-
-      setConfiguration(newConfig);
-      onConfigurationChange?.(newConfig);
-      
-      // Force layout recalculation to ensure React Grid Layout processes the new item
+      // Force React Grid Layout to update with the new configuration
       setTimeout(() => {
         const refreshedLayouts = convertToGridLayouts(newConfig.items);
         setLayouts(refreshedLayouts);
-        console.log('🔄 Forced layout refresh for new property');
-      }, 100);
-    } else if (type === 'empty-space') {
-      // Create a simple empty space item
+        console.log('🔄 Grid layout updated after department addition');
+      }, 50);
+      
+    } else if (type === 'field-header') {
+      // Create a new property as grouped section
+      const timestamp = Date.now();
+      const fieldId = `new-property-${timestamp}`;
+      
       const newItem: LayoutItem = {
-        id: `empty-space-${Date.now()}`,
-        type: 'empty-space',
-        content: {},
+        id: `field-section-${fieldId}-${Date.now()}`,
+        type: 'grouped-section',
+        content: { fieldId: fieldId, label: 'New Property' },
         x: 0,
-        y: Math.max(...configuration.items.map(i => i.y + i.h), 0),
-        w: 2,
-        h: 2,
-        minW: 1,
-        minH: 1
+        y: insertY,
+        w: 12, // Full width for properties
+        h: 4,
+        minW: 6,
+        minH: 4,
+        isResizable: true,
+        isDraggable: true,
+        children: [
+          {
+            id: `field-header-${fieldId}-${Date.now()}`,
+            type: 'field-header' as const,
+            content: { fieldId: fieldId, label: 'New Property' },
+            x: 0, y: 0, w: 12, h: 1,
+            minW: 6, minH: 1,
+            isResizable: true,
+            isDraggable: true
+          },
+          {
+            id: `field-notes-${fieldId}-${Date.now()}`,
+            type: 'notes' as const,
+            content: { fieldId: fieldId, placeholder: "Sample content..." },
+            x: 0, y: 1, w: 12, h: 3,
+            minW: 6, minH: 2,
+            isResizable: true,
+            isDraggable: true
+          }
+        ]
       };
 
       const newConfig = {
@@ -999,8 +936,50 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         items: [...configuration.items, newItem]
       };
 
+      console.log('✅ Added new property at bottom - layout preserved');
+
       setConfiguration(newConfig);
       onConfigurationChange?.(newConfig);
+      
+      // Force React Grid Layout to update with the new configuration
+      setTimeout(() => {
+        const refreshedLayouts = convertToGridLayouts(newConfig.items);
+        setLayouts(refreshedLayouts);
+        console.log('🔄 Grid layout updated after property addition');
+      }, 50);
+      
+    } else if (type === 'empty-space') {
+      // Create a simple empty space item
+      const newItem: LayoutItem = {
+        id: `empty-space-${Date.now()}`,
+        type: 'empty-space',
+        content: {},
+        x: 0,
+        y: insertY,
+        w: 2,
+        h: 2,
+        minW: 1,
+        minH: 1,
+        isResizable: true,
+        isDraggable: true
+      };
+
+      const newConfig = {
+        ...configuration,
+        items: [...configuration.items, newItem]
+      };
+
+      console.log('✅ Added empty space at bottom - layout preserved');
+
+      setConfiguration(newConfig);
+      onConfigurationChange?.(newConfig);
+      
+      // Force React Grid Layout to update with the new configuration
+      setTimeout(() => {
+        const refreshedLayouts = convertToGridLayouts(newConfig.items);
+        setLayouts(refreshedLayouts);
+        console.log('🔄 Grid layout updated after empty space addition');
+      }, 50);
     }
   };
 
@@ -1026,12 +1005,14 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     setConfiguration(newConfig);
     onConfigurationChange?.(newConfig);
     
-    // Minimal layout refresh - preserve user positions
+    // Force React Grid Layout to update after item removal
     setTimeout(() => {
       const refreshedLayouts = convertToGridLayouts(newConfig.items);
       setLayouts(refreshedLayouts);
-      console.log('🔄 Layout refreshed after removal - user positions preserved');
-    }, 100);
+      console.log('🔄 Grid layout updated after item removal');
+    }, 50);
+    
+    console.log('✅ Item removed successfully - user positions preserved');
   };
 
   // Show reset confirmation dialog
@@ -1098,6 +1079,13 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     setConfiguration(defaultConfig);
     onConfigurationChange?.(defaultConfig);
     setShowResetDialog(false); // Close the dialog
+    
+    // Force React Grid Layout to update with new configuration
+    setTimeout(() => {
+      const refreshedLayouts = convertToGridLayouts(defaultConfig.items);
+      setLayouts(refreshedLayouts);
+      console.log('🔄 Grid layout updated after reset');
+    }, 50);
   };
 
   // Add function to recalculate Y positions manually - PRESERVE USER POSITIONS
