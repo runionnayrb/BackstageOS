@@ -470,8 +470,9 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
   
   // keep in sync with props
   useEffect(() => {
-    // Try template first (has complete metadata), then showSettings as fallback
-    const layoutConfig = template?.layoutConfiguration || showSettings?.layoutConfiguration;
+    // Use ONLY template data - it has complete metadata and user customizations
+    // show_settings only has simplified position data without content/type information
+    const layoutConfig = template?.layoutConfiguration;
     
     console.log('🔍 Layout initialization effect triggered');
     console.log('ShowSettings layoutConfig:', showSettings?.layoutConfiguration?.items?.length || 0, 'items');
