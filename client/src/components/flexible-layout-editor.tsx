@@ -579,6 +579,10 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     // Mark as initialized if we already have a saved layout
     return template?.layoutConfiguration?.items?.length > 0;
   });
+  const [isLayoutMounted, setIsLayoutMounted] = useState(() => {
+    // Set mounted to true if we already have items in configuration
+    return template?.layoutConfiguration?.items?.length > 0;
+  });
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -623,6 +627,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       
       setConfiguration(template.layoutConfiguration);
       setHasInitialized(true);
+      setIsLayoutMounted(true);
       console.log('✅ SAVED LAYOUT APPLIED successfully');
     } 
     // Generate new layout if none exists
@@ -636,6 +641,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       };
       setConfiguration(config);
       setHasInitialized(true);
+      setIsLayoutMounted(true);
       console.log('✅ NEW LAYOUT GENERATED -', config.items.length, 'items');
     }
   }, [template, hasInitialized, generateLayoutFromTemplate]); // Simple dependencies
