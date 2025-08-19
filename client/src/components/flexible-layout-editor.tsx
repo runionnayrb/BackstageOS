@@ -518,7 +518,11 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     });
     
     // Add department sections (wider for better visibility)
-    const departments = ['scenic', 'lighting', 'audio', 'video', 'props'];
+    // Get all departments from template.departmentNames if available, otherwise use defaults
+    const departmentNames = template.departmentNames || {};
+    const departments = Object.keys(departmentNames).length > 0 
+      ? Object.keys(departmentNames)
+      : ['scenic', 'lighting', 'audio', 'video', 'props'];
     departments.forEach((dept, index) => {
       const xPos = (index % 2) * 6; // Alternate between left (0) and right (6)
       const yPos = currentY + Math.floor(index / 2) * 5;
@@ -616,14 +620,16 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     if (template.layoutConfiguration?.items?.length > 0) {
       console.log('🎯 APPLYING SAVED LAYOUT from template prop');
       console.log('📊 Saved items count:', template.layoutConfiguration.items.length);
-      console.log('📊 Saved items preview:', template.layoutConfiguration.items.slice(0, 3).map((item: any) => ({ 
+      console.log('📊 Saved items preview:', template.layoutConfiguration.items.slice(0, 6).map((item: any) => ({ 
         id: item.id, 
         type: item.type, 
         x: item.x, 
         y: item.y,
         w: item.w,
-        h: item.h
+        h: item.h,
+        displayName: item.content?.displayName
       })));
+      console.log('📊 Full saved layout structure:', JSON.stringify(template.layoutConfiguration, null, 2));
       
       setConfiguration(template.layoutConfiguration);
       setHasInitialized(true);
