@@ -480,6 +480,10 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     console.log('Using layoutConfig:', layoutConfig?.items?.length || 0, 'items');
     
     if (layoutConfig?.items?.length > 0) {
+      console.log('First 3 items from template:', layoutConfig.items.slice(0, 3));
+    }
+    
+    if (layoutConfig?.items?.length > 0) {
       const items = layoutConfig.items.map((it: any) => {
         const item = {
           id: it.id || it.i,
