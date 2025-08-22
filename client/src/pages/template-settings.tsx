@@ -669,9 +669,13 @@ export default function TemplateSettings() {
 
   // Global save mutation - handles all template changes at once
   const globalSaveMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (saveDataOverride?: any) => {
       setIsSaving(true);
       console.log('🔒 GLOBAL SAVE: Starting comprehensive template save...');
+      
+      // Use provided save data or fall back to pending changes
+      const dataToSave = saveDataOverride || pendingChanges;
+      console.log('🔍 Save data being used:', dataToSave);
       
       // Prepare all changes to save
       const savePromises = [];
@@ -679,10 +683,10 @@ export default function TemplateSettings() {
       // Save layout configuration if there are changes
       // CRITICAL FIX: Check if layoutConfiguration exists, not just if it has items
       // The configuration object itself is what needs to be saved, regardless of item count
-      if (pendingChanges.layoutConfiguration) {
+      if (dataToSave.layoutConfiguration) {
         console.log('💾 GLOBAL SAVE: Saving layout configuration...');
-        console.log('🔍 Layout config to save:', pendingChanges.layoutConfiguration);
-        console.log('🔍 Layout items to save:', pendingChanges.layoutConfiguration.items?.map(item => ({ 
+        console.log('🔍 Layout config to save:', dataToSave.layoutConfiguration);
+        console.log('🔍 Layout items to save:', dataToSave.layoutConfiguration.items?.map(item => ({ 
           id: item.id, 
           type: item.type, 
           x: item.x, 
@@ -690,41 +694,41 @@ export default function TemplateSettings() {
         })));
         savePromises.push(
           apiRequest("PUT", `/api/projects/${projectId}/settings/layout-configuration`, {
-            layoutConfiguration: pendingChanges.layoutConfiguration,
+            layoutConfiguration: dataToSave.layoutConfiguration,
             templateType: selectedPhase
           })
         );
       } else {
         console.log('⚠️ GLOBAL SAVE: No layout configuration changes to save');
-        console.log('🔍 pendingChanges.layoutConfiguration:', pendingChanges.layoutConfiguration);
+        console.log('🔍 dataToSave.layoutConfiguration:', dataToSave.layoutConfiguration);
       }
       
       // Save department names if there are changes
-      if (Object.keys(pendingChanges.departmentNames).length > 0) {
-        console.log('📝 Saving department names...', pendingChanges.departmentNames);
+      if (Object.keys(dataToSave.departmentNames || {}).length > 0) {
+        console.log('📝 Saving department names...', dataToSave.departmentNames);
         savePromises.push(
           apiRequest("PUT", `/api/projects/${projectId}/settings/department-names-bulk`, {
-            departmentNames: pendingChanges.departmentNames
+            departmentNames: dataToSave.departmentNames
           })
         );
       }
       
       // Save department formatting if there are changes
-      if (Object.keys(pendingChanges.departmentFormatting).length > 0) {
-        console.log('🎨 Saving department formatting...', pendingChanges.departmentFormatting);
+      if (Object.keys(dataToSave.departmentFormatting || {}).length > 0) {
+        console.log('🎨 Saving department formatting...', dataToSave.departmentFormatting);
         savePromises.push(
           apiRequest("PUT", `/api/projects/${projectId}/settings/department-formatting-bulk`, {
-            departmentFormatting: pendingChanges.departmentFormatting
+            departmentFormatting: dataToSave.departmentFormatting
           })
         );
       }
       
       // Save field header formatting if there are changes
-      if (pendingChanges.fieldHeaderFormatting && Object.keys(pendingChanges.fieldHeaderFormatting).length > 0) {
-        console.log('📋 Saving field header formatting...', pendingChanges.fieldHeaderFormatting);
+      if (dataToSave.fieldHeaderFormatting && Object.keys(dataToSave.fieldHeaderFormatting).length > 0) {
+        console.log('📋 Saving field header formatting...', dataToSave.fieldHeaderFormatting);
         savePromises.push(
           apiRequest("PUT", `/api/projects/${projectId}/settings/field-header-formatting`, {
-            formatting: pendingChanges.fieldHeaderFormatting
+            formatting: dataToSave.fieldHeaderFormatting
           })
         );
       }
@@ -928,10 +932,15 @@ export default function TemplateSettings() {
                                 }
                                 
                                 console.log('🔒 LOCKING: Saving all template changes...');
-                                // Use a timeout to ensure state update completes before mutation
-                                setTimeout(() => {
-                                  globalSaveMutation.mutate();
-                                }, 0);
+                                // Create the save data directly instead of relying on state timing
+                                const saveData = {
+                                  ...pendingChanges,
+                                  layoutConfiguration: currentConfig,
+                                  hasChanges: true
+                                };
+                                
+                                // Call the save function with the prepared data
+                                globalSaveMutation.mutate(saveData);
                               }
                               
                               // Update edit mode immediately for responsive UI
