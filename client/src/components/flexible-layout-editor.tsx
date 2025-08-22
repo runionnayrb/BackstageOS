@@ -612,12 +612,9 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       return;
     }
     
-
-    
-    if (hasInitialized) {
-      console.log('✅ Already initialized, skipping');
-      return;
-    }
+    // CRITICAL FIX: Always apply saved layout when template changes
+    // Don't skip based on hasInitialized - template prop change means new data
+    console.log('🔄 Template prop changed, checking for saved layout...');
     
     // CRITICAL DEBUG: Check what we actually received
     console.log('🔍 TEMPLATE DEBUG: Received template:', {
@@ -660,7 +657,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       setIsLayoutMounted(true);
       console.log('✅ NEW LAYOUT GENERATED -', config.items.length, 'items');
     }
-  }, [template, hasInitialized, generateLayoutFromTemplate]); // Simple dependencies
+  }, [template, generateLayoutFromTemplate]); // Removed hasInitialized from dependencies
 
   // NO MORE COMPLEX TRACKING - Keep it simple
 
