@@ -557,7 +557,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     return items;
   }, [template, showSettings?.departmentNames]);
 
-  // Configuration state - initialize from template if available
+  // Configuration state - PERSISTENT REFERENCE to prevent resets
   const [configuration, setConfiguration] = useState<FlexibleLayoutConfiguration>(() => {
     // Check if template already has saved layout configuration
     if (template?.layoutConfiguration?.items?.length > 0) {
@@ -580,6 +580,16 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       gridGap: 4
     };
   });
+  
+  // Keep a persistent reference to latest configuration to survive navigation
+  const configurationRef = useRef(configuration);
+  useEffect(() => {
+    configurationRef.current = configuration;
+    console.log('📌 Configuration reference updated:', {
+      itemCount: configuration.items.length,
+      hasItems: configuration.items.length > 0
+    });
+  }, [configuration]);
   const [hasInitialized, setHasInitialized] = useState(() => {
     // Mark as initialized if we already have a saved layout
     return template?.layoutConfiguration?.items?.length > 0;
@@ -606,14 +616,12 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
   
   // Initialize layout from template - SINGLE SOURCE OF TRUTH
   useEffect(() => {
-    // Only initialize once when template with layout becomes available
+    // Only initialize when template with layout becomes available
     if (!template) {
       console.log('⏳ Waiting for template...');
       return;
     }
     
-    // CRITICAL FIX: Always apply saved layout when template changes
-    // Don't skip based on hasInitialized - template prop change means new data
     console.log('🔄 Template prop changed, checking for saved layout...');
     
     // CRITICAL DEBUG: Check what we actually received
@@ -625,8 +633,27 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       layoutConfigKeys: template.layoutConfiguration ? Object.keys(template.layoutConfiguration) : 'none'
     });
     
+    // CRITICAL: Check if current configuration already has items (user has made changes)
+    const currentHasItems = configuration.items.length > 0;
+    const templateHasItems = template.layoutConfiguration?.items?.length > 0;
+    
+    console.log('🧠 PERSISTENCE CHECK:', {
+      currentHasItems,
+      templateHasItems,
+      action: currentHasItems && !hasInitialized ? 'KEEP_CURRENT' : 'USE_TEMPLATE'
+    });
+    
+    // If current configuration has items and we haven't initialized yet,
+    // this means user made changes and we should keep them
+    if (currentHasItems && !hasInitialized) {
+      console.log('🎯 KEEPING CURRENT CONFIGURATION - user has made changes');
+      setHasInitialized(true);
+      setIsLayoutMounted(true);
+      return;
+    }
+    
     // If template has saved layout, use it
-    if (template.layoutConfiguration?.items?.length > 0) {
+    if (templateHasItems) {
       console.log('🎯 APPLYING SAVED LAYOUT from template prop');
       console.log('📊 Saved items count:', template.layoutConfiguration.items.length);
       console.log('🔍 LOADING: Late field position from DB:', template.layoutConfiguration.items.find((item: any) => item.id?.includes('late')));
@@ -657,7 +684,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       setIsLayoutMounted(true);
       console.log('✅ NEW LAYOUT GENERATED -', config.items.length, 'items');
     }
-  }, [template, generateLayoutFromTemplate]); // Removed hasInitialized from dependencies
+  }, [template, generateLayoutFromTemplate, configuration.items.length, hasInitialized]);
 
   // NO MORE COMPLEX TRACKING - Keep it simple
 

@@ -754,7 +754,7 @@ export default function TemplateSettings() {
       await Promise.all(savePromises);
       return true;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       console.log('✅ GLOBAL SAVE: All template changes saved successfully');
       setIsSaving(false);
       setLastSaved(new Date());
@@ -770,8 +770,13 @@ export default function TemplateSettings() {
       
       console.log('🧹 GLOBAL SAVE: Pending changes cleared after successful save');
       
-      // Refresh data
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
+      // CRITICAL FIX: Wait for cache invalidation to complete before showing success
+      console.log('🔄 Refreshing data and waiting for completion...');
+      await queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
+      
+      // Wait a bit more to ensure data is fully refreshed
+      await new Promise(resolve => setTimeout(resolve, 500));
+      console.log('✅ Cache refresh completed - data is now current');
       
       toast({
         title: "Template saved",
