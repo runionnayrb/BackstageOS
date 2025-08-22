@@ -235,6 +235,13 @@ export default function TemplateSettings() {
 
   // Initialize templates with defaults and merge with user templates
   useEffect(() => {
+    console.log('🔄 TEMPLATE INIT EFFECT: Running template initialization...');
+    console.log('🔍 Effect deps:', { 
+      projectId, 
+      hasUserTemplates: !!userTemplates, 
+      hasShowSettings: !!showSettings,
+      showSettingsLayoutConfig: !!showSettings?.layoutConfiguration 
+    });
     const initialTemplates: Record<string, ProductionTemplate> = {};
     
     // Start with default templates
