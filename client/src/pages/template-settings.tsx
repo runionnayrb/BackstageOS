@@ -913,8 +913,9 @@ export default function TemplateSettings() {
                                 console.log('🔒 LOCKING: Getting latest configuration before save...');
                                 
                                 // Get the latest configuration from the FlexibleLayoutEditor
+                                let currentConfig = null;
                                 if (flexibleLayoutRef.current) {
-                                  const currentConfig = flexibleLayoutRef.current.getCurrentConfiguration();
+                                  currentConfig = flexibleLayoutRef.current.getCurrentConfiguration();
                                   console.log('📊 Latest configuration from editor:', currentConfig);
                                   console.log('🔍 DETAILED: Props department position:', currentConfig?.items.find(item => item.id?.includes('props') || item.content?.department === 'props'));
                                   console.log('🔍 DETAILED: All department positions:', currentConfig?.items.filter(item => item.type === 'grouped-section').map(item => ({
