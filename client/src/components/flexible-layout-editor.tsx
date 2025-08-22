@@ -557,136 +557,37 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     return items;
   }, [template, showSettings?.departmentNames]);
 
-  // Configuration state - PERSISTENT REFERENCE to prevent resets
-  const [configuration, setConfiguration] = useState<FlexibleLayoutConfiguration>(() => {
-    // Check if template already has saved layout configuration
-    if (template?.layoutConfiguration?.items?.length > 0) {
-      console.log('🎯 INIT STATE: Using saved layout from template');
-      console.log('📊 INIT STATE: Items count:', template.layoutConfiguration.items.length);
-      console.log('📊 INIT STATE: First 3 items:', template.layoutConfiguration.items.slice(0, 3).map((item: any) => ({
-        id: item.id,
-        type: item.type,
-        x: item.x,
-        y: item.y
-      })));
-      return template.layoutConfiguration;
-    }
-    // Otherwise start with empty configuration
-    console.log('🎯 INIT STATE: No saved layout, starting empty');
-    return {
-      items: [],
-      gridCols: 12,
-      gridRows: 20,
-      gridGap: 4
-    };
-  });
-  
-  // Keep a persistent reference to latest configuration to survive navigation
-  const configurationRef = useRef(configuration);
-  useEffect(() => {
-    configurationRef.current = configuration;
-    console.log('📌 Configuration reference updated:', {
-      itemCount: configuration.items.length,
-      hasItems: configuration.items.length > 0,
-      sampleIds: configuration.items.slice(0, 3).map(item => item.id)
-    });
-  }, [configuration]);
-  const [hasInitialized, setHasInitialized] = useState(() => {
-    // Mark as initialized if we already have a saved layout
-    return template?.layoutConfiguration?.items?.length > 0;
-  });
-  const [isLayoutMounted, setIsLayoutMounted] = useState(() => {
-    // Set mounted to true if we already have items in configuration
-    return template?.layoutConfiguration?.items?.length > 0;
-  });
+  // Simple configuration state
+  const [configuration, setConfiguration] = useState<FlexibleLayoutConfiguration>(() => ({
+    items: [],
+    gridCols: 12,
+    gridRows: 20,
+    gridGap: 8
+  }));
+  const [hasInitialized, setHasInitialized] = useState(false);
+  const [isLayoutMounted, setIsLayoutMounted] = useState(false);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Component lifecycle logging
+  // Simple initialization from template
   useEffect(() => {
-    console.log('🚀 FlexibleLayoutEditor MOUNTED');
-    console.log('📊 Initial template:', template ? 'Has template' : 'No template');
-    console.log('📊 Initial layoutConfiguration:', template?.layoutConfiguration ? 
-      `Has ${template.layoutConfiguration.items?.length} items` : 'None');
+    if (!template || hasInitialized) return;
     
-    return () => {
-      console.log('🛑 FlexibleLayoutEditor UNMOUNTING');
-    };
-  }, []);
-  
-  // Initialize layout from template - SINGLE SOURCE OF TRUTH
-  useEffect(() => {
-    // Only initialize when template with layout becomes available
-    if (!template) {
-      console.log('⏳ Waiting for template...');
-      return;
-    }
-    
-    console.log('🔄 Template prop changed, checking for saved layout...');
-    
-    // CRITICAL DEBUG: Check what we actually received
-    console.log('🔍 TEMPLATE DEBUG: Received template:', {
-      hasTemplate: !!template,
-      hasLayoutConfiguration: !!template.layoutConfiguration,
-      itemsCount: template.layoutConfiguration?.items?.length || 0,
-      templateKeys: Object.keys(template || {}),
-      layoutConfigKeys: template.layoutConfiguration ? Object.keys(template.layoutConfiguration) : 'none'
-    });
-    
-    // CRITICAL: Always prefer database data over local state
-    const currentHasItems = configuration.items.length > 0;
-    const templateHasItems = template.layoutConfiguration?.items?.length > 0;
-    
-    console.log('🧠 PERSISTENCE CHECK:', {
-      currentHasItems,
-      templateHasItems,
-      hasInitialized,
-      templateUpdatedAt: template.updatedAt,
-      configurationItemsCount: configuration.items.length,
-      templateItemsCount: template.layoutConfiguration?.items?.length || 0,
-      action: templateHasItems ? 'USE_DATABASE_DATA' : 'GENERATE_NEW'
-    });
-    
-    // CRITICAL FIX: Always use database data if it exists, regardless of local state
-    // This ensures saved changes always take precedence over stale local state
-    
-    // If template has saved layout, FORCE apply it regardless of local state
-    if (templateHasItems) {
-      console.log('🎯 FORCE APPLYING SAVED LAYOUT from database');
-      console.log('📊 Database layout items count:', template.layoutConfiguration.items.length);
-      console.log('📊 Current local items count:', configuration.items.length);
-      console.log('🔍 LOADING: Database layout sample:', template.layoutConfiguration.items.slice(0, 3).map((item: any) => ({
-        id: item.id,
-        x: item.x,
-        y: item.y,
-        w: item.w,
-        h: item.h
-      })));
-      
-      // FORCE update - don't check if already initialized
-      console.log('🔧 BEFORE setConfiguration - current config items:', configuration.items.length);
+    if (template.layoutConfiguration?.items?.length > 0) {
       setConfiguration(template.layoutConfiguration);
-      console.log('🔧 AFTER setConfiguration - should have items:', template.layoutConfiguration.items.length);
-      setHasInitialized(true);
-      setIsLayoutMounted(true);
-      console.log('✅ DATABASE LAYOUT FORCE APPLIED - local state overridden');
-    } 
-    // Generate new layout if none exists
-    else {
-      console.log('🎯 GENERATING NEW LAYOUT - no saved configuration');
-      const config = {
+    } else {
+      setConfiguration({
         items: generateLayoutFromTemplate(),
         gridCols: 12,
         gridRows: 20,
         gridGap: 8
-      };
-      setConfiguration(config);
-      setHasInitialized(true);
-      setIsLayoutMounted(true);
-      console.log('✅ NEW LAYOUT GENERATED -', config.items.length, 'items');
+      });
     }
-  }, [template, generateLayoutFromTemplate]); // Simplified dependencies to prevent race conditions
+    
+    setHasInitialized(true);
+    setIsLayoutMounted(true);
+  }, [template, hasInitialized, generateLayoutFromTemplate]);
 
   // NO MORE COMPLEX TRACKING - Keep it simple
 

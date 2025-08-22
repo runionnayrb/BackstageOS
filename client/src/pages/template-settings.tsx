@@ -834,29 +834,11 @@ export default function TemplateSettings() {
   const currentTemplate = templates[selectedPhase];
   
   // Memoized template prop for FlexibleLayoutEditor to prevent unnecessary re-renders
-  // REMOVE MEMOIZATION: Always use fresh data to prevent stale template issues
-  const getActiveTemplate = () => {
-    if (!currentTemplate) return null;
-    
-    const effectiveLayoutConfig = showSettings?.layoutConfiguration || currentTemplate.layoutConfiguration;
-    console.log('🎯 FRESH TEMPLATE: Creating template for FlexibleLayoutEditor (no memoization)');
-    console.log('🔍 showSettings?.layoutConfiguration exists:', !!showSettings?.layoutConfiguration);
-    console.log('🔍 currentTemplate.layoutConfiguration exists:', !!currentTemplate.layoutConfiguration);
-    console.log('🔍 Fresh layout config (what FlexibleLayoutEditor will receive):', {
-      hasConfig: !!effectiveLayoutConfig,
-      itemsCount: effectiveLayoutConfig?.items?.length || 0,
-      lateField: effectiveLayoutConfig?.items?.find(item => item.id?.includes('late')),
-      updatedAt: showSettings?.updatedAt || currentTemplate.updatedAt
-    });
-    
-    return {
-      ...currentTemplate,
-      layoutConfiguration: effectiveLayoutConfig,
-      updatedAt: showSettings?.updatedAt || currentTemplate.updatedAt
-    };
-  };
-  
-  const activeTemplate = getActiveTemplate();
+  // Simple template prop - always use showSettings layout for tech reports
+  const activeTemplate = currentTemplate ? {
+    ...currentTemplate,
+    layoutConfiguration: showSettings?.layoutConfiguration || currentTemplate.layoutConfiguration
+  } : null;
 
   if (!project || !currentTemplate) {
     return (
