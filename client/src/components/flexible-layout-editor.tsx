@@ -587,7 +587,8 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     configurationRef.current = configuration;
     console.log('📌 Configuration reference updated:', {
       itemCount: configuration.items.length,
-      hasItems: configuration.items.length > 0
+      hasItems: configuration.items.length > 0,
+      sampleIds: configuration.items.slice(0, 3).map(item => item.id)
     });
   }, [configuration]);
   const [hasInitialized, setHasInitialized] = useState(() => {
@@ -642,6 +643,8 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       templateHasItems,
       hasInitialized,
       templateUpdatedAt: template.updatedAt,
+      configurationItemsCount: configuration.items.length,
+      templateItemsCount: template.layoutConfiguration?.items?.length || 0,
       action: templateHasItems ? 'USE_DATABASE_DATA' : 'GENERATE_NEW'
     });
     
@@ -662,7 +665,9 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       })));
       
       // FORCE update - don't check if already initialized
+      console.log('🔧 BEFORE setConfiguration - current config items:', configuration.items.length);
       setConfiguration(template.layoutConfiguration);
+      console.log('🔧 AFTER setConfiguration - should have items:', template.layoutConfiguration.items.length);
       setHasInitialized(true);
       setIsLayoutMounted(true);
       console.log('✅ DATABASE LAYOUT FORCE APPLIED - local state overridden');
@@ -681,7 +686,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       setIsLayoutMounted(true);
       console.log('✅ NEW LAYOUT GENERATED -', config.items.length, 'items');
     }
-  }, [template, generateLayoutFromTemplate, configuration.items.length, hasInitialized]);
+  }, [template, generateLayoutFromTemplate]); // Simplified dependencies to prevent race conditions
 
   // NO MORE COMPLEX TRACKING - Keep it simple
 
