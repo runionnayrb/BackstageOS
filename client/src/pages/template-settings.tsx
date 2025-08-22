@@ -1117,7 +1117,10 @@ export default function TemplateSettings() {
                         projectId={parseInt(params.id)}
                         reportType="tech"
                         isEditing={true}
-                        template={template}
+                        template={{
+                          ...template,
+                          layoutConfiguration: showSettings?.layoutConfiguration || template.layoutConfiguration
+                        }}
                         showSettings={showSettings}
                         onTemplateUpdate={(updatedTemplate) => {
                           // Local state update only - no database save until global save
