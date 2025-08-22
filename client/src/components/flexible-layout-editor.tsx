@@ -632,10 +632,10 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     if (template.layoutConfiguration?.items?.length > 0) {
       console.log('🎯 APPLYING SAVED LAYOUT from template prop');
       console.log('📊 Saved items count:', template.layoutConfiguration.items.length);
-      console.log('📊 Saved items preview:', template.layoutConfiguration.items.slice(0, 3).map((item: any) => ({ 
-        id: item.id, 
-        type: item.type, 
-        x: item.x, 
+      console.log('🔍 LOADING: Late field position from DB:', template.layoutConfiguration.items.find((item: any) => item.id?.includes('late')));
+      console.log('🔍 LOADING: ALL positions from DB:', template.layoutConfiguration.items.map((item: any) => ({
+        id: item.id,
+        x: item.x,
         y: item.y,
         w: item.w,
         h: item.h
