@@ -1134,10 +1134,22 @@ export default function TemplateSettings() {
                         projectId={parseInt(params.id)}
                         reportType="tech"
                         isEditing={isEditMode}
-                        template={{
-                          ...template,
-                          layoutConfiguration: showSettings?.layoutConfiguration || template.layoutConfiguration
-                        }}
+                        template={(() => {
+                          const effectiveLayoutConfig = showSettings?.layoutConfiguration || template.layoutConfiguration;
+                          console.log('🎯 TEMPLATE PROP: Creating template for FlexibleLayoutEditor');
+                          console.log('🔍 showSettings?.layoutConfiguration exists:', !!showSettings?.layoutConfiguration);
+                          console.log('🔍 template.layoutConfiguration exists:', !!template.layoutConfiguration);
+                          console.log('🔍 Effective layout config (what FlexibleLayoutEditor will receive):', {
+                            hasConfig: !!effectiveLayoutConfig,
+                            itemsCount: effectiveLayoutConfig?.items?.length || 0,
+                            lateField: effectiveLayoutConfig?.items?.find(item => item.id?.includes('late'))
+                          });
+                          
+                          return {
+                            ...template,
+                            layoutConfiguration: effectiveLayoutConfig
+                          };
+                        })()}
                         showSettings={showSettings}
                         onTemplateUpdate={(updatedTemplate) => {
                           // Local state update only - no database save until global save
