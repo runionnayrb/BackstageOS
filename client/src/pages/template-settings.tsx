@@ -834,24 +834,29 @@ export default function TemplateSettings() {
   const currentTemplate = templates[selectedPhase];
   
   // Memoized template prop for FlexibleLayoutEditor to prevent unnecessary re-renders
-  const memoizedTemplate = useMemo(() => {
+  // REMOVE MEMOIZATION: Always use fresh data to prevent stale template issues
+  const getActiveTemplate = () => {
     if (!currentTemplate) return null;
     
     const effectiveLayoutConfig = showSettings?.layoutConfiguration || currentTemplate.layoutConfiguration;
-    console.log('🎯 TEMPLATE PROP: Creating template for FlexibleLayoutEditor');
+    console.log('🎯 FRESH TEMPLATE: Creating template for FlexibleLayoutEditor (no memoization)');
     console.log('🔍 showSettings?.layoutConfiguration exists:', !!showSettings?.layoutConfiguration);
     console.log('🔍 currentTemplate.layoutConfiguration exists:', !!currentTemplate.layoutConfiguration);
-    console.log('🔍 Effective layout config (what FlexibleLayoutEditor will receive):', {
+    console.log('🔍 Fresh layout config (what FlexibleLayoutEditor will receive):', {
       hasConfig: !!effectiveLayoutConfig,
       itemsCount: effectiveLayoutConfig?.items?.length || 0,
-      lateField: effectiveLayoutConfig?.items?.find(item => item.id?.includes('late'))
+      lateField: effectiveLayoutConfig?.items?.find(item => item.id?.includes('late')),
+      updatedAt: showSettings?.updatedAt || currentTemplate.updatedAt
     });
     
     return {
       ...currentTemplate,
-      layoutConfiguration: effectiveLayoutConfig
+      layoutConfiguration: effectiveLayoutConfig,
+      updatedAt: showSettings?.updatedAt || currentTemplate.updatedAt
     };
-  }, [showSettings?.layoutConfiguration, currentTemplate?.layoutConfiguration, currentTemplate]);
+  };
+  
+  const activeTemplate = getActiveTemplate();
 
   if (!project || !currentTemplate) {
     return (
@@ -1161,7 +1166,7 @@ export default function TemplateSettings() {
                         projectId={parseInt(params.id)}
                         reportType="tech"
                         isEditing={isEditMode}
-                        template={memoizedTemplate}
+                        template={activeTemplate}
                         showSettings={showSettings}
                         onTemplateUpdate={(updatedTemplate) => {
                           // Local state update only - no database save until global save

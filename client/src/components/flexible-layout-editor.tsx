@@ -633,31 +633,27 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       layoutConfigKeys: template.layoutConfiguration ? Object.keys(template.layoutConfiguration) : 'none'
     });
     
-    // CRITICAL: Check if current configuration already has items (user has made changes)
+    // CRITICAL: Always prefer database data over local state
     const currentHasItems = configuration.items.length > 0;
     const templateHasItems = template.layoutConfiguration?.items?.length > 0;
     
     console.log('🧠 PERSISTENCE CHECK:', {
       currentHasItems,
       templateHasItems,
-      action: currentHasItems && !hasInitialized ? 'KEEP_CURRENT' : 'USE_TEMPLATE'
+      hasInitialized,
+      templateUpdatedAt: template.updatedAt,
+      action: templateHasItems ? 'USE_DATABASE_DATA' : 'GENERATE_NEW'
     });
     
-    // If current configuration has items and we haven't initialized yet,
-    // this means user made changes and we should keep them
-    if (currentHasItems && !hasInitialized) {
-      console.log('🎯 KEEPING CURRENT CONFIGURATION - user has made changes');
-      setHasInitialized(true);
-      setIsLayoutMounted(true);
-      return;
-    }
+    // CRITICAL FIX: Always use database data if it exists, regardless of local state
+    // This ensures saved changes always take precedence over stale local state
     
-    // If template has saved layout, use it
+    // If template has saved layout, FORCE apply it regardless of local state
     if (templateHasItems) {
-      console.log('🎯 APPLYING SAVED LAYOUT from template prop');
-      console.log('📊 Saved items count:', template.layoutConfiguration.items.length);
-      console.log('🔍 LOADING: Late field position from DB:', template.layoutConfiguration.items.find((item: any) => item.id?.includes('late')));
-      console.log('🔍 LOADING: ALL positions from DB:', template.layoutConfiguration.items.map((item: any) => ({
+      console.log('🎯 FORCE APPLYING SAVED LAYOUT from database');
+      console.log('📊 Database layout items count:', template.layoutConfiguration.items.length);
+      console.log('📊 Current local items count:', configuration.items.length);
+      console.log('🔍 LOADING: Database layout sample:', template.layoutConfiguration.items.slice(0, 3).map((item: any) => ({
         id: item.id,
         x: item.x,
         y: item.y,
@@ -665,10 +661,11 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         h: item.h
       })));
       
+      // FORCE update - don't check if already initialized
       setConfiguration(template.layoutConfiguration);
       setHasInitialized(true);
       setIsLayoutMounted(true);
-      console.log('✅ SAVED LAYOUT APPLIED successfully');
+      console.log('✅ DATABASE LAYOUT FORCE APPLIED - local state overridden');
     } 
     // Generate new layout if none exists
     else {
