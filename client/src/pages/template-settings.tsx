@@ -178,7 +178,7 @@ export default function TemplateSettings() {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   
   // Template editor state
-  const [isEditMode, setIsEditMode] = useState(true);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
   
   // Global save state - track all pending changes
@@ -1132,7 +1132,7 @@ export default function TemplateSettings() {
                         ref={flexibleLayoutRef}
                         projectId={parseInt(params.id)}
                         reportType="tech"
-                        isEditing={true}
+                        isEditing={isEditMode}
                         template={{
                           ...template,
                           layoutConfiguration: showSettings?.layoutConfiguration || template.layoutConfiguration
