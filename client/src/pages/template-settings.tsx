@@ -972,6 +972,7 @@ export default function TemplateSettings() {
                                 });
                                 
                                 // Call the save function with the prepared data
+                                console.log('🔒 EXECUTING MUTATION: About to call globalSaveMutation.mutate...');
                                 globalSaveMutation.mutate(saveData);
                               }
                               
