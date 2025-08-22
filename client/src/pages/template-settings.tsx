@@ -178,7 +178,7 @@ export default function TemplateSettings() {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   
   // Template editor state
-  const [isEditMode, setIsEditMode] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(true);
   const [showResetDialog, setShowResetDialog] = useState(false);
   
   // Global save state - track all pending changes
