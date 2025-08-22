@@ -3740,6 +3740,14 @@ Best regards,
       }
       
       console.log(`🎨 Returning settings:`, settings);
+      
+      // CRITICAL DEBUG: Show EXACT layout data being returned
+      if (settings.layoutConfiguration) {
+        console.log('🔍 EXACT LAYOUT DATA RETURNED:', JSON.stringify(settings.layoutConfiguration, null, 2));
+      } else {
+        console.log('🚨 NO LAYOUT CONFIGURATION FOUND IN RETURNED SETTINGS');
+      }
+      
       res.json(settings);
     } catch (error) {
       console.error("Error fetching show settings:", error);
@@ -4137,8 +4145,13 @@ Best regards,
         id: item.id, 
         type: item.type, 
         x: item.x, 
-        y: item.y 
+        y: item.y,
+        w: item.w,
+        h: item.h
       })));
+      
+      // CRITICAL DEBUG: Let's see the EXACT data being saved
+      console.log('🔍 EXACT LAYOUT DATA SAVED:', JSON.stringify(updatedSettings.layoutConfiguration, null, 2));
 
       // Return the complete updated settings object for cache consistency
       res.json(updatedSettings);
