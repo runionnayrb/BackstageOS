@@ -827,6 +827,26 @@ export default function TemplateSettings() {
   };
 
   const currentTemplate = templates[selectedPhase];
+  
+  // Memoized template prop for FlexibleLayoutEditor to prevent unnecessary re-renders
+  const memoizedTemplate = useMemo(() => {
+    if (!currentTemplate) return null;
+    
+    const effectiveLayoutConfig = showSettings?.layoutConfiguration || currentTemplate.layoutConfiguration;
+    console.log('🎯 TEMPLATE PROP: Creating template for FlexibleLayoutEditor');
+    console.log('🔍 showSettings?.layoutConfiguration exists:', !!showSettings?.layoutConfiguration);
+    console.log('🔍 currentTemplate.layoutConfiguration exists:', !!currentTemplate.layoutConfiguration);
+    console.log('🔍 Effective layout config (what FlexibleLayoutEditor will receive):', {
+      hasConfig: !!effectiveLayoutConfig,
+      itemsCount: effectiveLayoutConfig?.items?.length || 0,
+      lateField: effectiveLayoutConfig?.items?.find(item => item.id?.includes('late'))
+    });
+    
+    return {
+      ...currentTemplate,
+      layoutConfiguration: effectiveLayoutConfig
+    };
+  }, [showSettings?.layoutConfiguration, currentTemplate?.layoutConfiguration, currentTemplate]);
 
   if (!project || !currentTemplate) {
     return (
@@ -1136,22 +1156,7 @@ export default function TemplateSettings() {
                         projectId={parseInt(params.id)}
                         reportType="tech"
                         isEditing={isEditMode}
-                        template={useMemo(() => {
-                          const effectiveLayoutConfig = showSettings?.layoutConfiguration || currentTemplate.layoutConfiguration;
-                          console.log('🎯 TEMPLATE PROP: Creating template for FlexibleLayoutEditor');
-                          console.log('🔍 showSettings?.layoutConfiguration exists:', !!showSettings?.layoutConfiguration);
-                          console.log('🔍 currentTemplate.layoutConfiguration exists:', !!currentTemplate.layoutConfiguration);
-                          console.log('🔍 Effective layout config (what FlexibleLayoutEditor will receive):', {
-                            hasConfig: !!effectiveLayoutConfig,
-                            itemsCount: effectiveLayoutConfig?.items?.length || 0,
-                            lateField: effectiveLayoutConfig?.items?.find(item => item.id?.includes('late'))
-                          });
-                          
-                          return {
-                            ...currentTemplate,
-                            layoutConfiguration: effectiveLayoutConfig
-                          };
-                        }, [showSettings?.layoutConfiguration, currentTemplate.layoutConfiguration, currentTemplate])}
+                        template={memoizedTemplate}
                         showSettings={showSettings}
                         onTemplateUpdate={(updatedTemplate) => {
                           // Local state update only - no database save until global save
