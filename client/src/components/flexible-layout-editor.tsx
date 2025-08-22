@@ -612,6 +612,14 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       return;
     }
     
+    // CRITICAL FIX: If we already initialized but now have saved layout data, reinitialize
+    if (hasInitialized && template.layoutConfiguration?.items?.length > 0 && configuration.items.length < template.layoutConfiguration.items.length) {
+      console.log('🔄 RE-INITIALIZING: Found saved layout data after initial load');
+      console.log('📊 Current items:', configuration.items.length, '→ Saved items:', template.layoutConfiguration.items.length);
+      setHasInitialized(false); // Force re-initialization
+      return;
+    }
+    
     if (hasInitialized) {
       console.log('✅ Already initialized, skipping');
       return;
