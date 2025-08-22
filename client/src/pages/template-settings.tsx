@@ -929,9 +929,15 @@ export default function TemplateSettings() {
                                 
                                 // Get the latest configuration from the FlexibleLayoutEditor
                                 let currentConfig = null;
+                                console.log('🔒 STEP 1: Getting ref status...', {
+                                  hasRef: !!flexibleLayoutRef.current,
+                                  refType: typeof flexibleLayoutRef.current
+                                });
+                                
                                 if (flexibleLayoutRef.current) {
+                                  console.log('🔒 STEP 2: Calling getCurrentConfiguration...');
                                   currentConfig = flexibleLayoutRef.current.getCurrentConfiguration();
-                                  console.log('📊 Latest configuration from editor:', currentConfig);
+                                  console.log('🔒 STEP 3: Got configuration:', !!currentConfig, currentConfig?.items?.length);
                                   console.log('🔍 SAVING: Late field position before save:', currentConfig?.items.find(item => item.id?.includes('late')));
                                   console.log('🔍 SAVING: ALL positions being saved:', currentConfig?.items?.map(item => ({
                                     id: item.id,
@@ -947,6 +953,8 @@ export default function TemplateSettings() {
                                     layoutConfiguration: currentConfig,
                                     hasChanges: true
                                   }));
+                                } else {
+                                  console.error('❌ CRITICAL: No flexibleLayoutRef.current available!');
                                 }
                                 
                                 console.log('🔒 LOCKING: Saving all template changes...');
@@ -956,6 +964,11 @@ export default function TemplateSettings() {
                                   layoutConfiguration: currentConfig,
                                   hasChanges: true
                                 };
+                                console.log('🔒 SAVE DATA prepared:', {
+                                  hasLayoutConfig: !!saveData.layoutConfiguration,
+                                  itemsCount: saveData.layoutConfiguration?.items?.length,
+                                  hasChanges: saveData.hasChanges
+                                });
                                 
                                 // Call the save function with the prepared data
                                 globalSaveMutation.mutate(saveData);
