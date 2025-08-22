@@ -181,24 +181,6 @@ export default function TemplateSettings() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
   
-  // Memoized template prop for FlexibleLayoutEditor to prevent unnecessary re-renders
-  const memoizedTemplate = useMemo(() => {
-    const effectiveLayoutConfig = showSettings?.layoutConfiguration || template.layoutConfiguration;
-    console.log('🎯 TEMPLATE PROP: Creating template for FlexibleLayoutEditor');
-    console.log('🔍 showSettings?.layoutConfiguration exists:', !!showSettings?.layoutConfiguration);
-    console.log('🔍 template.layoutConfiguration exists:', !!template.layoutConfiguration);
-    console.log('🔍 Effective layout config (what FlexibleLayoutEditor will receive):', {
-      hasConfig: !!effectiveLayoutConfig,
-      itemsCount: effectiveLayoutConfig?.items?.length || 0,
-      lateField: effectiveLayoutConfig?.items?.find(item => item.id?.includes('late'))
-    });
-    
-    return {
-      ...template,
-      layoutConfiguration: effectiveLayoutConfig
-    };
-  }, [showSettings?.layoutConfiguration, template.layoutConfiguration, template]);
-  
   // Global save state - track all pending changes
   const [pendingChanges, setPendingChanges] = useState({
     departmentNames: {} as Record<string, string>,
@@ -250,6 +232,24 @@ export default function TemplateSettings() {
     queryKey: [`/api/projects/${projectId}/global-template-settings`],
     enabled: !!projectId,
   });
+
+  // Memoized template prop for FlexibleLayoutEditor to prevent unnecessary re-renders
+  const memoizedTemplate = useMemo(() => {
+    const effectiveLayoutConfig = showSettings?.layoutConfiguration || template.layoutConfiguration;
+    console.log('🎯 TEMPLATE PROP: Creating template for FlexibleLayoutEditor');
+    console.log('🔍 showSettings?.layoutConfiguration exists:', !!showSettings?.layoutConfiguration);
+    console.log('🔍 template.layoutConfiguration exists:', !!template.layoutConfiguration);
+    console.log('🔍 Effective layout config (what FlexibleLayoutEditor will receive):', {
+      hasConfig: !!effectiveLayoutConfig,
+      itemsCount: effectiveLayoutConfig?.items?.length || 0,
+      lateField: effectiveLayoutConfig?.items?.find(item => item.id?.includes('late'))
+    });
+    
+    return {
+      ...template,
+      layoutConfiguration: effectiveLayoutConfig
+    };
+  }, [showSettings?.layoutConfiguration, template.layoutConfiguration, template]);
 
   // Initialize templates with defaults and merge with user templates
   useEffect(() => {
