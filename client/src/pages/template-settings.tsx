@@ -274,6 +274,13 @@ export default function TemplateSettings() {
         w: item.w,
         h: item.h
       })));
+      console.log('🔍 DETAILED: Props position from DB:', showSettings.layoutConfiguration.items?.find((item: any) => item.id?.includes('props') || item.content?.department === 'props'));
+      console.log('🔍 DETAILED: All department positions from DB:', showSettings.layoutConfiguration.items?.filter((item: any) => item.type === 'grouped-section').map((item: any) => ({
+        id: item.id,
+        department: item.content?.department,
+        position: { x: item.x, y: item.y, w: item.w, h: item.h }
+      })));
+      
       // Apply the saved layoutConfiguration to the tech template
       if (initialTemplates.tech) {
         initialTemplates.tech = {
@@ -283,6 +290,7 @@ export default function TemplateSettings() {
         console.log('✅ TEMPLATE INIT: Applied database layout to tech template');
         console.log('📊 Tech template now has layoutConfiguration:', !!initialTemplates.tech.layoutConfiguration);
         console.log('📊 Tech template layoutConfiguration items:', initialTemplates.tech.layoutConfiguration?.items?.length);
+        console.log('🔍 VERIFY: Props position in tech template:', initialTemplates.tech.layoutConfiguration?.items?.find((item: any) => item.id?.includes('props') || item.content?.department === 'props'));
       }
     } else {
       console.log('❌ TEMPLATE INIT: No layoutConfiguration found in database');
