@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
@@ -1134,7 +1134,7 @@ export default function TemplateSettings() {
                         projectId={parseInt(params.id)}
                         reportType="tech"
                         isEditing={isEditMode}
-                        template={(() => {
+                        template={useMemo(() => {
                           const effectiveLayoutConfig = showSettings?.layoutConfiguration || template.layoutConfiguration;
                           console.log('🎯 TEMPLATE PROP: Creating template for FlexibleLayoutEditor');
                           console.log('🔍 showSettings?.layoutConfiguration exists:', !!showSettings?.layoutConfiguration);
@@ -1149,7 +1149,7 @@ export default function TemplateSettings() {
                             ...template,
                             layoutConfiguration: effectiveLayoutConfig
                           };
-                        })()}
+                        }, [showSettings?.layoutConfiguration, template.layoutConfiguration, template])}
                         showSettings={showSettings}
                         onTemplateUpdate={(updatedTemplate) => {
                           // Local state update only - no database save until global save
