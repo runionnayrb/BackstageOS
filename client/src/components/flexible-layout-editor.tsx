@@ -617,6 +617,15 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       return;
     }
     
+    // CRITICAL DEBUG: Check what we actually received
+    console.log('🔍 TEMPLATE DEBUG: Received template:', {
+      hasTemplate: !!template,
+      hasLayoutConfiguration: !!template.layoutConfiguration,
+      itemsCount: template.layoutConfiguration?.items?.length || 0,
+      templateKeys: Object.keys(template || {}),
+      layoutConfigKeys: template.layoutConfiguration ? Object.keys(template.layoutConfiguration) : 'none'
+    });
+    
     // If template has saved layout, use it
     if (template.layoutConfiguration?.items?.length > 0) {
       console.log('🎯 APPLYING SAVED LAYOUT from template prop');
