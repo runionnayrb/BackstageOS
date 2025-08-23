@@ -564,7 +564,6 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     gridRows: 20,
     gridGap: 8
   }));
-  const [hasInitialized, setHasInitialized] = useState(false);
   const [isLayoutMounted, setIsLayoutMounted] = useState(false);
   
   const { toast } = useToast();
@@ -572,11 +571,17 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
 
   // Simple initialization from template
   useEffect(() => {
-    if (!template || hasInitialized) return;
+    if (!template) return;
+    
+    console.log('🔄 LAYOUT INIT: Template changed, checking for saved layout data');
+    console.log('🔍 Template has layoutConfiguration:', !!template.layoutConfiguration);
+    console.log('🔍 Layout items count:', template.layoutConfiguration?.items?.length || 0);
     
     if (template.layoutConfiguration?.items?.length > 0) {
+      console.log('✅ LAYOUT INIT: Applying saved layout from database');
       setConfiguration(template.layoutConfiguration);
     } else {
+      console.log('🔄 LAYOUT INIT: Generating new layout from template defaults');
       setConfiguration({
         items: generateLayoutFromTemplate(),
         gridCols: 12,
@@ -585,9 +590,8 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       });
     }
     
-    setHasInitialized(true);
     setIsLayoutMounted(true);
-  }, [template, hasInitialized, generateLayoutFromTemplate]);
+  }, [template, generateLayoutFromTemplate]);
 
   // NO MORE COMPLEX TRACKING - Keep it simple
 
