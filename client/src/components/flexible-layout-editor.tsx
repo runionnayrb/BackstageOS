@@ -651,8 +651,16 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
   // Update layouts when configuration changes
   useEffect(() => {
     console.log('✅ Updating layouts from configuration');
-    const newLayouts = convertToGridLayouts(configuration.items);
-    setLayouts(newLayouts);
+    console.log('🔍 TIMING CHECK: configuration.items.length:', configuration.items?.length || 0);
+    console.log('🔍 TIMING CHECK: configuration.items preview:', configuration.items?.slice(0, 3).map(item => ({ id: item.id, x: item.x, y: item.y })));
+    
+    if (configuration.items && configuration.items.length > 0) {
+      const newLayouts = convertToGridLayouts(configuration.items);
+      setLayouts(newLayouts);
+      console.log('🎯 LAYOUTS UPDATED: Successfully converted', configuration.items.length, 'items to grid layouts');
+    } else {
+      console.log('⚠️ LAYOUTS SKIPPED: No items in configuration yet');
+    }
   }, [configuration, convertToGridLayouts]);
 
   // Handle layout changes from react-grid-layout
