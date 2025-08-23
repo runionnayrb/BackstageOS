@@ -87,6 +87,7 @@ interface ProductionTemplate {
   header: string;
   footer: string;
   fields: TemplateField[];
+  layoutConfiguration?: any; // Add layout support to all templates
 }
 
 const defaultTemplates: Record<string, Omit<ProductionTemplate, "id">> = {
@@ -216,10 +217,10 @@ export default function TemplateSettings() {
     queryKey: [`/api/projects/${projectId}`],
   });
 
-  const { data: showSettings } = useQuery<ShowSettings>({
+  const { data: showSettings } = useQuery({
     queryKey: ['/api/projects', projectId, 'settings'],
     staleTime: 0, // Always fetch fresh data
-    cacheTime: 0, // Don't cache the result
+    gcTime: 0, // Don't cache the result (gcTime is the new name for cacheTime in v5)
   });
 
   // Load user-created templates
@@ -271,11 +272,12 @@ export default function TemplateSettings() {
       });
     }
 
-    // UNIFIED APPROACH: Load layoutConfiguration from showSettings for ALL templates
-    if (showSettings?.layoutConfiguration) {
+    // CRITICAL FIX: Apply layoutConfiguration to ALL templates, not just tech
+    if ((showSettings as any)?.layoutConfiguration) {
+      const layoutConfig = (showSettings as any).layoutConfiguration;
       console.log('🔄 TEMPLATE INIT: Loading layoutConfiguration from database');
-      console.log('🔍 FULL DB Layout config:', JSON.stringify(showSettings.layoutConfiguration, null, 2));
-      console.log('🔍 DB Layout items summary:', showSettings.layoutConfiguration.items?.map((item: any) => ({ 
+      console.log('🔍 FULL DB Layout config:', JSON.stringify(layoutConfig, null, 2));
+      console.log('🔍 DB Layout items summary:', layoutConfig.items?.map((item: any) => ({ 
         id: item.id, 
         type: item.type, 
         x: item.x, 
@@ -283,24 +285,17 @@ export default function TemplateSettings() {
         w: item.w,
         h: item.h
       })));
-      console.log('🔍 DETAILED: Props position from DB:', showSettings.layoutConfiguration.items?.find((item: any) => item.id?.includes('props') || item.content?.department === 'props'));
-      console.log('🔍 DETAILED: All department positions from DB:', showSettings.layoutConfiguration.items?.filter((item: any) => item.type === 'grouped-section').map((item: any) => ({
-        id: item.id,
-        department: item.content?.department,
-        position: { x: item.x, y: item.y, w: item.w, h: item.h }
-      })));
       
-      // Apply the saved layoutConfiguration to the tech template
-      if (initialTemplates.tech) {
-        initialTemplates.tech = {
-          ...initialTemplates.tech,
-          layoutConfiguration: showSettings.layoutConfiguration
+      // Apply the saved layoutConfiguration to ALL templates
+      Object.keys(initialTemplates).forEach(templateKey => {
+        initialTemplates[templateKey] = {
+          ...initialTemplates[templateKey],
+          layoutConfiguration: layoutConfig
         };
-        console.log('✅ TEMPLATE INIT: Applied database layout to tech template');
-        console.log('📊 Tech template now has layoutConfiguration:', !!initialTemplates.tech.layoutConfiguration);
-        console.log('📊 Tech template layoutConfiguration items:', initialTemplates.tech.layoutConfiguration?.items?.length);
-        console.log('🔍 VERIFY: Props position in tech template:', initialTemplates.tech.layoutConfiguration?.items?.find((item: any) => item.id?.includes('props') || item.content?.department === 'props'));
-      }
+        console.log(`✅ TEMPLATE INIT: Applied database layout to ${templateKey} template`);
+      });
+      
+      console.log('📊 All templates now have layoutConfiguration with', layoutConfig.items?.length, 'items');
     } else {
       console.log('❌ TEMPLATE INIT: No layoutConfiguration found in database');
     }
