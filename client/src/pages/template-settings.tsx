@@ -828,12 +828,29 @@ export default function TemplateSettings() {
 
   const currentTemplate = templates[selectedPhase];
   
-  // Memoized template prop for FlexibleLayoutEditor to prevent unnecessary re-renders
-  // Simple template prop - always use showSettings layout for tech reports
+  // CRITICAL FIX: Always prioritize database layout data over template defaults
   const activeTemplate = currentTemplate ? {
     ...currentTemplate,
-    layoutConfiguration: showSettings?.layoutConfiguration || currentTemplate.layoutConfiguration
+    layoutConfiguration: (showSettings as any)?.layoutConfiguration || currentTemplate.layoutConfiguration
   } : null;
+  
+  // Debug the active template being passed to FlexibleLayoutEditor
+  useEffect(() => {
+    if (activeTemplate) {
+      console.log('🎯 ACTIVE TEMPLATE: Passing to FlexibleLayoutEditor');
+      console.log('🎯 Has layoutConfiguration:', !!activeTemplate.layoutConfiguration);
+      console.log('🎯 Layout items count:', activeTemplate.layoutConfiguration?.items?.length || 0);
+      if (activeTemplate.layoutConfiguration?.items?.length > 0) {
+        console.log('🎯 ACTIVE TEMPLATE: Layout positions:', activeTemplate.layoutConfiguration.items.map((item: any) => ({
+          id: item.id,
+          x: item.x,
+          y: item.y,
+          w: item.w,
+          h: item.h
+        })));
+      }
+    }
+  }, [activeTemplate]);
 
   if (!project || !currentTemplate) {
     return (
