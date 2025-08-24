@@ -678,8 +678,10 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       firstFewItems: layout.slice(0, 3).map(l => ({ id: l.i, x: l.x, y: l.y, w: l.w, h: l.h }))
     });
     
-    if (!effectiveEditMode) {
-      console.log('🚨 BLOCKING layout change - NOT in edit mode');
+    // Only process layout changes when in edit mode OR if dragging is enabled
+    const isDragEnabled = externalEditMode || effectiveEditMode;
+    if (!isDragEnabled) {
+      console.log('🚨 BLOCKING layout change - NOT in edit mode (effectiveEditMode:', effectiveEditMode, 'externalEditMode:', externalEditMode, ')');
       return;
     }
     
