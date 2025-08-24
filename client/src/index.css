@@ -869,12 +869,16 @@ textarea:active {
 }
 
 .layout-editor .drag-handle {
-  opacity: 0;
+  opacity: 0.7 !important;
+  cursor: grab !important;
   transition: opacity 0.2s ease;
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 10;
 }
 
 .layout-editor .react-grid-item:hover .drag-handle {
-  opacity: 1;
+  opacity: 1 !important;
 }
 
 .layout-editor .react-grid-item.react-draggable-dragging {
