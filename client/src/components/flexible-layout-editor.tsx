@@ -1076,8 +1076,14 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
                 isResizable={effectiveEditMode}
                 onLayoutChange={handleLayoutChange}
                 onResizeStop={handleLayoutChange}
-                onDragStart={effectiveEditMode ? handleDragStart : undefined}
-                onDragStop={effectiveEditMode ? handleDragStop : undefined}
+                onDragStart={(layout, oldItem, newItem, placeholder, e, element) => {
+                  console.log('🔥 ResponsiveGridLayout onDragStart fired!', { oldItem, effectiveEditMode });
+                  if (effectiveEditMode) handleDragStart(layout, oldItem, newItem, placeholder, e, element);
+                }}
+                onDragStop={(layout, oldItem, newItem, placeholder, e, element) => {
+                  console.log('🔥 ResponsiveGridLayout onDragStop fired!', { newItem, effectiveEditMode });
+                  if (effectiveEditMode) handleDragStop(layout, oldItem, newItem, placeholder, e, element);
+                }}
                 draggableHandle={effectiveEditMode ? undefined : ".drag-handle"}
                 useCSSTransforms={false}
                 compactType={null}
