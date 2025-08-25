@@ -731,11 +731,13 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     console.log('✅ CONFIGURATION UPDATED AND SAVED');
   };
 
-  const handleDragStart = () => {
+  const handleDragStart = (layout: any, oldItem: any, newItem: any, placeholder: any, e: any, element: any) => {
+    console.log('🎯 DRAG START HANDLER: Drag operation started', { oldItem, newItem });
     setIsDragging(true);
   };
 
-  const handleDragStop = () => {
+  const handleDragStop = (layout: any, oldItem: any, newItem: any, placeholder: any, e: any, element: any) => {
+    console.log('🎯 DRAG STOP HANDLER: Drag operation completed', { oldItem, newItem });
     setIsDragging(false);
     // Apply intelligent width calculation after drag completes, but not after resize
     // The handleLayoutChange will have already handled this appropriately
