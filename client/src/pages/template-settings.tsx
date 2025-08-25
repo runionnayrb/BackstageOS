@@ -1159,7 +1159,7 @@ export default function TemplateSettings() {
                         ref={flexibleLayoutRef}
                         projectId={parseInt(params.id)}
                         reportType="tech"
-                        isEditing={isEditMode}
+                        externalEditMode={isEditMode}
                         template={activeTemplate}
                         showSettings={showSettings}
                         onTemplateUpdate={(updatedTemplate) => {
@@ -1200,7 +1200,6 @@ export default function TemplateSettings() {
                         onDepartmentNameChange={updateDepartmentName}
                         onDepartmentFormattingChange={updateDepartmentFormatting}
                         onFieldHeaderFormattingChange={updateFieldHeaderFormatting}
-                        externalEditMode={isEditMode}
                       />
                     ) : (
                       /* Standard layout for other templates */
