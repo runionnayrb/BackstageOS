@@ -959,7 +959,8 @@ export default function TemplateSettings() {
                               
                               // If locking (saving), get the latest configuration and trigger global save
                               if (!newEditMode) {
-                                console.log('🔒 LOCKING: Getting latest configuration before save...');
+                                console.log('🔒 LOCK BUTTON CLICKED! Getting latest configuration before save...');
+                                console.log('🔒 Current pendingChanges state:', pendingChanges);
                                 
                                 // Get the latest configuration from the FlexibleLayoutEditor
                                 let currentConfig = null;
@@ -1004,9 +1005,11 @@ export default function TemplateSettings() {
                                   hasChanges: saveData.hasChanges
                                 });
                                 
-                                // Call the save function with the prepared data
+                                // CRITICAL FIX: Always save when Lock is clicked, regardless of pendingChanges state
                                 console.log('🔒 EXECUTING MUTATION: About to call globalSaveMutation.mutate...');
                                 globalSaveMutation.mutate(saveData);
+                              } else {
+                                console.log('⚠️ UNLOCK CLICKED - entering edit mode');
                               }
                               
                               // Update edit mode immediately for responsive UI
