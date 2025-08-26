@@ -1076,8 +1076,27 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
                 containerPadding={[0, 0]}
                 isDraggable={effectiveEditMode}
                 isResizable={effectiveEditMode}
-                onLayoutChange={handleLayoutChange}
-                onResizeStop={handleLayoutChange}
+                onLayoutChange={(layout, allLayouts) => {
+                  console.log('🔄 LAYOUT CHANGE: ResponsiveGridLayout detected layout change', { 
+                    layoutItemCount: layout.length, 
+                    effectiveEditMode,
+                    firstItem: layout[0] 
+                  });
+                  if (effectiveEditMode) {
+                    handleLayoutChange(layout, allLayouts);
+                  } else {
+                    console.log('⚠️ Layout change ignored - not in edit mode');
+                  }
+                }}
+                onResizeStop={(layout, allLayouts) => {
+                  console.log('🔄 RESIZE STOP: ResponsiveGridLayout detected resize', { 
+                    layoutItemCount: layout.length, 
+                    effectiveEditMode 
+                  });
+                  if (effectiveEditMode) {
+                    handleLayoutChange(layout, allLayouts);
+                  }
+                }}
                 onDragStart={(layout, oldItem, newItem, placeholder, e, element) => {
                   console.log('🔥 ResponsiveGridLayout onDragStart fired!', { oldItem, effectiveEditMode });
                   if (effectiveEditMode) handleDragStart(layout, oldItem, newItem, placeholder, e, element);
