@@ -958,7 +958,8 @@ export default function TemplateSettings() {
                               console.log('🔄 STATE DEBUG:', { currentEditMode: isEditMode, newEditMode, willSave: !newEditMode });
                               
                               // If locking (saving), get the latest configuration and trigger global save
-                              if (!newEditMode) {
+                              // When isEditMode is true and newEditMode becomes false, we're LOCKING (saving)
+                              if (isEditMode && !newEditMode) {
                                 console.log('🔒 LOCK BUTTON CLICKED! Getting latest configuration before save...');
                                 console.log('🔒 Current pendingChanges state:', pendingChanges);
                                 
@@ -1008,7 +1009,7 @@ export default function TemplateSettings() {
                                 // CRITICAL FIX: Always save when Lock is clicked, regardless of pendingChanges state
                                 console.log('🔒 EXECUTING MUTATION: About to call globalSaveMutation.mutate...');
                                 globalSaveMutation.mutate(saveData);
-                              } else {
+                              } else if (!isEditMode && newEditMode) {
                                 console.log('⚠️ UNLOCK CLICKED - entering edit mode');
                               }
                               
