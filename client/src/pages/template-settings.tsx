@@ -664,9 +664,16 @@ export default function TemplateSettings() {
       
       touchSettings();
       
-      // Refetch templates to get updated data and update show settings timestamp
+      // CRITICAL FIX: Force refresh of ALL related queries to ensure layout changes are loaded
+      console.log('🔄 GLOBAL SAVE: Invalidating queries to refresh data...');
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/templates`] });
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
+      
+      // Force immediate refetch to ensure data consistency
+      setTimeout(() => {
+        console.log('🔄 FORCED REFETCH: Re-fetching settings to ensure latest data loaded');
+        queryClient.refetchQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
+      }, 100);
     },
     onError: (error) => {
       setIsSaving(false);
