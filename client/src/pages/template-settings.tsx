@@ -954,8 +954,14 @@ export default function TemplateSettings() {
                             size="sm"
                             onClick={() => {
                               const newEditMode = !isEditMode;
-                              console.log(`🔄 GLOBAL SAVE TOGGLE: ${isEditMode ? 'LOCKING (SAVE ALL)' : 'UNLOCKING'} - UI updates immediately`);
-                              console.log('🔄 STATE DEBUG:', { currentEditMode: isEditMode, newEditMode, willSave: !newEditMode });
+                              console.log(`🔄 BUTTON CLICKED: ${isEditMode ? 'LOCKING (SAVE ALL)' : 'UNLOCKING'} - UI updates immediately`);
+                              console.log('🔄 STATE DEBUG:', { 
+                                currentEditMode: isEditMode, 
+                                newEditMode, 
+                                willSave: isEditMode && !newEditMode,
+                                shouldLock: isEditMode && !newEditMode,
+                                shouldUnlock: !isEditMode && newEditMode
+                              });
                               
                               // If locking (saving), get the latest configuration and trigger global save
                               // When isEditMode is true and newEditMode becomes false, we're LOCKING (saving)
