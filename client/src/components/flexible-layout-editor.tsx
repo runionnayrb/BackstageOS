@@ -739,8 +739,17 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
   const handleDragStop = (layout: any, oldItem: any, newItem: any, placeholder: any, e: any, element: any) => {
     console.log('🎯 DRAG STOP HANDLER: Drag operation completed', { oldItem, newItem });
     setIsDragging(false);
-    // Apply intelligent width calculation after drag completes, but not after resize
-    // The handleLayoutChange will have already handled this appropriately
+    
+    // CRITICAL: Manually trigger layout change after drag completes
+    console.log('🔄 FORCING layout change after drag stop');
+    // Get current layout from ResponsiveGridLayout
+    const currentLayout = layouts.lg || [];
+    if (currentLayout.length > 0) {
+      console.log('📋 Current layout has', currentLayout.length, 'items - processing layout change');
+      handleLayoutChange(currentLayout, layouts);
+    } else {
+      console.log('⚠️ No current layout available to process');
+    }
   };
 
   // Add new item to layout (creates grouped sections)
