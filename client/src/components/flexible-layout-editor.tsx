@@ -583,9 +583,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       console.log('✅ LAYOUT INIT: Applying saved layout from database');
       console.log('🎯 SAVED POSITIONS BEING APPLIED:', template.layoutConfiguration.items.slice(0, 3).map((item: any) => ({ id: item.id, x: item.x, y: item.y })));
       setConfiguration(template.layoutConfiguration);
-      setLayoutKey(prev => prev + 1); // Force React Grid Layout remount with saved data
       setIsLayoutMounted(true);
-      console.log('🔄 FORCING GRID REMOUNT - layoutKey incremented to force fresh render');
     } else {
       // CRITICAL: Only generate defaults if we're certain there's no saved data
       // This prevents overriding saved layouts during loading states
@@ -597,7 +595,6 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         gridRows: 20,
         gridGap: 8
       });
-      setLayoutKey(prev => prev + 1); // Force React Grid Layout remount with default data
       setIsLayoutMounted(true);
     }
   }, [template, generateLayoutFromTemplate]);
@@ -667,6 +664,12 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       const newLayouts = convertToGridLayouts(configuration.items);
       setLayouts(newLayouts);
       console.log('🎯 LAYOUTS UPDATED: Successfully converted', configuration.items.length, 'items to grid layouts');
+      
+      // Force React Grid Layout to acknowledge the new layouts after a tiny delay
+      setTimeout(() => {
+        console.log('🔄 FORCING LAYOUT REFRESH - calling setLayouts again to ensure React Grid Layout updates');
+        setLayouts(prev => ({ ...prev })); // Force a state update to trigger re-render
+      }, 50);
     } else {
       console.log('⚠️ LAYOUTS SKIPPED: No items in configuration yet');
     }
