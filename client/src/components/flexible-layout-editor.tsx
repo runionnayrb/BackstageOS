@@ -1098,6 +1098,11 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
                 containerPadding={[0, 0]}
                 isDraggable={effectiveEditMode}
                 isResizable={effectiveEditMode}
+                autoSize={true}
+                verticalCompact={false}
+                compactType={null}
+                preventCollision={false}
+                allowOverlap={true}
                 onLayoutChange={(layout, allLayouts) => {
                   console.log('🔄 LAYOUT CHANGE: ResponsiveGridLayout detected layout change', { 
                     layoutItemCount: layout.length, 
@@ -1129,9 +1134,6 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
                 }}
                 draggableHandle={effectiveEditMode ? undefined : ".drag-handle"}
                 useCSSTransforms={false}
-                compactType={null}
-                preventCollision={false}
-                allowOverlap={true}
                 resizeHandles={effectiveEditMode ? ['se'] : []}
                 style={{ minHeight: '800px', width: '100%' }}
               >
