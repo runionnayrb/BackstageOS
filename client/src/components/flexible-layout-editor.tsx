@@ -565,6 +565,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     gridGap: 8
   }));
   const [isLayoutMounted, setIsLayoutMounted] = useState(false);
+  const [layoutKey, setLayoutKey] = useState(0);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -574,7 +575,8 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     if (!template) return;
     
     // If we have saved layout data, use it. Otherwise generate from template defaults.
-    const layoutData = template.layoutConfiguration?.items?.length > 0 
+    const hasSavedLayout = template.layoutConfiguration?.items?.length > 0;
+    const layoutData = hasSavedLayout
       ? template.layoutConfiguration
       : {
           items: generateLayoutFromTemplate(),
@@ -585,6 +587,11 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     
     setConfiguration(layoutData);
     setIsLayoutMounted(true);
+    
+    // Force React Grid Layout to remount with saved positions
+    if (hasSavedLayout) {
+      setLayoutKey(prev => prev + 1);
+    }
   }, [template, generateLayoutFromTemplate]);
 
   // NO MORE COMPLEX TRACKING - Keep it simple
@@ -1062,6 +1069,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
           {isLayoutMounted && (
             <div className="w-full" style={{ width: '1200px', maxWidth: '100%' }}>
               <ResponsiveGridLayout
+                key={`grid-${layoutKey}`}
                 className="layout react-grid-layout-container layout-editor"
                 layouts={layouts}
                 breakpoints={{ lg: 1200, md: 1200, sm: 1200, xs: 1200, xxs: 1200 }}
