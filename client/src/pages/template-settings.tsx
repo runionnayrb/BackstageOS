@@ -835,22 +835,12 @@ export default function TemplateSettings() {
 
   const currentTemplate = templates[selectedPhase];
   
-  // CRITICAL FIX: showSettings.layoutConfiguration IS the template - don't merge with defaults
-  // Only use currentTemplate if showSettings has no saved layout (first time initialization)
-  const activeTemplate = showSettings && currentTemplate ? (
-    (showSettings as any)?.layoutConfiguration 
-      ? {
-          // showSettings has saved layout - use it as the complete template
-          ...(showSettings as any).layoutConfiguration,
-          // Add any template properties that aren't layout-specific
-          name: currentTemplate.name,
-          phase: currentTemplate.phase,
-        }
-      : {
-          // No saved layout yet - use currentTemplate to initialize
-          ...currentTemplate
-        }
-  ) : null;
+  // CRITICAL FIX: Use saved layout but keep template structure intact
+  const activeTemplate = showSettings && currentTemplate ? {
+    ...currentTemplate,
+    // Override ONLY the layoutConfiguration with saved data
+    layoutConfiguration: (showSettings as any)?.layoutConfiguration || currentTemplate.layoutConfiguration
+  } : null;
   
   // Debug the active template being passed to FlexibleLayoutEditor
   useEffect(() => {
