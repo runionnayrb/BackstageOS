@@ -1,0 +1,159 @@
+🚨 BUTTON CLICK DETECTED! Handler is running!
+template-settings.tsx:958 🔄 BUTTON CLICKED: UNLOCKING - UI updates immediately
+template-settings.tsx:959 🔄 STATE DEBUG: {currentEditMode: false, newEditMode: true, willSave: false, shouldLock: false, shouldUnlock: true}
+template-settings.tsx:1020 ⚠️ UNLOCK CLICKED - entering edit mode
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic {isEditing: true, displayName: 'Scenic', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for scenic: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting {isEditing: true, displayName: 'Lighting', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for lighting: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio {isEditing: true, displayName: 'Audio', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for audio: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video {isEditing: true, displayName: 'Video', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for video: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props {isEditing: true, displayName: 'Props', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for props: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 {isEditing: true, displayName: 'Wardrobe', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755616761045: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 {isEditing: true, displayName: 'Facilities', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617111927: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 {isEditing: true, displayName: 'Automation', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617156617: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 {isEditing: true, displayName: 'Rigging', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617175984: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 {isEditing: true, displayName: 'Special Effects', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617255812: editingElement=false, showToolbar=false, isEditing=true
+inline-formatting-toolbar.tsx:64 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+inline-formatting-toolbar.tsx:64 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+inline-formatting-toolbar.tsx:64 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+inline-formatting-toolbar.tsx:64 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+inline-formatting-toolbar.tsx:64 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+inline-formatting-toolbar.tsx:64 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+inline-formatting-toolbar.tsx:64 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+inline-formatting-toolbar.tsx:64 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+inline-formatting-toolbar.tsx:64 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+inline-formatting-toolbar.tsx:64 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+inline-formatting-toolbar.tsx:64 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+inline-formatting-toolbar.tsx:64 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+inline-formatting-toolbar.tsx:64 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+flexible-layout-editor.tsx:576 🔄 LAYOUT INIT: Template changed, checking for saved layout data
+flexible-layout-editor.tsx:577 🔍 Template has layoutConfiguration: true
+flexible-layout-editor.tsx:578 🔍 Layout items count: 13
+flexible-layout-editor.tsx:581 ✅ LAYOUT INIT: Applying saved layout from database
+flexible-layout-editor.tsx:653 ✅ Updating layouts from configuration
+flexible-layout-editor.tsx:654 🔍 TIMING CHECK: configuration.items.length: 13
+flexible-layout-editor.tsx:655 🔍 TIMING CHECK: configuration.items preview: (3) [{…}, {…}, {…}]
+flexible-layout-editor.tsx:613 🔍 Converting to grid layouts: {effectiveEditMode: true, itemCount: 13, gridCols: 12, items: Array(13)}
+flexible-layout-editor.tsx:640 🔍 Layout items created: (13) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+flexible-layout-editor.tsx:660 🎯 LAYOUTS UPDATED: Successfully converted 13 items to grid layouts
+template-settings.tsx:847 🎯 ACTIVE TEMPLATE: Passing to FlexibleLayoutEditor
+template-settings.tsx:848 🎯 Has layoutConfiguration: true
+template-settings.tsx:849 🎯 Layout items count: 13
+template-settings.tsx:851 🎯 ACTIVE TEMPLATE: Layout positions: (13) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic {isEditing: true, displayName: 'Scenic', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for scenic: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting {isEditing: true, displayName: 'Lighting', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for lighting: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio {isEditing: true, displayName: 'Audio', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for audio: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video {isEditing: true, displayName: 'Video', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for video: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props {isEditing: true, displayName: 'Props', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for props: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 {isEditing: true, displayName: 'Wardrobe', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755616761045: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 {isEditing: true, displayName: 'Facilities', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617111927: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 {isEditing: true, displayName: 'Automation', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617156617: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 {isEditing: true, displayName: 'Rigging', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617175984: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 {isEditing: true, displayName: 'Special Effects', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617255812: editingElement=false, showToolbar=false, isEditing=true
+App.tsx:127 Domain routing check: {hostname: '54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev', isJoinDomain: false, isMainDomain: false, isBetaDomain: false, isDevEnvironment: true}
+useBetaFeatures.ts:59 Error parsing betaFeatures JSON: SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:56:62)
+    at canAccessFeature (useBetaFeatures.ts:82:19)
+    at EnhancedHeader (enhanced-header.tsx:323:24)
+    at renderWithHooks (chunk-276SZO74.js?v=d8c7dc2a:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d8c7dc2a:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d8c7dc2a:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d8c7dc2a:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d8c7dc2a:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d8c7dc2a:19137:13) Raw value: []
+hasUserAccess @ useBetaFeatures.ts:59
+canAccessFeature @ useBetaFeatures.ts:82
+EnhancedHeader @ enhanced-header.tsx:323
+renderWithHooks @ chunk-276SZO74.js?v=d8c7dc2a:11548
+updateFunctionComponent @ chunk-276SZO74.js?v=d8c7dc2a:14582
+beginWork @ chunk-276SZO74.js?v=d8c7dc2a:15924
+beginWork$1 @ chunk-276SZO74.js?v=d8c7dc2a:19753
+performUnitOfWork @ chunk-276SZO74.js?v=d8c7dc2a:19198
+workLoopSync @ chunk-276SZO74.js?v=d8c7dc2a:19137
+renderRootSync @ chunk-276SZO74.js?v=d8c7dc2a:19116
+performConcurrentWorkOnRoot @ chunk-276SZO74.js?v=d8c7dc2a:18678
+workLoop @ chunk-276SZO74.js?v=d8c7dc2a:197
+flushWork @ chunk-276SZO74.js?v=d8c7dc2a:176
+performWorkUntilDeadline @ chunk-276SZO74.js?v=d8c7dc2a:384Understand this warning
+useBetaFeatures.ts:74 🔍 Beta Access Check for performance-tracker: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: false, …}
+useBetaFeatures.ts:92 🔍 Admin bypass check: {userIsAdmin: true, isOriginalAdmin: true, isViewingAsAdmin: false, canBypass: true}
+useBetaFeatures.ts:100 ✅ Admin bypass - full access granted for performance-tracker
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic {isEditing: true, displayName: 'Scenic', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for scenic: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting {isEditing: true, displayName: 'Lighting', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for lighting: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio {isEditing: true, displayName: 'Audio', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for audio: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video {isEditing: true, displayName: 'Video', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for video: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props {isEditing: true, displayName: 'Props', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for props: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 {isEditing: true, displayName: 'Wardrobe', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755616761045: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 {isEditing: true, displayName: 'Facilities', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617111927: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 {isEditing: true, displayName: 'Automation', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617156617: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 {isEditing: true, displayName: 'Rigging', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617175984: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 {isEditing: true, displayName: 'Special Effects', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617255812: editingElement=false, showToolbar=false, isEditing=true
+useBetaFeatures.ts:59 Error parsing betaFeatures JSON: SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:56:62)
+    at canAccessFeature (useBetaFeatures.ts:82:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:241:18)
+    at renderWithHooks (chunk-276SZO74.js?v=d8c7dc2a:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d8c7dc2a:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d8c7dc2a:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d8c7dc2a:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d8c7dc2a:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d8c7dc2a:19137:13) Raw value: []
+hasUserAccess @ useBetaFeatures.ts:59
+canAccessFeature @ useBetaFeatures.ts:82
+MobileFooterNav @ mobile-footer-nav.tsx:241
+renderWithHooks @ chunk-276SZO74.js?v=d8c7dc2a:11548
+updateFunctionComponent @ chunk-276SZO74.js?v=d8c7dc2a:14582
+beginWork @ chunk-276SZO74.js?v=d8c7dc2a:15924
+beginWork$1 @ chunk-276SZO74.js?v=d8c7dc2a:19753
+performUnitOfWork @ chunk-276SZO74.js?v=d8c7dc2a:19198
+workLoopSync @ chunk-276SZO74.js?v=d8c7dc2a:19137
+renderRootSync @ chunk-276SZO74.js?v=d8c7dc2a:19116
+performConcurrentWorkOnRoot @ chunk-276SZO74.js?v=d8c7dc2a:18678
+workLoop @ chunk-276SZO74.js?v=d8c7dc2a:197
+flushWork @ chunk-276SZO74.js?v=d8c7dc2a:176
+performWorkUntilDeadline @ chunk-276SZO74.js?v=d8c7dc2a:384Understand this warning
+useBetaFeatures.ts:74 🔍 Beta Access Check for performance-tracker: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: false, …}
+useBetaFeatures.ts:92 🔍 Admin bypass check: {userIsAdmin: true, isOriginalAdmin: true, isViewingAsAdmin: false, canBypass: true}
+useBetaFeatures.ts:100 ✅ Admin bypass - full access granted for performance-tracker
+flexible-layout-editor.tsx:576 🔄 LAYOUT INIT: Template changed, checking for saved layout data
+flexible-layout-editor.tsx:577 🔍 Template has layoutConfiguration: true
+flexible-layout-editor.tsx:578 🔍 Layout items count: 13
+flexible-layout-editor.tsx:581 ✅ LAYOUT INIT: Applying saved layout from database
+template-settings.tsx:847 🎯 ACTIVE TEMPLATE: Passing to FlexibleLayoutEditor
+template-settings.tsx:848 🎯 Has layoutConfiguration: true
+template-settings.tsx:849 🎯 Layout items count: 13
+template-settings.tsx:851 🎯 ACTIVE TEMPLATE: Layout positions: (13) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
