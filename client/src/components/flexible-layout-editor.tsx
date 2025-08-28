@@ -565,6 +565,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     gridGap: 8
   }));
   const [isLayoutMounted, setIsLayoutMounted] = useState(false);
+  const [layoutKey, setLayoutKey] = useState(0); // Force remount when saved data loads
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -582,7 +583,9 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       console.log('✅ LAYOUT INIT: Applying saved layout from database');
       console.log('🎯 SAVED POSITIONS BEING APPLIED:', template.layoutConfiguration.items.slice(0, 3).map((item: any) => ({ id: item.id, x: item.x, y: item.y })));
       setConfiguration(template.layoutConfiguration);
+      setLayoutKey(prev => prev + 1); // Force React Grid Layout remount with saved data
       setIsLayoutMounted(true);
+      console.log('🔄 FORCING GRID REMOUNT - layoutKey incremented to force fresh render');
     } else {
       // CRITICAL: Only generate defaults if we're certain there's no saved data
       // This prevents overriding saved layouts during loading states
@@ -594,6 +597,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         gridRows: 20,
         gridGap: 8
       });
+      setLayoutKey(prev => prev + 1); // Force React Grid Layout remount with default data
       setIsLayoutMounted(true);
     }
   }, [template, generateLayoutFromTemplate]);
@@ -1080,6 +1084,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
           {isLayoutMounted && (
             <div className="w-full" style={{ width: '1200px', maxWidth: '100%' }}>
               <ResponsiveGridLayout
+                key={`grid-layout-${layoutKey}`} // Force remount when saved data loads
                 className="layout react-grid-layout-container layout-editor"
                 layouts={layouts}
                 breakpoints={{ lg: 1200, md: 1200, sm: 1200, xs: 1200, xxs: 1200 }}
