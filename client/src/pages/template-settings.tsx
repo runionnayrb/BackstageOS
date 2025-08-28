@@ -835,12 +835,22 @@ export default function TemplateSettings() {
 
   const currentTemplate = templates[selectedPhase];
   
-  // CRITICAL FIX: Always prioritize database layout data over template defaults
-  // WAIT for showSettings to load before rendering - prevents React Grid Layout initialization with defaults
-  const activeTemplate = currentTemplate && showSettings ? {
-    ...currentTemplate,
-    layoutConfiguration: (showSettings as any)?.layoutConfiguration || currentTemplate.layoutConfiguration
-  } : null;
+  // CRITICAL FIX: showSettings.layoutConfiguration IS the template - don't merge with defaults
+  // Only use currentTemplate if showSettings has no saved layout (first time initialization)
+  const activeTemplate = showSettings && currentTemplate ? (
+    (showSettings as any)?.layoutConfiguration 
+      ? {
+          // showSettings has saved layout - use it as the complete template
+          ...(showSettings as any).layoutConfiguration,
+          // Add any template properties that aren't layout-specific
+          name: currentTemplate.name,
+          phase: currentTemplate.phase,
+        }
+      : {
+          // No saved layout yet - use currentTemplate to initialize
+          ...currentTemplate
+        }
+  ) : null;
   
   // Debug the active template being passed to FlexibleLayoutEditor
   useEffect(() => {
