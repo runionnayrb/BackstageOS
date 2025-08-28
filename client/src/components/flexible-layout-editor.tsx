@@ -620,14 +620,14 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         w: item.w,
         h: item.h,
         // Apply width constraints from item configuration
-        minW: item.minW || (isFullWidth ? configuration.gridCols : 1),
+        minW: item.minW || 1,
         minH: item.minH || 1,
-        maxW: item.maxW || (isFullWidth ? configuration.gridCols : undefined),
+        maxW: item.maxW,
         maxH: item.maxH,
-        // For full-width items, make them static to prevent resizing
-        static: isFullWidth && item.minW === configuration.gridCols,
-        // Disable resizing for full-width items
-        isResizable: isFullWidth ? false : undefined
+        // NEVER make items static - this prevents dragging!
+        static: false,
+        // Always allow resizing in edit mode
+        isResizable: effectiveEditMode
       };
     });
     
@@ -644,22 +644,9 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
 
   // Update layouts when configuration changes
   useEffect(() => {
-    console.log('✅ Updating layouts from configuration');
-    console.log('🔍 TIMING CHECK: configuration.items.length:', configuration.items?.length || 0);
-    console.log('🔍 TIMING CHECK: configuration.items preview:', configuration.items?.slice(0, 3).map(item => ({ id: item.id, x: item.x, y: item.y })));
-    
     if (configuration.items && configuration.items.length > 0) {
       const newLayouts = convertToGridLayouts(configuration.items);
       setLayouts(newLayouts);
-      console.log('🎯 LAYOUTS UPDATED: Successfully converted', configuration.items.length, 'items to grid layouts');
-      
-      // Force React Grid Layout to acknowledge the new layouts after a tiny delay
-      setTimeout(() => {
-        console.log('🔄 FORCING LAYOUT REFRESH - calling setLayouts again to ensure React Grid Layout updates');
-        setLayouts(prev => ({ ...prev })); // Force a state update to trigger re-render
-      }, 50);
-    } else {
-      console.log('⚠️ LAYOUTS SKIPPED: No items in configuration yet');
     }
   }, [configuration, convertToGridLayouts]);
 
