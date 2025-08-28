@@ -1154,6 +1154,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
                     data-width={item.w}
                     data-grid-cols={configuration.gridCols}
                     data-is-full-width={item.w === configuration.gridCols}
+                    data-saved-position={`x:${item.x},y:${item.y}`}
                   >
                     <DraggableGridItem
                       item={item}
