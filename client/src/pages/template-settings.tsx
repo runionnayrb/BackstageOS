@@ -836,7 +836,8 @@ export default function TemplateSettings() {
   const currentTemplate = templates[selectedPhase];
   
   // CRITICAL FIX: Always prioritize database layout data over template defaults
-  const activeTemplate = currentTemplate ? {
+  // WAIT for showSettings to load before rendering - prevents React Grid Layout initialization with defaults
+  const activeTemplate = currentTemplate && showSettings ? {
     ...currentTemplate,
     layoutConfiguration: (showSettings as any)?.layoutConfiguration || currentTemplate.layoutConfiguration
   } : null;
