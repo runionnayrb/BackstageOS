@@ -565,40 +565,26 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     gridGap: 8
   }));
   const [isLayoutMounted, setIsLayoutMounted] = useState(false);
-  const [forceLayoutKey, setForceLayoutKey] = useState(0);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // CRITICAL FIX: Wait for complete template data before initializing
+  // Simple initialization - load template data when it's available
   useEffect(() => {
     if (!template) return;
     
-    console.log('🔄 LAYOUT INIT: Template changed, checking for saved layout data');
-    console.log('🔍 Template has layoutConfiguration:', !!template.layoutConfiguration);
-    console.log('🔍 Layout items count:', template.layoutConfiguration?.items?.length || 0);
+    // If we have saved layout data, use it. Otherwise generate from template defaults.
+    const layoutData = template.layoutConfiguration?.items?.length > 0 
+      ? template.layoutConfiguration
+      : {
+          items: generateLayoutFromTemplate(),
+          gridCols: 12,
+          gridRows: 20,
+          gridGap: 8
+        };
     
-    // CRITICAL: Only initialize when we have definitive data, not during loading states
-    if (template.layoutConfiguration?.items?.length > 0) {
-      console.log('✅ LAYOUT INIT: Applying saved layout from database');
-      console.log('🎯 SAVED POSITIONS BEING APPLIED:', template.layoutConfiguration.items.slice(0, 3).map((item: any) => ({ id: item.id, x: item.x, y: item.y })));
-      setConfiguration(template.layoutConfiguration);
-      setForceLayoutKey(prev => prev + 1); // Force React Grid Layout to completely remount
-      setIsLayoutMounted(true);
-    } else {
-      // CRITICAL: Only generate defaults if we're certain there's no saved data
-      // This prevents overriding saved layouts during loading states
-      console.log('🔄 LAYOUT INIT: Generating new layout from template defaults');
-      console.log('🚨 NO SAVED LAYOUT - generating defaults (this should only happen on first template creation)');
-      setConfiguration({
-        items: generateLayoutFromTemplate(),
-        gridCols: 12,
-        gridRows: 20,
-        gridGap: 8
-      });
-      setForceLayoutKey(prev => prev + 1); // Force remount for defaults too
-      setIsLayoutMounted(true);
-    }
+    setConfiguration(layoutData);
+    setIsLayoutMounted(true);
   }, [template, generateLayoutFromTemplate]);
 
   // NO MORE COMPLEX TRACKING - Keep it simple
@@ -1089,7 +1075,6 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
           {isLayoutMounted && (
             <div className="w-full" style={{ width: '1200px', maxWidth: '100%' }}>
               <ResponsiveGridLayout
-                key={`grid-layout-${forceLayoutKey}`}
                 className="layout react-grid-layout-container layout-editor"
                 layouts={layouts}
                 breakpoints={{ lg: 1200, md: 1200, sm: 1200, xs: 1200, xxs: 1200 }}
@@ -1105,15 +1090,8 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
                 preventCollision={false}
                 allowOverlap={true}
                 onLayoutChange={(layout, allLayouts) => {
-                  console.log('🔄 LAYOUT CHANGE: ResponsiveGridLayout detected layout change', { 
-                    layoutItemCount: layout.length, 
-                    effectiveEditMode,
-                    firstItem: layout[0] 
-                  });
                   if (effectiveEditMode) {
                     handleLayoutChange(layout, allLayouts);
-                  } else {
-                    console.log('⚠️ Layout change ignored - not in edit mode');
                   }
                 }}
                 onResizeStop={(layout, allLayouts) => {
