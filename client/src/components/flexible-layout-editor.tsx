@@ -569,7 +569,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Simple initialization from template
+  // CRITICAL FIX: Wait for complete template data before initializing
   useEffect(() => {
     if (!template) return;
     
@@ -577,20 +577,25 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     console.log('🔍 Template has layoutConfiguration:', !!template.layoutConfiguration);
     console.log('🔍 Layout items count:', template.layoutConfiguration?.items?.length || 0);
     
+    // CRITICAL: Only initialize when we have definitive data, not during loading states
     if (template.layoutConfiguration?.items?.length > 0) {
       console.log('✅ LAYOUT INIT: Applying saved layout from database');
+      console.log('🎯 SAVED POSITIONS BEING APPLIED:', template.layoutConfiguration.items.slice(0, 3).map((item: any) => ({ id: item.id, x: item.x, y: item.y })));
       setConfiguration(template.layoutConfiguration);
+      setIsLayoutMounted(true);
     } else {
+      // CRITICAL: Only generate defaults if we're certain there's no saved data
+      // This prevents overriding saved layouts during loading states
       console.log('🔄 LAYOUT INIT: Generating new layout from template defaults');
+      console.log('🚨 NO SAVED LAYOUT - generating defaults (this should only happen on first template creation)');
       setConfiguration({
         items: generateLayoutFromTemplate(),
         gridCols: 12,
         gridRows: 20,
         gridGap: 8
       });
+      setIsLayoutMounted(true);
     }
-    
-    setIsLayoutMounted(true);
   }, [template, generateLayoutFromTemplate]);
 
   // NO MORE COMPLEX TRACKING - Keep it simple

@@ -847,17 +847,21 @@ export default function TemplateSettings() {
       console.log('🎯 ACTIVE TEMPLATE: Passing to FlexibleLayoutEditor');
       console.log('🎯 Has layoutConfiguration:', !!activeTemplate.layoutConfiguration);
       console.log('🎯 Layout items count:', activeTemplate.layoutConfiguration?.items?.length || 0);
+      console.log('🎯 showSettings type:', typeof (showSettings as any)?.layoutConfiguration);
+      console.log('🎯 showSettings has data:', !!(showSettings as any)?.layoutConfiguration);
       if (activeTemplate.layoutConfiguration?.items?.length > 0) {
-        console.log('🎯 ACTIVE TEMPLATE: Layout positions:', activeTemplate.layoutConfiguration.items.map((item: any) => ({
+        console.log('🎯 ACTIVE TEMPLATE: First 3 saved positions being passed:', activeTemplate.layoutConfiguration.items.slice(0, 3).map((item: any) => ({
           id: item.id,
           x: item.x,
           y: item.y,
           w: item.w,
           h: item.h
         })));
+      } else {
+        console.log('🚨 ACTIVE TEMPLATE: NO LAYOUT DATA - will generate defaults');
       }
     }
-  }, [activeTemplate]);
+  }, [activeTemplate, showSettings]);
 
   if (!project || !currentTemplate) {
     return (
