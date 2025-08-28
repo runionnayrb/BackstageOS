@@ -565,7 +565,6 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     gridGap: 8
   }));
   const [isLayoutMounted, setIsLayoutMounted] = useState(false);
-  const [layoutKey, setLayoutKey] = useState(0); // Force remount when saved data loads
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -1087,7 +1086,6 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
           {isLayoutMounted && (
             <div className="w-full" style={{ width: '1200px', maxWidth: '100%' }}>
               <ResponsiveGridLayout
-                key={`grid-layout-${layoutKey}`} // Force remount when saved data loads
                 className="layout react-grid-layout-container layout-editor"
                 layouts={layouts}
                 breakpoints={{ lg: 1200, md: 1200, sm: 1200, xs: 1200, xxs: 1200 }}
@@ -1099,7 +1097,6 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
                 isDraggable={effectiveEditMode}
                 isResizable={effectiveEditMode}
                 autoSize={true}
-                verticalCompact={false}
                 compactType={null}
                 preventCollision={false}
                 allowOverlap={true}

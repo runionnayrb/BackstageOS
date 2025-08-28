@@ -835,10 +835,9 @@ export default function TemplateSettings() {
 
   const currentTemplate = templates[selectedPhase];
   
-  // CRITICAL FIX: Use saved layout but keep template structure intact
-  const activeTemplate = showSettings && currentTemplate ? {
+  // Use saved layout configuration if available, otherwise fall back to template defaults
+  const activeTemplate = currentTemplate ? {
     ...currentTemplate,
-    // Override ONLY the layoutConfiguration with saved data
     layoutConfiguration: (showSettings as any)?.layoutConfiguration || currentTemplate.layoutConfiguration
   } : null;
   
