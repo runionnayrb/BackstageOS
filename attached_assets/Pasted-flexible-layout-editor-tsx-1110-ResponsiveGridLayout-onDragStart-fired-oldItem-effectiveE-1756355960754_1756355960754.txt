@@ -1,0 +1,132 @@
+flexible-layout-editor.tsx:1110 🔥 ResponsiveGridLayout onDragStart fired! {oldItem: {…}, effectiveEditMode: true}
+flexible-layout-editor.tsx:735 🎯 DRAG START HANDLER: Drag operation started {oldItem: {…}, newItem: {…}}
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic {isEditing: true, displayName: 'Scenic', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for scenic: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting {isEditing: true, displayName: 'Lighting', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for lighting: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio {isEditing: true, displayName: 'Audio', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for audio: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video {isEditing: true, displayName: 'Video', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for video: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props {isEditing: true, displayName: 'Props', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for props: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 {isEditing: true, displayName: 'Wardrobe', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755616761045: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 {isEditing: true, displayName: 'Facilities', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617111927: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 {isEditing: true, displayName: 'Automation', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617156617: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 {isEditing: true, displayName: 'Rigging', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617175984: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 {isEditing: true, displayName: 'Special Effects', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617255812: editingElement=false, showToolbar=false, isEditing=true
+flexible-layout-editor.tsx:1114 🔥 ResponsiveGridLayout onDragStop fired! {newItem: {…}, effectiveEditMode: true}
+flexible-layout-editor.tsx:740 🎯 DRAG STOP HANDLER: Drag operation completed {oldItem: {…}, newItem: {…}}
+flexible-layout-editor.tsx:744 🔄 FORCING layout change after drag stop
+flexible-layout-editor.tsx:748 📋 Current layout has 13 items - processing layout change
+flexible-layout-editor.tsx:674 🔄 LAYOUT CHANGE: {effectiveEditMode: true, externalEditMode: true, layoutItemCount: 13, firstFewItems: Array(3)}
+flexible-layout-editor.tsx:688 ✅ PROCESSING layout change - in edit mode
+flexible-layout-editor.tsx:694 📦 Updating field-section-late: {oldPosition: {…}, newPosition: {…}}
+flexible-layout-editor.tsx:694 📦 Updating field-section-injuryIllness: {oldPosition: {…}, newPosition: {…}}
+flexible-layout-editor.tsx:694 📦 Updating field-group-1755616750774: {oldPosition: {…}, newPosition: {…}}
+flexible-layout-editor.tsx:694 📦 Updating dept-section-scenic: {oldPosition: {…}, newPosition: {…}}
+flexible-layout-editor.tsx:694 📦 Updating dept-section-lighting: {oldPosition: {…}, newPosition: {…}}
+flexible-layout-editor.tsx:694 📦 Updating dept-section-audio: {oldPosition: {…}, newPosition: {…}}
+flexible-layout-editor.tsx:694 📦 Updating dept-section-video: {oldPosition: {…}, newPosition: {…}}
+flexible-layout-editor.tsx:694 📦 Updating dept-section-props: {oldPosition: {…}, newPosition: {…}}
+flexible-layout-editor.tsx:694 📦 Updating dept-section-new-dept-1755616761045-1755616761045: {oldPosition: {…}, newPosition: {…}}
+flexible-layout-editor.tsx:694 📦 Updating dept-section-new-dept-1755617111927-1755617111927: {oldPosition: {…}, newPosition: {…}}
+flexible-layout-editor.tsx:694 📦 Updating dept-section-new-dept-1755617156617-1755617156617: {oldPosition: {…}, newPosition: {…}}
+flexible-layout-editor.tsx:694 📦 Updating dept-section-new-dept-1755617175984-1755617175984: {oldPosition: {…}, newPosition: {…}}
+flexible-layout-editor.tsx:694 📦 Updating dept-section-new-dept-1755617255812-1755617255812: {oldPosition: {…}, newPosition: {…}}
+flexible-layout-editor.tsx:716 🔧 Layout updated - updating local state and notifying parent
+flexible-layout-editor.tsx:723 📤 DRAG-DROP: Notifying parent of layout changes
+template-settings.tsx:1191 📝 DRAG-DROP: Layout configuration changed!
+template-settings.tsx:1192 🔍 New config items: (13) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+template-settings.tsx:1216 ✅ DRAG-DROP: Layout changes tracked in pendingChanges
+flexible-layout-editor.tsx:729 📝 Layout change tracked locally AND sent to parent - will be saved when user clicks Lock
+flexible-layout-editor.tsx:731 ✅ CONFIGURATION UPDATED AND SAVED
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic {isEditing: true, displayName: 'Scenic', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for scenic: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting {isEditing: true, displayName: 'Lighting', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for lighting: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio {isEditing: true, displayName: 'Audio', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for audio: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video {isEditing: true, displayName: 'Video', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for video: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props {isEditing: true, displayName: 'Props', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for props: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 {isEditing: true, displayName: 'Wardrobe', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755616761045: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 {isEditing: true, displayName: 'Facilities', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617111927: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 {isEditing: true, displayName: 'Automation', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617156617: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 {isEditing: true, displayName: 'Rigging', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617175984: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 {isEditing: true, displayName: 'Special Effects', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617255812: editingElement=false, showToolbar=false, isEditing=true
+flexible-layout-editor.tsx:576 🔄 LAYOUT INIT: Template changed, checking for saved layout data
+flexible-layout-editor.tsx:577 🔍 Template has layoutConfiguration: true
+flexible-layout-editor.tsx:578 🔍 Layout items count: 13
+flexible-layout-editor.tsx:581 ✅ LAYOUT INIT: Applying saved layout from database
+flexible-layout-editor.tsx:653 ✅ Updating layouts from configuration
+flexible-layout-editor.tsx:654 🔍 TIMING CHECK: configuration.items.length: 13
+flexible-layout-editor.tsx:655 🔍 TIMING CHECK: configuration.items preview: (3) [{…}, {…}, {…}]
+flexible-layout-editor.tsx:613 🔍 Converting to grid layouts: {effectiveEditMode: true, itemCount: 13, gridCols: 12, items: Array(13)}
+flexible-layout-editor.tsx:640 🔍 Layout items created: (13) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+flexible-layout-editor.tsx:660 🎯 LAYOUTS UPDATED: Successfully converted 13 items to grid layouts
+template-settings.tsx:847 🎯 ACTIVE TEMPLATE: Passing to FlexibleLayoutEditor
+template-settings.tsx:848 🎯 Has layoutConfiguration: true
+template-settings.tsx:849 🎯 Layout items count: 13
+template-settings.tsx:851 🎯 ACTIVE TEMPLATE: Layout positions: (13) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic {isEditing: true, displayName: 'Scenic', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for scenic: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting {isEditing: true, displayName: 'Lighting', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for lighting: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio {isEditing: true, displayName: 'Audio', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for audio: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video {isEditing: true, displayName: 'Video', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for video: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props {isEditing: true, displayName: 'Props', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for props: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 {isEditing: true, displayName: 'Wardrobe', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755616761045: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 {isEditing: true, displayName: 'Facilities', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617111927: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 {isEditing: true, displayName: 'Automation', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617156617: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 {isEditing: true, displayName: 'Rigging', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617175984: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 {isEditing: true, displayName: 'Special Effects', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617255812: editingElement=false, showToolbar=false, isEditing=true
+flexible-layout-editor.tsx:653 ✅ Updating layouts from configuration
+flexible-layout-editor.tsx:654 🔍 TIMING CHECK: configuration.items.length: 13
+flexible-layout-editor.tsx:655 🔍 TIMING CHECK: configuration.items preview: (3) [{…}, {…}, {…}]
+flexible-layout-editor.tsx:613 🔍 Converting to grid layouts: {effectiveEditMode: true, itemCount: 13, gridCols: 12, items: Array(13)}
+flexible-layout-editor.tsx:640 🔍 Layout items created: (13) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+flexible-layout-editor.tsx:660 🎯 LAYOUTS UPDATED: Successfully converted 13 items to grid layouts
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic {isEditing: true, displayName: 'Scenic', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for scenic: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting {isEditing: true, displayName: 'Lighting', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for lighting: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio {isEditing: true, displayName: 'Audio', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for audio: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video {isEditing: true, displayName: 'Video', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for video: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props {isEditing: true, displayName: 'Props', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for props: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 {isEditing: true, displayName: 'Wardrobe', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755616761045: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 {isEditing: true, displayName: 'Facilities', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617111927: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 {isEditing: true, displayName: 'Automation', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617156617: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 {isEditing: true, displayName: 'Rigging', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617175984: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 {isEditing: true, displayName: 'Special Effects', hasDragHandle: true}
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617255812: editingElement=false, showToolbar=false, isEditing=true
