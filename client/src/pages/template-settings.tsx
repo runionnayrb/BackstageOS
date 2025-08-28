@@ -953,6 +953,7 @@ export default function TemplateSettings() {
                             variant="ghost"
                             size="sm"
                             onClick={() => {
+                              console.log('🚨 BUTTON CLICK DETECTED! Handler is running!');
                               const newEditMode = !isEditMode;
                               console.log(`🔄 BUTTON CLICKED: ${isEditMode ? 'LOCKING (SAVE ALL)' : 'UNLOCKING'} - UI updates immediately`);
                               console.log('🔄 STATE DEBUG:', { 
