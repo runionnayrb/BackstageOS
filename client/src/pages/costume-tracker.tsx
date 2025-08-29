@@ -465,7 +465,7 @@ export default function CostumeTracker() {
       <div className={`px-4 sm:px-6 lg:px-8 ${isMobile ? 'pb-4' : 'py-4'}`}>
         {!isMobile && (
           <div className="flex items-center justify-between mb-4">
-            <div></div>
+            <h1 className="text-3xl font-bold text-gray-900">Costumes</h1>
             
             <div className="flex items-center gap-2">
               <Popover>
@@ -628,12 +628,6 @@ export default function CostumeTracker() {
                 Add Costume
               </Button>
             </div>
-          </div>
-        )}
-        
-        {!isMobile && (
-          <div className="mb-2">
-            <h1 className="text-3xl font-bold text-gray-900">Costumes</h1>
           </div>
         )}
       </div>
