@@ -835,7 +835,7 @@ export default function TemplateSettings() {
 
   const currentTemplate = templates[selectedPhase];
   
-  // Use saved layout configuration if available, otherwise fall back to template defaults
+  // CRITICAL FIX: Always prioritize database layout data over template defaults
   const activeTemplate = currentTemplate ? {
     ...currentTemplate,
     layoutConfiguration: (showSettings as any)?.layoutConfiguration || currentTemplate.layoutConfiguration
@@ -847,21 +847,17 @@ export default function TemplateSettings() {
       console.log('🎯 ACTIVE TEMPLATE: Passing to FlexibleLayoutEditor');
       console.log('🎯 Has layoutConfiguration:', !!activeTemplate.layoutConfiguration);
       console.log('🎯 Layout items count:', activeTemplate.layoutConfiguration?.items?.length || 0);
-      console.log('🎯 showSettings type:', typeof (showSettings as any)?.layoutConfiguration);
-      console.log('🎯 showSettings has data:', !!(showSettings as any)?.layoutConfiguration);
       if (activeTemplate.layoutConfiguration?.items?.length > 0) {
-        console.log('🎯 ACTIVE TEMPLATE: First 3 saved positions being passed:', activeTemplate.layoutConfiguration.items.slice(0, 3).map((item: any) => ({
+        console.log('🎯 ACTIVE TEMPLATE: Layout positions:', activeTemplate.layoutConfiguration.items.map((item: any) => ({
           id: item.id,
           x: item.x,
           y: item.y,
           w: item.w,
           h: item.h
         })));
-      } else {
-        console.log('🚨 ACTIVE TEMPLATE: NO LAYOUT DATA - will generate defaults');
       }
     }
-  }, [activeTemplate, showSettings]);
+  }, [activeTemplate]);
 
   if (!project || !currentTemplate) {
     return (
@@ -957,22 +953,13 @@ export default function TemplateSettings() {
                             variant="ghost"
                             size="sm"
                             onClick={() => {
-                              console.log('🚨 BUTTON CLICK DETECTED! Handler is running!');
                               const newEditMode = !isEditMode;
-                              console.log(`🔄 BUTTON CLICKED: ${isEditMode ? 'LOCKING (SAVE ALL)' : 'UNLOCKING'} - UI updates immediately`);
-                              console.log('🔄 STATE DEBUG:', { 
-                                currentEditMode: isEditMode, 
-                                newEditMode, 
-                                willSave: isEditMode && !newEditMode,
-                                shouldLock: isEditMode && !newEditMode,
-                                shouldUnlock: !isEditMode && newEditMode
-                              });
+                              console.log(`🔄 GLOBAL SAVE TOGGLE: ${isEditMode ? 'LOCKING (SAVE ALL)' : 'UNLOCKING'} - UI updates immediately`);
+                              console.log('🔄 STATE DEBUG:', { currentEditMode: isEditMode, newEditMode, willSave: !newEditMode });
                               
                               // If locking (saving), get the latest configuration and trigger global save
-                              // When isEditMode is true and newEditMode becomes false, we're LOCKING (saving)
-                              if (isEditMode && !newEditMode) {
-                                console.log('🔒 LOCK BUTTON CLICKED! Getting latest configuration before save...');
-                                console.log('🔒 Current pendingChanges state:', pendingChanges);
+                              if (!newEditMode) {
+                                console.log('🔒 LOCKING: Getting latest configuration before save...');
                                 
                                 // Get the latest configuration from the FlexibleLayoutEditor
                                 let currentConfig = null;
@@ -1017,11 +1004,9 @@ export default function TemplateSettings() {
                                   hasChanges: saveData.hasChanges
                                 });
                                 
-                                // CRITICAL FIX: Always save when Lock is clicked, regardless of pendingChanges state
+                                // Call the save function with the prepared data
                                 console.log('🔒 EXECUTING MUTATION: About to call globalSaveMutation.mutate...');
                                 globalSaveMutation.mutate(saveData);
-                              } else if (!isEditMode && newEditMode) {
-                                console.log('⚠️ UNLOCK CLICKED - entering edit mode');
                               }
                               
                               // Update edit mode immediately for responsive UI
