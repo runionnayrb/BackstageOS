@@ -302,11 +302,9 @@ export default function TemplateSettings() {
 
     console.log('✅ Templates initialized with unified showSettings approach - single database table!');
     
-    // Don't reset templates immediately after saving to preserve user's dragged positions
-    if (!isSaving) {
-      setTemplates(initialTemplates);
-    }
-  }, [projectId, userTemplates, showSettings, isSaving]);
+    // Update templates with saved layout configuration from database
+    setTemplates(initialTemplates);
+  }, [projectId, userTemplates, showSettings]);
 
   // Update departments list when settings change (only if not currently reordering)
   useEffect(() => {
@@ -763,8 +761,8 @@ export default function TemplateSettings() {
       // Clear the save flag to allow normal layout updates
       (window as any).savingLayout = false;
       
-      // Don't exit edit mode immediately - let user manually unlock/lock again to prevent layout reset
-      // The save is complete but layout should stay as user dragged it
+      // Now it's safe to exit edit mode since save completed successfully
+      setIsEditMode(false);
       
       // Clear pending changes
       setPendingChanges({
