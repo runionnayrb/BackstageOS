@@ -86,7 +86,6 @@ export default function PropsTracker() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sceneFilter, setSceneFilter] = useState<string>("all");
-  const [showFilters, setShowFilters] = useState(false);
   const [sortField, setSortField] = useState<string>("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   
@@ -136,8 +135,74 @@ export default function PropsTracker() {
       setPageHeaderIcons([
         {
           icon: Filter,
-          onClick: () => setShowFilters(!showFilters),
-          title: 'Filter props'
+          onClick: () => {},
+          title: 'Filter props',
+          popover: {
+            content: (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium leading-none">Filter by</h4>
+                  <button
+                    className="text-xs text-gray-500 hover:text-gray-700 underline"
+                    onClick={() => {
+                      setSearchTerm("");
+                      setStatusFilter("all");
+                      setSceneFilter("all");
+                    }}
+                  >
+                    Reset
+                  </button>
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Search</label>
+                  <div className="relative">
+                    <Search className="h-4 w-4 absolute left-3 top-2.5 text-muted-foreground" />
+                    <Input
+                      placeholder="Search props..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10 text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Status</label>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="text-sm">
+                      <SelectValue placeholder="Filter by status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      {statusOptions.map((status) => (
+                        <SelectItem key={status.value} value={status.value}>
+                          {status.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Scene</label>
+                  <Select value={sceneFilter} onValueChange={setSceneFilter}>
+                    <SelectTrigger className="text-sm">
+                      <SelectValue placeholder="Filter by scene" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Scenes</SelectItem>
+                      {uniqueScenes.map((scene) => (
+                        <SelectItem key={scene} value={scene}>
+                          {scene}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )
+          }
         },
         {
           icon: ArrowUpDown,
@@ -217,7 +282,7 @@ export default function PropsTracker() {
     return () => {
       clearPageHeaderIcons();
     };
-  }, [isMobile, showFilters, sortField, sortDirection]);
+  }, [isMobile, sortField, sortDirection]);
 
   const { data: projects, isLoading: projectsLoading } = useQuery({
     queryKey: ["/api/projects"],
@@ -391,14 +456,81 @@ export default function PropsTracker() {
             <div></div>
             
             <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0 text-gray-600 hover:text-gray-900 bg-transparent hover:bg-transparent"
-                onClick={() => setShowFilters(!showFilters)}
-              >
-                <Filter className="h-4 w-4" />
-              </Button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 text-gray-600 hover:text-gray-900 bg-transparent hover:bg-transparent"
+                  >
+                    <Filter className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64" align="end">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-medium leading-none">Filter by</h4>
+                      <button
+                        className="text-xs text-gray-500 hover:text-gray-700 underline"
+                        onClick={() => {
+                          setSearchTerm("");
+                          setStatusFilter("all");
+                          setSceneFilter("all");
+                        }}
+                      >
+                        Reset
+                      </button>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Search</label>
+                      <div className="relative">
+                        <Search className="h-4 w-4 absolute left-3 top-2.5 text-muted-foreground" />
+                        <Input
+                          placeholder="Search props..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="pl-10 text-sm"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Status</label>
+                      <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger className="text-sm">
+                          <SelectValue placeholder="Filter by status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Statuses</SelectItem>
+                          {statusOptions.map((status) => (
+                            <SelectItem key={status.value} value={status.value}>
+                              {status.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Scene</label>
+                      <Select value={sceneFilter} onValueChange={setSceneFilter}>
+                        <SelectTrigger className="text-sm">
+                          <SelectValue placeholder="Filter by scene" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Scenes</SelectItem>
+                          {uniqueScenes.map((scene) => (
+                            <SelectItem key={scene} value={scene}>
+                              {scene}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
               
               <Popover>
                 <PopoverTrigger asChild>
@@ -486,57 +618,6 @@ export default function PropsTracker() {
       </div>
 
       <div className="px-4 sm:px-6 lg:px-8">
-        {/* Filters */}
-        {showFilters && (
-        <Card className="mb-6">
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="relative">
-                <Search className="h-4 w-4 absolute left-3 top-3 text-muted-foreground" />
-                <Input
-                  placeholder="Search props..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  {statusOptions.map((status) => (
-                    <SelectItem key={status.value} value={status.value}>
-                      {status.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={sceneFilter} onValueChange={setSceneFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Filter by scene" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Scenes</SelectItem>
-                  {uniqueScenes.map((scene) => (
-                    <SelectItem key={scene} value={scene}>
-                      {scene}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button variant="outline" onClick={() => {
-                setSearchTerm("");
-                setStatusFilter("all");
-                setSceneFilter("all");
-              }}>
-                Clear Filters
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-        )}
 
         {/* Desktop Props Table */}
         <Card className="mb-6 hidden md:block">
