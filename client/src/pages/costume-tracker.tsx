@@ -4,6 +4,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { setPageHeaderIcons, clearPageHeaderIcons } from "@/hooks/useHeaderIcons";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,19 +14,18 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   ArrowLeft, 
   Plus, 
   Edit3, 
   Trash2, 
-  Search, 
+  Search,
+  Filter,
+  ArrowUpDown,
   Clock,
-  AlertTriangle,
   Image as ImageIcon,
-  Printer,
-  Download,
-  User
+  User,
+  FileText
 } from "lucide-react";
 
 interface CostumeTrackerParams {
@@ -61,13 +62,16 @@ export default function CostumeTracker() {
   const params = useParams<CostumeTrackerParams>();
   const projectId = params.id;
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
 
   const [isAddingCostume, setIsAddingCostume] = useState(false);
   const [editingCostume, setEditingCostume] = useState<Costume | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [characterFilter, setCharacterFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [activeTab, setActiveTab] = useState("all");
+  const [sceneFilter, setSceneFilter] = useState<string>("all");
+  const [showFilters, setShowFilters] = useState(false);
+  const [sortField, setSortField] = useState<string>("");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [formData, setFormData] = useState({
     character: "",
     piece: "",
@@ -93,6 +97,46 @@ export default function CostumeTracker() {
       return;
     }
   }, [isAuthenticated, isLoading, toast]);
+
+  // Set header icons for mobile header - filter, sort, and plus (left to right)
+  useEffect(() => {
+    if (isMobile) {
+      setPageHeaderIcons([
+        {
+          icon: Filter,
+          onClick: () => setShowFilters(!showFilters),
+          title: 'Filter costumes'
+        },
+        {
+          icon: ArrowUpDown,
+          onClick: () => {
+            // Toggle sort or show sort options
+            if (sortField === "") {
+              setSortField("character");
+              setSortDirection("asc");
+            } else if (sortDirection === "asc") {
+              setSortDirection("desc");
+            } else {
+              setSortField("");
+              setSortDirection("asc");
+            }
+          },
+          title: 'Sort costumes'
+        },
+        {
+          icon: Plus,
+          onClick: () => setIsAddingCostume(true),
+          title: 'Add costume'
+        }
+      ]);
+    } else {
+      clearPageHeaderIcons();
+    }
+    
+    return () => {
+      clearPageHeaderIcons();
+    };
+  }, [isMobile, showFilters, sortField, sortDirection]);
 
   const { data: projects, isLoading: projectsLoading } = useQuery({
     queryKey: ["/api/projects"],
@@ -221,22 +265,47 @@ export default function CostumeTracker() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Get filtered and sorted costumes
   const filteredCostumes = Array.isArray(costumes) ? costumes.filter((costume: Costume) => {
     const matchesSearch = costume.character.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          costume.piece.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          costume.scene.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCharacter = characterFilter === "all" || costume.character === characterFilter;
     const matchesStatus = statusFilter === "all" || costume.status === statusFilter;
-    const matchesTab = activeTab === "all" || 
-                      (activeTab === "quick_changes" && costume.isQuickChange) ||
-                      (activeTab === "repairs" && costume.status === "repair");
+    const matchesScene = sceneFilter === "all" || costume.scene === sceneFilter;
     
-    return matchesSearch && matchesCharacter && matchesStatus && matchesTab;
+    return matchesSearch && matchesStatus && matchesScene;
+  }).sort((a, b) => {
+    if (!sortField) return 0;
+    
+    let aValue = "";
+    let bValue = "";
+    
+    switch (sortField) {
+      case "character":
+        aValue = a.character || "";
+        bValue = b.character || "";
+        break;
+      case "piece":
+        aValue = a.piece || "";
+        bValue = b.piece || "";
+        break;
+      case "scene":
+        aValue = a.scene || "";
+        bValue = b.scene || "";
+        break;
+      case "status":
+        aValue = a.status || "";
+        bValue = b.status || "";
+        break;
+      default:
+        return 0;
+    }
+    
+    const comparison = aValue.localeCompare(bValue);
+    return sortDirection === "asc" ? comparison : -comparison;
   }) : [];
 
-  const uniqueCharacters = Array.isArray(costumes) ? [...new Set(costumes.map((costume: Costume) => costume.character).filter(Boolean))] : [];
-  const quickChanges = Array.isArray(costumes) ? costumes.filter((costume: Costume) => costume.isQuickChange) : [];
-  const repairItems = Array.isArray(costumes) ? costumes.filter((costume: Costume) => costume.status === "repair") : [];
+  const uniqueScenes = Array.isArray(costumes) ? [...new Set(costumes.map((costume: Costume) => costume.scene).filter(Boolean))] : [];
 
   if (isLoading || projectsLoading || costumesLoading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -250,300 +319,276 @@ export default function CostumeTracker() {
 
   return (
     <div className="w-full">
-      <div className="px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex items-center justify-between mb-4">
-          <div></div>
-          
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => window.print()}>
-              <Printer className="h-4 w-4 mr-2" />
-              Print
-            </Button>
-            <Button onClick={() => setIsAddingCostume(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Costume
-            </Button>
+      <div className={`px-4 sm:px-6 lg:px-8 ${isMobile ? 'pb-4' : 'py-4'}`}>
+        {!isMobile && (
+          <div className="flex items-center justify-between mb-4">
+            <div></div>
+            
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 text-gray-600 hover:text-gray-900 bg-transparent hover:bg-transparent"
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <Filter className="h-4 w-4" />
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 text-gray-600 hover:text-gray-900 bg-transparent hover:bg-transparent"
+                onClick={() => {
+                  if (sortField === "") {
+                    setSortField("character");
+                    setSortDirection("asc");
+                  } else if (sortDirection === "asc") {
+                    setSortDirection("desc");
+                  } else {
+                    setSortField("");
+                    setSortDirection("asc");
+                  }
+                }}
+              >
+                <ArrowUpDown className="h-4 w-4" />
+              </Button>
+              
+              <Button onClick={() => setIsAddingCostume(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Costume
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
         
-        <div className="mb-2">
-          <h1 className="text-3xl font-bold text-gray-900">Costume Tracker</h1>
-        </div>
+        {!isMobile && (
+          <div className="mb-2">
+            <h1 className="text-3xl font-bold text-gray-900">Costumes</h1>
+          </div>
+        )}
       </div>
 
       <div className="px-4 sm:px-6 lg:px-8">
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-          <TabsList>
-            <TabsTrigger value="all">All Costumes</TabsTrigger>
-            <TabsTrigger value="quick_changes" className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Quick Changes ({quickChanges.length})
-            </TabsTrigger>
-            <TabsTrigger value="repairs" className="flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4" />
-              Repairs ({repairItems.length})
-            </TabsTrigger>
-          </TabsList>
+        {/* Filters */}
+        {showFilters && (
+        <Card className="mb-6">
+          <CardContent className="pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="relative">
+                <Search className="h-4 w-4 absolute left-3 top-3 text-muted-foreground" />
+                <Input
+                  placeholder="Search costumes..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  {statusOptions.map((status) => (
+                    <SelectItem key={status.value} value={status.value}>
+                      {status.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={sceneFilter} onValueChange={setSceneFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by scene" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Scenes</SelectItem>
+                  {uniqueScenes.map((scene) => (
+                    <SelectItem key={scene} value={scene}>
+                      {scene}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button variant="outline" onClick={() => {
+                setSearchTerm("");
+                setStatusFilter("all");
+                setSceneFilter("all");
+              }}>
+                Clear Filters
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+        )}
 
-          <TabsContent value="all" className="space-y-6">
-            {/* Filters */}
-            <Card>
-              <CardContent className="pt-6">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="relative">
-                    <Search className="h-4 w-4 absolute left-3 top-3 text-muted-foreground" />
-                    <Input
-                      placeholder="Search costumes..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                  <Select value={characterFilter} onValueChange={setCharacterFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Filter by character" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Characters</SelectItem>
-                      {uniqueCharacters.map((character) => (
-                        <SelectItem key={character} value={character}>
-                          {character}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Filter by status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Statuses</SelectItem>
-                      {statusOptions.map((status) => (
-                        <SelectItem key={status.value} value={status.value}>
-                          {status.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button variant="outline" onClick={() => {
-                    setSearchTerm("");
-                    setCharacterFilter("all");
-                    setStatusFilter("all");
-                  }}>
-                    Clear Filters
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Costumes Table */}
-            <Card>
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Character</TableHead>
-                      <TableHead>Costume Piece</TableHead>
-                      <TableHead>Scene</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Quick Change</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredCostumes.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8">
-                          <User className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                          <p className="text-muted-foreground">No costumes found</p>
-                          <Button
-                            variant="outline"
-                            className="mt-2"
-                            onClick={() => setIsAddingCostume(true)}
-                          >
-                            Add your first costume
-                          </Button>
+        {/* Desktop Costumes Table */}
+        <Card className="mb-6 hidden md:block">
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Costume</TableHead>
+                  <TableHead>Scene/Character</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Quick Change</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredCostumes.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-8">
+                      <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-muted-foreground">No costumes found</p>
+                      <Button
+                        variant="outline"
+                        className="mt-2"
+                        onClick={() => setIsAddingCostume(true)}
+                      >
+                        Add your first costume
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                    ) : (
+                  filteredCostumes.map((costume: Costume) => {
+                    const statusInfo = getStatusInfo(costume.status);
+                    
+                    return (
+                      <TableRow key={costume.id}>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{costume.piece}</div>
+                            {costume.notes && (
+                              <div className="text-sm text-muted-foreground">{costume.notes}</div>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{costume.scene}</div>
+                            <div className="text-sm text-muted-foreground">{costume.character}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="secondary" className={statusInfo.color}>
+                            {statusInfo.label}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {costume.isQuickChange ? (
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-4 w-4 text-orange-500" />
+                              <span className="text-sm">{formatTime(costume.quickChangeTime)}</span>
+                            </div>
+                          ) : (
+                            "—"
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEdit(costume)}
+                            >
+                              <Edit3 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDelete(costume.id)}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
-                    ) : (
-                      filteredCostumes.map((costume: Costume) => {
-                        const statusInfo = getStatusInfo(costume.status);
-                        
-                        return (
-                          <TableRow key={costume.id}>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <User className="h-4 w-4 text-muted-foreground" />
-                                <span className="font-medium">{costume.character}</span>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-3">
-                                {costume.imageUrl && (
-                                  <div className="w-8 h-8 bg-gray-100 rounded flex items-center justify-center">
-                                    <ImageIcon className="h-4 w-4 text-gray-400" />
-                                  </div>
-                                )}
-                                <span>{costume.piece}</span>
-                              </div>
-                            </TableCell>
-                            <TableCell>{costume.scene}</TableCell>
-                            <TableCell>
-                              <Badge variant="secondary" className={statusInfo.color}>
-                                {statusInfo.label}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              {costume.isQuickChange ? (
-                                <div className="flex items-center gap-1">
-                                  <Clock className="h-4 w-4 text-orange-500" />
-                                  <span className="text-sm">{formatTime(costume.quickChangeTime)}</span>
-                                </div>
-                              ) : (
-                                "—"
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleEdit(costume)}
-                                >
-                                  <Edit3 className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleDelete(costume.id)}
-                                  className="text-red-600 hover:text-red-700"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        {/* Mobile Costumes List */}
+        <div className="space-y-3 md:hidden">
+          {filteredCostumes.length === 0 ? (
+            <Card className="p-8 text-center">
+              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground mb-4">No costumes found</p>
+              <Button
+                variant="outline"
+                onClick={() => setIsAddingCostume(true)}
+              >
+                Add your first costume
+              </Button>
+            </Card>
+          ) : (
+            filteredCostumes.map((costume: Costume) => {
+              const statusInfo = getStatusInfo(costume.status);
+              
+              return (
+                <Card key={costume.id}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <div className="font-medium text-base">{costume.piece}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {costume.scene} • {costume.character}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEdit(costume)}
+                        >
+                          <Edit3 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(costume.id)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <Badge variant="secondary" className={statusInfo.color}>
+                        {statusInfo.label}
+                      </Badge>
+                      
+                      {costume.isQuickChange && (
+                        <div className="flex items-center gap-1 text-orange-600">
+                          <Clock className="h-4 w-4" />
+                          <span className="text-sm font-medium">
+                            {formatTime(costume.quickChangeTime)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {costume.notes && (
+                      <div className="mt-2 text-sm text-muted-foreground">
+                        {costume.notes}
+                      </div>
                     )}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                  </CardContent>
+                </Card>
+              );
+            })
+          )}
+        </div>
+      </div>
 
-          <TabsContent value="quick_changes">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="h-5 w-5" />
-                  Quick Change Tracking
-                </CardTitle>
-                <CardDescription>
-                  Critical timing information for backstage crew
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {quickChanges.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">No quick changes defined</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {quickChanges.map((costume: Costume) => (
-                      <Card key={costume.id} className="border-orange-200">
-                        <CardContent className="pt-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <User className="h-4 w-4" />
-                                <span className="font-medium">{costume.character}</span>
-                                <span className="text-muted-foreground">•</span>
-                                <span>{costume.piece}</span>
-                              </div>
-                              <div className="text-sm text-muted-foreground mb-2">
-                                Scene: {costume.scene}
-                              </div>
-                              {costume.quickChangeNotes && (
-                                <div className="text-sm bg-yellow-50 p-2 rounded border">
-                                  <strong>Notes:</strong> {costume.quickChangeNotes}
-                                </div>
-                              )}
-                            </div>
-                            <div className="text-right">
-                              <div className="text-2xl font-bold text-orange-600">
-                                {formatTime(costume.quickChangeTime)}
-                              </div>
-                              <div className="text-xs text-muted-foreground">Target Time</div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="repairs">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5" />
-                  Repair Tracking
-                </CardTitle>
-                <CardDescription>
-                  Costumes requiring attention or repair
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {repairItems.length === 0 ? (
-                  <div className="text-center py-8">
-                    <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">No repairs needed</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {repairItems.map((costume: Costume) => (
-                      <Card key={costume.id} className="border-red-200">
-                        <CardContent className="pt-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <User className="h-4 w-4" />
-                                <span className="font-medium">{costume.character}</span>
-                                <span className="text-muted-foreground">•</span>
-                                <span>{costume.piece}</span>
-                              </div>
-                              <div className="text-sm text-muted-foreground mb-2">
-                                Scene: {costume.scene}
-                              </div>
-                              {costume.notes && (
-                                <div className="text-sm bg-red-50 p-2 rounded border">
-                                  <strong>Repair Notes:</strong> {costume.notes}
-                                </div>
-                              )}
-                            </div>
-                            <Badge variant="destructive">
-                              Needs Repair
-                            </Badge>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-
-        {/* Add/Edit Costume Dialog */}
-        <Dialog open={isAddingCostume || !!editingCostume} onOpenChange={(open) => {
+      {/* Add/Edit Costume Dialog */}
+      <Dialog open={isAddingCostume || !!editingCostume} onOpenChange={(open) => {
           if (!open) {
             setIsAddingCostume(false);
             setEditingCostume(null);
@@ -662,7 +707,6 @@ export default function CostumeTracker() {
             </div>
           </DialogContent>
         </Dialog>
-      </div>
     </div>
   );
 }
