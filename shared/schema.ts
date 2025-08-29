@@ -337,6 +337,7 @@ export const costumes = pgTable("costumes", {
   projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
   character: varchar("character").notNull(),
   piece: varchar("piece").notNull(),
+  act: varchar("act"),
   scene: varchar("scene"),
   notes: text("notes"),
   status: varchar("status").notNull().default("needed"), // needed, fitted, ready, in_use, repair

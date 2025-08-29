@@ -37,6 +37,7 @@ interface Costume {
   id: number;
   character: string;
   piece: string;
+  act: string;
   scene: string;
   notes: string;
   status: 'needed' | 'fitted' | 'ready' | 'in_use' | 'repair';
@@ -59,6 +60,7 @@ const statusOptions = [
 const sortOptions = [
   { field: 'character', label: 'Character' },
   { field: 'piece', label: 'Costume' },
+  { field: 'act', label: 'Act' },
   { field: 'scene', label: 'Scene' },
   { field: 'status', label: 'Status' },
 ];
@@ -76,8 +78,8 @@ export default function CostumeTracker() {
   const [editingCostume, setEditingCostume] = useState<Costume | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [actFilter, setActFilter] = useState<string>("all");
   const [sceneFilter, setSceneFilter] = useState<string>("all");
-  const [showFilters, setShowFilters] = useState(false);
   const [sortField, setSortField] = useState<string>("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   
@@ -95,6 +97,7 @@ export default function CostumeTracker() {
   const [formData, setFormData] = useState({
     character: "",
     piece: "",
+    act: "",
     scene: "",
     notes: "",
     status: "needed" as const,
@@ -124,13 +127,124 @@ export default function CostumeTracker() {
       setPageHeaderIcons([
         {
           icon: Filter,
-          onClick: () => setShowFilters(!showFilters),
-          title: 'Filter costumes'
+          onClick: () => {},
+          title: 'Filter costumes',
+          popover: {
+            content: (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium leading-none">Filter by</h4>
+                  <button
+                    className="text-xs text-gray-500 hover:text-gray-700 underline"
+                    onClick={() => {
+                      setSearchTerm("");
+                      setStatusFilter("all");
+                      setActFilter("all");
+                      setSceneFilter("all");
+                    }}
+                  >
+                    Reset
+                  </button>
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Search</label>
+                  <div className="relative">
+                    <Search className="h-4 w-4 absolute left-3 top-2.5 text-muted-foreground" />
+                    <Input
+                      placeholder="Search costumes..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10 text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Status</label>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="text-sm">
+                      <SelectValue placeholder="Filter by status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      {statusOptions.map((status) => (
+                        <SelectItem key={status.value} value={status.value}>
+                          {status.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Act</label>
+                  <Select value={actFilter} onValueChange={setActFilter}>
+                    <SelectTrigger className="text-sm">
+                      <SelectValue placeholder="Filter by act" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Acts</SelectItem>
+                      {uniqueActs.map((act) => (
+                        <SelectItem key={act} value={act}>
+                          {act.toLowerCase().startsWith('act') ? act : `Act ${act}`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Scene</label>
+                  <Select value={sceneFilter} onValueChange={setSceneFilter}>
+                    <SelectTrigger className="text-sm">
+                      <SelectValue placeholder="Filter by scene" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Scenes</SelectItem>
+                      {uniqueScenes.map((scene) => (
+                        <SelectItem key={scene} value={scene}>
+                          {scene.toLowerCase().startsWith('scene') ? scene : `Scene ${scene}`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )
+          }
         },
         {
           icon: ArrowUpDown,
-          onClick: () => setShowSortPopover(true),
-          title: 'Sort costumes'
+          onClick: () => {},
+          title: 'Sort costumes',
+          popover: {
+            content: (
+              <div className="space-y-1">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium leading-none">Sort by</h4>
+                  <button
+                    className="text-xs text-gray-500 hover:text-gray-700 underline"
+                    onClick={() => setSortField("")}
+                  >
+                    Reset
+                  </button>
+                </div>
+                {sortOptions.map((option) => (
+                  <button
+                    key={option.field}
+                    className="w-full text-left px-2 py-1 text-sm rounded hover:bg-gray-100 flex items-center justify-between"
+                    onClick={() => handleSort(option.field)}
+                  >
+                    {option.label}
+                    {sortField === option.field && (
+                      <span className="text-xs">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )
+          }
         },
         {
           icon: Plus,
@@ -145,7 +259,7 @@ export default function CostumeTracker() {
     return () => {
       clearPageHeaderIcons();
     };
-  }, [isMobile, showFilters, sortField, sortDirection]);
+  }, [isMobile, sortField, sortDirection]);
 
   const { data: projects, isLoading: projectsLoading } = useQuery({
     queryKey: ["/api/projects"],
@@ -227,6 +341,7 @@ export default function CostumeTracker() {
     setFormData({
       character: "",
       piece: "",
+      act: "",
       scene: "",
       notes: "",
       status: "needed",
@@ -248,6 +363,7 @@ export default function CostumeTracker() {
     setFormData({
       character: costume.character,
       piece: costume.piece,
+      act: costume.act,
       scene: costume.scene,
       notes: costume.notes,
       status: costume.status,
@@ -278,11 +394,13 @@ export default function CostumeTracker() {
   const filteredCostumes = Array.isArray(costumes) ? costumes.filter((costume: Costume) => {
     const matchesSearch = costume.character.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          costume.piece.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         costume.scene.toLowerCase().includes(searchTerm.toLowerCase());
+                         costume.scene.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (costume.act && costume.act.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = statusFilter === "all" || costume.status === statusFilter;
+    const matchesAct = actFilter === "all" || costume.act === actFilter;
     const matchesScene = sceneFilter === "all" || costume.scene === sceneFilter;
     
-    return matchesSearch && matchesStatus && matchesScene;
+    return matchesSearch && matchesStatus && matchesAct && matchesScene;
   }).sort((a, b) => {
     if (!sortField) return 0;
     
@@ -297,6 +415,10 @@ export default function CostumeTracker() {
       case "piece":
         aValue = a.piece || "";
         bValue = b.piece || "";
+        break;
+      case "act":
+        aValue = a.act || "";
+        bValue = b.act || "";
         break;
       case "scene":
         aValue = a.scene || "";
@@ -314,7 +436,19 @@ export default function CostumeTracker() {
     return sortDirection === "asc" ? comparison : -comparison;
   }) : [];
 
-  const uniqueScenes = Array.isArray(costumes) ? [...new Set(costumes.map((costume: Costume) => costume.scene).filter(Boolean))] : [];
+  const uniqueActs = Array.isArray(costumes) ? [...new Set(costumes.map((costume: Costume) => costume.act).filter(Boolean))].sort((a, b) => {
+    // Extract numbers from act strings for numerical sorting
+    const aNum = parseFloat(a.replace(/[^0-9.]/g, '') || '0');
+    const bNum = parseFloat(b.replace(/[^0-9.]/g, '') || '0');
+    return aNum - bNum;
+  }) : [];
+
+  const uniqueScenes = Array.isArray(costumes) ? [...new Set(costumes.map((costume: Costume) => costume.scene).filter(Boolean))].sort((a, b) => {
+    // Extract numbers from scene strings for numerical sorting
+    const aNum = parseFloat(a.replace(/[^0-9.]/g, '') || '0');
+    const bNum = parseFloat(b.replace(/[^0-9.]/g, '') || '0');
+    return aNum - bNum;
+  }) : [];
 
   if (isLoading || projectsLoading || costumesLoading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -334,14 +468,99 @@ export default function CostumeTracker() {
             <div></div>
             
             <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0 text-gray-600 hover:text-gray-900 bg-transparent hover:bg-transparent"
-                onClick={() => setShowFilters(!showFilters)}
-              >
-                <Filter className="h-4 w-4" />
-              </Button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 text-gray-600 hover:text-gray-900 bg-transparent hover:bg-transparent"
+                  >
+                    <Filter className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64" align="end">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-medium leading-none">Filter by</h4>
+                      <button
+                        className="text-xs text-gray-500 hover:text-gray-700 underline"
+                        onClick={() => {
+                          setSearchTerm("");
+                          setStatusFilter("all");
+                          setActFilter("all");
+                          setSceneFilter("all");
+                        }}
+                      >
+                        Reset
+                      </button>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Search</label>
+                      <div className="relative">
+                        <Search className="h-4 w-4 absolute left-3 top-2.5 text-muted-foreground" />
+                        <Input
+                          placeholder="Search costumes..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="pl-10 text-sm"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Status</label>
+                      <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger className="text-sm">
+                          <SelectValue placeholder="Filter by status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Statuses</SelectItem>
+                          {statusOptions.map((status) => (
+                            <SelectItem key={status.value} value={status.value}>
+                              {status.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Act</label>
+                      <Select value={actFilter} onValueChange={setActFilter}>
+                        <SelectTrigger className="text-sm">
+                          <SelectValue placeholder="Filter by act" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Acts</SelectItem>
+                          {uniqueActs.map((act) => (
+                            <SelectItem key={act} value={act}>
+                              {act.toLowerCase().startsWith('act') ? act : `Act ${act}`}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Scene</label>
+                      <Select value={sceneFilter} onValueChange={setSceneFilter}>
+                        <SelectTrigger className="text-sm">
+                          <SelectValue placeholder="Filter by scene" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Scenes</SelectItem>
+                          {uniqueScenes.map((scene) => (
+                            <SelectItem key={scene} value={scene}>
+                              {scene.toLowerCase().startsWith('scene') ? scene : `Scene ${scene}`}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
               
               <Popover>
                 <PopoverTrigger asChild>
@@ -421,66 +640,15 @@ export default function CostumeTracker() {
 
       <div className="px-4 sm:px-6 lg:px-8">
 
-        {/* Filters */}
-        {showFilters && (
-        <Card className="mb-6">
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="relative">
-                <Search className="h-4 w-4 absolute left-3 top-3 text-muted-foreground" />
-                <Input
-                  placeholder="Search costumes..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  {statusOptions.map((status) => (
-                    <SelectItem key={status.value} value={status.value}>
-                      {status.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={sceneFilter} onValueChange={setSceneFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Filter by scene" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Scenes</SelectItem>
-                  {uniqueScenes.map((scene) => (
-                    <SelectItem key={scene} value={scene}>
-                      {scene}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button variant="outline" onClick={() => {
-                setSearchTerm("");
-                setStatusFilter("all");
-                setSceneFilter("all");
-              }}>
-                Clear Filters
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-        )}
 
         {/* Desktop Costumes Table */}
         <Card className="mb-6 hidden md:block">
           <CardContent className="p-0">
-            <Table>
+            <Table className="table-fixed w-full">
               <TableHeader>
                 <TableRow>
                   <TableHead 
-                    className="cursor-pointer hover:bg-gray-50 select-none"
+                    className="cursor-pointer hover:bg-gray-50 select-none w-1/4"
                     onClick={() => handleSort('piece')}
                   >
                     <div className="flex items-center gap-1">
@@ -494,11 +662,11 @@ export default function CostumeTracker() {
                     </div>
                   </TableHead>
                   <TableHead 
-                    className="cursor-pointer hover:bg-gray-50 select-none"
+                    className="cursor-pointer hover:bg-gray-50 select-none w-1/6"
                     onClick={() => handleSort('character')}
                   >
                     <div className="flex items-center gap-1">
-                      Scene/Character
+                      Character
                       <ArrowUpDown className="h-3 w-3 text-gray-400" />
                       {sortField === 'character' && (
                         <span className="text-gray-600 text-xs ml-1">
@@ -508,7 +676,35 @@ export default function CostumeTracker() {
                     </div>
                   </TableHead>
                   <TableHead 
-                    className="cursor-pointer hover:bg-gray-50 select-none"
+                    className="cursor-pointer hover:bg-gray-50 select-none w-1/8"
+                    onClick={() => handleSort('act')}
+                  >
+                    <div className="flex items-center gap-1">
+                      Act
+                      <ArrowUpDown className="h-3 w-3 text-gray-400" />
+                      {sortField === 'act' && (
+                        <span className="text-gray-600 text-xs ml-1">
+                          {sortDirection === "asc" ? "↑" : "↓"}
+                        </span>
+                      )}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="cursor-pointer hover:bg-gray-50 select-none w-1/8"
+                    onClick={() => handleSort('scene')}
+                  >
+                    <div className="flex items-center gap-1">
+                      Scene
+                      <ArrowUpDown className="h-3 w-3 text-gray-400" />
+                      {sortField === 'scene' && (
+                        <span className="text-gray-600 text-xs ml-1">
+                          {sortDirection === "asc" ? "↑" : "↓"}
+                        </span>
+                      )}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="cursor-pointer hover:bg-gray-50 select-none w-1/6"
                     onClick={() => handleSort('status')}
                   >
                     <div className="flex items-center gap-1">
@@ -521,14 +717,14 @@ export default function CostumeTracker() {
                       )}
                     </div>
                   </TableHead>
-                  <TableHead>Quick Change</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead className="w-1/6">Quick Change</TableHead>
+                  <TableHead className="w-1/6">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredCostumes.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8">
+                    <TableCell colSpan={7} className="text-center py-8">
                       <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                       <p className="text-muted-foreground">No costumes found</p>
                       <Button
@@ -556,8 +752,17 @@ export default function CostumeTracker() {
                         </TableCell>
                         <TableCell>
                           <div>
-                            <div className="font-medium">{costume.scene}</div>
-                            <div className="text-sm text-muted-foreground">{costume.character}</div>
+                            <div className="font-medium">{costume.character}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">
+                            {costume.act ? (costume.act.toLowerCase().startsWith('act') ? costume.act : `Act ${costume.act}`) : '—'}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">
+                            {costume.scene ? (costume.scene.toLowerCase().startsWith('scene') ? costume.scene : `Scene ${costume.scene}`) : '—'}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -627,7 +832,7 @@ export default function CostumeTracker() {
                       <div>
                         <div className="font-medium text-base">{costume.piece}</div>
                         <div className="text-sm text-muted-foreground">
-                          {costume.scene} • {costume.character}
+                          {[costume.act, costume.scene, costume.character].filter(Boolean).join(' • ')}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -709,6 +914,14 @@ export default function CostumeTracker() {
                   value={formData.piece}
                   onChange={(e) => setFormData({...formData, piece: e.target.value})}
                   placeholder="e.g., Royal Cloak"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Act</label>
+                <Input
+                  value={formData.act}
+                  onChange={(e) => setFormData({...formData, act: e.target.value})}
+                  placeholder="e.g., 1 or Act 1"
                 />
               </div>
               <div>
