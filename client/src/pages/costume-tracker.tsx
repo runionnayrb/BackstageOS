@@ -358,6 +358,15 @@ export default function CostumeTracker() {
                     <h4 className="font-medium leading-none mb-3">Sort by</h4>
                     <button
                       className="w-full text-left px-2 py-1 text-sm rounded hover:bg-gray-100 flex items-center justify-between"
+                      onClick={() => setSortField("")}
+                    >
+                      Default Order
+                      {!sortField && (
+                        <span className="text-xs">•</span>
+                      )}
+                    </button>
+                    <button
+                      className="w-full text-left px-2 py-1 text-sm rounded hover:bg-gray-100 flex items-center justify-between"
                       onClick={() => handleSort('character')}
                     >
                       Character
