@@ -761,6 +761,15 @@ export default function TemplateSettings() {
       // Clear the save flag to allow normal layout updates
       (window as any).savingLayout = false;
       
+      // Update the templates state with the saved layout to prevent reset
+      setTemplates(prev => ({
+        ...prev,
+        [selectedPhase]: {
+          ...prev[selectedPhase],
+          layoutConfiguration: dataToSave.layoutConfiguration || pendingChanges.layoutConfiguration
+        }
+      }));
+      
       // Now it's safe to exit edit mode since save completed successfully
       setIsEditMode(false);
       
