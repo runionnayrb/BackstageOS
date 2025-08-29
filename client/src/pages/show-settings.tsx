@@ -1405,10 +1405,7 @@ The Production Team`
                       }
                     />
                   </div>
-                </div>
 
-                {/* Production Features */}
-                <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <Label className="text-sm font-medium">Calendar</Label>
@@ -1426,6 +1423,10 @@ The Production Team`
                       }
                     />
                   </div>
+                </div>
+
+                {/* Production Features */}
+                <div className="space-y-3">
 
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
@@ -1449,7 +1450,7 @@ The Production Team`
                     <div className="space-y-0.5">
                       <Label className="text-sm font-medium">Props</Label>
                       <p className="text-xs text-muted-foreground">
-                        Props and costume tracking
+                        Props tracking and management
                       </p>
                     </div>
                     <Switch
@@ -1458,6 +1459,24 @@ The Production Team`
                         handleSettingsUpdate("featureSettings", { 
                           ...(settings as any)?.featureSettings,
                           props: checked
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-sm font-medium">Costumes</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Costume tracking and quick change management
+                      </p>
+                    </div>
+                    <Switch
+                      checked={(settings as any)?.featureSettings?.costumes ?? true}
+                      onCheckedChange={(checked) =>
+                        handleSettingsUpdate("featureSettings", { 
+                          ...(settings as any)?.featureSettings,
+                          costumes: checked
                         })
                       }
                     />

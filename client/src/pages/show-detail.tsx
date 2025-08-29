@@ -74,7 +74,7 @@ export default function ShowDetail() {
       title: "Props",
       href: `/shows/${projectId}/props`,
     }] : []),
-    ...(isFeatureEnabled('props') ? [{
+    ...(isFeatureEnabled('costumes') ? [{
       id: "costumes",
       title: "Costumes",
       href: `/shows/${projectId}/costumes`,
