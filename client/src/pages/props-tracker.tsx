@@ -752,7 +752,7 @@ export default function PropsTracker() {
                     </div>
                   </TableHead>
                   <TableHead 
-                    className="cursor-pointer hover:bg-gray-50 select-none w-16"
+                    className="cursor-pointer hover:bg-gray-50 select-none w-20"
                     onClick={() => handleSort('quantity')}
                   >
                     <div className="flex items-center gap-1">
