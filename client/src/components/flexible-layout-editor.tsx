@@ -573,6 +573,12 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
   useEffect(() => {
     if (!template) return;
     
+    // Don't reset layout during save operations - preserve user's dragged positions
+    if (typeof window !== 'undefined' && (window as any).savingLayout) {
+      console.log('🚫 Blocking template reset during save operation');
+      return;
+    }
+    
     // If we have saved layout data, use it. Otherwise generate from template defaults.
     const layoutData = template.layoutConfiguration?.items?.length > 0 
       ? template.layoutConfiguration

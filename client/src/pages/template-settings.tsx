@@ -687,6 +687,8 @@ export default function TemplateSettings() {
   const globalSaveMutation = useMutation({
     mutationFn: async (saveDataOverride?: any) => {
       setIsSaving(true);
+      // Prevent layout resets during save
+      (window as any).savingLayout = true;
       console.log('🔒 GLOBAL SAVE: Starting comprehensive template save...');
       
       // Use provided save data or fall back to pending changes
@@ -758,6 +760,9 @@ export default function TemplateSettings() {
       setIsSaving(false);
       setLastSaved(new Date());
       
+      // Clear the save flag to allow normal layout updates
+      (window as any).savingLayout = false;
+      
       // Now it's safe to exit edit mode since save completed successfully
       setIsEditMode(false);
       
@@ -784,6 +789,9 @@ export default function TemplateSettings() {
     onError: (error) => {
       console.error('❌ GLOBAL SAVE: Failed to save template changes:', error);
       setIsSaving(false);
+      
+      // Clear the save flag on error too
+      (window as any).savingLayout = false;
       toast({
         title: "Error saving template",
         description: "Failed to save template changes. Please try again.",
