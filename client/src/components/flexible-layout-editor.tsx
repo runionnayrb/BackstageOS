@@ -573,7 +573,11 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
   useEffect(() => {
     if (!template) return;
     
-    // Always load from template data when it changes - this ensures persistence
+    // Don't reset configuration if user is currently in edit mode with changes
+    if (effectiveEditMode && configuration.items.length > 0) {
+      console.log('🚫 Skipping template reset - user is in edit mode with existing layout');
+      return;
+    }
     
     // If we have saved layout data, use it. Otherwise generate from template defaults.
     const layoutData = template.layoutConfiguration?.items?.length > 0 
@@ -587,7 +591,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     
     setConfiguration(layoutData);
     setIsLayoutMounted(true);
-  }, [template, generateLayoutFromTemplate]);
+  }, [template, generateLayoutFromTemplate, effectiveEditMode, configuration.items.length]);
 
   // NO MORE COMPLEX TRACKING - Keep it simple
 
