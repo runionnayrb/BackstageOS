@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { 
   ArrowLeft, 
@@ -55,6 +56,13 @@ const statusOptions = [
   { value: 'repair', label: 'Needs Repair', color: 'bg-orange-100 text-orange-800' },
 ];
 
+const sortOptions = [
+  { field: 'character', label: 'Character' },
+  { field: 'piece', label: 'Costume' },
+  { field: 'scene', label: 'Scene' },
+  { field: 'status', label: 'Status' },
+];
+
 export default function CostumeTracker() {
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -72,6 +80,20 @@ export default function CostumeTracker() {
   const [showFilters, setShowFilters] = useState(false);
   const [sortField, setSortField] = useState<string>("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [showSortPopover, setShowSortPopover] = useState(false);
+  
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      // Toggle direction if same field
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      // Set new field with ascending direction
+      setSortField(field);
+      setSortDirection("asc");
+    }
+    setShowSortPopover(false);
+  };
+
   const [formData, setFormData] = useState({
     character: "",
     piece: "",
@@ -109,18 +131,7 @@ export default function CostumeTracker() {
         },
         {
           icon: ArrowUpDown,
-          onClick: () => {
-            // Toggle sort or show sort options
-            if (sortField === "") {
-              setSortField("character");
-              setSortDirection("asc");
-            } else if (sortDirection === "asc") {
-              setSortDirection("desc");
-            } else {
-              setSortField("");
-              setSortDirection("asc");
-            }
-          },
+          onClick: () => setShowSortPopover(true),
           title: 'Sort costumes'
         },
         {
@@ -334,24 +345,37 @@ export default function CostumeTracker() {
                 <Filter className="h-4 w-4" />
               </Button>
               
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0 text-gray-600 hover:text-gray-900 bg-transparent hover:bg-transparent"
-                onClick={() => {
-                  if (sortField === "") {
-                    setSortField("character");
-                    setSortDirection("asc");
-                  } else if (sortDirection === "asc") {
-                    setSortDirection("desc");
-                  } else {
-                    setSortField("");
-                    setSortDirection("asc");
-                  }
-                }}
-              >
-                <ArrowUpDown className="h-4 w-4" />
-              </Button>
+              <Popover open={showSortPopover} onOpenChange={setShowSortPopover}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 text-gray-600 hover:text-gray-900 bg-transparent hover:bg-transparent"
+                  >
+                    <ArrowUpDown className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-40 p-1" align="end">
+                  <div className="grid gap-1">
+                    {sortOptions.map((option) => (
+                      <Button
+                        key={option.field}
+                        variant="ghost"
+                        size="sm"
+                        className="justify-start text-left h-8 px-2 hover:bg-gray-100"
+                        onClick={() => handleSort(option.field)}
+                      >
+                        <span className="text-sm">{option.label}</span>
+                        {sortField === option.field && (
+                          <span className="ml-auto text-xs text-gray-500">
+                            {sortDirection === "asc" ? "↑" : "↓"}
+                          </span>
+                        )}
+                      </Button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
               
               <Button onClick={() => setIsAddingCostume(true)}>
                 <Plus className="h-4 w-4 mr-2" />
@@ -707,6 +731,36 @@ export default function CostumeTracker() {
             </div>
           </DialogContent>
         </Dialog>
+
+      {/* Mobile Sort Popover */}
+      {isMobile && (
+        <Popover open={showSortPopover} onOpenChange={setShowSortPopover}>
+          <PopoverTrigger asChild>
+            <div />
+          </PopoverTrigger>
+          <PopoverContent className="w-48 p-2" side="top" align="center">
+            <div className="space-y-1">
+              <div className="text-sm font-medium text-gray-700 px-2 py-1">Sort by</div>
+              {sortOptions.map((option) => (
+                <Button
+                  key={option.field}
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start text-left h-10 px-2 hover:bg-gray-100"
+                  onClick={() => handleSort(option.field)}
+                >
+                  <span className="text-sm">{option.label}</span>
+                  {sortField === option.field && (
+                    <span className="ml-auto text-xs text-gray-500">
+                      {sortDirection === "asc" ? "↑" : "↓"}
+                    </span>
+                  )}
+                </Button>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
+      )}
     </div>
   );
 }
