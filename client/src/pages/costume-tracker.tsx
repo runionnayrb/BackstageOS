@@ -355,16 +355,15 @@ export default function CostumeTracker() {
                 </PopoverTrigger>
                 <PopoverContent className="w-48" align="end">
                   <div className="space-y-1">
-                    <h4 className="font-medium leading-none mb-3">Sort by</h4>
-                    <button
-                      className="w-full text-left px-2 py-1 text-sm rounded hover:bg-gray-100 flex items-center justify-between"
-                      onClick={() => setSortField("")}
-                    >
-                      Default Order
-                      {!sortField && (
-                        <span className="text-xs">•</span>
-                      )}
-                    </button>
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-medium leading-none">Sort by</h4>
+                      <button
+                        className="text-xs text-gray-500 hover:text-gray-700 underline"
+                        onClick={() => setSortField("")}
+                      >
+                        Reset
+                      </button>
+                    </div>
                     <button
                       className="w-full text-left px-2 py-1 text-sm rounded hover:bg-gray-100 flex items-center justify-between"
                       onClick={() => handleSort('character')}
