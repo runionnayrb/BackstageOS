@@ -758,7 +758,12 @@ export default function TemplateSettings() {
       setIsSaving(false);
       setLastSaved(new Date());
       
-      // Just exit edit mode - the save is complete
+      // Refresh the cache to get the updated data BEFORE exiting edit mode
+      await queryClient.invalidateQueries({
+        queryKey: ['/api/projects', projectId, 'settings']
+      });
+      
+      // Now it's safe to exit edit mode - the cache has the latest data
       setIsEditMode(false);
       
       // Clear pending changes
