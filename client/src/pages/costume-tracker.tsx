@@ -480,9 +480,48 @@ export default function CostumeTracker() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Costume</TableHead>
-                  <TableHead>Scene/Character</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead 
+                    className="cursor-pointer hover:bg-gray-50 select-none"
+                    onClick={() => handleSort('piece')}
+                  >
+                    <div className="flex items-center gap-1">
+                      Costume
+                      <ArrowUpDown className="h-3 w-3 text-gray-400" />
+                      {sortField === 'piece' && (
+                        <span className="text-gray-600 text-xs ml-1">
+                          {sortDirection === "asc" ? "↑" : "↓"}
+                        </span>
+                      )}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="cursor-pointer hover:bg-gray-50 select-none"
+                    onClick={() => handleSort('character')}
+                  >
+                    <div className="flex items-center gap-1">
+                      Scene/Character
+                      <ArrowUpDown className="h-3 w-3 text-gray-400" />
+                      {sortField === 'character' && (
+                        <span className="text-gray-600 text-xs ml-1">
+                          {sortDirection === "asc" ? "↑" : "↓"}
+                        </span>
+                      )}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="cursor-pointer hover:bg-gray-50 select-none"
+                    onClick={() => handleSort('status')}
+                  >
+                    <div className="flex items-center gap-1">
+                      Status
+                      <ArrowUpDown className="h-3 w-3 text-gray-400" />
+                      {sortField === 'status' && (
+                        <span className="text-gray-600 text-xs ml-1">
+                          {sortDirection === "asc" ? "↑" : "↓"}
+                        </span>
+                      )}
+                    </div>
+                  </TableHead>
                   <TableHead>Quick Change</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
