@@ -302,8 +302,11 @@ export default function TemplateSettings() {
 
     console.log('✅ Templates initialized with unified showSettings approach - single database table!');
     
-    setTemplates(initialTemplates);
-  }, [projectId, userTemplates, showSettings]);
+    // Don't reset templates immediately after saving to preserve user's dragged positions
+    if (!isSaving) {
+      setTemplates(initialTemplates);
+    }
+  }, [projectId, userTemplates, showSettings, isSaving]);
 
   // Update departments list when settings change (only if not currently reordering)
   useEffect(() => {
