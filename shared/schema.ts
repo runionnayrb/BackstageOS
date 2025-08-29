@@ -2558,6 +2558,12 @@ export const insertPropsSchema = createInsertSchema(props).omit({
   updatedAt: true,
 });
 
+export const insertCostumeSchema = createInsertSchema(costumes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // SEO Configuration table with AI optimization
 export const seoSettings = pgTable("seo_settings", {
   id: serial("id").primaryKey(),
@@ -2772,6 +2778,8 @@ export type LocationAvailability = typeof locationAvailability.$inferSelect;
 export type InsertLocationAvailability = z.infer<typeof insertLocationAvailabilitySchema>;
 export type Prop = typeof props.$inferSelect;
 export type InsertProp = z.infer<typeof insertPropsSchema>;
+export type Costume = typeof costumes.$inferSelect;
+export type InsertCostume = z.infer<typeof insertCostumeSchema>;
 export type SeoSettings = typeof seoSettings.$inferSelect;
 export type InsertSeoSettings = z.infer<typeof insertSeoSettingsSchema>;
 export type WaitlistEmailSettings = typeof waitlistEmailSettings.$inferSelect;

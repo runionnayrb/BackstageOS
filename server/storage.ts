@@ -28,6 +28,7 @@ import {
   errorClusters,
   errorNotifications,
   props,
+  costumes,
   domainRoutes,
   waitlist,
   waitlistEmailSettings,
@@ -142,6 +143,8 @@ import {
   type InsertApiSettings,
   type Prop,
   type InsertProp,
+  type Costume,
+  type InsertCostume,
   type DomainRoute,
   type InsertDomainRoute,
   type SeoSettings,
@@ -421,6 +424,13 @@ export interface IStorage {
   createProp(prop: InsertProp): Promise<Prop>;
   updateProp(id: number, prop: Partial<InsertProp>): Promise<Prop>;
   deleteProp(id: number): Promise<void>;
+
+  // Costume operations
+  getCostumesByProjectId(projectId: number): Promise<Costume[]>;
+  getCostumeById(id: number): Promise<Costume | undefined>;
+  createCostume(costume: InsertCostume): Promise<Costume>;
+  updateCostume(id: number, costume: Partial<InsertCostume>): Promise<Costume>;
+  deleteCostume(id: number): Promise<void>;
 
   // Error logging operations
   createErrorLog(errorLog: InsertErrorLog): Promise<ErrorLog>;
@@ -1717,6 +1727,30 @@ export class DatabaseStorage implements IStorage {
 
   async deleteProp(id: number): Promise<void> {
     await db.delete(props).where(eq(props.id, id));
+  }
+
+  async getCostumesByProjectId(projectId: number): Promise<Costume[]> {
+    const result = await db.select().from(costumes).where(eq(costumes.projectId, projectId));
+    return result;
+  }
+
+  async getCostumeById(id: number): Promise<Costume | undefined> {
+    const result = await db.select().from(costumes).where(eq(costumes.id, id));
+    return result[0];
+  }
+
+  async createCostume(costume: InsertCostume): Promise<Costume> {
+    const result = await db.insert(costumes).values(costume).returning();
+    return result[0];
+  }
+
+  async updateCostume(id: number, costume: Partial<InsertCostume>): Promise<Costume> {
+    const result = await db.update(costumes).set(costume).where(eq(costumes.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteCostume(id: number): Promise<void> {
+    await db.delete(costumes).where(eq(costumes.id, id));
   }
 
   async createErrorLog(errorLog: InsertErrorLog): Promise<ErrorLog> {
