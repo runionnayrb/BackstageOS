@@ -177,7 +177,6 @@ export default function TemplateSettings() {
   // Auto-save state
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const [justSaved, setJustSaved] = useState(false);
   
   // Template editor state
   const [isEditMode, setIsEditMode] = useState(false);
@@ -303,13 +302,9 @@ export default function TemplateSettings() {
 
     console.log('✅ Templates initialized with unified showSettings approach - single database table!');
     
-    // Only update templates if we haven't just saved (to prevent layout reset after save)
-    if (!justSaved) {
-      setTemplates(initialTemplates);
-    } else {
-      setJustSaved(false); // Reset the flag for next time
-    }
-  }, [projectId, userTemplates, showSettings, justSaved]);
+    // Update templates with saved layout configuration from database
+    setTemplates(initialTemplates);
+  }, [projectId, userTemplates, showSettings]);
 
   // Update departments list when settings change (only if not currently reordering)
   useEffect(() => {
@@ -763,20 +758,7 @@ export default function TemplateSettings() {
       setIsSaving(false);
       setLastSaved(new Date());
       
-      // Clear the save flag to allow normal layout updates
-      (window as any).savingLayout = false;
-      
-      // Update the templates state with the saved layout to prevent reset
-      setTemplates(prev => ({
-        ...prev,
-        [selectedPhase]: {
-          ...prev[selectedPhase],
-          layoutConfiguration: pendingChanges.layoutConfiguration || prev[selectedPhase].layoutConfiguration
-        }
-      }));
-      
-      // Set flag to prevent template reset and then exit edit mode
-      setJustSaved(true);
+      // Just exit edit mode - the save is complete
       setIsEditMode(false);
       
       // Clear pending changes
