@@ -565,33 +565,41 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     gridGap: 8
   }));
   const [isLayoutMounted, setIsLayoutMounted] = useState(false);
+  const [forceLayoutKey, setForceLayoutKey] = useState(0);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Simple initialization - load template data when it's available
+  // CRITICAL FIX: Wait for complete template data before initializing
   useEffect(() => {
     if (!template) return;
     
-    // Don't reset configuration if user is currently in edit mode with changes
-    if (effectiveEditMode && configuration.items.length > 0) {
-      console.log('🚫 Skipping template reset - user is in edit mode with existing layout');
-      return;
+    console.log('🔄 LAYOUT INIT: Template changed, checking for saved layout data');
+    console.log('🔍 Template has layoutConfiguration:', !!template.layoutConfiguration);
+    console.log('🔍 Layout items count:', template.layoutConfiguration?.items?.length || 0);
+    
+    // CRITICAL: Only initialize when we have definitive data, not during loading states
+    if (template.layoutConfiguration?.items?.length > 0) {
+      console.log('✅ LAYOUT INIT: Applying saved layout from database');
+      console.log('🎯 SAVED POSITIONS BEING APPLIED:', template.layoutConfiguration.items.slice(0, 3).map((item: any) => ({ id: item.id, x: item.x, y: item.y })));
+      setConfiguration(template.layoutConfiguration);
+      setForceLayoutKey(prev => prev + 1); // Force React Grid Layout to completely remount
+      setIsLayoutMounted(true);
+    } else {
+      // CRITICAL: Only generate defaults if we're certain there's no saved data
+      // This prevents overriding saved layouts during loading states
+      console.log('🔄 LAYOUT INIT: Generating new layout from template defaults');
+      console.log('🚨 NO SAVED LAYOUT - generating defaults (this should only happen on first template creation)');
+      setConfiguration({
+        items: generateLayoutFromTemplate(),
+        gridCols: 12,
+        gridRows: 20,
+        gridGap: 8
+      });
+      setForceLayoutKey(prev => prev + 1); // Force remount for defaults too
+      setIsLayoutMounted(true);
     }
-    
-    // If we have saved layout data, use it. Otherwise generate from template defaults.
-    const layoutData = template.layoutConfiguration?.items?.length > 0 
-      ? template.layoutConfiguration
-      : {
-          items: generateLayoutFromTemplate(),
-          gridCols: 12,
-          gridRows: 20,
-          gridGap: 8
-        };
-    
-    setConfiguration(layoutData);
-    setIsLayoutMounted(true);
-  }, [template, generateLayoutFromTemplate, effectiveEditMode, configuration.items.length]);
+  }, [template, generateLayoutFromTemplate]);
 
   // NO MORE COMPLEX TRACKING - Keep it simple
 
@@ -626,14 +634,14 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         w: item.w,
         h: item.h,
         // Apply width constraints from item configuration
-        minW: item.minW || 1,
+        minW: item.minW || (isFullWidth ? configuration.gridCols : 1),
         minH: item.minH || 1,
-        maxW: item.maxW,
+        maxW: item.maxW || (isFullWidth ? configuration.gridCols : undefined),
         maxH: item.maxH,
-        // NEVER make items static - this prevents dragging!
-        static: false,
-        // Always allow resizing in edit mode
-        isResizable: effectiveEditMode
+        // For full-width items, make them static to prevent resizing
+        static: isFullWidth && item.minW === configuration.gridCols,
+        // Disable resizing for full-width items
+        isResizable: isFullWidth ? false : undefined
       };
     });
     
@@ -650,9 +658,22 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
 
   // Update layouts when configuration changes
   useEffect(() => {
+    console.log('✅ Updating layouts from configuration');
+    console.log('🔍 TIMING CHECK: configuration.items.length:', configuration.items?.length || 0);
+    console.log('🔍 TIMING CHECK: configuration.items preview:', configuration.items?.slice(0, 3).map(item => ({ id: item.id, x: item.x, y: item.y })));
+    
     if (configuration.items && configuration.items.length > 0) {
       const newLayouts = convertToGridLayouts(configuration.items);
       setLayouts(newLayouts);
+      console.log('🎯 LAYOUTS UPDATED: Successfully converted', configuration.items.length, 'items to grid layouts');
+      
+      // Force React Grid Layout to acknowledge the new layouts after a tiny delay
+      setTimeout(() => {
+        console.log('🔄 FORCING LAYOUT REFRESH - calling setLayouts again to ensure React Grid Layout updates');
+        setLayouts(prev => ({ ...prev })); // Force a state update to trigger re-render
+      }, 50);
+    } else {
+      console.log('⚠️ LAYOUTS SKIPPED: No items in configuration yet');
     }
   }, [configuration, convertToGridLayouts]);
 
@@ -1068,6 +1089,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
           {isLayoutMounted && (
             <div className="w-full" style={{ width: '1200px', maxWidth: '100%' }}>
               <ResponsiveGridLayout
+                key={`grid-layout-${forceLayoutKey}`}
                 className="layout react-grid-layout-container layout-editor"
                 layouts={layouts}
                 breakpoints={{ lg: 1200, md: 1200, sm: 1200, xs: 1200, xxs: 1200 }}
@@ -1083,8 +1105,15 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
                 preventCollision={false}
                 allowOverlap={true}
                 onLayoutChange={(layout, allLayouts) => {
+                  console.log('🔄 LAYOUT CHANGE: ResponsiveGridLayout detected layout change', { 
+                    layoutItemCount: layout.length, 
+                    effectiveEditMode,
+                    firstItem: layout[0] 
+                  });
                   if (effectiveEditMode) {
                     handleLayoutChange(layout, allLayouts);
+                  } else {
+                    console.log('⚠️ Layout change ignored - not in edit mode');
                   }
                 }}
                 onResizeStop={(layout, allLayouts) => {

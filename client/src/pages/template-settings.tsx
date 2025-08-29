@@ -302,7 +302,6 @@ export default function TemplateSettings() {
 
     console.log('✅ Templates initialized with unified showSettings approach - single database table!');
     
-    // Update templates with saved layout configuration from database
     setTemplates(initialTemplates);
   }, [projectId, userTemplates, showSettings]);
 
@@ -665,10 +664,16 @@ export default function TemplateSettings() {
       
       touchSettings();
       
-      // Keep layout stable after save - no immediate cache invalidation
-      console.log('💾 GLOBAL SAVE: Data saved successfully, maintaining current layout state');
+      // CRITICAL FIX: Force refresh of ALL related queries to ensure layout changes are loaded
+      console.log('🔄 GLOBAL SAVE: Invalidating queries to refresh data...');
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/templates`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
       
-      // Layout will remain stable - no forced refetch needed
+      // Force immediate refetch to ensure data consistency
+      setTimeout(() => {
+        console.log('🔄 FORCED REFETCH: Re-fetching settings to ensure latest data loaded');
+        queryClient.refetchQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
+      }, 100);
     },
     onError: (error) => {
       setIsSaving(false);
@@ -685,8 +690,6 @@ export default function TemplateSettings() {
   const globalSaveMutation = useMutation({
     mutationFn: async (saveDataOverride?: any) => {
       setIsSaving(true);
-      // Prevent layout resets during save
-      (window as any).savingLayout = true;
       console.log('🔒 GLOBAL SAVE: Starting comprehensive template save...');
       
       // Use provided save data or fall back to pending changes
@@ -758,14 +761,6 @@ export default function TemplateSettings() {
       setIsSaving(false);
       setLastSaved(new Date());
       
-      // Refresh the cache to get the updated data BEFORE exiting edit mode
-      await queryClient.invalidateQueries({
-        queryKey: ['/api/projects', projectId, 'settings']
-      });
-      
-      // Now it's safe to exit edit mode - the cache has the latest data
-      setIsEditMode(false);
-      
       // Clear pending changes
       setPendingChanges({
         departmentNames: {},
@@ -777,8 +772,12 @@ export default function TemplateSettings() {
       
       console.log('🧹 GLOBAL SAVE: Pending changes cleared after successful save');
       
-      // Don't invalidate settings query immediately after save to prevent layout reset
-      console.log('✅ Save completed - keeping current layout state');
+      // CRITICAL FIX: Wait for cache invalidation to complete before showing success
+      console.log('🔄 Refreshing data and waiting for completion...');
+      await queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
+      
+      // Wait a bit more to ensure data is fully refreshed
+      await new Promise(resolve => setTimeout(resolve, 500));
       console.log('✅ Cache refresh completed - data is now current');
       
       toast({
@@ -789,9 +788,6 @@ export default function TemplateSettings() {
     onError: (error) => {
       console.error('❌ GLOBAL SAVE: Failed to save template changes:', error);
       setIsSaving(false);
-      
-      // Clear the save flag on error too
-      (window as any).savingLayout = false;
       toast({
         title: "Error saving template",
         description: "Failed to save template changes. Please try again.",
@@ -1028,12 +1024,8 @@ export default function TemplateSettings() {
                                 console.log('⚠️ UNLOCK CLICKED - entering edit mode');
                               }
                               
-                              // Don't change edit mode immediately when saving - wait for save to complete
-                              if (!isEditMode && newEditMode) {
-                                // Only immediately change mode when unlocking (entering edit mode)
-                                setIsEditMode(newEditMode);
-                              }
-                              // When locking (saving), edit mode will change after save completes in onSuccess
+                              // Update edit mode immediately for responsive UI
+                              setIsEditMode(newEditMode);
                             }}
                             className="h-6 w-6 p-0"
                           >
