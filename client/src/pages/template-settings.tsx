@@ -755,6 +755,9 @@ export default function TemplateSettings() {
       setIsSaving(false);
       setLastSaved(new Date());
       
+      // Now it's safe to exit edit mode since save completed successfully
+      setIsEditMode(false);
+      
       // Clear pending changes
       setPendingChanges({
         departmentNames: {},
@@ -1014,8 +1017,12 @@ export default function TemplateSettings() {
                                 console.log('⚠️ UNLOCK CLICKED - entering edit mode');
                               }
                               
-                              // Update edit mode immediately for responsive UI
-                              setIsEditMode(newEditMode);
+                              // Don't change edit mode immediately when saving - wait for save to complete
+                              if (!isEditMode && newEditMode) {
+                                // Only immediately change mode when unlocking (entering edit mode)
+                                setIsEditMode(newEditMode);
+                              }
+                              // When locking (saving), edit mode will change after save completes in onSuccess
                             }}
                             className="h-6 w-6 p-0"
                           >
