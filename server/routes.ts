@@ -12799,7 +12799,7 @@ The Production Team`;
   app.post('/api/projects/:projectId/resend-schedule', isAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.projectId);
-      const { contactIds } = req.body;
+      const { contactIds, currentViewDate } = req.body;
       
       // Validate request
       if (!contactIds || !Array.isArray(contactIds) || contactIds.length === 0) {
@@ -12836,14 +12836,14 @@ The Production Team`;
         });
       }
 
-      // Check if there are events in the current week
-      const now = new Date();
-      const currentDayOfWeek = now.getDay();
+      // Check if there are events in the currently viewed week
+      const viewDate = currentViewDate ? new Date(currentViewDate) : new Date();
+      const currentDayOfWeek = viewDate.getDay();
       
       // Calculate week start (assuming Sunday start for now - could be made configurable)
       const daysToWeekStart = currentDayOfWeek;
-      const weekStart = new Date(now);
-      weekStart.setDate(now.getDate() - daysToWeekStart);
+      const weekStart = new Date(viewDate);
+      weekStart.setDate(viewDate.getDate() - daysToWeekStart);
       weekStart.setHours(0, 0, 0, 0);
       
       // Calculate week end (6 days after week start)
@@ -12861,7 +12861,7 @@ The Production Team`;
         return eventDate >= weekStartStr && eventDate <= weekEndStr;
       });
       
-      // If no events in current week, return a helpful message
+      // If no events in viewed week, return a helpful message
       if (!currentWeekEvents || currentWeekEvents.length === 0) {
         const weekStartFormatted = weekStart.toLocaleDateString('en-US', {
           weekday: 'short',
@@ -12875,7 +12875,7 @@ The Production Team`;
         });
         
         return res.status(400).json({ 
-          message: `No events scheduled for current week (${weekStartFormatted} - ${weekEndFormatted}). There's nothing to send in the schedule notification.`,
+          message: `No events scheduled for week ${weekStartFormatted} - ${weekEndFormatted}. There's nothing to send in the schedule notification.`,
           weekRange: `${weekStartFormatted} - ${weekEndFormatted}`,
           hasEvents: false,
           suggestion: "Navigate to a week with scheduled events and try again, or publish a new schedule version with events for this week."

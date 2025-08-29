@@ -303,7 +303,8 @@ The Production Team`
   const resendScheduleMutation = useMutation({
     mutationFn: async (contactIds: number[]) => {
       const response = await apiRequest('POST', `/api/projects/${projectId}/resend-schedule`, {
-        contactIds
+        contactIds,
+        currentViewDate: currentDate.toISOString() // Pass the current viewing date
       });
       return response;
     },
