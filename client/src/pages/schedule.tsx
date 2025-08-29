@@ -316,11 +316,20 @@ The Production Team`
       setResendSelectedContacts([]);
     },
     onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to resend schedule. Please try again.",
-        variant: "destructive",
-      });
+      // Handle the case where there are no events in the current week
+      if (error.hasEvents === false) {
+        toast({
+          title: "No Events This Week",
+          description: error.message + (error.suggestion ? ` ${error.suggestion}` : ''),
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to resend schedule. Please try again.",
+          variant: "destructive",
+        });
+      }
     },
   });
 

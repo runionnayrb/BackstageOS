@@ -12835,6 +12835,52 @@ The Production Team`;
           message: `Invalid contact IDs: ${invalidContacts.join(', ')}` 
         });
       }
+
+      // Check if there are events in the current week
+      const now = new Date();
+      const currentDayOfWeek = now.getDay();
+      
+      // Calculate week start (assuming Sunday start for now - could be made configurable)
+      const daysToWeekStart = currentDayOfWeek;
+      const weekStart = new Date(now);
+      weekStart.setDate(now.getDate() - daysToWeekStart);
+      weekStart.setHours(0, 0, 0, 0);
+      
+      // Calculate week end (6 days after week start)
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      weekEnd.setHours(23, 59, 59, 999);
+      
+      // Get all events for the project and filter for current week
+      const allEvents = await storage.getScheduleEventsByProjectId(projectId);
+      const weekStartStr = weekStart.toISOString().split('T')[0];
+      const weekEndStr = weekEnd.toISOString().split('T')[0];
+      
+      const currentWeekEvents = allEvents.filter((event: any) => {
+        const eventDate = event.date;
+        return eventDate >= weekStartStr && eventDate <= weekEndStr;
+      });
+      
+      // If no events in current week, return a helpful message
+      if (!currentWeekEvents || currentWeekEvents.length === 0) {
+        const weekStartFormatted = weekStart.toLocaleDateString('en-US', {
+          weekday: 'short',
+          month: 'short', 
+          day: 'numeric'
+        });
+        const weekEndFormatted = weekEnd.toLocaleDateString('en-US', {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric'
+        });
+        
+        return res.status(400).json({ 
+          message: `No events scheduled for current week (${weekStartFormatted} - ${weekEndFormatted}). There's nothing to send in the schedule notification.`,
+          weekRange: `${weekStartFormatted} - ${weekEndFormatted}`,
+          hasEvents: false,
+          suggestion: "Navigate to a week with scheduled events and try again, or publish a new schedule version with events for this week."
+        });
+      }
       
       // Send email notifications to selected contacts asynchronously
       setImmediate(async () => {
