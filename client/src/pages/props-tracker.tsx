@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { 
   ArrowLeft, 
@@ -21,6 +22,7 @@ import {
   Trash2, 
   Search, 
   Filter,
+  ArrowUpDown,
   Image as ImageIcon,
   MapPin,
   FileText,
@@ -62,6 +64,13 @@ const consumableOptions = [
   { value: 'consumable', label: 'Consumable' },
 ];
 
+const sortOptions = [
+  { field: 'name', label: 'Item' },
+  { field: 'character', label: 'Character' },
+  { field: 'location', label: 'Location' },
+  { field: 'status', label: 'Status' },
+];
+
 export default function PropsTracker() {
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -77,6 +86,20 @@ export default function PropsTracker() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sceneFilter, setSceneFilter] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
+  const [sortField, setSortField] = useState<string>("");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      // Toggle direction if same field
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      // Set new field with ascending direction
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
+
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -106,7 +129,7 @@ export default function PropsTracker() {
     }
   }, [isAuthenticated, isLoading, toast]);
 
-  // Set header icons for mobile header - filter and plus (left to right)
+  // Set header icons for mobile header - filter, sort and plus (left to right)
   useEffect(() => {
     if (isMobile) {
       setPageHeaderIcons([
@@ -114,6 +137,62 @@ export default function PropsTracker() {
           icon: Filter,
           onClick: () => setShowFilters(!showFilters),
           title: 'Filter props'
+        },
+        {
+          icon: ArrowUpDown,
+          onClick: () => {},
+          title: 'Sort props',
+          popover: {
+            content: (
+              <div className="space-y-1">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium leading-none">Sort by</h4>
+                  <button
+                    className="text-xs text-gray-500 hover:text-gray-700 underline"
+                    onClick={() => setSortField("")}
+                  >
+                    Reset
+                  </button>
+                </div>
+                <button
+                  className="w-full text-left px-2 py-1 text-sm rounded hover:bg-gray-100 flex items-center justify-between"
+                  onClick={() => handleSort('name')}
+                >
+                  Item
+                  {sortField === 'name' && (
+                    <span className="text-xs">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                  )}
+                </button>
+                <button
+                  className="w-full text-left px-2 py-1 text-sm rounded hover:bg-gray-100 flex items-center justify-between"
+                  onClick={() => handleSort('character')}
+                >
+                  Character
+                  {sortField === 'character' && (
+                    <span className="text-xs">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                  )}
+                </button>
+                <button
+                  className="w-full text-left px-2 py-1 text-sm rounded hover:bg-gray-100 flex items-center justify-between"
+                  onClick={() => handleSort('location')}
+                >
+                  Location
+                  {sortField === 'location' && (
+                    <span className="text-xs">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                  )}
+                </button>
+                <button
+                  className="w-full text-left px-2 py-1 text-sm rounded hover:bg-gray-100 flex items-center justify-between"
+                  onClick={() => handleSort('status')}
+                >
+                  Status
+                  {sortField === 'status' && (
+                    <span className="text-xs">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                  )}
+                </button>
+              </div>
+            )
+          }
         },
         {
           icon: Plus,
@@ -128,7 +207,7 @@ export default function PropsTracker() {
     return () => {
       clearPageHeaderIcons();
     };
-  }, [isMobile, showFilters]);
+  }, [isMobile, showFilters, sortField, sortDirection]);
 
   const { data: projects, isLoading: projectsLoading } = useQuery({
     queryKey: ["/api/projects"],
@@ -265,6 +344,21 @@ export default function PropsTracker() {
     const matchesScene = sceneFilter === "all" || prop.scene === sceneFilter;
     
     return matchesSearch && matchesStatus && matchesScene;
+  }).sort((a, b) => {
+    if (!sortField) return 0;
+    
+    let aValue = a[sortField as keyof Prop];
+    let bValue = b[sortField as keyof Prop];
+    
+    // Handle string comparison
+    if (typeof aValue === 'string' && typeof bValue === 'string') {
+      aValue = aValue.toLowerCase();
+      bValue = bValue.toLowerCase();
+    }
+    
+    if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
+    if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+    return 0;
   }) : [];
 
   const uniqueScenes = Array.isArray(props) ? [...new Set(props.map((prop: Prop) => prop.scene).filter(Boolean))] : [];
@@ -295,6 +389,67 @@ export default function PropsTracker() {
               >
                 <Filter className="h-4 w-4" />
               </Button>
+              
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 text-gray-600 hover:text-gray-900 bg-transparent hover:bg-transparent"
+                  >
+                    <ArrowUpDown className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-48" align="end">
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-medium leading-none">Sort by</h4>
+                      <button
+                        className="text-xs text-gray-500 hover:text-gray-700 underline"
+                        onClick={() => setSortField("")}
+                      >
+                        Reset
+                      </button>
+                    </div>
+                    <button
+                      className="w-full text-left px-2 py-1 text-sm rounded hover:bg-gray-100 flex items-center justify-between"
+                      onClick={() => handleSort('name')}
+                    >
+                      Item
+                      {sortField === 'name' && (
+                        <span className="text-xs">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                      )}
+                    </button>
+                    <button
+                      className="w-full text-left px-2 py-1 text-sm rounded hover:bg-gray-100 flex items-center justify-between"
+                      onClick={() => handleSort('character')}
+                    >
+                      Character
+                      {sortField === 'character' && (
+                        <span className="text-xs">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                      )}
+                    </button>
+                    <button
+                      className="w-full text-left px-2 py-1 text-sm rounded hover:bg-gray-100 flex items-center justify-between"
+                      onClick={() => handleSort('location')}
+                    >
+                      Location
+                      {sortField === 'location' && (
+                        <span className="text-xs">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                      )}
+                    </button>
+                    <button
+                      className="w-full text-left px-2 py-1 text-sm rounded hover:bg-gray-100 flex items-center justify-between"
+                      onClick={() => handleSort('status')}
+                    >
+                      Status
+                      {sortField === 'status' && (
+                        <span className="text-xs">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                      )}
+                    </button>
+                  </div>
+                </PopoverContent>
+              </Popover>
               
               <Button onClick={() => setIsAddingProp(true)}>
                 <Plus className="h-4 w-4 mr-2" />
@@ -370,10 +525,62 @@ export default function PropsTracker() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Item</TableHead>
-                  <TableHead>Scene/Character</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead 
+                    className="cursor-pointer hover:bg-gray-50 select-none"
+                    onClick={() => handleSort('name')}
+                  >
+                    <div className="flex items-center gap-1">
+                      Item
+                      <ArrowUpDown className="h-3 w-3 text-gray-400" />
+                      {sortField === 'name' && (
+                        <span className="text-gray-600 text-xs ml-1">
+                          {sortDirection === "asc" ? "↑" : "↓"}
+                        </span>
+                      )}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="cursor-pointer hover:bg-gray-50 select-none"
+                    onClick={() => handleSort('character')}
+                  >
+                    <div className="flex items-center gap-1">
+                      Scene/Character
+                      <ArrowUpDown className="h-3 w-3 text-gray-400" />
+                      {sortField === 'character' && (
+                        <span className="text-gray-600 text-xs ml-1">
+                          {sortDirection === "asc" ? "↑" : "↓"}
+                        </span>
+                      )}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="cursor-pointer hover:bg-gray-50 select-none"
+                    onClick={() => handleSort('location')}
+                  >
+                    <div className="flex items-center gap-1">
+                      Location
+                      <ArrowUpDown className="h-3 w-3 text-gray-400" />
+                      {sortField === 'location' && (
+                        <span className="text-gray-600 text-xs ml-1">
+                          {sortDirection === "asc" ? "↑" : "↓"}
+                        </span>
+                      )}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="cursor-pointer hover:bg-gray-50 select-none"
+                    onClick={() => handleSort('status')}
+                  >
+                    <div className="flex items-center gap-1">
+                      Status
+                      <ArrowUpDown className="h-3 w-3 text-gray-400" />
+                      {sortField === 'status' && (
+                        <span className="text-gray-600 text-xs ml-1">
+                          {sortDirection === "asc" ? "↑" : "↓"}
+                        </span>
+                      )}
+                    </div>
+                  </TableHead>
                   <TableHead>Qty</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
