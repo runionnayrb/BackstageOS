@@ -196,7 +196,7 @@ export default function PropsTracker() {
                       <SelectItem value="all">All Acts</SelectItem>
                       {uniqueActs.map((act) => (
                         <SelectItem key={act} value={act}>
-                          Act {act}
+                          {act.toLowerCase().startsWith('act') ? act : `Act ${act}`}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -213,7 +213,7 @@ export default function PropsTracker() {
                       <SelectItem value="all">All Scenes</SelectItem>
                       {uniqueScenes.map((scene) => (
                         <SelectItem key={scene} value={scene}>
-                          Scene {scene}
+                          {scene.toLowerCase().startsWith('scene') ? scene : `Scene ${scene}`}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -555,7 +555,7 @@ export default function PropsTracker() {
                           <SelectItem value="all">All Acts</SelectItem>
                           {uniqueActs.map((act) => (
                             <SelectItem key={act} value={act}>
-                              Act {act}
+                              {act.toLowerCase().startsWith('act') ? act : `Act ${act}`}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -572,7 +572,7 @@ export default function PropsTracker() {
                           <SelectItem value="all">All Scenes</SelectItem>
                           {uniqueScenes.map((scene) => (
                             <SelectItem key={scene} value={scene}>
-                              Scene {scene}
+                              {scene.toLowerCase().startsWith('scene') ? scene : `Scene ${scene}`}
                             </SelectItem>
                           ))}
                         </SelectContent>
