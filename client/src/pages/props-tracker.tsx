@@ -67,6 +67,8 @@ const consumableOptions = [
 const sortOptions = [
   { field: 'name', label: 'Item' },
   { field: 'character', label: 'Character' },
+  { field: 'act', label: 'Act' },
+  { field: 'scene', label: 'Scene' },
   { field: 'location', label: 'Location' },
   { field: 'status', label: 'Status' },
   { field: 'quantity', label: 'Quantity' },
@@ -690,13 +692,41 @@ export default function PropsTracker() {
                     </div>
                   </TableHead>
                   <TableHead 
-                    className="cursor-pointer hover:bg-gray-50 select-none w-40"
+                    className="cursor-pointer hover:bg-gray-50 select-none w-1/6"
                     onClick={() => handleSort('character')}
                   >
                     <div className="flex items-center gap-1">
-                      Scene/Character
+                      Character
                       <ArrowUpDown className="h-3 w-3 text-gray-400" />
                       {sortField === 'character' && (
+                        <span className="text-gray-600 text-xs ml-1">
+                          {sortDirection === "asc" ? "↑" : "↓"}
+                        </span>
+                      )}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="cursor-pointer hover:bg-gray-50 select-none w-1/8"
+                    onClick={() => handleSort('act')}
+                  >
+                    <div className="flex items-center gap-1">
+                      Act
+                      <ArrowUpDown className="h-3 w-3 text-gray-400" />
+                      {sortField === 'act' && (
+                        <span className="text-gray-600 text-xs ml-1">
+                          {sortDirection === "asc" ? "↑" : "↓"}
+                        </span>
+                      )}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="cursor-pointer hover:bg-gray-50 select-none w-1/8"
+                    onClick={() => handleSort('scene')}
+                  >
+                    <div className="flex items-center gap-1">
+                      Scene
+                      <ArrowUpDown className="h-3 w-3 text-gray-400" />
+                      {sortField === 'scene' && (
                         <span className="text-gray-600 text-xs ml-1">
                           {sortDirection === "asc" ? "↑" : "↓"}
                         </span>
@@ -751,7 +781,7 @@ export default function PropsTracker() {
               <TableBody>
                 {filteredProps.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
+                    <TableCell colSpan={8} className="text-center py-8">
                       <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                       <p className="text-muted-foreground">No props found</p>
                       <Button
@@ -784,12 +814,17 @@ export default function PropsTracker() {
                         </TableCell>
                         <TableCell>
                           <div>
-                            <div className="font-medium">
-                              {prop.act && prop.scene ? `Act ${prop.act}, Scene ${prop.scene}` : 
-                               prop.act ? `Act ${prop.act}` : 
-                               prop.scene ? `Scene ${prop.scene}` : '—'}
-                            </div>
-                            <div className="text-sm text-muted-foreground">{prop.character}</div>
+                            <div className="font-medium">{prop.character || '—'}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">
+                            {prop.act ? (prop.act.toLowerCase().startsWith('act') ? prop.act : `Act ${prop.act}`) : '—'}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">
+                            {prop.scene ? (prop.scene.toLowerCase().startsWith('scene') ? prop.scene : `Scene ${prop.scene}`) : '—'}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -867,18 +902,17 @@ export default function PropsTracker() {
                       </div>
                     </div>
                     
-                    <div className="flex items-center justify-between">
+                    <div className="text-sm text-muted-foreground">
+                      <div>
+                        {prop.act && prop.scene ? `Act ${prop.act}, Scene ${prop.scene}` : 
+                         prop.act ? `Act ${prop.act}` : 
+                         prop.scene ? `Scene ${prop.scene}` : ''}
+                      </div>
+                      <div>{prop.character}</div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between mt-2">
                       <div className="flex items-center gap-4 text-sm text-gray-600">
-                        {prop.character && (
-                          <span className="font-medium">{prop.character}</span>
-                        )}
-                        {(prop.act || prop.scene) && (
-                          <span>
-                            {prop.act && prop.scene ? `Act ${prop.act}, Scene ${prop.scene}` : 
-                             prop.act ? `Act ${prop.act}` : 
-                             prop.scene ? `Scene ${prop.scene}` : ''}
-                          </span>
-                        )}
                       </div>
                       
                       <Badge variant="secondary" className={`${statusInfo.color} text-xs px-2 py-1 flex-shrink-0`}>
