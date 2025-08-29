@@ -85,6 +85,7 @@ export default function PropsTracker() {
   const [editingProp, setEditingProp] = useState<Prop | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [actFilter, setActFilter] = useState<string>("all");
   const [sceneFilter, setSceneFilter] = useState<string>("all");
   const [sortField, setSortField] = useState<string>("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -147,6 +148,7 @@ export default function PropsTracker() {
                     onClick={() => {
                       setSearchTerm("");
                       setStatusFilter("all");
+                      setActFilter("all");
                       setSceneFilter("all");
                     }}
                   >
@@ -185,6 +187,23 @@ export default function PropsTracker() {
                 </div>
 
                 <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Act</label>
+                  <Select value={actFilter} onValueChange={setActFilter}>
+                    <SelectTrigger className="text-sm">
+                      <SelectValue placeholder="Filter by act" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Acts</SelectItem>
+                      {uniqueActs.map((act) => (
+                        <SelectItem key={act} value={act}>
+                          Act {act}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">Scene</label>
                   <Select value={sceneFilter} onValueChange={setSceneFilter}>
                     <SelectTrigger className="text-sm">
@@ -194,7 +213,7 @@ export default function PropsTracker() {
                       <SelectItem value="all">All Scenes</SelectItem>
                       {uniqueScenes.map((scene) => (
                         <SelectItem key={scene} value={scene}>
-                          {scene}
+                          Scene {scene}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -416,9 +435,10 @@ export default function PropsTracker() {
                          prop.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          prop.character.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || prop.status === statusFilter;
+    const matchesAct = actFilter === "all" || prop.act === actFilter;
     const matchesScene = sceneFilter === "all" || prop.scene === sceneFilter;
     
-    return matchesSearch && matchesStatus && matchesScene;
+    return matchesSearch && matchesStatus && matchesAct && matchesScene;
   }).sort((a, b) => {
     if (!sortField) return 0;
     
@@ -434,6 +454,13 @@ export default function PropsTracker() {
     if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
     if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
     return 0;
+  }) : [];
+
+  const uniqueActs = Array.isArray(props) ? [...new Set(props.map((prop: Prop) => prop.act).filter(Boolean))].sort((a, b) => {
+    // Extract numbers from act strings for numerical sorting
+    const aNum = parseFloat(a.replace(/[^0-9.]/g, '') || '0');
+    const bNum = parseFloat(b.replace(/[^0-9.]/g, '') || '0');
+    return aNum - bNum;
   }) : [];
 
   const uniqueScenes = Array.isArray(props) ? [...new Set(props.map((prop: Prop) => prop.scene).filter(Boolean))].sort((a, b) => {
@@ -480,6 +507,7 @@ export default function PropsTracker() {
                         onClick={() => {
                           setSearchTerm("");
                           setStatusFilter("all");
+                          setActFilter("all");
                           setSceneFilter("all");
                         }}
                       >
@@ -518,6 +546,23 @@ export default function PropsTracker() {
                     </div>
 
                     <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Act</label>
+                      <Select value={actFilter} onValueChange={setActFilter}>
+                        <SelectTrigger className="text-sm">
+                          <SelectValue placeholder="Filter by act" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Acts</SelectItem>
+                          {uniqueActs.map((act) => (
+                            <SelectItem key={act} value={act}>
+                              Act {act}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
                       <label className="text-sm font-medium text-gray-700">Scene</label>
                       <Select value={sceneFilter} onValueChange={setSceneFilter}>
                         <SelectTrigger className="text-sm">
@@ -527,7 +572,7 @@ export default function PropsTracker() {
                           <SelectItem value="all">All Scenes</SelectItem>
                           {uniqueScenes.map((scene) => (
                             <SelectItem key={scene} value={scene}>
-                              {scene}
+                              Scene {scene}
                             </SelectItem>
                           ))}
                         </SelectContent>
