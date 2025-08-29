@@ -672,9 +672,13 @@ export default function PropsTracker() {
                 </PopoverContent>
               </Popover>
               
-              <Button onClick={() => setIsAddingProp(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Prop
+              <Button
+                onClick={() => setIsAddingProp(true)}
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 text-gray-600 hover:text-gray-900 bg-transparent hover:bg-transparent"
+              >
+                <Plus className="h-4 w-4" />
               </Button>
             </div>
           </div>
