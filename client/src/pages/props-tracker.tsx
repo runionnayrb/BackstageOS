@@ -672,7 +672,7 @@ export default function PropsTracker() {
         {/* Desktop Props Table */}
         <Card className="mb-6 hidden md:block">
           <CardContent className="p-0">
-            <Table>
+            <Table className="table-fixed">
               <TableHeader>
                 <TableRow>
                   <TableHead 
