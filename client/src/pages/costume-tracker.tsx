@@ -676,7 +676,7 @@ export default function CostumeTracker() {
                     </div>
                   </TableHead>
                   <TableHead 
-                    className="cursor-pointer hover:bg-gray-50 select-none w-1/7"
+                    className="cursor-pointer hover:bg-gray-50 select-none w-20"
                     onClick={() => handleSort('act')}
                   >
                     <div className="flex items-center gap-1">
@@ -690,7 +690,7 @@ export default function CostumeTracker() {
                     </div>
                   </TableHead>
                   <TableHead 
-                    className="cursor-pointer hover:bg-gray-50 select-none w-1/7"
+                    className="cursor-pointer hover:bg-gray-50 select-none w-24"
                     onClick={() => handleSort('scene')}
                   >
                     <div className="flex items-center gap-1">
