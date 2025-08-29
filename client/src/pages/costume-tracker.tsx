@@ -90,7 +90,6 @@ export default function CostumeTracker() {
       setSortField(field);
       setSortDirection("asc");
     }
-    setShowSortPopover(false);
   };
 
   const [formData, setFormData] = useState({
