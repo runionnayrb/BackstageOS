@@ -70,9 +70,14 @@ export default function ShowDetail() {
       href: `/shows/${projectId}/script`,
     }] : []),
     ...(isFeatureEnabled('props') ? [{
-      id: "props-costumes",
+      id: "props",
       title: "Props",
       href: `/shows/${projectId}/props`,
+    }] : []),
+    ...(isFeatureEnabled('props') ? [{
+      id: "costumes",
+      title: "Costumes",
+      href: `/shows/${projectId}/costumes`,
     }] : []),
     ...(isFeatureEnabled('contacts') ? [{
       id: "contacts",
