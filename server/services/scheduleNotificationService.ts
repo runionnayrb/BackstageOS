@@ -349,7 +349,7 @@ BackstageOS • Professional Stage Management
         const backstageAccount = emailAccounts.find((account: any) => account.emailAddress?.includes('@backstageos.com'));
         replyToEmail = backstageAccount?.emailAddress || data.publishedBy.email;
       } else if (emailSenderConfig.replyToType === 'account') {
-        const user = await storage.getUser(data.publishedBy.id);
+        const user = await storage.getUser(data.publishedBy.id.toString());
         replyToEmail = user?.email || data.publishedBy.email;
       } else if (emailSenderConfig.replyToType === 'external' && emailSenderConfig.replyToEmail) {
         replyToEmail = emailSenderConfig.replyToEmail;
@@ -468,19 +468,19 @@ BackstageOS • Professional Stage Management
       }
 
       // Get project details
-      const project = await storage.getProject(projectId);
+      const project = await storage.getProjectById(projectId);
       if (!project) {
         throw new Error(`Project ${projectId} not found`);
       }
 
       // Get publisher details
-      const publishedBy = await storage.getUser(publishedByUserId);
+      const publishedBy = await storage.getUser(publishedByUserId.toString());
       if (!publishedBy) {
         throw new Error(`User ${publishedByUserId} not found`);
       }
 
       // Get project contacts
-      let contacts = await storage.getContactsByProject(projectId);
+      let contacts = await storage.getContactsByProjectId(projectId);
       
       // Filter contacts if specific contactIds provided
       if (contactIds && contactIds.length > 0) {
