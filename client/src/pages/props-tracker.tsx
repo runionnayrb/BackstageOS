@@ -436,7 +436,12 @@ export default function PropsTracker() {
     return 0;
   }) : [];
 
-  const uniqueScenes = Array.isArray(props) ? [...new Set(props.map((prop: Prop) => prop.scene).filter(Boolean))] : [];
+  const uniqueScenes = Array.isArray(props) ? [...new Set(props.map((prop: Prop) => prop.scene).filter(Boolean))].sort((a, b) => {
+    // Extract numbers from scene strings for numerical sorting
+    const aNum = parseFloat(a.replace(/[^0-9.]/g, '') || '0');
+    const bNum = parseFloat(b.replace(/[^0-9.]/g, '') || '0');
+    return aNum - bNum;
+  }) : [];
 
   if (isLoading || projectsLoading || propsLoading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
