@@ -625,6 +625,33 @@ export default function PropsTracker() {
                     </button>
                     <button
                       className="w-full text-left px-2 py-1 text-sm rounded hover:bg-gray-100 flex items-center justify-between"
+                      onClick={() => handleSort('act')}
+                    >
+                      Act
+                      {sortField === 'act' && (
+                        <span className="text-xs">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                      )}
+                    </button>
+                    <button
+                      className="w-full text-left px-2 py-1 text-sm rounded hover:bg-gray-100 flex items-center justify-between"
+                      onClick={() => handleSort('scene')}
+                    >
+                      Scene
+                      {sortField === 'scene' && (
+                        <span className="text-xs">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                      )}
+                    </button>
+                    <button
+                      className="w-full text-left px-2 py-1 text-sm rounded hover:bg-gray-100 flex items-center justify-between"
+                      onClick={() => handleSort('quantity')}
+                    >
+                      Quantity
+                      {sortField === 'quantity' && (
+                        <span className="text-xs">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                      )}
+                    </button>
+                    <button
+                      className="w-full text-left px-2 py-1 text-sm rounded hover:bg-gray-100 flex items-center justify-between"
                       onClick={() => handleSort('location')}
                     >
                       Location
@@ -638,15 +665,6 @@ export default function PropsTracker() {
                     >
                       Status
                       {sortField === 'status' && (
-                        <span className="text-xs">{sortDirection === "asc" ? "↑" : "↓"}</span>
-                      )}
-                    </button>
-                    <button
-                      className="w-full text-left px-2 py-1 text-sm rounded hover:bg-gray-100 flex items-center justify-between"
-                      onClick={() => handleSort('quantity')}
-                    >
-                      Quantity
-                      {sortField === 'quantity' && (
                         <span className="text-xs">{sortDirection === "asc" ? "↑" : "↓"}</span>
                       )}
                     </button>
@@ -678,7 +696,7 @@ export default function PropsTracker() {
               <TableHeader>
                 <TableRow>
                   <TableHead 
-                    className="cursor-pointer hover:bg-gray-50 select-none w-48"
+                    className="cursor-pointer hover:bg-gray-50 select-none w-1/5"
                     onClick={() => handleSort('name')}
                   >
                     <div className="flex items-center gap-1">
@@ -734,6 +752,20 @@ export default function PropsTracker() {
                     </div>
                   </TableHead>
                   <TableHead 
+                    className="cursor-pointer hover:bg-gray-50 select-none w-20"
+                    onClick={() => handleSort('quantity')}
+                  >
+                    <div className="flex items-center gap-1">
+                      Qty
+                      <ArrowUpDown className="h-3 w-3 text-gray-400" />
+                      {sortField === 'quantity' && (
+                        <span className="text-gray-600 text-xs ml-1">
+                          {sortDirection === "asc" ? "↑" : "↓"}
+                        </span>
+                      )}
+                    </div>
+                  </TableHead>
+                  <TableHead 
                     className="cursor-pointer hover:bg-gray-50 select-none w-32"
                     onClick={() => handleSort('location')}
                   >
@@ -755,20 +787,6 @@ export default function PropsTracker() {
                       Status
                       <ArrowUpDown className="h-3 w-3 text-gray-400" />
                       {sortField === 'status' && (
-                        <span className="text-gray-600 text-xs ml-1">
-                          {sortDirection === "asc" ? "↑" : "↓"}
-                        </span>
-                      )}
-                    </div>
-                  </TableHead>
-                  <TableHead 
-                    className="cursor-pointer hover:bg-gray-50 select-none w-20"
-                    onClick={() => handleSort('quantity')}
-                  >
-                    <div className="flex items-center gap-1">
-                      Qty
-                      <ArrowUpDown className="h-3 w-3 text-gray-400" />
-                      {sortField === 'quantity' && (
                         <span className="text-gray-600 text-xs ml-1">
                           {sortDirection === "asc" ? "↑" : "↓"}
                         </span>
@@ -827,6 +845,7 @@ export default function PropsTracker() {
                             {prop.scene ? (prop.scene.toLowerCase().startsWith('scene') ? prop.scene : `Scene ${prop.scene}`) : '—'}
                           </div>
                         </TableCell>
+                        <TableCell>{prop.quantity}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
                             <MapPin className="h-4 w-4 text-muted-foreground" />
@@ -838,7 +857,6 @@ export default function PropsTracker() {
                             {statusInfo.label}
                           </Badge>
                         </TableCell>
-                        <TableCell>{prop.quantity}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Button
