@@ -69,6 +69,7 @@ const sortOptions = [
   { field: 'character', label: 'Character' },
   { field: 'location', label: 'Location' },
   { field: 'status', label: 'Status' },
+  { field: 'quantity', label: 'Quantity' },
 ];
 
 export default function PropsTracker() {
@@ -187,6 +188,15 @@ export default function PropsTracker() {
                 >
                   Status
                   {sortField === 'status' && (
+                    <span className="text-xs">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                  )}
+                </button>
+                <button
+                  className="w-full text-left px-2 py-1 text-sm rounded hover:bg-gray-100 flex items-center justify-between"
+                  onClick={() => handleSort('quantity')}
+                >
+                  Quantity
+                  {sortField === 'quantity' && (
                     <span className="text-xs">{sortDirection === "asc" ? "↑" : "↓"}</span>
                   )}
                 </button>
@@ -447,6 +457,15 @@ export default function PropsTracker() {
                         <span className="text-xs">{sortDirection === "asc" ? "↑" : "↓"}</span>
                       )}
                     </button>
+                    <button
+                      className="w-full text-left px-2 py-1 text-sm rounded hover:bg-gray-100 flex items-center justify-between"
+                      onClick={() => handleSort('quantity')}
+                    >
+                      Quantity
+                      {sortField === 'quantity' && (
+                        <span className="text-xs">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                      )}
+                    </button>
                   </div>
                 </PopoverContent>
               </Popover>
@@ -581,7 +600,20 @@ export default function PropsTracker() {
                       )}
                     </div>
                   </TableHead>
-                  <TableHead>Qty</TableHead>
+                  <TableHead 
+                    className="cursor-pointer hover:bg-gray-50 select-none"
+                    onClick={() => handleSort('quantity')}
+                  >
+                    <div className="flex items-center gap-1">
+                      Qty
+                      <ArrowUpDown className="h-3 w-3 text-gray-400" />
+                      {sortField === 'quantity' && (
+                        <span className="text-gray-600 text-xs ml-1">
+                          {sortDirection === "asc" ? "↑" : "↓"}
+                        </span>
+                      )}
+                    </div>
+                  </TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
