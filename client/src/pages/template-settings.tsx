@@ -763,8 +763,8 @@ export default function TemplateSettings() {
       // Clear the save flag to allow normal layout updates
       (window as any).savingLayout = false;
       
-      // Now it's safe to exit edit mode since save completed successfully
-      setIsEditMode(false);
+      // Don't exit edit mode immediately - let user manually unlock/lock again to prevent layout reset
+      // The save is complete but layout should stay as user dragged it
       
       // Clear pending changes
       setPendingChanges({
