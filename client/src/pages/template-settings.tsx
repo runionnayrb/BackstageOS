@@ -766,7 +766,7 @@ export default function TemplateSettings() {
         ...prev,
         [selectedPhase]: {
           ...prev[selectedPhase],
-          layoutConfiguration: dataToSave.layoutConfiguration || pendingChanges.layoutConfiguration
+          layoutConfiguration: pendingChanges.layoutConfiguration || prev[selectedPhase].layoutConfiguration
         }
       }));
       
