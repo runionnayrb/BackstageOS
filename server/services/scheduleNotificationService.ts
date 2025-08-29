@@ -394,6 +394,61 @@ BackstageOS • Professional Stage Management
   }
 
   /**
+   * Optimized send notification method that uses pre-computed sender config
+   */
+  private async sendOptimizedNotificationToContact(
+    data: ScheduleNotificationData,
+    contact: ContactNotificationData,
+    template: any,
+    personalScheduleUrl: string,
+    senderName: string,
+    fromEmail: string,
+    replyToEmail: string
+  ) {
+    try {
+      const subject = await this.replaceTemplateVariables(template.subject, data, contact, personalScheduleUrl);
+      const htmlContent = await this.replaceTemplateVariables(template.htmlContent, data, contact, personalScheduleUrl);
+      const textContent = await this.replaceTemplateVariables(template.textContent, data, contact, personalScheduleUrl);
+
+      await standaloneEmailService.sendEmail({
+        to: contact.email,
+        subject,
+        html: htmlContent,
+        text: textContent,
+        from: {
+          name: senderName,
+          email: fromEmail
+        },
+        replyTo: replyToEmail
+      });
+
+      // Log notification sent
+      await storage.createScheduleVersionNotification({
+        versionId: data.version.id,
+        contactId: contact.id,
+        emailAddress: contact.email,
+        sentAt: new Date(),
+        status: 'sent'
+      });
+
+      console.log(`✅ Schedule notification sent to ${contact.email} for ${data.project.name} v${data.version.version}`);
+      
+    } catch (error) {
+      console.error(`❌ Failed to send schedule notification to ${contact.email}:`, error);
+      
+      // Log failed notification
+      await storage.createScheduleVersionNotification({
+        versionId: data.version.id,
+        contactId: contact.id,
+        emailAddress: contact.email,
+        sentAt: new Date(),
+        status: 'failed',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  /**
    * Send schedule update notifications to all project contacts or specific contacts
    */
   public async sendScheduleUpdateNotifications(
@@ -438,8 +493,26 @@ BackstageOS • Professional Stage Management
         return;
       }
 
-      // Get email template
-      const template = await this.getEmailTemplate(projectId, version.versionType);
+      // Get email template and shared data once (optimization to reduce DB calls)
+      const [template, scheduleSettings, emailAccounts] = await Promise.all([
+        this.getEmailTemplate(projectId, version.versionType),
+        storage.getShowSettings(projectId),
+        storage.getEmailAccountsByUserId(publishedByUserId)
+      ]);
+
+      // Prepare common sender configuration
+      const emailSenderConfig = scheduleSettings?.scheduleSettings?.emailSender || {};
+      const senderName = emailSenderConfig.senderName || `${project.name} SM`;
+      const fromEmail = 'schedules@backstageos.com';
+      
+      // Determine reply-to email once
+      let replyToEmail = publishedBy.email; // Default fallback
+      if (emailSenderConfig.replyToType === 'backstage_email') {
+        const backstageAccount = emailAccounts.find((account: any) => account.emailAddress?.includes('@backstageos.com'));
+        replyToEmail = backstageAccount?.emailAddress || publishedBy.email;
+      } else if (emailSenderConfig.replyToType === 'external' && emailSenderConfig.replyToEmail) {
+        replyToEmail = emailSenderConfig.replyToEmail;
+      }
 
       // Prepare notification data
       const notificationData: ScheduleNotificationData = {
@@ -466,28 +539,36 @@ BackstageOS • Professional Stage Management
 
       console.log(`📬 Sending notifications to ${contacts.length} contacts...`);
 
-      // Send notifications to all contacts
+      // Send notifications to all contacts with optimized DB usage
       for (const contact of contacts) {
-        // Generate personal schedule access token
-        const accessToken = await this.generatePersonalSchedule(projectId, contact.id, versionId);
-        const personalScheduleUrl = `${process.env.REPLIT_HOST || 'https://backstageos.com'}/personal-schedule/${accessToken}`;
+        try {
+          // Generate personal schedule access token
+          const accessToken = await this.generatePersonalSchedule(projectId, contact.id, versionId);
+          const personalScheduleUrl = `${process.env.REPLIT_HOST || 'https://backstageos.com'}/personal-schedule/${accessToken}`;
 
-        // Send notification
-        await this.sendNotificationToContact(
-          notificationData,
-          {
-            id: contact.id,
-            email: contact.email,
-            firstName: contact.firstName,
-            lastName: contact.lastName,
-            contactType: contact.contactType
-          },
-          template,
-          personalScheduleUrl
-        );
+          // Send notification with pre-computed sender config
+          await this.sendOptimizedNotificationToContact(
+            notificationData,
+            {
+              id: contact.id,
+              email: contact.email,
+              firstName: contact.firstName,
+              lastName: contact.lastName,
+              contactType: contact.contactType
+            },
+            template,
+            personalScheduleUrl,
+            senderName,
+            fromEmail,
+            replyToEmail
+          );
 
-        // Small delay to avoid overwhelming email service
-        await new Promise(resolve => setTimeout(resolve, 100));
+          // Small delay to avoid overwhelming email service
+          await new Promise(resolve => setTimeout(resolve, 100));
+        } catch (contactError) {
+          console.error(`❌ Failed to send notification to ${contact.email}:`, contactError);
+          // Continue with other contacts
+        }
       }
 
       console.log(`✅ Schedule notification process completed for ${project.name} v${version.version}`);
