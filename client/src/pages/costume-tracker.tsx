@@ -355,46 +355,48 @@ export default function CostumeTracker() {
                     <ArrowUpDown className="h-4 w-4" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-48 p-2" align="end">
-                  <div className="space-y-1">
-                    <div className="text-sm font-medium text-gray-900 px-2 py-1 border-b border-gray-200 mb-1">
+                <PopoverContent className="w-48 p-0 bg-white border border-gray-200 shadow-lg z-50" align="end">
+                  <div className="p-2">
+                    <div className="text-sm font-semibold text-gray-900 px-2 py-2 border-b border-gray-200 mb-2">
                       Sort by
                     </div>
-                    <div
-                      className="px-2 py-1 text-sm cursor-pointer hover:bg-gray-100 rounded flex items-center justify-between"
-                      onClick={() => handleSort('character')}
-                    >
-                      <span>Character</span>
-                      {sortField === 'character' && (
-                        <span className="text-gray-500">{sortDirection === "asc" ? "↑" : "↓"}</span>
-                      )}
-                    </div>
-                    <div
-                      className="px-2 py-1 text-sm cursor-pointer hover:bg-gray-100 rounded flex items-center justify-between"
-                      onClick={() => handleSort('piece')}
-                    >
-                      <span>Costume</span>
-                      {sortField === 'piece' && (
-                        <span className="text-gray-500">{sortDirection === "asc" ? "↑" : "↓"}</span>
-                      )}
-                    </div>
-                    <div
-                      className="px-2 py-1 text-sm cursor-pointer hover:bg-gray-100 rounded flex items-center justify-between"
-                      onClick={() => handleSort('scene')}
-                    >
-                      <span>Scene</span>
-                      {sortField === 'scene' && (
-                        <span className="text-gray-500">{sortDirection === "asc" ? "↑" : "↓"}</span>
-                      )}
-                    </div>
-                    <div
-                      className="px-2 py-1 text-sm cursor-pointer hover:bg-gray-100 rounded flex items-center justify-between"
-                      onClick={() => handleSort('status')}
-                    >
-                      <span>Status</span>
-                      {sortField === 'status' && (
-                        <span className="text-gray-500">{sortDirection === "asc" ? "↑" : "↓"}</span>
-                      )}
+                    <div className="space-y-1">
+                      <div
+                        className="px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 rounded text-gray-900 flex items-center justify-between transition-colors"
+                        onClick={() => handleSort('character')}
+                      >
+                        <span>Character</span>
+                        {sortField === 'character' && (
+                          <span className="text-gray-500 font-medium">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                        )}
+                      </div>
+                      <div
+                        className="px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 rounded text-gray-900 flex items-center justify-between transition-colors"
+                        onClick={() => handleSort('piece')}
+                      >
+                        <span>Costume</span>
+                        {sortField === 'piece' && (
+                          <span className="text-gray-500 font-medium">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                        )}
+                      </div>
+                      <div
+                        className="px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 rounded text-gray-900 flex items-center justify-between transition-colors"
+                        onClick={() => handleSort('scene')}
+                      >
+                        <span>Scene</span>
+                        {sortField === 'scene' && (
+                          <span className="text-gray-500 font-medium">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                        )}
+                      </div>
+                      <div
+                        className="px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 rounded text-gray-900 flex items-center justify-between transition-colors"
+                        onClick={() => handleSort('status')}
+                      >
+                        <span>Status</span>
+                        {sortField === 'status' && (
+                          <span className="text-gray-500 font-medium">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </PopoverContent>
@@ -761,46 +763,48 @@ export default function CostumeTracker() {
           <PopoverTrigger asChild>
             <div />
           </PopoverTrigger>
-          <PopoverContent className="w-48 p-2" side="top" align="center">
-            <div className="space-y-1">
-              <div className="text-sm font-medium text-gray-900 px-2 py-1 border-b border-gray-200 mb-1">
+          <PopoverContent className="w-48 p-0 bg-white border border-gray-200 shadow-lg z-50" side="top" align="center">
+            <div className="p-2">
+              <div className="text-sm font-semibold text-gray-900 px-2 py-2 border-b border-gray-200 mb-2">
                 Sort by
               </div>
-              <div
-                className="px-2 py-1 text-sm cursor-pointer hover:bg-gray-100 rounded flex items-center justify-between"
-                onClick={() => handleSort('character')}
-              >
-                <span>Character</span>
-                {sortField === 'character' && (
-                  <span className="text-gray-500">{sortDirection === "asc" ? "↑" : "↓"}</span>
-                )}
-              </div>
-              <div
-                className="px-2 py-1 text-sm cursor-pointer hover:bg-gray-100 rounded flex items-center justify-between"
-                onClick={() => handleSort('piece')}
-              >
-                <span>Costume</span>
-                {sortField === 'piece' && (
-                  <span className="text-gray-500">{sortDirection === "asc" ? "↑" : "↓"}</span>
-                )}
-              </div>
-              <div
-                className="px-2 py-1 text-sm cursor-pointer hover:bg-gray-100 rounded flex items-center justify-between"
-                onClick={() => handleSort('scene')}
-              >
-                <span>Scene</span>
-                {sortField === 'scene' && (
-                  <span className="text-gray-500">{sortDirection === "asc" ? "↑" : "↓"}</span>
-                )}
-              </div>
-              <div
-                className="px-2 py-1 text-sm cursor-pointer hover:bg-gray-100 rounded flex items-center justify-between"
-                onClick={() => handleSort('status')}
-              >
-                <span>Status</span>
-                {sortField === 'status' && (
-                  <span className="text-gray-500">{sortDirection === "asc" ? "↑" : "↓"}</span>
-                )}
+              <div className="space-y-1">
+                <div
+                  className="px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 rounded text-gray-900 flex items-center justify-between transition-colors"
+                  onClick={() => handleSort('character')}
+                >
+                  <span>Character</span>
+                  {sortField === 'character' && (
+                    <span className="text-gray-500 font-medium">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                  )}
+                </div>
+                <div
+                  className="px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 rounded text-gray-900 flex items-center justify-between transition-colors"
+                  onClick={() => handleSort('piece')}
+                >
+                  <span>Costume</span>
+                  {sortField === 'piece' && (
+                    <span className="text-gray-500 font-medium">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                  )}
+                </div>
+                <div
+                  className="px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 rounded text-gray-900 flex items-center justify-between transition-colors"
+                  onClick={() => handleSort('scene')}
+                >
+                  <span>Scene</span>
+                  {sortField === 'scene' && (
+                    <span className="text-gray-500 font-medium">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                  )}
+                </div>
+                <div
+                  className="px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 rounded text-gray-900 flex items-center justify-between transition-colors"
+                  onClick={() => handleSort('status')}
+                >
+                  <span>Status</span>
+                  {sortField === 'status' && (
+                    <span className="text-gray-500 font-medium">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                  )}
+                </div>
               </div>
             </div>
           </PopoverContent>
