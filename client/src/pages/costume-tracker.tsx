@@ -662,13 +662,41 @@ export default function CostumeTracker() {
                     </div>
                   </TableHead>
                   <TableHead 
-                    className="cursor-pointer hover:bg-gray-50 select-none w-40"
+                    className="cursor-pointer hover:bg-gray-50 select-none w-1/6"
                     onClick={() => handleSort('character')}
                   >
                     <div className="flex items-center gap-1">
-                      Scene/Character
+                      Character
                       <ArrowUpDown className="h-3 w-3 text-gray-400" />
                       {sortField === 'character' && (
+                        <span className="text-gray-600 text-xs ml-1">
+                          {sortDirection === "asc" ? "↑" : "↓"}
+                        </span>
+                      )}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="cursor-pointer hover:bg-gray-50 select-none w-1/8"
+                    onClick={() => handleSort('act')}
+                  >
+                    <div className="flex items-center gap-1">
+                      Act
+                      <ArrowUpDown className="h-3 w-3 text-gray-400" />
+                      {sortField === 'act' && (
+                        <span className="text-gray-600 text-xs ml-1">
+                          {sortDirection === "asc" ? "↑" : "↓"}
+                        </span>
+                      )}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="cursor-pointer hover:bg-gray-50 select-none w-1/8"
+                    onClick={() => handleSort('scene')}
+                  >
+                    <div className="flex items-center gap-1">
+                      Scene
+                      <ArrowUpDown className="h-3 w-3 text-gray-400" />
+                      {sortField === 'scene' && (
                         <span className="text-gray-600 text-xs ml-1">
                           {sortDirection === "asc" ? "↑" : "↓"}
                         </span>
@@ -724,12 +752,17 @@ export default function CostumeTracker() {
                         </TableCell>
                         <TableCell>
                           <div>
-                            <div className="font-medium">
-                              {costume.act && costume.scene ? `Act ${costume.act}, Scene ${costume.scene}` : 
-                               costume.act ? `Act ${costume.act}` : 
-                               costume.scene ? `Scene ${costume.scene}` : '—'}
-                            </div>
-                            <div className="text-sm text-muted-foreground">{costume.character}</div>
+                            <div className="font-medium">{costume.character || '—'}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">
+                            {costume.act ? (costume.act.toLowerCase().startsWith('act') ? costume.act : `Act ${costume.act}`) : '—'}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">
+                            {costume.scene ? (costume.scene.toLowerCase().startsWith('scene') ? costume.scene : `Scene ${costume.scene}`) : '—'}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -799,12 +832,7 @@ export default function CostumeTracker() {
                       <div>
                         <div className="font-medium text-base">{costume.piece}</div>
                         <div className="text-sm text-muted-foreground">
-                          <div>
-                            {costume.act && costume.scene ? `Act ${costume.act}, Scene ${costume.scene}` : 
-                             costume.act ? `Act ${costume.act}` : 
-                             costume.scene ? `Scene ${costume.scene}` : ''}
-                          </div>
-                          <div>{costume.character}</div>
+                          {[costume.act, costume.scene, costume.character].filter(Boolean).join(' • ')}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
