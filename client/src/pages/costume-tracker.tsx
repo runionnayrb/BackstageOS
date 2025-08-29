@@ -355,19 +355,22 @@ export default function CostumeTracker() {
                     <ArrowUpDown className="h-4 w-4" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-40 p-1" align="end">
+                <PopoverContent className="w-48 p-1" align="end">
                   <div className="grid gap-1">
+                    <div className="text-sm font-medium text-gray-900 px-3 py-2 border-b border-gray-100">
+                      Sort by
+                    </div>
                     {sortOptions.map((option) => (
                       <Button
                         key={option.field}
                         variant="ghost"
                         size="sm"
-                        className="justify-start text-left h-8 px-2 hover:bg-gray-100"
+                        className="w-full justify-start text-left h-9 px-3 hover:bg-gray-100 text-gray-900"
                         onClick={() => handleSort(option.field)}
                       >
-                        <span className="text-sm">{option.label}</span>
+                        <span className="text-sm font-medium">{option.label}</span>
                         {sortField === option.field && (
-                          <span className="ml-auto text-xs text-gray-500">
+                          <span className="ml-auto text-sm text-gray-600">
                             {sortDirection === "asc" ? "↑" : "↓"}
                           </span>
                         )}
@@ -738,20 +741,22 @@ export default function CostumeTracker() {
           <PopoverTrigger asChild>
             <div />
           </PopoverTrigger>
-          <PopoverContent className="w-48 p-2" side="top" align="center">
-            <div className="space-y-1">
-              <div className="text-sm font-medium text-gray-700 px-2 py-1">Sort by</div>
+          <PopoverContent className="w-48 p-1" side="top" align="center">
+            <div className="grid gap-1">
+              <div className="text-sm font-medium text-gray-900 px-3 py-2 border-b border-gray-100">
+                Sort by
+              </div>
               {sortOptions.map((option) => (
                 <Button
                   key={option.field}
                   variant="ghost"
                   size="sm"
-                  className="w-full justify-start text-left h-10 px-2 hover:bg-gray-100"
+                  className="w-full justify-start text-left h-9 px-3 hover:bg-gray-100 text-gray-900"
                   onClick={() => handleSort(option.field)}
                 >
-                  <span className="text-sm">{option.label}</span>
+                  <span className="text-sm font-medium">{option.label}</span>
                   {sortField === option.field && (
-                    <span className="ml-auto text-xs text-gray-500">
+                    <span className="ml-auto text-sm text-gray-600">
                       {sortDirection === "asc" ? "↑" : "↓"}
                     </span>
                   )}
