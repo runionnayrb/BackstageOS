@@ -664,16 +664,10 @@ export default function TemplateSettings() {
       
       touchSettings();
       
-      // CRITICAL FIX: Force refresh of ALL related queries to ensure layout changes are loaded
-      console.log('🔄 GLOBAL SAVE: Invalidating queries to refresh data...');
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/templates`] });
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
+      // Keep layout stable after save - no immediate cache invalidation
+      console.log('💾 GLOBAL SAVE: Data saved successfully, maintaining current layout state');
       
-      // Force immediate refetch to ensure data consistency
-      setTimeout(() => {
-        console.log('🔄 FORCED REFETCH: Re-fetching settings to ensure latest data loaded');
-        queryClient.refetchQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
-      }, 100);
+      // Layout will remain stable - no forced refetch needed
     },
     onError: (error) => {
       setIsSaving(false);
@@ -772,12 +766,8 @@ export default function TemplateSettings() {
       
       console.log('🧹 GLOBAL SAVE: Pending changes cleared after successful save');
       
-      // CRITICAL FIX: Wait for cache invalidation to complete before showing success
-      console.log('🔄 Refreshing data and waiting for completion...');
-      await queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
-      
-      // Wait a bit more to ensure data is fully refreshed
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Don't invalidate settings query immediately after save to prevent layout reset
+      console.log('✅ Save completed - keeping current layout state');
       console.log('✅ Cache refresh completed - data is now current');
       
       toast({
