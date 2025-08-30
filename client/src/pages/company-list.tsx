@@ -3,7 +3,7 @@ import { useLocation, useParams } from "wouter";
 import { 
   ArrowLeft, Settings, GripVertical, Printer, Eye, Edit,
   Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight,
-  Palette, Type, Square, Minus, ChevronDown, Grid3X3, Clipboard, GitBranch, Check
+  Palette, Type, Square, Minus, ChevronDown, Grid3X3, Clipboard, GitBranch, Check, Users
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -54,11 +54,11 @@ export default function CompanyList() {
   const queryClient = useQueryClient();
 
   const defaultCategories = [
-    { id: "cast", title: "Cast" },
-    { id: "crew", title: "Crew" },
-    { id: "stage_management", title: "Stage Management" },
-    { id: "creative_team", title: "Creative Team" },
-    { id: "theater_staff", title: "Theater Staff" },
+    { id: "cast", title: "Cast", visible: true },
+    { id: "crew", title: "Crew", visible: true },
+    { id: "stage_management", title: "Stage Management", visible: true },
+    { id: "creative_team", title: "Creative Team", visible: true },
+    { id: "theater_staff", title: "Theater Staff", visible: true },
   ];
 
   const defaultColumns: Column[] = [
@@ -1438,12 +1438,12 @@ export default function CompanyList() {
                 overflow: 'hidden'
               }}
             >
-              {categories.map((category, categoryIndex) => {
+              {categories.filter(cat => cat.visible !== false).map((category, categoryIndex) => {
                 const categoryContacts = contactsByCategory[category.id] || [];
                 
                 if (categoryContacts.length === 0) return null;
 
-                const visibleCategories = categories.filter(cat => (contactsByCategory[cat.id] || []).length > 0);
+                const visibleCategories = categories.filter(cat => cat.visible !== false && (contactsByCategory[cat.id] || []).length > 0);
                 const isNotFirstCategory = visibleCategories.indexOf(category) > 0;
 
                 return (
@@ -1649,6 +1649,71 @@ export default function CompanyList() {
               </label>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Categories Settings Panel - Hidden in print and preview mode */}
+      {!isPreviewMode && (
+        <div className="fixed right-4 top-1/2 transform translate-y-32 bg-white border rounded-lg shadow-lg p-4 print:hidden">
+          <h4 className="font-semibold mb-3 flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            Categories
+          </h4>
+          <div className="space-y-2 mb-3">
+            {categories.map((category, index) => (
+              <div 
+                key={category.id}
+                className="flex items-center gap-2 text-sm p-1 rounded hover:bg-gray-50 cursor-grab"
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.setData('text/plain', index.toString());
+                }}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const dragIndex = parseInt(e.dataTransfer.getData('text/plain'));
+                  const hoverIndex = index;
+                  
+                  if (dragIndex !== hoverIndex) {
+                    setCategories(prev => {
+                      const newCategories = [...prev];
+                      const draggedItem = newCategories[dragIndex];
+                      newCategories.splice(dragIndex, 1);
+                      newCategories.splice(hoverIndex, 0, draggedItem);
+                      return newCategories;
+                    });
+                  }
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={category.visible !== false}
+                  onChange={(e) => {
+                    setCategories(prev => prev.map((cat, idx) => 
+                      idx === index ? { ...cat, visible: e.target.checked } : cat
+                    ));
+                  }}
+                  className="rounded"
+                />
+                <span className="flex-1">{category.title}</span>
+                <GripVertical className="h-3 w-3 text-gray-400" />
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={() => {
+              setCategories([
+                { id: 'cast', title: 'Cast', visible: true },
+                { id: 'crew', title: 'Crew', visible: true },
+                { id: 'stage_management', title: 'Stage Management', visible: true },
+                { id: 'creative_team', title: 'Creative Team', visible: true },
+                { id: 'theater_staff', title: 'Theater Staff', visible: true }
+              ]);
+            }}
+            className="w-full text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-50 px-2 py-1 rounded transition-colors"
+          >
+            Reset Order
+          </button>
         </div>
       )}
 
