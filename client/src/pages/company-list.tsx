@@ -1395,7 +1395,7 @@ export default function CompanyList() {
                   ref={editingElement?.type === 'header' ? editingRef : null}
                   contentEditable
                   className="text-center text-lg font-semibold bg-transparent border-none outline-2 outline-blue-500 outline-dashed focus:outline-dashed min-h-[24px] cursor-text"
-                  style={{ lineHeight: '1.2' }}
+                  style={{ lineHeight: '1.2', direction: 'ltr' }}
                   dangerouslySetInnerHTML={{ __html: headerText }}
                   onInput={(e) => {
                     const target = e.target as HTMLDivElement;
@@ -1591,7 +1591,7 @@ export default function CompanyList() {
                   ref={editingElement?.type === 'footer' ? editingRef : null}
                   contentEditable
                   className="text-center text-xs text-gray-500 bg-transparent border-none outline-2 outline-blue-500 outline-dashed focus:outline-dashed min-h-[16px] cursor-text"
-                  style={{ lineHeight: '1.2' }}
+                  style={{ lineHeight: '1.2', direction: 'ltr' }}
                   dangerouslySetInnerHTML={{ __html: footerText }}
                   onInput={(e) => {
                     const target = e.target as HTMLDivElement;
