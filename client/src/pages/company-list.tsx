@@ -1490,7 +1490,7 @@ export default function CompanyList() {
                           fontStyle: headerItalic ? 'italic' : 'normal',
                           textDecoration: headerUnderline ? 'underline' : 'none',
                           color: headerTextColor,
-                          padding: '4px 0'
+                          padding: '4px 8px'
                         }}
                       >
                         {category.title}
