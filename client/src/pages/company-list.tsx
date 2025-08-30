@@ -464,6 +464,10 @@ export default function CompanyList() {
     setTimeout(() => {
       const editableElement = document.querySelector(`[contenteditable="true"]`) as HTMLDivElement;
       if (editableElement) {
+        // Set the content first
+        const currentContent = type === 'header' ? headerText : footerText;
+        editableElement.innerHTML = currentContent;
+        
         editableElement.focus();
         
         // Place cursor at end of content
@@ -1396,7 +1400,7 @@ export default function CompanyList() {
                   contentEditable
                   className="text-center text-lg font-semibold bg-transparent border-none outline-2 outline-blue-500 outline-dashed focus:outline-dashed min-h-[24px] cursor-text"
                   style={{ lineHeight: '1.2', direction: 'ltr' }}
-                  dangerouslySetInnerHTML={{ __html: headerText }}
+                  suppressContentEditableWarning={true}
                   onInput={(e) => {
                     const target = e.target as HTMLDivElement;
                     const content = target.innerHTML;
@@ -1592,7 +1596,7 @@ export default function CompanyList() {
                   contentEditable
                   className="text-center text-xs text-gray-500 bg-transparent border-none outline-2 outline-blue-500 outline-dashed focus:outline-dashed min-h-[16px] cursor-text"
                   style={{ lineHeight: '1.2', direction: 'ltr' }}
-                  dangerouslySetInnerHTML={{ __html: footerText }}
+                  suppressContentEditableWarning={true}
                   onInput={(e) => {
                     const target = e.target as HTMLDivElement;
                     const content = target.innerHTML;
