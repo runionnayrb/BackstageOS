@@ -1344,76 +1344,18 @@ export default function ContactSheet() {
       </div>
 
       {/* Print Preview Container */}
-      <div className="px-8 print:p-0 space-y-8 print:space-y-0">
-        {(() => {
-          // Calculate pagination
-          const estimatedRowHeight = rowHeight + 2;
-          const usablePageHeight = 11 * 96 - pageMargins.top * 96 - pageMargins.bottom * 96 - headerFooterMargins.header * 96 - headerFooterMargins.footer * 96;
-          const maxRowsPerPage = Math.floor(usablePageHeight / estimatedRowHeight) - 5; // Reserve space for category headers
-          
-          // Collect all contacts and group by pages
-          const allItems = [];
-          categories.forEach(category => {
-            const categoryContacts = contactsByCategory[category.id] || [];
-            if (categoryContacts.length > 0) {
-              allItems.push({ type: 'category', category });
-              categoryContacts.forEach(contact => {
-                allItems.push({ type: 'contact', contact, category });
-              });
-            }
-          });
-          
-          // Split into pages
-          const pages = [];
-          let currentPage = [];
-          let currentRowCount = 0;
-          
-          allItems.forEach(item => {
-            if (item.type === 'category') {
-              // Always allow category headers, but check if we're near page limit
-              if (currentRowCount > maxRowsPerPage - 5 && currentPage.length > 0) {
-                pages.push([...currentPage]);
-                currentPage = [];
-                currentRowCount = 0;
-              }
-              currentPage.push(item);
-              currentRowCount += 1;
-            } else {
-              // Check if adding this contact would exceed page limit
-              if (currentRowCount >= maxRowsPerPage && currentPage.length > 0) {
-                pages.push([...currentPage]);
-                currentPage = [];
-                currentRowCount = 0;
-              }
-              currentPage.push(item);
-              currentRowCount += 1;
-            }
-          });
-          
-          // Add remaining items as last page
-          if (currentPage.length > 0) {
-            pages.push(currentPage);
-          }
-          
-          // If no pages, create one empty page
-          if (pages.length === 0) {
-            pages.push([]);
-          }
-          
-          return pages.map((pageItems, pageIndex) => (
-            <div key={pageIndex}>
-              {/* Page boundaries box */}
-              <div 
-                className="max-w-none mx-auto bg-white shadow-lg print:shadow-none print:max-w-none" 
-                style={{ 
-                  width: '8.5in', 
-                  height: '11in',
-                  boxSizing: 'border-box',
-                  border: isPreviewMode ? 'none' : '1px solid #e5e5e5',
-                  position: 'relative',
-                  pageBreakAfter: pageIndex < pages.length - 1 ? 'always' : 'auto'
-                }}
-              >
+      <div className="px-8 print:p-0">
+        {/* Page boundaries box */}
+        <div 
+          className="max-w-none mx-auto bg-white shadow-lg print:shadow-none print:max-w-none" 
+          style={{ 
+            width: '8.5in', 
+            minHeight: '11in',
+            boxSizing: 'border-box',
+            border: isPreviewMode ? 'none' : '1px solid #e5e5e5',
+            position: 'relative'
+          }}
+        >
           {/* Debug margin indicators - only in edit mode */}
           {!isPreviewMode && (
             <>
