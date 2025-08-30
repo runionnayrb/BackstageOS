@@ -1037,7 +1037,7 @@ export default function ContactSheet() {
                     onClick={() => setActiveTarget('header')}
                     className={`px-3 py-1 text-sm ${activeTarget === 'header' ? 'bg-blue-500 text-white' : 'hover:bg-gray-100'}`}
                   >
-                    Headers
+                    Contact Types
                   </button>
                   <button
                     onClick={() => setActiveTarget('row')}
@@ -1528,7 +1528,19 @@ export default function ContactSheet() {
                     <div 
                       className={`${!isPreviewMode ? 'cursor-grab hover:bg-gray-50 rounded px-2' : ''}`}
                     >
-                      <h3 className="text-lg font-semibold m-0 leading-none">
+                      <h3 
+                        className={`m-0 leading-none ${getAlignmentClass(headerAlignment)}`}
+                        style={{
+                          fontSize: `${headerFontSize}px`,
+                          fontFamily: headerFontFamily,
+                          fontWeight: headerBold ? 'bold' : 'normal',
+                          fontStyle: headerItalic ? 'italic' : 'normal',
+                          textDecoration: headerUnderline ? 'underline' : 'none',
+                          color: headerTextColor,
+                          backgroundColor: headerBgColor,
+                          ...getHeaderBorderStyle().style
+                        }}
+                      >
                         {category.title}
                       </h3>
                     </div>
@@ -1547,70 +1559,7 @@ export default function ContactSheet() {
                       )}
                     </div>
                     
-                    {/* Table Header */}
-                    <div style={getHeaderBorderStyle()}>
-                      <div 
-                        className="flex print:text-sm" 
-                        style={{ 
-                          width: `${columns.filter(col => col.visible).reduce((sum, col) => sum + col.width, 0)}px`,
-                          minWidth: 'fit-content'
-                        }}
-                      >
-                        {!isPreviewMode && columns.filter(col => col.visible).map((column, colIndex) => (
-                          <div
-                            key={column.id}
-                            className={`relative px-1 print:px-1 print:hidden cursor-grab hover:bg-gray-50 flex items-center ${getAlignmentClass(headerAlignment)}`}
-                            style={{ 
-                              width: `${column.width}px`, 
-                              height: `${headerHeight}px`,
-                              ...getHeaderStyle()
-                            }}
-                            draggable
-                            onDragStart={(e) => handleColumnDragStart(e, colIndex)}
-                            onDragOver={(e) => e.preventDefault()}
-                            onDrop={(e) => handleColumnDrop(e, colIndex)}
-                          >
-                            {column.label}
-                            
-                            {/* Column Resize Handle */}
-                            <div
-                              className="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize bg-transparent hover:bg-blue-500 hover:opacity-75 transition-colors"
-                              onMouseDown={(e) => handleMouseDown(e, colIndex)}
-                              title={`Resize ${column.label} column`}
-                            />
-                            
-                            {/* Row Height Resize Handle */}
-                            <div
-                              className="absolute bottom-0 left-0 right-0 h-1 cursor-row-resize hover:bg-green-500 hover:opacity-50"
-                              onMouseDown={(e) => handleHeaderHeightMouseDown(e)}
-                            />
-                          </div>
-                        ))}
-                        
-                        {/* Preview/Print version of headers */}
-                        <div 
-                          className={`${isPreviewMode ? 'flex' : 'hidden print:flex'}`}
-                          style={{ 
-                            width: `${columns.filter(col => col.visible).reduce((sum, col) => sum + col.width, 0)}px`,
-                            minWidth: 'fit-content'
-                          }}
-                        >
-                          {columns.filter(col => col.visible).map((column) => (
-                            <div
-                              key={column.id}
-                              className={`px-1 flex items-center ${getAlignmentClass(headerAlignment)}`}
-                              style={{ 
-                                width: `${column.width}px`, 
-                                height: `${headerHeight}px`,
-                                ...getHeaderStyle()
-                              }}
-                            >
-                              {column.label}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
+                    {/* Table Header - Hidden per user request */}
 
                     {/* Table Rows */}
                     <div className="print:space-y-0">
@@ -1683,14 +1632,13 @@ export default function ContactSheet() {
               })}
             </div>
 
-            {/* Page Footer */}
+            {/* Page Footer - Positioned in bottom margin area */}
             <div 
               style={{
                 position: 'absolute',
-                bottom: 0,
+                bottom: `-${pageMargins.bottom - headerFooterMargins.footer}in`,
                 left: 0,
-                right: 0,
-                marginBottom: `${headerFooterMargins.footer}in`
+                right: 0
               }}
             >
               {editingElement?.type === 'footer' ? (
