@@ -1395,6 +1395,7 @@ export default function CompanyList() {
                   ref={editingElement?.type === 'header' ? editingRef : null}
                   contentEditable
                   className="text-center text-lg font-semibold bg-transparent border-none outline-2 outline-blue-500 outline-dashed focus:outline-dashed min-h-[24px] cursor-text"
+                  style={{ lineHeight: '1.2' }}
                   dangerouslySetInnerHTML={{ __html: headerText }}
                   onInput={(e) => {
                     const target = e.target as HTMLDivElement;
@@ -1410,16 +1411,18 @@ export default function CompanyList() {
                     setTimeout(() => closeInlineEditor(), 150);
                   }}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
+                    if (e.key === 'Escape') {
                       e.preventDefault();
                       closeInlineEditor();
                     }
+                    // Allow Enter key for line breaks
                   }}
                   suppressContentEditableWarning={true}
                 />
               ) : (
                 <div 
                   className={`text-center text-lg font-semibold ${!isPreviewMode ? 'cursor-pointer hover:bg-gray-100 hover:bg-opacity-50 rounded transition-colors px-2 py-1' : ''}`}
+                  style={{ lineHeight: '1.2' }}
                   onClick={!isPreviewMode ? (e) => handleHeaderFooterClick('header', e) : undefined}
                   dangerouslySetInnerHTML={{
                     __html: headerText && headerText.trim() ? processRichContent(headerText) : (!isPreviewMode ? '<span class="text-gray-400 italic">Click to edit header</span>' : '')
@@ -1588,6 +1591,7 @@ export default function CompanyList() {
                   ref={editingElement?.type === 'footer' ? editingRef : null}
                   contentEditable
                   className="text-center text-xs text-gray-500 bg-transparent border-none outline-2 outline-blue-500 outline-dashed focus:outline-dashed min-h-[16px] cursor-text"
+                  style={{ lineHeight: '1.2' }}
                   dangerouslySetInnerHTML={{ __html: footerText }}
                   onInput={(e) => {
                     const target = e.target as HTMLDivElement;
@@ -1603,16 +1607,18 @@ export default function CompanyList() {
                     setTimeout(() => closeInlineEditor(), 150);
                   }}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
+                    if (e.key === 'Escape') {
                       e.preventDefault();
                       closeInlineEditor();
                     }
+                    // Allow Enter key for line breaks
                   }}
                   suppressContentEditableWarning={true}
                 />
               ) : (
                 <div 
                   className={`text-center text-xs text-gray-500 ${!isPreviewMode ? 'cursor-pointer hover:bg-gray-100 hover:bg-opacity-50 rounded transition-colors px-2 py-1' : ''}`}
+                  style={{ lineHeight: '1.2' }}
                   onClick={!isPreviewMode ? (e) => handleHeaderFooterClick('footer', e) : undefined}
                   dangerouslySetInnerHTML={{
                     __html: footerText && footerText.trim() ? processRichContent(footerText) : (!isPreviewMode ? '<span class="text-gray-400 italic">Click to edit footer</span>' : '')
