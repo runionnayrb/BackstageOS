@@ -1037,7 +1037,7 @@ export default function ContactSheet() {
                     onClick={() => setActiveTarget('header')}
                     className={`px-3 py-1 text-sm ${activeTarget === 'header' ? 'bg-blue-500 text-white' : 'hover:bg-gray-100'}`}
                   >
-                    Contact Types
+                    Headers
                   </button>
                   <button
                     onClick={() => setActiveTarget('row')}
@@ -1526,7 +1526,14 @@ export default function ContactSheet() {
                       onDrop={!isPreviewMode ? (e) => handleCategoryDrop(e, category.id) : undefined}
                     >
                     <div 
-                      className={`${!isPreviewMode ? 'cursor-grab hover:bg-gray-50 rounded px-2' : ''}`}
+                      className={`${!isPreviewMode ? 'cursor-grab hover:bg-gray-50' : ''}`}
+                      style={{
+                        backgroundColor: headerBgColor,
+                        ...getHeaderBorderStyle().style,
+                        width: '100%',
+                        paddingLeft: 0,
+                        paddingRight: 0
+                      }}
                     >
                       <h3 
                         className={`m-0 leading-none ${getAlignmentClass(headerAlignment)}`}
@@ -1537,8 +1544,7 @@ export default function ContactSheet() {
                           fontStyle: headerItalic ? 'italic' : 'normal',
                           textDecoration: headerUnderline ? 'underline' : 'none',
                           color: headerTextColor,
-                          backgroundColor: headerBgColor,
-                          ...getHeaderBorderStyle().style
+                          padding: '4px 0'
                         }}
                       >
                         {category.title}
@@ -1636,7 +1642,7 @@ export default function ContactSheet() {
             <div 
               style={{
                 position: 'absolute',
-                bottom: `-${pageMargins.bottom - headerFooterMargins.footer}in`,
+                bottom: `-${headerFooterMargins.footer}in`,
                 left: 0,
                 right: 0
               }}
