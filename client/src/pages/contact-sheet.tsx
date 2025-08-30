@@ -1719,7 +1719,7 @@ export default function ContactSheet() {
 
       {/* Groups Settings Panel - Hidden in print and preview mode */}
       {!isPreviewMode && (
-        <div className="fixed right-4 top-1/2 transform translate-y-96 bg-white border rounded-lg shadow-lg p-4 print:hidden">
+        <div className="fixed right-4 bottom-4 bg-white border rounded-lg shadow-lg p-4 print:hidden">
           <h4 className="font-semibold mb-3 flex items-center gap-2">
             <Users className="h-4 w-4" />
             Groups
