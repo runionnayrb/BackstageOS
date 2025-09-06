@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { apiRequest } from "@/lib/queryClient";
 
 interface FeatureConfig {
   id: string;
@@ -28,7 +29,8 @@ export function useBetaFeatures() {
   const effectiveUser = switchStatus?.isViewingAs ? switchStatus.viewingUser : user;
 
   const { data: betaSettings, isLoading } = useQuery({
-    queryKey: ['/api/admin/beta-settings'],
+    queryKey: ['/api/admin/beta-settings', Date.now()], // Force fresh data every time
+    queryFn: () => apiRequest('GET', '/api/admin/beta-settings'),
     enabled: !!user,
     staleTime: 0, // Always fetch fresh data
     gcTime: 0, // Don't keep in cache
