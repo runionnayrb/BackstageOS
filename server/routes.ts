@@ -5277,9 +5277,16 @@ Best regards,
         return res.status(403).json({ message: "Admin access required" });
       }
 
-      const { betaSettingsStore } = await import('./betaSettingsStore.ts');
-      const settings = betaSettingsStore.getBetaSettings();
-      console.log(`🔍 Fetching beta settings - Script editor enabled:`, 
+      // Get settings from database, fallback to default if not found
+      let settings = await storage.getBetaSettings();
+      if (!settings) {
+        // Import default settings from store
+        const { betaSettingsStore } = await import('./betaSettingsStore.ts');
+        const defaultSettings = betaSettingsStore.getBetaSettings();
+        settings = defaultSettings;
+      }
+      
+      console.log(`🔍 Fetching beta settings from database - Script editor enabled:`, 
         settings.features.find(f => f.id === 'script-editor')?.enabled);
       res.json(settings);
     } catch (error) {
@@ -5295,11 +5302,14 @@ Best regards,
         return res.status(403).json({ message: "Admin access required" });
       }
 
-      const { betaSettingsStore } = await import('./betaSettingsStore.ts');
-      const updatedSettings = betaSettingsStore.updateBetaSettings({
+      // Save to database instead of in-memory store
+      const settingsData = {
         features: req.body.features,
         updatedBy: parseInt(userId),
-      });
+      };
+      
+      // Use upsert to create or update settings
+      const updatedSettings = await storage.upsertBetaSettings(settingsData);
       
       // Extract enabled features to update all users' beta access
       const enabledFeatures = req.body.features
@@ -5309,7 +5319,7 @@ Best regards,
       // Update all users who have beta access with the enabled features
       await storage.updateAllUsersBetaFeatures(enabledFeatures);
       
-      console.log(`🔧 Beta settings updated: ${enabledFeatures.length} features enabled for all beta users`);
+      console.log(`🔧 Beta settings saved to database: ${enabledFeatures.length} features enabled for all beta users`);
       console.log(`🔧 Enabled features:`, enabledFeatures);
       console.log(`🔧 Script editor enabled:`, enabledFeatures.includes('script-editor'));
       
