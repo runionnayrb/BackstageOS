@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useBetaFeatures } from "@/hooks/useBetaFeatures";
 import { useToast } from "@/hooks/use-toast";
 import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -31,6 +32,7 @@ interface ScriptEditorParams {
 export default function ScriptEditor() {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { canAccessFeature } = useBetaFeatures();
   const [, setLocation] = useLocation();
   const params = useParams<ScriptEditorParams>();
   const projectId = params.id;
@@ -54,7 +56,7 @@ export default function ScriptEditor() {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [useSimpleEditor, setUseSimpleEditor] = useState(true); // Default to simple editor
 
-  // Redirect to home if not authenticated
+  // Redirect to home if not authenticated or no beta access
   useEffect(() => {
     if (!user) {
       toast({
@@ -65,7 +67,18 @@ export default function ScriptEditor() {
       setLocation("/login");
       return;
     }
-  }, [user, toast, setLocation]);
+    
+    // Check beta access for script editor
+    if (!canAccessFeature('script-editor')) {
+      toast({
+        title: "Feature Not Available",
+        description: "The script editor feature is not currently available for your account.",
+        variant: "destructive",
+      });
+      setLocation(`/shows/${projectId}`);
+      return;
+    }
+  }, [user, toast, setLocation, canAccessFeature, projectId]);
 
   const { data: projects, isLoading: projectsLoading } = useQuery({
     queryKey: ["/api/projects"],
