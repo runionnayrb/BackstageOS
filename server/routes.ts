@@ -5303,12 +5303,24 @@ Best regards,
       }
 
       // Clean the features data to ensure boolean values
-      const cleanedFeatures = req.body.features.map((feature: any) => ({
-        ...feature,
-        enabled: feature.enabled === true || feature.enabled === 'true'
-      }));
+      const cleanedFeatures = req.body.features.map((feature: any) => {
+        let enabled = false;
+        
+        // Handle various possible values for enabled field
+        if (feature.enabled === true || feature.enabled === 'true') {
+          enabled = true;
+        } else if (feature.enabled === false || feature.enabled === 'false') {
+          enabled = false;
+        }
+        // Any other value (including "none", null, undefined) becomes false
+        
+        return {
+          ...feature,
+          enabled
+        };
+      });
       
-      console.log(`🔧 Cleaned feature data:`, cleanedFeatures.slice(0, 3)); // Log first 3 for debugging
+      console.log(`🔧 All feature data cleaned:`, cleanedFeatures.map(f => ({ id: f.id, enabled: f.enabled })));
       
       // Save to database instead of in-memory store
       const settingsData = {
