@@ -5289,12 +5289,7 @@ Best regards,
         console.log(`🔍 Found database settings with ${settings.features.length} features`);
       }
       
-      const scriptEditor = settings.features.find(f => f.id === 'script-editor');
-      console.log(`🔍 GET /api/admin/beta-settings - Script editor:`, {
-        found: !!scriptEditor,
-        enabled: scriptEditor?.enabled,
-        timestamp: new Date().toISOString()
-      });
+      // Beta settings successfully loaded from database
       res.json(settings);
     } catch (error) {
       console.error("Error fetching beta settings:", error);

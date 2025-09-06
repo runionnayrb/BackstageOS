@@ -26,24 +26,16 @@ interface BetaSettings {
 export default function BetaFeatureSettings() {
   const { toast } = useToast();
   const [settings, setSettings] = useState<BetaSettings>({ features: [] });
+  const [mountKey] = useState(() => Date.now()); // Generate once on mount
 
-  console.log('🏗️ BetaFeatureSettings component rendering at:', new Date().toISOString());
-
-  // Force a completely fresh query every time by using current timestamp
-  const { data: betaSettings, isLoading, refetch } = useQuery({
-    queryKey: [`/api/admin/beta-settings-${Date.now()}`], // Unique key every render
-    queryFn: async () => {
-      console.log('🚀 EXECUTING queryFn - Making API request to fetch beta settings...');
-      const result = await apiRequest('GET', '/api/admin/beta-settings');
-      console.log('✅ API request completed, result:', result);
-      return result;
-    },
-    staleTime: 0,
-    gcTime: 0,
+  // Force fresh data by using mount-specific key (no caching between page visits)
+  const { data: betaSettings, isLoading } = useQuery({
+    queryKey: [`/api/admin/beta-settings`, mountKey], // Mount-specific key
+    queryFn: () => apiRequest('GET', '/api/admin/beta-settings'),
+    staleTime: 0, // Always fetch fresh data
+    gcTime: 0, // Don't keep in cache
     retry: false,
   });
-
-  console.log('🔍 Query state:', { isLoading, hasData: !!betaSettings });
 
   const saveMutation = useMutation({
     mutationFn: (data: BetaSettings) => 
@@ -65,11 +57,6 @@ export default function BetaFeatureSettings() {
 
   useEffect(() => {
     if (betaSettings) {
-      console.log('🔍 BetaSettings loaded from API:', {
-        totalFeatures: betaSettings.features.length,
-        scriptEditorEnabled: betaSettings.features.find(f => f.id === 'script-editor')?.enabled,
-        timestamp: new Date().toISOString()
-      });
       setSettings(betaSettings);
     }
   }, [betaSettings]);
