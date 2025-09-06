@@ -5302,9 +5302,17 @@ Best regards,
         return res.status(403).json({ message: "Admin access required" });
       }
 
+      // Clean the features data to ensure boolean values
+      const cleanedFeatures = req.body.features.map((feature: any) => ({
+        ...feature,
+        enabled: feature.enabled === true || feature.enabled === 'true'
+      }));
+      
+      console.log(`🔧 Cleaned feature data:`, cleanedFeatures.slice(0, 3)); // Log first 3 for debugging
+      
       // Save to database instead of in-memory store
       const settingsData = {
-        features: req.body.features,
+        features: cleanedFeatures,
         updatedBy: parseInt(userId),
       };
       
@@ -5312,7 +5320,7 @@ Best regards,
       const updatedSettings = await storage.upsertBetaSettings(settingsData);
       
       // Extract enabled features to update all users' beta access
-      const enabledFeatures = req.body.features
+      const enabledFeatures = cleanedFeatures
         .filter((feature: any) => feature.enabled === true)
         .map((feature: any) => feature.id);
       
