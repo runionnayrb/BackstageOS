@@ -42,7 +42,11 @@ export default function BetaFeatureSettings() {
         title: "Settings saved",
         description: "Beta feature settings have been updated successfully.",
       });
+      // Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: ['/api/admin/beta-settings'] });
+      queryClient.refetchQueries({ queryKey: ['/api/admin/beta-settings'] });
+      // Also clear the cache completely for immediate refresh
+      queryClient.removeQueries({ queryKey: ['/api/admin/beta-settings'] });
     },
     onError: (error: any) => {
       toast({
