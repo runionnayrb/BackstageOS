@@ -30,6 +30,8 @@ export default function BetaFeatureSettings() {
   const { data: betaSettings, isLoading } = useQuery({
     queryKey: ['/api/admin/beta-settings'],
     select: (data: BetaSettings) => data,
+    staleTime: 10 * 1000, // Cache for only 10 seconds
+    cacheTime: 30 * 1000, // Keep in cache for 30 seconds
   });
 
   const saveMutation = useMutation({

@@ -5378,7 +5378,11 @@ Best regards,
       console.log(`🔧 Enabled features:`, enabledFeatures);
       console.log(`🔧 Script editor enabled:`, enabledFeatures.includes('script-editor'));
       
-      res.json({ message: "Beta settings updated successfully" });
+      res.json({ 
+        message: "Beta settings updated successfully",
+        timestamp: new Date().toISOString(),
+        cacheKey: '/api/admin/beta-settings' // Signal frontend to invalidate cache
+      });
     } catch (error) {
       console.error("Error updating beta settings:", error);
       res.status(500).json({ message: "Failed to update beta settings" });

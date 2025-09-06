@@ -30,7 +30,8 @@ export function useBetaFeatures() {
   const { data: betaSettings, isLoading } = useQuery({
     queryKey: ['/api/admin/beta-settings'],
     enabled: !!user,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    staleTime: 10 * 1000, // Cache for only 10 seconds
+    cacheTime: 30 * 1000, // Keep in cache for 30 seconds
     retry: false,
   });
 
