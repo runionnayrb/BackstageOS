@@ -5331,8 +5331,38 @@ Best regards,
       
       console.log(`🔧 About to save settings data:`, JSON.stringify(settingsData, null, 2));
       
-      // Use upsert to create or update settings
-      const updatedSettings = await storage.upsertBetaSettings(settingsData);
+      // Try direct SQL approach to bypass potential ORM issues
+      try {
+        const { db } = await import('./storage.ts');
+        const { betaSettings } = await import('../shared/schema.ts');
+        
+        // Check if record exists
+        const existingRecord = await db.select().from(betaSettings).limit(1);
+        
+        if (existingRecord.length > 0) {
+          // Update existing record
+          console.log(`🔧 Updating existing record with ID: ${existingRecord[0].id}`);
+          const result = await db.update(betaSettings)
+            .set({
+              features: settingsData.features,
+              updatedBy: settingsData.updatedBy,
+              updatedAt: new Date()
+            })
+            .where(db.sql`id = ${existingRecord[0].id}`)
+            .returning();
+          console.log(`🔧 Direct update successful`);
+        } else {
+          // Insert new record
+          console.log(`🔧 Creating new record`);
+          const result = await db.insert(betaSettings)
+            .values(settingsData)
+            .returning();
+          console.log(`🔧 Direct insert successful`);
+        }
+      } catch (directError) {
+        console.error(`🔧 Direct SQL failed:`, directError);
+        throw directError;
+      }
       
       // Extract enabled features to update all users' beta access
       const enabledFeatures = cleanedFeatures
