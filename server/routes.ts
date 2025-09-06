@@ -5284,10 +5284,14 @@ Best regards,
         const { betaSettingsStore } = await import('./betaSettingsStore.ts');
         const defaultSettings = betaSettingsStore.getBetaSettings();
         settings = defaultSettings;
+        console.log(`🔍 No database settings found, using defaults`);
+      } else {
+        console.log(`🔍 Found database settings with ${settings.features.length} features`);
       }
       
       console.log(`🔍 Fetching beta settings from database - Script editor enabled:`, 
         settings.features.find(f => f.id === 'script-editor')?.enabled);
+      console.log(`🔍 Full settings being returned:`, JSON.stringify(settings.features.slice(0, 3), null, 2));
       res.json(settings);
     } catch (error) {
       console.error("Error fetching beta settings:", error);
