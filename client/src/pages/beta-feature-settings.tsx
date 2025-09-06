@@ -30,8 +30,10 @@ export default function BetaFeatureSettings() {
   const { data: betaSettings, isLoading } = useQuery({
     queryKey: ['/api/admin/beta-settings'],
     select: (data: BetaSettings) => data,
-    staleTime: 10 * 1000, // Cache for only 10 seconds
-    cacheTime: 30 * 1000, // Keep in cache for 30 seconds
+    staleTime: 0, // No stale time - always refetch
+    cacheTime: 0, // No cache time - don't keep in cache
+    refetchOnMount: true, // Always refetch when component mounts
+    refetchOnWindowFocus: true, // Refetch when window gets focus
   });
 
   const saveMutation = useMutation({
@@ -59,6 +61,10 @@ export default function BetaFeatureSettings() {
 
   useEffect(() => {
     if (betaSettings) {
+      console.log('🔍 BetaSettings loaded from API:', {
+        totalFeatures: betaSettings.features.length,
+        scriptEditorEnabled: betaSettings.features.find(f => f.id === 'script-editor')?.enabled
+      });
       setSettings(betaSettings);
     }
   }, [betaSettings]);
