@@ -798,7 +798,7 @@ export class DatabaseStorage implements IStorage {
       .set({ 
         betaFeatures: enabledFeatures
       })
-      .where(sql`${users.betaAccess} != 'none' AND ${users.betaAccess} IS NOT NULL`);
+      .where(eq(users.betaAccess, true));
   }
 
   async deleteUser(userId: string): Promise<void> {

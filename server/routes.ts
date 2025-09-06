@@ -5359,8 +5359,16 @@ Best regards,
         .filter((feature: any) => feature.enabled === true)
         .map((feature: any) => feature.id);
       
+      console.log(`🔧 About to update users' beta features with:`, enabledFeatures);
+      
       // Update all users who have beta access with the enabled features
-      await storage.updateAllUsersBetaFeatures(enabledFeatures);
+      try {
+        await storage.updateAllUsersBetaFeatures(enabledFeatures);
+        console.log(`🔧 Successfully updated user beta features`);
+      } catch (userUpdateError) {
+        console.error(`🔧 Failed to update user beta features:`, userUpdateError);
+        throw userUpdateError;
+      }
       
       console.log(`🔧 Beta settings saved to database: ${enabledFeatures.length} features enabled for all beta users`);
       console.log(`🔧 Enabled features:`, enabledFeatures);
