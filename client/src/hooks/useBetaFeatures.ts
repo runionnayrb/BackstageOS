@@ -85,25 +85,35 @@ export function useBetaFeatures() {
       rawBetaFeatures: effectiveUser?.betaFeatures
     });
     
-    // Admin can bypass restrictions when viewing as themselves (not another user)
+    // Admin bypass: Only bypass user access restrictions, NOT beta configuration
+    // This allows admins to test disabled features as they would appear to users
     const isViewingAsAdmin = switchStatus?.isViewingAs && switchStatus?.viewingUser?.id === user?.id;
     const isOriginalAdmin = user?.isAdmin && !switchStatus?.isViewingAs;
+    const isAdmin = user?.isAdmin && (isOriginalAdmin || isViewingAsAdmin);
     
-    console.log(`🔍 Admin bypass check:`, {
+    console.log(`🔍 Admin access check:`, {
       userIsAdmin: user?.isAdmin,
       isOriginalAdmin,
       isViewingAsAdmin,
-      canBypass: user?.isAdmin && (isOriginalAdmin || isViewingAsAdmin)
+      isAdmin,
+      featureEnabled: isFeatureEnabled(featureId)
     });
     
-    if (user?.isAdmin && (isOriginalAdmin || isViewingAsAdmin)) {
-      console.log(`✅ Admin bypass - full access granted for ${featureId}`);
+    // Feature must be enabled in beta configuration first
+    if (!isFeatureEnabled(featureId)) {
+      console.log(`❌ Feature ${featureId} disabled in beta configuration`);
+      return false;
+    }
+    
+    // If admin and feature is enabled, bypass user access check
+    if (isAdmin) {
+      console.log(`✅ Admin has access to enabled feature ${featureId}`);
       return true;
     }
     
-    // Feature must be enabled in beta settings AND effective user must have access
-    const result = isFeatureEnabled(featureId) && hasUserAccess(featureId);
-    console.log(`${result ? '✅' : '❌'} Beta access result for ${featureId}:`, result);
+    // For non-admin users, check both beta settings and user access
+    const result = hasUserAccess(featureId);
+    console.log(`${result ? '✅' : '❌'} User access result for ${featureId}:`, result);
     return result;
   };
 
