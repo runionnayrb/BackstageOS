@@ -26,13 +26,14 @@ interface BetaSettings {
 export default function BetaFeatureSettings() {
   const { toast } = useToast();
   const [settings, setSettings] = useState<BetaSettings>({ features: [] });
+  const [mountKey] = useState(() => Date.now()); // Unique key for each mount
 
-  const { data: betaSettings, isLoading } = useQuery({
-    queryKey: ['/api/admin/beta-settings'],
+  const { data: betaSettings, isLoading, refetch } = useQuery({
+    queryKey: ['/api/admin/beta-settings', mountKey], // Add mount key to force fresh query
     select: (data: BetaSettings) => data,
     staleTime: 0, // No stale time - always refetch
-    cacheTime: 0, // No cache time - don't keep in cache
-    refetchOnMount: true, // Always refetch when component mounts
+    gcTime: 0, // No cache time - don't keep in cache (updated for v5)
+    refetchOnMount: 'always', // Always refetch when component mounts
     refetchOnWindowFocus: true, // Refetch when window gets focus
   });
 
@@ -60,10 +61,16 @@ export default function BetaFeatureSettings() {
   });
 
   useEffect(() => {
+    console.log('🔍 Component mounted, forcing fresh data fetch...');
+    refetch(); // Force refetch on component mount
+  }, [refetch]);
+
+  useEffect(() => {
     if (betaSettings) {
       console.log('🔍 BetaSettings loaded from API:', {
         totalFeatures: betaSettings.features.length,
-        scriptEditorEnabled: betaSettings.features.find(f => f.id === 'script-editor')?.enabled
+        scriptEditorEnabled: betaSettings.features.find(f => f.id === 'script-editor')?.enabled,
+        timestamp: new Date().toISOString()
       });
       setSettings(betaSettings);
     }
