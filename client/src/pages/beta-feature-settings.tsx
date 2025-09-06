@@ -30,11 +30,15 @@ export default function BetaFeatureSettings() {
 
   const { data: betaSettings, isLoading, refetch } = useQuery({
     queryKey: ['/api/admin/beta-settings', mountKey], // Add mount key to force fresh query
-    select: (data: BetaSettings) => data,
+    queryFn: () => {
+      console.log('🚀 Making API request to fetch beta settings...');
+      return apiRequest('GET', '/api/admin/beta-settings');
+    },
     staleTime: 0, // No stale time - always refetch
     gcTime: 0, // No cache time - don't keep in cache (updated for v5)
     refetchOnMount: 'always', // Always refetch when component mounts
     refetchOnWindowFocus: true, // Refetch when window gets focus
+    retry: false,
   });
 
   const saveMutation = useMutation({
