@@ -5331,37 +5331,27 @@ Best regards,
       
       console.log(`🔧 About to save settings data:`, JSON.stringify(settingsData, null, 2));
       
-      // Try direct SQL approach to bypass potential ORM issues
+      // Use raw SQL to bypass potential ORM/Drizzle issues
       try {
-        const { db } = await import('./storage.ts');
-        const { betaSettings } = await import('../shared/schema.ts');
+        const { neon } = await import('@neondatabase/serverless');
+        const sql = neon(process.env.DATABASE_URL!);
         
-        // Check if record exists
-        const existingRecord = await db.select().from(betaSettings).limit(1);
+        console.log(`🔧 Using raw SQL to update beta settings`);
         
-        if (existingRecord.length > 0) {
-          // Update existing record
-          console.log(`🔧 Updating existing record with ID: ${existingRecord[0].id}`);
-          const result = await db.update(betaSettings)
-            .set({
-              features: settingsData.features,
-              updatedBy: settingsData.updatedBy,
-              updatedAt: new Date()
-            })
-            .where(db.sql`id = ${existingRecord[0].id}`)
-            .returning();
-          console.log(`🔧 Direct update successful`);
-        } else {
-          // Insert new record
-          console.log(`🔧 Creating new record`);
-          const result = await db.insert(betaSettings)
-            .values(settingsData)
-            .returning();
-          console.log(`🔧 Direct insert successful`);
-        }
-      } catch (directError) {
-        console.error(`🔧 Direct SQL failed:`, directError);
-        throw directError;
+        // Update the existing record (we know ID=1 exists from earlier query)
+        const result = await sql`
+          UPDATE beta_settings 
+          SET features = ${JSON.stringify(settingsData.features)}, 
+              updated_by = ${settingsData.updatedBy}, 
+              updated_at = NOW() 
+          WHERE id = 1
+          RETURNING id
+        `;
+        
+        console.log(`🔧 Raw SQL update successful:`, result);
+      } catch (rawSqlError) {
+        console.error(`🔧 Raw SQL failed:`, rawSqlError);
+        throw rawSqlError;
       }
       
       // Extract enabled features to update all users' beta access
