@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useFeatureSettings } from "@/hooks/useFeatureSettings";
+import { useBetaFeatures } from "@/hooks/useBetaFeatures";
 import { usePageTitle } from "@/hooks/usePageTitle";
 
 interface ShowDetailParams {
@@ -49,37 +50,43 @@ export default function ShowDetail() {
   // Set page title for mobile header
   usePageTitle();
 
-  // Import feature settings hook
+  // Import feature settings hooks - both user preferences and beta access
   const { isFeatureEnabled } = useFeatureSettings(projectId);
+  const { canAccessFeature } = useBetaFeatures();
   
-  // Default sections array - filtered by feature settings
+  // Helper function to check if feature should be shown (both user enabled AND beta accessible)
+  const shouldShowFeature = (userFeature: string, betaFeature: string) => {
+    return isFeatureEnabled(userFeature as any) && canAccessFeature(betaFeature);
+  };
+  
+  // Default sections array - filtered by both user settings and beta access
   const defaultSections = [
-    ...(isFeatureEnabled('reports') ? [{
+    ...(shouldShowFeature('reports', 'report-builder') ? [{
       id: "reports",
       title: "Reports",
       href: `/shows/${projectId}/reports`,
     }] : []),
-    ...(isFeatureEnabled('calendar') ? [{
+    ...(shouldShowFeature('calendar', 'calendar-management') ? [{
       id: "calendar",
       title: "Calendar",
       href: `/shows/${projectId}/calendar`,
     }] : []),
-    ...(isFeatureEnabled('script') ? [{
+    ...(shouldShowFeature('script', 'script-editor') ? [{
       id: "script",
       title: "Script",
       href: `/shows/${projectId}/script`,
     }] : []),
-    ...(isFeatureEnabled('props') ? [{
+    ...(shouldShowFeature('props', 'props-tracker') ? [{
       id: "props",
       title: "Props",
       href: `/shows/${projectId}/props`,
     }] : []),
-    ...(isFeatureEnabled('costumes') ? [{
+    ...(shouldShowFeature('costumes', 'costume-tracker') ? [{
       id: "costumes",
       title: "Costumes",
       href: `/shows/${projectId}/costumes`,
     }] : []),
-    ...(isFeatureEnabled('contacts') ? [{
+    ...(shouldShowFeature('contacts', 'contact-management') ? [{
       id: "contacts",
       title: "Contacts",
       href: `/shows/${projectId}/contacts`,
