@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { useBetaFeatures } from "@/hooks/useBetaFeatures";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -145,6 +146,7 @@ export default function ShowSettings() {
   const params = useParams<ShowSettingsParams>();
   const { id } = params;
   const { user } = useAuth();
+  const { canAccessFeature } = useBetaFeatures();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [isGeneratingLink, setIsGeneratingLink] = useState(false);
@@ -1390,13 +1392,19 @@ The Production Team`
 
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <Label className="text-sm font-medium">Reports</Label>
+                      <Label className="text-sm font-medium">
+                        Reports
+                        {!canAccessFeature('report-builder') && (
+                          <Badge variant="secondary" className="ml-2">Coming Soon</Badge>
+                        )}
+                      </Label>
                       <p className="text-xs text-muted-foreground">
                         Rehearsal, tech, and performance reports
                       </p>
                     </div>
                     <Switch
                       checked={(settings as any)?.featureSettings?.reports ?? true}
+                      disabled={!canAccessFeature('report-builder')}
                       onCheckedChange={(checked) =>
                         handleSettingsUpdate("featureSettings", { 
                           ...(settings as any)?.featureSettings,
@@ -1408,13 +1416,19 @@ The Production Team`
 
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <Label className="text-sm font-medium">Calendar</Label>
+                      <Label className="text-sm font-medium">
+                        Calendar
+                        {!canAccessFeature('calendar-management') && (
+                          <Badge variant="secondary" className="ml-2">Coming Soon</Badge>
+                        )}
+                      </Label>
                       <p className="text-xs text-muted-foreground">
                         Show schedule and event management
                       </p>
                     </div>
                     <Switch
                       checked={(settings as any)?.featureSettings?.calendar ?? true}
+                      disabled={!canAccessFeature('calendar-management')}
                       onCheckedChange={(checked) =>
                         handleSettingsUpdate("featureSettings", { 
                           ...(settings as any)?.featureSettings,
@@ -1430,13 +1444,19 @@ The Production Team`
 
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <Label className="text-sm font-medium">Script</Label>
+                      <Label className="text-sm font-medium">
+                        Script
+                        {!canAccessFeature('script-editor') && (
+                          <Badge variant="secondary" className="ml-2">Coming Soon</Badge>
+                        )}
+                      </Label>
                       <p className="text-xs text-muted-foreground">
                         Script editing and collaboration tools
                       </p>
                     </div>
                     <Switch
                       checked={(settings as any)?.featureSettings?.script ?? true}
+                      disabled={!canAccessFeature('script-editor')}
                       onCheckedChange={(checked) =>
                         handleSettingsUpdate("featureSettings", { 
                           ...(settings as any)?.featureSettings,
@@ -1448,13 +1468,19 @@ The Production Team`
 
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <Label className="text-sm font-medium">Props</Label>
+                      <Label className="text-sm font-medium">
+                        Props
+                        {!canAccessFeature('props-tracker') && (
+                          <Badge variant="secondary" className="ml-2">Coming Soon</Badge>
+                        )}
+                      </Label>
                       <p className="text-xs text-muted-foreground">
                         Props tracking and management
                       </p>
                     </div>
                     <Switch
                       checked={(settings as any)?.featureSettings?.props ?? true}
+                      disabled={!canAccessFeature('props-tracker')}
                       onCheckedChange={(checked) =>
                         handleSettingsUpdate("featureSettings", { 
                           ...(settings as any)?.featureSettings,
@@ -1466,13 +1492,19 @@ The Production Team`
 
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <Label className="text-sm font-medium">Costumes</Label>
+                      <Label className="text-sm font-medium">
+                        Costumes
+                        {!canAccessFeature('costume-tracker') && (
+                          <Badge variant="secondary" className="ml-2">Coming Soon</Badge>
+                        )}
+                      </Label>
                       <p className="text-xs text-muted-foreground">
                         Costume tracking and quick change management
                       </p>
                     </div>
                     <Switch
                       checked={(settings as any)?.featureSettings?.costumes ?? true}
+                      disabled={!canAccessFeature('costume-tracker')}
                       onCheckedChange={(checked) =>
                         handleSettingsUpdate("featureSettings", { 
                           ...(settings as any)?.featureSettings,
@@ -1484,13 +1516,19 @@ The Production Team`
 
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <Label className="text-sm font-medium">Contacts</Label>
+                      <Label className="text-sm font-medium">
+                        Contacts
+                        {!canAccessFeature('contact-management') && (
+                          <Badge variant="secondary" className="ml-2">Coming Soon</Badge>
+                        )}
+                      </Label>
                       <p className="text-xs text-muted-foreground">
                         Cast and crew contact management
                       </p>
                     </div>
                     <Switch
                       checked={(settings as any)?.featureSettings?.contacts ?? true}
+                      disabled={!canAccessFeature('contact-management')}
                       onCheckedChange={(checked) =>
                         handleSettingsUpdate("featureSettings", { 
                           ...(settings as any)?.featureSettings,
