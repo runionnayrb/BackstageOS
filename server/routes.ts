@@ -5321,12 +5321,15 @@ Best regards,
       });
       
       console.log(`🔧 All feature data cleaned:`, cleanedFeatures.map(f => ({ id: f.id, enabled: f.enabled })));
+      console.log(`🔧 Full cleaned features data:`, JSON.stringify(cleanedFeatures, null, 2));
       
       // Save to database instead of in-memory store
       const settingsData = {
         features: cleanedFeatures,
         updatedBy: parseInt(userId),
       };
+      
+      console.log(`🔧 About to save settings data:`, JSON.stringify(settingsData, null, 2));
       
       // Use upsert to create or update settings
       const updatedSettings = await storage.upsertBetaSettings(settingsData);
