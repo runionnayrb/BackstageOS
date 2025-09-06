@@ -76,7 +76,8 @@ export default function BetaFeatureSettings() {
     saveMutation.mutate(settings);
   };
 
-  if (isLoading) {
+  // Show loading state until we have fresh data from database
+  if (isLoading || !betaSettings) {
     return (
       <div className="container mx-auto p-6">
         <div className="animate-pulse space-y-4">
