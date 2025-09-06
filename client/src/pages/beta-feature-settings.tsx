@@ -26,20 +26,24 @@ interface BetaSettings {
 export default function BetaFeatureSettings() {
   const { toast } = useToast();
   const [settings, setSettings] = useState<BetaSettings>({ features: [] });
-  const [mountKey] = useState(() => Date.now()); // Unique key for each mount
 
+  console.log('🏗️ BetaFeatureSettings component rendering at:', new Date().toISOString());
+
+  // Force a completely fresh query every time by using current timestamp
   const { data: betaSettings, isLoading, refetch } = useQuery({
-    queryKey: ['/api/admin/beta-settings', mountKey], // Add mount key to force fresh query
-    queryFn: () => {
-      console.log('🚀 Making API request to fetch beta settings...');
-      return apiRequest('GET', '/api/admin/beta-settings');
+    queryKey: [`/api/admin/beta-settings-${Date.now()}`], // Unique key every render
+    queryFn: async () => {
+      console.log('🚀 EXECUTING queryFn - Making API request to fetch beta settings...');
+      const result = await apiRequest('GET', '/api/admin/beta-settings');
+      console.log('✅ API request completed, result:', result);
+      return result;
     },
-    staleTime: 0, // No stale time - always refetch
-    gcTime: 0, // No cache time - don't keep in cache (updated for v5)
-    refetchOnMount: 'always', // Always refetch when component mounts
-    refetchOnWindowFocus: true, // Refetch when window gets focus
+    staleTime: 0,
+    gcTime: 0,
     retry: false,
   });
+
+  console.log('🔍 Query state:', { isLoading, hasData: !!betaSettings });
 
   const saveMutation = useMutation({
     mutationFn: (data: BetaSettings) => 
@@ -49,11 +53,6 @@ export default function BetaFeatureSettings() {
         title: "Settings saved",
         description: "Beta feature settings have been updated successfully.",
       });
-      // Invalidate all related queries
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/beta-settings'] });
-      queryClient.refetchQueries({ queryKey: ['/api/admin/beta-settings'] });
-      // Also clear the cache completely for immediate refresh
-      queryClient.removeQueries({ queryKey: ['/api/admin/beta-settings'] });
     },
     onError: (error: any) => {
       toast({
@@ -63,11 +62,6 @@ export default function BetaFeatureSettings() {
       });
     },
   });
-
-  useEffect(() => {
-    console.log('🔍 Component mounted, forcing fresh data fetch...');
-    refetch(); // Force refetch on component mount
-  }, [refetch]);
 
   useEffect(() => {
     if (betaSettings) {
