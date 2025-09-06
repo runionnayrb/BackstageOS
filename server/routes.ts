@@ -5279,6 +5279,8 @@ Best regards,
 
       const { betaSettingsStore } = await import('./betaSettingsStore.ts');
       const settings = betaSettingsStore.getBetaSettings();
+      console.log(`🔍 Fetching beta settings - Script editor enabled:`, 
+        settings.features.find(f => f.id === 'script-editor')?.enabled);
       res.json(settings);
     } catch (error) {
       console.error("Error fetching beta settings:", error);
@@ -5308,6 +5310,8 @@ Best regards,
       await storage.updateAllUsersBetaFeatures(enabledFeatures);
       
       console.log(`🔧 Beta settings updated: ${enabledFeatures.length} features enabled for all beta users`);
+      console.log(`🔧 Enabled features:`, enabledFeatures);
+      console.log(`🔧 Script editor enabled:`, enabledFeatures.includes('script-editor'));
       
       res.json({ message: "Beta settings updated successfully" });
     } catch (error) {
