@@ -5299,6 +5299,16 @@ Best regards,
         updatedBy: parseInt(userId),
       });
       
+      // Extract enabled features to update all users' beta access
+      const enabledFeatures = req.body.features
+        .filter((feature: any) => feature.enabled === true)
+        .map((feature: any) => feature.id);
+      
+      // Update all users who have beta access with the enabled features
+      await storage.updateAllUsersBetaFeatures(enabledFeatures);
+      
+      console.log(`🔧 Beta settings updated: ${enabledFeatures.length} features enabled for all beta users`);
+      
       res.json({ message: "Beta settings updated successfully" });
     } catch (error) {
       console.error("Error updating beta settings:", error);

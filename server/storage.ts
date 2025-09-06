@@ -251,6 +251,7 @@ export interface IStorage {
   // Admin user management operations
   getAllUsers(): Promise<User[]>;
   updateUserAdmin(userId: string, updates: { profileType?: string; betaAccess?: string; betaFeatures?: string[]; isAdmin?: boolean }): Promise<User>;
+  updateAllUsersBetaFeatures(enabledFeatures: string[]): Promise<void>;
   deleteUser(userId: string): Promise<void>;
 
   // Waitlist operations
@@ -789,6 +790,15 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, parseInt(userId)))
       .returning();
     return result[0];
+  }
+
+  async updateAllUsersBetaFeatures(enabledFeatures: string[]): Promise<void> {
+    // Update all users who have beta access to have the currently enabled features
+    await db.update(users)
+      .set({ 
+        betaFeatures: enabledFeatures
+      })
+      .where(sql`${users.betaAccess} != 'none' AND ${users.betaAccess} IS NOT NULL`);
   }
 
   async deleteUser(userId: string): Promise<void> {
