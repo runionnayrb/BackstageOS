@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useLayoutEffect } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,42 +23,6 @@ interface BetaSettings {
   features: FeatureConfig[];
 }
 
-// HydratedSwitch: Prevents flash with deterministic styling and animation control
-const HydratedSwitch = ({ feature, checked, onCheckedChange }: { 
-  feature: FeatureConfig; 
-  checked: boolean; 
-  onCheckedChange: (checked: boolean) => void; 
-}) => {
-  const [noAnim, setNoAnim] = useState(true);
-  const renderCount = useRef(0);
-  renderCount.current++;
-
-  // Enable animations after first paint to prevent flash
-  useLayoutEffect(() => {
-    requestAnimationFrame(() => setNoAnim(false));
-  }, []);
-
-  // Debug logging for problematic toggles
-  if (feature.id === 'script-editor' || feature.id === 'props-tracker') {
-    console.log(`🔍 ${feature.id} render #${renderCount.current}:`, {
-      checked,
-      typeof: typeof checked,
-      noAnim,
-      enabled: feature.enabled
-    });
-  }
-
-  return (
-    <Switch
-      id={feature.id}
-      checked={checked}
-      onCheckedChange={onCheckedChange}
-      disabled={feature.status === 'planned'}
-      data-no-anim={noAnim ? '' : undefined}
-      data-testid={`toggle-${feature.id}`}
-    />
-  );
-};
 
 export default function BetaFeatureSettings() {
   const { toast } = useToast();
@@ -185,12 +149,14 @@ export default function BetaFeatureSettings() {
                           <p className="text-sm text-muted-foreground">{feature.description}</p>
                         </div>
                         <div className="flex items-center space-x-2 ml-4">
-                          <HydratedSwitch
-                            feature={feature}
+                          <Switch
+                            id={feature.id}
                             checked={feature.enabled}
                             onCheckedChange={(checked) => 
                               handleFeatureToggle(feature.id, checked)
                             }
+                            disabled={feature.status === 'planned'}
+                            data-testid={`toggle-${feature.id}`}
                           />
                           <Label htmlFor={feature.id} className="text-sm">
                             {feature.enabled ? 'Beta Access' : 'No Beta Access'}
