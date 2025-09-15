@@ -29,11 +29,10 @@ export function useBetaFeatures() {
   const effectiveUser = switchStatus?.isViewingAs ? switchStatus.viewingUser : user;
 
   const { data: betaSettings, isLoading } = useQuery({
-    queryKey: ['/api/admin/beta-settings', Date.now()], // Force fresh data every time
-    queryFn: () => apiRequest('GET', '/api/admin/beta-settings'),
+    queryKey: ['/api/admin/beta-settings'],
     enabled: !!user,
-    staleTime: 0, // Always fetch fresh data
-    gcTime: 0, // Don't keep in cache
+    staleTime: 30 * 1000, // Cache for 30 seconds 
+    gcTime: 60 * 1000, // Keep in cache for 1 minute
     retry: false,
   });
 

@@ -41,6 +41,10 @@ export default function BetaFeatureSettings() {
     mutationFn: (data: BetaSettings) => 
       apiRequest('PUT', '/api/admin/beta-settings', data),
     onSuccess: () => {
+      // Invalidate cache so other parts of app get fresh data
+      queryClient.invalidateQueries({
+        queryKey: ['/api/admin/beta-settings']
+      });
       toast({
         title: "Settings saved",
         description: "Beta feature settings have been updated successfully.",
