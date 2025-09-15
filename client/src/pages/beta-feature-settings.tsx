@@ -23,19 +23,19 @@ interface BetaSettings {
   features: FeatureConfig[];
 }
 
-// HydratedSwitch: Prevents flash by hiding until first layout effect
+// HydratedSwitch: Prevents flash with deterministic styling and animation control
 const HydratedSwitch = ({ feature, checked, onCheckedChange }: { 
   feature: FeatureConfig; 
   checked: boolean; 
   onCheckedChange: (checked: boolean) => void; 
 }) => {
-  const [ready, setReady] = useState(false);
+  const [noAnim, setNoAnim] = useState(true);
   const renderCount = useRef(0);
   renderCount.current++;
 
-  // Use layout effect to prevent flash - show switch only after first paint
+  // Enable animations after first paint to prevent flash
   useLayoutEffect(() => {
-    setReady(true);
+    requestAnimationFrame(() => setNoAnim(false));
   }, []);
 
   // Debug logging for problematic toggles
@@ -43,23 +43,9 @@ const HydratedSwitch = ({ feature, checked, onCheckedChange }: {
     console.log(`🔍 ${feature.id} render #${renderCount.current}:`, {
       checked,
       typeof: typeof checked,
-      ready,
+      noAnim,
       enabled: feature.enabled
     });
-  }
-
-  // Render placeholder until ready to prevent DOM state changes
-  if (!ready) {
-    return (
-      <div 
-        style={{ 
-          visibility: 'hidden', 
-          width: 44, 
-          height: 24 
-        }}
-        data-testid={`toggle-${feature.id}-placeholder`}
-      />
-    );
   }
 
   return (
@@ -68,6 +54,7 @@ const HydratedSwitch = ({ feature, checked, onCheckedChange }: {
       checked={checked}
       onCheckedChange={onCheckedChange}
       disabled={feature.status === 'planned'}
+      data-no-anim={noAnim ? '' : undefined}
       data-testid={`toggle-${feature.id}`}
     />
   );
