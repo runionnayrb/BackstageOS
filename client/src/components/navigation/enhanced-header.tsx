@@ -255,15 +255,19 @@ export default function EnhancedHeader() {
                     </DropdownMenuItem>
                   )}
                   
-                  <DropdownMenuItem onClick={() => setLocation('/tasks')}>
-                    <CheckSquare className="h-4 w-4 mr-2" strokeWidth={1.5} />
-                    Tasks
-                  </DropdownMenuItem>
+                  {canAccessFeature('task-boards') && (
+                    <DropdownMenuItem onClick={() => setLocation('/tasks')}>
+                      <CheckSquare className="h-4 w-4 mr-2" strokeWidth={1.5} />
+                      Tasks
+                    </DropdownMenuItem>
+                  )}
                   
-                  <DropdownMenuItem onClick={() => setLocation('/notes')}>
-                    <FileText className="h-4 w-4 mr-2" strokeWidth={1.5} />
-                    Notes
-                  </DropdownMenuItem>
+                  {canAccessFeature('advanced-notes') && (
+                    <DropdownMenuItem onClick={() => setLocation('/notes')}>
+                      <FileText className="h-4 w-4 mr-2" strokeWidth={1.5} />
+                      Notes
+                    </DropdownMenuItem>
+                  )}
                   
                   <DropdownMenuSeparator />
                   
@@ -330,14 +334,18 @@ export default function EnhancedHeader() {
                         <Calendar className="h-4 w-4 mr-2" strokeWidth={1.5} />
                         Schedule Mapping
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/tasks`)}>
-                        <CheckSquare className="h-4 w-4 mr-2" strokeWidth={1.5} />
-                        Show Tasks
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/notes`)}>
-                        <FileText className="h-4 w-4 mr-2" strokeWidth={1.5} />
-                        Show Notes
-                      </DropdownMenuItem>
+                      {canAccessFeature('task-boards') && (
+                        <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/tasks`)}>
+                          <CheckSquare className="h-4 w-4 mr-2" strokeWidth={1.5} />
+                          Show Tasks
+                        </DropdownMenuItem>
+                      )}
+                      {canAccessFeature('advanced-notes') && (
+                        <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/notes`)}>
+                          <FileText className="h-4 w-4 mr-2" strokeWidth={1.5} />
+                          Show Notes
+                        </DropdownMenuItem>
+                      )}
                     </>
                   )}
                   
