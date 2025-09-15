@@ -2,6 +2,7 @@ import { Settings, Users, LogOut, ChevronDown, MessageSquare, UserCheck, Shield,
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
@@ -248,9 +249,18 @@ export default function EnhancedHeader() {
                       <Mail className="h-4 w-4 mr-2" strokeWidth={1.5} />
                       Email
                       {unreadEmailData?.totalUnread > 0 && (
-                        <span className="ml-auto bg-blue-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
-                          {unreadEmailData.totalUnread}
-                        </span>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="ml-auto bg-blue-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
+                                {unreadEmailData.totalUnread}
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Total unread emails across all accounts</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       )}
                     </DropdownMenuItem>
                   )}

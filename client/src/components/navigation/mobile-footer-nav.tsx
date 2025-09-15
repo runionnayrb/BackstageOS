@@ -2,6 +2,7 @@ import { FolderOpen, Mail, CheckSquare, FileText, MessageSquare, MoreHorizontal,
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -110,9 +111,18 @@ export default function MobileFooterNav() {
             <div className="relative">
               <Mail className="h-5 w-5" />
               {unreadCount > 0 && (
-                <Badge className="absolute -top-2 -right-2 h-4 w-4 p-0 text-xs bg-red-500 hover:bg-red-500">
-                  {unreadCount > 99 ? '99+' : unreadCount}
-                </Badge>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge className="absolute -top-2 -right-2 h-4 w-4 p-0 text-xs bg-red-500 hover:bg-red-500">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Total unread emails across all accounts</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               )}
             </div>
             <span className="text-xs">Email</span>
