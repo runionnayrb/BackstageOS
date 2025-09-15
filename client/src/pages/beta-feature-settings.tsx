@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,19 +23,19 @@ interface BetaSettings {
   features: FeatureConfig[];
 }
 
-// Debug Switch component to diagnose flash issue
-const DebugSwitch = ({ feature, checked, onCheckedChange }: { 
+// HydratedSwitch: Prevents flash by hiding until first layout effect
+const HydratedSwitch = ({ feature, checked, onCheckedChange }: { 
   feature: FeatureConfig; 
   checked: boolean; 
   onCheckedChange: (checked: boolean) => void; 
 }) => {
-  const [mounted, setMounted] = useState(false);
+  const [ready, setReady] = useState(false);
   const renderCount = useRef(0);
   renderCount.current++;
 
-  useEffect(() => {
-    // Enable transitions after mount
-    requestAnimationFrame(() => setMounted(true));
+  // Use layout effect to prevent flash - show switch only after first paint
+  useLayoutEffect(() => {
+    setReady(true);
   }, []);
 
   // Debug logging for problematic toggles
@@ -43,10 +43,23 @@ const DebugSwitch = ({ feature, checked, onCheckedChange }: {
     console.log(`🔍 ${feature.id} render #${renderCount.current}:`, {
       checked,
       typeof: typeof checked,
-      mounted,
-      enabled: feature.enabled,
-      rawEnabled: (feature as any).enabled
+      ready,
+      enabled: feature.enabled
     });
+  }
+
+  // Render placeholder until ready to prevent DOM state changes
+  if (!ready) {
+    return (
+      <div 
+        style={{ 
+          visibility: 'hidden', 
+          width: 44, 
+          height: 24 
+        }}
+        data-testid={`toggle-${feature.id}-placeholder`}
+      />
+    );
   }
 
   return (
@@ -54,7 +67,6 @@ const DebugSwitch = ({ feature, checked, onCheckedChange }: {
       id={feature.id}
       checked={checked}
       onCheckedChange={onCheckedChange}
-      className={mounted ? "" : "transition-none"}
       disabled={feature.status === 'planned'}
       data-testid={`toggle-${feature.id}`}
     />
@@ -186,7 +198,7 @@ export default function BetaFeatureSettings() {
                           <p className="text-sm text-muted-foreground">{feature.description}</p>
                         </div>
                         <div className="flex items-center space-x-2 ml-4">
-                          <DebugSwitch
+                          <HydratedSwitch
                             feature={feature}
                             checked={feature.enabled}
                             onCheckedChange={(checked) => 
