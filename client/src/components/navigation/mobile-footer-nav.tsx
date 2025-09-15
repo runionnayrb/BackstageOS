@@ -65,16 +65,6 @@ export default function MobileFooterNav() {
   // Get beta feature access
   const { canAccessFeature } = useBetaFeatures();
   
-  // Debug: Log beta access checks
-  const taskBoardsAccess = canAccessFeature('task-boards');
-  const advancedNotesAccess = canAccessFeature('advanced-notes');
-  const emailIntegrationAccess = canAccessFeature('email-integration');
-  
-  console.log('🔍 Mobile Nav Beta Access:', {
-    'task-boards': taskBoardsAccess,
-    'advanced-notes': advancedNotesAccess,
-    'email-integration': emailIntegrationAccess
-  });
 
   // Get show data if we're in a show context
   const { data: showData } = useQuery({
