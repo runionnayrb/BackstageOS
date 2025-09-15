@@ -37,7 +37,7 @@ export default function MobileBottomNav() {
   const { data: unreadCount = 0 } = useQuery({
     queryKey: ['/api/email/unread-count'],
     refetchInterval: 600000, // Refresh every 10 minutes (cost reduction)
-    select: (data: any) => data?.count || 0,
+    select: (data: any) => data?.totalUnread || 0,
   });
 
   // Get email accounts for composer
