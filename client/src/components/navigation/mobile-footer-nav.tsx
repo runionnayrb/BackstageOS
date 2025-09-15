@@ -97,7 +97,7 @@ export default function MobileFooterNav() {
         </Button>
 
         {/* Email - Only show if enabled in beta configuration */}
-        {canAccessFeature('email') && (
+        {canAccessFeature('email-integration') && (
           <Button
             variant="ghost"
             size="sm"
@@ -119,7 +119,7 @@ export default function MobileFooterNav() {
         )}
 
         {/* Tasks - Only show if enabled in beta configuration */}
-        {canAccessFeature('tasks') && (
+        {canAccessFeature('task-boards') && (
           <Button
             variant="ghost"
             size="sm"
@@ -134,7 +134,7 @@ export default function MobileFooterNav() {
         )}
 
         {/* Notes - Only show if enabled in beta configuration */}
-        {canAccessFeature('notes') && (
+        {canAccessFeature('advanced-notes') && (
           <Button
             variant="ghost"
             size="sm"
@@ -254,13 +254,13 @@ export default function MobileFooterNav() {
                   <Calendar className="h-4 w-4 mr-2" />
                   Schedule Mapping
                 </DropdownMenuItem>
-                {canAccessFeature('tasks') && (
+                {canAccessFeature('task-boards') && (
                   <DropdownMenuItem onClick={() => setLocation(`/shows/${showId}/tasks`)}>
                     <CheckSquare className="h-4 w-4 mr-2" />
                     Show Tasks
                   </DropdownMenuItem>
                 )}
-                {canAccessFeature('notes') && (
+                {canAccessFeature('advanced-notes') && (
                   <DropdownMenuItem onClick={() => setLocation(`/shows/${showId}/notes`)}>
                     <FileText className="h-4 w-4 mr-2" />
                     Show Notes
