@@ -96,51 +96,57 @@ export default function MobileFooterNav() {
           <span className="text-xs">Shows</span>
         </Button>
 
-        {/* Email */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setLocation('/email')}
-          className={`flex flex-col items-center gap-1 h-12 px-3 relative ${
-            isActive('/email') ? 'text-blue-600' : 'text-gray-600'
-          }`}
-        >
-          <div className="relative">
-            <Mail className="h-5 w-5" />
-            {unreadCount > 0 && (
-              <Badge className="absolute -top-2 -right-2 h-4 w-4 p-0 text-xs bg-red-500 hover:bg-red-500">
-                {unreadCount > 99 ? '99+' : unreadCount}
-              </Badge>
-            )}
-          </div>
-          <span className="text-xs">Email</span>
-        </Button>
+        {/* Email - Only show if enabled in beta configuration */}
+        {canAccessFeature('email') && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLocation('/email')}
+            className={`flex flex-col items-center gap-1 h-12 px-3 relative ${
+              isActive('/email') ? 'text-blue-600' : 'text-gray-600'
+            }`}
+          >
+            <div className="relative">
+              <Mail className="h-5 w-5" />
+              {unreadCount > 0 && (
+                <Badge className="absolute -top-2 -right-2 h-4 w-4 p-0 text-xs bg-red-500 hover:bg-red-500">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </Badge>
+              )}
+            </div>
+            <span className="text-xs">Email</span>
+          </Button>
+        )}
 
-        {/* Tasks */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setLocation('/tasks')}
-          className={`flex flex-col items-center gap-1 h-12 px-3 ${
-            isActive('/tasks') ? 'text-blue-600' : 'text-gray-600'
-          }`}
-        >
-          <CheckSquare className="h-5 w-5" />
-          <span className="text-xs">Tasks</span>
-        </Button>
+        {/* Tasks - Only show if enabled in beta configuration */}
+        {canAccessFeature('tasks') && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLocation('/tasks')}
+            className={`flex flex-col items-center gap-1 h-12 px-3 ${
+              isActive('/tasks') ? 'text-blue-600' : 'text-gray-600'
+            }`}
+          >
+            <CheckSquare className="h-5 w-5" />
+            <span className="text-xs">Tasks</span>
+          </Button>
+        )}
 
-        {/* Notes */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setLocation('/notes')}
-          className={`flex flex-col items-center gap-1 h-12 px-3 ${
-            isActive('/notes') ? 'text-blue-600' : 'text-gray-600'
-          }`}
-        >
-          <FileText className="h-5 w-5" />
-          <span className="text-xs">Notes</span>
-        </Button>
+        {/* Notes - Only show if enabled in beta configuration */}
+        {canAccessFeature('notes') && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLocation('/notes')}
+            className={`flex flex-col items-center gap-1 h-12 px-3 ${
+              isActive('/notes') ? 'text-blue-600' : 'text-gray-600'
+            }`}
+          >
+            <FileText className="h-5 w-5" />
+            <span className="text-xs">Notes</span>
+          </Button>
+        )}
 
         {/* Chat */}
         <Button
@@ -248,14 +254,18 @@ export default function MobileFooterNav() {
                   <Calendar className="h-4 w-4 mr-2" />
                   Schedule Mapping
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLocation(`/shows/${showId}/tasks`)}>
-                  <CheckSquare className="h-4 w-4 mr-2" />
-                  Show Tasks
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLocation(`/shows/${showId}/notes`)}>
-                  <FileText className="h-4 w-4 mr-2" />
-                  Show Notes
-                </DropdownMenuItem>
+                {canAccessFeature('tasks') && (
+                  <DropdownMenuItem onClick={() => setLocation(`/shows/${showId}/tasks`)}>
+                    <CheckSquare className="h-4 w-4 mr-2" />
+                    Show Tasks
+                  </DropdownMenuItem>
+                )}
+                {canAccessFeature('notes') && (
+                  <DropdownMenuItem onClick={() => setLocation(`/shows/${showId}/notes`)}>
+                    <FileText className="h-4 w-4 mr-2" />
+                    Show Notes
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={() => setLocation(`/shows/${showId}/settings`)}>
                   <Settings className="h-4 w-4 mr-2" />
                   Show Settings
