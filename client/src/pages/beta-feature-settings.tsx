@@ -25,7 +25,7 @@ interface BetaSettings {
 
 export default function BetaFeatureSettings() {
   const { toast } = useToast();
-  const [settings, setSettings] = useState<BetaSettings>({ features: [] });
+  const [settings, setSettings] = useState<BetaSettings | null>(null);
   const [mountKey] = useState(() => Date.now()); // Generate once on mount
 
   // Force fresh data by using mount-specific key (no caching between page visits)
@@ -66,22 +66,24 @@ export default function BetaFeatureSettings() {
   }, [betaSettings]);
 
   const handleFeatureToggle = (featureId: string, enabled: boolean) => {
-    setSettings(prev => ({
+    if (!settings) return; // Guard against null state
+    setSettings(prev => prev ? ({
       ...prev,
       features: prev.features.map(feature =>
         feature.id === featureId
           ? { ...feature, enabled }
           : feature
       )
-    }));
+    }) : null);
   };
 
   const handleSave = () => {
+    if (!settings) return; // Guard against null state
     saveMutation.mutate(settings);
   };
 
-  // Show loading state until we have fresh data from database AND local state is updated
-  if (isLoading || !betaSettings || settings.features.length === 0) {
+  // Show loading state until we have local state populated from database
+  if (!settings) {
     return (
       <div className="container mx-auto p-6">
         <div className="animate-pulse space-y-4">
