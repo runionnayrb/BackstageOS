@@ -61,7 +61,15 @@ export default function BetaFeatureSettings() {
 
   useEffect(() => {
     if (betaSettings) {
-      setSettings(betaSettings);
+      // 🔧 Frontend safeguard: Ensure all enabled values are strict booleans
+      const normalizedSettings = {
+        ...betaSettings,
+        features: betaSettings.features.map(feature => ({
+          ...feature,
+          enabled: Boolean(feature.enabled === true || feature.enabled === 1 || feature.enabled === "1" || feature.enabled === "true")
+        }))
+      };
+      setSettings(normalizedSettings);
     }
   }, [betaSettings]);
 

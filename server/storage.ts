@@ -1261,10 +1261,31 @@ export class DatabaseStorage implements IStorage {
 
   async getBetaSettings(): Promise<BetaSettings | undefined> {
     const result = await db.select().from(betaSettings);
-    return result[0];
+    const settings = result[0];
+    
+    if (!settings) return undefined;
+    
+    // 🔧 CRITICAL FIX: Ensure all feature.enabled values are strict booleans
+    // Some features may have string "false" instead of boolean false, causing UI flash
+    if (settings.features) {
+      settings.features = settings.features.map(feature => ({
+        ...feature,
+        enabled: feature.enabled === true || feature.enabled === 1 || feature.enabled === "1" || feature.enabled === "true"
+      }));
+    }
+    
+    return settings;
   }
 
   async upsertBetaSettings(settings: InsertBetaSettings): Promise<BetaSettings> {
+    // 🔧 Normalize all feature.enabled values to strict booleans before saving
+    if (settings.features) {
+      settings.features = settings.features.map(feature => ({
+        ...feature,
+        enabled: feature.enabled === true || feature.enabled === 1 || feature.enabled === "1" || feature.enabled === "true"
+      }));
+    }
+    
     const existingSettings = await this.getBetaSettings();
     if (existingSettings) {
       const result = await db.update(betaSettings)
