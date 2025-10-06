@@ -122,7 +122,10 @@ export default function EnhancedHeader() {
       }
 
       if (pathParts[3]) {
-        let sectionName = pathParts[3].charAt(0).toUpperCase() + pathParts[3].slice(1);
+        let sectionName = pathParts[3]
+          .split('-')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
         if (pathParts[3] === 'settings') {
           sectionName = 'Show Settings';
         }
@@ -133,8 +136,12 @@ export default function EnhancedHeader() {
       }
 
       if (pathParts[4]) {
+        const label = pathParts[4]
+          .split('-')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
         breadcrumbs.push({
-          label: pathParts[4].charAt(0).toUpperCase() + pathParts[4].slice(1),
+          label: label,
           isCurrentPage: true
         });
       }
