@@ -85,8 +85,29 @@ export function RichTextEditor({
   };
 
   const changeFontSize = (size: string) => {
-    executeCommand('fontSize', '3'); // Reset to default
-    executeCommand('fontSizeDelta', size);
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const selectedText = range.toString();
+      
+      if (selectedText) {
+        // Wrap selected text in a span with the specified font size
+        const span = document.createElement('span');
+        span.style.fontSize = size;
+        span.textContent = selectedText;
+        
+        range.deleteContents();
+        range.insertNode(span);
+        
+        // Move cursor after the span
+        range.setStartAfter(span);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        
+        handleInput();
+      }
+    }
     setShowFontSize(false);
   };
 
@@ -468,44 +489,21 @@ export function RichTextEditor({
             <Type className="h-4 w-4" />
           </Button>
           {showFontSize && (
-            <div className="absolute top-10 left-0 bg-white dark:bg-gray-800 border rounded-lg shadow-lg p-2 z-10">
+            <div className="absolute top-10 left-0 bg-white dark:bg-gray-800 border rounded-lg shadow-lg p-2 z-10 max-h-60 overflow-y-auto">
               <div className="flex flex-col gap-1">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => changeFontSize('-1')}
-                  className="text-xs justify-start"
-                >
-                  Small
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => changeFontSize('0')}
-                  className="text-sm justify-start"
-                >
-                  Normal
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => changeFontSize('+1')}
-                  className="text-base justify-start"
-                >
-                  Large
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => changeFontSize('+2')}
-                  className="text-lg justify-start"
-                >
-                  Extra Large
-                </Button>
+                {['8px', '10px', '12px', '14px', '16px', '18px', '20px', '24px', '28px', '32px', '36px', '48px', '60px', '72px'].map((size) => (
+                  <Button
+                    key={size}
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => changeFontSize(size)}
+                    className="justify-start"
+                    style={{ fontSize: size }}
+                  >
+                    {size}
+                  </Button>
+                ))}
               </div>
             </div>
           )}
