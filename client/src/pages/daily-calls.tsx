@@ -773,7 +773,7 @@ export default function DailyCallSheet() {
   return (
     <div className="flex-1 bg-gray-50 min-h-screen">
       {/* Desktop Header */}
-      <div className="hidden md:block px-4 sm:px-6 lg:px-8 pt-6 mb-6">
+      <div className="hidden md:block bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <h1 className="text-3xl font-bold">
