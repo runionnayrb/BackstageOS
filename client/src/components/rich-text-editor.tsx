@@ -378,50 +378,6 @@ export function RichTextEditor({
 
         <div className="w-px h-6 bg-gray-300 mx-1" />
 
-        {/* Headings */}
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => formatHeading(1)}
-          className="h-8 w-8 p-0"
-          title="Heading 1"
-        >
-          <Heading1 className="h-4 w-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => formatHeading(2)}
-          className="h-8 w-8 p-0"
-          title="Heading 2"
-        >
-          <Heading2 className="h-4 w-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => formatHeading(3)}
-          className="h-8 w-8 p-0"
-          title="Heading 3"
-        >
-          <Heading3 className="h-4 w-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={formatBodyText}
-          className="h-8 w-8 p-0"
-          title="Body Text"
-        >
-          <Type className="h-4 w-4" />
-        </Button>
-
-        <div className="w-px h-6 bg-gray-300 mx-1" />
-
         {/* Lists */}
         <Button
           type="button"
