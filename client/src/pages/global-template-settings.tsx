@@ -205,7 +205,6 @@ export default function GlobalTemplateSettings() {
     projectId: parseInt(projectId!)
   });
 
-  const [previewMode, setPreviewMode] = useState<'header' | 'footer' | null>(null);
 
   const { data: project } = useQuery<Project>({
     queryKey: [`/api/projects/${projectId}`],
@@ -1102,86 +1101,51 @@ export default function GlobalTemplateSettings() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <Label className="text-base font-medium">Default Header Template</Label>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setPreviewMode(previewMode === 'header' ? null : 'header')}
-                        className="flex items-center gap-2"
-                      >
-                        <Eye className="h-4 w-4" />
-                        {previewMode === 'header' ? 'Hide Preview' : 'Preview'}
-                      </Button>
-
-                    </div>
                   </div>
-
-                  {previewMode === 'header' && (
-                    <div className="p-4 border rounded-lg bg-gray-50 dark:bg-gray-900">
-                      <div 
-                        className={`header-preview-${settings.headerSpacing.replace('.', '-')}`}
-                        dangerouslySetInnerHTML={{
-                          __html: (() => {
-                            const sampleData: Record<string, string> = {
-                              showName: project?.name || "Sample Show",
-                              reportType: "Tech Report",
-                              date: new Date().toLocaleDateString(),
-                              stageManager: "John Doe",
-                              venue: project?.venue || "Sample Theater"
-                            };
-                            
-                            const result = settings.defaultHeader.replace(/\{\{(\w+)\}\}/g, (match, key) => {
-                              return sampleData[key] || match;
-                            });
-                            
-                            return result;
-                          })()
-                        }}
-                      />
-                      {settings.headerHorizontalLine && (
-                        <div className="border-t border-gray-400 mt-2" />
-                      )}
-                      <style>{`
-                        .header-preview-${settings.headerSpacing.replace('.', '-')} h1,
-                        .header-preview-${settings.headerSpacing.replace('.', '-')} h2,
-                        .header-preview-${settings.headerSpacing.replace('.', '-')} h3,
-                        .header-preview-${settings.headerSpacing.replace('.', '-')} h4,
-                        .header-preview-${settings.headerSpacing.replace('.', '-')} h5,
-                        .header-preview-${settings.headerSpacing.replace('.', '-')} h6,
-                        .header-preview-${settings.headerSpacing.replace('.', '-')} p,
-                        .header-preview-${settings.headerSpacing.replace('.', '-')} div {
-                          margin-top: 0 !important;
-                          margin-bottom: ${(parseFloat(settings.headerSpacing) - 1) * 0.5}em !important;
-                          line-height: ${settings.headerSpacing} !important;
-                        }
-                        .header-preview-${settings.headerSpacing.replace('.', '-')} > *:last-child {
-                          margin-bottom: 0 !important;
-                        }
-                      `}</style>
-                    </div>
-                  )}
 
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label>Header Content</Label>
-                      <RichTextEditor
-                        content={settings.defaultHeader}
-                        onChange={(content) => setSettings(prev => ({
-                          ...prev,
-                          defaultHeader: content
-                        }))}
-                        placeholder="Enter header content with rich formatting..."
-                        className="min-h-[120px]"
-                        showPageNumbers={true}
-                        pageNumberFormat={settings.pageNumbering.format}
-                        onPageNumberFormatChange={(format) => setSettings(prev => ({
-                          ...prev,
-                          pageNumbering: {
-                            ...prev.pageNumbering,
-                            format: format as "1" | "1 of X" | "Page 1" | "Page 1 of X"
+                      <div className="relative">
+                        <RichTextEditor
+                          content={settings.defaultHeader}
+                          onChange={(content) => setSettings(prev => ({
+                            ...prev,
+                            defaultHeader: content
+                          }))}
+                          placeholder="Enter header content with rich formatting..."
+                          className={`min-h-[120px] header-editor-${settings.headerSpacing.replace('.', '-')}`}
+                          showPageNumbers={true}
+                          pageNumberFormat={settings.pageNumbering.format}
+                          onPageNumberFormatChange={(format) => setSettings(prev => ({
+                            ...prev,
+                            pageNumbering: {
+                              ...prev.pageNumbering,
+                              format: format as "1" | "1 of X" | "Page 1" | "Page 1 of X"
+                            }
+                          }))}
+                        />
+                        {settings.headerHorizontalLine && (
+                          <div className="border-t border-gray-400 mx-4 mt-2" />
+                        )}
+                        <style>{`
+                          .header-editor-${settings.headerSpacing.replace('.', '-')} [contenteditable] h1,
+                          .header-editor-${settings.headerSpacing.replace('.', '-')} [contenteditable] h2,
+                          .header-editor-${settings.headerSpacing.replace('.', '-')} [contenteditable] h3,
+                          .header-editor-${settings.headerSpacing.replace('.', '-')} [contenteditable] h4,
+                          .header-editor-${settings.headerSpacing.replace('.', '-')} [contenteditable] h5,
+                          .header-editor-${settings.headerSpacing.replace('.', '-')} [contenteditable] h6,
+                          .header-editor-${settings.headerSpacing.replace('.', '-')} [contenteditable] p,
+                          .header-editor-${settings.headerSpacing.replace('.', '-')} [contenteditable] div {
+                            margin-top: 0 !important;
+                            margin-bottom: ${(parseFloat(settings.headerSpacing) - 1) * 0.5}em !important;
+                            line-height: ${settings.headerSpacing} !important;
                           }
-                        }))}
-                      />
+                          .header-editor-${settings.headerSpacing.replace('.', '-')} [contenteditable] > *:last-child {
+                            margin-bottom: 0 !important;
+                          }
+                        `}</style>
+                      </div>
                       <p className="text-sm text-muted-foreground">
                         Use variables: {`{{showName}}, {{reportType}}, {{date}}, {{stageManager}}, {{venue}}`} • Use the page number dropdown and Insert button on the right side of the toolbar
                       </p>
@@ -1238,82 +1202,51 @@ export default function GlobalTemplateSettings() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <Label className="text-base font-medium">Default Footer Template</Label>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setPreviewMode(previewMode === 'footer' ? null : 'footer')}
-                        className="flex items-center gap-2"
-                      >
-                        <Eye className="h-4 w-4" />
-                        {previewMode === 'footer' ? 'Hide Preview' : 'Preview'}
-                      </Button>
-
-                    </div>
                   </div>
-
-                  {previewMode === 'footer' && (
-                    <div className="p-4 border rounded-lg bg-gray-50 dark:bg-gray-900">
-                      {settings.footerHorizontalLine && (
-                        <div className="border-t border-gray-400 mb-2" />
-                      )}
-                      <div 
-                        className={`footer-preview-${settings.footerSpacing.replace('.', '-')}`}
-                        dangerouslySetInnerHTML={{
-                          __html: settings.defaultFooter.replace(/{{(\w+)}}/g, (match, key) => {
-                            const sampleData: Record<string, string> = {
-                              preparedBy: "Stage Manager",
-                              nextReportDate: new Date(Date.now() + 86400000).toLocaleDateString(),
-                              contactInfo: project?.name ? `${project.name} Production` : "Production Team",
-                              emergencyContact: "(555) 123-4567",
-                              pageNumber: "1",
-                              totalPages: "1"
-                            };
-                            return sampleData[key] || match;
-                          })
-                        }}
-                      />
-                      <style>{`
-                        .footer-preview-${settings.footerSpacing.replace('.', '-')} h1,
-                        .footer-preview-${settings.footerSpacing.replace('.', '-')} h2,
-                        .footer-preview-${settings.footerSpacing.replace('.', '-')} h3,
-                        .footer-preview-${settings.footerSpacing.replace('.', '-')} h4,
-                        .footer-preview-${settings.footerSpacing.replace('.', '-')} h5,
-                        .footer-preview-${settings.footerSpacing.replace('.', '-')} h6,
-                        .footer-preview-${settings.footerSpacing.replace('.', '-')} p,
-                        .footer-preview-${settings.footerSpacing.replace('.', '-')} div {
-                          margin-top: 0 !important;
-                          margin-bottom: ${(parseFloat(settings.footerSpacing) - 1) * 0.5}em !important;
-                          line-height: ${settings.footerSpacing} !important;
-                        }
-                        .footer-preview-${settings.footerSpacing.replace('.', '-')} > *:last-child {
-                          margin-bottom: 0 !important;
-                        }
-                      `}</style>
-                    </div>
-                  )}
 
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label>Footer Content</Label>
-                      <RichTextEditor
-                        content={settings.defaultFooter}
-                        onChange={(content) => setSettings(prev => ({
-                          ...prev,
-                          defaultFooter: content
-                        }))}
-                        placeholder="Enter footer content with rich formatting..."
-                        className="min-h-[100px]"
-                        showPageNumbers={true}
-                        pageNumberFormat={settings.pageNumbering.format}
-                        onPageNumberFormatChange={(format) => setSettings(prev => ({
-                          ...prev,
-                          pageNumbering: {
-                            ...prev.pageNumbering,
-                            format: format as "1" | "1 of X" | "Page 1" | "Page 1 of X"
+                      <div className="relative">
+                        {settings.footerHorizontalLine && (
+                          <div className="border-t border-gray-400 mx-4 mb-2" />
+                        )}
+                        <RichTextEditor
+                          content={settings.defaultFooter}
+                          onChange={(content) => setSettings(prev => ({
+                            ...prev,
+                            defaultFooter: content
+                          }))}
+                          placeholder="Enter footer content with rich formatting..."
+                          className={`min-h-[100px] footer-editor-${settings.footerSpacing.replace('.', '-')}`}
+                          showPageNumbers={true}
+                          pageNumberFormat={settings.pageNumbering.format}
+                          onPageNumberFormatChange={(format) => setSettings(prev => ({
+                            ...prev,
+                            pageNumbering: {
+                              ...prev.pageNumbering,
+                              format: format as "1" | "1 of X" | "Page 1" | "Page 1 of X"
+                            }
+                          }))}
+                        />
+                        <style>{`
+                          .footer-editor-${settings.footerSpacing.replace('.', '-')} [contenteditable] h1,
+                          .footer-editor-${settings.footerSpacing.replace('.', '-')} [contenteditable] h2,
+                          .footer-editor-${settings.footerSpacing.replace('.', '-')} [contenteditable] h3,
+                          .footer-editor-${settings.footerSpacing.replace('.', '-')} [contenteditable] h4,
+                          .footer-editor-${settings.footerSpacing.replace('.', '-')} [contenteditable] h5,
+                          .footer-editor-${settings.footerSpacing.replace('.', '-')} [contenteditable] h6,
+                          .footer-editor-${settings.footerSpacing.replace('.', '-')} [contenteditable] p,
+                          .footer-editor-${settings.footerSpacing.replace('.', '-')} [contenteditable] div {
+                            margin-top: 0 !important;
+                            margin-bottom: ${(parseFloat(settings.footerSpacing) - 1) * 0.5}em !important;
+                            line-height: ${settings.footerSpacing} !important;
                           }
-                        }))}
-                      />
+                          .footer-editor-${settings.footerSpacing.replace('.', '-')} [contenteditable] > *:last-child {
+                            margin-bottom: 0 !important;
+                          }
+                        `}</style>
+                      </div>
                       <p className="text-sm text-muted-foreground">
                         Use variables: {`{{preparedBy}}, {{nextReportDate}}, {{contactInfo}}, {{emergencyContact}}`} • Use the page number dropdown and Insert button on the right side of the toolbar
                       </p>
