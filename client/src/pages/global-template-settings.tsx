@@ -1119,10 +1119,9 @@ export default function GlobalTemplateSettings() {
                   {previewMode === 'header' && (
                     <div className="p-4 border rounded-lg bg-gray-50 dark:bg-gray-900">
                       <div 
+                        style={{ lineHeight: settings.headerSpacing }}
                         dangerouslySetInnerHTML={{
                           __html: (() => {
-                            console.log('🔍 Original header content:', settings.defaultHeader);
-                            
                             const sampleData: Record<string, string> = {
                               showName: project?.name || "Sample Show",
                               reportType: "Tech Report",
@@ -1132,16 +1131,16 @@ export default function GlobalTemplateSettings() {
                             };
                             
                             const result = settings.defaultHeader.replace(/\{\{(\w+)\}\}/g, (match, key) => {
-                              const replacement = sampleData[key] || match;
-                              console.log(`🔍 Variable replacement - match: "${match}", key: "${key}", replacement: "${replacement}"`);
-                              return replacement;
+                              return sampleData[key] || match;
                             });
                             
-                            console.log('🔍 Final result:', result);
                             return result;
                           })()
                         }}
                       />
+                      {settings.headerHorizontalLine && (
+                        <div className="border-t border-gray-400 mt-2" />
+                      )}
                     </div>
                   )}
 
@@ -1238,7 +1237,11 @@ export default function GlobalTemplateSettings() {
 
                   {previewMode === 'footer' && (
                     <div className="p-4 border rounded-lg bg-gray-50 dark:bg-gray-900">
+                      {settings.footerHorizontalLine && (
+                        <div className="border-t border-gray-400 mb-2" />
+                      )}
                       <div 
+                        style={{ lineHeight: settings.footerSpacing }}
                         dangerouslySetInnerHTML={{
                           __html: settings.defaultFooter.replace(/{{(\w+)}}/g, (match, key) => {
                             const sampleData: Record<string, string> = {
