@@ -128,6 +128,8 @@ export default function EnhancedHeader() {
           .join(' ');
         if (pathParts[3] === 'settings') {
           sectionName = 'Show Settings';
+        } else if (pathParts[3] === 'templates') {
+          sectionName = 'Report Templates';
         }
         breadcrumbs.push({
           label: sectionName,
@@ -136,14 +138,10 @@ export default function EnhancedHeader() {
       }
 
       if (pathParts[4]) {
-        let label = pathParts[4]
+        const label = pathParts[4]
           .split('-')
           .map(word => word.charAt(0).toUpperCase() + word.slice(1))
           .join(' ');
-        
-        if (pathParts[3] === 'reports' && pathParts[4] === 'templates') {
-          label = 'Report Templates';
-        }
         
         breadcrumbs.push({
           label: label,
