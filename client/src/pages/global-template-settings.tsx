@@ -1119,11 +1119,7 @@ export default function GlobalTemplateSettings() {
                   {previewMode === 'header' && (
                     <div className="p-4 border rounded-lg bg-gray-50 dark:bg-gray-900">
                       <div 
-                        className="header-preview"
-                        style={{ 
-                          lineHeight: settings.headerSpacing,
-                          ['--header-spacing' as any]: settings.headerSpacing 
-                        }}
+                        className={`header-preview-${settings.headerSpacing.replace('.', '-')}`}
                         dangerouslySetInnerHTML={{
                           __html: (() => {
                             const sampleData: Record<string, string> = {
@@ -1146,18 +1142,19 @@ export default function GlobalTemplateSettings() {
                         <div className="border-t border-gray-400 mt-2" />
                       )}
                       <style>{`
-                        .header-preview h1,
-                        .header-preview h2,
-                        .header-preview h3,
-                        .header-preview h4,
-                        .header-preview h5,
-                        .header-preview h6,
-                        .header-preview p,
-                        .header-preview div {
+                        .header-preview-${settings.headerSpacing.replace('.', '-')} h1,
+                        .header-preview-${settings.headerSpacing.replace('.', '-')} h2,
+                        .header-preview-${settings.headerSpacing.replace('.', '-')} h3,
+                        .header-preview-${settings.headerSpacing.replace('.', '-')} h4,
+                        .header-preview-${settings.headerSpacing.replace('.', '-')} h5,
+                        .header-preview-${settings.headerSpacing.replace('.', '-')} h6,
+                        .header-preview-${settings.headerSpacing.replace('.', '-')} p,
+                        .header-preview-${settings.headerSpacing.replace('.', '-')} div {
                           margin-top: 0 !important;
-                          margin-bottom: calc((var(--header-spacing, 1.2) - 1) * 0.5em) !important;
+                          margin-bottom: ${(parseFloat(settings.headerSpacing) - 1) * 0.5}em !important;
+                          line-height: ${settings.headerSpacing} !important;
                         }
-                        .header-preview > *:last-child {
+                        .header-preview-${settings.headerSpacing.replace('.', '-')} > *:last-child {
                           margin-bottom: 0 !important;
                         }
                       `}</style>
@@ -1261,11 +1258,7 @@ export default function GlobalTemplateSettings() {
                         <div className="border-t border-gray-400 mb-2" />
                       )}
                       <div 
-                        className="footer-preview"
-                        style={{ 
-                          lineHeight: settings.footerSpacing,
-                          ['--footer-spacing' as any]: settings.footerSpacing 
-                        }}
+                        className={`footer-preview-${settings.footerSpacing.replace('.', '-')}`}
                         dangerouslySetInnerHTML={{
                           __html: settings.defaultFooter.replace(/{{(\w+)}}/g, (match, key) => {
                             const sampleData: Record<string, string> = {
@@ -1281,18 +1274,19 @@ export default function GlobalTemplateSettings() {
                         }}
                       />
                       <style>{`
-                        .footer-preview h1,
-                        .footer-preview h2,
-                        .footer-preview h3,
-                        .footer-preview h4,
-                        .footer-preview h5,
-                        .footer-preview h6,
-                        .footer-preview p,
-                        .footer-preview div {
+                        .footer-preview-${settings.footerSpacing.replace('.', '-')} h1,
+                        .footer-preview-${settings.footerSpacing.replace('.', '-')} h2,
+                        .footer-preview-${settings.footerSpacing.replace('.', '-')} h3,
+                        .footer-preview-${settings.footerSpacing.replace('.', '-')} h4,
+                        .footer-preview-${settings.footerSpacing.replace('.', '-')} h5,
+                        .footer-preview-${settings.footerSpacing.replace('.', '-')} h6,
+                        .footer-preview-${settings.footerSpacing.replace('.', '-')} p,
+                        .footer-preview-${settings.footerSpacing.replace('.', '-')} div {
                           margin-top: 0 !important;
-                          margin-bottom: calc((var(--footer-spacing, 1.2) - 1) * 0.5em) !important;
+                          margin-bottom: ${(parseFloat(settings.footerSpacing) - 1) * 0.5}em !important;
+                          line-height: ${settings.footerSpacing} !important;
                         }
-                        .footer-preview > *:last-child {
+                        .footer-preview-${settings.footerSpacing.replace('.', '-')} > *:last-child {
                           margin-bottom: 0 !important;
                         }
                       `}</style>
@@ -1497,13 +1491,11 @@ export default function GlobalTemplateSettings() {
                   {/* Header Preview */}
                   <div className="text-center pb-4">
                     <div 
-                      className="whitespace-pre-line header-preview-main"
+                      className={`whitespace-pre-line header-preview-main-${settings.headerSpacing.replace('.', '-')}`}
                       style={{
                         fontFamily: settings.fonts.heading.family,
                         fontSize: settings.fonts.heading.size,
-                        fontWeight: settings.fonts.heading.weight,
-                        lineHeight: settings.headerSpacing,
-                        ['--header-spacing' as any]: settings.headerSpacing
+                        fontWeight: settings.fonts.heading.weight
                       }}
                     >
                       <div 
@@ -1521,18 +1513,19 @@ export default function GlobalTemplateSettings() {
                     )}
                   </div>
                   <style>{`
-                    .header-preview-main h1,
-                    .header-preview-main h2,
-                    .header-preview-main h3,
-                    .header-preview-main h4,
-                    .header-preview-main h5,
-                    .header-preview-main h6,
-                    .header-preview-main p,
-                    .header-preview-main div {
+                    .header-preview-main-${settings.headerSpacing.replace('.', '-')} h1,
+                    .header-preview-main-${settings.headerSpacing.replace('.', '-')} h2,
+                    .header-preview-main-${settings.headerSpacing.replace('.', '-')} h3,
+                    .header-preview-main-${settings.headerSpacing.replace('.', '-')} h4,
+                    .header-preview-main-${settings.headerSpacing.replace('.', '-')} h5,
+                    .header-preview-main-${settings.headerSpacing.replace('.', '-')} h6,
+                    .header-preview-main-${settings.headerSpacing.replace('.', '-')} p,
+                    .header-preview-main-${settings.headerSpacing.replace('.', '-')} div {
                       margin-top: 0 !important;
-                      margin-bottom: calc((var(--header-spacing, 1.2) - 1) * 0.5em) !important;
+                      margin-bottom: ${(parseFloat(settings.headerSpacing) - 1) * 0.5}em !important;
+                      line-height: ${settings.headerSpacing} !important;
                     }
-                    .header-preview-main > *:last-child {
+                    .header-preview-main-${settings.headerSpacing.replace('.', '-')} > *:last-child {
                       margin-bottom: 0 !important;
                     }
                   `}</style>
