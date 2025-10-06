@@ -383,7 +383,7 @@ export default function GlobalTemplateSettings() {
             <TabsTrigger value="layout">Layout</TabsTrigger>
             <TabsTrigger value="typography">Typography</TabsTrigger>
             <TabsTrigger value="formatting">Formatting</TabsTrigger>
-            <TabsTrigger value="headers">Headers</TabsTrigger>
+            <TabsTrigger value="headers">Header & Footer</TabsTrigger>
             <TabsTrigger value="email">Distro</TabsTrigger>
           </TabsList>
 
