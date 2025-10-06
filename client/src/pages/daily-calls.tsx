@@ -772,11 +772,11 @@ export default function DailyCallSheet() {
 
   return (
     <div className="flex-1 bg-gray-50 min-h-screen">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      {/* Desktop Header */}
+      <div className="hidden md:block px-4 sm:px-6 lg:px-8 pt-6 mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold">
               {format(parseISO(selectedDate), 'EEEE, MMMM d, yyyy')}
             </h1>
             <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
@@ -816,6 +816,9 @@ export default function DailyCallSheet() {
           </div>
         </div>
       </div>
+
+      {/* Mobile: Add minimal top padding */}
+      <div className="md:hidden pt-4"></div>
 
       {/* Main Content */}
       <div className="max-w-4xl mx-auto p-6">
