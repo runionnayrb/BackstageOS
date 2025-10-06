@@ -122,7 +122,10 @@ export default function EnhancedHeader() {
       }
 
       if (pathParts[3]) {
-        const sectionName = pathParts[3].charAt(0).toUpperCase() + pathParts[3].slice(1);
+        let sectionName = pathParts[3].charAt(0).toUpperCase() + pathParts[3].slice(1);
+        if (pathParts[3] === 'settings') {
+          sectionName = 'Show Settings';
+        }
         breadcrumbs.push({
           label: sectionName,
           href: `/shows/${pathParts[2]}/${pathParts[3]}`
