@@ -378,14 +378,13 @@ export default function GlobalTemplateSettings() {
         </div>
 
         <Tabs defaultValue="branding" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="branding">Branding</TabsTrigger>
             <TabsTrigger value="layout">Layout</TabsTrigger>
             <TabsTrigger value="typography">Typography</TabsTrigger>
             <TabsTrigger value="formatting">Formatting</TabsTrigger>
             <TabsTrigger value="headers">Headers</TabsTrigger>
             <TabsTrigger value="email">Email</TabsTrigger>
-            <TabsTrigger value="preview">Preview</TabsTrigger>
           </TabsList>
 
           <TabsContent value="branding" className="space-y-6">
@@ -1399,151 +1398,6 @@ export default function GlobalTemplateSettings() {
                     placeholder="Your signature here..."
                     className="min-h-[80px]"
                   />
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="preview" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Settings Preview</CardTitle>
-                <CardDescription>Preview how your settings will appear in reports</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div 
-                  className="bg-white border shadow-lg mx-auto p-8 space-y-6"
-                  style={{
-                    width: "8.5in",
-                    fontFamily: settings.fonts.body.family,
-                    fontSize: settings.fonts.body.size,
-                    lineHeight: settings.fonts.body.lineHeight,
-                    margin: `${settings.pageMargins.top} ${settings.pageMargins.right} ${settings.pageMargins.bottom} ${settings.pageMargins.left}`
-                  }}
-                >
-                  {/* Header Preview */}
-                  <div className="text-center pb-4">
-                    <div 
-                      className={`whitespace-pre-line header-preview-main-${settings.headerSpacing.replace('.', '-')}`}
-                      style={{
-                        fontFamily: settings.fonts.heading.family,
-                        fontSize: settings.fonts.heading.size,
-                        fontWeight: settings.fonts.heading.weight
-                      }}
-                    >
-                      <div 
-                        dangerouslySetInnerHTML={{
-                          __html: settings.defaultHeader
-                            .replace(/\{\{showName\}\}/g, (project as any)?.name || "Show Name")
-                            .replace(/\{\{reportType\}\}/g, "Sample Report")
-                            .replace(/\{\{date\}\}/g, new Date().toLocaleDateString())
-                            .replace(/\{\{stageManager\}\}/g, "Stage Manager")
-                        }}
-                      />
-                    </div>
-                    {settings.headerHorizontalLine && (
-                      <div className="border-t mt-2" />
-                    )}
-                  </div>
-                  <style>{`
-                    .header-preview-main-${settings.headerSpacing.replace('.', '-')} h1,
-                    .header-preview-main-${settings.headerSpacing.replace('.', '-')} h2,
-                    .header-preview-main-${settings.headerSpacing.replace('.', '-')} h3,
-                    .header-preview-main-${settings.headerSpacing.replace('.', '-')} h4,
-                    .header-preview-main-${settings.headerSpacing.replace('.', '-')} h5,
-                    .header-preview-main-${settings.headerSpacing.replace('.', '-')} h6,
-                    .header-preview-main-${settings.headerSpacing.replace('.', '-')} p,
-                    .header-preview-main-${settings.headerSpacing.replace('.', '-')} div {
-                      margin-top: 0 !important;
-                      margin-bottom: ${(parseFloat(settings.headerSpacing) - 1) * 0.5}em !important;
-                      line-height: ${settings.headerSpacing} !important;
-                    }
-                    .header-preview-main-${settings.headerSpacing.replace('.', '-')} > *:last-child {
-                      margin-bottom: 0 !important;
-                    }
-                  `}</style>
-
-                  {/* Sample Content */}
-                  <div className="space-y-4">
-                    <div>
-                      <h3 style={{
-                        fontFamily: settings.fonts.heading.family,
-                        fontSize: settings.fonts.heading.size,
-                        fontWeight: settings.fonts.heading.weight,
-                        lineHeight: settings.fonts.heading.lineHeight
-                      }}>
-                        Sample Section
-                      </h3>
-                      <p>This is sample body text showing your typography settings.</p>
-                    </div>
-
-                    <div>
-                      <h4 style={{
-                        fontFamily: settings.fonts.heading.family,
-                        fontSize: settings.fonts.heading.size,
-                        fontWeight: settings.fonts.heading.weight,
-                        lineHeight: settings.fonts.heading.lineHeight
-                      }}>
-                        Numbered List Example:
-                      </h4>
-                      <ol style={{
-                        marginLeft: settings.lists.numbered.indentation,
-                        listStyleType: settings.lists.numbered.style === "1." ? "decimal" : "none"
-                      }}>
-                        <li style={{ marginBottom: settings.lists.numbered.spacing }}>First item</li>
-                        <li style={{ marginBottom: settings.lists.numbered.spacing }}>Second item</li>
-                        <li style={{ marginBottom: settings.lists.numbered.spacing }}>Third item</li>
-                      </ol>
-                    </div>
-
-                    <div>
-                      <h4 style={{
-                        fontFamily: settings.fonts.heading.family,
-                        fontSize: settings.fonts.heading.size,
-                        fontWeight: settings.fonts.heading.weight,
-                        lineHeight: settings.fonts.heading.lineHeight
-                      }}>
-                        Bullet List Example:
-                      </h4>
-                      <ul style={{
-                        marginLeft: settings.lists.bulleted.indentation,
-                        listStyleType: settings.lists.bulleted.style === "•" ? "disc" : "none"
-                      }}>
-                        <li style={{ marginBottom: settings.lists.bulleted.spacing }}>First bullet</li>
-                        <li style={{ marginBottom: settings.lists.bulleted.spacing }}>Second bullet</li>
-                        <li style={{ marginBottom: settings.lists.bulleted.spacing }}>Third bullet</li>
-                      </ul>
-                    </div>
-                  </div>
-
-                  {/* Footer Preview */}
-                  <div className="text-center pt-4 text-sm text-gray-600">
-                    {settings.footerHorizontalLine && (
-                      <div className="border-t mb-2" />
-                    )}
-                    <div 
-                      style={{
-                        lineHeight: settings.footerSpacing
-                      }}
-                      dangerouslySetInnerHTML={{
-                        __html: settings.defaultFooter
-                          .replace(/\{\{preparedBy\}\}/g, "Stage Manager")
-                          .replace(/\{\{nextReportDate\}\}/g, "Tomorrow")
-                      }}
-                    />
-                  </div>
-
-                  {/* Page Number Preview */}
-                  {settings.pageNumbering.enabled && (
-                    <div 
-                      className={`text-sm text-gray-600 ${
-                        settings.pageNumbering.position.includes("center") ? "text-center" :
-                        settings.pageNumbering.position.includes("right") ? "text-right" : "text-left"
-                      }`}
-                    >
-                      {settings.pageNumbering.format.replace("1", "1").replace("X", "3")}
-                    </div>
-                  )}
                 </div>
               </CardContent>
             </Card>
