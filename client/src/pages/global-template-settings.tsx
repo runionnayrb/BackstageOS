@@ -971,58 +971,6 @@ export default function GlobalTemplateSettings() {
                 </div>
               </CardContent>
             </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  Date & Time Formatting
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Date Format</Label>
-                    <Select
-                      value={settings.dateFormat}
-                      onValueChange={(value: any) => setSettings(prev => ({
-                        ...prev,
-                        dateFormat: value
-                      }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="MM/DD/YYYY">MM/DD/YYYY</SelectItem>
-                        <SelectItem value="DD/MM/YYYY">DD/MM/YYYY</SelectItem>
-                        <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
-                        <SelectItem value="Month DD, YYYY">Month DD, YYYY</SelectItem>
-                        <SelectItem value="DD Month YYYY">DD Month YYYY</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Time Format</Label>
-                    <Select
-                      value={settings.timeFormat}
-                      onValueChange={(value: any) => setSettings(prev => ({
-                        ...prev,
-                        timeFormat: value
-                      }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="12h">12 Hour (AM/PM)</SelectItem>
-                        <SelectItem value="24h">24 Hour</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </TabsContent>
 
           <TabsContent value="headers" className="space-y-6">
