@@ -477,21 +477,34 @@ export function RichTextEditor({
             <Palette className="h-4 w-4" />
           </Button>
           {showColorPicker && (
-            <div className="absolute top-10 left-0 bg-white dark:bg-gray-800 border rounded-lg shadow-lg p-3 z-10">
-              <div className="grid grid-cols-6 gap-2">
-                {[
-                  '#000000', '#444444', '#888888', '#CCCCCC', '#FFFFFF', '#FF0000',
-                  '#FF8800', '#FFFF00', '#88FF00', '#00FF00', '#00FF88',
-                  '#00FFFF', '#0088FF', '#0000FF', '#8800FF', '#FF00FF'
-                ].map((color) => (
-                  <button
-                    key={color}
-                    type="button"
-                    className="w-6 h-6 rounded border-2 border-gray-300 hover:border-gray-500"
-                    style={{ backgroundColor: color }}
-                    onClick={() => changeColor(color)}
+            <div className="absolute top-10 left-0 bg-white dark:bg-gray-800 border rounded-lg shadow-lg p-3 z-10 min-w-[200px]">
+              <div className="space-y-3">
+                <div>
+                  <Label className="text-xs mb-2 block">Custom Color</Label>
+                  <input
+                    type="color"
+                    onChange={(e) => changeColor(e.target.value)}
+                    className="w-full h-10 cursor-pointer rounded border border-gray-300"
                   />
-                ))}
+                </div>
+                <div>
+                  <Label className="text-xs mb-2 block">Quick Colors</Label>
+                  <div className="grid grid-cols-6 gap-2">
+                    {[
+                      '#000000', '#444444', '#888888', '#CCCCCC', '#FFFFFF', '#FF0000',
+                      '#FF8800', '#FFFF00', '#88FF00', '#00FF00', '#00FF88',
+                      '#00FFFF', '#0088FF', '#0000FF', '#8800FF', '#FF00FF'
+                    ].map((color) => (
+                      <button
+                        key={color}
+                        type="button"
+                        className="w-6 h-6 rounded border-2 border-gray-300 hover:border-gray-500"
+                        style={{ backgroundColor: color }}
+                        onClick={() => changeColor(color)}
+                      />
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           )}
