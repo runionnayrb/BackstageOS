@@ -263,6 +263,10 @@ export default function GlobalTemplateSettings() {
         timeFormat: cleanData.timeFormat,
         defaultHeader: cleanData.defaultHeader,
         defaultFooter: cleanData.defaultFooter,
+        headerSpacing: cleanData.headerSpacing,
+        footerSpacing: cleanData.footerSpacing,
+        headerHorizontalLine: cleanData.headerHorizontalLine,
+        footerHorizontalLine: cleanData.footerHorizontalLine,
         email: cleanData.email,
         productionLogo: cleanData.branding?.productionLogo || null,
         productionPhoto: cleanData.branding?.productionPhoto || null,
@@ -1167,6 +1171,49 @@ export default function GlobalTemplateSettings() {
                       </p>
                     </div>
 
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Line Spacing</Label>
+                        <Select
+                          value={settings.headerSpacing}
+                          onValueChange={(value) => setSettings(prev => ({
+                            ...prev,
+                            headerSpacing: value
+                          }))}
+                        >
+                          <SelectTrigger data-testid="select-header-spacing">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="1.0">Single (1.0)</SelectItem>
+                            <SelectItem value="1.15">1.15</SelectItem>
+                            <SelectItem value="1.2">1.2</SelectItem>
+                            <SelectItem value="1.5">1.5</SelectItem>
+                            <SelectItem value="2.0">Double (2.0)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">
+                          Control spacing between lines in the header
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Horizontal Line</Label>
+                        <div className="flex items-center space-x-2 pt-2">
+                          <Switch
+                            checked={settings.headerHorizontalLine}
+                            onCheckedChange={(checked) => setSettings(prev => ({
+                              ...prev,
+                              headerHorizontalLine: checked
+                            }))}
+                            data-testid="switch-header-horizontal-line"
+                          />
+                          <Label className="font-normal text-sm">
+                            Show horizontal line below header
+                          </Label>
+                        </div>
+                      </div>
+                    </div>
 
                   </div>
                 </div>
@@ -1235,6 +1282,49 @@ export default function GlobalTemplateSettings() {
                       </p>
                     </div>
 
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Line Spacing</Label>
+                        <Select
+                          value={settings.footerSpacing}
+                          onValueChange={(value) => setSettings(prev => ({
+                            ...prev,
+                            footerSpacing: value
+                          }))}
+                        >
+                          <SelectTrigger data-testid="select-footer-spacing">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="1.0">Single (1.0)</SelectItem>
+                            <SelectItem value="1.15">1.15</SelectItem>
+                            <SelectItem value="1.2">1.2</SelectItem>
+                            <SelectItem value="1.5">1.5</SelectItem>
+                            <SelectItem value="2.0">Double (2.0)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">
+                          Control spacing between lines in the footer
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Horizontal Line</Label>
+                        <div className="flex items-center space-x-2 pt-2">
+                          <Switch
+                            checked={settings.footerHorizontalLine}
+                            onCheckedChange={(checked) => setSettings(prev => ({
+                              ...prev,
+                              footerHorizontalLine: checked
+                            }))}
+                            data-testid="switch-footer-horizontal-line"
+                          />
+                          <Label className="font-normal text-sm">
+                            Show horizontal line above footer
+                          </Label>
+                        </div>
+                      </div>
+                    </div>
 
                   </div>
                 </div>
@@ -1362,14 +1452,14 @@ export default function GlobalTemplateSettings() {
                   }}
                 >
                   {/* Header Preview */}
-                  <div className="text-center border-b pb-4">
+                  <div className="text-center pb-4">
                     <div 
                       className="whitespace-pre-line"
                       style={{
                         fontFamily: settings.fonts.heading.family,
                         fontSize: settings.fonts.heading.size,
                         fontWeight: settings.fonts.heading.weight,
-                        lineHeight: settings.fonts.heading.lineHeight
+                        lineHeight: settings.headerSpacing
                       }}
                     >
                       <div 
@@ -1382,6 +1472,9 @@ export default function GlobalTemplateSettings() {
                         }}
                       />
                     </div>
+                    {settings.headerHorizontalLine && (
+                      <div className="border-t mt-2" />
+                    )}
                   </div>
 
                   {/* Sample Content */}
@@ -1438,8 +1531,14 @@ export default function GlobalTemplateSettings() {
                   </div>
 
                   {/* Footer Preview */}
-                  <div className="text-center border-t pt-4 text-sm text-gray-600">
+                  <div className="text-center pt-4 text-sm text-gray-600">
+                    {settings.footerHorizontalLine && (
+                      <div className="border-t mb-2" />
+                    )}
                     <div 
+                      style={{
+                        lineHeight: settings.footerSpacing
+                      }}
                       dangerouslySetInnerHTML={{
                         __html: settings.defaultFooter
                           .replace(/\{\{preparedBy\}\}/g, "Stage Manager")
