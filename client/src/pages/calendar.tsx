@@ -120,6 +120,9 @@ export default function Calendar() {
       )}
 
       <div className="px-4 sm:px-6 lg:px-8">
+        <div className="mb-6">
+          <h2 className="hidden md:block text-2xl font-bold text-gray-900 mb-2">Calendar</h2>
+        </div>
         <div className="space-y-1">
           {sections.map((section) => (
             <div
