@@ -112,6 +112,10 @@ interface GlobalTemplateSettings {
   // Default Header & Footer with Rich HTML Content
   defaultHeader: string;
   defaultFooter: string;
+  headerSpacing: string;
+  footerSpacing: string;
+  headerHorizontalLine: boolean;
+  footerHorizontalLine: boolean;
   
   // Email Settings
   email: {
@@ -174,6 +178,10 @@ const defaultGlobalSettings: Omit<GlobalTemplateSettings, "id" | "projectId"> = 
   timeFormat: "12h",
   defaultHeader: '{{showName}}, {{reportType}}, {{date}}',
   defaultFooter: 'Page {{pageNumber}} of {{totalPages}}',
+  headerSpacing: "1.2",
+  footerSpacing: "1.2",
+  headerHorizontalLine: false,
+  footerHorizontalLine: false,
   email: {
     distributionLists: {
       to: [],
@@ -228,7 +236,11 @@ export default function GlobalTemplateSettings() {
         pageNumbering: globalSettings.pageNumbering || prev.pageNumbering,
         fonts: globalSettings.fonts || prev.fonts,
         lists: globalSettings.lists || prev.lists,
-        email: globalSettings.email || prev.email
+        email: globalSettings.email || prev.email,
+        headerSpacing: globalSettings.headerSpacing || prev.headerSpacing,
+        footerSpacing: globalSettings.footerSpacing || prev.footerSpacing,
+        headerHorizontalLine: globalSettings.headerHorizontalLine !== undefined ? globalSettings.headerHorizontalLine : prev.headerHorizontalLine,
+        footerHorizontalLine: globalSettings.footerHorizontalLine !== undefined ? globalSettings.footerHorizontalLine : prev.footerHorizontalLine
       }));
     }
   }, [globalSettings]);
