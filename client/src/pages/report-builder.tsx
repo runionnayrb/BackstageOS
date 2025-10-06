@@ -242,57 +242,183 @@ export default function ReportBuilder() {
         return (
           <>
             {commonFields}
+            
+            {/* Session Information */}
             <div className="grid grid-cols-2 gap-6 mb-6">
               <div>
-                <div className="text-sm font-semibold text-gray-700 mb-1">Start Time</div>
-                <Input
-                  id="startTime"
-                  type="time"
-                  value={currentContent.startTime || ""}
-                  onChange={(e) => form.setValue("content.startTime", e.target.value)}
-                  className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
-                />
+                <div className="text-sm font-semibold text-gray-700 mb-2">Session Focus</div>
+                <Select value={currentContent.sessionFocus || ""} onValueChange={(value) => form.setValue("content.sessionFocus", value)}>
+                  <SelectTrigger className="border-0 bg-transparent p-0 focus:ring-0">
+                    <SelectValue placeholder="Select focus area" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="blocking">Blocking</SelectItem>
+                    <SelectItem value="choreography">Choreography</SelectItem>
+                    <SelectItem value="music">Music</SelectItem>
+                    <SelectItem value="character-work">Character Work</SelectItem>
+                    <SelectItem value="run-through">Run Through</SelectItem>
+                    <SelectItem value="full-rehearsal">Full Rehearsal</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div>
-                <div className="text-sm font-semibold text-gray-700 mb-1">End Time</div>
-                <Input
-                  id="endTime"
-                  type="time"
-                  value={currentContent.endTime || ""}
-                  onChange={(e) => form.setValue("content.endTime", e.target.value)}
-                  className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
-                />
+                <div className="text-sm font-semibold text-gray-700 mb-2">Completion Status</div>
+                <Select value={currentContent.completionStatus || ""} onValueChange={(value) => form.setValue("content.completionStatus", value)}>
+                  <SelectTrigger className="border-0 bg-transparent p-0 focus:ring-0">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="on-schedule">On Schedule</SelectItem>
+                    <SelectItem value="behind-schedule">Behind Schedule</SelectItem>
+                    <SelectItem value="ahead-schedule">Ahead of Schedule</SelectItem>
+                    <SelectItem value="complete">Complete</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
+
+            {/* Session Overview */}
             <div className="mb-6">
-              <div className="text-sm font-semibold text-gray-700 mb-2">Scenes Rehearsed</div>
-              <Input
-                id="scenesRehearsed"
-                placeholder="e.g., Act 1 Scenes 1-3"
-                value={currentContent.scenesRehearsed || ""}
-                onChange={(e) => form.setValue("content.scenesRehearsed", e.target.value)}
-                className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
-              />
-            </div>
-            <div className="mb-6">
-              <div className="text-sm font-semibold text-gray-700 mb-2">Notes</div>
+              <div className="text-sm font-semibold text-gray-700 mb-2">Session Overview</div>
               <Textarea
-                id="notes"
-                rows={4}
-                placeholder="Detailed rehearsal notes..."
-                value={currentContent.notes || ""}
-                onChange={(e) => form.setValue("content.notes", e.target.value)}
+                id="sessionOverview"
+                rows={3}
+                placeholder="Brief overview of what was accomplished in this rehearsal session..."
+                value={currentContent.sessionOverview || ""}
+                onChange={(e) => form.setValue("content.sessionOverview", e.target.value)}
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
               />
             </div>
+
+            {/* Department Notes - Enhanced with visual indicators */}
             <div className="mb-6">
-              <div className="text-sm font-semibold text-gray-700 mb-2">Next Rehearsal</div>
+              <div className="text-lg font-semibold text-gray-800 mb-2">Department Notes</div>
+              <div className="text-sm text-gray-600 mb-4">Add numbered notes for each department. These will appear as organized lists in your report.</div>
+              
+              <div className="space-y-6">
+                <div>
+                  <div className="text-sm font-semibold text-gray-700 mb-2">
+                    Scenic
+                  </div>
+                  {reportId ? (
+                    <ReportNotesManager 
+                      reportId={reportId} 
+                      projectId={projectId}
+                      reportType={reportType || ""}
+                      department="scenic"
+                    />
+                  ) : (
+                    <div className="border rounded-lg p-4 bg-gray-50">
+                      <div className="text-sm text-gray-600 italic">
+                        Save this report to start adding scenic department notes...
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <div className="text-sm font-semibold text-gray-700 mb-2">
+                    Lighting
+                  </div>
+                  {reportId ? (
+                    <ReportNotesManager 
+                      reportId={reportId} 
+                      projectId={projectId}
+                      reportType={reportType || ""}
+                      department="lighting"
+                    />
+                  ) : (
+                    <div className="border rounded-lg p-4 bg-gray-50">
+                      <div className="text-sm text-gray-600 italic">
+                        Save this report to start adding lighting department notes...
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <div className="text-sm font-semibold text-gray-700 mb-2">
+                    Audio
+                  </div>
+                  {reportId ? (
+                    <ReportNotesManager 
+                      reportId={reportId} 
+                      projectId={projectId}
+                      reportType={reportType || ""}
+                      department="audio"
+                    />
+                  ) : (
+                    <div className="border rounded-lg p-4 bg-gray-50">
+                      <div className="text-sm text-gray-600 italic">
+                        Save this report to start adding audio department notes...
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <div className="text-sm font-semibold text-gray-700 mb-2">
+                    Video
+                  </div>
+                  {reportId ? (
+                    <ReportNotesManager 
+                      reportId={reportId} 
+                      projectId={projectId}
+                      reportType={reportType || ""}
+                      department="video"
+                    />
+                  ) : (
+                    <div className="border rounded-lg p-4 bg-gray-50">
+                      <div className="text-sm text-gray-600 italic">
+                        Save this report to start adding video department notes...
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <div className="text-sm font-semibold text-gray-700 mb-2">
+                    Props
+                  </div>
+                  {reportId ? (
+                    <ReportNotesManager 
+                      reportId={reportId} 
+                      projectId={projectId}
+                      reportType={reportType || ""}
+                      department="props"
+                    />
+                  ) : (
+                    <div className="border rounded-lg p-4 bg-gray-50">
+                      <div className="text-sm text-gray-600 italic">
+                        Save this report to start adding props department notes...
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Fields */}
+            <div className="mb-6">
+              <div className="text-sm font-semibold text-gray-700 mb-2">Outstanding Issues</div>
               <Textarea
-                id="nextRehearsal"
+                id="outstandingIssues"
+                rows={3}
+                placeholder="Issues that need to be resolved before next session..."
+                value={currentContent.outstandingIssues || ""}
+                onChange={(e) => form.setValue("content.outstandingIssues", e.target.value)}
+                className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
+              />
+            </div>
+            
+            <div className="mb-6">
+              <div className="text-sm font-semibold text-gray-700 mb-2">Next Session Goals</div>
+              <Textarea
+                id="nextSessionGoals"
                 rows={2}
-                placeholder="Plans for the next rehearsal..."
-                value={currentContent.nextRehearsal || ""}
-                onChange={(e) => form.setValue("content.nextRehearsal", e.target.value)}
+                placeholder="Goals for the next rehearsal session..."
+                value={currentContent.nextSessionGoals || ""}
+                onChange={(e) => form.setValue("content.nextSessionGoals", e.target.value)}
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
               />
             </div>
@@ -490,63 +616,186 @@ export default function ReportBuilder() {
         return (
           <>
             {commonFields}
-            <div className="grid grid-cols-3 gap-6 mb-6">
+            
+            {/* Session Information */}
+            <div className="grid grid-cols-2 gap-6 mb-6">
               <div>
-                <div className="text-sm font-semibold text-gray-700 mb-1">Show Time</div>
-                <Input
-                  id="showTime"
-                  type="time"
-                  value={currentContent.showTime || ""}
-                  onChange={(e) => form.setValue("content.showTime", e.target.value)}
-                  className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
-                />
+                <div className="text-sm font-semibold text-gray-700 mb-2">Session Focus</div>
+                <Select value={currentContent.sessionFocus || ""} onValueChange={(value) => form.setValue("content.sessionFocus", value)}>
+                  <SelectTrigger className="border-0 bg-transparent p-0 focus:ring-0">
+                    <SelectValue placeholder="Select focus area" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="matinee">Matinee</SelectItem>
+                    <SelectItem value="evening">Evening Performance</SelectItem>
+                    <SelectItem value="opening-night">Opening Night</SelectItem>
+                    <SelectItem value="closing-night">Closing Night</SelectItem>
+                    <SelectItem value="special-event">Special Event</SelectItem>
+                    <SelectItem value="understudy">Understudy Performance</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div>
-                <div className="text-sm font-semibold text-gray-700 mb-1">House Count</div>
-                <Input
-                  id="houseCount"
-                  type="number"
-                  placeholder="0"
-                  value={currentContent.houseCount || ""}
-                  onChange={(e) => form.setValue("content.houseCount", parseInt(e.target.value))}
-                  className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
-                />
-              </div>
-              <div>
-                <div className="text-sm font-semibold text-gray-700 mb-1">House Capacity</div>
-                <Input
-                  id="houseCapacity"
-                  type="number"
-                  placeholder="0"
-                  value={currentContent.houseCapacity || ""}
-                  onChange={(e) => form.setValue("content.houseCapacity", parseInt(e.target.value))}
-                  className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
-                />
+                <div className="text-sm font-semibold text-gray-700 mb-2">Completion Status</div>
+                <Select value={currentContent.completionStatus || ""} onValueChange={(value) => form.setValue("content.completionStatus", value)}>
+                  <SelectTrigger className="border-0 bg-transparent p-0 focus:ring-0">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="on-schedule">On Schedule</SelectItem>
+                    <SelectItem value="behind-schedule">Behind Schedule</SelectItem>
+                    <SelectItem value="ahead-schedule">Ahead of Schedule</SelectItem>
+                    <SelectItem value="complete">Complete</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
+
+            {/* Session Overview */}
             <div className="mb-6">
-              <div className="text-sm font-semibold text-gray-700 mb-2">Performance Notes</div>
+              <div className="text-sm font-semibold text-gray-700 mb-2">Session Overview</div>
               <Textarea
-                id="performanceNotes"
-                rows={4}
-                placeholder="Notes about the performance..."
-                value={currentContent.performanceNotes || ""}
-                onChange={(e) => form.setValue("content.performanceNotes", e.target.value)}
+                id="sessionOverview"
+                rows={3}
+                placeholder="Brief overview of the performance..."
+                value={currentContent.sessionOverview || ""}
+                onChange={(e) => form.setValue("content.sessionOverview", e.target.value)}
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
               />
             </div>
+
+            {/* Department Notes - Enhanced with visual indicators */}
             <div className="mb-6">
-              <div className="text-sm font-semibold text-gray-700 mb-2">Issues/Incidents</div>
+              <div className="text-lg font-semibold text-gray-800 mb-2">Department Notes</div>
+              <div className="text-sm text-gray-600 mb-4">Add numbered notes for each department. These will appear as organized lists in your report.</div>
+              
+              <div className="space-y-6">
+                <div>
+                  <div className="text-sm font-semibold text-gray-700 mb-2">
+                    Scenic
+                  </div>
+                  {reportId ? (
+                    <ReportNotesManager 
+                      reportId={reportId} 
+                      projectId={projectId}
+                      reportType={reportType || ""}
+                      department="scenic"
+                    />
+                  ) : (
+                    <div className="border rounded-lg p-4 bg-gray-50">
+                      <div className="text-sm text-gray-600 italic">
+                        Save this report to start adding scenic department notes...
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <div className="text-sm font-semibold text-gray-700 mb-2">
+                    Lighting
+                  </div>
+                  {reportId ? (
+                    <ReportNotesManager 
+                      reportId={reportId} 
+                      projectId={projectId}
+                      reportType={reportType || ""}
+                      department="lighting"
+                    />
+                  ) : (
+                    <div className="border rounded-lg p-4 bg-gray-50">
+                      <div className="text-sm text-gray-600 italic">
+                        Save this report to start adding lighting department notes...
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <div className="text-sm font-semibold text-gray-700 mb-2">
+                    Audio
+                  </div>
+                  {reportId ? (
+                    <ReportNotesManager 
+                      reportId={reportId} 
+                      projectId={projectId}
+                      reportType={reportType || ""}
+                      department="audio"
+                    />
+                  ) : (
+                    <div className="border rounded-lg p-4 bg-gray-50">
+                      <div className="text-sm text-gray-600 italic">
+                        Save this report to start adding audio department notes...
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <div className="text-sm font-semibold text-gray-700 mb-2">
+                    Video
+                  </div>
+                  {reportId ? (
+                    <ReportNotesManager 
+                      reportId={reportId} 
+                      projectId={projectId}
+                      reportType={reportType || ""}
+                      department="video"
+                    />
+                  ) : (
+                    <div className="border rounded-lg p-4 bg-gray-50">
+                      <div className="text-sm text-gray-600 italic">
+                        Save this report to start adding video department notes...
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <div className="text-sm font-semibold text-gray-700 mb-2">
+                    Props
+                  </div>
+                  {reportId ? (
+                    <ReportNotesManager 
+                      reportId={reportId} 
+                      projectId={projectId}
+                      reportType={reportType || ""}
+                      department="props"
+                    />
+                  ) : (
+                    <div className="border rounded-lg p-4 bg-gray-50">
+                      <div className="text-sm text-gray-600 italic">
+                        Save this report to start adding props department notes...
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Fields */}
+            <div className="mb-6">
+              <div className="text-sm font-semibold text-gray-700 mb-2">Outstanding Issues</div>
               <Textarea
-                id="issues"
+                id="outstandingIssues"
                 rows={3}
-                placeholder="Any issues or incidents during the show..."
-                value={currentContent.issues || ""}
-                onChange={(e) => form.setValue("content.issues", e.target.value)}
+                placeholder="Issues that need to be resolved before next session..."
+                value={currentContent.outstandingIssues || ""}
+                onChange={(e) => form.setValue("content.outstandingIssues", e.target.value)}
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
               />
             </div>
             
+            <div className="mb-6">
+              <div className="text-sm font-semibold text-gray-700 mb-2">Next Session Goals</div>
+              <Textarea
+                id="nextSessionGoals"
+                rows={2}
+                placeholder="Goals for the next performance..."
+                value={currentContent.nextSessionGoals || ""}
+                onChange={(e) => form.setValue("content.nextSessionGoals", e.target.value)}
+                className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
+              />
+            </div>
           </>
         );
       
@@ -554,12 +803,14 @@ export default function ReportBuilder() {
         return (
           <>
             {commonFields}
+            
+            {/* Session Information */}
             <div className="grid grid-cols-2 gap-6 mb-6">
               <div>
-                <div className="text-sm font-semibold text-gray-700 mb-2">Meeting Type</div>
-                <Select value={currentContent.meetingType || ""} onValueChange={(value) => form.setValue("content.meetingType", value)}>
+                <div className="text-sm font-semibold text-gray-700 mb-2">Session Focus</div>
+                <Select value={currentContent.sessionFocus || ""} onValueChange={(value) => form.setValue("content.sessionFocus", value)}>
                   <SelectTrigger className="border-0 bg-transparent p-0 focus:ring-0">
-                    <SelectValue placeholder="Select meeting type" />
+                    <SelectValue placeholder="Select focus area" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="production">Production Meeting</SelectItem>
@@ -567,53 +818,171 @@ export default function ReportBuilder() {
                     <SelectItem value="tech">Tech Meeting</SelectItem>
                     <SelectItem value="cast">Cast Meeting</SelectItem>
                     <SelectItem value="crew">Crew Meeting</SelectItem>
+                    <SelectItem value="department-heads">Department Heads</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <div className="text-sm font-semibold text-gray-700 mb-2">Attendees</div>
-                <Input
-                  id="attendees"
-                  placeholder="Number of attendees"
-                  value={currentContent.attendees || ""}
-                  onChange={(e) => form.setValue("content.attendees", e.target.value)}
-                  className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
-                />
+                <div className="text-sm font-semibold text-gray-700 mb-2">Completion Status</div>
+                <Select value={currentContent.completionStatus || ""} onValueChange={(value) => form.setValue("content.completionStatus", value)}>
+                  <SelectTrigger className="border-0 bg-transparent p-0 focus:ring-0">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="on-schedule">On Schedule</SelectItem>
+                    <SelectItem value="behind-schedule">Behind Schedule</SelectItem>
+                    <SelectItem value="ahead-schedule">Ahead of Schedule</SelectItem>
+                    <SelectItem value="complete">Complete</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
+
+            {/* Session Overview */}
             <div className="mb-6">
-              <div className="text-sm font-semibold text-gray-700 mb-2">Agenda Items</div>
+              <div className="text-sm font-semibold text-gray-700 mb-2">Session Overview</div>
               <Textarea
-                id="agendaItems"
+                id="sessionOverview"
                 rows={3}
-                placeholder="Main topics discussed..."
-                value={currentContent.agendaItems || ""}
-                onChange={(e) => form.setValue("content.agendaItems", e.target.value)}
+                placeholder="Brief overview of what was discussed in this meeting..."
+                value={currentContent.sessionOverview || ""}
+                onChange={(e) => form.setValue("content.sessionOverview", e.target.value)}
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
               />
             </div>
+
+            {/* Department Notes - Enhanced with visual indicators */}
             <div className="mb-6">
-              <div className="text-sm font-semibold text-gray-700 mb-2">Action Items</div>
-              <Textarea
-                id="actionItems"
-                rows={3}
-                placeholder="Tasks assigned and deadlines..."
-                value={currentContent.actionItems || ""}
-                onChange={(e) => form.setValue("content.actionItems", e.target.value)}
-                className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
-              />
+              <div className="text-lg font-semibold text-gray-800 mb-2">Department Notes</div>
+              <div className="text-sm text-gray-600 mb-4">Add numbered notes for each department. These will appear as organized lists in your report.</div>
+              
+              <div className="space-y-6">
+                <div>
+                  <div className="text-sm font-semibold text-gray-700 mb-2">
+                    Scenic
+                  </div>
+                  {reportId ? (
+                    <ReportNotesManager 
+                      reportId={reportId} 
+                      projectId={projectId}
+                      reportType={reportType || ""}
+                      department="scenic"
+                    />
+                  ) : (
+                    <div className="border rounded-lg p-4 bg-gray-50">
+                      <div className="text-sm text-gray-600 italic">
+                        Save this report to start adding scenic department notes...
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <div className="text-sm font-semibold text-gray-700 mb-2">
+                    Lighting
+                  </div>
+                  {reportId ? (
+                    <ReportNotesManager 
+                      reportId={reportId} 
+                      projectId={projectId}
+                      reportType={reportType || ""}
+                      department="lighting"
+                    />
+                  ) : (
+                    <div className="border rounded-lg p-4 bg-gray-50">
+                      <div className="text-sm text-gray-600 italic">
+                        Save this report to start adding lighting department notes...
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <div className="text-sm font-semibold text-gray-700 mb-2">
+                    Audio
+                  </div>
+                  {reportId ? (
+                    <ReportNotesManager 
+                      reportId={reportId} 
+                      projectId={projectId}
+                      reportType={reportType || ""}
+                      department="audio"
+                    />
+                  ) : (
+                    <div className="border rounded-lg p-4 bg-gray-50">
+                      <div className="text-sm text-gray-600 italic">
+                        Save this report to start adding audio department notes...
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <div className="text-sm font-semibold text-gray-700 mb-2">
+                    Video
+                  </div>
+                  {reportId ? (
+                    <ReportNotesManager 
+                      reportId={reportId} 
+                      projectId={projectId}
+                      reportType={reportType || ""}
+                      department="video"
+                    />
+                  ) : (
+                    <div className="border rounded-lg p-4 bg-gray-50">
+                      <div className="text-sm text-gray-600 italic">
+                        Save this report to start adding video department notes...
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <div className="text-sm font-semibold text-gray-700 mb-2">
+                    Props
+                  </div>
+                  {reportId ? (
+                    <ReportNotesManager 
+                      reportId={reportId} 
+                      projectId={projectId}
+                      reportType={reportType || ""}
+                      department="props"
+                    />
+                  ) : (
+                    <div className="border rounded-lg p-4 bg-gray-50">
+                      <div className="text-sm text-gray-600 italic">
+                        Save this report to start adding props department notes...
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
+
+            {/* Additional Fields */}
             <div className="mb-6">
-              <div className="text-sm font-semibold text-gray-700 mb-2">Next Meeting</div>
-              <Input
-                id="nextMeeting"
-                type="datetime-local"
-                value={currentContent.nextMeeting || ""}
-                onChange={(e) => form.setValue("content.nextMeeting", e.target.value)}
-                className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
+              <div className="text-sm font-semibold text-gray-700 mb-2">Outstanding Issues</div>
+              <Textarea
+                id="outstandingIssues"
+                rows={3}
+                placeholder="Issues that need to be resolved before next session..."
+                value={currentContent.outstandingIssues || ""}
+                onChange={(e) => form.setValue("content.outstandingIssues", e.target.value)}
+                className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
               />
             </div>
             
+            <div className="mb-6">
+              <div className="text-sm font-semibold text-gray-700 mb-2">Next Session Goals</div>
+              <Textarea
+                id="nextSessionGoals"
+                rows={2}
+                placeholder="Goals for the next meeting..."
+                value={currentContent.nextSessionGoals || ""}
+                onChange={(e) => form.setValue("content.nextSessionGoals", e.target.value)}
+                className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
+              />
+            </div>
           </>
         );
       

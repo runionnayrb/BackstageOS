@@ -16,6 +16,7 @@ import {
 import { ArrowLeft, Edit, Download, Share, Trash2 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import ReportNotesManager from "@/components/report-notes-manager";
 
 interface ReportViewerParams {
   id: string;
@@ -192,6 +193,9 @@ export default function ReportViewer() {
 
 function renderReportContent(report: any) {
   const content = report.content || {};
+  const projectId = report.projectId;
+  const reportId = report.id;
+  const reportType = report.type;
 
   return (
     <>
@@ -203,173 +207,115 @@ function renderReportContent(report: any) {
         </div>
       )}
 
-      {/* Report Type Specific Fields */}
-      {report.type === 'rehearsal' && (
-        <>
-          {(content.startTime || content.endTime) && (
-            <div className="grid grid-cols-2 gap-6 mb-6">
-              {content.startTime && (
-                <div>
-                  <div className="text-sm font-semibold text-gray-700 mb-1">Start Time</div>
-                  <div className="text-sm">{content.startTime}</div>
-                </div>
-              )}
-              {content.endTime && (
-                <div>
-                  <div className="text-sm font-semibold text-gray-700 mb-1">End Time</div>
-                  <div className="text-sm">{content.endTime}</div>
-                </div>
-              )}
+      {/* Session Information - Unified for all report types */}
+      {(content.sessionFocus || content.completionStatus) && (
+        <div className="grid grid-cols-2 gap-6 mb-6">
+          {content.sessionFocus && (
+            <div>
+              <div className="text-sm font-semibold text-gray-700 mb-2">Session Focus</div>
+              <div className="text-sm capitalize">{content.sessionFocus.replace(/-/g, ' ')}</div>
             </div>
           )}
-          
-          {content.scenesRehearsed && (
-            <div className="mb-6">
-              <div className="text-sm font-semibold text-gray-700 mb-2">Scenes Rehearsed</div>
-              <div className="text-sm">{content.scenesRehearsed}</div>
+          {content.completionStatus && (
+            <div>
+              <div className="text-sm font-semibold text-gray-700 mb-2">Completion Status</div>
+              <div className="text-sm capitalize">{content.completionStatus.replace(/-/g, ' ')}</div>
             </div>
           )}
-          
-          {content.notes && (
-            <div className="mb-6">
-              <div className="text-sm font-semibold text-gray-700 mb-2">Notes</div>
-              <div className="text-sm whitespace-pre-wrap">{content.notes}</div>
-            </div>
-          )}
-          
-          {content.nextRehearsal && (
-            <div className="mb-6">
-              <div className="text-sm font-semibold text-gray-700 mb-2">Next Rehearsal</div>
-              <div className="text-sm whitespace-pre-wrap">{content.nextRehearsal}</div>
-            </div>
-          )}
-        </>
+        </div>
       )}
 
-      {report.type === 'performance' && (
-        <>
-          {(content.showTime || content.houseCount || content.houseCapacity) && (
-            <div className="grid grid-cols-3 gap-6 mb-6">
-              {content.showTime && (
-                <div>
-                  <div className="text-sm font-semibold text-gray-700 mb-1">Show Time</div>
-                  <div className="text-sm">{content.showTime}</div>
-                </div>
-              )}
-              {content.houseCount && (
-                <div>
-                  <div className="text-sm font-semibold text-gray-700 mb-1">House Count</div>
-                  <div className="text-sm">{content.houseCount}</div>
-                </div>
-              )}
-              {content.houseCapacity && (
-                <div>
-                  <div className="text-sm font-semibold text-gray-700 mb-1">House Capacity</div>
-                  <div className="text-sm">{content.houseCapacity}</div>
-                </div>
-              )}
-            </div>
-          )}
-          
-          {content.performanceNotes && (
-            <div className="mb-6">
-              <div className="text-sm font-semibold text-gray-700 mb-2">Performance Notes</div>
-              <div className="text-sm whitespace-pre-wrap">{content.performanceNotes}</div>
-            </div>
-          )}
-          
-          {content.issues && (
-            <div className="mb-6">
-              <div className="text-sm font-semibold text-gray-700 mb-2">Issues/Incidents</div>
-              <div className="text-sm whitespace-pre-wrap">{content.issues}</div>
-            </div>
-          )}
-        </>
+      {/* Session Overview - Unified for all report types */}
+      {content.sessionOverview && (
+        <div className="mb-6">
+          <div className="text-sm font-semibold text-gray-700 mb-2">Session Overview</div>
+          <div className="text-sm whitespace-pre-wrap">{content.sessionOverview}</div>
+        </div>
       )}
 
-      {report.type === 'tech' && (
-        <>
-          {(content.techFocus || content.completionStatus) && (
-            <div className="grid grid-cols-2 gap-6 mb-6">
-              {content.techFocus && (
-                <div>
-                  <div className="text-sm font-semibold text-gray-700 mb-2">Tech Focus</div>
-                  <div className="text-sm">{content.techFocus}</div>
-                </div>
-              )}
-              {content.completionStatus && (
-                <div>
-                  <div className="text-sm font-semibold text-gray-700 mb-2">Completion Status</div>
-                  <div className="text-sm">{content.completionStatus}</div>
-                </div>
-              )}
-            </div>
-          )}
-          
-          {content.technicalIssues && (
-            <div className="mb-6">
-              <div className="text-sm font-semibold text-gray-700 mb-2">Technical Issues</div>
-              <div className="text-sm whitespace-pre-wrap">{content.technicalIssues}</div>
-            </div>
-          )}
-          
-          {content.nextSessionGoals && (
-            <div className="mb-6">
-              <div className="text-sm font-semibold text-gray-700 mb-2">Next Session Goals</div>
-              <div className="text-sm whitespace-pre-wrap">{content.nextSessionGoals}</div>
-            </div>
-          )}
-        </>
+      {/* Department Notes - Unified for all report types with ReportNotesManager */}
+      <div className="mb-6">
+        <div className="text-lg font-semibold text-gray-800 mb-4">Department Notes</div>
+        
+        <div className="space-y-6">
+          <div>
+            <div className="text-sm font-semibold text-gray-700 mb-2">Scenic</div>
+            <ReportNotesManager 
+              reportId={reportId} 
+              projectId={projectId}
+              reportType={reportType}
+              department="scenic"
+              isEditing={false}
+            />
+          </div>
+
+          <div>
+            <div className="text-sm font-semibold text-gray-700 mb-2">Lighting</div>
+            <ReportNotesManager 
+              reportId={reportId} 
+              projectId={projectId}
+              reportType={reportType}
+              department="lighting"
+              isEditing={false}
+            />
+          </div>
+
+          <div>
+            <div className="text-sm font-semibold text-gray-700 mb-2">Audio</div>
+            <ReportNotesManager 
+              reportId={reportId} 
+              projectId={projectId}
+              reportType={reportType}
+              department="audio"
+              isEditing={false}
+            />
+          </div>
+
+          <div>
+            <div className="text-sm font-semibold text-gray-700 mb-2">Video</div>
+            <ReportNotesManager 
+              reportId={reportId} 
+              projectId={projectId}
+              reportType={reportType}
+              department="video"
+              isEditing={false}
+            />
+          </div>
+
+          <div>
+            <div className="text-sm font-semibold text-gray-700 mb-2">Props</div>
+            <ReportNotesManager 
+              reportId={reportId} 
+              projectId={projectId}
+              reportType={reportType}
+              department="props"
+              isEditing={false}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Outstanding Issues - Unified for all report types */}
+      {content.outstandingIssues && (
+        <div className="mb-6">
+          <div className="text-sm font-semibold text-gray-700 mb-2">Outstanding Issues</div>
+          <div className="text-sm whitespace-pre-wrap">{content.outstandingIssues}</div>
+        </div>
       )}
 
-      {report.type === 'meeting' && (
-        <>
-          {(content.meetingType || content.attendees) && (
-            <div className="grid grid-cols-2 gap-6 mb-6">
-              {content.meetingType && (
-                <div>
-                  <div className="text-sm font-semibold text-gray-700 mb-2">Meeting Type</div>
-                  <div className="text-sm">{content.meetingType}</div>
-                </div>
-              )}
-              {content.attendees && (
-                <div>
-                  <div className="text-sm font-semibold text-gray-700 mb-2">Attendees</div>
-                  <div className="text-sm">{content.attendees}</div>
-                </div>
-              )}
-            </div>
-          )}
-          
-          {content.agendaItems && (
-            <div className="mb-6">
-              <div className="text-sm font-semibold text-gray-700 mb-2">Agenda Items</div>
-              <div className="text-sm whitespace-pre-wrap">{content.agendaItems}</div>
-            </div>
-          )}
-          
-          {content.actionItems && (
-            <div className="mb-6">
-              <div className="text-sm font-semibold text-gray-700 mb-2">Action Items</div>
-              <div className="text-sm whitespace-pre-wrap">{content.actionItems}</div>
-            </div>
-          )}
-          
-          {content.nextMeeting && (
-            <div className="mb-6">
-              <div className="text-sm font-semibold text-gray-700 mb-2">Next Meeting</div>
-              <div className="text-sm">{new Date(content.nextMeeting).toLocaleString()}</div>
-            </div>
-          )}
-        </>
+      {/* Next Session Goals - Unified for all report types */}
+      {content.nextSessionGoals && (
+        <div className="mb-6">
+          <div className="text-sm font-semibold text-gray-700 mb-2">Next Session Goals</div>
+          <div className="text-sm whitespace-pre-wrap">{content.nextSessionGoals}</div>
+        </div>
       )}
 
-      {/* Custom Fields */}
+      {/* Custom/Other Fields */}
       {Object.keys(content).map(key => {
-        if (['summary', 'startTime', 'endTime', 'scenesRehearsed', 'notes', 'nextRehearsal',
-             'showTime', 'houseCount', 'houseCapacity', 'performanceNotes', 'issues',
-             'techFocus', 'completionStatus', 'technicalIssues', 'nextSessionGoals',
-             'meetingType', 'attendees', 'agendaItems', 'actionItems', 'nextMeeting'].includes(key)) {
+        if (['summary', 'sessionFocus', 'completionStatus', 'sessionOverview', 
+             'scenicNotes', 'lightingNotes', 'audioNotes', 'videoNotes', 'propsNotes',
+             'outstandingIssues', 'nextSessionGoals'].includes(key)) {
           return null;
         }
         
