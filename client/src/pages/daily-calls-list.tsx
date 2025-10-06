@@ -113,17 +113,25 @@ export default function DailyCallsList() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="container mx-auto p-6">
-        <div className="mb-8 flex justify-between items-start">
+    <div className="w-full">
+      {/* Desktop Header */}
+      <div className="hidden md:block px-4 sm:px-6 lg:px-8 pt-6 mb-6">
+        <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold">Daily Calls</h1>
           </div>
-          <Button onClick={handleNewCall} variant="ghost" size="icon" className="border-0 hover:bg-transparent">
-            <Plus className="h-4 w-4 hover:text-blue-600 transition-colors" />
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={handleNewCall} variant="ghost" size="icon" className="border-0 hover:bg-transparent">
+              <Plus className="h-4 w-4 hover:text-blue-600 transition-colors" />
+            </Button>
+          </div>
         </div>
+      </div>
 
+      {/* Mobile: Add minimal top padding */}
+      <div className="md:hidden pt-4"></div>
+
+      <div className="px-4 sm:px-6 lg:px-8">
         {!dailyCalls || dailyCalls.length === 0 ? (
           <div className="text-center py-12">
             <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
