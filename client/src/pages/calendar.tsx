@@ -119,10 +119,15 @@ export default function Calendar() {
         </div>
       )}
 
+      {/* Desktop Header */}
+      <div className="hidden md:block px-4 sm:px-6 lg:px-8 pt-6 mb-6">
+        <h1 className="text-3xl font-bold">Calendar</h1>
+      </div>
+
+      {/* Mobile: Add minimal top padding */}
+      <div className="md:hidden pt-4"></div>
+
       <div className="px-4 sm:px-6 lg:px-8">
-        <div className="mb-6">
-          <h2 className="hidden md:block text-2xl font-bold text-gray-900 mb-2">Calendar</h2>
-        </div>
         <div className="space-y-1">
           {sections.map((section) => (
             <div
