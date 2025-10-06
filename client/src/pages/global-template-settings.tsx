@@ -661,67 +661,6 @@ export default function GlobalTemplateSettings() {
                     </p>
                   </div>
                 </div>
-
-                <div className="space-y-4">
-                  <Label className="text-base font-medium">Page Numbering</Label>
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      checked={settings.pageNumbering.enabled}
-                      onCheckedChange={(checked) => setSettings(prev => ({
-                        ...prev,
-                        pageNumbering: { ...prev.pageNumbering, enabled: checked }
-                      }))}
-                    />
-                    <Label>Enable page numbering</Label>
-                  </div>
-                  
-                  {settings.pageNumbering.enabled && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Format</Label>
-                        <Select
-                          value={settings.pageNumbering.format}
-                          onValueChange={(value: any) => setSettings(prev => ({
-                            ...prev,
-                            pageNumbering: { ...prev.pageNumbering, format: value }
-                          }))}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="1">1</SelectItem>
-                            <SelectItem value="1 of X">1 of X</SelectItem>
-                            <SelectItem value="Page 1">Page 1</SelectItem>
-                            <SelectItem value="Page 1 of X">Page 1 of X</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Position</Label>
-                        <Select
-                          value={settings.pageNumbering.position}
-                          onValueChange={(value: any) => setSettings(prev => ({
-                            ...prev,
-                            pageNumbering: { ...prev.pageNumbering, position: value }
-                          }))}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="top-left">Top Left</SelectItem>
-                            <SelectItem value="top-center">Top Center</SelectItem>
-                            <SelectItem value="top-right">Top Right</SelectItem>
-                            <SelectItem value="bottom-left">Bottom Left</SelectItem>
-                            <SelectItem value="bottom-center">Bottom Center</SelectItem>
-                            <SelectItem value="bottom-right">Bottom Right</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  )}
-                </div>
               </CardContent>
             </Card>
           </TabsContent>
