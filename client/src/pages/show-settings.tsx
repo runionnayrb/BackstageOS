@@ -19,6 +19,7 @@ import { PersonalScheduleShare } from "@/components/personal-schedule-share";
 import { ChangeSummaryEditor } from "@/components/ChangeSummaryEditor";
 import { InviteTeamMemberDialog } from "@/components/team/InviteTeamMemberDialog";
 import { TeamMembersList } from "@/components/team/TeamMembersList";
+import { GlobalTemplateSettingsContent } from "@/components/GlobalTemplateSettingsContent";
 import {
   Dialog,
   DialogContent,
@@ -1729,96 +1730,7 @@ The Production Team`
         </TabsContent>
 
         <TabsContent value="reports" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Report Settings</CardTitle>
-              <CardDescription>
-                Configure report generation, review, and archival settings.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="defaultReportType">Default Report Type</Label>
-                <Select
-                  value={(settings as any)?.reportSettings?.defaultReportType || "rehearsal"}
-                  onValueChange={(value) =>
-                    handleSettingsUpdate("reportSettings", { defaultReportType: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="rehearsal">Rehearsal Report</SelectItem>
-                    <SelectItem value="performance">Performance Report</SelectItem>
-                    <SelectItem value="tech">Tech Report</SelectItem>
-                    <SelectItem value="meeting">Meeting Notes</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Require Review</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Reports need approval before being finalized
-                  </p>
-                </div>
-                <Switch
-                  checked={(settings as any)?.reportSettings?.requireReview || false}
-                  onCheckedChange={(checked) =>
-                    handleSettingsUpdate("reportSettings", { requireReview: checked })
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Auto-Archive Reports</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Automatically archive old reports
-                  </p>
-                </div>
-                <Switch
-                  checked={(settings as any)?.reportSettings?.autoArchive || false}
-                  onCheckedChange={(checked) =>
-                    handleSettingsUpdate("reportSettings", { autoArchive: checked })
-                  }
-                />
-              </div>
-
-              {(settings as any)?.reportSettings?.autoArchive && (
-                <div className="space-y-2">
-                  <Label htmlFor="archiveDays">Archive After (Days)</Label>
-                  <Input
-                    id="archiveDays"
-                    type="number"
-                    min="1"
-                    max="365"
-                    value={(settings as any)?.reportSettings?.archiveDays || 30}
-                    onChange={(e) =>
-                      handleSettingsUpdate("reportSettings", { archiveDays: parseInt(e.target.value) })
-                    }
-                  />
-                </div>
-              )}
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Email Notifications</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Send notifications when reports are created or updated
-                  </p>
-                </div>
-                <Switch
-                  checked={(settings as any)?.reportSettings?.notificationsEnabled !== false}
-                  onCheckedChange={(checked) =>
-                    handleSettingsUpdate("reportSettings", { notificationsEnabled: checked })
-                  }
-                />
-              </div>
-            </CardContent>
-          </Card>
+          <GlobalTemplateSettingsContent projectId={params.id!} showSaveButton={true} />
         </TabsContent>
 
         <TabsContent value="schedule" className="mt-6">
