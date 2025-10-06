@@ -1119,7 +1119,11 @@ export default function GlobalTemplateSettings() {
                   {previewMode === 'header' && (
                     <div className="p-4 border rounded-lg bg-gray-50 dark:bg-gray-900">
                       <div 
-                        style={{ lineHeight: settings.headerSpacing }}
+                        className="header-preview"
+                        style={{ 
+                          lineHeight: settings.headerSpacing,
+                          ['--header-spacing' as any]: settings.headerSpacing 
+                        }}
                         dangerouslySetInnerHTML={{
                           __html: (() => {
                             const sampleData: Record<string, string> = {
@@ -1141,6 +1145,22 @@ export default function GlobalTemplateSettings() {
                       {settings.headerHorizontalLine && (
                         <div className="border-t border-gray-400 mt-2" />
                       )}
+                      <style>{`
+                        .header-preview h1,
+                        .header-preview h2,
+                        .header-preview h3,
+                        .header-preview h4,
+                        .header-preview h5,
+                        .header-preview h6,
+                        .header-preview p,
+                        .header-preview div {
+                          margin-top: 0 !important;
+                          margin-bottom: calc((var(--header-spacing, 1.2) - 1) * 0.5em) !important;
+                        }
+                        .header-preview > *:last-child {
+                          margin-bottom: 0 !important;
+                        }
+                      `}</style>
                     </div>
                   )}
 
@@ -1241,7 +1261,11 @@ export default function GlobalTemplateSettings() {
                         <div className="border-t border-gray-400 mb-2" />
                       )}
                       <div 
-                        style={{ lineHeight: settings.footerSpacing }}
+                        className="footer-preview"
+                        style={{ 
+                          lineHeight: settings.footerSpacing,
+                          ['--footer-spacing' as any]: settings.footerSpacing 
+                        }}
                         dangerouslySetInnerHTML={{
                           __html: settings.defaultFooter.replace(/{{(\w+)}}/g, (match, key) => {
                             const sampleData: Record<string, string> = {
@@ -1256,6 +1280,22 @@ export default function GlobalTemplateSettings() {
                           })
                         }}
                       />
+                      <style>{`
+                        .footer-preview h1,
+                        .footer-preview h2,
+                        .footer-preview h3,
+                        .footer-preview h4,
+                        .footer-preview h5,
+                        .footer-preview h6,
+                        .footer-preview p,
+                        .footer-preview div {
+                          margin-top: 0 !important;
+                          margin-bottom: calc((var(--footer-spacing, 1.2) - 1) * 0.5em) !important;
+                        }
+                        .footer-preview > *:last-child {
+                          margin-bottom: 0 !important;
+                        }
+                      `}</style>
                     </div>
                   )}
 
@@ -1457,12 +1497,13 @@ export default function GlobalTemplateSettings() {
                   {/* Header Preview */}
                   <div className="text-center pb-4">
                     <div 
-                      className="whitespace-pre-line"
+                      className="whitespace-pre-line header-preview-main"
                       style={{
                         fontFamily: settings.fonts.heading.family,
                         fontSize: settings.fonts.heading.size,
                         fontWeight: settings.fonts.heading.weight,
-                        lineHeight: settings.headerSpacing
+                        lineHeight: settings.headerSpacing,
+                        ['--header-spacing' as any]: settings.headerSpacing
                       }}
                     >
                       <div 
@@ -1479,6 +1520,22 @@ export default function GlobalTemplateSettings() {
                       <div className="border-t mt-2" />
                     )}
                   </div>
+                  <style>{`
+                    .header-preview-main h1,
+                    .header-preview-main h2,
+                    .header-preview-main h3,
+                    .header-preview-main h4,
+                    .header-preview-main h5,
+                    .header-preview-main h6,
+                    .header-preview-main p,
+                    .header-preview-main div {
+                      margin-top: 0 !important;
+                      margin-bottom: calc((var(--header-spacing, 1.2) - 1) * 0.5em) !important;
+                    }
+                    .header-preview-main > *:last-child {
+                      margin-bottom: 0 !important;
+                    }
+                  `}</style>
 
                   {/* Sample Content */}
                   <div className="space-y-4">
