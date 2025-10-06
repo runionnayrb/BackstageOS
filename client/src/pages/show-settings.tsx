@@ -1139,7 +1139,7 @@ The Production Team`
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         {/* Desktop tabs - hidden on mobile */}
-        <TabsList className="hidden md:grid w-full grid-cols-7">
+        <TabsList className="hidden md:grid w-full grid-cols-6">
           <TabsTrigger value="general" className="flex items-center gap-2">
             <Edit3 className="h-4 w-4" />
             General
@@ -1151,10 +1151,6 @@ The Production Team`
           <TabsTrigger value="sharing" className="flex items-center gap-2">
             <Share2 className="h-4 w-4" />
             Sharing
-          </TabsTrigger>
-          <TabsTrigger value="templates" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            Templates
           </TabsTrigger>
           <TabsTrigger value="reports" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
@@ -1196,12 +1192,6 @@ The Production Team`
                 <div className="flex items-center gap-2">
                   <Share2 className="h-4 w-4" />
                   Sharing
-                </div>
-              </SelectItem>
-              <SelectItem value="templates">
-                <div className="flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  Templates
                 </div>
               </SelectItem>
               <SelectItem value="reports">
@@ -1731,78 +1721,6 @@ The Production Team`
                   value={(settings as any)?.sharingSettings?.password || ""}
                   onChange={(e) =>
                     handleSettingsUpdate("sharingSettings", { password: e.target.value })
-                  }
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="templates" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Template Settings</CardTitle>
-              <CardDescription>
-                Configure how templates are managed and shared within this {showLabel.toLowerCase()}.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Use Default Templates</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Include standard theater templates in this {showLabel.toLowerCase()}
-                  </p>
-                </div>
-                <Switch
-                  checked={(settings as any)?.templateSettings?.useDefaultTemplates !== false}
-                  onCheckedChange={(checked) =>
-                    handleSettingsUpdate("templateSettings", { useDefaultTemplates: checked })
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Allow Custom Templates</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Team members can create and modify templates
-                  </p>
-                </div>
-                <Switch
-                  checked={(settings as any)?.templateSettings?.allowCustomTemplates !== false}
-                  onCheckedChange={(checked) =>
-                    handleSettingsUpdate("templateSettings", { allowCustomTemplates: checked })
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Template Approval Required</Label>
-                  <p className="text-sm text-muted-foreground">
-                    New templates need approval before use
-                  </p>
-                </div>
-                <Switch
-                  checked={(settings as any)?.templateSettings?.templateApprovalRequired || false}
-                  onCheckedChange={(checked) =>
-                    handleSettingsUpdate("templateSettings", { templateApprovalRequired: checked })
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Shared Template Library</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Access templates from other {isFullTime ? "shows" : "projects"} in your organization
-                  </p>
-                </div>
-                <Switch
-                  checked={(settings as any)?.templateSettings?.sharedTemplateLibrary || false}
-                  onCheckedChange={(checked) =>
-                    handleSettingsUpdate("templateSettings", { sharedTemplateLibrary: checked })
                   }
                 />
               </div>
