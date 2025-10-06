@@ -384,7 +384,7 @@ export default function GlobalTemplateSettings() {
             <TabsTrigger value="typography">Typography</TabsTrigger>
             <TabsTrigger value="formatting">Formatting</TabsTrigger>
             <TabsTrigger value="headers">Headers</TabsTrigger>
-            <TabsTrigger value="email">Email</TabsTrigger>
+            <TabsTrigger value="email">Distro</TabsTrigger>
           </TabsList>
 
           <TabsContent value="branding" className="space-y-6">
