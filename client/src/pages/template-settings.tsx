@@ -178,8 +178,14 @@ export default function TemplateSettings() {
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   
-  // Template editor state
-  const [isEditMode, setIsEditMode] = useState(false);
+  // Template editor state - per template type
+  const [editModes, setEditModes] = useState<Record<string, boolean>>({
+    meetings: false,
+    rehearsal: false,
+    tech: false,
+    previews: false,
+    performance: false
+  });
   const [showResetDialog, setShowResetDialog] = useState(false);
   
   // Global save state - track all pending changes
@@ -951,9 +957,10 @@ export default function TemplateSettings() {
                         variant="ghost"
                         size="sm"
                         onClick={() => {
-                          const newEditMode = !isEditMode;
-                          console.log(`🔄 GLOBAL SAVE TOGGLE: ${isEditMode ? 'LOCKING (SAVE ALL)' : 'UNLOCKING'} - UI updates immediately`);
-                          console.log('🔄 STATE DEBUG:', { currentEditMode: isEditMode, newEditMode, willSave: !newEditMode });
+                          const currentEditMode = editModes[phase];
+                          const newEditMode = !currentEditMode;
+                          console.log(`🔄 GLOBAL SAVE TOGGLE: ${currentEditMode ? 'LOCKING (SAVE ALL)' : 'UNLOCKING'} - UI updates immediately`);
+                          console.log('🔄 STATE DEBUG:', { phase, currentEditMode, newEditMode, willSave: !newEditMode });
                           
                           // If locking (saving), get the latest configuration and trigger global save
                           if (!newEditMode) {
@@ -1007,15 +1014,18 @@ export default function TemplateSettings() {
                             globalSaveMutation.mutate(saveData);
                           }
                           
-                          // Update edit mode immediately for responsive UI
-                          setIsEditMode(newEditMode);
+                          // Update edit mode for this specific template only
+                          setEditModes(prev => ({
+                            ...prev,
+                            [phase]: newEditMode
+                          }));
                         }}
                         className="h-6 w-6 p-0"
                       >
-                        {isEditMode ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+                        {editModes[phase] ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
                       </Button>
                       
-                      {isEditMode && (
+                      {editModes[phase] && (
                         <>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -1151,7 +1161,7 @@ export default function TemplateSettings() {
                         className="text-lg font-semibold text-center"
                         projectId={projectId}
                         type="header"
-                        effectiveEditMode={isEditMode}
+                        effectiveEditMode={editModes[selectedPhase]}
                       />
                     </div>
 
@@ -1160,7 +1170,7 @@ export default function TemplateSettings() {
                       ref={flexibleLayoutRef}
                       projectId={parseInt(params.id)}
                       reportType={selectedPhase as any}
-                      externalEditMode={isEditMode}
+                      externalEditMode={editModes[selectedPhase]}
                       template={activeTemplate}
                       showSettings={showSettings}
                       onTemplateUpdate={(updatedTemplate) => {
@@ -1236,7 +1246,7 @@ export default function TemplateSettings() {
                         className="text-sm text-gray-600 text-center"
                         projectId={projectId}
                         type="footer"
-                        effectiveEditMode={isEditMode}
+                        effectiveEditMode={editModes[selectedPhase]}
                       />
                     </div>
                   </div>
