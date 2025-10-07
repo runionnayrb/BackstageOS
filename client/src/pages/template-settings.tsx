@@ -1143,31 +1143,15 @@ export default function TemplateSettings() {
                     {/* Header - Inline Editable */}
                     <div className="text-center mb-6 pb-4 border-b">
                       <EditableHeaderFooter
-                        content={selectedPhase === 'tech' ? 
-                          (globalSettings?.defaultHeader?.replace(/{{showName}}/g, project?.name || 'Show Name') || template.header.replace(/{{showName}}/g, project?.name || 'Show Name')) : 
-                          template.header.replace(/{{showName}}/g, project?.name || 'Show Name')
-                        }
+                        content={globalSettings?.defaultHeader?.replace(/{{showName}}/g, project?.name || 'Show Name') || template.header.replace(/{{showName}}/g, project?.name || 'Show Name')}
                         onChange={(newHeader) => {
-                          if (selectedPhase === 'tech') {
-                            // For tech templates, update global settings
-                            if (globalSettings) {
-                              apiRequest("PUT", `/api/projects/${projectId}/global-template-settings`, {
-                                ...globalSettings,
-                                defaultHeader: newHeader
-                              });
-                              // Note: No cache invalidation here to prevent reload conflicts
-                            }
-                          } else {
-                            // For other templates, update local template
-                            const updatedTemplate = {
-                              ...template,
-                              header: newHeader
-                            };
-                            setTemplates(prev => ({
-                              ...prev,
-                              [phase]: updatedTemplate
-                            }));
-                            saveTemplate.mutate(updatedTemplate);
+                          // All templates now update global settings
+                          if (globalSettings) {
+                            apiRequest("PUT", `/api/projects/${projectId}/global-template-settings`, {
+                              ...globalSettings,
+                              defaultHeader: newHeader
+                            });
+                            // Note: No cache invalidation here to prevent reload conflicts
                           }
                         }}
                         className="text-lg font-semibold text-center"
@@ -1228,31 +1212,15 @@ export default function TemplateSettings() {
                     {/* Footer - Inline Editable */}
                     <div className="mt-8 pt-4 border-t text-center text-sm text-gray-600">
                       <EditableHeaderFooter
-                        content={selectedPhase === 'tech' ? 
-                          (globalSettings?.defaultFooter?.replace(/{{showName}}/g, project?.name || 'Show Name') || template.footer.replace(/{{showName}}/g, project?.name || 'Show Name')) : 
-                          template.footer.replace(/{{showName}}/g, project?.name || 'Show Name')
-                        }
+                        content={globalSettings?.defaultFooter?.replace(/{{showName}}/g, project?.name || 'Show Name') || template.footer.replace(/{{showName}}/g, project?.name || 'Show Name')}
                         onChange={(newFooter) => {
-                          if (selectedPhase === 'tech') {
-                            // For tech templates, update global settings
-                            if (globalSettings) {
-                              apiRequest("PUT", `/api/projects/${projectId}/global-template-settings`, {
-                                ...globalSettings,
-                                defaultFooter: newFooter
-                              });
-                              // Note: No cache invalidation here to prevent reload conflicts
-                            }
-                          } else {
-                            // For other templates, update local template
-                            const updatedTemplate = {
-                              ...template,
-                              footer: newFooter
-                            };
-                            setTemplates(prev => ({
-                              ...prev,
-                              [phase]: updatedTemplate
-                            }));
-                            saveTemplate.mutate(updatedTemplate);
+                          // All templates now update global settings
+                          if (globalSettings) {
+                            apiRequest("PUT", `/api/projects/${projectId}/global-template-settings`, {
+                              ...globalSettings,
+                              defaultFooter: newFooter
+                            });
+                            // Note: No cache invalidation here to prevent reload conflicts
                           }
                         }}
                         className="text-sm text-gray-600 text-center"
