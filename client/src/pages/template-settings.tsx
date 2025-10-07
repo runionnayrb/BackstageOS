@@ -947,129 +947,125 @@ export default function TemplateSettings() {
                   <div>
                     <CardTitle className="flex items-center gap-2">
                       {template.name}
-                      {selectedPhase === 'tech' && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const newEditMode = !isEditMode;
+                          console.log(`🔄 GLOBAL SAVE TOGGLE: ${isEditMode ? 'LOCKING (SAVE ALL)' : 'UNLOCKING'} - UI updates immediately`);
+                          console.log('🔄 STATE DEBUG:', { currentEditMode: isEditMode, newEditMode, willSave: !newEditMode });
+                          
+                          // If locking (saving), get the latest configuration and trigger global save
+                          if (!newEditMode) {
+                            console.log('🔒 LOCKING: Getting latest configuration before save...');
+                            
+                            // Get the latest configuration from the FlexibleLayoutEditor
+                            let currentConfig = null;
+                            console.log('🔒 STEP 1: Getting ref status...', {
+                              hasRef: !!flexibleLayoutRef.current,
+                              refType: typeof flexibleLayoutRef.current
+                            });
+                            
+                            if (flexibleLayoutRef.current) {
+                              console.log('🔒 STEP 2: Calling getCurrentConfiguration...');
+                              currentConfig = flexibleLayoutRef.current.getCurrentConfiguration();
+                              console.log('🔒 STEP 3: Got configuration:', !!currentConfig, currentConfig?.items?.length);
+                              console.log('🔍 SAVING: Late field position before save:', currentConfig?.items.find(item => item.id?.includes('late')));
+                              console.log('🔍 SAVING: ALL positions being saved:', currentConfig?.items?.map(item => ({
+                                id: item.id,
+                                x: item.x,
+                                y: item.y,
+                                w: item.w,
+                                h: item.h
+                              })));
+                              
+                              // Update pending changes with latest config before saving
+                              setPendingChanges(prev => ({
+                                ...prev,
+                                layoutConfiguration: currentConfig,
+                                hasChanges: true
+                              }));
+                            } else {
+                              console.error('❌ CRITICAL: No flexibleLayoutRef.current available!');
+                            }
+                            
+                            console.log('🔒 LOCKING: Saving all template changes...');
+                            // Create the save data directly instead of relying on state timing
+                            const saveData = {
+                              ...pendingChanges,
+                              layoutConfiguration: currentConfig,
+                              hasChanges: true
+                            };
+                            console.log('🔒 SAVE DATA prepared:', {
+                              hasLayoutConfig: !!saveData.layoutConfiguration,
+                              itemsCount: saveData.layoutConfiguration?.items?.length,
+                              hasChanges: saveData.hasChanges
+                            });
+                            
+                            // Call the save function with the prepared data
+                            console.log('🔒 EXECUTING MUTATION: About to call globalSaveMutation.mutate...');
+                            globalSaveMutation.mutate(saveData);
+                          }
+                          
+                          // Update edit mode immediately for responsive UI
+                          setIsEditMode(newEditMode);
+                        }}
+                        className="h-6 w-6 p-0"
+                      >
+                        {isEditMode ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+                      </Button>
+                      
+                      {isEditMode && (
                         <>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                              >
+                                <Plus className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="start">
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  console.log('🏢 ADD DEPARTMENT clicked');
+                                  flexibleLayoutRef.current?.addNewItem('department-header');
+                                }}
+                              >
+                                <Plus className="h-4 w-4 mr-2" />
+                                Add Department
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  console.log('📝 ADD PROPERTY clicked');
+                                  flexibleLayoutRef.current?.addNewItem('field-header');
+                                }}
+                              >
+                                <Plus className="h-4 w-4 mr-2" />
+                                Add Property
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                          
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => {
-                              const newEditMode = !isEditMode;
-                              console.log(`🔄 GLOBAL SAVE TOGGLE: ${isEditMode ? 'LOCKING (SAVE ALL)' : 'UNLOCKING'} - UI updates immediately`);
-                              console.log('🔄 STATE DEBUG:', { currentEditMode: isEditMode, newEditMode, willSave: !newEditMode });
-                              
-                              // If locking (saving), get the latest configuration and trigger global save
-                              if (!newEditMode) {
-                                console.log('🔒 LOCKING: Getting latest configuration before save...');
-                                
-                                // Get the latest configuration from the FlexibleLayoutEditor
-                                let currentConfig = null;
-                                console.log('🔒 STEP 1: Getting ref status...', {
-                                  hasRef: !!flexibleLayoutRef.current,
-                                  refType: typeof flexibleLayoutRef.current
-                                });
-                                
-                                if (flexibleLayoutRef.current) {
-                                  console.log('🔒 STEP 2: Calling getCurrentConfiguration...');
-                                  currentConfig = flexibleLayoutRef.current.getCurrentConfiguration();
-                                  console.log('🔒 STEP 3: Got configuration:', !!currentConfig, currentConfig?.items?.length);
-                                  console.log('🔍 SAVING: Late field position before save:', currentConfig?.items.find(item => item.id?.includes('late')));
-                                  console.log('🔍 SAVING: ALL positions being saved:', currentConfig?.items?.map(item => ({
-                                    id: item.id,
-                                    x: item.x,
-                                    y: item.y,
-                                    w: item.w,
-                                    h: item.h
-                                  })));
-                                  
-                                  // Update pending changes with latest config before saving
-                                  setPendingChanges(prev => ({
-                                    ...prev,
-                                    layoutConfiguration: currentConfig,
-                                    hasChanges: true
-                                  }));
-                                } else {
-                                  console.error('❌ CRITICAL: No flexibleLayoutRef.current available!');
-                                }
-                                
-                                console.log('🔒 LOCKING: Saving all template changes...');
-                                // Create the save data directly instead of relying on state timing
-                                const saveData = {
-                                  ...pendingChanges,
-                                  layoutConfiguration: currentConfig,
-                                  hasChanges: true
-                                };
-                                console.log('🔒 SAVE DATA prepared:', {
-                                  hasLayoutConfig: !!saveData.layoutConfiguration,
-                                  itemsCount: saveData.layoutConfiguration?.items?.length,
-                                  hasChanges: saveData.hasChanges
-                                });
-                                
-                                // Call the save function with the prepared data
-                                console.log('🔒 EXECUTING MUTATION: About to call globalSaveMutation.mutate...');
-                                globalSaveMutation.mutate(saveData);
-                              }
-                              
-                              // Update edit mode immediately for responsive UI
-                              setIsEditMode(newEditMode);
-                            }}
+                            onClick={() => flexibleLayoutRef.current?.addNewItem('empty-space')}
                             className="h-6 w-6 p-0"
                           >
-                            {isEditMode ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+                            [    ]
                           </Button>
                           
-                          {isEditMode && (
-                            <>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 w-6 p-0"
-                                  >
-                                    <Plus className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="start">
-                                  <DropdownMenuItem
-                                    onClick={() => {
-                                      console.log('🏢 ADD DEPARTMENT clicked');
-                                      flexibleLayoutRef.current?.addNewItem('department-header');
-                                    }}
-                                  >
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Add Department
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={() => {
-                                      console.log('📝 ADD PROPERTY clicked');
-                                      flexibleLayoutRef.current?.addNewItem('field-header');
-                                    }}
-                                  >
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Add Property
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                              
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => flexibleLayoutRef.current?.addNewItem('empty-space')}
-                                className="h-6 w-6 p-0"
-                              >
-                                [    ]
-                              </Button>
-                              
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => flexibleLayoutRef.current?.resetLayout()}
-                                className="h-6 w-6 p-0"
-                              >
-                                <RotateCcw className="h-4 w-4" />
-                              </Button>
-                            </>
-                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => flexibleLayoutRef.current?.resetLayout()}
+                            className="h-6 w-6 p-0"
+                          >
+                            <RotateCcw className="h-4 w-4" />
+                          </Button>
                         </>
                       )}
                     </CardTitle>
