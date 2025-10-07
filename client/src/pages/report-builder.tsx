@@ -103,12 +103,17 @@ export default function ReportBuilder() {
       form.setValue("projectId", projectId);
       form.setValue("type", reportType);
       
+      console.log('🔍 Report Builder - Loading template for:', reportType);
+      console.log('🔍 Project Settings:', projectSettings);
+      console.log('🔍 Has layoutConfiguration:', !!projectSettings?.layoutConfiguration);
+      
       if (existingReport && isEditMode) {
         // Populate form with existing report data
         form.setValue("title", existingReport.title);
         form.setValue("date", existingReport.date ? new Date(existingReport.date).toISOString().split('T')[0] : form.getValues("date"));
         form.setValue("content", existingReport.content || {});
         setSelectedTemplate(existingReport.type);
+        console.log('📝 Loading existing report');
       } else if (projectSettings?.layoutConfiguration) {
         // Use layout configuration from project settings if available
         const customTemplateId = `custom-layout-${reportType}`;
@@ -118,14 +123,17 @@ export default function ReportBuilder() {
           layoutConfiguration: projectSettings.layoutConfiguration,
           departmentNames: projectSettings.departmentNames || {},
         });
+        console.log('✅ Using custom layout configuration!', customTemplateId);
       } else if (matchingTemplate) {
         // Auto-select the custom template if it exists
         const customTemplateId = `custom-${matchingTemplate.id}`;
         setSelectedTemplate(customTemplateId);
         setCustomTemplate(matchingTemplate);
+        console.log('📋 Using matching template:', customTemplateId);
       } else {
         // Auto-select the built-in template based on report type
         setSelectedTemplate(reportType);
+        console.log('🏗️ Using built-in template:', reportType);
       }
     }
   }, [projectId, reportType, existingReport, isEditMode, matchingTemplate, projectSettings]);
@@ -245,6 +253,9 @@ export default function ReportBuilder() {
     if (!selectedTemplate) return null;
 
     const currentContent = form.watch("content") || {};
+    
+    console.log('🎨 Rendering template fields for:', selectedTemplate);
+    console.log('🎨 Custom template:', customTemplate);
 
     const commonFields = (
       <div className="mb-6">
