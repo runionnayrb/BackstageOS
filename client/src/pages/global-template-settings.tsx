@@ -45,11 +45,11 @@ export default function GlobalTemplateSettings() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setLocation(`/shows/${projectId}`)}
+              onClick={() => setLocation(`/shows/${projectId}/templates`)}
               className="text-gray-600 hover:text-gray-900"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to {(project as any)?.name || "Show"}
+              Back to Report Templates
             </Button>
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Global Template Settings</h1>
