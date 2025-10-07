@@ -72,7 +72,7 @@ export default function ReportBuilder() {
 
   const { data: templateData } = useQuery({
     queryKey: [`/api/projects/${projectId}/templates`],
-    enabled: false, // Disable fetching all templates - we'll use built-in templates based on report type
+    enabled: !!projectId,
   });
 
   const form = useForm<ReportFormData>({
@@ -98,12 +98,17 @@ export default function ReportBuilder() {
         form.setValue("date", existingReport.date ? new Date(existingReport.date).toISOString().split('T')[0] : form.getValues("date"));
         form.setValue("content", existingReport.content || {});
         setSelectedTemplate(existingReport.type);
+      } else if (matchingTemplate) {
+        // Auto-select the custom template if it exists
+        const customTemplateId = `custom-${matchingTemplate.id}`;
+        setSelectedTemplate(customTemplateId);
+        setCustomTemplate(matchingTemplate);
       } else {
-        // Auto-select the template based on report type for new reports
+        // Auto-select the built-in template based on report type
         setSelectedTemplate(reportType);
       }
     }
-  }, [projectId, reportType, existingReport, isEditMode]);
+  }, [projectId, reportType, existingReport, isEditMode, matchingTemplate]);
 
   const mutation = useMutation({
     mutationFn: async (data: ReportFormData) => {
@@ -176,21 +181,25 @@ export default function ReportBuilder() {
     },
   ];
 
-  // Combine built-in and custom templates
+  // Filter templates to only show the one matching the current report type
   const customTemplates = Array.isArray(templateData) ? templateData : [];
   
-  const allCustomTemplates = customTemplates.map((template: any) => ({
-    id: `custom-${template.id}`,
-    name: template.name,
-    description: template.description || "Custom template",
+  // Find the custom template that matches the report type
+  const matchingTemplate = customTemplates.find((template: any) => template.type === reportType);
+  
+  const allCustomTemplates = matchingTemplate ? [{
+    id: `custom-${matchingTemplate.id}`,
+    name: matchingTemplate.name,
+    description: matchingTemplate.description || "Custom template",
     icon: FileText,
     color: "bg-gray-100",
     iconColor: "text-gray-600",
     isCustom: true,
-    template: template,
-  }));
+    template: matchingTemplate,
+  }] : [];
 
-  const templates = [...builtInTemplates, ...allCustomTemplates];
+  // Use custom template if available, otherwise fall back to built-in
+  const templates = allCustomTemplates.length > 0 ? allCustomTemplates : builtInTemplates.filter(t => t.id === reportType);
 
   const handleTemplateSelect = (templateId: string) => {
     setSelectedTemplate(templateId);
