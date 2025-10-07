@@ -619,7 +619,14 @@ export default function TemplateSettings() {
         header: template.header,
         footer: template.footer,
         fields: template.fields,
+        layoutConfiguration: template.layoutConfiguration, // Include layout configuration
       };
+      
+      console.log('💾 Saving template with layout configuration:', {
+        name: template.name,
+        hasLayout: !!template.layoutConfiguration,
+        layoutItems: template.layoutConfiguration?.items?.length || 0
+      });
 
       let response;
       if (isExisting) {

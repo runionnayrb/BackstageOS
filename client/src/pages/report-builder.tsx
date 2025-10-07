@@ -104,8 +104,7 @@ export default function ReportBuilder() {
       form.setValue("type", reportType);
       
       console.log('🔍 Report Builder - Loading template for:', reportType);
-      console.log('🔍 Project Settings:', projectSettings);
-      console.log('🔍 Has layoutConfiguration:', !!projectSettings?.layoutConfiguration);
+      console.log('🔍 Matching Template:', matchingTemplate);
       
       if (existingReport && isEditMode) {
         // Populate form with existing report data
@@ -114,21 +113,24 @@ export default function ReportBuilder() {
         form.setValue("content", existingReport.content || {});
         setSelectedTemplate(existingReport.type);
         console.log('📝 Loading existing report');
-      } else if (projectSettings?.layoutConfiguration) {
-        // Use layout configuration from project settings if available
+      } else if (matchingTemplate && matchingTemplate.layoutConfiguration) {
+        // Use the template's own layout configuration and data
         const customTemplateId = `custom-layout-${reportType}`;
         setSelectedTemplate(customTemplateId);
         setCustomTemplate({
           ...matchingTemplate,
-          layoutConfiguration: projectSettings.layoutConfiguration,
-          departmentNames: projectSettings.departmentNames || {},
+          departmentNames: projectSettings?.departmentNames || {},
         });
-        console.log('✅ Using custom layout configuration!', customTemplateId);
+        // Set the title from the template
+        form.setValue("title", matchingTemplate.name || "");
+        console.log('✅ Using template layout configuration!', customTemplateId);
+        console.log('✅ Template name/title:', matchingTemplate.name);
       } else if (matchingTemplate) {
-        // Auto-select the custom template if it exists
+        // Use template without layout configuration
         const customTemplateId = `custom-${matchingTemplate.id}`;
         setSelectedTemplate(customTemplateId);
         setCustomTemplate(matchingTemplate);
+        form.setValue("title", matchingTemplate.name || "");
         console.log('📋 Using matching template:', customTemplateId);
       } else {
         // Auto-select the built-in template based on report type
