@@ -37,6 +37,7 @@ const NotesTracking: React.FC = () => {
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedPriority, setSelectedPriority] = useState<string>('all');
+  const [selectedReportType, setSelectedReportType] = useState<string>('all');
 
   // Fetch all notes for the project
   const { data: allNotes = [], isLoading } = useQuery<ReportNote[]>({
@@ -86,14 +87,16 @@ const NotesTracking: React.FC = () => {
 
   // Filter notes based on search and filters
   const filteredNotes = allNotes.filter(note => {
+    const report = getReport(note.reportId);
     const matchesSearch = note.content.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDepartment = selectedDepartment === 'all' || note.department === selectedDepartment;
     const matchesStatus = selectedStatus === 'all' || 
       (selectedStatus === 'completed' && note.isCompleted) ||
       (selectedStatus === 'pending' && !note.isCompleted);
     const matchesPriority = selectedPriority === 'all' || note.priority === selectedPriority;
+    const matchesReportType = selectedReportType === 'all' || report?.phase === selectedReportType;
     
-    return matchesSearch && matchesDepartment && matchesStatus && matchesPriority;
+    return matchesSearch && matchesDepartment && matchesStatus && matchesPriority && matchesReportType;
   });
 
   // Group notes by status
@@ -102,6 +105,13 @@ const NotesTracking: React.FC = () => {
 
   // Get unique departments
   const departments = Array.from(new Set(allNotes.map(note => note.department).filter(Boolean)));
+  
+  // Get unique report types
+  const reportTypes = Array.from(new Set(
+    allNotes
+      .map(note => getReport(note.reportId)?.phase)
+      .filter(Boolean)
+  ));
 
   const handleToggleComplete = (note: ReportNote) => {
     updateNoteMutation.mutate({
@@ -242,7 +252,7 @@ const NotesTracking: React.FC = () => {
       {/* Filters */}
       <Card>
         <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
               <Input
@@ -252,6 +262,20 @@ const NotesTracking: React.FC = () => {
                 className="pl-9"
               />
             </div>
+            
+            <Select value={selectedReportType} onValueChange={setSelectedReportType}>
+              <SelectTrigger>
+                <SelectValue placeholder="All report types" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All report types</SelectItem>
+                {reportTypes.map(type => (
+                  <SelectItem key={type} value={type}>
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             
             <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
               <SelectTrigger>
