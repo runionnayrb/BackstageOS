@@ -75,6 +75,11 @@ export default function ReportBuilder() {
     enabled: !!projectId,
   });
 
+  const { data: projectSettings } = useQuery<any>({
+    queryKey: [`/api/projects/${projectId}/settings`],
+    enabled: !!projectId,
+  });
+
   // Filter templates to only show the one matching the current report type
   const customTemplates = Array.isArray(templateData) ? templateData : [];
   
@@ -104,6 +109,15 @@ export default function ReportBuilder() {
         form.setValue("date", existingReport.date ? new Date(existingReport.date).toISOString().split('T')[0] : form.getValues("date"));
         form.setValue("content", existingReport.content || {});
         setSelectedTemplate(existingReport.type);
+      } else if (projectSettings?.layoutConfiguration) {
+        // Use layout configuration from project settings if available
+        const customTemplateId = `custom-layout-${reportType}`;
+        setSelectedTemplate(customTemplateId);
+        setCustomTemplate({
+          ...matchingTemplate,
+          layoutConfiguration: projectSettings.layoutConfiguration,
+          departmentNames: projectSettings.departmentNames || {},
+        });
       } else if (matchingTemplate) {
         // Auto-select the custom template if it exists
         const customTemplateId = `custom-${matchingTemplate.id}`;
@@ -114,7 +128,7 @@ export default function ReportBuilder() {
         setSelectedTemplate(reportType);
       }
     }
-  }, [projectId, reportType, existingReport, isEditMode, matchingTemplate]);
+  }, [projectId, reportType, existingReport, isEditMode, matchingTemplate, projectSettings]);
 
   const mutation = useMutation({
     mutationFn: async (data: ReportFormData) => {
