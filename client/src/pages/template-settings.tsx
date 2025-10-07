@@ -1141,7 +1141,14 @@ export default function TemplateSettings() {
                     fontFamily: "Arial, sans-serif"
                   }}>
                     {/* Header - Inline Editable */}
-                    <div className="text-center mb-6 pb-4 border-b">
+                    <div 
+                      className="text-center border-b"
+                      style={{
+                        lineHeight: globalSettings?.headerSpacing || '1.2',
+                        marginBottom: `${(parseFloat(globalSettings?.headerSpacing || '1.2') * 1.5)}rem`,
+                        paddingBottom: `${(parseFloat(globalSettings?.headerSpacing || '1.2') * 0.75)}rem`
+                      }}
+                    >
                       <EditableHeaderFooter
                         content={
                           (globalSettings?.defaultHeader || template.header)
@@ -1215,7 +1222,14 @@ export default function TemplateSettings() {
                     />
 
                     {/* Footer - Inline Editable */}
-                    <div className="mt-8 pt-4 border-t text-center text-sm text-gray-600">
+                    <div 
+                      className="border-t text-center text-sm text-gray-600"
+                      style={{
+                        lineHeight: globalSettings?.footerSpacing || '1.2',
+                        marginTop: `${(parseFloat(globalSettings?.footerSpacing || '1.2') * 1.5)}rem`,
+                        paddingTop: `${(parseFloat(globalSettings?.footerSpacing || '1.2') * 0.75)}rem`
+                      }}
+                    >
                       <EditableHeaderFooter
                         content={
                           (globalSettings?.defaultFooter || template.footer)
