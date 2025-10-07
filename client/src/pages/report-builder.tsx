@@ -257,6 +257,12 @@ export default function ReportBuilder() {
     console.log('🎨 Rendering template fields for:', selectedTemplate);
     console.log('🎨 Custom template:', customTemplate);
 
+    // Check for custom layout template FIRST before checking built-in templates
+    if (customTemplate && customTemplate.layoutConfiguration) {
+      console.log('✅ Using custom layout template!');
+      return renderLayoutBasedTemplate(customTemplate);
+    }
+
     const commonFields = (
       <div className="mb-6">
         <div className="text-sm font-semibold text-gray-700 mb-2">Summary</div>
