@@ -272,38 +272,26 @@ export default function TemplateSettings() {
             description: userTemplate.description || "",
             header: userTemplate.header || "",
             footer: userTemplate.footer || "",
-            fields: userTemplate.fields || []
+            fields: userTemplate.fields || [],
+            layoutConfiguration: userTemplate.layoutConfiguration // Preserve template-specific layout
           };
         }
       });
     }
 
-    // CRITICAL FIX: Apply layoutConfiguration to ALL templates, not just tech
+    // FALLBACK: Only apply global layoutConfiguration to templates that don't have their own
     if ((showSettings as any)?.layoutConfiguration) {
       const layoutConfig = (showSettings as any).layoutConfiguration;
-      console.log('🔄 TEMPLATE INIT: Loading layoutConfiguration from database');
-      console.log('🔍 FULL DB Layout config:', JSON.stringify(layoutConfig, null, 2));
-      console.log('🔍 DB Layout items summary:', layoutConfig.items?.map((item: any) => ({ 
-        id: item.id, 
-        type: item.type, 
-        x: item.x, 
-        y: item.y,
-        w: item.w,
-        h: item.h
-      })));
       
-      // Apply the saved layoutConfiguration to ALL templates
+      // Only apply to templates that don't already have a layoutConfiguration
       Object.keys(initialTemplates).forEach(templateKey => {
-        initialTemplates[templateKey] = {
-          ...initialTemplates[templateKey],
-          layoutConfiguration: layoutConfig
-        };
-        console.log(`✅ TEMPLATE INIT: Applied database layout to ${templateKey} template`);
+        if (!initialTemplates[templateKey].layoutConfiguration) {
+          initialTemplates[templateKey] = {
+            ...initialTemplates[templateKey],
+            layoutConfiguration: layoutConfig
+          };
+        }
       });
-      
-      console.log('📊 All templates now have layoutConfiguration with', layoutConfig.items?.length, 'items');
-    } else {
-      console.log('❌ TEMPLATE INIT: No layoutConfiguration found in database');
     }
 
     console.log('✅ Templates initialized with unified showSettings approach - single database table!');
@@ -621,12 +609,6 @@ export default function TemplateSettings() {
         fields: template.fields,
         layoutConfiguration: template.layoutConfiguration, // Include layout configuration
       };
-      
-      console.log('💾 Saving template with layout configuration:', {
-        name: template.name,
-        hasLayout: !!template.layoutConfiguration,
-        layoutItems: template.layoutConfiguration?.items?.length || 0
-      });
 
       let response;
       if (isExisting) {

@@ -84,7 +84,10 @@ export default function ReportBuilder() {
   const customTemplates = Array.isArray(templateData) ? templateData : [];
   
   // Find the custom template that matches the report type
-  const matchingTemplate = customTemplates.find((template: any) => template.type === reportType);
+  // Templates use 'phase' field which corresponds to report type
+  const matchingTemplate = customTemplates.find((template: any) => 
+    template.type === reportType || template.phase === reportType
+  );
 
   const form = useForm<ReportFormData>({
     resolver: zodResolver(reportSchema),
@@ -103,16 +106,12 @@ export default function ReportBuilder() {
       form.setValue("projectId", projectId);
       form.setValue("type", reportType);
       
-      console.log('🔍 Report Builder - Loading template for:', reportType);
-      console.log('🔍 Matching Template:', matchingTemplate);
-      
       if (existingReport && isEditMode) {
         // Populate form with existing report data
         form.setValue("title", existingReport.title);
         form.setValue("date", existingReport.date ? new Date(existingReport.date).toISOString().split('T')[0] : form.getValues("date"));
         form.setValue("content", existingReport.content || {});
         setSelectedTemplate(existingReport.type);
-        console.log('📝 Loading existing report');
       } else if (matchingTemplate && matchingTemplate.layoutConfiguration) {
         // Use the template's own layout configuration and data
         const customTemplateId = `custom-layout-${reportType}`;
@@ -123,19 +122,15 @@ export default function ReportBuilder() {
         });
         // Set the title from the template
         form.setValue("title", matchingTemplate.name || "");
-        console.log('✅ Using template layout configuration!', customTemplateId);
-        console.log('✅ Template name/title:', matchingTemplate.name);
       } else if (matchingTemplate) {
         // Use template without layout configuration
         const customTemplateId = `custom-${matchingTemplate.id}`;
         setSelectedTemplate(customTemplateId);
         setCustomTemplate(matchingTemplate);
         form.setValue("title", matchingTemplate.name || "");
-        console.log('📋 Using matching template:', customTemplateId);
       } else {
         // Auto-select the built-in template based on report type
         setSelectedTemplate(reportType);
-        console.log('🏗️ Using built-in template:', reportType);
       }
     }
   }, [projectId, reportType, existingReport, isEditMode, matchingTemplate, projectSettings]);
@@ -255,13 +250,9 @@ export default function ReportBuilder() {
     if (!selectedTemplate) return null;
 
     const currentContent = form.watch("content") || {};
-    
-    console.log('🎨 Rendering template fields for:', selectedTemplate);
-    console.log('🎨 Custom template:', customTemplate);
 
     // Check for custom layout template FIRST before checking built-in templates
     if (customTemplate && customTemplate.layoutConfiguration) {
-      console.log('✅ Using custom layout template!');
       return renderLayoutBasedTemplate(customTemplate);
     }
 
