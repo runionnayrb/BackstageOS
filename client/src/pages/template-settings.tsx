@@ -1143,7 +1143,12 @@ export default function TemplateSettings() {
                     {/* Header - Inline Editable */}
                     <div className="text-center mb-6 pb-4 border-b">
                       <EditableHeaderFooter
-                        content={globalSettings?.defaultHeader?.replace(/{{showName}}/g, project?.name || 'Show Name') || template.header.replace(/{{showName}}/g, project?.name || 'Show Name')}
+                        content={
+                          (globalSettings?.defaultHeader || template.header)
+                            .replace(/{{showName}}/g, project?.name || 'Show Name')
+                            .replace(/{{reportType}}/g, template.name)
+                            .replace(/{{date}}/g, new Date().toLocaleDateString())
+                        }
                         onChange={(newHeader) => {
                           // All templates now update global settings
                           if (globalSettings) {
@@ -1212,7 +1217,14 @@ export default function TemplateSettings() {
                     {/* Footer - Inline Editable */}
                     <div className="mt-8 pt-4 border-t text-center text-sm text-gray-600">
                       <EditableHeaderFooter
-                        content={globalSettings?.defaultFooter?.replace(/{{showName}}/g, project?.name || 'Show Name') || template.footer.replace(/{{showName}}/g, project?.name || 'Show Name')}
+                        content={
+                          (globalSettings?.defaultFooter || template.footer)
+                            .replace(/{{showName}}/g, project?.name || 'Show Name')
+                            .replace(/{{reportType}}/g, template.name)
+                            .replace(/{{date}}/g, new Date().toLocaleDateString())
+                            .replace(/{{pageNumber}}/g, '1')
+                            .replace(/{{totalPages}}/g, '1')
+                        }
                         onChange={(newFooter) => {
                           // All templates now update global settings
                           if (globalSettings) {
