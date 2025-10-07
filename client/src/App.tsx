@@ -210,6 +210,7 @@ function Router() {
         <Route path="/shows/:id" component={ShowDetail} />
         <Route path="/shows/:id/reports" component={ShowReportsList} />
         <Route path="/shows/:id/reports/:type/new" component={NewReport} />
+        <Route path="/shows/:id/reports/:type/builder" component={ReportBuilder} />
         <Route path="/shows/:id/reports/:type/:reportId/edit" component={ReportBuilder} />
         <Route path="/shows/:id/reports/:type/:reportId" component={ReportViewer} />
         <Route path="/shows/:id/reports/:type" component={ShowReports} />

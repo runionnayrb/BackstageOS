@@ -77,7 +77,7 @@ export default function ShowReports() {
               showName={project?.name}
             />
             
-            <Button onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}/new`)}>
+            <Button onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}/builder`)}>
               <Plus className="h-4 w-4 mr-2" />
               New Report
             </Button>
@@ -93,7 +93,7 @@ export default function ShowReports() {
               showName={project?.name}
             />
             
-            <Button onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}/new`)}>
+            <Button onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}/builder`)}>
               <Plus className="h-4 w-4 mr-2" />
               New Report
             </Button>
