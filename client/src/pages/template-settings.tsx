@@ -694,27 +694,37 @@ export default function TemplateSettings() {
       // Prepare all changes to save
       const savePromises = [];
       
-      // Save layout configuration if there are changes
-      // CRITICAL FIX: Check if layoutConfiguration exists, not just if it has items
-      // The configuration object itself is what needs to be saved, regardless of item count
-      if (dataToSave.layoutConfiguration) {
-        console.log('💾 GLOBAL SAVE: Saving layout configuration...');
-        console.log('🔍 Layout config to save:', dataToSave.layoutConfiguration);
-        console.log('🔍 Layout items to save:', dataToSave.layoutConfiguration.items?.map(item => ({ 
-          id: item.id, 
-          type: item.type, 
-          x: item.x, 
-          y: item.y 
-        })));
-        savePromises.push(
-          apiRequest("PUT", `/api/projects/${projectId}/settings/layout-configuration`, {
-            layoutConfiguration: dataToSave.layoutConfiguration,
-            templateType: selectedPhase
-          })
-        );
+      // CRITICAL FIX: Save layout configuration with the TEMPLATE, not global settings
+      // The layout configuration should be part of the template data
+      const currentTemplate = templates[selectedPhase];
+      if (currentTemplate && dataToSave.layoutConfiguration) {
+        console.log('💾 GLOBAL SAVE: Saving template with layout configuration...');
+        
+        // Save the template with the layout configuration included
+        const templateData = {
+          name: currentTemplate.name,
+          description: currentTemplate.description,
+          type: currentTemplate.phase,
+          phase: currentTemplate.phase,
+          header: currentTemplate.header,
+          footer: currentTemplate.footer,
+          fields: currentTemplate.fields,
+          layoutConfiguration: dataToSave.layoutConfiguration,
+        };
+        
+        const isExisting = typeof currentTemplate.id === 'string' && /^\d+$/.test(currentTemplate.id);
+        
+        if (isExisting) {
+          savePromises.push(
+            apiRequest("PATCH", `/api/projects/${projectId}/templates/${currentTemplate.id}`, templateData)
+          );
+        } else {
+          savePromises.push(
+            apiRequest("POST", `/api/projects/${projectId}/templates`, templateData)
+          );
+        }
       } else {
         console.log('⚠️ GLOBAL SAVE: No layout configuration changes to save');
-        console.log('🔍 dataToSave.layoutConfiguration:', dataToSave.layoutConfiguration);
       }
       
       // Save department names if there are changes
