@@ -72,7 +72,7 @@ export default function ReportBuilder() {
 
   const { data: templateData } = useQuery({
     queryKey: [`/api/projects/${projectId}/templates`],
-    enabled: !!projectId,
+    enabled: false, // Disable fetching all templates - we'll use built-in templates based on report type
   });
 
   const form = useForm<ReportFormData>({
@@ -1173,37 +1173,7 @@ export default function ReportBuilder() {
           <p className="text-gray-600">{isEditMode ? "Modify your production report" : "Create and customize production reports"}</p>
         </div>
 
-        {/* Template Selection - Only show when creating new report */}
-        {!isEditMode && (
-          <Card className="mb-6">
-            <CardContent className="p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Choose Template</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {templates.map((template) => {
-                  const Icon = template.icon;
-                  const isSelected = selectedTemplate === template.id;
-                  return (
-                    <button
-                      key={template.id}
-                      onClick={() => handleTemplateSelect(template.id)}
-                      className={`p-4 border-2 rounded-lg text-left transition-colors ${
-                        isSelected 
-                          ? 'border-primary bg-blue-50' 
-                          : 'border-gray-200 hover:border-primary'
-                      }`}
-                    >
-                      <div className={`p-2 ${template.color} rounded-lg w-fit mb-3`}>
-                        <Icon className={`w-6 h-6 ${template.iconColor}`} />
-                      </div>
-                      <h4 className="font-medium text-gray-900">{template.name}</h4>
-                      <p className="text-sm text-gray-500 mt-1">{template.description}</p>
-                    </button>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Template Selection - Hidden since template is auto-selected based on report type */}
 
         {/* Report Form - Document Style */}
         <Card className="min-h-[600px]">
