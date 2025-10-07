@@ -75,6 +75,12 @@ export default function ReportBuilder() {
     enabled: !!projectId,
   });
 
+  // Filter templates to only show the one matching the current report type
+  const customTemplates = Array.isArray(templateData) ? templateData : [];
+  
+  // Find the custom template that matches the report type
+  const matchingTemplate = customTemplates.find((template: any) => template.type === reportType);
+
   const form = useForm<ReportFormData>({
     resolver: zodResolver(reportSchema),
     defaultValues: {
@@ -181,12 +187,6 @@ export default function ReportBuilder() {
     },
   ];
 
-  // Filter templates to only show the one matching the current report type
-  const customTemplates = Array.isArray(templateData) ? templateData : [];
-  
-  // Find the custom template that matches the report type
-  const matchingTemplate = customTemplates.find((template: any) => template.type === reportType);
-  
   const allCustomTemplates = matchingTemplate ? [{
     id: `custom-${matchingTemplate.id}`,
     name: matchingTemplate.name,
