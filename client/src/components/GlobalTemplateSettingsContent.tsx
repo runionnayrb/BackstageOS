@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -165,7 +165,13 @@ interface GlobalTemplateSettingsContentProps {
   showSaveButton?: boolean;
 }
 
-export function GlobalTemplateSettingsContent({ projectId, showSaveButton = true }: GlobalTemplateSettingsContentProps) {
+export interface GlobalTemplateSettingsRef {
+  save: () => void;
+  isPending: boolean;
+}
+
+export const GlobalTemplateSettingsContent = forwardRef<GlobalTemplateSettingsRef, GlobalTemplateSettingsContentProps>(
+  ({ projectId, showSaveButton = true }, ref) => {
   const { toast } = useToast();
   
   const [settings, setSettings] = useState<GlobalTemplateSettings>({
@@ -279,6 +285,13 @@ export function GlobalTemplateSettingsContent({ projectId, showSaveButton = true
       }
     }));
   };
+
+  useImperativeHandle(ref, () => ({
+    save: () => {
+      saveSettings.mutate({ settingsData: settings, showToast: true });
+    },
+    isPending: saveSettings.isPending
+  }));
 
   return (
     <div className="space-y-6">
@@ -1206,4 +1219,4 @@ export function GlobalTemplateSettingsContent({ projectId, showSaveButton = true
       </Tabs>
     </div>
   );
-}
+});

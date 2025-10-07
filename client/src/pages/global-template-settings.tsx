@@ -1,8 +1,9 @@
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+import { useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { GlobalTemplateSettingsContent } from "@/components/GlobalTemplateSettingsContent";
-import { ArrowLeft } from "lucide-react";
+import { GlobalTemplateSettingsContent, GlobalTemplateSettingsRef } from "@/components/GlobalTemplateSettingsContent";
+import { ArrowLeft, Save } from "lucide-react";
 
 interface GlobalTemplateSettingsParams {
   id: string;
@@ -19,6 +20,7 @@ export default function GlobalTemplateSettings() {
   const [, setLocation] = useLocation();
   const params = useParams<GlobalTemplateSettingsParams>();
   const projectId = params.id;
+  const settingsRef = useRef<GlobalTemplateSettingsRef>(null);
 
   const { data: project } = useQuery<Project>({
     queryKey: [`/api/projects/${projectId}`],
@@ -40,25 +42,34 @@ export default function GlobalTemplateSettings() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6">
-        <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setLocation(`/shows/${projectId}/templates`)}
-            className="text-gray-600 hover:text-gray-900 mb-4"
+            className="text-gray-600 hover:text-gray-900"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Report Templates
           </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Global Template Settings</h1>
-            <p className="text-gray-600 mt-1">
-              Configure default formatting and layout for all report templates
-            </p>
-          </div>
+          
+          <Button
+            onClick={() => settingsRef.current?.save()}
+            className="flex items-center gap-2"
+          >
+            <Save className="h-4 w-4" />
+            Save Settings
+          </Button>
+        </div>
+        
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Global Template Settings</h1>
+          <p className="text-gray-600 mt-1">
+            Configure default formatting and layout for all report templates
+          </p>
         </div>
 
-        <GlobalTemplateSettingsContent projectId={projectId!} showSaveButton={true} />
+        <GlobalTemplateSettingsContent ref={settingsRef} projectId={projectId!} showSaveButton={false} />
       </div>
     </div>
   );
