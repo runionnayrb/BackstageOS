@@ -1241,6 +1241,84 @@ export default function TemplateSettings() {
                               </div>
                             </div>
                           ))}
+
+                        {/* Department Notes Section - Same as Tech Template */}
+                        <div className="space-y-6 mt-8">
+                          <div className="text-lg font-semibold text-gray-800">Department Notes</div>
+                          <div className="text-sm text-gray-600 mb-4">Department notes are managed in individual reports, not in templates</div>
+                          
+                          <div className="space-y-6">
+                            <div>
+                              <EditableDepartmentHeader
+                                department="scenic"
+                                displayName={getAllDepartmentNames(showSettings?.departmentNames).scenic}
+                                onNameChange={(newName) => updateDepartmentName('scenic', newName)}
+                                effectiveEditMode={isEditMode}
+                                projectId={projectId}
+                                onApplyToAll={applyFormattingToAllDepartments}
+                              />
+                              <div className="px-3 py-2 bg-white text-sm min-h-[60px] text-gray-500 italic">
+                                Department notes will appear here in actual reports
+                              </div>
+                            </div>
+
+                            <div>
+                              <EditableDepartmentHeader
+                                department="lighting"
+                                displayName={getAllDepartmentNames(showSettings?.departmentNames).lighting}
+                                onNameChange={(newName) => updateDepartmentName('lighting', newName)}
+                                effectiveEditMode={isEditMode}
+                                projectId={projectId}
+                                onApplyToAll={applyFormattingToAllDepartments}
+                              />
+                              <div className="px-3 py-2 bg-white text-sm min-h-[60px] text-gray-500 italic">
+                                Department notes will appear here in actual reports
+                              </div>
+                            </div>
+
+                            <div>
+                              <EditableDepartmentHeader
+                                department="audio"
+                                displayName={getAllDepartmentNames(showSettings?.departmentNames).audio}
+                                onNameChange={(newName) => updateDepartmentName('audio', newName)}
+                                effectiveEditMode={isEditMode}
+                                projectId={projectId}
+                                onApplyToAll={applyFormattingToAllDepartments}
+                              />
+                              <div className="px-3 py-2 bg-white text-sm min-h-[60px] text-gray-500 italic">
+                                Department notes will appear here in actual reports
+                              </div>
+                            </div>
+
+                            <div>
+                              <EditableDepartmentHeader
+                                department="video"
+                                displayName={getAllDepartmentNames(showSettings?.departmentNames).video}
+                                onNameChange={(newName) => updateDepartmentName('video', newName)}
+                                effectiveEditMode={isEditMode}
+                                projectId={projectId}
+                                onApplyToAll={applyFormattingToAllDepartments}
+                              />
+                              <div className="px-3 py-2 bg-white text-sm min-h-[60px] text-gray-500 italic">
+                                Department notes will appear here in actual reports
+                              </div>
+                            </div>
+
+                            <div>
+                              <EditableDepartmentHeader
+                                department="props"
+                                displayName={getAllDepartmentNames(showSettings?.departmentNames).props}
+                                onNameChange={(newName) => updateDepartmentName('props', newName)}
+                                effectiveEditMode={isEditMode}
+                                projectId={projectId}
+                                onApplyToAll={applyFormattingToAllDepartments}
+                              />
+                              <div className="px-3 py-2 bg-white text-sm min-h-[60px] text-gray-500 italic">
+                                Department notes will appear here in actual reports
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     )}
 
