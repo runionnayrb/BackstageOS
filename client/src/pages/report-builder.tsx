@@ -83,11 +83,20 @@ export default function ReportBuilder() {
   // Filter templates to only show the one matching the current report type
   const customTemplates = Array.isArray(templateData) ? templateData : [];
   
+  // Debug logging
+  console.log('🔍 REPORT BUILDER DEBUG:');
+  console.log('  - Report Type:', reportType);
+  console.log('  - Template Data:', templateData);
+  console.log('  - Custom Templates:', customTemplates);
+  
   // Find the custom template that matches the report type
   // Templates use 'phase' field which corresponds to report type
   const matchingTemplate = customTemplates.find((template: any) => 
     template.type === reportType || template.phase === reportType
   );
+  
+  console.log('  - Matching Template:', matchingTemplate);
+  console.log('  - Has Layout Config:', !!matchingTemplate?.layoutConfiguration);
 
   const form = useForm<ReportFormData>({
     resolver: zodResolver(reportSchema),
