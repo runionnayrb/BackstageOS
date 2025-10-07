@@ -694,12 +694,12 @@ export default function TemplateSettings() {
 
   // Global save mutation - handles all template changes at once
   const globalSaveMutation = useMutation({
-    mutationFn: async (saveDataOverride?: any) => {
+    mutationFn: async (saveData: { data?: any; templateName?: string }) => {
       setIsSaving(true);
       console.log('🔒 GLOBAL SAVE: Starting comprehensive template save...');
       
       // Use provided save data or fall back to pending changes
-      const dataToSave = saveDataOverride || pendingChanges;
+      const dataToSave = saveData?.data || pendingChanges;
       console.log('🔍 Save data being used:', dataToSave);
       
       // Prepare all changes to save
@@ -760,9 +760,9 @@ export default function TemplateSettings() {
       
       // Execute all saves simultaneously
       await Promise.all(savePromises);
-      return true;
+      return saveData.templateName;
     },
-    onSuccess: async () => {
+    onSuccess: async (templateName?: string) => {
       console.log('✅ GLOBAL SAVE: All template changes saved successfully');
       setIsSaving(false);
       setLastSaved(new Date());
@@ -787,7 +787,7 @@ export default function TemplateSettings() {
       console.log('✅ Cache refresh completed - data is now current');
       
       toast({
-        title: "Template saved",
+        title: templateName ? `${templateName} saved` : "Template saved",
         description: "All template changes have been saved successfully.",
       });
     },
@@ -1009,9 +1009,21 @@ export default function TemplateSettings() {
                               hasChanges: saveData.hasChanges
                             });
                             
-                            // Call the save function with the prepared data
+                            // Get template display name for toast
+                            const templateDisplayNames: Record<string, string> = {
+                              meetings: 'Meeting Report Template',
+                              rehearsal: 'Rehearsal Report Template',
+                              tech: 'Tech Report Template',
+                              previews: 'Preview Report Template',
+                              performance: 'Performance Report Template'
+                            };
+                            
+                            // Call the save function with the prepared data and template name
                             console.log('🔒 EXECUTING MUTATION: About to call globalSaveMutation.mutate...');
-                            globalSaveMutation.mutate(saveData);
+                            globalSaveMutation.mutate({ 
+                              data: saveData,
+                              templateName: templateDisplayNames[phase]
+                            });
                           }
                           
                           // Update edit mode for this specific template only
