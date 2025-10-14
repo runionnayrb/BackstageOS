@@ -286,6 +286,13 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
 
   return (
     <div className="space-y-2">
+      {/* Show placeholder when no notes and not editing */}
+      {sortedNotes.length === 0 && !isEditing && (
+        <div className="text-sm text-muted-foreground px-4 py-2">
+          {placeholder}
+        </div>
+      )}
+      
       {/* Notes list */}
       <div className="space-y-2">
         {sortedNotes.map((note, index) => (
