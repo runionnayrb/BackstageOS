@@ -3281,11 +3281,10 @@ Best regards,
         return res.status(403).json({ message: "Access denied" });
       }
 
-      const userId = req.user.id.toString();
       const reportData = insertReportSchema.parse({
         ...req.body,
         projectId,
-        createdBy: userId,
+        createdBy: parseInt(req.user.id),
       });
 
       const report = await storage.createReport(reportData);
