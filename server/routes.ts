@@ -3302,6 +3302,14 @@ Best regards,
         return res.status(403).json({ message: "Access denied" });
       }
 
+      // Log incoming data for debugging
+      console.log('📋 Creating report - Incoming data:', {
+        body: req.body,
+        projectId,
+        userId: req.user.id,
+        dateProvided: req.body.date
+      });
+
       // Prepare report data with proper date conversion
       const reportData = insertReportSchema.parse({
         ...req.body,
@@ -3310,6 +3318,8 @@ Best regards,
         date: req.body.date ? new Date(req.body.date) : new Date(),
         templateId: req.body.templateId ? parseInt(req.body.templateId) : undefined,
       });
+      
+      console.log('📋 Validated report data:', reportData);
 
       const report = await storage.createReport(reportData);
       console.log('📋 Report created:', {
