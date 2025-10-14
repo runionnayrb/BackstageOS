@@ -56,5 +56,9 @@ externalPort = 3000
 localPort = 38889
 externalPort = 5000
 
+[[ports]]
+localPort = 45625
+externalPort = 4200
+
 [agent]
 integrations = ["javascript_stripe:1.0.0", "javascript_log_in_with_replit:1.0.0"]

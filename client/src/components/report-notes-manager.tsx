@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Check, X, Clock, User, ChevronUp, ChevronDown, Trash2 } from 'lucide-react';
+import { Plus, Clock, User, ChevronUp, ChevronDown, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -197,18 +197,26 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
     setEditContent(note.content);
   };
 
-  const handleSaveEdit = () => {
-    if (!editContent.trim() || editingNote === null) return;
+  const handleAutoSaveEdit = () => {
+    if (!editContent.trim() || editingNote === null) {
+      // If content is empty, just cancel editing
+      setEditingNote(null);
+      setEditContent('');
+      return;
+    }
     
-    updateNoteMutation.mutate({
-      noteId: editingNote,
-      data: { content: editContent.trim() }
-    });
-  };
-
-  const handleCancelEdit = () => {
-    setEditingNote(null);
-    setEditContent('');
+    // Only save if content has changed
+    const originalNote = notes?.find(n => n.id === editingNote);
+    if (originalNote && editContent.trim() !== originalNote.content) {
+      updateNoteMutation.mutate({
+        noteId: editingNote,
+        data: { content: editContent.trim() }
+      });
+    } else {
+      // No changes, just close editing
+      setEditingNote(null);
+      setEditContent('');
+    }
   };
 
   const handleToggleComplete = (note: ReportNote) => {
@@ -291,24 +299,22 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
                 {/* Note content with inline number */}
                 <div className="flex-1">
                   {editingNote === note.id ? (
-                    <div className="space-y-2">
-                      <Textarea
-                        value={editContent}
-                        onChange={(e) => setEditContent(e.target.value)}
-                        className="min-h-[60px] resize-none"
-                        autoFocus
-                      />
-                      <div className="flex gap-2">
-                        <Button size="sm" onClick={handleSaveEdit}>
-                          <Check className="h-4 w-4 mr-1" />
-                          Save
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={handleCancelEdit}>
-                          <X className="h-4 w-4 mr-1" />
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
+                    <Textarea
+                      value={editContent}
+                      onChange={(e) => setEditContent(e.target.value)}
+                      onBlur={handleAutoSaveEdit}
+                      className="min-h-[60px] resize-none"
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === 'Escape') {
+                          setEditingNote(null);
+                          setEditContent('');
+                        }
+                        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                          handleAutoSaveEdit();
+                        }
+                      }}
+                    />
                   ) : (
                     <p 
                       className={`text-sm leading-relaxed ${isEditing ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded p-1 -m-1' : ''} ${
