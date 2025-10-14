@@ -366,12 +366,12 @@ function renderReportContent(report: any, isEditing: boolean, form: any, project
                     onInput={(e) => {
                       form.setValue(`content.${fieldId}`, e.currentTarget.textContent || "");
                     }}
-                    className={`text-sm whitespace-pre-wrap px-4 py-2 outline-none ${!content[fieldId] ? 'empty-field' : ''}`}
+                    className={`text-sm whitespace-pre-wrap px-4 py-2 outline-none ${(!content[fieldId] || (typeof content[fieldId] === 'string' && content[fieldId].trim() === '')) ? 'empty-field' : ''}`}
                   >
                     {content[fieldId] || ''}
                   </div>
                 ) : (
-                  <div className="text-sm whitespace-pre-wrap px-4 py-2">
+                  <div className="text-sm whitespace-pre-wrap px-4 py-2" style={{ color: '#000000' }}>
                     {content[fieldId] || placeholder}
                   </div>
                 )}
