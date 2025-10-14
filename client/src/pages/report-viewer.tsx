@@ -55,6 +55,10 @@ export default function ReportViewer() {
     queryKey: [`/api/projects/${projectId}/reports/${reportId}`],
   });
 
+  const { data: projectSettings } = useQuery<any>({
+    queryKey: [`/api/projects/${projectId}/settings`],
+  });
+
   const form = useForm<z.infer<typeof reportSchema>>({
     resolver: zodResolver(reportSchema),
     defaultValues: {
@@ -255,7 +259,7 @@ export default function ReportViewer() {
 
               {/* Report Content */}
               <form onSubmit={form.handleSubmit(handleSave)} className="space-y-6">
-                {renderReportContent(report, isEditing, form)}
+                {renderReportContent(report, isEditing, form, projectSettings)}
               </form>
             </div>
           </CardContent>
@@ -290,195 +294,90 @@ export default function ReportViewer() {
   );
 }
 
-function renderReportContent(report: any, isEditing: boolean, form: any) {
+function renderReportContent(report: any, isEditing: boolean, form: any, projectSettings: any) {
   const content = form.watch("content") || {};
   const projectId = report.projectId;
   const reportId = report.id;
   const reportType = report.type;
 
-  // Get session focus options based on report type
-  const getSessionFocusOptions = () => {
-    switch (reportType) {
-      case 'rehearsal':
-        return ['blocking', 'choreography', 'music', 'character-work', 'run-through', 'full-rehearsal'];
-      case 'performance':
-        return ['matinee', 'evening', 'opening-night', 'closing-night', 'special-event', 'understudy'];
-      case 'meeting':
-        return ['production', 'design', 'tech', 'cast', 'crew', 'department-heads'];
-      case 'tech':
-      default:
-        return ['lighting', 'sound', 'set-changes', 'costumes', 'props', 'full-technical'];
-    }
-  };
+  // Use ONLY custom template from projectSettings.layoutConfiguration
+  if (!projectSettings?.layoutConfiguration) {
+    return <div>No template configuration found</div>;
+  }
+
+  const { layoutConfiguration, fieldHeaderFormatting, departmentNames } = projectSettings;
 
   return (
     <>
-      {/* Summary */}
-      <div className="mb-6">
-        <div className="text-sm font-semibold text-gray-700 mb-2">Summary</div>
-        {isEditing ? (
-          <Textarea
-            rows={3}
-            placeholder="Brief summary..."
-            value={content.summary || ""}
-            onChange={(e) => form.setValue("content.summary", e.target.value)}
-            className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
-          />
-        ) : (
-          <div className="text-sm whitespace-pre-wrap">{content.summary || "No summary provided."}</div>
-        )}
-      </div>
-
-      {/* Session Information - Unified for all report types */}
-      <div className="grid grid-cols-2 gap-6 mb-6">
-        <div>
-          <div className="text-sm font-semibold text-gray-700 mb-2">Session Focus</div>
-          {isEditing ? (
-            <Select value={content.sessionFocus || ""} onValueChange={(value) => form.setValue("content.sessionFocus", value)}>
-              <SelectTrigger className="border-0 bg-transparent p-0 focus:ring-0">
-                <SelectValue placeholder="Select focus area" />
-              </SelectTrigger>
-              <SelectContent>
-                {getSessionFocusOptions().map(option => (
-                  <SelectItem key={option} value={option}>
-                    {option.replace(/-/g, ' ')}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          ) : (
-            <div className="text-sm capitalize">{content.sessionFocus ? content.sessionFocus.replace(/-/g, ' ') : "Not specified"}</div>
-          )}
-        </div>
-        <div>
-          <div className="text-sm font-semibold text-gray-700 mb-2">Completion Status</div>
-          {isEditing ? (
-            <Select value={content.completionStatus || ""} onValueChange={(value) => form.setValue("content.completionStatus", value)}>
-              <SelectTrigger className="border-0 bg-transparent p-0 focus:ring-0">
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="on-schedule">On Schedule</SelectItem>
-                <SelectItem value="behind-schedule">Behind Schedule</SelectItem>
-                <SelectItem value="ahead-schedule">Ahead of Schedule</SelectItem>
-                <SelectItem value="complete">Complete</SelectItem>
-              </SelectContent>
-            </Select>
-          ) : (
-            <div className="text-sm capitalize">{content.completionStatus ? content.completionStatus.replace(/-/g, ' ') : "Not specified"}</div>
-          )}
-        </div>
-      </div>
-
-      {/* Session Overview - Unified for all report types */}
-      <div className="mb-6">
-        <div className="text-sm font-semibold text-gray-700 mb-2">Session Overview</div>
-        {isEditing ? (
-          <Textarea
-            rows={3}
-            placeholder="Brief overview of what was accomplished..."
-            value={content.sessionOverview || ""}
-            onChange={(e) => form.setValue("content.sessionOverview", e.target.value)}
-            className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
-          />
-        ) : (
-          <div className="text-sm whitespace-pre-wrap">{content.sessionOverview || "No overview provided."}</div>
-        )}
-      </div>
-
-      {/* Department Notes - Unified for all report types with ReportNotesManager */}
-      <div className="mb-6">
-        <div className="text-lg font-semibold text-gray-800 mb-4">Department Notes</div>
-        
-        <div className="space-y-6">
-          <div>
-            <div className="text-sm font-semibold text-gray-700 mb-2">Scenic</div>
-            <ReportNotesManager 
-              reportId={reportId} 
-              projectId={projectId}
-              reportType={reportType}
-              department="scenic"
-              isEditing={isEditing}
-            />
-          </div>
-
-          <div>
-            <div className="text-sm font-semibold text-gray-700 mb-2">Lighting</div>
-            <ReportNotesManager 
-              reportId={reportId} 
-              projectId={projectId}
-              reportType={reportType}
-              department="lighting"
-              isEditing={isEditing}
-            />
-          </div>
-
-          <div>
-            <div className="text-sm font-semibold text-gray-700 mb-2">Audio</div>
-            <ReportNotesManager 
-              reportId={reportId} 
-              projectId={projectId}
-              reportType={reportType}
-              department="audio"
-              isEditing={isEditing}
-            />
-          </div>
-
-          <div>
-            <div className="text-sm font-semibold text-gray-700 mb-2">Video</div>
-            <ReportNotesManager 
-              reportId={reportId} 
-              projectId={projectId}
-              reportType={reportType}
-              department="video"
-              isEditing={isEditing}
-            />
-          </div>
-
-          <div>
-            <div className="text-sm font-semibold text-gray-700 mb-2">Props</div>
-            <ReportNotesManager 
-              reportId={reportId} 
-              projectId={projectId}
-              reportType={reportType}
-              department="props"
-              isEditing={isEditing}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Outstanding Issues - Unified for all report types */}
-      <div className="mb-6">
-        <div className="text-sm font-semibold text-gray-700 mb-2">Outstanding Issues</div>
-        {isEditing ? (
-          <Textarea
-            rows={3}
-            placeholder="Issues that need to be resolved..."
-            value={content.outstandingIssues || ""}
-            onChange={(e) => form.setValue("content.outstandingIssues", e.target.value)}
-            className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
-          />
-        ) : (
-          <div className="text-sm whitespace-pre-wrap">{content.outstandingIssues || "No issues reported."}</div>
-        )}
-      </div>
-
-      {/* Next Session Goals - Unified for all report types */}
-      <div className="mb-6">
-        <div className="text-sm font-semibold text-gray-700 mb-2">Next Session Goals</div>
-        {isEditing ? (
-          <Textarea
-            rows={2}
-            placeholder="Goals for the next session..."
-            value={content.nextSessionGoals || ""}
-            onChange={(e) => form.setValue("content.nextSessionGoals", e.target.value)}
-            className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
-          />
-        ) : (
-          <div className="text-sm whitespace-pre-wrap">{content.nextSessionGoals || "No goals set."}</div>
-        )}
-      </div>
+      {layoutConfiguration.items
+        .filter((item: any) => item.type === 'grouped-section')
+        .map((section: any) => {
+          const isField = !!section.content?.fieldId;
+          const isDepartment = !!section.content?.department;
+          
+          if (isField) {
+            const fieldId = section.content.fieldId;
+            const label = section.content.label || fieldId;
+            const placeholder = section.children?.find((c: any) => c.type === 'notes')?.content?.placeholder || `Enter ${label.toLowerCase()}...`;
+            
+            return (
+              <div key={section.id} className="mb-6">
+                <div 
+                  className="text-sm font-bold px-2 py-1 mb-2"
+                  style={{
+                    backgroundColor: fieldHeaderFormatting?.backgroundColor || '#000000',
+                    color: fieldHeaderFormatting?.color || '#ffffff',
+                    fontFamily: fieldHeaderFormatting?.fontFamily || 'Arial',
+                    fontSize: fieldHeaderFormatting?.fontSize || '14px'
+                  }}
+                >
+                  {label}
+                </div>
+                {isEditing ? (
+                  <Textarea
+                    rows={3}
+                    placeholder={placeholder}
+                    value={content[fieldId] || ""}
+                    onChange={(e) => form.setValue(`content.${fieldId}`, e.target.value)}
+                    className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
+                  />
+                ) : (
+                  <div className="text-sm whitespace-pre-wrap">{content[fieldId] || placeholder}</div>
+                )}
+              </div>
+            );
+          }
+          
+          if (isDepartment) {
+            const department = section.content.department;
+            const displayName = departmentNames?.[department] || section.content.displayName || department;
+            
+            return (
+              <div key={section.id} className="mb-6">
+                <div 
+                  className="text-sm font-bold px-2 py-1 mb-2"
+                  style={{
+                    backgroundColor: fieldHeaderFormatting?.backgroundColor || '#000000',
+                    color: fieldHeaderFormatting?.color || '#ffffff',
+                    fontFamily: fieldHeaderFormatting?.fontFamily || 'Arial',
+                    fontSize: fieldHeaderFormatting?.fontSize || '14px'
+                  }}
+                >
+                  {displayName}
+                </div>
+                <ReportNotesManager 
+                  reportId={reportId} 
+                  projectId={projectId}
+                  reportType={reportType}
+                  department={department}
+                  isEditing={isEditing}
+                />
+              </div>
+            );
+          }
+          
+          return null;
+        })}
     </>
   );
 }
