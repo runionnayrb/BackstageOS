@@ -19,7 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Edit, Download, Share, Trash2, Save } from "lucide-react";
+import { ArrowLeft, Download, Share, Trash2, Save } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import ReportNotesManager from "@/components/report-notes-manager";
