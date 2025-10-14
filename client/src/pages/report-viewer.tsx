@@ -334,25 +334,26 @@ function renderReportContent(report: any, isEditing: boolean, form: any, project
                 >
                   {label}
                 </div>
-                <div 
-                  contentEditable={isEditing}
-                  suppressContentEditableWarning
-                  data-placeholder={placeholder}
-                  onBlur={(e) => {
-                    if (isEditing) {
+                {isEditing ? (
+                  <div 
+                    contentEditable
+                    suppressContentEditableWarning
+                    data-placeholder={placeholder}
+                    dangerouslySetInnerHTML={{ __html: content[fieldId] || '' }}
+                    onBlur={(e) => {
                       form.setValue(`content.${fieldId}`, e.currentTarget.textContent || "");
-                    }
-                  }}
-                  onInput={(e) => {
-                    if (isEditing) {
+                    }}
+                    onInput={(e) => {
                       form.setValue(`content.${fieldId}`, e.currentTarget.textContent || "");
-                    }
-                  }}
-                  className={`text-sm whitespace-pre-wrap px-4 py-2 ${isEditing ? 'outline-none' : ''} ${!content[fieldId] && isEditing ? 'empty-field' : ''}`}
-                  style={{ minHeight: '1.25rem' }}
-                >
-                  {content[fieldId] || (!isEditing ? placeholder : '')}
-                </div>
+                    }}
+                    className={`text-sm whitespace-pre-wrap px-4 py-2 outline-none ${!content[fieldId] ? 'empty-field' : ''}`}
+                    style={{ minHeight: '1.25rem' }}
+                  />
+                ) : (
+                  <div className="text-sm whitespace-pre-wrap px-4 py-2">
+                    {content[fieldId] || placeholder}
+                  </div>
+                )}
               </div>
             );
           }
