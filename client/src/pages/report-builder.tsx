@@ -66,7 +66,7 @@ export default function ReportBuilder() {
   });
 
   const { data: existingReport } = useQuery<any>({
-    queryKey: [`/api/projects/${projectId}/reports/${reportId}`],
+    queryKey: reportId && !isNaN(reportId) ? [`/api/projects/${projectId}/reports/${reportId}`] : ['disabled-query'],
     enabled: isEditMode && !!reportId && !isNaN(reportId as number),
   });
 
