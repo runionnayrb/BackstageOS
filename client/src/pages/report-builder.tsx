@@ -59,7 +59,7 @@ export default function ReportBuilder() {
   const projectId = parseInt(params.id);
   const reportType = params.type;
   const reportId = params.reportId ? parseInt(params.reportId) : null;
-  const isEditMode = !!reportId;
+  const isEditMode = !!reportId && !isNaN(reportId as number);
 
   const { data: project } = useQuery<any>({
     queryKey: [`/api/projects/${projectId}`],
@@ -67,7 +67,7 @@ export default function ReportBuilder() {
 
   const { data: existingReport } = useQuery<any>({
     queryKey: [`/api/projects/${projectId}/reports/${reportId}`],
-    enabled: !!reportId,
+    enabled: isEditMode && !!reportId && !isNaN(reportId as number),
   });
 
   const { data: templateData } = useQuery({
