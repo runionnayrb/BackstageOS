@@ -204,7 +204,9 @@ export default function ReportBuilder() {
           console.log('✅ Custom template loaded:', {
             hasLayout: !!newTemplate.layoutConfiguration,
             layoutItems: newTemplate.layoutConfiguration?.items?.length || 0,
-            departmentCount: Object.keys(newTemplate.departmentNames || {}).length
+            departmentCount: Object.keys(newTemplate.departmentNames || {}).length,
+            headerFormatting: newTemplate.headerFormatting,
+            footerFormatting: newTemplate.footerFormatting
           });
           
           setCustomTemplate(newTemplate);
