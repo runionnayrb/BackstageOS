@@ -70,15 +70,18 @@ export default function ReportBuilder() {
     enabled: isEditMode && !!reportId && !isNaN(reportId as number),
   });
 
-  const { data: templateData } = useQuery({
+  const { data: templateData, isLoading: templatesLoading } = useQuery({
     queryKey: [`/api/projects/${projectId}/templates`],
     enabled: !!projectId,
   });
 
-  const { data: projectSettings } = useQuery<any>({
+  const { data: projectSettings, isLoading: settingsLoading } = useQuery<any>({
     queryKey: [`/api/projects/${projectId}/settings`],
     enabled: !!projectId,
   });
+  
+  console.log('⏳ Loading States:', { templatesLoading, settingsLoading });
+  console.log('📦 Data:', { templateData, projectSettings: !!projectSettings });
 
   // Filter templates to only show the one matching the current report type
   const customTemplates = Array.isArray(templateData) ? templateData : [];
