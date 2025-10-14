@@ -92,7 +92,6 @@ export default function ReportViewer() {
         title: "Report Updated",
         description: "Your report has been updated successfully!",
       });
-      setIsEditing(false);
     },
     onError: (error) => {
       toast({
