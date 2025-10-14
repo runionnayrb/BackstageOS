@@ -286,13 +286,6 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
 
   return (
     <div>
-      {/* Show placeholder when no notes */}
-      {sortedNotes.length === 0 && (
-        <div className="text-sm px-4 py-2" style={{ color: '#000000' }}>
-          {placeholder}
-        </div>
-      )}
-      
       {/* Notes list */}
       <div>
         {sortedNotes.map((note, index) => (
