@@ -3363,7 +3363,7 @@ Best regards,
         title: req.body.title,
         type: req.body.type,
         content: req.body.content,
-        date: req.body.date,
+        date: req.body.date ? new Date(req.body.date) : undefined,
       };
 
       const updatedReport = await storage.updateReport(reportId, updateData);
