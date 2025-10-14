@@ -79,6 +79,19 @@ export default function ReportViewer() {
     }
   }, [report, form]);
 
+  // Auto-resize textareas when switching to edit mode
+  useEffect(() => {
+    if (isEditing) {
+      setTimeout(() => {
+        const textareas = document.querySelectorAll('textarea');
+        textareas.forEach(textarea => {
+          textarea.style.height = 'auto';
+          textarea.style.height = textarea.scrollHeight + 'px';
+        });
+      }, 0);
+    }
+  }, [isEditing]);
+
   const updateMutation = useMutation({
     mutationFn: async (data: z.infer<typeof reportSchema>) => {
       await apiRequest("PUT", `/api/projects/${projectId}/reports/${reportId}`, {
@@ -335,11 +348,21 @@ function renderReportContent(report: any, isEditing: boolean, form: any, project
                 </div>
                 {isEditing ? (
                   <Textarea
-                    rows={3}
                     placeholder={placeholder}
                     value={content[fieldId] || ""}
-                    onChange={(e) => form.setValue(`content.${fieldId}`, e.target.value)}
-                    className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
+                    onChange={(e) => {
+                      form.setValue(`content.${fieldId}`, e.target.value);
+                      const target = e.target as HTMLTextAreaElement;
+                      target.style.height = 'auto';
+                      target.style.height = target.scrollHeight + 'px';
+                    }}
+                    onInput={(e) => {
+                      const target = e.target as HTMLTextAreaElement;
+                      target.style.height = 'auto';
+                      target.style.height = target.scrollHeight + 'px';
+                    }}
+                    className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none overflow-hidden text-sm"
+                    style={{ minHeight: '20px' }}
                   />
                 ) : (
                   <div className="text-sm whitespace-pre-wrap">{content[fieldId] || placeholder}</div>
