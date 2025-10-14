@@ -5055,6 +5055,20 @@ Best regards,
       }
 
       const templates = await storage.getReportTemplatesByProjectId(projectId);
+      
+      console.log('📋 GET /api/projects/:id/templates - Fetching templates for project:', projectId);
+      console.log('📋 Templates found:', templates.length);
+      if (templates.length > 0) {
+        console.log('📋 First template:', {
+          id: templates[0].id,
+          name: templates[0].name,
+          type: templates[0].type,
+          phase: templates[0].phase,
+          hasLayoutConfiguration: !!templates[0].layoutConfiguration,
+          layoutConfigKeys: templates[0].layoutConfiguration ? Object.keys(templates[0].layoutConfiguration) : []
+        });
+      }
+      
       res.json(templates);
     } catch (error) {
       console.error("Error fetching report templates:", error);
