@@ -112,6 +112,18 @@ export default function ReportBuilder() {
     return titleMap[type] || 'Report';
   };
 
+  const generatePageTitle = (type: string, isEdit: boolean): string => {
+    if (isEdit) return "Edit Report";
+    
+    const titleMap: Record<string, string> = {
+      'rehearsal': 'New Rehearsal Report',
+      'tech': 'New Technical Rehearsal Report',
+      'performance': 'New Performance Report',
+      'meeting': 'New Production Meeting Report'
+    };
+    return titleMap[type] || 'New Report';
+  };
+
   const form = useForm<ReportFormData>({
     resolver: zodResolver(reportSchema),
     defaultValues: {
@@ -1322,7 +1334,7 @@ export default function ReportBuilder() {
     <div className="p-6">
       <div className="max-w-4xl">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">{isEditMode ? "Edit Report" : "New Report"}</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">{generatePageTitle(reportType || "", isEditMode)}</h2>
         </div>
 
         {/* Template Selection - Hidden since template is auto-selected based on report type */}
