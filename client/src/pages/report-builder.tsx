@@ -639,26 +639,29 @@ export default function ReportBuilder() {
             }}>
               <form onSubmit={form.handleSubmit(onSubmit)}>
                 {/* Header from Global Template Settings */}
-                {customTemplate?.headerFormatting && (
-                  <div 
-                    className="mb-6 pb-4 border-b"
-                    style={{
-                      textAlign: customTemplate.headerFormatting.textAlign || 'center',
-                      color: customTemplate.headerFormatting.color || '#000000',
-                      fontSize: customTemplate.headerFormatting.fontSize || '18px',
-                      fontFamily: customTemplate.headerFormatting.fontFamily || 'Arial, sans-serif',
-                      fontWeight: customTemplate.headerFormatting.fontWeight || '400',
-                      fontStyle: customTemplate.headerFormatting.fontStyle || 'normal',
-                      textDecoration: customTemplate.headerFormatting.textDecoration || 'none',
-                      backgroundColor: customTemplate.headerFormatting.backgroundColor || 'transparent',
-                      padding: '8px 0'
-                    }}
-                  >
-                    <div>{form.watch("title") || generateReportTitle(reportType)}</div>
-                    <div style={{ marginTop: '8px' }}>{project?.name || 'Show Name'}</div>
-                    <div style={{ marginTop: '4px' }}>{new Date(form.watch("date") || new Date()).toLocaleDateString()}</div>
-                  </div>
-                )}
+                {customTemplate?.headerFormatting && (() => {
+                  console.log('🎨 HEADER FORMATTING BEING APPLIED:', customTemplate.headerFormatting);
+                  return (
+                    <div 
+                      className="mb-6 pb-4 border-b"
+                      style={{
+                        textAlign: customTemplate.headerFormatting.textAlign || 'center',
+                        color: customTemplate.headerFormatting.color || '#000000',
+                        fontSize: customTemplate.headerFormatting.fontSize || '18px',
+                        fontFamily: customTemplate.headerFormatting.fontFamily || 'Arial, sans-serif',
+                        fontWeight: customTemplate.headerFormatting.fontWeight || '400',
+                        fontStyle: customTemplate.headerFormatting.fontStyle || 'normal',
+                        textDecoration: customTemplate.headerFormatting.textDecoration || 'none',
+                        backgroundColor: customTemplate.headerFormatting.backgroundColor || 'transparent',
+                        padding: '8px 0'
+                      }}
+                    >
+                      <div>{form.watch("title") || generateReportTitle(reportType)}</div>
+                      <div style={{ marginTop: '8px' }}>{project?.name || 'Show Name'}</div>
+                      <div style={{ marginTop: '4px' }}>{new Date(form.watch("date") || new Date()).toLocaleDateString()}</div>
+                    </div>
+                  );
+                })()}
 
                 {/* Document Fields */}
                 <div className="space-y-4">
