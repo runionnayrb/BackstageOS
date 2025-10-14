@@ -334,19 +334,24 @@ function renderReportContent(report: any, isEditing: boolean, form: any, project
                 >
                   {label}
                 </div>
-                {isEditing ? (
-                  <Textarea
-                    placeholder={placeholder}
-                    value={content[fieldId] || ""}
-                    onChange={(e) => {
-                      form.setValue(`content.${fieldId}`, e.target.value);
-                    }}
-                    className="border-0 bg-transparent p-0 m-0 focus:ring-0 focus:outline-none resize-none text-sm overflow-hidden"
-                    rows={1}
-                  />
-                ) : (
-                  <div className="text-sm whitespace-pre-wrap">{content[fieldId] || placeholder}</div>
-                )}
+                <div 
+                  contentEditable={isEditing}
+                  suppressContentEditableWarning
+                  onBlur={(e) => {
+                    if (isEditing) {
+                      form.setValue(`content.${fieldId}`, e.currentTarget.textContent || "");
+                    }
+                  }}
+                  onInput={(e) => {
+                    if (isEditing) {
+                      form.setValue(`content.${fieldId}`, e.currentTarget.textContent || "");
+                    }
+                  }}
+                  className={`text-sm whitespace-pre-wrap ${isEditing ? 'outline-none' : ''}`}
+                  style={{ minHeight: '1.25rem' }}
+                >
+                  {content[fieldId] || (isEditing ? '' : placeholder)}
+                </div>
               </div>
             );
           }
