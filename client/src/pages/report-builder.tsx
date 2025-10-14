@@ -158,12 +158,49 @@ export default function ReportBuilder() {
         // Auto-generate title based on report type
         form.setValue("title", generateReportTitle(reportType));
         
-        if (matchingTemplate && matchingTemplate.layoutConfiguration) {
-          // Use the template's own layout configuration and data
+        // Check if we should use global template settings or template-specific layout
+        if (projectSettings?.layoutConfiguration) {
+          // Use GLOBAL template settings from projectSettings (for tech reports)
           const customTemplateId = `custom-layout-${reportType}`;
           setSelectedTemplate(customTemplateId);
+          
+          // Parse layoutConfiguration if it's a string
+          let parsedLayout = projectSettings.layoutConfiguration;
+          if (typeof parsedLayout === 'string') {
+            try {
+              parsedLayout = JSON.parse(parsedLayout);
+            } catch (e) {
+              console.error('Failed to parse layoutConfiguration:', e);
+            }
+          }
+          
           setCustomTemplate({
             ...matchingTemplate,
+            layoutConfiguration: parsedLayout,
+            departmentNames: projectSettings?.departmentNames || {},
+            headerFormatting: projectSettings?.headerFormatting,
+            footerFormatting: projectSettings?.footerFormatting,
+            fieldHeaderFormatting: projectSettings?.fieldHeaderFormatting,
+            globalPageMargins: projectSettings?.globalPageMargins,
+          });
+        } else if (matchingTemplate && matchingTemplate.layoutConfiguration) {
+          // Use template-specific layout configuration (if template has its own)
+          const customTemplateId = `custom-layout-${reportType}`;
+          setSelectedTemplate(customTemplateId);
+          
+          // Parse layoutConfiguration if it's a string  
+          let parsedLayout = matchingTemplate.layoutConfiguration;
+          if (typeof parsedLayout === 'string') {
+            try {
+              parsedLayout = JSON.parse(parsedLayout);
+            } catch (e) {
+              console.error('Failed to parse layoutConfiguration:', e);
+            }
+          }
+          
+          setCustomTemplate({
+            ...matchingTemplate,
+            layoutConfiguration: parsedLayout,
             departmentNames: projectSettings?.departmentNames || {},
           });
         } else if (matchingTemplate) {
