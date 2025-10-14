@@ -3572,6 +3572,7 @@ Best regards,
         return res.status(404).json({ message: "Report not found" });
       }
 
+      console.log('🔄 Reorder request received:', JSON.stringify(req.body.notes, null, 2));
       await storage.reorderReportNotes(req.body.notes);
       res.json({ message: "Notes reordered successfully" });
     } catch (error) {
