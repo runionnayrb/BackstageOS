@@ -646,18 +646,11 @@ export default function ReportBuilder() {
                       fontWeight: customTemplate.headerFormatting.fontWeight || '400',
                       fontStyle: customTemplate.headerFormatting.fontStyle || 'normal',
                       textDecoration: customTemplate.headerFormatting.textDecoration || 'none',
-                      backgroundColor: customTemplate.headerFormatting.backgroundColor || 'transparent'
+                      backgroundColor: customTemplate.headerFormatting.backgroundColor || 'transparent',
+                      padding: '8px 0'
                     }}
                   >
-                    <div>{form.watch("title") || generateReportTitle(reportType)}</div>
-                    <div className="mt-2">
-                      {project?.name || 'Loading...'} - {new Date(form.watch("date") || new Date()).toLocaleDateString()}
-                    </div>
-                    <Input
-                      type="date"
-                      {...form.register("date")}
-                      className="text-center text-sm border-0 bg-transparent p-0 focus:ring-0 focus:outline-none mt-1"
-                    />
+                    {form.watch("title") || generateReportTitle(reportType)}
                   </div>
                 )}
 
@@ -678,7 +671,8 @@ export default function ReportBuilder() {
                       fontWeight: customTemplate.footerFormatting.fontWeight || '400',
                       fontStyle: customTemplate.footerFormatting.fontStyle || 'normal',
                       textDecoration: customTemplate.footerFormatting.textDecoration || 'none',
-                      backgroundColor: customTemplate.footerFormatting.backgroundColor || 'transparent'
+                      backgroundColor: customTemplate.footerFormatting.backgroundColor || 'transparent',
+                      padding: '8px 0'
                     }}
                   >
                     Page 1
