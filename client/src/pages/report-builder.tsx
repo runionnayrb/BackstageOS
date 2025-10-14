@@ -67,14 +67,6 @@ export default function ReportBuilder() {
   // Only use reportId if we're NOT in the /builder route
   const reportId = !isCreatingNew && params.reportId ? parseInt(params.reportId) : null;
   const isEditMode = !isCreatingNew && !!reportId && !isNaN(reportId as number);
-  
-  console.log('🔍 REPORT BUILDER MODE:', {
-    params,
-    urlPath,
-    isCreatingNew,
-    reportId,
-    isEditMode
-  });
 
   const { data: project } = useQuery<any>({
     queryKey: [`/api/projects/${projectId}`],
@@ -94,27 +86,15 @@ export default function ReportBuilder() {
     queryKey: [`/api/projects/${projectId}/settings`],
     enabled: !!projectId,
   });
-  
-  console.log('⏳ Loading States:', { templatesLoading, settingsLoading });
-  console.log('📦 Data:', { templateData, projectSettings: !!projectSettings });
 
   // Filter templates to only show the one matching the current report type
   const customTemplates = Array.isArray(templateData) ? templateData : [];
-  
-  // Debug logging
-  console.log('🔍 REPORT BUILDER DEBUG:');
-  console.log('  - Report Type:', reportType);
-  console.log('  - Template Data:', templateData);
-  console.log('  - Custom Templates:', customTemplates);
   
   // Find the custom template that matches the report type
   // Templates use 'phase' field which corresponds to report type
   const matchingTemplate = customTemplates.find((template: any) => 
     template.type === reportType || template.phase === reportType
   );
-  
-  console.log('  - Matching Template:', matchingTemplate);
-  console.log('  - Has Layout Config:', !!matchingTemplate?.layoutConfiguration);
 
   // Helper function to generate report title from type
   const generateReportTitle = (type: string): string => {
@@ -154,7 +134,6 @@ export default function ReportBuilder() {
   useEffect(() => {
     // Wait for settings to load before setting up the template
     if (settingsLoading) {
-      console.log('⏳ Still loading settings, waiting...');
       return;
     }
     
@@ -172,13 +151,12 @@ export default function ReportBuilder() {
         // Auto-generate title based on report type
         form.setValue("title", generateReportTitle(reportType));
         
-        // ALWAYS use custom template from projectSettings
-        if (projectSettings?.layoutConfiguration) {
-          console.log('✅ LOADING CUSTOM TEMPLATE from projectSettings');
+        // ALWAYS use custom template from matchingTemplate (not projectSettings)
+        if (matchingTemplate?.layoutConfiguration) {
           setSelectedTemplate('custom-layout');
           
           // Parse layoutConfiguration if it's a string
-          let parsedLayout = projectSettings.layoutConfiguration;
+          let parsedLayout = matchingTemplate.layoutConfiguration;
           if (typeof parsedLayout === 'string') {
             try {
               parsedLayout = JSON.parse(parsedLayout);
@@ -188,30 +166,11 @@ export default function ReportBuilder() {
           }
           
           const newTemplate = {
-            id: matchingTemplate?.id,
-            name: matchingTemplate?.name || `${reportType} Report`,
-            type: reportType,
+            ...matchingTemplate,
             layoutConfiguration: parsedLayout,
-            departmentNames: projectSettings?.departmentNames || {},
-            headerFormatting: projectSettings?.headerFormatting,
-            footerFormatting: projectSettings?.footerFormatting,
-            fieldHeaderFormatting: projectSettings?.fieldHeaderFormatting,
-            globalPageMargins: projectSettings?.globalPageMargins,
-            defaultHeader: projectSettings?.defaultHeader || '',
-            defaultFooter: projectSettings?.defaultFooter || '',
           };
           
-          console.log('✅ Custom template loaded:', {
-            hasLayout: !!newTemplate.layoutConfiguration,
-            layoutItems: newTemplate.layoutConfiguration?.items?.length || 0,
-            departmentCount: Object.keys(newTemplate.departmentNames || {}).length,
-            headerFormatting: newTemplate.headerFormatting,
-            footerFormatting: newTemplate.footerFormatting
-          });
-          
           setCustomTemplate(newTemplate);
-        } else {
-          console.error('❌ NO layoutConfiguration found in projectSettings!');
         }
       }
     }
@@ -233,11 +192,6 @@ export default function ReportBuilder() {
         
         if (matchingTemplate?.id) {
           reportData.templateId = matchingTemplate.id;
-          console.log('📋 Creating report with templateId:', {
-            templateId: matchingTemplate.id,
-            templateName: matchingTemplate.name,
-            hasLayout: !!matchingTemplate.layoutConfiguration
-          });
         }
         
         await apiRequest("POST", `/api/projects/${projectId}/reports`, reportData);
