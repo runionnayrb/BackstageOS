@@ -60,6 +60,13 @@ export default function ReportBuilder() {
   const reportType = params.type;
   const reportId = params.reportId ? parseInt(params.reportId) : null;
   const isEditMode = !!reportId && !isNaN(reportId as number);
+  
+  console.log('🔍 REPORT BUILDER MODE:', {
+    params,
+    reportId,
+    isEditMode,
+    url: window.location.pathname
+  });
 
   const { data: project } = useQuery<any>({
     queryKey: [`/api/projects/${projectId}`],
