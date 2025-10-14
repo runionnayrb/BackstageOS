@@ -634,25 +634,56 @@ export default function ReportBuilder() {
               fontFamily: "Arial, sans-serif"
             }}>
               <form onSubmit={form.handleSubmit(onSubmit)}>
-                {/* Header */}
-                <div className="text-center mb-6 pb-4 border-b">
-                  <div className="text-lg font-semibold">
-                    {form.watch("title") || generateReportTitle(reportType)}
+                {/* Header from Global Template Settings */}
+                {customTemplate?.headerFormatting && (
+                  <div 
+                    className="mb-6 pb-4"
+                    style={{
+                      textAlign: customTemplate.headerFormatting.textAlign || 'center',
+                      color: customTemplate.headerFormatting.color || '#000000',
+                      fontSize: customTemplate.headerFormatting.fontSize || '18px',
+                      fontFamily: customTemplate.headerFormatting.fontFamily || 'Arial, sans-serif',
+                      fontWeight: customTemplate.headerFormatting.fontWeight || '400',
+                      fontStyle: customTemplate.headerFormatting.fontStyle || 'normal',
+                      textDecoration: customTemplate.headerFormatting.textDecoration || 'none',
+                      backgroundColor: customTemplate.headerFormatting.backgroundColor || 'transparent'
+                    }}
+                  >
+                    <div>{form.watch("title") || generateReportTitle(reportType)}</div>
+                    <div className="mt-2">
+                      {project?.name || 'Loading...'} - {new Date(form.watch("date") || new Date()).toLocaleDateString()}
+                    </div>
+                    <Input
+                      type="date"
+                      {...form.register("date")}
+                      className="text-center text-sm border-0 bg-transparent p-0 focus:ring-0 focus:outline-none mt-1"
+                    />
                   </div>
-                  <div className="text-sm text-gray-600 mt-2">
-                    {project?.name || 'Loading...'} - {new Date(form.watch("date") || new Date()).toLocaleDateString()}
-                  </div>
-                  <Input
-                    type="date"
-                    {...form.register("date")}
-                    className="text-center text-sm border-0 bg-transparent p-0 focus:ring-0 focus:outline-none mt-1"
-                  />
-                </div>
+                )}
 
                 {/* Document Fields */}
                 <div className="space-y-4">
                   {renderTemplateFields()}
                 </div>
+
+                {/* Footer from Global Template Settings */}
+                {customTemplate?.footerFormatting && (
+                  <div 
+                    className="mt-6 pt-4"
+                    style={{
+                      textAlign: customTemplate.footerFormatting.textAlign || 'center',
+                      color: customTemplate.footerFormatting.color || '#6b7280',
+                      fontSize: customTemplate.footerFormatting.fontSize || '14px',
+                      fontFamily: customTemplate.footerFormatting.fontFamily || 'Arial, sans-serif',
+                      fontWeight: customTemplate.footerFormatting.fontWeight || '400',
+                      fontStyle: customTemplate.footerFormatting.fontStyle || 'normal',
+                      textDecoration: customTemplate.footerFormatting.textDecoration || 'none',
+                      backgroundColor: customTemplate.footerFormatting.backgroundColor || 'transparent'
+                    }}
+                  >
+                    Page 1
+                  </div>
+                )}
 
                 {/* Action Buttons - Fixed at bottom */}
                 <div className="fixed bottom-6 right-6 flex space-x-2 bg-white shadow-lg rounded-lg p-4 border">
