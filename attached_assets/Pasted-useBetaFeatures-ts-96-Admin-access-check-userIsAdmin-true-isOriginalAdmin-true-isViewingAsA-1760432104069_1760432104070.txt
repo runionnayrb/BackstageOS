@@ -1,0 +1,119 @@
+useBetaFeatures.ts:96 🔍 Admin access check: {userIsAdmin: true, isOriginalAdmin: true, isViewingAsAdmin: false, isAdmin: true, featureEnabled: false}
+useBetaFeatures.ts:106 ❌ Feature task-boards disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:274:18)
+    at renderWithHooks (chunk-276SZO74.js?v=d8c7dc2a:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d8c7dc2a:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d8c7dc2a:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d8c7dc2a:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d8c7dc2a:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d8c7dc2a:19137:13) Raw value: (12) ['props-tracker', 'costume-tracker', 'calendar-management', 'contact-management', 'availability-management', 'advanced-templates', 'report-builder', 'team-management', 'email-integration', 'admin-dashboard', 'error-logging', 'feedback-system']
+hasUserAccess @ useBetaFeatures.ts:61
+canAccessFeature @ useBetaFeatures.ts:84
+MobileFooterNav @ mobile-footer-nav.tsx:274
+renderWithHooks @ chunk-276SZO74.js?v=d8c7dc2a:11548
+updateFunctionComponent @ chunk-276SZO74.js?v=d8c7dc2a:14582
+beginWork @ chunk-276SZO74.js?v=d8c7dc2a:15924
+beginWork$1 @ chunk-276SZO74.js?v=d8c7dc2a:19753
+performUnitOfWork @ chunk-276SZO74.js?v=d8c7dc2a:19198
+workLoopSync @ chunk-276SZO74.js?v=d8c7dc2a:19137
+renderRootSync @ chunk-276SZO74.js?v=d8c7dc2a:19116
+performSyncWorkOnRoot @ chunk-276SZO74.js?v=d8c7dc2a:18874
+flushSyncCallbacks @ chunk-276SZO74.js?v=d8c7dc2a:9119
+(anonymous) @ chunk-276SZO74.js?v=d8c7dc2a:18627Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for advanced-notes: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: false, …}
+useBetaFeatures.ts:96 🔍 Admin access check: {userIsAdmin: true, isOriginalAdmin: true, isViewingAsAdmin: false, isAdmin: true, featureEnabled: false}
+useBetaFeatures.ts:106 ❌ Feature advanced-notes disabled in beta configuration
+queryClient.ts:69 🎯 Query URL constructed: /api/projects/3/reports/NaN from queryKey: ['/api/projects/3/reports/NaN']
+errorLogger.ts:140  GET https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/api/projects/3/reports/NaN 500 (Internal Server Error)
+window.fetch @ errorLogger.ts:140
+(anonymous) @ queryClient.ts:71
+fetchFn @ @tanstack_react-query.js?v=d8c7dc2a:840
+run @ @tanstack_react-query.js?v=d8c7dc2a:494
+start @ @tanstack_react-query.js?v=d8c7dc2a:536
+fetch @ @tanstack_react-query.js?v=d8c7dc2a:926
+executeFetch_fn @ @tanstack_react-query.js?v=d8c7dc2a:2211
+onSubscribe @ @tanstack_react-query.js?v=d8c7dc2a:1898
+subscribe @ @tanstack_react-query.js?v=d8c7dc2a:24
+(anonymous) @ @tanstack_react-query.js?v=d8c7dc2a:3022
+subscribeToStore @ chunk-276SZO74.js?v=d8c7dc2a:11984
+commitHookEffectListMount @ chunk-276SZO74.js?v=d8c7dc2a:16915
+commitPassiveMountOnFiber @ chunk-276SZO74.js?v=d8c7dc2a:18156
+commitPassiveMountEffects_complete @ chunk-276SZO74.js?v=d8c7dc2a:18129
+commitPassiveMountEffects_begin @ chunk-276SZO74.js?v=d8c7dc2a:18119
+commitPassiveMountEffects @ chunk-276SZO74.js?v=d8c7dc2a:18109
+flushPassiveEffectsImpl @ chunk-276SZO74.js?v=d8c7dc2a:19490
+flushPassiveEffects @ chunk-276SZO74.js?v=d8c7dc2a:19447
+commitRootImpl @ chunk-276SZO74.js?v=d8c7dc2a:19416
+commitRoot @ chunk-276SZO74.js?v=d8c7dc2a:19277
+performSyncWorkOnRoot @ chunk-276SZO74.js?v=d8c7dc2a:18895
+flushSyncCallbacks @ chunk-276SZO74.js?v=d8c7dc2a:9119
+(anonymous) @ chunk-276SZO74.js?v=d8c7dc2a:18627Understand this error
+queryClient.ts:69 🎯 Query URL constructed: /api/projects/3/reports/NaN from queryKey: ['/api/projects/3/reports/NaN']
+errorLogger.ts:140  GET https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/api/projects/3/reports/NaN 500 (Internal Server Error)
+window.fetch @ errorLogger.ts:140
+(anonymous) @ queryClient.ts:71
+fetchFn @ @tanstack_react-query.js?v=d8c7dc2a:840
+run @ @tanstack_react-query.js?v=d8c7dc2a:494
+(anonymous) @ @tanstack_react-query.js?v=d8c7dc2a:519
+Promise.then
+(anonymous) @ @tanstack_react-query.js?v=d8c7dc2a:515
+Promise.catch
+run @ @tanstack_react-query.js?v=d8c7dc2a:498
+start @ @tanstack_react-query.js?v=d8c7dc2a:536
+fetch @ @tanstack_react-query.js?v=d8c7dc2a:926
+executeFetch_fn @ @tanstack_react-query.js?v=d8c7dc2a:2211
+onSubscribe @ @tanstack_react-query.js?v=d8c7dc2a:1898
+subscribe @ @tanstack_react-query.js?v=d8c7dc2a:24
+(anonymous) @ @tanstack_react-query.js?v=d8c7dc2a:3022
+subscribeToStore @ chunk-276SZO74.js?v=d8c7dc2a:11984
+commitHookEffectListMount @ chunk-276SZO74.js?v=d8c7dc2a:16915
+commitPassiveMountOnFiber @ chunk-276SZO74.js?v=d8c7dc2a:18156
+commitPassiveMountEffects_complete @ chunk-276SZO74.js?v=d8c7dc2a:18129
+commitPassiveMountEffects_begin @ chunk-276SZO74.js?v=d8c7dc2a:18119
+commitPassiveMountEffects @ chunk-276SZO74.js?v=d8c7dc2a:18109
+flushPassiveEffectsImpl @ chunk-276SZO74.js?v=d8c7dc2a:19490
+flushPassiveEffects @ chunk-276SZO74.js?v=d8c7dc2a:19447
+commitRootImpl @ chunk-276SZO74.js?v=d8c7dc2a:19416
+commitRoot @ chunk-276SZO74.js?v=d8c7dc2a:19277
+performSyncWorkOnRoot @ chunk-276SZO74.js?v=d8c7dc2a:18895
+flushSyncCallbacks @ chunk-276SZO74.js?v=d8c7dc2a:9119
+(anonymous) @ chunk-276SZO74.js?v=d8c7dc2a:18627Understand this error
+queryClient.ts:69 🎯 Query URL constructed: /api/projects/3/reports/NaN from queryKey: ['/api/projects/3/reports/NaN']
+errorLogger.ts:140  GET https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/api/projects/3/reports/NaN 500 (Internal Server Error)
+window.fetch @ errorLogger.ts:140
+(anonymous) @ queryClient.ts:71
+fetchFn @ @tanstack_react-query.js?v=d8c7dc2a:840
+run @ @tanstack_react-query.js?v=d8c7dc2a:494
+(anonymous) @ @tanstack_react-query.js?v=d8c7dc2a:519
+Promise.then
+(anonymous) @ @tanstack_react-query.js?v=d8c7dc2a:515
+Promise.catch
+run @ @tanstack_react-query.js?v=d8c7dc2a:498
+(anonymous) @ @tanstack_react-query.js?v=d8c7dc2a:519
+Promise.then
+(anonymous) @ @tanstack_react-query.js?v=d8c7dc2a:515
+Promise.catch
+run @ @tanstack_react-query.js?v=d8c7dc2a:498
+start @ @tanstack_react-query.js?v=d8c7dc2a:536
+fetch @ @tanstack_react-query.js?v=d8c7dc2a:926
+executeFetch_fn @ @tanstack_react-query.js?v=d8c7dc2a:2211
+onSubscribe @ @tanstack_react-query.js?v=d8c7dc2a:1898
+subscribe @ @tanstack_react-query.js?v=d8c7dc2a:24
+(anonymous) @ @tanstack_react-query.js?v=d8c7dc2a:3022
+subscribeToStore @ chunk-276SZO74.js?v=d8c7dc2a:11984
+commitHookEffectListMount @ chunk-276SZO74.js?v=d8c7dc2a:16915
+commitPassiveMountOnFiber @ chunk-276SZO74.js?v=d8c7dc2a:18156
+commitPassiveMountEffects_complete @ chunk-276SZO74.js?v=d8c7dc2a:18129
+commitPassiveMountEffects_begin @ chunk-276SZO74.js?v=d8c7dc2a:18119
+commitPassiveMountEffects @ chunk-276SZO74.js?v=d8c7dc2a:18109
+flushPassiveEffectsImpl @ chunk-276SZO74.js?v=d8c7dc2a:19490
+flushPassiveEffects @ chunk-276SZO74.js?v=d8c7dc2a:19447
+commitRootImpl @ chunk-276SZO74.js?v=d8c7dc2a:19416
+commitRoot @ chunk-276SZO74.js?v=d8c7dc2a:19277
+performSyncWorkOnRoot @ chunk-276SZO74.js?v=d8c7dc2a:18895
+flushSyncCallbacks @ chunk-276SZO74.js?v=d8c7dc2a:9119
+(anonymous) @ chunk-276SZO74.js?v=d8c7dc2a:18627Understand this error
