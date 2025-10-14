@@ -1037,8 +1037,21 @@ export class DatabaseStorage implements IStorage {
 
   async reorderReportNotes(notes: { id: number; noteOrder: number }[]): Promise<void> {
     for (const note of notes) {
+      console.log('📝 Updating note:', { 
+        id: note.id, 
+        noteOrder: note.noteOrder, 
+        noteOrderType: typeof note.noteOrder,
+        isNaN: Number.isNaN(note.noteOrder)
+      });
+      
+      // Ensure we have valid numbers
+      const noteOrder = Number(note.noteOrder);
+      if (Number.isNaN(noteOrder)) {
+        throw new Error(`Invalid note order for note ${note.id}: ${note.noteOrder}`);
+      }
+      
       await db.update(reportNotes)
-        .set({ noteOrder: note.noteOrder })
+        .set({ noteOrder })
         .where(eq(reportNotes.id, note.id));
     }
   }
