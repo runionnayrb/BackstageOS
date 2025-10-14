@@ -155,15 +155,15 @@ export default function ReportBuilder() {
           date: new Date(data.date),
         });
       } else {
-        // When creating a new report, include the template's layoutConfiguration if available
+        // When creating a new report, link it to the custom template
         const reportData: any = {
           ...data,
           date: new Date(data.date),
         };
         
-        if (matchingTemplate?.layoutConfiguration) {
-          reportData.layoutConfiguration = matchingTemplate.layoutConfiguration;
-          console.log('📋 Creating report WITH layoutConfiguration from template:', {
+        if (matchingTemplate?.id) {
+          reportData.templateId = matchingTemplate.id;
+          console.log('📋 Creating report with templateId:', {
             templateId: matchingTemplate.id,
             templateName: matchingTemplate.name,
             hasLayout: !!matchingTemplate.layoutConfiguration
