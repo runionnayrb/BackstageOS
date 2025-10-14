@@ -19,7 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Edit, Download, Share, Trash2, Lock, Unlock, Save } from "lucide-react";
+import { ArrowLeft, Edit, Download, Share, Trash2, Save } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import ReportNotesManager from "@/components/report-notes-manager";
@@ -43,7 +43,6 @@ export default function ReportViewer() {
   const reportType = params.type!;
   const reportId = parseInt(params.reportId!);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -129,18 +128,6 @@ export default function ReportViewer() {
     updateMutation.mutate(data);
   };
 
-  const handleToggleEdit = () => {
-    if (isEditing) {
-      // Cancel editing - reset form to original values
-      form.reset({
-        title: report.title || "",
-        date: report.date ? new Date(report.date).toISOString().split('T')[0] : "",
-        content: report.content || {},
-      });
-    }
-    setIsEditing(!isEditing);
-  };
-
   if (!project || !report) {
     return (
       <div className="min-h-screen bg-background">
@@ -194,43 +181,20 @@ export default function ReportViewer() {
               Download PDF
             </Button>
             
-            {/* Lock/Unlock Toggle Button */}
             <Button 
-              variant={isEditing ? "default" : "outline"}
+              variant="default"
               size="sm"
-              onClick={handleToggleEdit}
+              onClick={form.handleSubmit(handleSave)}
+              disabled={updateMutation.isPending}
             >
-              {isEditing ? (
-                <>
-                  <Lock className="h-4 w-4 mr-2" />
-                  Lock
-                </>
-              ) : (
-                <>
-                  <Unlock className="h-4 w-4 mr-2" />
-                  Unlock to Edit
-                </>
-              )}
+              <Save className="h-4 w-4 mr-2" />
+              {updateMutation.isPending ? "Saving..." : "Save"}
             </Button>
-
-            {/* Save Button - only show when editing */}
-            {isEditing && (
-              <Button 
-                variant="default"
-                size="sm"
-                onClick={form.handleSubmit(handleSave)}
-                disabled={updateMutation.isPending}
-              >
-                <Save className="h-4 w-4 mr-2" />
-                {updateMutation.isPending ? "Saving..." : "Save"}
-              </Button>
-            )}
             
             <Button 
               variant="outline" 
               size="sm"
               onClick={() => setShowDeleteDialog(true)}
-              disabled={isEditing}
             >
               <Trash2 className="h-4 w-4 mr-2" />
               Delete
@@ -281,7 +245,7 @@ export default function ReportViewer() {
 
               {/* Report Content */}
               <form onSubmit={form.handleSubmit(handleSave)} className="space-y-6">
-                {renderReportContent(report, isEditing, form, projectSettings)}
+                {renderReportContent(report, true, form, projectSettings)}
               </form>
             </div>
           </CardContent>
