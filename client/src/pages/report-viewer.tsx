@@ -249,14 +249,35 @@ export default function ReportViewer() {
               fontFamily: "Arial, sans-serif"
             }}>
               {/* Header */}
-              <div className="text-center mb-6 pb-4 border-b">
-                <div className="text-lg font-semibold">
-                  {report.title}
+              {report?.template?.headerFormatting ? (
+                <div 
+                  className="mb-6 pb-4 border-b"
+                  style={{
+                    textAlign: report.template.headerFormatting.textAlign || 'center',
+                    color: report.template.headerFormatting.color || '#000000',
+                    fontSize: report.template.headerFormatting.fontSize || '18px',
+                    fontFamily: report.template.headerFormatting.fontFamily || 'Arial, sans-serif',
+                    fontWeight: report.template.headerFormatting.fontWeight || '400',
+                    fontStyle: report.template.headerFormatting.fontStyle || 'normal',
+                    textDecoration: report.template.headerFormatting.textDecoration || 'none',
+                    backgroundColor: report.template.headerFormatting.backgroundColor || 'transparent',
+                    padding: '8px 0'
+                  }}
+                >
+                  <div>{report.title}</div>
+                  <div style={{ marginTop: '8px' }}>{project.name}</div>
+                  <div style={{ marginTop: '4px' }}>{new Date(report.date).toLocaleDateString()}</div>
                 </div>
-                <div className="text-sm text-gray-600 mt-2">
-                  {project.name} - {new Date(report.date).toLocaleDateString()}
+              ) : (
+                <div className="text-center mb-6 pb-4 border-b">
+                  <div className="text-lg font-semibold">
+                    {report.title}
+                  </div>
+                  <div className="text-sm text-gray-600 mt-2">
+                    {project.name} - {new Date(report.date).toLocaleDateString()}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Report Content */}
               <form onSubmit={form.handleSubmit(handleSave)} className="space-y-6">
@@ -346,7 +367,6 @@ function renderReportContent(report: any, isEditing: boolean, form: any, project
                       form.setValue(`content.${fieldId}`, e.currentTarget.textContent || "");
                     }}
                     className={`text-sm whitespace-pre-wrap px-4 py-2 outline-none ${!content[fieldId] ? 'empty-field' : ''}`}
-                    style={{ minHeight: '1.25rem' }}
                   >
                     {content[fieldId] || ''}
                   </div>
