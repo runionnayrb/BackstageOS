@@ -197,6 +197,8 @@ export default function ReportBuilder() {
             footerFormatting: projectSettings?.footerFormatting,
             fieldHeaderFormatting: projectSettings?.fieldHeaderFormatting,
             globalPageMargins: projectSettings?.globalPageMargins,
+            defaultHeader: projectSettings?.defaultHeader || '',
+            defaultFooter: projectSettings?.defaultFooter || '',
           };
           
           console.log('✅ Custom template loaded:', {
@@ -635,7 +637,7 @@ export default function ReportBuilder() {
             }}>
               <form onSubmit={form.handleSubmit(onSubmit)}>
                 {/* Header from Global Template Settings */}
-                {customTemplate?.headerFormatting && (
+                {customTemplate?.headerFormatting && customTemplate?.defaultHeader && (
                   <div 
                     className="mb-6 pb-4"
                     style={{
@@ -649,9 +651,13 @@ export default function ReportBuilder() {
                       backgroundColor: customTemplate.headerFormatting.backgroundColor || 'transparent',
                       padding: '8px 0'
                     }}
-                  >
-                    {form.watch("title") || generateReportTitle(reportType)}
-                  </div>
+                    dangerouslySetInnerHTML={{
+                      __html: customTemplate.defaultHeader
+                        .replace(/{{showName}}/g, project?.name || 'Show Name')
+                        .replace(/{{reportType}}/g, form.watch("title") || generateReportTitle(reportType))
+                        .replace(/{{date}}/g, new Date(form.watch("date") || new Date()).toLocaleDateString())
+                    }}
+                  />
                 )}
 
                 {/* Document Fields */}
@@ -660,7 +666,7 @@ export default function ReportBuilder() {
                 </div>
 
                 {/* Footer from Global Template Settings */}
-                {customTemplate?.footerFormatting && (
+                {customTemplate?.footerFormatting && customTemplate?.defaultFooter && (
                   <div 
                     className="mt-6 pt-4"
                     style={{
@@ -674,9 +680,12 @@ export default function ReportBuilder() {
                       backgroundColor: customTemplate.footerFormatting.backgroundColor || 'transparent',
                       padding: '8px 0'
                     }}
-                  >
-                    Page 1
-                  </div>
+                    dangerouslySetInnerHTML={{
+                      __html: customTemplate.defaultFooter
+                        .replace(/{{pageNumber}}/g, '1')
+                        .replace(/{{totalPages}}/g, '1')
+                    }}
+                  />
                 )}
 
                 {/* Action Buttons - Fixed at bottom */}
