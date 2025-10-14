@@ -155,10 +155,22 @@ export default function ReportBuilder() {
           date: new Date(data.date),
         });
       } else {
-        await apiRequest("POST", `/api/projects/${projectId}/reports`, {
+        // When creating a new report, include the template's layoutConfiguration if available
+        const reportData: any = {
           ...data,
           date: new Date(data.date),
-        });
+        };
+        
+        if (matchingTemplate?.layoutConfiguration) {
+          reportData.layoutConfiguration = matchingTemplate.layoutConfiguration;
+          console.log('📋 Creating report WITH layoutConfiguration from template:', {
+            templateId: matchingTemplate.id,
+            templateName: matchingTemplate.name,
+            hasLayout: !!matchingTemplate.layoutConfiguration
+          });
+        }
+        
+        await apiRequest("POST", `/api/projects/${projectId}/reports`, reportData);
       }
     },
     onSuccess: () => {
