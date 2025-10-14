@@ -310,6 +310,31 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
                           setEditingNote(null);
                           setEditContent('');
                         }
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          // Check if this is the last note
+                          const isLastNote = index === sortedNotes.length - 1;
+                          if (isLastNote) {
+                            // Save current note and create a new one
+                            handleAutoSaveEdit();
+                            setNewNoteContent('');
+                            // Use a small timeout to let the save complete
+                            setTimeout(() => {
+                              const nextOrder = Math.max(...notes.map((n: ReportNote) => n.noteOrder || 0), 0) + 1;
+                              createNoteMutation.mutate({
+                                content: '',
+                                noteOrder: nextOrder,
+                                reportId,
+                                projectId: projectId || 0,
+                                isCompleted: false,
+                                priority: 'medium',
+                                department: department || null
+                              });
+                            }, 100);
+                          } else {
+                            handleAutoSaveEdit();
+                          }
+                        }
                         if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
                           handleAutoSaveEdit();
                         }
@@ -389,30 +414,6 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
             value={newNoteContent}
             onChange={(e) => setNewNoteContent(e.target.value)}
             className="min-h-[24px] max-h-[200px] resize-none border-0 shadow-none focus:ring-0 overflow-y-auto py-1 px-2"
-            style={{ height: '24px', lineHeight: '1.2' }}
-            onInput={(e) => {
-              const target = e.target as HTMLTextAreaElement;
-              target.style.height = '24px';
-              target.style.height = Math.max(24, target.scrollHeight) + 'px';
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleAddNote();
-              }
-            }}
-          />
-        </div>
-      )}
-      
-      {/* Hidden input for adding notes when notes already exist */}
-      {isEditing && sortedNotes.length > 0 && (
-        <div className="px-4 h-0 overflow-visible">
-          <Textarea
-            placeholder=""
-            value={newNoteContent}
-            onChange={(e) => setNewNoteContent(e.target.value)}
-            className="min-h-[24px] max-h-[200px] resize-none border-0 shadow-none focus:ring-0 overflow-y-auto py-1 px-2 opacity-0 focus:opacity-100 transition-opacity"
             style={{ height: '24px', lineHeight: '1.2' }}
             onInput={(e) => {
               const target = e.target as HTMLTextAreaElement;
