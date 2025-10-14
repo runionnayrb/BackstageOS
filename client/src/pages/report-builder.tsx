@@ -58,14 +58,22 @@ export default function ReportBuilder() {
   
   const projectId = parseInt(params.id);
   const reportType = params.type;
-  const reportId = params.reportId ? parseInt(params.reportId) : null;
-  const isEditMode = !!reportId && !isNaN(reportId as number);
+  
+  // Determine if we're in edit mode by checking the URL path
+  // If URL contains "/builder", we're creating a new report (not editing)
+  const urlPath = window.location.pathname;
+  const isCreatingNew = urlPath.includes('/builder');
+  
+  // Only use reportId if we're NOT in the /builder route
+  const reportId = !isCreatingNew && params.reportId ? parseInt(params.reportId) : null;
+  const isEditMode = !isCreatingNew && !!reportId && !isNaN(reportId as number);
   
   console.log('🔍 REPORT BUILDER MODE:', {
     params,
+    urlPath,
+    isCreatingNew,
     reportId,
-    isEditMode,
-    url: window.location.pathname
+    isEditMode
   });
 
   const { data: project } = useQuery<any>({
