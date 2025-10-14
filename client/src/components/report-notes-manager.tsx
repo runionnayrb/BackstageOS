@@ -285,7 +285,7 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
   }
 
   return (
-    <div className="space-y-2">
+    <div>
       {/* Show placeholder when no notes and not editing */}
       {sortedNotes.length === 0 && !isEditing && (
         <div className="text-sm px-4 py-2">
@@ -294,11 +294,11 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
       )}
       
       {/* Notes list */}
-      <div className="space-y-2">
+      <div>
         {sortedNotes.map((note, index) => (
             <div 
               key={note.id}
-              className={`p-4 space-y-2 ${
+              className={`px-4 py-2 ${
                 note.isCompleted ? 'bg-gray-50 dark:bg-gray-900' : ''
               }`}
             >

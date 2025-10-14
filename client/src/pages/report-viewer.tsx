@@ -348,7 +348,7 @@ function renderReportContent(report: any, isEditing: boolean, form: any, project
                       form.setValue(`content.${fieldId}`, e.currentTarget.textContent || "");
                     }
                   }}
-                  className={`text-sm whitespace-pre-wrap ${isEditing ? 'outline-none' : ''} ${!content[fieldId] && isEditing ? 'empty-field' : ''}`}
+                  className={`text-sm whitespace-pre-wrap px-4 py-2 ${isEditing ? 'outline-none' : ''} ${!content[fieldId] && isEditing ? 'empty-field' : ''}`}
                   style={{ minHeight: '1.25rem' }}
                 >
                   {content[fieldId] || (!isEditing ? placeholder : '')}
