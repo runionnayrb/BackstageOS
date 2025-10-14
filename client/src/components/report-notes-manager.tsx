@@ -278,28 +278,6 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
 
   return (
     <div className="space-y-2">
-      {/* Always show input, but change placeholder based on whether notes exist */}
-      <div className="px-4 pt-2 pb-1">
-        <Textarea
-          placeholder={sortedNotes.length === 0 ? placeholder : "Add note..."}
-          value={newNoteContent}
-          onChange={(e) => setNewNoteContent(e.target.value)}
-          className="min-h-[24px] max-h-[200px] resize-none border-0 shadow-none focus:ring-0 overflow-y-auto py-1 px-2"
-          style={{ height: '24px', lineHeight: '1.2' }}
-          onInput={(e) => {
-            const target = e.target as HTMLTextAreaElement;
-            target.style.height = '24px';
-            target.style.height = Math.max(24, target.scrollHeight) + 'px';
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              handleAddNote();
-            }
-          }}
-        />
-      </div>
-
       {/* Notes list */}
       <div className="space-y-2">
         {sortedNotes.map((note, index) => (
@@ -395,6 +373,28 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
             </div>
           ))
         }
+      </div>
+
+      {/* Add new note input - always show below existing notes */}
+      <div className="px-4 pt-2 pb-1">
+        <Textarea
+          placeholder={sortedNotes.length === 0 ? placeholder : "Add note..."}
+          value={newNoteContent}
+          onChange={(e) => setNewNoteContent(e.target.value)}
+          className="min-h-[24px] max-h-[200px] resize-none border-0 shadow-none focus:ring-0 overflow-y-auto py-1 px-2"
+          style={{ height: '24px', lineHeight: '1.2' }}
+          onInput={(e) => {
+            const target = e.target as HTMLTextAreaElement;
+            target.style.height = '24px';
+            target.style.height = Math.max(24, target.scrollHeight) + 'px';
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              handleAddNote();
+            }
+          }}
+        />
       </div>
     </div>
   );
