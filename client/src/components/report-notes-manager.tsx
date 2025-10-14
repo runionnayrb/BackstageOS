@@ -306,13 +306,13 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
               <div className="flex items-start justify-between gap-2">
                 {/* Note content with inline number */}
                 <div className="flex-1 flex items-start gap-2">
-                  <span className="font-medium text-sm mt-[2px]">{index + 1}.</span>
+                  <span className="font-medium text-sm mt-[10px]">{index + 1}.</span>
                   {editingNote === note.id ? (
                     <Textarea
                       value={editContent}
                       onChange={(e) => setEditContent(e.target.value)}
                       onBlur={handleAutoSaveEdit}
-                      className="min-h-[60px] resize-none flex-1"
+                      className="min-h-[60px] resize-none flex-1 text-sm"
                       autoFocus
                       onKeyDown={(e) => {
                         if (e.key === 'Escape') {
