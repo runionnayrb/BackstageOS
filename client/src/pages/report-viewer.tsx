@@ -300,12 +300,13 @@ function renderReportContent(report: any, isEditing: boolean, form: any, project
   const reportId = report.id;
   const reportType = report.type;
 
-  // Use ONLY custom template from projectSettings.layoutConfiguration
-  if (!projectSettings?.layoutConfiguration) {
-    return <div>No template configuration found</div>;
+  // Use ONLY custom template from report.layoutConfiguration (included from template by backend)
+  if (!report?.layoutConfiguration) {
+    return <div>Loading template...</div>;
   }
 
-  const { layoutConfiguration, fieldHeaderFormatting, departmentNames } = projectSettings;
+  const { layoutConfiguration, fieldHeaderFormatting } = report;
+  const departmentNames = projectSettings?.departmentNames || {};
 
   return (
     <>
