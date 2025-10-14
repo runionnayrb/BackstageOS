@@ -3260,6 +3260,27 @@ Best regards,
         return res.status(404).json({ message: "Report not found" });
       }
 
+      // If report has a templateId, fetch and include the template's layoutConfiguration
+      if (report.templateId) {
+        const template = await storage.getReportTemplateById(report.templateId);
+        if (template && template.layoutConfiguration) {
+          console.log('📋 Including template layoutConfiguration for report:', {
+            reportId: report.id,
+            templateId: template.id,
+            hasLayout: !!template.layoutConfiguration
+          });
+          res.json({
+            ...report,
+            template: {
+              id: template.id,
+              name: template.name,
+              layoutConfiguration: template.layoutConfiguration
+            }
+          });
+          return;
+        }
+      }
+
       res.json(report);
     } catch (error) {
       console.error("Error fetching report:", error);
@@ -3281,16 +3302,26 @@ Best regards,
         return res.status(403).json({ message: "Access denied" });
       }
 
+      // Prepare report data with proper date conversion
       const reportData = insertReportSchema.parse({
         ...req.body,
         projectId,
         createdBy: parseInt(req.user.id),
+        date: req.body.date ? new Date(req.body.date) : new Date(),
+        templateId: req.body.templateId ? parseInt(req.body.templateId) : undefined,
       });
 
       const report = await storage.createReport(reportData);
+      console.log('📋 Report created:', {
+        id: report.id,
+        templateId: report.templateId,
+        title: report.title,
+        type: report.type
+      });
       res.json(report);
     } catch (error) {
       if (error instanceof z.ZodError) {
+        console.error("Report validation errors:", error.errors);
         return res.status(400).json({ message: "Invalid report data", errors: error.errors });
       }
       console.error("Error creating project report:", error);

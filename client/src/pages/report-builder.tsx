@@ -101,11 +101,22 @@ export default function ReportBuilder() {
   console.log('  - Matching Template:', matchingTemplate);
   console.log('  - Has Layout Config:', !!matchingTemplate?.layoutConfiguration);
 
+  // Helper function to generate report title from type
+  const generateReportTitle = (type: string): string => {
+    const titleMap: Record<string, string> = {
+      'rehearsal': 'Rehearsal Report',
+      'tech': 'Technical Rehearsal Report',
+      'performance': 'Performance Report',
+      'meeting': 'Production Meeting Report'
+    };
+    return titleMap[type] || 'Report';
+  };
+
   const form = useForm<ReportFormData>({
     resolver: zodResolver(reportSchema),
     defaultValues: {
       projectId: projectId,
-      title: "",
+      title: generateReportTitle(reportType || ""),
       type: reportType || "",
       date: new Date().toISOString().split('T')[0],
       content: {},
@@ -124,25 +135,27 @@ export default function ReportBuilder() {
         form.setValue("date", existingReport.date ? new Date(existingReport.date).toISOString().split('T')[0] : form.getValues("date"));
         form.setValue("content", existingReport.content || {});
         setSelectedTemplate(existingReport.type);
-      } else if (matchingTemplate && matchingTemplate.layoutConfiguration) {
-        // Use the template's own layout configuration and data
-        const customTemplateId = `custom-layout-${reportType}`;
-        setSelectedTemplate(customTemplateId);
-        setCustomTemplate({
-          ...matchingTemplate,
-          departmentNames: projectSettings?.departmentNames || {},
-        });
-        // Set the title from the template
-        form.setValue("title", matchingTemplate.name || "");
-      } else if (matchingTemplate) {
-        // Use template without layout configuration
-        const customTemplateId = `custom-${matchingTemplate.id}`;
-        setSelectedTemplate(customTemplateId);
-        setCustomTemplate(matchingTemplate);
-        form.setValue("title", matchingTemplate.name || "");
       } else {
-        // Auto-select the built-in template based on report type
-        setSelectedTemplate(reportType);
+        // Auto-generate title based on report type
+        form.setValue("title", generateReportTitle(reportType));
+        
+        if (matchingTemplate && matchingTemplate.layoutConfiguration) {
+          // Use the template's own layout configuration and data
+          const customTemplateId = `custom-layout-${reportType}`;
+          setSelectedTemplate(customTemplateId);
+          setCustomTemplate({
+            ...matchingTemplate,
+            departmentNames: projectSettings?.departmentNames || {},
+          });
+        } else if (matchingTemplate) {
+          // Use template without layout configuration
+          const customTemplateId = `custom-${matchingTemplate.id}`;
+          setSelectedTemplate(customTemplateId);
+          setCustomTemplate(matchingTemplate);
+        } else {
+          // Auto-select the built-in template based on report type
+          setSelectedTemplate(reportType);
+        }
       }
     }
   }, [projectId, reportType, existingReport, isEditMode, matchingTemplate, projectSettings]);
@@ -1309,8 +1322,7 @@ export default function ReportBuilder() {
     <div className="p-6">
       <div className="max-w-4xl">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">{isEditMode ? "Edit Report" : "Report Builder"}</h2>
-          <p className="text-gray-600">{isEditMode ? "Modify your production report" : "Create and customize production reports"}</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">{isEditMode ? "Edit Report" : "New Report"}</h2>
         </div>
 
         {/* Template Selection - Hidden since template is auto-selected based on report type */}
@@ -1328,11 +1340,9 @@ export default function ReportBuilder() {
               <form onSubmit={form.handleSubmit(onSubmit)}>
                 {/* Header */}
                 <div className="text-center mb-6 pb-4 border-b">
-                  <Input
-                    {...form.register("title")}
-                    placeholder="Report Title"
-                    className="text-center text-lg font-semibold border-0 bg-transparent resize-none p-0 focus:ring-0 focus:outline-none"
-                  />
+                  <div className="text-lg font-semibold">
+                    {form.watch("title") || generateReportTitle(reportType)}
+                  </div>
                   <div className="text-sm text-gray-600 mt-2">
                     {project?.name || 'Loading...'} - {new Date(form.watch("date") || new Date()).toLocaleDateString()}
                   </div>
