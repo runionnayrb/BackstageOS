@@ -45,6 +45,8 @@ export default function ReportViewer() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Always-editable report viewer - no lock/unlock functionality
 
   const { data: project } = useQuery<any>({
     queryKey: [`/api/projects/${projectId}`],
