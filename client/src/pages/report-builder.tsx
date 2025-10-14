@@ -637,9 +637,9 @@ export default function ReportBuilder() {
             }}>
               <form onSubmit={form.handleSubmit(onSubmit)}>
                 {/* Header from Global Template Settings */}
-                {customTemplate?.headerFormatting && customTemplate?.defaultHeader && (
+                {customTemplate?.headerFormatting && (
                   <div 
-                    className="mb-6 pb-4"
+                    className="mb-6 pb-4 border-b"
                     style={{
                       textAlign: customTemplate.headerFormatting.textAlign || 'center',
                       color: customTemplate.headerFormatting.color || '#000000',
@@ -651,13 +651,11 @@ export default function ReportBuilder() {
                       backgroundColor: customTemplate.headerFormatting.backgroundColor || 'transparent',
                       padding: '8px 0'
                     }}
-                    dangerouslySetInnerHTML={{
-                      __html: customTemplate.defaultHeader
-                        .replace(/{{showName}}/g, project?.name || 'Show Name')
-                        .replace(/{{reportType}}/g, form.watch("title") || generateReportTitle(reportType))
-                        .replace(/{{date}}/g, new Date(form.watch("date") || new Date()).toLocaleDateString())
-                    }}
-                  />
+                  >
+                    <div>{form.watch("title") || generateReportTitle(reportType)}</div>
+                    <div style={{ marginTop: '8px' }}>{project?.name || 'Show Name'}</div>
+                    <div style={{ marginTop: '4px' }}>{new Date(form.watch("date") || new Date()).toLocaleDateString()}</div>
+                  </div>
                 )}
 
                 {/* Document Fields */}
@@ -666,9 +664,9 @@ export default function ReportBuilder() {
                 </div>
 
                 {/* Footer from Global Template Settings */}
-                {customTemplate?.footerFormatting && customTemplate?.defaultFooter && (
+                {customTemplate?.footerFormatting && (
                   <div 
-                    className="mt-6 pt-4"
+                    className="mt-6 pt-4 border-t"
                     style={{
                       textAlign: customTemplate.footerFormatting.textAlign || 'center',
                       color: customTemplate.footerFormatting.color || '#6b7280',
@@ -680,12 +678,9 @@ export default function ReportBuilder() {
                       backgroundColor: customTemplate.footerFormatting.backgroundColor || 'transparent',
                       padding: '8px 0'
                     }}
-                    dangerouslySetInnerHTML={{
-                      __html: customTemplate.defaultFooter
-                        .replace(/{{pageNumber}}/g, '1')
-                        .replace(/{{totalPages}}/g, '1')
-                    }}
-                  />
+                  >
+                    Page 1
+                  </div>
                 )}
 
                 {/* Action Buttons - Fixed at bottom */}
