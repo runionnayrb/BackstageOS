@@ -31,6 +31,13 @@
   -webkit-line-clamp: 3;
 }
 
+/* ContentEditable placeholder */
+.empty-field[contenteditable]:empty:before {
+  content: attr(data-placeholder);
+  color: #9ca3af;
+  pointer-events: none;
+}
+
 /* Email composer dialog z-index override */
 [data-radix-dialog-overlay] {
   z-index: 65 !important;

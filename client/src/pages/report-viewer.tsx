@@ -337,6 +337,7 @@ function renderReportContent(report: any, isEditing: boolean, form: any, project
                 <div 
                   contentEditable={isEditing}
                   suppressContentEditableWarning
+                  data-placeholder={placeholder}
                   onBlur={(e) => {
                     if (isEditing) {
                       form.setValue(`content.${fieldId}`, e.currentTarget.textContent || "");
@@ -347,10 +348,10 @@ function renderReportContent(report: any, isEditing: boolean, form: any, project
                       form.setValue(`content.${fieldId}`, e.currentTarget.textContent || "");
                     }
                   }}
-                  className={`text-sm whitespace-pre-wrap ${isEditing ? 'outline-none' : ''}`}
+                  className={`text-sm whitespace-pre-wrap ${isEditing ? 'outline-none' : ''} ${!content[fieldId] && isEditing ? 'empty-field' : ''}`}
                   style={{ minHeight: '1.25rem' }}
                 >
-                  {content[fieldId] || (isEditing ? '' : placeholder)}
+                  {content[fieldId] || (!isEditing ? placeholder : '')}
                 </div>
               </div>
             );
