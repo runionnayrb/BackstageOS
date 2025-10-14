@@ -339,7 +339,6 @@ function renderReportContent(report: any, isEditing: boolean, form: any, project
                     contentEditable
                     suppressContentEditableWarning
                     data-placeholder={placeholder}
-                    dangerouslySetInnerHTML={{ __html: content[fieldId] || '' }}
                     onBlur={(e) => {
                       form.setValue(`content.${fieldId}`, e.currentTarget.textContent || "");
                     }}
@@ -348,7 +347,9 @@ function renderReportContent(report: any, isEditing: boolean, form: any, project
                     }}
                     className={`text-sm whitespace-pre-wrap px-4 py-2 outline-none ${!content[fieldId] ? 'empty-field' : ''}`}
                     style={{ minHeight: '1.25rem' }}
-                  />
+                  >
+                    {content[fieldId] || ''}
+                  </div>
                 ) : (
                   <div className="text-sm whitespace-pre-wrap px-4 py-2">
                     {content[fieldId] || placeholder}
