@@ -367,79 +367,88 @@ export default function ReportBuilder() {
 
   const renderLayoutBasedTemplate = (template: any) => {
     const currentContent = form.watch("content") || {};
-    const { layoutConfiguration } = template;
+    const { layoutConfiguration, fieldHeaderFormatting } = template;
     
     if (!layoutConfiguration || !layoutConfiguration.items) {
       return <div>Template configuration error</div>;
     }
 
-    // Extract unique departments and custom fields from layout
-    const departments = new Set<string>();
-    const customFields: any[] = [];
-    
-    layoutConfiguration.items.forEach((item: any) => {
-      if (item.type === 'grouped-section' && item.content?.department) {
-        departments.add(item.content.department);
-      } else if (item.type === 'grouped-section' && item.content?.fieldId) {
-        customFields.push({
-          id: item.content.fieldId,
-          label: item.content.label || item.content.fieldId,
-        });
-      } else if (item.type === 'field-section' && item.content?.fieldId) {
-        customFields.push({
-          id: item.content.fieldId,
-          label: item.content.label || item.content.fieldId,
-        });
-      }
-    });
-
+    // Render items from layout configuration in order
     return (
       <>
-        {/* Render custom fields first */}
-        {customFields.map((field) => (
-          <div key={field.id} className="mb-6">
-            <div className="text-sm font-semibold text-gray-700 mb-2">{field.label}</div>
-            <Textarea
-              id={field.id}
-              rows={3}
-              placeholder={`Enter ${field.label.toLowerCase()}...`}
-              value={currentContent[field.id] || ""}
-              onChange={(e) => form.setValue(`content.${field.id}`, e.target.value)}
-              className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
-            />
-          </div>
-        ))}
-
-        {/* Render department sections */}
-        {Array.from(departments).length > 0 && (
-          <div className="mb-6">
-            <div className="text-lg font-semibold text-gray-800 mb-4">Department Notes</div>
-            <div className="space-y-6">
-              {Array.from(departments).map((department) => {
-                const deptDisplayName = template.departmentNames?.[department] || department;
-                return (
-                  <div key={department}>
-                    <div className="text-sm font-semibold text-gray-700 mb-2">{deptDisplayName}</div>
-                    {reportId ? (
-                      <ReportNotesManager 
-                        reportId={reportId} 
-                        projectId={projectId}
-                        reportType={reportType || ""}
-                        department={department}
-                      />
-                    ) : (
-                      <div className="border rounded-lg p-4 bg-gray-50">
-                        <div className="text-sm text-gray-600 italic">
-                          Save this report to start adding {deptDisplayName.toLowerCase()} department notes...
-                        </div>
-                      </div>
-                    )}
+        {layoutConfiguration.items
+          .filter((item: any) => item.type === 'grouped-section')
+          .map((section: any) => {
+            const isField = !!section.content?.fieldId;
+            const isDepartment = !!section.content?.department;
+            
+            if (isField) {
+              const fieldId = section.content.fieldId;
+              const label = section.content.label || fieldId;
+              const placeholder = section.children?.find((c: any) => c.type === 'notes')?.content?.placeholder || `Enter ${label.toLowerCase()}...`;
+              
+              return (
+                <div key={section.id} className="mb-6">
+                  <div 
+                    className="text-sm font-bold px-2 py-1 mb-2"
+                    style={{
+                      backgroundColor: fieldHeaderFormatting?.backgroundColor || '#000000',
+                      color: fieldHeaderFormatting?.color || '#ffffff',
+                      fontFamily: fieldHeaderFormatting?.fontFamily || 'Arial',
+                      fontSize: fieldHeaderFormatting?.fontSize || '14px'
+                    }}
+                  >
+                    {label}
                   </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
+                  <Textarea
+                    id={fieldId}
+                    rows={3}
+                    placeholder={placeholder}
+                    value={currentContent[fieldId] || ""}
+                    onChange={(e) => form.setValue(`content.${fieldId}`, e.target.value)}
+                    className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
+                  />
+                </div>
+              );
+            }
+            
+            if (isDepartment) {
+              const department = section.content.department;
+              const displayName = template.departmentNames?.[department] || section.content.displayName || department;
+              
+              return (
+                <div key={section.id} className="mb-6">
+                  <div 
+                    className="text-sm font-bold px-2 py-1 mb-2"
+                    style={{
+                      backgroundColor: fieldHeaderFormatting?.backgroundColor || '#000000',
+                      color: fieldHeaderFormatting?.color || '#ffffff',
+                      fontFamily: fieldHeaderFormatting?.fontFamily || 'Arial',
+                      fontSize: fieldHeaderFormatting?.fontSize || '14px'
+                    }}
+                  >
+                    {displayName}
+                  </div>
+                  {reportId ? (
+                    <ReportNotesManager 
+                      reportId={reportId} 
+                      projectId={projectId}
+                      reportType={reportType || ""}
+                      department={department}
+                    />
+                  ) : (
+                    <div className="border rounded-lg p-4 bg-gray-50">
+                      <div className="text-sm text-gray-600 italic">
+                        Save this report to start adding {displayName.toLowerCase()} notes...
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            }
+            
+            return null;
+          })}
       </>
     );
   };
