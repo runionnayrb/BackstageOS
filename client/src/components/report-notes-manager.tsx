@@ -16,6 +16,7 @@ interface ReportNotesManagerProps {
   reportType: string;
   department?: string;
   isEditing?: boolean;
+  placeholder?: string;
 }
 
 interface User {
@@ -30,7 +31,8 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
   projectId, 
   reportType,
   department,
-  isEditing = true 
+  isEditing = true,
+  placeholder = "1. No notes. Thank you."
 }) => {
   const [newNoteContent, setNewNoteContent] = useState('');
   const [editingNote, setEditingNote] = useState<number | null>(null);
@@ -276,10 +278,10 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
 
   return (
     <div className="space-y-2">
-      {/* Add new note - always show input field */}
+      {/* Always show input, but change placeholder based on whether notes exist */}
       <div className="px-4 pt-2 pb-1">
         <Textarea
-          placeholder="1.   No notes."
+          placeholder={sortedNotes.length === 0 ? placeholder : "Add note..."}
           value={newNoteContent}
           onChange={(e) => setNewNoteContent(e.target.value)}
           className="min-h-[24px] max-h-[200px] resize-none border-0 shadow-none focus:ring-0 overflow-y-auto py-1 px-2"
