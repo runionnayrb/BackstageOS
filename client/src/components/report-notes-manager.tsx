@@ -381,14 +381,38 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
         }
       </div>
 
-      {/* Add new note input - only show when editing */}
-      {isEditing && (
+      {/* Add new note input - only show when editing and no notes exist */}
+      {isEditing && sortedNotes.length === 0 && (
         <div className="px-4 pt-2 pb-1">
           <Textarea
-            placeholder={sortedNotes.length === 0 ? placeholder : "Add note..."}
+            placeholder={placeholder}
             value={newNoteContent}
             onChange={(e) => setNewNoteContent(e.target.value)}
             className="min-h-[24px] max-h-[200px] resize-none border-0 shadow-none focus:ring-0 overflow-y-auto py-1 px-2"
+            style={{ height: '24px', lineHeight: '1.2' }}
+            onInput={(e) => {
+              const target = e.target as HTMLTextAreaElement;
+              target.style.height = '24px';
+              target.style.height = Math.max(24, target.scrollHeight) + 'px';
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleAddNote();
+              }
+            }}
+          />
+        </div>
+      )}
+      
+      {/* Hidden input for adding notes when notes already exist */}
+      {isEditing && sortedNotes.length > 0 && (
+        <div className="px-4 pt-2 pb-1">
+          <Textarea
+            placeholder=""
+            value={newNoteContent}
+            onChange={(e) => setNewNoteContent(e.target.value)}
+            className="min-h-[24px] max-h-[200px] resize-none border-0 shadow-none focus:ring-0 overflow-y-auto py-1 px-2 opacity-0 focus:opacity-100 transition-opacity"
             style={{ height: '24px', lineHeight: '1.2' }}
             onInput={(e) => {
               const target = e.target as HTMLTextAreaElement;
