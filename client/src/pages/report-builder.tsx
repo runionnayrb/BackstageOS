@@ -152,6 +152,12 @@ export default function ReportBuilder() {
 
   // Set form values when project and report type are available, or when editing existing report
   useEffect(() => {
+    // Wait for templates to load before setting up the template
+    if (templatesLoading || settingsLoading) {
+      console.log('⏳ Still loading data, waiting...');
+      return;
+    }
+    
     if (projectId && reportType) {
       form.setValue("projectId", projectId);
       form.setValue("type", reportType);
@@ -242,7 +248,7 @@ export default function ReportBuilder() {
         }
       }
     }
-  }, [projectId, reportType, existingReport, isEditMode, matchingTemplate, projectSettings]);
+  }, [projectId, reportType, existingReport, isEditMode, matchingTemplate, projectSettings, templatesLoading, settingsLoading]);
 
   const mutation = useMutation({
     mutationFn: async (data: ReportFormData) => {
