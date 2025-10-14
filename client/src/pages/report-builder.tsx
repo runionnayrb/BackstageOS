@@ -169,6 +169,7 @@ export default function ReportBuilder() {
         // Check if we should use global template settings or template-specific layout
         if (projectSettings?.layoutConfiguration) {
           // Use GLOBAL template settings from projectSettings (for tech reports)
+          console.log('🎯 LOADING GLOBAL TEMPLATE from projectSettings');
           const customTemplateId = `custom-layout-${reportType}`;
           setSelectedTemplate(customTemplateId);
           
@@ -182,7 +183,7 @@ export default function ReportBuilder() {
             }
           }
           
-          setCustomTemplate({
+          const newTemplate = {
             ...matchingTemplate,
             layoutConfiguration: parsedLayout,
             departmentNames: projectSettings?.departmentNames || {},
@@ -190,9 +191,18 @@ export default function ReportBuilder() {
             footerFormatting: projectSettings?.footerFormatting,
             fieldHeaderFormatting: projectSettings?.fieldHeaderFormatting,
             globalPageMargins: projectSettings?.globalPageMargins,
+          };
+          
+          console.log('✅ Setting customTemplate with global settings:', {
+            hasLayout: !!newTemplate.layoutConfiguration,
+            layoutItems: newTemplate.layoutConfiguration?.items?.length || 0,
+            departmentCount: Object.keys(newTemplate.departmentNames || {}).length
           });
+          
+          setCustomTemplate(newTemplate);
         } else if (matchingTemplate && matchingTemplate.layoutConfiguration) {
           // Use template-specific layout configuration (if template has its own)
+          console.log('🎯 LOADING TEMPLATE-SPECIFIC layout from matchingTemplate');
           const customTemplateId = `custom-layout-${reportType}`;
           setSelectedTemplate(customTemplateId);
           
@@ -206,18 +216,28 @@ export default function ReportBuilder() {
             }
           }
           
-          setCustomTemplate({
+          const newTemplate = {
             ...matchingTemplate,
             layoutConfiguration: parsedLayout,
             departmentNames: projectSettings?.departmentNames || {},
+          };
+          
+          console.log('✅ Setting customTemplate with template-specific layout:', {
+            hasLayout: !!newTemplate.layoutConfiguration,
+            layoutItems: newTemplate.layoutConfiguration?.items?.length || 0,
+            departmentCount: Object.keys(newTemplate.departmentNames || {}).length
           });
+          
+          setCustomTemplate(newTemplate);
         } else if (matchingTemplate) {
           // Use template without layout configuration
+          console.log('⚠️ Template found but NO layout configuration');
           const customTemplateId = `custom-${matchingTemplate.id}`;
           setSelectedTemplate(customTemplateId);
           setCustomTemplate(matchingTemplate);
         } else {
           // Auto-select the built-in template based on report type
+          console.log('📝 Using built-in template for type:', reportType);
           setSelectedTemplate(reportType);
         }
       }
@@ -353,7 +373,15 @@ export default function ReportBuilder() {
     const currentContent = form.watch("content") || {};
 
     // Check for custom layout template FIRST before checking built-in templates
+    console.log('🖼️ RENDER CHECK:', {
+      hasCustomTemplate: !!customTemplate,
+      hasLayoutConfig: !!customTemplate?.layoutConfiguration,
+      selectedTemplate,
+      customTemplateKeys: customTemplate ? Object.keys(customTemplate) : []
+    });
+    
     if (customTemplate && customTemplate.layoutConfiguration) {
+      console.log('✅ RENDERING CUSTOM LAYOUT TEMPLATE');
       return renderLayoutBasedTemplate(customTemplate);
     }
 
