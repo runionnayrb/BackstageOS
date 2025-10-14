@@ -300,11 +300,21 @@ function renderReportContent(report: any, isEditing: boolean, form: any, project
   const reportId = report.id;
   const reportType = report.type;
 
+  console.log('🔍 REPORT VIEWER - Report data:', { 
+    hasReport: !!report, 
+    hasTemplate: !!report?.template,
+    hasLayoutConfig: !!report?.template?.layoutConfiguration,
+    reportKeys: report ? Object.keys(report) : [],
+    templateKeys: report?.template ? Object.keys(report.template) : []
+  });
+
   // Use ONLY custom template from report.template.layoutConfiguration (included from template by backend)
   if (!report?.template?.layoutConfiguration) {
+    console.log('❌ REPORT VIEWER - No template layout found!');
     return <div>Loading template...</div>;
   }
 
+  console.log('✅ REPORT VIEWER - Using custom template layout');
   const { layoutConfiguration, fieldHeaderFormatting } = report.template;
   const departmentNames = projectSettings?.departmentNames || {};
 
