@@ -407,7 +407,7 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
       
       {/* Hidden input for adding notes when notes already exist */}
       {isEditing && sortedNotes.length > 0 && (
-        <div className="px-4 pt-2 pb-1">
+        <div className="px-4 h-0 overflow-visible">
           <Textarea
             placeholder=""
             value={newNoteContent}
