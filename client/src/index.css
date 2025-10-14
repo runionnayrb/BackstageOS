@@ -34,7 +34,7 @@
 /* ContentEditable placeholder */
 .empty-field[contenteditable]:empty:before {
   content: attr(data-placeholder);
-  color: #9ca3af;
+  color: inherit;
   pointer-events: none;
 }
 

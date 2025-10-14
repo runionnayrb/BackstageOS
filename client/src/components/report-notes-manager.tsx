@@ -288,7 +288,7 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
     <div className="space-y-2">
       {/* Show placeholder when no notes and not editing */}
       {sortedNotes.length === 0 && !isEditing && (
-        <div className="text-sm text-muted-foreground px-4 py-2">
+        <div className="text-sm px-4 py-2">
           {placeholder}
         </div>
       )}
