@@ -269,15 +269,21 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
 
     const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
     
-    const currentOrder = sortedNotes[currentIndex].noteOrder ?? currentIndex;
-    const targetOrder = sortedNotes[newIndex].noteOrder ?? newIndex;
+    // Ensure we have valid integer values, use index as fallback
+    const currentOrder = typeof sortedNotes[currentIndex].noteOrder === 'number' 
+      ? sortedNotes[currentIndex].noteOrder 
+      : currentIndex;
+    const targetOrder = typeof sortedNotes[newIndex].noteOrder === 'number'
+      ? sortedNotes[newIndex].noteOrder 
+      : newIndex;
     
     // Swap the note orders with valid numbers
     const reorderedNotes = [
-      { id: sortedNotes[currentIndex].id, noteOrder: targetOrder },
-      { id: sortedNotes[newIndex].id, noteOrder: currentOrder }
+      { id: sortedNotes[currentIndex].id, noteOrder: Number(targetOrder) },
+      { id: sortedNotes[newIndex].id, noteOrder: Number(currentOrder) }
     ];
 
+    console.log('Reordering notes:', reorderedNotes);
     reorderNotesMutation.mutate(reorderedNotes);
   };
 
