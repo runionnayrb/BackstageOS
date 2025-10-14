@@ -79,18 +79,6 @@ export default function ReportViewer() {
     }
   }, [report, form]);
 
-  // Auto-resize textareas when switching to edit mode
-  useEffect(() => {
-    if (isEditing) {
-      setTimeout(() => {
-        const textareas = document.querySelectorAll('textarea');
-        textareas.forEach(textarea => {
-          textarea.style.height = 'auto';
-          textarea.style.height = textarea.scrollHeight + 'px';
-        });
-      }, 0);
-    }
-  }, [isEditing]);
 
   const updateMutation = useMutation({
     mutationFn: async (data: z.infer<typeof reportSchema>) => {
@@ -352,17 +340,9 @@ function renderReportContent(report: any, isEditing: boolean, form: any, project
                     value={content[fieldId] || ""}
                     onChange={(e) => {
                       form.setValue(`content.${fieldId}`, e.target.value);
-                      const target = e.target as HTMLTextAreaElement;
-                      target.style.height = 'auto';
-                      target.style.height = target.scrollHeight + 'px';
                     }}
-                    onInput={(e) => {
-                      const target = e.target as HTMLTextAreaElement;
-                      target.style.height = 'auto';
-                      target.style.height = target.scrollHeight + 'px';
-                    }}
-                    className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none overflow-hidden text-sm"
-                    style={{ minHeight: '20px' }}
+                    className="border-0 bg-transparent p-0 m-0 focus:ring-0 focus:outline-none resize-none text-sm overflow-hidden"
+                    rows={1}
                   />
                 ) : (
                   <div className="text-sm whitespace-pre-wrap">{content[fieldId] || placeholder}</div>
