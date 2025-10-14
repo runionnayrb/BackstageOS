@@ -203,6 +203,14 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
   const handleEditNote = (note: ReportNote) => {
     setEditingNote(note.id);
     setEditContent(note.content);
+    // Auto-resize the textarea after it mounts
+    setTimeout(() => {
+      const textarea = document.querySelector(`textarea[data-note-id="${note.id}"]`) as HTMLTextAreaElement;
+      if (textarea) {
+        textarea.style.height = '20px';
+        textarea.style.height = textarea.scrollHeight + 'px';
+      }
+    }, 0);
   };
 
   const handleAutoSaveEdit = () => {
@@ -309,11 +317,18 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
                   <span className="font-medium text-sm mt-[2px]">{index + 1}.</span>
                   {editingNote === note.id ? (
                     <Textarea
+                      data-note-id={note.id}
                       value={editContent}
                       onChange={(e) => setEditContent(e.target.value)}
                       onBlur={handleAutoSaveEdit}
-                      className="min-h-[60px] resize-none flex-1 text-sm border-0 shadow-none focus-visible:ring-0 p-0 leading-relaxed"
+                      className="resize-none flex-1 text-sm border-0 shadow-none focus-visible:ring-0 p-0 leading-relaxed overflow-hidden"
+                      style={{ minHeight: '20px', height: 'auto' }}
                       autoFocus
+                      onInput={(e) => {
+                        const target = e.target as HTMLTextAreaElement;
+                        target.style.height = '20px';
+                        target.style.height = target.scrollHeight + 'px';
+                      }}
                       onKeyDown={(e) => {
                         if (e.key === 'Escape') {
                           setEditingNote(null);
