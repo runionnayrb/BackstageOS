@@ -31,6 +31,8 @@ interface BillingPlan {
   maxTeamMembers?: number;
   isActive: boolean;
   sortOrder: number;
+  stripeProductId?: string;
+  activeStripePriceId?: string;
 }
 
 interface BillingHistory {
@@ -584,12 +586,39 @@ export default function BillingManagement() {
                       {plan.trialDays}-day trial included
                     </p>
                   </div>
+                  
+                  {/* Stripe Integration Info */}
+                  <div className="space-y-1 pt-2 border-t">
+                    <div className="text-xs font-medium text-muted-foreground">Stripe Integration</div>
+                    {plan.stripeProductId ? (
+                      <>
+                        <div className="text-xs font-mono bg-muted p-2 rounded break-all">
+                          <span className="text-muted-foreground">Product:</span> {plan.stripeProductId}
+                        </div>
+                        {plan.activeStripePriceId ? (
+                          <div className="text-xs font-mono bg-muted p-2 rounded break-all">
+                            <span className="text-muted-foreground">Price:</span> {plan.activeStripePriceId}
+                          </div>
+                        ) : (
+                          <div className="text-xs text-yellow-600 p-2 bg-yellow-50 rounded">
+                            ⚠️ No active Price ID
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="text-xs text-yellow-600 p-2 bg-yellow-50 rounded">
+                        ⚠️ Not synced to Stripe
+                      </div>
+                    )}
+                  </div>
+
                   <div className="flex gap-2 pt-2">
                     <Button 
                       variant="outline" 
                       size="sm" 
                       onClick={() => openEditDialog(plan)}
                       className="flex-1"
+                      data-testid={`button-edit-plan-${plan.id}`}
                     >
                       <Edit2 className="h-4 w-4 mr-2" />
                       Edit
@@ -599,6 +628,7 @@ export default function BillingManagement() {
                       size="sm" 
                       onClick={() => handleDeletePlan(plan)}
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      data-testid={`button-delete-plan-${plan.id}`}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

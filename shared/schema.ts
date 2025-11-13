@@ -2128,7 +2128,8 @@ export const billingPlans = pgTable("billing_plans", {
   name: varchar("name").notNull(), // 'Monthly', 'Annual', 'Theatre'
   planId: varchar("plan_id").unique().notNull(), // 'monthly', 'annual', 'theatre'
   accountTypeId: integer("account_type_id").references(() => accountTypes.id), // Link to account type
-  stripePriceId: varchar("stripe_price_id"), // Stripe price ID
+  stripeProductId: varchar("stripe_product_id"), // Stripe Product ID (one per plan/profile tier)
+  activeStripePriceId: varchar("active_stripe_price_id"), // Currently active Stripe Price ID
   price: decimal("price", { precision: 10, scale: 2 }).notNull(), // Monthly price
   billingInterval: varchar("billing_interval").notNull(), // 'month', 'year'
   trialDays: integer("trial_days").default(30), // Trial period in days
@@ -2139,6 +2140,22 @@ export const billingPlans = pgTable("billing_plans", {
   sortOrder: integer("sort_order").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Billing Plan Price History table (audit trail for price changes)
+export const billingPlanPrices = pgTable("billing_plan_prices", {
+  id: serial("id").primaryKey(),
+  planId: integer("plan_id").notNull().references(() => billingPlans.id, { onDelete: "cascade" }),
+  stripeProductId: varchar("stripe_product_id"), // Associated Stripe Product ID
+  stripePriceId: varchar("stripe_price_id").unique().notNull(), // Unique Stripe Price ID
+  unitAmount: decimal("unit_amount", { precision: 10, scale: 2 }).notNull(), // Price amount
+  currency: varchar("currency").default("usd"),
+  billingInterval: varchar("billing_interval").notNull(), // 'month', 'year'
+  isActive: boolean("is_active").default(true), // Active in Stripe
+  validFrom: timestamp("valid_from").defaultNow(),
+  validUntil: timestamp("valid_until"), // null = current price
+  archivedBy: varchar("archived_by"), // Admin note on why archived
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Billing History table (tracks all billing events)
@@ -2199,6 +2216,14 @@ export const billingPlansRelations = relations(billingPlans, ({ one, many }) => 
     references: [accountTypes.id],
   }),
   billingHistory: many(billingHistory),
+  priceHistory: many(billingPlanPrices),
+}));
+
+export const billingPlanPricesRelations = relations(billingPlanPrices, ({ one }) => ({
+  plan: one(billingPlans, {
+    fields: [billingPlanPrices.planId],
+    references: [billingPlans.id],
+  }),
 }));
 
 export const billingHistoryRelations = relations(billingHistory, ({ one }) => ({
@@ -2695,6 +2720,13 @@ export const insertBillingPlanSchema = createInsertSchema(billingPlans).omit({
   price: z.union([z.string(), z.number()]).transform(val => String(val)),
 });
 
+export const insertBillingPlanPriceSchema = createInsertSchema(billingPlanPrices).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  unitAmount: z.union([z.string(), z.number()]).transform(val => String(val)),
+});
+
 export const insertBillingHistorySchema = createInsertSchema(billingHistory).omit({
   id: true,
   processedAt: true,
@@ -3143,6 +3175,8 @@ export type InsertFeatureUsage = z.infer<typeof insertFeatureUsageSchema>;
 // Billing types
 export type BillingPlan = typeof billingPlans.$inferSelect;
 export type InsertBillingPlan = z.infer<typeof insertBillingPlanSchema>;
+export type BillingPlanPrice = typeof billingPlanPrices.$inferSelect;
+export type InsertBillingPlanPrice = z.infer<typeof insertBillingPlanPriceSchema>;
 export type BillingHistory = typeof billingHistory.$inferSelect;
 export type InsertBillingHistory = z.infer<typeof insertBillingHistorySchema>;
 export type PaymentMethod = typeof paymentMethods.$inferSelect;

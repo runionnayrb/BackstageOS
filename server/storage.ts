@@ -73,6 +73,7 @@ import {
   userSubscriptions,
   accountTypes,
   billingPlans,
+  billingPlanPrices,
   billingHistory,
   paymentMethods,
   subscriptionUsage,
@@ -217,6 +218,8 @@ import {
   type InsertAccountType,
   type BillingPlan,
   type InsertBillingPlan,
+  type BillingPlanPrice,
+  type InsertBillingPlanPrice,
   type BillingHistory,
   type InsertBillingHistory,
   type PaymentMethod,
@@ -657,6 +660,12 @@ export interface IStorage {
   createBillingPlan(plan: InsertBillingPlan): Promise<BillingPlan>;
   updateBillingPlan(id: number, plan: Partial<InsertBillingPlan>): Promise<BillingPlan>;
   deleteBillingPlan(id: number): Promise<void>;
+  
+  // Billing plan price history operations
+  getBillingPlanPrices(planId: number): Promise<BillingPlanPrice[]>;
+  getActiveBillingPlanPrice(planId: number): Promise<BillingPlanPrice | undefined>;
+  createBillingPlanPrice(price: InsertBillingPlanPrice): Promise<BillingPlanPrice>;
+  archiveBillingPlanPrice(priceId: number, archivedBy?: string): Promise<void>;
   
   getBillingHistory(userId: number): Promise<BillingHistory[]>;
   createBillingHistoryEntry(entry: InsertBillingHistory): Promise<BillingHistory>;
@@ -4953,6 +4962,41 @@ export class DatabaseStorage implements IStorage {
 
   async deleteBillingPlan(id: number): Promise<void> {
     await db.delete(billingPlans).where(eq(billingPlans.id, id));
+  }
+
+  // Billing Plan Price History Methods
+  async getBillingPlanPrices(planId: number): Promise<BillingPlanPrice[]> {
+    const result = await db.select().from(billingPlanPrices)
+      .where(eq(billingPlanPrices.planId, planId))
+      .orderBy(sql`${billingPlanPrices.createdAt} DESC`);
+    return result;
+  }
+
+  async getActiveBillingPlanPrice(planId: number): Promise<BillingPlanPrice | undefined> {
+    const result = await db.select().from(billingPlanPrices)
+      .where(and(
+        eq(billingPlanPrices.planId, planId),
+        eq(billingPlanPrices.isActive, true),
+        sql`${billingPlanPrices.validUntil} IS NULL`
+      ))
+      .orderBy(sql`${billingPlanPrices.createdAt} DESC`)
+      .limit(1);
+    return result[0];
+  }
+
+  async createBillingPlanPrice(price: InsertBillingPlanPrice): Promise<BillingPlanPrice> {
+    const result = await db.insert(billingPlanPrices).values(price).returning();
+    return result[0];
+  }
+
+  async archiveBillingPlanPrice(priceId: number, archivedBy?: string): Promise<void> {
+    await db.update(billingPlanPrices)
+      .set({ 
+        isActive: false, 
+        validUntil: new Date(),
+        archivedBy: archivedBy || null
+      })
+      .where(eq(billingPlanPrices.id, priceId));
   }
 
   // Billing History Methods

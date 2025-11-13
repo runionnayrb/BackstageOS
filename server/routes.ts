@@ -16,12 +16,13 @@ import { sql } from "drizzle-orm";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
-import { insertProjectSchema, insertSeasonSchema, insertVenueSchema, insertProjectMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertEmailContactSchema, insertDistributionListSchema, insertDistributionListMemberSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertCostumeSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema, insertShowContractSettingsSchema, insertPerformanceTrackerSchema, insertRehearsalTrackerSchema, insertTaskDatabaseSchema, insertTaskPropertySchema, insertTaskSchema, insertTaskAssignmentSchema, insertTaskCommentSchema, insertTaskAttachmentSchema, insertTaskViewSchema, insertNoteFolderSchema, insertNoteSchema, insertNoteCollaboratorSchema, insertNoteCommentSchema, insertNoteAttachmentSchema, insertPublicCalendarShareSchema, insertDailyCallSchema, insertUserActivitySchema, insertApiCostSchema, insertUserSessionSchema, insertFeatureUsageSchema, insertAccountTypeSchema, insertBillingPlanSchema, insertBillingHistorySchema, insertPaymentMethodSchema, insertSubscriptionUsageSchema } from "@shared/schema";
+import { insertProjectSchema, insertSeasonSchema, insertVenueSchema, insertProjectMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertEmailContactSchema, insertDistributionListSchema, insertDistributionListMemberSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertCostumeSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema, insertShowContractSettingsSchema, insertPerformanceTrackerSchema, insertRehearsalTrackerSchema, insertTaskDatabaseSchema, insertTaskPropertySchema, insertTaskSchema, insertTaskAssignmentSchema, insertTaskCommentSchema, insertTaskAttachmentSchema, insertTaskViewSchema, insertNoteFolderSchema, insertNoteSchema, insertNoteCollaboratorSchema, insertNoteCommentSchema, insertNoteAttachmentSchema, insertPublicCalendarShareSchema, insertDailyCallSchema, insertUserActivitySchema, insertApiCostSchema, insertUserSessionSchema, insertFeatureUsageSchema, insertAccountTypeSchema, insertBillingPlanSchema, insertBillingPlanPriceSchema, insertBillingHistorySchema, insertPaymentMethodSchema, insertSubscriptionUsageSchema } from "@shared/schema";
 import { cloudflareService } from "./services/cloudflareService";
 import { ErrorClusteringService } from "./errorClusteringService";
 import { ConflictValidationService } from "./services/conflictValidationService.js";
 import { scheduleNotificationService } from "./services/scheduleNotificationService.js";
 import { ScheduleChangeDetectionService } from "./services/scheduleChangeDetectionService.js";
+import { billingSyncService } from "./services/billingSyncService";
 import { z } from "zod";
 import sgMail from "@sendgrid/mail";
 import Stripe from "stripe";
@@ -14616,9 +14617,10 @@ The Production Team`;
       };
       
       const planData = insertBillingPlanSchema.parse(planDataWithId);
-      const plan = await storage.createBillingPlan(planData);
+      const plan = await billingSyncService.createPlanWithStripe(planData);
       res.status(201).json(plan);
     } catch (error: any) {
+      console.error("Failed to create billing plan with Stripe:", error);
       res.status(400).json({ message: "Failed to create billing plan", error: error.message });
     }
   });
@@ -14648,9 +14650,10 @@ The Production Team`;
         ...req.body,
         planId: generatePlanId(req.body.name)
       };
-      const plan = await storage.updateBillingPlan(parseInt(req.params.id), planDataWithId);
+      const plan = await billingSyncService.updatePlanWithStripe(parseInt(req.params.id), planDataWithId);
       res.json(plan);
     } catch (error: any) {
+      console.error("Failed to update billing plan with Stripe:", error);
       res.status(400).json({ message: "Failed to update billing plan", error: error.message });
     }
   });
@@ -15023,24 +15026,30 @@ The Production Team`;
         });
       }
 
-      // Define pricing for different plans based on profile type
-      const planPrices = {
-        freelance_monthly: process.env.STRIPE_FREELANCE_MONTHLY_PRICE_ID,
-        freelance_annual: process.env.STRIPE_FREELANCE_ANNUAL_PRICE_ID,
-        fulltime_monthly: process.env.STRIPE_FULLTIME_MONTHLY_PRICE_ID,
-        fulltime_annual: process.env.STRIPE_FULLTIME_ANNUAL_PRICE_ID,
-        team_monthly: process.env.STRIPE_TEAM_MONTHLY_PRICE_ID,
-        team_annual: process.env.STRIPE_TEAM_ANNUAL_PRICE_ID,
-        lifetime: process.env.STRIPE_LIFETIME_PRICE_ID,
-      };
-
-      const selectedPriceId = priceId || planPrices[planType as keyof typeof planPrices];
-
+      // Get Stripe Price ID from database billing plans
+      let selectedPriceId = priceId;
+      
       if (!selectedPriceId) {
-        return res.status(400).json({ 
-          message: "Subscription pricing not configured. Please contact support.",
-          requiresPriceConfiguration: true
-        });
+        const billingPlan = await storage.getBillingPlanByPlanId(planType);
+        
+        if (!billingPlan) {
+          console.error(`No billing plan found for planType: ${planType}`);
+          return res.status(400).json({ 
+            message: "Selected plan is not available. Please contact support.",
+            requiresPriceConfiguration: true
+          });
+        }
+
+        if (!billingPlan.activeStripePriceId) {
+          console.error(`Billing plan ${planType} has no active Stripe Price ID`);
+          return res.status(400).json({ 
+            message: "Subscription pricing not configured. Please contact support.",
+            requiresPriceConfiguration: true
+          });
+        }
+
+        selectedPriceId = billingPlan.activeStripePriceId;
+        console.log(`Using Stripe Price ID for ${planType}: ${selectedPriceId}`);
       }
 
       // Create subscription
