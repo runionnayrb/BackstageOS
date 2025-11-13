@@ -10,15 +10,15 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Check, Loader2, AlertCircle } from "lucide-react";
 import { useLocation } from "wouter";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
-// Make sure to call `loadStripe` outside of a component's render to avoid
-// recreating the `Stripe` object on every render.
 if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
   throw new Error('Missing required Stripe key: VITE_STRIPE_PUBLIC_KEY');
 }
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
-const SubscribeForm = ({ planType, planPrice }: { planType: string; planPrice: number }) => {
+const SubscribeForm = ({ planKey, profileType, billingPeriod }: { planKey: string; profileType: string; billingPeriod: string }) => {
   const stripe = useStripe();
   const elements = useElements();
   const { toast } = useToast();
@@ -37,7 +37,7 @@ const SubscribeForm = ({ planType, planPrice }: { planType: string; planPrice: n
     const { error } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: `${window.location.origin}/settings?subscription=success`,
+        return_url: `${window.location.origin}/billing?subscription=success`,
       },
     });
 
@@ -52,11 +52,19 @@ const SubscribeForm = ({ planType, planPrice }: { planType: string; planPrice: n
         title: "Subscription Successful",
         description: "Welcome to BackstageOS! Your subscription is now active.",
       });
-      // Navigate to dashboard after successful subscription
-      navigate("/dashboard");
+      navigate("/");
     }
     
     setIsProcessing(false);
+  };
+
+  const getPlanDisplay = () => {
+    const labels = {
+      freelance: 'Freelance',
+      fulltime: 'Full-time',
+      team: 'Team'
+    };
+    return labels[profileType as keyof typeof labels] || profileType;
   };
 
   return (
@@ -65,11 +73,11 @@ const SubscribeForm = ({ planType, planPrice }: { planType: string; planPrice: n
         <CardTitle className="flex items-center justify-between">
           Subscribe to BackstageOS
           <Badge variant="secondary" className="ml-2">
-            {planType === 'annual' ? 'Save 18%' : 'Monthly'}
+            {billingPeriod === 'annual' ? 'Save 18%' : billingPeriod === 'lifetime' ? 'One-time' : 'Monthly'}
           </Badge>
         </CardTitle>
         <CardDescription>
-          ${planType === 'annual' ? '97/mo billed annually' : '119/mo'}
+          {getPlanDisplay()} {billingPeriod === 'lifetime' ? 'Lifetime' : billingPeriod === 'annual' ? 'Annual' : 'Monthly'} Plan
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -79,6 +87,7 @@ const SubscribeForm = ({ planType, planPrice }: { planType: string; planPrice: n
             type="submit" 
             disabled={!stripe || isProcessing}
             className="w-full"
+            data-testid="button-submit-payment"
           >
             {isProcessing ? (
               <>
@@ -86,7 +95,7 @@ const SubscribeForm = ({ planType, planPrice }: { planType: string; planPrice: n
                 Processing...
               </>
             ) : (
-              `Start Subscription - $${planPrice}${planType === 'annual' ? '/year' : '/month'}`
+              `Start Subscription`
             )}
           </Button>
         </form>
@@ -97,87 +106,86 @@ const SubscribeForm = ({ planType, planPrice }: { planType: string; planPrice: n
 
 export default function Subscribe() {
   const [clientSecret, setClientSecret] = useState("");
-  const [planType, setPlanType] = useState("monthly");
-  const [planPrice, setPlanPrice] = useState(119);
-  const [isLoading, setIsLoading] = useState(true);
+  const [profileType, setProfileType] = useState("freelance");
+  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "annual" | "lifetime">("monthly");
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   
-  // Check if user needs payment (came from payment required redirect)
   const needsPayment = (user as any)?.needsPayment;
   const subscriptionStatus = (user as any)?.subscriptionStatus;
 
-  useEffect(() => {
-    // Get plan details from URL params
-    const urlParams = new URLSearchParams(window.location.search);
-    const plan = urlParams.get('plan') || 'monthly';
-    
-    let price = 119; // Default monthly
-    if (plan === 'annual') {
-      price = 1164; // Annual price
-    } else if (plan === 'theatre') {
-      price = 199; // Theatre plan price (example)
-    }
-    
-    setPlanType(plan);
-    setPlanPrice(price);
+  const planFeatures = {
+    freelance: [
+      'Solo user + 3 show editors',
+      'Unlimited shows',
+      'All core features',
+      'Email support'
+    ],
+    fulltime: [
+      'Solo user + 3 show editors',
+      'Unlimited shows', 
+      'All core features',
+      'Priority email support',
+      'Advanced reporting'
+    ],
+    team: [
+      '4+ team members',
+      'Unlimited shows',
+      'All premium features',
+      'Priority support',
+      'Team collaboration tools',
+      'Advanced analytics'
+    ]
+  };
 
-    // Create subscription as soon as the page loads
-    apiRequest("POST", "/api/get-or-create-subscription", {
-      planType: plan
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.clientSecret) {
-          setClientSecret(data.clientSecret);
-        } else if (data.requiresPriceConfiguration) {
-          toast({
-            title: "Subscription Setup Required",
-            description: "Subscription pricing is not yet configured. Please contact support.",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Subscription Setup Failed",
-            description: "Unable to initialize subscription. Please try again.",
-            variant: "destructive",
-          });
-        }
-      })
-      .catch((error) => {
-        console.error('Error creating subscription:', error);
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const profile = urlParams.get('profile') || 'freelance';
+    const billing = urlParams.get('billing') || 'monthly';
+    
+    setProfileType(profile);
+    setBillingPeriod(billing as "monthly" | "annual" | "lifetime");
+  }, []);
+
+  const createSubscription = async () => {
+    setIsLoading(true);
+    setClientSecret("");
+
+    const planKey = billingPeriod === 'lifetime' ? 'lifetime' : `${profileType}_${billingPeriod}`;
+
+    try {
+      const response = await apiRequest("POST", "/api/get-or-create-subscription", {
+        planType: planKey
+      });
+      const data = await response.json();
+
+      if (data.clientSecret) {
+        setClientSecret(data.clientSecret);
+      } else if (data.requiresPriceConfiguration) {
+        toast({
+          title: "Subscription Setup Required",
+          description: "Subscription pricing is not yet configured. Please contact support.",
+          variant: "destructive",
+        });
+      } else {
         toast({
           title: "Subscription Setup Failed",
           description: "Unable to initialize subscription. Please try again.",
           variant: "destructive",
         });
-      })
-      .finally(() => {
-        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error('Error creating subscription:', error);
+      toast({
+        title: "Subscription Setup Failed",
+        description: "Unable to initialize subscription. Please try again.",
+        variant: "destructive",
       });
-  }, [toast]);
-
-  const planFeatures = [
-    'Unlimited shows and projects',
-    'Advanced reporting tools',
-    'Team collaboration features',
-    'Script and cue management',
-    'Props and costume tracking',
-    'Schedule management',
-    'Email integration',
-    'Priority support'
-  ];
-
-  if (isLoading) {
-    return (
-      <div className="h-screen flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="mx-auto h-8 w-8 animate-spin mb-4" />
-          <p className="text-muted-foreground">Setting up your subscription...</p>
-        </div>
-      </div>
-    );
-  }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const getStatusMessage = () => {
     switch (subscriptionStatus) {
@@ -204,32 +212,17 @@ export default function Subscribe() {
     }
   };
 
-  if (!clientSecret) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
-        <div className="max-w-4xl mx-auto px-4 text-center space-y-6">
-          {needsPayment && getStatusMessage() && (
-            <Alert variant={getStatusMessage()?.variant} className="max-w-md mx-auto">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                <strong>{getStatusMessage()?.title}</strong><br />
-                {getStatusMessage()?.message}
-              </AlertDescription>
-            </Alert>
-          )}
-          <h1 className="text-3xl font-bold mb-4">Subscription Setup Required</h1>
-          <p className="text-muted-foreground mb-8">
-            We're still setting up subscription billing. Please contact support for access.
-          </p>
-          <Button onClick={() => window.location.href = '/settings'}>
-            Return to Settings
-          </Button>
+      <div className="h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <Loader2 className="mx-auto h-8 w-8 animate-spin mb-4" />
+          <p className="text-muted-foreground">Setting up your subscription...</p>
         </div>
       </div>
     );
   }
 
-  // Make SURE to wrap the form in <Elements> which provides the stripe context.
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
       <div className="max-w-6xl mx-auto px-4">
@@ -242,6 +235,7 @@ export default function Subscribe() {
             </AlertDescription>
           </Alert>
         )}
+        
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-4">
             {needsPayment ? 'Resolve Payment Issue' : 'Choose Your BackstageOS Plan'}
@@ -251,41 +245,128 @@ export default function Subscribe() {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-12 items-start">
-          {/* Features List */}
-          <div>
-            <Card>
+        {!clientSecret ? (
+          <div className="max-w-5xl mx-auto">
+            <Card className="mb-8">
               <CardHeader>
-                <CardTitle>What's Included</CardTitle>
-                <CardDescription>
-                  Everything you need for professional stage management
-                </CardDescription>
+                <CardTitle>Select Your Profile Type</CardTitle>
+                <CardDescription>Choose the plan that best fits your needs</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {planFeatures.map((feature, index) => (
-                    <div key={index} className="flex items-center gap-3">
-                      <Check className="h-5 w-5 text-green-600 flex-shrink-0" />
-                      <span>{feature}</span>
+              <CardContent className="space-y-6">
+                <RadioGroup value={profileType} onValueChange={setProfileType}>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {(['freelance', 'fulltime', 'team'] as const).map((type) => (
+                      <Label
+                        key={type}
+                        htmlFor={type}
+                        className="flex flex-col cursor-pointer rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary"
+                      >
+                        <RadioGroupItem value={type} id={type} className="sr-only" />
+                        <div className="space-y-2">
+                          <div className="font-semibold capitalize">{type}</div>
+                          <ul className="text-sm text-muted-foreground space-y-1">
+                            {planFeatures[type].map((feature, idx) => (
+                              <li key={idx} className="flex items-start gap-2">
+                                <Check className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
+                                <span>{feature}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </Label>
+                    ))}
+                  </div>
+                </RadioGroup>
+
+                <div className="border-t pt-6">
+                  <Label className="text-base font-semibold mb-3 block">Billing Period</Label>
+                  <RadioGroup value={billingPeriod} onValueChange={(v) => setBillingPeriod(v as any)}>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <Label
+                        htmlFor="monthly"
+                        className="flex items-center justify-between cursor-pointer rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary"
+                      >
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="monthly" id="monthly" />
+                          <span className="font-medium">Monthly</span>
+                        </div>
+                      </Label>
+                      
+                      <Label
+                        htmlFor="annual"
+                        className="flex items-center justify-between cursor-pointer rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary"
+                      >
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="annual" id="annual" />
+                          <span className="font-medium">Annual</span>
+                        </div>
+                        <Badge variant="secondary">Save 18%</Badge>
+                      </Label>
+                      
+                      <Label
+                        htmlFor="lifetime"
+                        className="flex items-center justify-between cursor-pointer rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary"
+                      >
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="lifetime" id="lifetime" />
+                          <span className="font-medium">Lifetime</span>
+                        </div>
+                        <Badge>Limited Offer</Badge>
+                      </Label>
                     </div>
-                  ))}
+                  </RadioGroup>
                 </div>
+
+                <Button 
+                  onClick={createSubscription} 
+                  className="w-full" 
+                  size="lg"
+                  data-testid="button-continue-to-payment"
+                >
+                  Continue to Payment
+                </Button>
               </CardContent>
             </Card>
           </div>
+        ) : (
+          <div className="grid lg:grid-cols-2 gap-12 items-start">
+            <div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>What's Included</CardTitle>
+                  <CardDescription>
+                    {profileType.charAt(0).toUpperCase() + profileType.slice(1)} Plan Features
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {planFeatures[profileType as keyof typeof planFeatures].map((feature, index) => (
+                      <div key={index} className="flex items-center gap-3">
+                        <Check className="h-5 w-5 text-green-600 flex-shrink-0" />
+                        <span>{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
 
-          {/* Subscription Form */}
-          <div>
-            <Elements stripe={stripePromise} options={{ clientSecret }}>
-              <SubscribeForm planType={planType} planPrice={planPrice} />
-            </Elements>
-            
-            <div className="mt-6 text-center text-sm text-muted-foreground">
-              <p>By subscribing, you agree to our Terms of Service and Privacy Policy.</p>
-              <p className="mt-2">You can cancel your subscription at any time.</p>
+            <div>
+              <Elements stripe={stripePromise} options={{ clientSecret }}>
+                <SubscribeForm 
+                  planKey={billingPeriod === 'lifetime' ? 'lifetime' : `${profileType}_${billingPeriod}`}
+                  profileType={profileType}
+                  billingPeriod={billingPeriod}
+                />
+              </Elements>
+              
+              <div className="mt-6 text-center text-sm text-muted-foreground">
+                <p>By subscribing, you agree to our Terms of Service and Privacy Policy.</p>
+                <p className="mt-2">You can cancel your subscription at any time.</p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

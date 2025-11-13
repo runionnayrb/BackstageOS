@@ -15013,16 +15013,20 @@ The Production Team`;
         });
       }
 
-      // Define pricing for different plans
+      // Define pricing for different plans based on profile type
       const planPrices = {
-        monthly: process.env.STRIPE_MONTHLY_PRICE_ID || 'price_monthly_placeholder',
-        annual: process.env.STRIPE_ANNUAL_PRICE_ID || 'price_annual_placeholder',
-        theatre: process.env.STRIPE_THEATRE_PRICE_ID || 'price_theatre_placeholder'
+        freelance_monthly: process.env.STRIPE_FREELANCE_MONTHLY_PRICE_ID,
+        freelance_annual: process.env.STRIPE_FREELANCE_ANNUAL_PRICE_ID,
+        fulltime_monthly: process.env.STRIPE_FULLTIME_MONTHLY_PRICE_ID,
+        fulltime_annual: process.env.STRIPE_FULLTIME_ANNUAL_PRICE_ID,
+        team_monthly: process.env.STRIPE_TEAM_MONTHLY_PRICE_ID,
+        team_annual: process.env.STRIPE_TEAM_ANNUAL_PRICE_ID,
+        lifetime: process.env.STRIPE_LIFETIME_PRICE_ID,
       };
 
       const selectedPriceId = priceId || planPrices[planType as keyof typeof planPrices];
 
-      if (!selectedPriceId || selectedPriceId.includes('placeholder')) {
+      if (!selectedPriceId) {
         return res.status(400).json({ 
           message: "Subscription pricing not configured. Please contact support.",
           requiresPriceConfiguration: true
