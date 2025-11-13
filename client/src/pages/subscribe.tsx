@@ -23,39 +23,56 @@ const SubscribeForm = ({ planKey, profileType, billingPeriod }: { planKey: strin
   const elements = useElements();
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isElementReady, setIsElementReady] = useState(false);
   const [, navigate] = useLocation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsProcessing(true);
 
     if (!stripe || !elements) {
-      setIsProcessing(false);
+      toast({
+        title: "Payment not ready",
+        description: "Please wait for the payment form to load.",
+        variant: "destructive",
+      });
       return;
     }
 
-    const { error } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        return_url: `${window.location.origin}/billing?subscription=success`,
-      },
-    });
-
-    if (error) {
+    if (!isElementReady) {
       toast({
-        title: "Subscription Failed",
-        description: error.message,
+        title: "Payment form loading",
+        description: "Please wait for the payment form to finish loading.",
         variant: "destructive",
       });
-    } else {
-      toast({
-        title: "Subscription Successful",
-        description: "Welcome to BackstageOS! Your subscription is now active.",
-      });
-      navigate("/");
+      return;
     }
-    
-    setIsProcessing(false);
+
+    setIsProcessing(true);
+
+    try {
+      const { error } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          return_url: `${window.location.origin}/billing?subscription=success`,
+        },
+      });
+
+      if (error) {
+        toast({
+          title: "Subscription Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
+    } catch (err: any) {
+      toast({
+        title: "Subscription Failed",
+        description: err.message || "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const getPlanDisplay = () => {
@@ -82,10 +99,10 @@ const SubscribeForm = ({ planKey, profileType, billingPeriod }: { planKey: strin
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <PaymentElement />
+          <PaymentElement onReady={() => setIsElementReady(true)} />
           <Button 
             type="submit" 
-            disabled={!stripe || isProcessing}
+            disabled={!stripe || !isElementReady || isProcessing}
             className="w-full"
             data-testid="button-submit-payment"
           >
@@ -93,6 +110,11 @@ const SubscribeForm = ({ planKey, profileType, billingPeriod }: { planKey: strin
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Processing...
+              </>
+            ) : !isElementReady ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Loading payment form...
               </>
             ) : (
               `Start Subscription`
@@ -115,6 +137,18 @@ export default function Subscribe() {
   
   const needsPayment = (user as any)?.needsPayment;
   const subscriptionStatus = (user as any)?.subscriptionStatus;
+
+  const pricing = {
+    freelance: { monthly: 29, annual: 285 },
+    fulltime: { monthly: 49, annual: 480 },
+    team: { monthly: 99, annual: 970 },
+    lifetime: 599
+  };
+
+  const getPrice = () => {
+    if (billingPeriod === 'lifetime') return pricing.lifetime;
+    return pricing[profileType as keyof typeof pricing][billingPeriod as 'monthly' | 'annual'];
+  };
 
   const planFeatures = {
     freelance: [
@@ -295,34 +329,46 @@ export default function Subscribe() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <Label
                         htmlFor="monthly"
-                        className="flex items-center justify-between cursor-pointer rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary"
+                        className="flex flex-col cursor-pointer rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary"
                       >
-                        <div className="flex items-center gap-2">
-                          <RadioGroupItem value="monthly" id="monthly" />
-                          <span className="font-medium">Monthly</span>
+                        <div className="flex items-center justify-between w-full mb-2">
+                          <div className="flex items-center gap-2">
+                            <RadioGroupItem value="monthly" id="monthly" />
+                            <span className="font-medium">Monthly</span>
+                          </div>
+                          <span className="text-lg font-bold">${pricing[profileType as keyof typeof pricing]?.monthly || 29}/mo</span>
                         </div>
                       </Label>
                       
                       <Label
                         htmlFor="annual"
-                        className="flex items-center justify-between cursor-pointer rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary"
+                        className="flex flex-col cursor-pointer rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary"
                       >
-                        <div className="flex items-center gap-2">
-                          <RadioGroupItem value="annual" id="annual" />
-                          <span className="font-medium">Annual</span>
+                        <div className="flex items-center justify-between w-full mb-2">
+                          <div className="flex items-center gap-2">
+                            <RadioGroupItem value="annual" id="annual" />
+                            <span className="font-medium">Annual</span>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-lg font-bold">${pricing[profileType as keyof typeof pricing]?.annual || 285}/yr</div>
+                            <div className="text-xs text-muted-foreground">${Math.round((pricing[profileType as keyof typeof pricing]?.annual || 285) / 12)}/mo</div>
+                          </div>
                         </div>
-                        <Badge variant="secondary">Save 18%</Badge>
+                        <Badge variant="secondary" className="self-start">Save 18%</Badge>
                       </Label>
                       
                       <Label
                         htmlFor="lifetime"
-                        className="flex items-center justify-between cursor-pointer rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary"
+                        className="flex flex-col cursor-pointer rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary"
                       >
-                        <div className="flex items-center gap-2">
-                          <RadioGroupItem value="lifetime" id="lifetime" />
-                          <span className="font-medium">Lifetime</span>
+                        <div className="flex items-center justify-between w-full mb-2">
+                          <div className="flex items-center gap-2">
+                            <RadioGroupItem value="lifetime" id="lifetime" />
+                            <span className="font-medium">Lifetime</span>
+                          </div>
+                          <span className="text-lg font-bold">${pricing.lifetime}</span>
                         </div>
-                        <Badge>Limited Offer</Badge>
+                        <Badge className="self-start">Limited Offer</Badge>
                       </Label>
                     </div>
                   </RadioGroup>
