@@ -323,19 +323,19 @@ export default function EnhancedHeader() {
                           </DropdownMenuItem>
                         </>
                       )}
-                      {isFeatureEnabled('calendar') && (
+                      {canAccessFeature('calendar-management') && isFeatureEnabled('calendar') && (
                         <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/calendar`)}>
                           <Calendar className="h-4 w-4 mr-2" strokeWidth={1.5} />
                           Calendar
                         </DropdownMenuItem>
                       )}
-                      {isFeatureEnabled('script') && (
+                      {canAccessFeature('script-editor') && isFeatureEnabled('script') && (
                         <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/script`)}>
                           <FileText className="h-4 w-4 mr-2" strokeWidth={1.5} />
                           Script
                         </DropdownMenuItem>
                       )}
-                      {isFeatureEnabled('props') && (
+                      {canAccessFeature('props-tracker') && isFeatureEnabled('props') && (
                         <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/props`)}>
                           <FolderOpen className="h-4 w-4 mr-2" strokeWidth={1.5} />
                           Props

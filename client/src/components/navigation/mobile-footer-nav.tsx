@@ -231,19 +231,19 @@ export default function MobileFooterNav() {
                     </DropdownMenuItem>
                   </>
                 )}
-                {isFeatureEnabled('calendar') && (
+                {canAccessFeature('calendar-management') && isFeatureEnabled('calendar') && (
                   <DropdownMenuItem onClick={() => setLocation(`/shows/${showId}/calendar`)}>
                     <Calendar className="h-4 w-4 mr-2" />
                     Calendar
                   </DropdownMenuItem>
                 )}
-                {isFeatureEnabled('script') && (
+                {canAccessFeature('script-editor') && isFeatureEnabled('script') && (
                   <DropdownMenuItem onClick={() => setLocation(`/shows/${showId}/script`)}>
                     <FileText className="h-4 w-4 mr-2" />
                     Script
                   </DropdownMenuItem>
                 )}
-                {isFeatureEnabled('props') && (
+                {canAccessFeature('props-tracker') && isFeatureEnabled('props') && (
                   <DropdownMenuItem onClick={() => setLocation(`/shows/${showId}/props`)}>
                     <FolderOpen className="h-4 w-4 mr-2" />
                     Props

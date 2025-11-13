@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { isAdmin } from "@/lib/admin";
 import { useFeatureSettings } from "@/hooks/useFeatureSettings";
+import { useBetaFeatures } from "@/hooks/useBetaFeatures";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,6 +60,9 @@ export default function MobileBottomNav() {
   // Get feature settings for the current show
   const { isFeatureEnabled, isEmailEnabled } = useFeatureSettings(currentShowId);
   
+  // Get beta feature access
+  const { canAccessFeature } = useBetaFeatures();
+  
   // Fixed navigation items (conditionally visible based on feature settings)
   const fixedNavItems: NavItem[] = [
     {
@@ -93,13 +97,13 @@ export default function MobileBottomNav() {
       if (isFeatureEnabled('reports')) {
         menuItems.push({ label: 'Reports', href: `/shows/${currentShowId}/reports`, icon: FileText });
       }
-      if (isFeatureEnabled('calendar')) {
+      if (canAccessFeature('calendar-management') && isFeatureEnabled('calendar')) {
         menuItems.push({ label: 'Calendar', href: `/shows/${currentShowId}/calendar`, icon: Calendar });
       }
-      if (isFeatureEnabled('script')) {
+      if (canAccessFeature('script-editor') && isFeatureEnabled('script')) {
         menuItems.push({ label: 'Script', href: `/shows/${currentShowId}/script`, icon: FileText });
       }
-      if (isFeatureEnabled('props')) {
+      if (canAccessFeature('props-tracker') && isFeatureEnabled('props')) {
         menuItems.push({ label: 'Props', href: `/shows/${currentShowId}/props`, icon: Package });
       }
       if (isFeatureEnabled('contacts')) {
