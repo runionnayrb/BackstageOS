@@ -111,6 +111,7 @@ export default function Subscribe() {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const [, navigate] = useLocation();
   
   const needsPayment = (user as any)?.needsPayment;
   const subscriptionStatus = (user as any)?.subscriptionStatus;
@@ -149,6 +150,17 @@ export default function Subscribe() {
   }, []);
 
   const createSubscription = async () => {
+    if (!user) {
+      toast({
+        title: "Login Required",
+        description: "Please log in or create an account to subscribe.",
+      });
+      const currentParams = new URLSearchParams(window.location.search).toString();
+      const redirectUrl = `/subscribe${currentParams ? `?${currentParams}` : ''}`;
+      navigate(`/login?redirect=${encodeURIComponent(redirectUrl)}`);
+      return;
+    }
+
     setIsLoading(true);
     setClientSecret("");
 
