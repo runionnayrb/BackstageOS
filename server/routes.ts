@@ -14955,11 +14955,7 @@ The Production Team`;
   });
 
   // Get or Create Subscription for recurring payments
-  app.post('/api/get-or-create-subscription', async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
+  app.post('/api/get-or-create-subscription', isAuthenticated, async (req, res) => {
     try {
       let user = req.user;
       const { planType = "monthly", priceId } = req.body;
