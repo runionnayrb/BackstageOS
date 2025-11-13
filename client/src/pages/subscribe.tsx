@@ -1,6 +1,7 @@
 import { useStripe, Elements, PaymentElement, useElements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { useEffect, useState } from 'react';
+import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -138,16 +139,48 @@ export default function Subscribe() {
   const needsPayment = (user as any)?.needsPayment;
   const subscriptionStatus = (user as any)?.subscriptionStatus;
 
-  const pricing = {
-    freelance: { monthly: 29, annual: 285 },
-    fulltime: { monthly: 49, annual: 480 },
-    team: { monthly: 99, annual: 970 },
-    lifetime: 599
+  // Fetch billing plans from admin settings
+  const { data: billingPlans = [] } = useQuery<any[]>({
+    queryKey: ["/api/billing/plans"],
+  });
+
+  // Build pricing object from billing plans
+  const getPricingFromPlans = () => {
+    const pricing: any = {
+      freelance: { monthly: 29, annual: 285 },
+      fulltime: { monthly: 49, annual: 480 },
+      team: { monthly: 99, annual: 970 },
+      lifetime: 599
+    };
+
+    billingPlans.forEach(plan => {
+      const planId = plan.planId?.toLowerCase() || '';
+      const price = plan.price;
+      const interval = plan.billingInterval;
+
+      // Match plan IDs to profile types
+      if (planId.includes('freelance')) {
+        if (interval === 'month') pricing.freelance.monthly = price;
+        if (interval === 'year') pricing.freelance.annual = price;
+      } else if (planId.includes('fulltime') || planId.includes('full-time')) {
+        if (interval === 'month') pricing.fulltime.monthly = price;
+        if (interval === 'year') pricing.fulltime.annual = price;
+      } else if (planId.includes('team')) {
+        if (interval === 'month') pricing.team.monthly = price;
+        if (interval === 'year') pricing.team.annual = price;
+      } else if (planId.includes('lifetime')) {
+        pricing.lifetime = price;
+      }
+    });
+
+    return pricing;
   };
+
+  const pricing = getPricingFromPlans();
 
   const getPrice = () => {
     if (billingPeriod === 'lifetime') return pricing.lifetime;
-    return pricing[profileType as keyof typeof pricing][billingPeriod as 'monthly' | 'annual'];
+    return pricing[profileType as keyof typeof pricing]?.[billingPeriod as 'monthly' | 'annual'] || 0;
   };
 
   const planFeatures = {
