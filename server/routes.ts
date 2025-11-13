@@ -833,6 +833,18 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2024-11-20.acacia",
 });
 
+// Log Stripe configuration on startup
+const stripeMode = process.env.STRIPE_SECRET_KEY.startsWith('sk_test_') ? 'TEST MODE' : 'LIVE MODE';
+console.log(`\n🔑 Stripe initialized in: ${stripeMode}`);
+console.log(`📋 Loaded Price IDs:`);
+console.log(`   - Freelance Monthly: ${process.env.STRIPE_FREELANCE_MONTHLY_PRICE_ID}`);
+console.log(`   - Freelance Annual: ${process.env.STRIPE_FREELANCE_ANNUAL_PRICE_ID}`);
+console.log(`   - Full-time Monthly: ${process.env.STRIPE_FULLTIME_MONTHLY_PRICE_ID}`);
+console.log(`   - Full-time Annual: ${process.env.STRIPE_FULLTIME_ANNUAL_PRICE_ID}`);
+console.log(`   - Team Monthly: ${process.env.STRIPE_TEAM_MONTHLY_PRICE_ID}`);
+console.log(`   - Team Annual: ${process.env.STRIPE_TEAM_ANNUAL_PRICE_ID}`);
+console.log(`   - Lifetime: ${process.env.STRIPE_LIFETIME_PRICE_ID}\n`);
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // CRITICAL: Email webhook endpoint must be registered FIRST to avoid production routing conflicts
   app.post('/email-webhook', async (req: any, res) => {
