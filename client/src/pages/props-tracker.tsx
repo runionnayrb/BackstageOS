@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useParams, useLocation } from "wouter";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { useOptimisticMutation, useOptimisticCreate, useOptimisticUpdate, useOptimisticDelete } from "@/hooks/useOptimisticMutation";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { setPageHeaderIcons, clearPageHeaderIcons } from "@/hooks/useHeaderIcons";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -317,16 +318,16 @@ export default function PropsTracker() {
     enabled: !!projectId && isAuthenticated,
   });
 
-  const createPropMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
-      await apiRequest("POST", `/api/projects/${projectId}/props`, data);
+  const createPropMutation = useOptimisticCreate<Prop, typeof formData>({
+    queryKey: ["/api/projects", projectId, "props"],
+    mutationFn: async (data) => {
+      return await apiRequest("POST", `/api/projects/${projectId}/props`, data);
     },
     onSuccess: () => {
       toast({
         title: "Prop added",
         description: "The prop has been added successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "props"] });
       resetForm();
       setIsAddingProp(false);
     },
@@ -339,16 +340,22 @@ export default function PropsTracker() {
     },
   });
 
-  const updatePropMutation = useMutation({
-    mutationFn: async (data: { id: number; updates: Partial<typeof formData> }) => {
-      await apiRequest("PATCH", `/api/projects/${projectId}/props/${data.id}`, data.updates);
+  const updatePropMutation = useOptimisticMutation<Prop, { id: number; updates: Partial<typeof formData> }>({
+    queryKey: ["/api/projects", projectId, "props"],
+    mutationFn: async (data) => {
+      return await apiRequest("PATCH", `/api/projects/${projectId}/props/${data.id}`, data.updates);
+    },
+    updateFn: (oldData: Prop[] | undefined, variables) => {
+      if (!oldData) return oldData;
+      return oldData.map(item => 
+        item.id === variables.id ? { ...item, ...variables.updates } : item
+      );
     },
     onSuccess: () => {
       toast({
         title: "Prop updated",
         description: "The prop has been updated successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "props"] });
       setEditingProp(null);
       resetForm();
     },
@@ -361,8 +368,9 @@ export default function PropsTracker() {
     },
   });
 
-  const deletePropMutation = useMutation({
-    mutationFn: async (id: number) => {
+  const deletePropMutation = useOptimisticDelete<{ id: number }>({
+    queryKey: ["/api/projects", projectId, "props"],
+    mutationFn: async ({ id }) => {
       await apiRequest("DELETE", `/api/projects/${projectId}/props/${id}`);
     },
     onSuccess: () => {
@@ -370,7 +378,6 @@ export default function PropsTracker() {
         title: "Prop deleted",
         description: "The prop has been deleted successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "props"] });
     },
     onError: () => {
       toast({
@@ -424,7 +431,7 @@ export default function PropsTracker() {
 
   const handleDelete = (id: number) => {
     if (confirm("Are you sure you want to delete this prop?")) {
-      deletePropMutation.mutate(id);
+      deletePropMutation.mutate({ id });
     }
   };
 

@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Search, Plus, FileText, Folder, MoreVertical, Pin, Archive, Tag, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
+import { useOptimisticMutation } from "@/hooks/useOptimisticMutation";
 import { NoteEditor } from "../components/notes/NoteEditor";
 import { CreateNoteDialog } from "../components/notes/CreateNoteDialog";
 import { CreateFolderDialog } from "../components/notes/CreateFolderDialog";
@@ -51,21 +52,29 @@ export default function Notes() {
   });
 
   // Pin/unpin note mutation
-  const pinNoteMutation = useMutation({
-    mutationFn: (data: { noteId: number; isPinned: boolean }) =>
+  const pinNoteMutation = useOptimisticMutation<Note, { noteId: number; isPinned: boolean }>({
+    queryKey: ['/api/notes', projectId, selectedFolder, searchQuery],
+    mutationFn: (data) =>
       apiRequest('PUT', `/api/notes/${data.noteId}`, { isPinned: data.isPinned }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/notes'] });
-    }
+    updateFn: (oldData: Note[] | undefined, variables) => {
+      if (!oldData) return oldData;
+      return oldData.map(note =>
+        note.id === variables.noteId ? { ...note, isPinned: variables.isPinned } : note
+      );
+    },
   });
 
   // Archive note mutation
-  const archiveNoteMutation = useMutation({
-    mutationFn: (data: { noteId: number; isArchived: boolean }) =>
+  const archiveNoteMutation = useOptimisticMutation<Note, { noteId: number; isArchived: boolean }>({
+    queryKey: ['/api/notes', projectId, selectedFolder, searchQuery],
+    mutationFn: (data) =>
       apiRequest('PUT', `/api/notes/${data.noteId}`, { isArchived: data.isArchived }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/notes'] });
-    }
+    updateFn: (oldData: Note[] | undefined, variables) => {
+      if (!oldData) return oldData;
+      return oldData.map(note =>
+        note.id === variables.noteId ? { ...note, isArchived: variables.isArchived } : note
+      );
+    },
   });
 
   // Filter notes
