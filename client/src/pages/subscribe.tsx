@@ -167,10 +167,9 @@ export default function Subscribe() {
     const planKey = billingPeriod === 'lifetime' ? 'lifetime' : `${profileType}_${billingPeriod}`;
 
     try {
-      const response = await apiRequest("POST", "/api/get-or-create-subscription", {
+      const data = await apiRequest("POST", "/api/get-or-create-subscription", {
         planType: planKey
       });
-      const data = await response.json();
 
       if (data.clientSecret) {
         setClientSecret(data.clientSecret);
