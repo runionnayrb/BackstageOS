@@ -845,27 +845,7 @@ console.log(`   - Team Monthly: ${process.env.STRIPE_TEAM_MONTHLY_PRICE_ID}`);
 console.log(`   - Team Annual: ${process.env.STRIPE_TEAM_ANNUAL_PRICE_ID}`);
 console.log(`   - Lifetime: ${process.env.STRIPE_LIFETIME_PRICE_ID}\n`);
 
-// Test Price ID validation on startup
-(async () => {
-  try {
-    if (process.env.STRIPE_FREELANCE_MONTHLY_PRICE_ID) {
-      console.log(`🔍 Verifying Freelance Monthly price ID...`);
-      const price = await stripe.prices.retrieve(process.env.STRIPE_FREELANCE_MONTHLY_PRICE_ID);
-      console.log(`✅ Price verification successful!`);
-      console.log(`   Price: ${price.unit_amount / 100} ${price.currency}`);
-      console.log(`   Product: ${price.product}`);
-      console.log(`   Mode: ${price.livemode ? 'LIVE' : 'TEST'}\n`);
-    }
-  } catch (error: any) {
-    console.error(`❌ STRIPE PRICE VERIFICATION FAILED!`);
-    console.error(`   Price ID: ${process.env.STRIPE_FREELANCE_MONTHLY_PRICE_ID}`);
-    console.error(`   Error: ${error.message}`);
-    console.error(`\n⚠️  SOLUTION: Make sure the Price IDs are from the same Stripe account as your API key.`);
-    console.error(`   1. Go to https://dashboard.stripe.com/test/apikeys`);
-    console.error(`   2. Verify the email in the top right matches where you copied the Price IDs`);
-    console.error(`   3. Go to https://dashboard.stripe.com/test/products and copy the correct Price IDs\n`);
-  }
-})();
+// Price IDs will be validated when actually used during checkout
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // CRITICAL: Email webhook endpoint must be registered FIRST to avoid production routing conflicts
