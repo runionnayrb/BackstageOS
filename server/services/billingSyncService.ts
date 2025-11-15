@@ -7,7 +7,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
 }
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2024-11-20.acacia",
+  apiVersion: "2025-06-30.basil",
 });
 
 export class BillingSyncService {
@@ -148,7 +148,7 @@ export class BillingSyncService {
         newProductId = product.id;
       }
 
-      if (priceChanged || intervalChanged) {
+      if (priceChanged || intervalChanged || !existingPlan.activeStripePriceId) {
         const finalPrice = planData.price ?? existingPlan.price;
         const finalInterval = planData.billingInterval ?? existingPlan.billingInterval;
         const amount = Math.round(parseFloat(String(finalPrice)) * 100);
