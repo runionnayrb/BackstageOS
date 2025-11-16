@@ -740,13 +740,12 @@ export default function TemplateSettings() {
       // Prepare all changes to save
       const savePromises = [];
       
-      // CRITICAL FIX: Save layout configuration with the TEMPLATE, not global settings
-      // The layout configuration should be part of the template data
+      // ALWAYS save the current template to ensure name changes and all updates persist
       const currentTemplate = templates[selectedPhase];
-      if (currentTemplate && dataToSave.layoutConfiguration) {
-        console.log('💾 GLOBAL SAVE: Saving template with layout configuration...');
+      if (currentTemplate) {
+        console.log('💾 GLOBAL SAVE: Saving template (including name, layout, and all fields)...');
         
-        // Save the template with the layout configuration included
+        // Save the template with all current state
         const templateData = {
           name: currentTemplate.name,
           description: currentTemplate.description,
@@ -755,7 +754,7 @@ export default function TemplateSettings() {
           header: currentTemplate.header,
           footer: currentTemplate.footer,
           fields: currentTemplate.fields,
-          layoutConfiguration: dataToSave.layoutConfiguration,
+          layoutConfiguration: dataToSave.layoutConfiguration || currentTemplate.layoutConfiguration,
         };
         
         const isExisting = typeof currentTemplate.id === 'string' && /^\d+$/.test(currentTemplate.id);
@@ -770,7 +769,7 @@ export default function TemplateSettings() {
           );
         }
       } else {
-        console.log('⚠️ GLOBAL SAVE: No layout configuration changes to save');
+        console.log('⚠️ GLOBAL SAVE: No current template to save');
       }
       
       // Save department names if there are changes
