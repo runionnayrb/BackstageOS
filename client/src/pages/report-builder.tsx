@@ -121,7 +121,11 @@ export default function ReportBuilder() {
   const generatePageTitle = (type: string, isEdit: boolean): string => {
     if (isEdit) return "Edit Report";
     
-    // Use dynamic report type name if available
+    // Use template name if available, then report type name, then fallback
+    if (matchingTemplate?.name) {
+      return `New ${matchingTemplate.name}`;
+    }
+    
     if (currentReportType?.name) {
       return `New ${currentReportType.name}`;
     }
@@ -166,8 +170,8 @@ export default function ReportBuilder() {
         form.setValue("content", existingReport.content || {});
         setSelectedTemplate('custom-layout');
       } else {
-        // Auto-generate title based on report type name (most up-to-date source)
-        const reportTitle = currentReportType?.name || matchingTemplate?.name || generateReportTitle(reportType);
+        // Auto-generate title based on template name (most up-to-date source)
+        const reportTitle = matchingTemplate?.name || currentReportType?.name || generateReportTitle(reportType);
         form.setValue("title", reportTitle);
         
         // ALWAYS use custom template from matchingTemplate (not projectSettings)
@@ -629,7 +633,7 @@ export default function ReportBuilder() {
                         padding: '8px 0'
                       }}
                     >
-                      <div>{form.watch("title") || currentReportType?.name || matchingTemplate?.name || generateReportTitle(reportType)}</div>
+                      <div>{form.watch("title") || matchingTemplate?.name || currentReportType?.name || generateReportTitle(reportType)}</div>
                       <div style={{ marginTop: '8px' }}>{project?.name || 'Show Name'}</div>
                       <div style={{ marginTop: '4px' }}>{new Date(form.watch("date") || new Date()).toLocaleDateString()}</div>
                     </div>

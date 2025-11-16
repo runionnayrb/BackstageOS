@@ -68,7 +68,7 @@ export default function ShowReports() {
     : null;
   
   const reportTypeName = currentReportType 
-    ? `${currentReportType.name} Reports`
+    ? currentReportType.name
     : "Reports";
 
   return (
