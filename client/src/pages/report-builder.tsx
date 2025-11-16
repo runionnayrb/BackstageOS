@@ -87,6 +87,12 @@ export default function ReportBuilder() {
     enabled: !!projectId,
   });
 
+  // Fetch report types to get the current custom names
+  const { data: reportTypes } = useQuery<any>({
+    queryKey: [`/api/projects/${projectId}/report-types`],
+    enabled: !!projectId,
+  });
+
   // Filter templates to only show the one matching the current report type
   const customTemplates = Array.isArray(templateData) ? templateData : [];
   
@@ -95,6 +101,11 @@ export default function ReportBuilder() {
   const matchingTemplate = customTemplates.find((template: any) => 
     template.type === reportType || template.phase === reportType
   );
+
+  // Find the report type to get its current name
+  const currentReportType = Array.isArray(reportTypes) 
+    ? reportTypes.find((rt: any) => rt.slug === reportType)
+    : null;
 
   // Helper function to generate report title from type
   const generateReportTitle = (type: string): string => {
@@ -110,11 +121,18 @@ export default function ReportBuilder() {
   const generatePageTitle = (type: string, isEdit: boolean): string => {
     if (isEdit) return "Edit Report";
     
+    // Use dynamic report type name if available
+    if (currentReportType?.name) {
+      return `New ${currentReportType.name}`;
+    }
+    
+    // Fallback to hardcoded map
     const titleMap: Record<string, string> = {
       'rehearsal': 'New Rehearsal Report',
       'tech': 'New Technical Rehearsal Report',
       'performance': 'New Performance Report',
-      'meeting': 'New Production Meeting Report'
+      'meeting': 'New Production Meeting Report',
+      'previews': 'New Previews Report'
     };
     return titleMap[type] || 'New Report';
   };
@@ -148,8 +166,8 @@ export default function ReportBuilder() {
         form.setValue("content", existingReport.content || {});
         setSelectedTemplate('custom-layout');
       } else {
-        // Auto-generate title based on template name or report type
-        const reportTitle = matchingTemplate?.name || generateReportTitle(reportType);
+        // Auto-generate title based on report type name (most up-to-date source)
+        const reportTitle = currentReportType?.name || matchingTemplate?.name || generateReportTitle(reportType);
         form.setValue("title", reportTitle);
         
         // ALWAYS use custom template from matchingTemplate (not projectSettings)
@@ -175,7 +193,7 @@ export default function ReportBuilder() {
         }
       }
     }
-  }, [projectId, reportType, existingReport, isEditMode, matchingTemplate, projectSettings, settingsLoading]);
+  }, [projectId, reportType, existingReport, isEditMode, matchingTemplate, projectSettings, settingsLoading, currentReportType]);
 
   const mutation = useMutation({
     mutationFn: async (data: ReportFormData) => {
@@ -611,7 +629,7 @@ export default function ReportBuilder() {
                         padding: '8px 0'
                       }}
                     >
-                      <div>{form.watch("title") || generateReportTitle(reportType)}</div>
+                      <div>{form.watch("title") || currentReportType?.name || matchingTemplate?.name || generateReportTitle(reportType)}</div>
                       <div style={{ marginTop: '8px' }}>{project?.name || 'Show Name'}</div>
                       <div style={{ marginTop: '4px' }}>{new Date(form.watch("date") || new Date()).toLocaleDateString()}</div>
                     </div>

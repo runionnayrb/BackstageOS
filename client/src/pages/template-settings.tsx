@@ -299,6 +299,7 @@ export default function TemplateSettings() {
         ...defaultTemplate,
         id: `default-${slug}`,
         phase: slug as any,
+        name: reportType.name, // Always use report type name
       };
     });
 
@@ -306,11 +307,12 @@ export default function TemplateSettings() {
     if (userTemplates && Array.isArray(userTemplates)) {
       userTemplates.forEach((userTemplate: any) => {
         const slug = userTemplate.phase || userTemplate.type;
+        const matchingReportType = reportTypes.find((rt: any) => rt.slug === slug);
         if (slug && initialTemplates[slug]) {
           initialTemplates[slug] = {
             id: userTemplate.id.toString(),
             phase: slug as any,
-            name: userTemplate.name,
+            name: matchingReportType?.name || userTemplate.name, // Prefer report type name
             description: userTemplate.description || "",
             header: userTemplate.header || "",
             footer: userTemplate.footer || "",
@@ -1033,6 +1035,31 @@ export default function TemplateSettings() {
                           // If locking (saving), get the latest configuration and trigger global save
                           if (!newEditMode) {
                             console.log('🔒 LOCKING: Getting latest configuration before save...');
+                            
+                            // First, save the report type name if it changed
+                            const currentReportType = reportTypes?.find((rt: any) => rt.slug === phase);
+                            if (currentReportType && template.name !== currentReportType.name) {
+                              console.log('📝 Updating report type name:', { from: currentReportType.name, to: template.name });
+                              apiRequest("PATCH", `/api/projects/${projectId}/report-types/${currentReportType.id}`, {
+                                name: template.name
+                              }).then(() => {
+                                // Invalidate report types query to refresh the data everywhere
+                                queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/report-types`] });
+                                queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/templates`] });
+                                
+                                toast({
+                                  title: "Report Type Updated",
+                                  description: `"${template.name}" saved successfully`,
+                                });
+                              }).catch(error => {
+                                console.error('Failed to update report type name:', error);
+                                toast({
+                                  title: "Error",
+                                  description: "Failed to update report type name",
+                                  variant: "destructive",
+                                });
+                              });
+                            }
                             
                             // Get the latest configuration from the FlexibleLayoutEditor
                             let currentConfig = null;
