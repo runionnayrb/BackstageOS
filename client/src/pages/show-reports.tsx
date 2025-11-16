@@ -135,9 +135,10 @@ export default function ShowReports() {
                 key={report.id} 
                 className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
                 onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}/${report.id}`)}
+                data-testid={`report-item-${report.id}`}
               >
-                <h3 className="text-lg font-medium text-gray-900">
-                  {report.title} - {project.name} - {new Date(report.date || report.createdAt).toLocaleDateString()}
+                <h3 className="text-lg font-medium text-gray-900" data-testid={`report-title-${report.id}`}>
+                  {reportTypeName} - {project.name} - {new Date(report.date || report.createdAt).toLocaleDateString()}
                 </h3>
               </div>
             ))}
