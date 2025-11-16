@@ -307,11 +307,15 @@ export default function TemplateSettings() {
     if (userTemplates && Array.isArray(userTemplates)) {
       userTemplates.forEach((userTemplate: any) => {
         const slug = userTemplate.phase || userTemplate.type;
+        const matchingReportType = reportTypes.find((rt: any) => rt.slug === slug);
+        const defaultTemplate = defaultTemplates[slug];
+        
         if (slug && initialTemplates[slug]) {
           initialTemplates[slug] = {
             id: userTemplate.id.toString(),
             phase: slug as any,
-            name: userTemplate.name, // Use the user's custom template name
+            // Preserve user's custom template name, fallback to report type name, then default
+            name: userTemplate.name ?? matchingReportType?.name ?? defaultTemplate?.name ?? slug,
             description: userTemplate.description || "",
             header: userTemplate.header || "",
             footer: userTemplate.footer || "",
