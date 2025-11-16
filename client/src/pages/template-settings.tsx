@@ -349,8 +349,15 @@ export default function TemplateSettings() {
 
     console.log('✅ Templates initialized with unified showSettings approach - single database table!');
     
-    setTemplates(initialTemplates);
-  }, [projectId, userTemplates, showSettings, reportTypes, isSaving]);
+    // Only update templates if there's an actual change from server data
+    // This prevents overwriting optimistic updates during saves
+    const currentTemplatesJson = JSON.stringify(templates);
+    const newTemplatesJson = JSON.stringify(initialTemplates);
+    
+    if (currentTemplatesJson !== newTemplatesJson) {
+      setTemplates(initialTemplates);
+    }
+  }, [projectId, userTemplates, showSettings, reportTypes]);
 
   // Update departments list when settings change (only if not currently reordering)
   useEffect(() => {
@@ -872,8 +879,19 @@ export default function TemplateSettings() {
     },
     onSuccess: async (result) => {
       console.log('✅ GLOBAL SAVE: All template changes saved successfully');
+      
+      const now = new Date();
       setIsSaving(false);
-      setLastSaved(new Date());
+      setLastSaved(now);
+      
+      // Update local template state with new timestamp
+      setTemplates(prev => ({
+        ...prev,
+        [selectedPhase]: {
+          ...prev[selectedPhase],
+          updatedAt: now.toISOString()
+        }
+      }));
       
       // Clear pending changes
       setPendingChanges({
