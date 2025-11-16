@@ -674,7 +674,41 @@ export default function TemplateSettings() {
       
       return response;
     },
-    onSuccess: (response) => {
+    onMutate: async (template) => {
+      // Cancel outgoing refetches so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: [`/api/projects/${projectId}/templates`] });
+      
+      // Snapshot the previous value
+      const previousTemplates = queryClient.getQueryData([`/api/projects/${projectId}/templates`]);
+      
+      // Optimistically update the cache
+      queryClient.setQueryData([`/api/projects/${projectId}/templates`], (old: any) => {
+        if (!Array.isArray(old)) return old;
+        
+        const existingIndex = old.findIndex((t: any) => 
+          (t.phase === template.phase || t.type === template.phase)
+        );
+        
+        if (existingIndex >= 0) {
+          // Update existing template
+          const updated = [...old];
+          updated[existingIndex] = { 
+            ...updated[existingIndex],
+            ...template,
+            updatedAt: new Date().toISOString()
+          };
+          return updated;
+        } else {
+          // Add new template
+          return [...old, { ...template, updatedAt: new Date().toISOString() }];
+        }
+      });
+      
+      console.log('🚀 Optimistic update applied to cache');
+      
+      return { previousTemplates };
+    },
+    onSuccess: async (response) => {
       setIsSaving(false);
       setLastSaved(new Date());
       
@@ -693,38 +727,17 @@ export default function TemplateSettings() {
         }));
       }
       
-      // Force update the show settings timestamp by touching the settings
-      const touchSettings = async () => {
-        try {
-          // Get current settings and save them again to update timestamp
-          const currentSettings = await apiRequest("GET", `/api/projects/${projectId}/settings`);
-          if (currentSettings) {
-            await apiRequest("PUT", `/api/projects/${projectId}/settings`, {
-              ...currentSettings,
-              updatedAt: new Date().toISOString()
-            });
-            console.log('✅ Settings timestamp updated');
-          }
-        } catch (error) {
-          console.log('⚠️ Could not update timestamp directly:', error);
-        }
-      };
-      
-      touchSettings();
-      
-      // CRITICAL FIX: Force refresh of ALL related queries to ensure layout changes are loaded
-      console.log('🔄 GLOBAL SAVE: Invalidating queries to refresh data...');
+      // Invalidate to refetch and confirm server state
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/templates`] });
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
-      
-      // Force immediate refetch to ensure data consistency
-      setTimeout(() => {
-        console.log('🔄 FORCED REFETCH: Re-fetching settings to ensure latest data loaded');
-        queryClient.refetchQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
-      }, 100);
     },
-    onError: (error) => {
+    onError: (error, template, context: any) => {
       setIsSaving(false);
+      
+      // Rollback to previous state on error
+      if (context?.previousTemplates) {
+        queryClient.setQueryData([`/api/projects/${projectId}/templates`], context.previousTemplates);
+      }
+      
       console.error("Template save error:", error);
       toast({
         title: "Error", 
@@ -749,11 +762,13 @@ export default function TemplateSettings() {
       
       // ALWAYS save the current template to ensure name changes and all updates persist
       const currentTemplate = templates[selectedPhase];
+      let templateData = null;
+      
       if (currentTemplate) {
         console.log('💾 GLOBAL SAVE: Saving template (including name, layout, and all fields)...');
         
         // Save the template with all current state
-        const templateData = {
+        templateData = {
           name: currentTemplate.name,
           description: currentTemplate.description,
           type: currentTemplate.phase,
@@ -811,9 +826,51 @@ export default function TemplateSettings() {
       
       // Execute all saves simultaneously
       await Promise.all(savePromises);
-      return saveData.templateName;
+      return { templateName: saveData.templateName, templateData };
     },
-    onSuccess: async (templateName?: string) => {
+    onMutate: async (saveData) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: [`/api/projects/${projectId}/templates`] });
+      
+      // Snapshot previous value
+      const previousTemplates = queryClient.getQueryData([`/api/projects/${projectId}/templates`]);
+      
+      // Optimistically update the cache with current template state
+      const currentTemplate = templates[selectedPhase];
+      if (currentTemplate) {
+        queryClient.setQueryData([`/api/projects/${projectId}/templates`], (old: any) => {
+          if (!Array.isArray(old)) return old;
+          
+          const existingIndex = old.findIndex((t: any) => 
+            (t.phase === currentTemplate.phase || t.type === currentTemplate.phase)
+          );
+          
+          if (existingIndex >= 0) {
+            // Update existing template
+            const updated = [...old];
+            updated[existingIndex] = { 
+              ...updated[existingIndex],
+              name: currentTemplate.name,
+              description: currentTemplate.description,
+              header: currentTemplate.header,
+              footer: currentTemplate.footer,
+              fields: currentTemplate.fields,
+              layoutConfiguration: currentTemplate.layoutConfiguration,
+              updatedAt: new Date().toISOString()
+            };
+            return updated;
+          } else {
+            // Add new template
+            return [...old, { ...currentTemplate, updatedAt: new Date().toISOString() }];
+          }
+        });
+        
+        console.log('🚀 Optimistic update applied for template:', currentTemplate.name);
+      }
+      
+      return { previousTemplates };
+    },
+    onSuccess: async (result) => {
       console.log('✅ GLOBAL SAVE: All template changes saved successfully');
       setIsSaving(false);
       setLastSaved(new Date());
@@ -829,22 +886,24 @@ export default function TemplateSettings() {
       
       console.log('🧹 GLOBAL SAVE: Pending changes cleared after successful save');
       
-      // CRITICAL FIX: Wait for cache invalidation to complete before showing success
-      console.log('🔄 Refreshing data and waiting for completion...');
-      await queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
-      
-      // Wait a bit more to ensure data is fully refreshed
-      await new Promise(resolve => setTimeout(resolve, 500));
-      console.log('✅ Cache refresh completed - data is now current');
+      // Invalidate to refetch and confirm server state
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/templates`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
       
       toast({
-        title: templateName ? `${templateName} saved` : "Template saved",
+        title: result?.templateName ? `${result.templateName} saved` : "Template saved",
         description: "All template changes have been saved successfully.",
       });
     },
-    onError: (error) => {
+    onError: (error, saveData, context: any) => {
       console.error('❌ GLOBAL SAVE: Failed to save template changes:', error);
       setIsSaving(false);
+      
+      // Rollback to previous state
+      if (context?.previousTemplates) {
+        queryClient.setQueryData([`/api/projects/${projectId}/templates`], context.previousTemplates);
+      }
+      
       toast({
         title: "Error saving template",
         description: "Failed to save template changes. Please try again.",
