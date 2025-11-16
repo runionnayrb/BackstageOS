@@ -77,8 +77,11 @@ export default function ShowReports() {
     ? templates.find((t: any) => t.phase === reportType || t.type === reportType)
     : null;
   
-  // Use template name first (custom), then report type name (default), then fallback
-  const reportTypeName = currentTemplate?.name || currentReportType?.name || "Reports";
+  // Page title = Report Type category name (e.g., "Meeting Reports")
+  const pageTitle = currentReportType?.name || "Reports";
+  
+  // Template name for individual reports (e.g., "Production Meeting Report")
+  const templateName = currentTemplate?.name || currentReportType?.name || "Report";
 
   return (
     <div className="w-full">
@@ -113,7 +116,7 @@ export default function ShowReports() {
           </div>
           
           <div className="mb-2">
-            <h1 className="text-3xl font-bold text-gray-900">{reportTypeName}</h1>
+            <h1 className="text-3xl font-bold text-gray-900">{pageTitle}</h1>
             <p className="text-gray-600 mt-1">{project.name}</p>
           </div>
         </div>
@@ -125,7 +128,7 @@ export default function ShowReports() {
         ) : reports.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">
-              No {reportTypeName.toLowerCase()} created yet.
+              No {pageTitle.toLowerCase()} created yet.
             </p>
           </div>
         ) : (
@@ -138,7 +141,7 @@ export default function ShowReports() {
                 data-testid={`report-item-${report.id}`}
               >
                 <h3 className="text-lg font-medium text-gray-900" data-testid={`report-title-${report.id}`}>
-                  {reportTypeName} - {project.name} - {new Date(report.date || report.createdAt).toLocaleDateString()}
+                  {templateName} - {project.name} - {new Date(report.date || report.createdAt).toLocaleDateString()}
                 </h3>
               </div>
             ))}
