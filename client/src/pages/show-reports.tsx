@@ -56,6 +56,11 @@ export default function ShowReports() {
     enabled: !!projectId && isAuthenticated,
   });
 
+  const { data: templates = [] } = useQuery({
+    queryKey: [`/api/projects/${projectId}/templates`],
+    enabled: !!projectId && isAuthenticated,
+  });
+
   // Filter reports by type
   const reports = Array.isArray(allReports) ? allReports.filter((report: any) => report.type === reportType) : [];
 
@@ -67,9 +72,13 @@ export default function ShowReports() {
     ? reportTypes.find((rt: any) => rt.slug === reportType)
     : null;
   
-  const reportTypeName = currentReportType 
-    ? currentReportType.name
-    : "Reports";
+  // Get template for this report type to use its custom name
+  const currentTemplate = Array.isArray(templates)
+    ? templates.find((t: any) => t.phase === reportType || t.type === reportType)
+    : null;
+  
+  // Use template name first (custom), then report type name (default), then fallback
+  const reportTypeName = currentTemplate?.name || currentReportType?.name || "Reports";
 
   return (
     <div className="w-full">

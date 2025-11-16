@@ -271,8 +271,15 @@ export default function TemplateSettings() {
       hasUserTemplates: !!userTemplates, 
       hasShowSettings: !!showSettings,
       hasReportTypes: !!reportTypes,
-      showSettingsLayoutConfig: !!showSettings?.layoutConfiguration 
+      showSettingsLayoutConfig: !!showSettings?.layoutConfiguration,
+      isSaving
     });
+    
+    // Don't reinitialize while saving to prevent race conditions
+    if (isSaving) {
+      console.log('⏸️ Skipping initialization - save in progress');
+      return;
+    }
     
     if (!reportTypes || !Array.isArray(reportTypes) || reportTypes.length === 0) {
       console.log('⏳ Waiting for report types to load...');
@@ -343,7 +350,7 @@ export default function TemplateSettings() {
     console.log('✅ Templates initialized with unified showSettings approach - single database table!');
     
     setTemplates(initialTemplates);
-  }, [projectId, userTemplates, showSettings, reportTypes]);
+  }, [projectId, userTemplates, showSettings, reportTypes, isSaving]);
 
   // Update departments list when settings change (only if not currently reordering)
   useEffect(() => {
