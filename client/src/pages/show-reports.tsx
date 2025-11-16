@@ -51,21 +51,25 @@ export default function ShowReports() {
     enabled: !!projectId && isAuthenticated,
   });
 
+  const { data: reportTypes = [] } = useQuery({
+    queryKey: [`/api/projects/${projectId}/report-types`],
+    enabled: !!projectId && isAuthenticated,
+  });
+
   // Filter reports by type
   const reports = Array.isArray(allReports) ? allReports.filter((report: any) => report.type === reportType) : [];
 
   if (isLoading || projectsLoading) return <div>Loading...</div>;
   if (!project) return <div>Show not found</div>;
 
-  const reportTypeNames: Record<string, string> = {
-    rehearsal: "Rehearsal Reports",
-    tech: "Tech Reports", 
-    previews: "Preview Reports",
-    performance: "Performance Reports",
-    meetings: "Production Meeting Reports"
-  };
-
-  const reportTypeName = reportTypeNames[reportType || ''] || "Reports";
+  // Get report type name from fetched report types
+  const currentReportType = Array.isArray(reportTypes) 
+    ? reportTypes.find((rt: any) => rt.slug === reportType)
+    : null;
+  
+  const reportTypeName = currentReportType 
+    ? `${currentReportType.name} Reports`
+    : "Reports";
 
   return (
     <div className="w-full">
@@ -124,7 +128,7 @@ export default function ShowReports() {
                 onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}/${report.id}`)}
               >
                 <h3 className="text-lg font-medium text-gray-900">
-                  {reportTypeName.slice(0, -1)} - {project.name} - {new Date(report.date || report.createdAt).toLocaleDateString()}
+                  {report.title} - {project.name} - {new Date(report.date || report.createdAt).toLocaleDateString()}
                 </h3>
               </div>
             ))}

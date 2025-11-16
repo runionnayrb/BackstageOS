@@ -6,6 +6,7 @@ import {
   projectMembers,
   reports,
   reportTemplates,
+  reportTypes,
   showDocuments,
   showSchedules,
   showCharacters,
@@ -96,6 +97,8 @@ import {
   type InsertReport,
   type ReportTemplate,
   type InsertReportTemplate,
+  type ReportType,
+  type InsertReportType,
   type ShowDocument,
   type InsertShowDocument,
   type ShowSchedule,
@@ -1009,6 +1012,42 @@ export class DatabaseStorage implements IStorage {
 
   async deleteReportTemplate(id: number): Promise<void> {
     await db.delete(reportTemplates).where(eq(reportTemplates.id, id));
+  }
+
+  // Report types operations
+  async getReportTypesByProjectId(projectId: number): Promise<ReportType[]> {
+    const result = await db.select().from(reportTypes)
+      .where(eq(reportTypes.projectId, projectId))
+      .orderBy(reportTypes.displayOrder);
+    return result;
+  }
+
+  async getReportTypeById(id: number): Promise<ReportType | undefined> {
+    const result = await db.select().from(reportTypes).where(eq(reportTypes.id, id));
+    return result[0];
+  }
+
+  async getReportTypeBySlug(projectId: number, slug: string): Promise<ReportType | undefined> {
+    const result = await db.select().from(reportTypes)
+      .where(and(
+        eq(reportTypes.projectId, projectId),
+        eq(reportTypes.slug, slug)
+      ));
+    return result[0];
+  }
+
+  async createReportType(reportType: InsertReportType): Promise<ReportType> {
+    const result = await db.insert(reportTypes).values(reportType).returning();
+    return result[0];
+  }
+
+  async updateReportType(id: number, reportType: Partial<InsertReportType>): Promise<ReportType> {
+    const result = await db.update(reportTypes).set(reportType).where(eq(reportTypes.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteReportType(id: number): Promise<void> {
+    await db.delete(reportTypes).where(eq(reportTypes.id, id));
   }
 
   // Report notes operations

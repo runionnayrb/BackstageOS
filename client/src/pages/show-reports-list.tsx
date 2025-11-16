@@ -18,28 +18,41 @@ export default function ShowReportsList() {
     queryKey: [`/api/projects/${projectId}`],
   });
 
-  const reportTypes = [
-    {
-      type: "rehearsal",
-      name: "Rehearsal Reports",
-      description: "Daily rehearsal progress and notes"
-    },
-    {
-      type: "tech",
-      name: "Tech Reports", 
-      description: "Technical rehearsal and equipment status"
-    },
-    {
-      type: "performance",
-      name: "Performance Reports",
-      description: "Show performance notes and issues"
-    },
-    {
-      type: "meeting",
-      name: "Meeting Reports",
-      description: "Production meeting minutes and decisions"
-    }
-  ];
+  // Load dynamic report types from API
+  const { data: reportTypesData } = useQuery({
+    queryKey: [`/api/projects/${projectId}/report-types`],
+    enabled: !!projectId,
+  });
+
+  // Use dynamic report types or fallback to defaults
+  const reportTypes = reportTypesData && Array.isArray(reportTypesData) && reportTypesData.length > 0
+    ? reportTypesData.map((rt: any) => ({
+        type: rt.slug,
+        name: rt.name,
+        description: rt.description || ""
+      }))
+    : [
+        {
+          type: "rehearsal",
+          name: "Rehearsal Reports",
+          description: "Daily rehearsal progress and notes"
+        },
+        {
+          type: "tech",
+          name: "Tech Reports", 
+          description: "Technical rehearsal and equipment status"
+        },
+        {
+          type: "performance",
+          name: "Performance Reports",
+          description: "Show performance notes and issues"
+        },
+        {
+          type: "meeting",
+          name: "Meeting Reports",
+          description: "Production meeting minutes and decisions"
+        }
+      ];
 
   if (!project) {
     return (

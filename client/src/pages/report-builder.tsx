@@ -148,8 +148,9 @@ export default function ReportBuilder() {
         form.setValue("content", existingReport.content || {});
         setSelectedTemplate('custom-layout');
       } else {
-        // Auto-generate title based on report type
-        form.setValue("title", generateReportTitle(reportType));
+        // Auto-generate title based on template name or report type
+        const reportTitle = matchingTemplate?.name || generateReportTitle(reportType);
+        form.setValue("title", reportTitle);
         
         // ALWAYS use custom template from matchingTemplate (not projectSettings)
         if (matchingTemplate?.layoutConfiguration) {

@@ -2725,6 +2725,33 @@ Best regards,
         }
       }
 
+      // Create default report types for the new project
+      const defaultReportTypes = [
+        { name: 'Production Meeting Report', slug: 'meetings', description: 'Production meetings and team coordination', displayOrder: 1, icon: 'Users', color: 'bg-orange-100' },
+        { name: 'Rehearsal Report', slug: 'rehearsal', description: 'Daily rehearsal progress and notes', displayOrder: 2, icon: 'Clock', color: 'bg-blue-100' },
+        { name: 'Technical Rehearsal Report', slug: 'tech', description: 'Technical rehearsal and cue integration', displayOrder: 3, icon: 'Settings', color: 'bg-green-100' },
+        { name: 'Preview Performance Report', slug: 'previews', description: 'Preview performance tracking and notes', displayOrder: 4, icon: 'Star', color: 'bg-yellow-100' },
+        { name: 'Performance Report', slug: 'performance', description: 'Official performance documentation', displayOrder: 5, icon: 'Star', color: 'bg-purple-100' }
+      ];
+
+      for (const reportType of defaultReportTypes) {
+        try {
+          await storage.createReportType({
+            projectId: project.id,
+            name: reportType.name,
+            slug: reportType.slug,
+            description: reportType.description,
+            displayOrder: reportType.displayOrder,
+            isDefault: true,
+            icon: reportType.icon,
+            color: reportType.color,
+            createdBy: parseInt(userId)
+          });
+        } catch (error) {
+          console.log(`Error creating report type ${reportType.name} for project ${project.id}:`, error);
+        }
+      }
+
       await storage.upsertShowSettings({
         projectId: project.id,
         scheduleSettings: defaultScheduleSettings,
@@ -5181,6 +5208,149 @@ Best regards,
     } catch (error) {
       console.error("Error updating report template:", error);
       res.status(500).json({ message: "Failed to update template" });
+    }
+  });
+
+  // Report types routes
+  app.get("/api/projects/:id/report-types", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check access (owner or team member)
+      if (project.ownerId !== parseInt(req.user.id)) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(req.user.id));
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const reportTypes = await storage.getReportTypesByProjectId(projectId);
+      res.json(reportTypes);
+    } catch (error) {
+      console.error("Error fetching report types:", error);
+      res.status(500).json({ message: "Failed to fetch report types" });
+    }
+  });
+
+  app.post("/api/projects/:id/report-types", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership or team membership
+      if (project.ownerId !== parseInt(req.user.id)) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(req.user.id));
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      // Validate request body
+      const validationResult = insertReportTypeSchema.safeParse({
+        ...req.body,
+        projectId,
+        createdBy: parseInt(req.user.id),
+      });
+
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          message: "Invalid report type data", 
+          errors: validationResult.error.errors 
+        });
+      }
+
+      const reportType = await storage.createReportType(validationResult.data);
+      res.json(reportType);
+    } catch (error) {
+      console.error("Error creating report type:", error);
+      res.status(500).json({ message: "Failed to create report type" });
+    }
+  });
+
+  app.patch("/api/projects/:id/report-types/:reportTypeId", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const reportTypeId = parseInt(req.params.reportTypeId);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership or team membership
+      if (project.ownerId !== parseInt(req.user.id)) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(req.user.id));
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      // Verify report type belongs to this project
+      const existingReportType = await storage.getReportTypeById(reportTypeId);
+      if (!existingReportType || existingReportType.projectId !== projectId) {
+        return res.status(404).json({ message: "Report type not found in this project" });
+      }
+
+      // Validate request body (partial update allowed)
+      const validationResult = insertReportTypeSchema.partial().safeParse(req.body);
+      
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          message: "Invalid report type data", 
+          errors: validationResult.error.errors 
+        });
+      }
+
+      const reportType = await storage.updateReportType(reportTypeId, validationResult.data);
+      res.json(reportType);
+    } catch (error) {
+      console.error("Error updating report type:", error);
+      res.status(500).json({ message: "Failed to update report type" });
+    }
+  });
+
+  app.delete("/api/projects/:id/report-types/:reportTypeId", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const reportTypeId = parseInt(req.params.reportTypeId);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership or team membership
+      if (project.ownerId !== parseInt(req.user.id)) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(req.user.id));
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      // Verify report type belongs to this project
+      const existingReportType = await storage.getReportTypeById(reportTypeId);
+      if (!existingReportType || existingReportType.projectId !== projectId) {
+        return res.status(404).json({ message: "Report type not found in this project" });
+      }
+
+      await storage.deleteReportType(reportTypeId);
+      res.json({ message: "Report type deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting report type:", error);
+      res.status(500).json({ message: "Failed to delete report type" });
     }
   });
 

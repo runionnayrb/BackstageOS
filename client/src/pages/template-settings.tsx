@@ -240,7 +240,28 @@ export default function TemplateSettings() {
     enabled: !!projectId,
   });
 
+  // Load report types (custom categories)
+  const { data: reportTypes } = useQuery({
+    queryKey: [`/api/projects/${projectId}/report-types`],
+    enabled: !!projectId,
+  });
 
+  // Initialize selectedPhase and editModes based on report types
+  useEffect(() => {
+    if (reportTypes && Array.isArray(reportTypes) && reportTypes.length > 0) {
+      // Set initial selected phase to first report type
+      if (!selectedPhase || selectedPhase === "meetings") {
+        setSelectedPhase(reportTypes[0].slug);
+      }
+      
+      // Initialize edit modes for all report types
+      const newEditModes: Record<string, boolean> = {};
+      reportTypes.forEach((rt: any) => {
+        newEditModes[rt.slug] = editModes[rt.slug] ?? false;
+      });
+      setEditModes(newEditModes);
+    }
+  }, [reportTypes]);
 
   // Initialize templates with defaults and merge with user templates
   useEffect(() => {
@@ -249,31 +270,52 @@ export default function TemplateSettings() {
       projectId, 
       hasUserTemplates: !!userTemplates, 
       hasShowSettings: !!showSettings,
+      hasReportTypes: !!reportTypes,
       showSettingsLayoutConfig: !!showSettings?.layoutConfiguration 
     });
+    
+    if (!reportTypes || !Array.isArray(reportTypes) || reportTypes.length === 0) {
+      console.log('⏳ Waiting for report types to load...');
+      return;
+    }
+    
     const initialTemplates: Record<string, ProductionTemplate> = {};
     
-    // Start with default templates
-    Object.entries(defaultTemplates).forEach(([phase, template]) => {
-      initialTemplates[phase] = {
-        ...template,
-        id: `default-${phase}`, // Use string ID for defaults (will be created as new)
+    // Initialize templates based on report types
+    reportTypes.forEach((reportType: any) => {
+      const slug = reportType.slug;
+      
+      // Use default template if available, otherwise create a minimal one
+      const defaultTemplate = defaultTemplates[slug] || {
+        phase: slug as any,
+        name: reportType.name,
+        description: reportType.description || "",
+        header: "",
+        footer: "",
+        fields: []
+      };
+      
+      initialTemplates[slug] = {
+        ...defaultTemplate,
+        id: `default-${slug}`,
+        phase: slug as any,
       };
     });
 
     // Override with user-created templates if they exist
     if (userTemplates && Array.isArray(userTemplates)) {
       userTemplates.forEach((userTemplate: any) => {
-        if (userTemplate.phase) {
-          initialTemplates[userTemplate.phase] = {
-            id: userTemplate.id.toString(), // Keep actual DB ID for existing templates
-            phase: userTemplate.phase as any,
+        const slug = userTemplate.phase || userTemplate.type;
+        if (slug && initialTemplates[slug]) {
+          initialTemplates[slug] = {
+            id: userTemplate.id.toString(),
+            phase: slug as any,
             name: userTemplate.name,
             description: userTemplate.description || "",
             header: userTemplate.header || "",
             footer: userTemplate.footer || "",
             fields: userTemplate.fields || [],
-            layoutConfiguration: userTemplate.layoutConfiguration // Preserve template-specific layout
+            layoutConfiguration: userTemplate.layoutConfiguration
           };
         }
       });
@@ -283,7 +325,6 @@ export default function TemplateSettings() {
     if ((showSettings as any)?.layoutConfiguration) {
       const layoutConfig = (showSettings as any).layoutConfiguration;
       
-      // Only apply to templates that don't already have a layoutConfiguration
       Object.keys(initialTemplates).forEach(templateKey => {
         if (!initialTemplates[templateKey].layoutConfiguration) {
           initialTemplates[templateKey] = {
@@ -297,7 +338,7 @@ export default function TemplateSettings() {
     console.log('✅ Templates initialized with unified showSettings approach - single database table!');
     
     setTemplates(initialTemplates);
-  }, [projectId, userTemplates, showSettings]);
+  }, [projectId, userTemplates, showSettings, reportTypes]);
 
   // Update departments list when settings change (only if not currently reordering)
   useEffect(() => {
@@ -934,12 +975,22 @@ export default function TemplateSettings() {
         </div>
 
         <Tabs value={selectedPhase} onValueChange={setSelectedPhase} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="meetings">Meetings</TabsTrigger>
-            <TabsTrigger value="rehearsal">Rehearsal</TabsTrigger>
-            <TabsTrigger value="tech">Tech</TabsTrigger>
-            <TabsTrigger value="previews">Previews</TabsTrigger>
-            <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsList className="flex w-full overflow-x-auto">
+            {reportTypes && Array.isArray(reportTypes) && reportTypes.length > 0 ? (
+              reportTypes.map((reportType: any) => (
+                <TabsTrigger key={reportType.slug} value={reportType.slug} className="flex-1">
+                  {reportType.name}
+                </TabsTrigger>
+              ))
+            ) : (
+              <>
+                <TabsTrigger value="meetings" className="flex-1">Meetings</TabsTrigger>
+                <TabsTrigger value="rehearsal" className="flex-1">Rehearsal</TabsTrigger>
+                <TabsTrigger value="tech" className="flex-1">Tech</TabsTrigger>
+                <TabsTrigger value="previews" className="flex-1">Previews</TabsTrigger>
+                <TabsTrigger value="performance" className="flex-1">Performance</TabsTrigger>
+              </>
+            )}
           </TabsList>
           
 
@@ -951,7 +1002,25 @@ export default function TemplateSettings() {
                 <CardHeader>
                   <div>
                     <CardTitle className="flex items-center gap-2">
-                      {template.name}
+                      {editModes[phase] ? (
+                        <Input
+                          value={template.name}
+                          onChange={(e) => {
+                            const newName = e.target.value;
+                            setTemplates(prev => ({
+                              ...prev,
+                              [phase]: {
+                                ...prev[phase],
+                                name: newName
+                              }
+                            }));
+                          }}
+                          className="text-lg font-semibold"
+                          data-testid={`input-template-name-${phase}`}
+                        />
+                      ) : (
+                        template.name
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"
@@ -1008,20 +1077,11 @@ export default function TemplateSettings() {
                               hasChanges: saveData.hasChanges
                             });
                             
-                            // Get template display name for toast
-                            const templateDisplayNames: Record<string, string> = {
-                              meetings: 'Meeting Report Template',
-                              rehearsal: 'Rehearsal Report Template',
-                              tech: 'Tech Report Template',
-                              previews: 'Preview Report Template',
-                              performance: 'Performance Report Template'
-                            };
-                            
                             // Call the save function with the prepared data and template name
                             console.log('🔒 EXECUTING MUTATION: About to call globalSaveMutation.mutate...');
                             globalSaveMutation.mutate({ 
                               data: saveData,
-                              templateName: templateDisplayNames[phase]
+                              templateName: template.name // Use the actual template name from state
                             });
                           }
                           

@@ -11,6 +11,7 @@ import {
   decimal,
   date,
   time,
+  unique,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
@@ -164,6 +165,24 @@ export const reportTemplates = pgTable("report_templates", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
+
+// Custom report types - user-defined categories for reports
+export const reportTypes = pgTable("report_types", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(), // Display name: "Performance Report", "Show Report", etc.
+  slug: varchar("slug").notNull(), // URL-friendly: "performance", "show", etc.
+  description: text("description"),
+  displayOrder: integer("display_order").notNull().default(0), // Order in UI
+  isDefault: boolean("is_default").default(false), // If true, this is a default type seeded for all projects
+  icon: varchar("icon"), // Lucide icon name
+  color: varchar("color"), // Color for UI
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  unique().on(table.projectId, table.slug),
+]);
 
 // Individual report notes for tracking and follow-up
 export const reportNotes = pgTable("report_notes", {
@@ -2299,6 +2318,12 @@ export const insertReportTemplateSchema = createInsertSchema(reportTemplates).om
   updatedAt: true,
 });
 
+export const insertReportTypeSchema = createInsertSchema(reportTypes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertReportNoteSchema = createInsertSchema(reportNotes).omit({
   id: true,
   createdAt: true,
@@ -2759,6 +2784,8 @@ export type Report = typeof reports.$inferSelect;
 export type InsertReport = z.infer<typeof insertReportSchema>;
 export type ReportTemplate = typeof reportTemplates.$inferSelect;
 export type InsertReportTemplate = z.infer<typeof insertReportTemplateSchema>;
+export type ReportType = typeof reportTypes.$inferSelect;
+export type InsertReportType = z.infer<typeof insertReportTypeSchema>;
 export type ShowDocument = typeof showDocuments.$inferSelect;
 export type InsertShowDocument = z.infer<typeof insertShowDocumentSchema>;
 export type ShowSchedule = typeof showSchedules.$inferSelect;
