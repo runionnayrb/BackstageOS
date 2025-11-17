@@ -204,6 +204,13 @@ export default function ReportTypesDialog({ projectId, trigger }: ReportTypesDia
       slug: type.slug,
       description: type.description || "",
     });
+    // Scroll the form into view
+    setTimeout(() => {
+      const formElement = document.querySelector('[data-form-section="edit-form"]');
+      if (formElement) {
+        formElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 100);
   };
 
   const handleCancel = () => {
@@ -329,7 +336,7 @@ export default function ReportTypesDialog({ projectId, trigger }: ReportTypesDia
 
             {/* Add/Edit Form */}
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 border-t pt-4">
+              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 border-t pt-4" data-form-section="edit-form">
                 <h3 className="text-sm font-medium">
                   {editingType ? "Edit Report Type" : "Add New Report Type"}
                 </h3>
