@@ -51,7 +51,7 @@ export default function ShowReports() {
     enabled: !!projectId && isAuthenticated,
   });
 
-  const { data: reportTypes = [] } = useQuery({
+  const { data: reportTypes = [], isLoading: reportTypesLoading } = useQuery({
     queryKey: [`/api/projects/${projectId}/report-types`],
     enabled: !!projectId && isAuthenticated,
   });
@@ -64,7 +64,7 @@ export default function ShowReports() {
   // Filter reports by type
   const reports = Array.isArray(allReports) ? allReports.filter((report: any) => report.type === reportType) : [];
 
-  if (isLoading || projectsLoading) return <div>Loading...</div>;
+  if (isLoading || projectsLoading || reportTypesLoading) return <div>Loading...</div>;
   if (!project) return <div>Show not found</div>;
 
   // Get report type name from fetched report types
