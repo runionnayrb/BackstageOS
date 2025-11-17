@@ -19,38 +19,49 @@ export default function ShowReportsList() {
   });
 
   // Load dynamic report types from API with caching
-  const { data: reportTypesData, isLoading: reportTypesLoading } = useQuery({
+  const { data: reportTypesData } = useQuery({
     queryKey: [`/api/projects/${projectId}/report-types`],
     enabled: !!projectId,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
-  // Don't show anything until we have data from API or confirmed it's empty
-  if (!project || reportTypesLoading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto p-6">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-            <div className="space-y-3">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-16 bg-gray-200 rounded"></div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Optimistic fallback data - shown immediately while API loads
+  const fallbackReportTypes = [
+    {
+      type: "meetings",
+      name: "Meeting Reports",
+      description: "Production meeting minutes and decisions"
+    },
+    {
+      type: "rehearsal",
+      name: "Rehearsal Reports",
+      description: "Daily rehearsal progress and notes"
+    },
+    {
+      type: "tech",
+      name: "Tech Reports", 
+      description: "Technical rehearsal and equipment status"
+    },
+    {
+      type: "previews",
+      name: "Preview Reports",
+      description: "Preview performance notes"
+    },
+    {
+      type: "performance",
+      name: "Performance Reports",
+      description: "Show performance notes and issues"
+    }
+  ];
 
-  // Use dynamic report types from API
+  // Use API data when available, otherwise show optimistic fallback immediately
   const reportTypes = reportTypesData && Array.isArray(reportTypesData) && reportTypesData.length > 0
     ? reportTypesData.map((rt: any) => ({
         type: rt.slug,
         name: rt.name,
         description: rt.description || ""
       }))
-    : [];
+    : fallbackReportTypes;
 
   return (
     <div className="w-full">
