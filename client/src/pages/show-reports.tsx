@@ -62,9 +62,6 @@ export default function ShowReports() {
     enabled: !!projectId && isAuthenticated,
   });
 
-  // Filter reports by type
-  const reports = Array.isArray(allReports) ? allReports.filter((report: any) => report.type === reportType) : [];
-
   if (isLoading || projectsLoading) return <div>Loading...</div>;
   if (!project) return <div>Show not found</div>;
 
@@ -77,6 +74,13 @@ export default function ShowReports() {
   const currentTemplate = Array.isArray(templates)
     ? templates.find((t: any) => t.phase === reportType || t.type === reportType)
     : null;
+  
+  // Filter reports by the canonical report type slug
+  // Use the resolved currentReportType slug if available, otherwise fall back to URL parameter
+  const canonicalSlug = currentReportType?.slug || reportType;
+  const reports = Array.isArray(allReports) 
+    ? allReports.filter((report: any) => report.type === canonicalSlug) 
+    : [];
   
   // Page title = Report Type category name (e.g., "Meeting Reports")
   const pageTitle = currentReportType?.name || "Reports";
