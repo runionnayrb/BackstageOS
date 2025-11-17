@@ -781,6 +781,10 @@ export default function TemplateSettings() {
       const currentTemplate = templates[selectedPhase];
       let templateData = null;
       
+      console.log('🔍 DEBUG: selectedPhase =', selectedPhase);
+      console.log('🔍 DEBUG: currentTemplate =', currentTemplate);
+      console.log('🔍 DEBUG: templates =', templates);
+      
       if (currentTemplate) {
         console.log('💾 GLOBAL SAVE: Saving template (including name, layout, and all fields)...');
         console.log('🔍 DEBUG: currentTemplate.id =', currentTemplate.id, 'type:', typeof currentTemplate.id);
