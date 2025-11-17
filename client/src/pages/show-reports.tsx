@@ -54,6 +54,7 @@ export default function ShowReports() {
   const { data: reportTypes = [], isLoading: reportTypesLoading } = useQuery({
     queryKey: [`/api/projects/${projectId}/report-types`],
     enabled: !!projectId && isAuthenticated,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
   const { data: templates = [] } = useQuery({
@@ -64,7 +65,7 @@ export default function ShowReports() {
   // Filter reports by type
   const reports = Array.isArray(allReports) ? allReports.filter((report: any) => report.type === reportType) : [];
 
-  if (isLoading || projectsLoading || reportTypesLoading) return <div>Loading...</div>;
+  if (isLoading || projectsLoading) return <div>Loading...</div>;
   if (!project) return <div>Show not found</div>;
 
   // Get report type name from fetched report types
@@ -116,7 +117,11 @@ export default function ShowReports() {
           </div>
           
           <div className="mb-2">
-            <h1 className="text-3xl font-bold text-gray-900">{pageTitle}</h1>
+            {reportTypesLoading ? (
+              <div className="h-9 w-48 bg-gray-200 animate-pulse rounded"></div>
+            ) : (
+              <h1 className="text-3xl font-bold text-gray-900">{pageTitle}</h1>
+            )}
             <p className="text-gray-600 mt-1">{project.name}</p>
           </div>
         </div>
