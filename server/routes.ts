@@ -5354,6 +5354,68 @@ Best regards,
     }
   });
 
+  app.post("/api/projects/:id/report-types/reorder", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership or team membership
+      if (project.ownerId !== parseInt(req.user.id)) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(req.user.id));
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const { order } = req.body;
+      
+      // Validate order structure
+      if (!Array.isArray(order)) {
+        return res.status(400).json({ message: "Order must be an array" });
+      }
+
+      if (order.length === 0) {
+        return res.status(400).json({ message: "Order array cannot be empty" });
+      }
+
+      // Validate all items in the order array before making any updates
+      const validationPromises = order.map(async (item, index) => {
+        if (!item || typeof item.id !== 'number' || typeof item.displayOrder !== 'number') {
+          throw new Error(`Invalid order item at index ${index}: must have numeric id and displayOrder`);
+        }
+
+        // Verify the report type belongs to this project
+        const reportType = await storage.getReportTypeById(item.id);
+        if (!reportType || reportType.projectId !== projectId) {
+          throw new Error(`Report type ${item.id} not found in this project`);
+        }
+
+        return reportType;
+      });
+
+      // Wait for all validations to complete before proceeding
+      await Promise.all(validationPromises);
+
+      // Update display order for all report types in parallel
+      const updatePromises = order.map(item =>
+        storage.updateReportType(item.id, { displayOrder: item.displayOrder })
+      );
+
+      await Promise.all(updatePromises);
+
+      res.json({ message: "Report types reordered successfully" });
+    } catch (error) {
+      console.error("Error reordering report types:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to reorder report types";
+      res.status(500).json({ message: errorMessage });
+    }
+  });
+
   // Global template settings routes
   app.get('/api/projects/:id/global-template-settings', isAuthenticated, async (req: any, res) => {
     try {

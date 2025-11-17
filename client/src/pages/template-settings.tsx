@@ -42,6 +42,7 @@ import InlineFormattingToolbar from "@/components/inline-formatting-toolbar";
 import EditableFieldHeading from "@/components/editable-field-heading";
 import EditableHeaderFooter from "@/components/editable-header-footer";
 import FlexibleLayoutEditor from "@/components/flexible-layout-editor";
+import ReportTypesDialog from "@/components/report-types-dialog";
 import { getAllDepartmentNames, type DepartmentKey } from "@/utils/departmentUtils";
 import { formatTimestamp, parseScheduleSettings } from "@/lib/timeUtils";
 import type { ShowSettings } from "@/../../shared/schema";
@@ -1018,13 +1019,7 @@ export default function TemplateSettings() {
               <p className="text-gray-500 mt-2">Customize report templates for each production phase</p>
             </div>
             <div className="flex gap-2 items-center">
-              <Button
-                variant="outline"
-                className="flex items-center gap-2"
-              >
-                <List className="h-4 w-4" />
-                Report Types
-              </Button>
+              <ReportTypesDialog projectId={projectId} />
               <Button
                 variant="ghost"
                 size="icon"
@@ -1048,13 +1043,7 @@ export default function TemplateSettings() {
           <div className="flex items-center justify-between mb-4">
             <div></div>
             <div className="flex gap-2 items-center">
-              <Button
-                variant="outline"
-                className="flex items-center gap-2"
-              >
-                <List className="h-4 w-4" />
-                Report Types
-              </Button>
+              <ReportTypesDialog projectId={projectId} />
               <Button
                 variant="ghost"
                 size="icon"
