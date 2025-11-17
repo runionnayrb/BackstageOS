@@ -48,7 +48,7 @@ export default function ShowReportsList() {
           description: "Show performance notes and issues"
         },
         {
-          type: "meeting",
+          type: "meetings",
           name: "Meeting Reports",
           description: "Production meeting minutes and decisions"
         }
