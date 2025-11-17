@@ -841,9 +841,19 @@ export default function TemplateSettings() {
         );
       }
       
-      // Execute all saves simultaneously
-      await Promise.all(savePromises);
-      return { templateName: saveData.templateName, templateData };
+      // Execute all saves simultaneously and capture results
+      const results = await Promise.all(savePromises);
+      
+      // Extract the template response (first promise result)
+      const templateResponse = results.length > 0 ? results[0] : null;
+      
+      console.log('📦 Save results:', { templateResponse, allResults: results });
+      
+      return { 
+        templateName: saveData.templateName, 
+        templateData,
+        templateResponse // Return the actual server response with fresh updatedAt
+      };
     },
     onMutate: async (saveData) => {
       // Cancel outgoing refetches
@@ -889,19 +899,29 @@ export default function TemplateSettings() {
     },
     onSuccess: async (result) => {
       console.log('✅ GLOBAL SAVE: All template changes saved successfully');
+      console.log('📊 Server response:', result);
       
       const now = new Date();
       setIsSaving(false);
       setLastSaved(now);
       
-      // Update local template state with new timestamp
-      setTemplates(prev => ({
-        ...prev,
-        [selectedPhase]: {
-          ...prev[selectedPhase],
-          updatedAt: now.toISOString()
-        }
-      }));
+      // Extract the template response from the mutation result
+      const templateResponse = result?.templateResponse;
+      
+      // Update local template state with the ACTUAL server timestamp
+      if (templateResponse && templateResponse.updatedAt) {
+        console.log('🕐 Using server timestamp:', templateResponse.updatedAt);
+        setTemplates(prev => ({
+          ...prev,
+          [selectedPhase]: {
+            ...prev[selectedPhase],
+            updatedAt: templateResponse.updatedAt, // Use server timestamp, not client-generated
+            id: templateResponse.id // Also update ID in case it was a new template
+          }
+        }));
+      } else {
+        console.warn('⚠️ No template response or updatedAt found in server response');
+      }
       
       // Clear pending changes
       setPendingChanges({
@@ -919,7 +939,7 @@ export default function TemplateSettings() {
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
       
       toast({
-        title: result?.templateName ? `${result.templateName} saved` : "Template saved",
+        title: templateResponse?.name ? `${templateResponse.name} saved` : "Template saved",
         description: "All template changes have been saved successfully.",
       });
     },
