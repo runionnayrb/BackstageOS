@@ -62,7 +62,8 @@ import {
   X,
   Lock,
   Unlock,
-  RotateCcw
+  RotateCcw,
+  List
 } from "lucide-react";
 
 interface TemplateSettingsParams {
@@ -1016,21 +1017,27 @@ export default function TemplateSettings() {
               <h1 className="text-3xl font-bold text-gray-900">Report Templates</h1>
               <p className="text-gray-500 mt-2">Customize report templates for each production phase</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
               <Button
                 variant="outline"
-                onClick={() => setLocation(`/shows/${projectId}/global-template-settings`)}
                 className="flex items-center gap-2"
               >
-                <Settings className="h-4 w-4" />
-                Global Settings
+                <List className="h-4 w-4" />
+                Report Types
               </Button>
               <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setLocation(`/shows/${projectId}/global-template-settings`)}
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => setLocation(`/shows/${projectId}/templates/new`)}
-                className="flex items-center gap-2"
               >
                 <Plus className="h-4 w-4" />
-                Create New Template
               </Button>
             </div>
           </div>
@@ -1040,23 +1047,28 @@ export default function TemplateSettings() {
         <div className="md:hidden mb-8">
           <div className="flex items-center justify-between mb-4">
             <div></div>
-            <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setLocation(`/shows/${projectId}/global-template-settings`)}
-              className="flex items-center gap-2"
-            >
-              <Settings className="h-4 w-4" />
-              Global Settings
-            </Button>
-            <Button
-              onClick={() => setLocation(`/shows/${projectId}/templates/new`)}
-              className="flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Create New Template
-            </Button>
-
+            <div className="flex gap-2 items-center">
+              <Button
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <List className="h-4 w-4" />
+                Report Types
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setLocation(`/shows/${projectId}/global-template-settings`)}
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setLocation(`/shows/${projectId}/templates/new`)}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
             </div>
           </div>
           <h1 className="text-3xl font-bold text-gray-900">Report Templates</h1>
