@@ -1138,6 +1138,11 @@ export default function TemplateSettings() {
                                 name: newName
                               }
                             }));
+                            // Mark as having changes when template name changes
+                            setPendingChanges(prev => ({
+                              ...prev,
+                              hasChanges: true
+                            }));
                           }}
                           className="text-lg font-semibold"
                           data-testid={`input-template-name-${phase}`}
@@ -1369,6 +1374,11 @@ export default function TemplateSettings() {
                         setTemplates(prev => ({
                           ...prev,
                           [phase]: updatedTemplate
+                        }));
+                        // Mark as having changes when template is updated
+                        setPendingChanges(prev => ({
+                          ...prev,
+                          hasChanges: true
                         }));
                       }}
                       onConfigurationChange={(config) => {
