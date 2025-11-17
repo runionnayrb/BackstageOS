@@ -243,10 +243,15 @@ export default function TemplateSettings() {
   });
 
   // Load report types (custom categories)
-  const { data: reportTypes } = useQuery({
+  const { data: reportTypesData } = useQuery({
     queryKey: [`/api/projects/${projectId}/report-types`],
     enabled: !!projectId,
   });
+
+  // Sort report types by displayOrder
+  const reportTypes = reportTypesData && Array.isArray(reportTypesData) 
+    ? [...reportTypesData].sort((a: any, b: any) => a.displayOrder - b.displayOrder)
+    : [];
 
   // Initialize selectedPhase and editModes based on report types
   useEffect(() => {
@@ -320,11 +325,14 @@ export default function TemplateSettings() {
         const defaultTemplate = defaultTemplates[slug];
         
         if (slug && initialTemplates[slug]) {
+          // Preserve the current template name if it exists in memory (to prevent resets during reorder)
+          const currentTemplateName = templates[slug]?.name;
+          
           initialTemplates[slug] = {
             id: userTemplate.id.toString(),
             phase: slug as any,
-            // Preserve user's custom template name, fallback to report type name, then default
-            name: userTemplate.name ?? matchingReportType?.name ?? defaultTemplate?.name ?? slug,
+            // Priority: current in-memory name > user's saved name > report type name > default name > slug
+            name: currentTemplateName || userTemplate.name || matchingReportType?.name || defaultTemplate?.name || slug,
             description: userTemplate.description || "",
             header: userTemplate.header || "",
             footer: userTemplate.footer || "",

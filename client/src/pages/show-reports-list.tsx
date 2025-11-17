@@ -35,13 +35,15 @@ export default function ShowReportsList() {
     placeholderData: defaultReportTypes, // Show immediately on first load, gets replaced by cache on subsequent loads
   });
 
-  // Transform API data to display format
+  // Transform API data to display format and sort by displayOrder
   const reportTypes = reportTypesData && Array.isArray(reportTypesData) && reportTypesData.length > 0
-    ? reportTypesData.map((rt: any) => ({
-        type: rt.slug,
-        name: rt.name,
-        description: rt.description || ""
-      }))
+    ? [...reportTypesData]
+        .sort((a: any, b: any) => a.displayOrder - b.displayOrder)
+        .map((rt: any) => ({
+          type: rt.slug,
+          name: rt.name,
+          description: rt.description || ""
+        }))
     : [];
 
   return (
