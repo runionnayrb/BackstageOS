@@ -256,14 +256,8 @@ export default function TemplateSettings() {
   // Initialize selectedPhase and editModes based on report types
   useEffect(() => {
     if (reportTypes && Array.isArray(reportTypes) && reportTypes.length > 0) {
-      // Check if current selectedPhase is still valid
-      const currentSlugExists = reportTypes.some((rt: any) => rt.slug === selectedPhase);
-      
-      // Reset to first report type if:
-      // 1. No phase selected yet
-      // 2. Current phase is the old default "meetings"
-      // 3. Current phase doesn't exist in the new list (after reordering/deletion)
-      if (!selectedPhase || selectedPhase === "meetings" || !currentSlugExists) {
+      // Only set initial phase if none is selected yet
+      if (!selectedPhase || selectedPhase === "meetings") {
         setSelectedPhase(reportTypes[0].slug);
       }
       
@@ -274,7 +268,7 @@ export default function TemplateSettings() {
       });
       setEditModes(newEditModes);
     }
-  }, [reportTypes]);
+  }, [reportTypes.length]); // Only run when the number of report types changes
 
   // Initialize templates with defaults and merge with user templates
   useEffect(() => {
@@ -983,7 +977,14 @@ export default function TemplateSettings() {
     console.log('🚨 TEMPLATE-SETTINGS: Field header formatting updated in pendingChanges only - NO DATABASE SAVE');
   };
 
-  const currentTemplate = templates[selectedPhase];
+  // Validate selectedPhase and fall back to first report type if invalid
+  const validatedPhase = useMemo(() => {
+    if (!reportTypes || reportTypes.length === 0) return selectedPhase;
+    const isValid = reportTypes.some((rt: any) => rt.slug === selectedPhase);
+    return isValid ? selectedPhase : reportTypes[0]?.slug;
+  }, [selectedPhase, reportTypes]);
+
+  const currentTemplate = templates[validatedPhase];
   
   // CRITICAL FIX: Always prioritize database layout data over template defaults
   const activeTemplate = currentTemplate ? {
@@ -1077,7 +1078,7 @@ export default function TemplateSettings() {
           <h1 className="text-3xl font-bold text-gray-900">Report Templates</h1>
         </div>
 
-        <Tabs value={selectedPhase} onValueChange={setSelectedPhase} className="space-y-6">
+        <Tabs value={validatedPhase} onValueChange={setSelectedPhase} className="space-y-6">
           <TabsList className="flex w-full overflow-x-auto">
             {reportTypes && Array.isArray(reportTypes) && reportTypes.length > 0 ? (
               reportTypes.map((reportType: any) => (
@@ -1331,7 +1332,7 @@ export default function TemplateSettings() {
                         className="text-lg font-semibold text-center"
                         projectId={projectId}
                         type="header"
-                        effectiveEditMode={editModes[selectedPhase]}
+                        effectiveEditMode={editModes[validatedPhase]}
                       />
                     </div>
 
@@ -1340,7 +1341,7 @@ export default function TemplateSettings() {
                       ref={flexibleLayoutRef}
                       projectId={parseInt(params.id)}
                       reportType={selectedPhase as any}
-                      externalEditMode={editModes[selectedPhase]}
+                      externalEditMode={editModes[validatedPhase]}
                       template={activeTemplate}
                       showSettings={showSettings}
                       onTemplateUpdate={(updatedTemplate) => {
@@ -1414,7 +1415,7 @@ export default function TemplateSettings() {
                         className="text-sm text-gray-600 text-center"
                         projectId={projectId}
                         type="footer"
-                        effectiveEditMode={editModes[selectedPhase]}
+                        effectiveEditMode={editModes[validatedPhase]}
                       />
                     </div>
                   </div>
