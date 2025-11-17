@@ -18,43 +18,15 @@ export default function ShowReportsList() {
     queryKey: [`/api/projects/${projectId}`],
   });
 
-  // Load dynamic report types from API
-  const { data: reportTypesData } = useQuery({
+  // Load dynamic report types from API with caching
+  const { data: reportTypesData, isLoading: reportTypesLoading } = useQuery({
     queryKey: [`/api/projects/${projectId}/report-types`],
     enabled: !!projectId,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
-  // Use dynamic report types or fallback to defaults
-  const reportTypes = reportTypesData && Array.isArray(reportTypesData) && reportTypesData.length > 0
-    ? reportTypesData.map((rt: any) => ({
-        type: rt.slug,
-        name: rt.name,
-        description: rt.description || ""
-      }))
-    : [
-        {
-          type: "rehearsal",
-          name: "Rehearsal Reports",
-          description: "Daily rehearsal progress and notes"
-        },
-        {
-          type: "tech",
-          name: "Tech Reports", 
-          description: "Technical rehearsal and equipment status"
-        },
-        {
-          type: "performance",
-          name: "Performance Reports",
-          description: "Show performance notes and issues"
-        },
-        {
-          type: "meetings",
-          name: "Meeting Reports",
-          description: "Production meeting minutes and decisions"
-        }
-      ];
-
-  if (!project) {
+  // Don't show anything until we have data from API or confirmed it's empty
+  if (!project || reportTypesLoading) {
     return (
       <div className="min-h-screen bg-background">
         <div className="container mx-auto p-6">
@@ -70,6 +42,15 @@ export default function ShowReportsList() {
       </div>
     );
   }
+
+  // Use dynamic report types from API
+  const reportTypes = reportTypesData && Array.isArray(reportTypesData) && reportTypesData.length > 0
+    ? reportTypesData.map((rt: any) => ({
+        type: rt.slug,
+        name: rt.name,
+        description: rt.description || ""
+      }))
+    : [];
 
   return (
     <div className="w-full">
