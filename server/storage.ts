@@ -992,7 +992,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateReportTemplate(id: number, template: Partial<InsertReportTemplate>): Promise<ReportTemplate> {
-    const result = await db.update(reportTemplates).set(template).where(eq(reportTemplates.id, id)).returning();
+    const result = await db.update(reportTemplates).set({
+      ...template,
+      updatedAt: new Date()
+    }).where(eq(reportTemplates.id, id)).returning();
     return result[0];
   }
 
