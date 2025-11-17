@@ -1365,9 +1365,9 @@ export default function TemplateSettings() {
                     <FlexibleLayoutEditor
                       ref={flexibleLayoutRef}
                       projectId={parseInt(params.id)}
-                      reportType={selectedPhase as any}
-                      externalEditMode={editModes[validatedPhase]}
-                      template={activeTemplate}
+                      reportType={phase as any}
+                      externalEditMode={editModes[phase]}
+                      template={template}
                       showSettings={showSettings}
                       onTemplateUpdate={(updatedTemplate) => {
                         // Local state update only - no database save until global save
