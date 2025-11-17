@@ -83,12 +83,9 @@ export default function ReportTypesDialog({ projectId, trigger }: ReportTypesDia
   // Create mutation
   const createMutation = useMutation({
     mutationFn: async (data: FormValues) => {
-      return apiRequest(`/api/projects/${projectId}/report-types`, {
-        method: "POST",
-        body: JSON.stringify({
-          ...data,
-          displayOrder: reportTypes.length,
-        }),
+      return apiRequest("POST", `/api/projects/${projectId}/report-types`, {
+        ...data,
+        displayOrder: reportTypes.length,
       });
     },
     onSuccess: () => {
@@ -109,10 +106,7 @@ export default function ReportTypesDialog({ projectId, trigger }: ReportTypesDia
   // Update mutation
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: Partial<FormValues> }) => {
-      return apiRequest(`/api/projects/${projectId}/report-types/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify(data),
-      });
+      return apiRequest("PATCH", `/api/projects/${projectId}/report-types/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "report-types"] });
@@ -132,9 +126,7 @@ export default function ReportTypesDialog({ projectId, trigger }: ReportTypesDia
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/projects/${projectId}/report-types/${id}`, {
-        method: "DELETE",
-      });
+      return apiRequest("DELETE", `/api/projects/${projectId}/report-types/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "report-types"] });
@@ -154,10 +146,7 @@ export default function ReportTypesDialog({ projectId, trigger }: ReportTypesDia
   // Reorder mutation with optimistic updates
   const reorderMutation = useMutation({
     mutationFn: async (newOrder: { id: number; displayOrder: number }[]) => {
-      return apiRequest(`/api/projects/${projectId}/report-types/reorder`, {
-        method: "POST",
-        body: JSON.stringify({ order: newOrder }),
-      });
+      return apiRequest("POST", `/api/projects/${projectId}/report-types/reorder`, { order: newOrder });
     },
     onMutate: async (newOrder) => {
       // Cancel any outgoing refetches
