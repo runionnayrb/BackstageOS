@@ -256,8 +256,14 @@ export default function TemplateSettings() {
   // Initialize selectedPhase and editModes based on report types
   useEffect(() => {
     if (reportTypes && Array.isArray(reportTypes) && reportTypes.length > 0) {
-      // Set initial selected phase to first report type
-      if (!selectedPhase || selectedPhase === "meetings") {
+      // Check if current selectedPhase is still valid
+      const currentSlugExists = reportTypes.some((rt: any) => rt.slug === selectedPhase);
+      
+      // Reset to first report type if:
+      // 1. No phase selected yet
+      // 2. Current phase is the old default "meetings"
+      // 3. Current phase doesn't exist in the new list (after reordering/deletion)
+      if (!selectedPhase || selectedPhase === "meetings" || !currentSlugExists) {
         setSelectedPhase(reportTypes[0].slug);
       }
       

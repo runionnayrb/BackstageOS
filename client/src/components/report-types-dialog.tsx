@@ -90,6 +90,7 @@ export default function ReportTypesDialog({ projectId, trigger }: ReportTypesDia
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "report-types"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/report-types`] });
       toast({ title: "Report type created successfully" });
       form.reset();
       setEditingType(null);
@@ -110,6 +111,7 @@ export default function ReportTypesDialog({ projectId, trigger }: ReportTypesDia
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "report-types"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/report-types`] });
       toast({ title: "Report type updated successfully" });
       form.reset();
       setEditingType(null);
@@ -130,6 +132,7 @@ export default function ReportTypesDialog({ projectId, trigger }: ReportTypesDia
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "report-types"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/report-types`] });
       toast({ title: "Report type deleted successfully" });
       setDeleteDialogOpen(false);
       setTypeToDelete(null);
@@ -184,8 +187,9 @@ export default function ReportTypesDialog({ projectId, trigger }: ReportTypesDia
       });
     },
     onSettled: () => {
-      // Always refetch after error or success
+      // Always refetch after error or success - invalidate all variations of the query key
       queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "report-types"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/report-types`] });
     },
   });
 
