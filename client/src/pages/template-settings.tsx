@@ -783,6 +783,7 @@ export default function TemplateSettings() {
       
       if (currentTemplate) {
         console.log('💾 GLOBAL SAVE: Saving template (including name, layout, and all fields)...');
+        console.log('🔍 DEBUG: currentTemplate.id =', currentTemplate.id, 'type:', typeof currentTemplate.id);
         
         // Save the template with all current state
         templateData = {
@@ -798,11 +799,16 @@ export default function TemplateSettings() {
         
         const isExisting = typeof currentTemplate.id === 'string' && /^\d+$/.test(currentTemplate.id);
         
+        console.log('🔍 DEBUG: isExisting check =', isExisting, '| Will use:', isExisting ? 'PATCH' : 'POST');
+        console.log('📦 DEBUG: templateData being sent:', JSON.stringify(templateData, null, 2));
+        
         if (isExisting) {
+          console.log(`🔧 MAKING PATCH REQUEST: /api/projects/${projectId}/templates/${currentTemplate.id}`);
           savePromises.push(
             apiRequest("PATCH", `/api/projects/${projectId}/templates/${currentTemplate.id}`, templateData)
           );
         } else {
+          console.log(`🔧 MAKING POST REQUEST: /api/projects/${projectId}/templates`);
           savePromises.push(
             apiRequest("POST", `/api/projects/${projectId}/templates`, templateData)
           );
