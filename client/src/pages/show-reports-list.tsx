@@ -18,50 +18,31 @@ export default function ShowReportsList() {
     queryKey: [`/api/projects/${projectId}`],
   });
 
-  // Load dynamic report types from API with caching
+  // Default report types for first-time visitors (will be replaced by API data)
+  const defaultReportTypes = [
+    { slug: "meetings", name: "Meeting Reports", description: "Production meeting minutes and decisions" },
+    { slug: "rehearsal", name: "Rehearsal Reports", description: "Daily rehearsal progress and notes" },
+    { slug: "tech", name: "Tech Reports", description: "Technical rehearsal and equipment status" },
+    { slug: "previews", name: "Preview Reports", description: "Preview performance notes" },
+    { slug: "performance", name: "Performance Reports", description: "Show performance notes and issues" }
+  ];
+
+  // Load dynamic report types from API with optimistic placeholder
   const { data: reportTypesData } = useQuery({
     queryKey: [`/api/projects/${projectId}/report-types`],
     enabled: !!projectId,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    placeholderData: defaultReportTypes, // Show immediately on first load, gets replaced by cache on subsequent loads
   });
 
-  // Optimistic fallback data - shown immediately while API loads
-  const fallbackReportTypes = [
-    {
-      type: "meetings",
-      name: "Meeting Reports",
-      description: "Production meeting minutes and decisions"
-    },
-    {
-      type: "rehearsal",
-      name: "Rehearsal Reports",
-      description: "Daily rehearsal progress and notes"
-    },
-    {
-      type: "tech",
-      name: "Tech Reports", 
-      description: "Technical rehearsal and equipment status"
-    },
-    {
-      type: "previews",
-      name: "Preview Reports",
-      description: "Preview performance notes"
-    },
-    {
-      type: "performance",
-      name: "Performance Reports",
-      description: "Show performance notes and issues"
-    }
-  ];
-
-  // Use API data when available, otherwise show optimistic fallback immediately
+  // Transform API data to display format
   const reportTypes = reportTypesData && Array.isArray(reportTypesData) && reportTypesData.length > 0
     ? reportTypesData.map((rt: any) => ({
         type: rt.slug,
         name: rt.name,
         description: rt.description || ""
       }))
-    : fallbackReportTypes;
+    : [];
 
   return (
     <div className="w-full">
