@@ -336,10 +336,9 @@ export default function TemplateSettingsV2() {
                     onValueChange={setNewTemplateReportTypeId}
                   >
                     <SelectTrigger data-testid="select-report-type">
-                      <SelectValue placeholder="Select a report type" />
+                      <SelectValue placeholder="Select a report type (optional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">No report type</SelectItem>
                       {reportTypes.map((type) => (
                         <SelectItem key={type.id} value={type.id.toString()}>
                           {type.name}
