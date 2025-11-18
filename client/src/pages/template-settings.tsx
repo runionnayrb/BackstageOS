@@ -954,13 +954,23 @@ export default function TemplateSettings() {
       
       return { previousTemplates, previousLocalTemplates };
     },
-    onSuccess: async (result) => {
+    onSuccess: async (result, variables) => {
       console.log('✅ GLOBAL SAVE: All template changes saved successfully');
       console.log('📊 Server response:', result);
       
       const now = new Date();
       setIsSaving(false);
       setLastSaved(now);
+      
+      // Toggle editMode to false AFTER successful save (not before)
+      // This prevents the initialization useEffect from overwriting our changes
+      if (variables.phase) {
+        console.log('🔒 Toggling editMode to false AFTER successful save for phase:', variables.phase);
+        setEditModes(prev => ({
+          ...prev,
+          [variables.phase]: false
+        }));
+      }
       
       // Extract the template response from the mutation result
       const templateResponse = result?.templateResponse;
@@ -1301,15 +1311,16 @@ export default function TemplateSettings() {
                             console.log('🔒 EXECUTING MUTATION: About to call globalSaveMutation.mutate...');
                             globalSaveMutation.mutate({ 
                               data: saveData,
-                              templateName: template.name // Use the actual template name from state
+                              templateName: template.name, // Use the actual template name from state
+                              phase: phase // Pass the phase so onSuccess can toggle editMode
                             });
+                          } else {
+                            // If unlocking (not saving), update edit mode immediately
+                            setEditModes(prev => ({
+                              ...prev,
+                              [phase]: newEditMode
+                            }));
                           }
-                          
-                          // Update edit mode for this specific template only
-                          setEditModes(prev => ({
-                            ...prev,
-                            [phase]: newEditMode
-                          }));
                         }}
                         className="h-6 w-6 p-0"
                       >
