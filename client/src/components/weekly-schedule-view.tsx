@@ -1124,7 +1124,7 @@ export default function WeeklyScheduleView({
               return (
                 <div 
                   key={dayIndex} 
-                  className="border-l border-gray-200 cursor-pointer transition-colors hover:bg-blue-50"
+                  className="cursor-pointer transition-colors hover:bg-blue-50"
                   style={{
                     position: 'absolute',
                     left: `calc(64px + (100% - 64px) * ${dayIndex} / 7)`,
@@ -1139,7 +1139,6 @@ export default function WeeklyScheduleView({
                     backgroundColor: '#f9fafb',
                     margin: 0,
                     padding: 0,
-                    boxSizing: 'border-box'
                   }}
                   onClick={() => onDateClick(date)}
                 >
@@ -1206,6 +1205,18 @@ export default function WeeklyScheduleView({
                 </div>
               );
             })}
+            
+            {/* Vertical separator lines for header */}
+            {Array.from({ length: 7 }, (_, i) => (
+              <div
+                key={`header-separator-${i}`}
+                className="absolute top-0 bottom-0 bg-gray-200 pointer-events-none"
+                style={{
+                  left: `calc(64px + (100% - 64px) * ${i} / 7)`,
+                  width: '1px',
+                }}
+              />
+            ))}
           </div>
 
           {/* All Day Events Section - directly below headers */}
@@ -1224,11 +1235,10 @@ export default function WeeklyScheduleView({
                 return (
                   <div 
                     key={dayIndex} 
-                    className="absolute top-0 bottom-0 p-2 border-l border-gray-200 space-y-1"
+                    className="absolute top-0 bottom-0 p-2 space-y-1"
                     style={{
                       left: `calc(64px + (100% - 64px) * ${dayIndex} / 7)`,
                       width: `calc((100% - 64px) / 7)`,
-                      boxSizing: 'border-box',
                     }}
                   >
                     {dayEvents.map(event => (
@@ -1382,6 +1392,18 @@ export default function WeeklyScheduleView({
                   </div>
                 );
               })}
+              
+              {/* Vertical separator lines for All Day section */}
+              {Array.from({ length: 7 }, (_, i) => (
+                <div
+                  key={`allday-separator-${i}`}
+                  className="absolute top-0 bottom-0 bg-gray-200 pointer-events-none"
+                  style={{
+                    left: `calc(64px + (100% - 64px) * ${i} / 7)`,
+                    width: '1px',
+                  }}
+                />
+              ))}
             </div>
           )}
 
@@ -1411,14 +1433,25 @@ export default function WeeklyScheduleView({
               {Array.from({ length: 7 }, (_, dayIndex) => (
                 <div
                   key={dayIndex}
-                  className="absolute top-0 bottom-0 border-l border-gray-200 hover:bg-blue-50/30 cursor-crosshair"
+                  className="absolute top-0 bottom-0 hover:bg-blue-50/30 cursor-crosshair"
                   style={{
                     left: `calc(64px + (100% - 64px) * ${dayIndex} / 7)`,
                     width: `calc((100% - 64px) / 7)`,
-                    boxSizing: 'border-box',
                   }}
                   onMouseDown={(e) => handleMouseDown(e, dayIndex)}
                   onContextMenu={(e) => e.preventDefault()}
+                />
+              ))}
+              
+              {/* Vertical separator lines */}
+              {Array.from({ length: 7 }, (_, i) => (
+                <div
+                  key={`separator-${i}`}
+                  className="absolute top-0 bottom-0 bg-gray-200 pointer-events-none"
+                  style={{
+                    left: `calc(64px + (100% - 64px) * ${i} / 7)`,
+                    width: '1px',
+                  }}
                 />
               ))}
 
