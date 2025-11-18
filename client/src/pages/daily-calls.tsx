@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useLocation, useParams } from "wouter";
@@ -59,8 +59,6 @@ export default function DailyCallSheet() {
     announcements: ''
   });
   
-  // Track if we've already auto-saved for this date to prevent infinite loops
-  const autoSavedDatesRef = useRef<Set<string>>(new Set());
 
   // Fetch project data
   const { data: project } = useQuery<Project>({
@@ -154,26 +152,8 @@ export default function DailyCallSheet() {
       return;
     }
     
-    // Check if we've already auto-saved this date to prevent infinite loops
-    if (autoSavedDatesRef.current.has(selectedDate)) {
-      return;
-    }
-    
     // Otherwise, generate from schedule for dates without saved daily calls
-    const generatedData = generateCallFromSchedule();
-    
-    // Auto-save the generated call sheet so it appears in the list
-    if (generatedData && generatedData.locations.length > 0) {
-      console.log('💾 Auto-saving generated daily call for', selectedDate);
-      autoSavedDatesRef.current.add(selectedDate); // Mark as auto-saved
-      saveCallMutation.mutate({
-        locations: generatedData.locations,
-        announcements: generatedData.announcements,
-        fittingsEvents: generatedData.fittingsEvents,
-        appointmentsEvents: generatedData.appointmentsEvents,
-        events: scheduleEvents.filter(event => event.date === selectedDate)
-      });
-    }
+    generateCallFromSchedule();
   }, [actualProjectId, selectedDate, timeFormat, scheduleEvents, eventLocations, contacts, isEditing, existingDailyCall]); // Include necessary data dependencies
 
   // Date picker navigation function
