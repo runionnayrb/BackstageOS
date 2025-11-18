@@ -876,9 +876,8 @@ export default function DailyCallSheet() {
                           key={event.id} 
                           className={`flex ${event.title === 'END-OF-DAY' ? 'items-center' : 'items-start'} gap-6 ${event.title === 'END-OF-DAY' ? 'bg-gray-100 py-1 relative overflow-visible' : 'py-2'}`}
                           onClick={(e) => {
+                            console.log('Row clicked:', { eventTitle: event.title, isEditing });
                             if (isEditing && event.title === 'END-OF-DAY') {
-                              e.preventDefault();
-                              e.stopPropagation();
                               console.log('Add event (row clicked) for location:', locationIndex);
                               addEvent(locationIndex);
                             }
