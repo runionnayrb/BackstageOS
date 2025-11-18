@@ -426,8 +426,36 @@ The Production Team`
     mutationFn: (eventData: any) => apiRequest('POST', `/api/projects/${projectId}/schedule-events`, {
       ...eventData,
     }),
+    onMutate: async (eventData: any) => {
+      // Optimistically add the event to the cache for instant UI update
+      // Cancel any outgoing refetches so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
+      
+      // Snapshot the previous value for rollback
+      const previousEvents = queryClient.getQueriesData({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
+      
+      // Optimistically update all schedule-events queries
+      queryClient.setQueriesData(
+        { queryKey: ['/api/projects', projectId, 'schedule-events'] },
+        (old: any) => {
+          if (!old) return old;
+          // Create optimistic event with temporary ID
+          const optimisticEvent = {
+            ...eventData,
+            id: Date.now(), // Temporary ID
+            projectId: parseInt(projectId),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            participants: [],
+          };
+          return [...old, optimisticEvent];
+        }
+      );
+      
+      return { previousEvents };
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
       setCreateEventDialog(false);
       setCreateEventData({});
       toast({
@@ -435,7 +463,14 @@ The Production Team`
         description: "The event has been added to your schedule.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: any, _variables, context) => {
+      // Rollback the optimistic update on error
+      if (context?.previousEvents) {
+        context.previousEvents.forEach(([queryKey, data]: [any, any]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+      
       // Handle conflict validation (409 status) with user-friendly messages
       if (error.status === 409 && error.conflicts) {
         const conflictMessages = error.conflicts.map((conflict: any) => {
@@ -469,7 +504,7 @@ The Production Team`
     mutationFn: ({ eventId, eventData }: { eventId: number; eventData: any }) => 
       apiRequest('PATCH', `/api/projects/${projectId}/schedule-events/${eventId}`, eventData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
       // Also invalidate Show Settings query since Important Date events sync to project settings
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/settings`] });
       setEditingEvent(null);

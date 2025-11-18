@@ -203,7 +203,7 @@ export default function WeeklyScheduleView({
 
   // Fetch schedule events (only for current week for better performance)
   const { data: events = [], isLoading } = useQuery<ScheduleEvent[]>({
-    queryKey: [`/api/projects/${projectId}/schedule-events?startDate=${startDate}&endDate=${endDate}`],
+    queryKey: ['/api/projects', projectId, 'schedule-events', { startDate, endDate }],
     select: (data) => {
       console.log('📅 Weekly view - All events:', data?.map(e => ({
         id: e.id,
@@ -401,7 +401,7 @@ export default function WeeklyScheduleView({
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
       setCreateEventDialog({ isOpen: false });
       toast({ title: "Event created successfully" });
     },
@@ -481,14 +481,14 @@ export default function WeeklyScheduleView({
       console.log('Update mutation succeeded:', data);
       
       // Invalidate queries to ensure all views update
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
       
       setEditingEvent(null);
     },
     onError: (error: any) => {
       console.error('Update mutation failed:', error);
       // Revert optimistic update by forcing a fresh query
-      queryClient.refetchQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      queryClient.refetchQueries({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
       
       // Handle conflict errors with user-friendly toast messages
       if (error.status === 409 && error.conflicts) {
@@ -527,7 +527,7 @@ export default function WeeklyScheduleView({
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
       setEditingEvent(null);
       toast({ title: "Event deleted successfully" });
     },
@@ -551,7 +551,7 @@ export default function WeeklyScheduleView({
       ));
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
       setSelectedEvents(new Set());
       setShowBulkDeleteDialog(false);
       toast({ title: "Selected events deleted successfully" });
