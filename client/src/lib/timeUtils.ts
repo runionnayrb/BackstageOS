@@ -99,3 +99,30 @@ export function getTimezoneAbbreviation(timezone: string): string {
     return timezone;
   }
 }
+
+// Format a date as YYYY-MM-DD in the specified timezone (not UTC)
+// Uses formatToParts for consistent cross-browser output
+export function formatDateInTimezone(date: Date, timezone: string = 'America/New_York'): string {
+  try {
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+    
+    const parts = formatter.formatToParts(date);
+    const year = parts.find(p => p.type === 'year')?.value;
+    const month = parts.find(p => p.type === 'month')?.value;
+    const day = parts.find(p => p.type === 'day')?.value;
+    
+    return `${year}-${month}-${day}`;
+  } catch (error) {
+    console.warn('Error formatting date in timezone:', error);
+    // Fallback to simple local date format
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+}

@@ -55,12 +55,20 @@ export default function EventForm({
   console.log('🎭 EventForm - isProductionLevel value:', initialValues?.isProductionLevel);
   console.log('🎭 EventForm - isProductionLevel type:', typeof initialValues?.isProductionLevel);
   
+  // Helper to format date as YYYY-MM-DD without UTC conversion
+  const formatLocalDate = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const [formData, setFormData] = useState({
     title: initialValues?.title || '',
     description: initialValues?.description || '',
     type: initialValues?.type || '',
-    startDate: initialValues?.startDate || initialDate || new Date().toISOString().split('T')[0],
-    endDate: initialValues?.endDate || initialDate || new Date().toISOString().split('T')[0],
+    startDate: initialValues?.startDate || initialDate || formatLocalDate(new Date()),
+    endDate: initialValues?.endDate || initialDate || formatLocalDate(new Date()),
     startTime: initialValues?.startTime || '09:00',
     endTime: initialValues?.endTime || '10:00',
     location: initialValues?.location || '',

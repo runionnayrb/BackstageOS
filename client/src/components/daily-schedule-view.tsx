@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { formatTimeDisplay, parseScheduleSettings } from '@/lib/timeUtils';
+import { formatTimeDisplay, parseScheduleSettings, formatDateInTimezone } from '@/lib/timeUtils';
 import { filterEventsBySettings, getTimezoneAbbreviation } from '@/lib/scheduleUtils';
 import { getEventTypeColor, getEventTypeColorFromDatabase, getEventTypeDisplayName } from '@/lib/eventUtils';
 import { ChevronLeft, ChevronRight, Plus, Calendar, Clock, ChevronDown, MapPin, Users, Edit } from "lucide-react";
@@ -203,7 +203,7 @@ export default function DailyScheduleView({
 
   // Filter events for the selected day
   const getEventsForDate = (date: Date) => {
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = formatDateInTimezone(date, timezone || 'America/New_York');
     let filteredEvents = events.filter((event: ScheduleEvent) => event.date === dateStr);
     
     // Apply event type filtering based on user selections
