@@ -899,12 +899,16 @@ export default function TemplateSettings() {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: [`/api/projects/${projectId}/templates`] });
       
-      // Snapshot previous value
+      // Snapshot previous values
       const previousTemplates = queryClient.getQueryData([`/api/projects/${projectId}/templates`]);
+      const previousLocalTemplates = { ...templates };
       
-      // Optimistically update the cache with current template state
+      // Optimistically update BOTH the cache AND local state with current template
       const currentTemplate = templates[selectedPhase];
       if (currentTemplate) {
+        const optimisticTimestamp = new Date().toISOString();
+        
+        // 1. Update query cache
         queryClient.setQueryData([`/api/projects/${projectId}/templates`], (old: any) => {
           if (!Array.isArray(old)) return old;
           
@@ -923,19 +927,28 @@ export default function TemplateSettings() {
               footer: currentTemplate.footer,
               fields: currentTemplate.fields,
               layoutConfiguration: currentTemplate.layoutConfiguration,
-              updatedAt: new Date().toISOString()
+              updatedAt: optimisticTimestamp
             };
             return updated;
           } else {
             // Add new template
-            return [...old, { ...currentTemplate, updatedAt: new Date().toISOString() }];
+            return [...old, { ...currentTemplate, updatedAt: optimisticTimestamp }];
           }
         });
         
-        console.log('🚀 Optimistic update applied for template:', currentTemplate.name);
+        // 2. Update local templates state (THIS IS THE KEY - makes UI update immediately)
+        setTemplates(prev => ({
+          ...prev,
+          [selectedPhase]: {
+            ...prev[selectedPhase],
+            updatedAt: optimisticTimestamp
+          }
+        }));
+        
+        console.log('🚀 Optimistic update applied for template:', currentTemplate.name, 'at', optimisticTimestamp);
       }
       
-      return { previousTemplates };
+      return { previousTemplates, previousLocalTemplates };
     },
     onSuccess: async (result) => {
       console.log('✅ GLOBAL SAVE: All template changes saved successfully');
@@ -987,9 +1000,14 @@ export default function TemplateSettings() {
       console.error('❌ GLOBAL SAVE: Failed to save template changes:', error);
       setIsSaving(false);
       
-      // Rollback to previous state
+      // Rollback BOTH query cache AND local templates state
       if (context?.previousTemplates) {
         queryClient.setQueryData([`/api/projects/${projectId}/templates`], context.previousTemplates);
+      }
+      
+      if (context?.previousLocalTemplates) {
+        setTemplates(context.previousLocalTemplates);
+        console.log('🔄 Rolled back local templates state after error');
       }
       
       toast({
