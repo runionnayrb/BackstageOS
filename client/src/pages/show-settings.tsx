@@ -1732,9 +1732,6 @@ The Production Team`
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle>Department Management</CardTitle>
-                  <CardDescription>
-                    Manage departments for organizing report sections (e.g., Lighting, Sound, Stage Management)
-                  </CardDescription>
                 </div>
                 <Dialog>
                   <DialogTrigger asChild>
