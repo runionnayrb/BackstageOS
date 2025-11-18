@@ -427,11 +427,13 @@ The Production Team`
       ...eventData,
     }),
     onMutate: async (eventData: any) => {
+      const numericProjectId = parseInt(projectId);
+      
       await queryClient.cancelQueries({ 
         predicate: (query) => {
           const key = query.queryKey as any[];
           return key[0] === '/api/projects' && 
-                 key[1] === projectId && 
+                 key[1] === numericProjectId && 
                  key[2] === 'schedule-events';
         }
       });
@@ -440,7 +442,7 @@ The Production Team`
         predicate: (query) => {
           const key = query.queryKey as any[];
           return key[0] === '/api/projects' && 
-                 key[1] === projectId && 
+                 key[1] === numericProjectId && 
                  key[2] === 'schedule-events';
         }
       });
@@ -448,7 +450,7 @@ The Production Team`
       const optimisticEvent = {
         ...eventData,
         id: Date.now(),
-        projectId: parseInt(projectId),
+        projectId: numericProjectId,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         participants: eventData.participantIds?.map((id: number) => ({
@@ -462,7 +464,7 @@ The Production Team`
           predicate: (query) => {
             const key = query.queryKey as any[];
             return key[0] === '/api/projects' && 
-                   key[1] === projectId && 
+                   key[1] === numericProjectId && 
                    key[2] === 'schedule-events';
           }
         },
