@@ -994,11 +994,26 @@ export default function TemplateSettings() {
       
       console.log('🧹 GLOBAL SAVE: Pending changes cleared after successful save');
       
-      // Consolidate invalidation - only invalidate once per save
-      await queryClient.invalidateQueries({ 
-        queryKey: [`/api/projects/${projectId}/templates`],
-        exact: true 
-      });
+      // DON'T invalidate - we already updated local state with server response
+      // Invalidating would trigger a refetch → useEffect → overwrite our state → 5-6 second delay
+      // Instead, update the query cache directly with the new template data
+      if (templateResponse) {
+        queryClient.setQueryData([`/api/projects/${projectId}/templates`], (old: any) => {
+          if (!Array.isArray(old)) return old;
+          
+          const existingIndex = old.findIndex((t: any) => 
+            t.id === templateResponse.id || (t.phase === templateResponse.phase || t.type === templateResponse.phase)
+          );
+          
+          if (existingIndex >= 0) {
+            const updated = [...old];
+            updated[existingIndex] = templateResponse;
+            return updated;
+          }
+          return old;
+        });
+        console.log('✅ Updated query cache directly with server response - no refetch needed');
+      }
       
       toast({
         title: templateResponse?.name ? `${templateResponse.name} saved` : "Template saved",
