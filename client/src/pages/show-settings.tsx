@@ -1140,7 +1140,7 @@ The Production Team`
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         {/* Desktop tabs - hidden on mobile */}
-        <TabsList className="hidden md:grid w-full grid-cols-5">
+        <TabsList className="hidden md:grid w-full grid-cols-6">
           <TabsTrigger value="general" className="flex items-center gap-2">
             <Edit3 className="h-4 w-4" />
             General
@@ -1148,6 +1148,10 @@ The Production Team`
           <TabsTrigger value="team" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Team
+          </TabsTrigger>
+          <TabsTrigger value="departments" className="flex items-center gap-2">
+            <Tag className="h-4 w-4" />
+            Departments
           </TabsTrigger>
           <TabsTrigger value="sharing" className="flex items-center gap-2">
             <Share2 className="h-4 w-4" />
@@ -1183,6 +1187,12 @@ The Production Team`
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
                   Team
+                </div>
+              </SelectItem>
+              <SelectItem value="departments">
+                <div className="flex items-center gap-2">
+                  <Tag className="h-4 w-4" />
+                  Departments
                 </div>
               </SelectItem>
               <SelectItem value="sharing">
@@ -1640,6 +1650,100 @@ The Production Team`
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="departments" className="mt-6">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Department Management</CardTitle>
+                  <CardDescription>
+                    Manage departments for organizing report sections (e.g., Lighting, Sound, Stage Management)
+                  </CardDescription>
+                </div>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button data-testid="button-add-department">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Department
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add Department</DialogTitle>
+                      <DialogDescription>
+                        Create a new department to organize report sections.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="dept-name">Department Name</Label>
+                        <Input
+                          id="dept-name"
+                          placeholder="e.g., Lighting"
+                          data-testid="input-department-name"
+                        />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" data-testid="button-cancel-add-department">
+                        Cancel
+                      </Button>
+                      <Button data-testid="button-confirm-add-department">
+                        Add Department
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {settings?.departmentNames && Object.keys(settings.departmentNames).length > 0 ? (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {Object.entries(settings.departmentNames).map(([key, name]) => (
+                    <Card key={key} className="cursor-pointer hover:shadow-md transition-shadow" data-testid={`card-department-${key}`}>
+                      <CardHeader className="p-4">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-base">{name as string}</CardTitle>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              data-testid={`button-edit-department-${key}`}
+                            >
+                              <Edit3 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              data-testid={`button-delete-department-${key}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardHeader>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <Tag className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold mb-2">No departments yet</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Create your first department to organize report sections.
+                  </p>
+                  <Button data-testid="button-add-first-department">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Department
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="sharing" className="mt-6">

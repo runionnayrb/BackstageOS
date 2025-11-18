@@ -34,6 +34,7 @@ import ShowSettings from "@/pages/show-settings";
 import ShowReportsList from "@/pages/show-reports-list";
 import TemplateSettings from "@/pages/template-settings";
 import TemplateSettingsV2 from "@/pages/template-settings-v2";
+import TemplateEditorV2 from "@/pages/template-editor-v2";
 import GlobalTemplateSettings from "@/pages/global-template-settings";
 import NewReport from "@/pages/new-report";
 import ReportViewer from "./pages/report-viewer";
@@ -243,7 +244,7 @@ function Router() {
         <Route path="/shows/:id/templates/new" component={TemplateBuilder} />
         <Route path="/shows/:id/templates/:templateId/edit" component={TemplateBuilder} />
         <Route path="/shows/:id/templates" component={TemplateSettings} />
-        <Route path="/shows/:id/templates-v2/:templateId/edit" component={TemplateSettingsV2} />
+        <Route path="/shows/:id/templates-v2/:templateId/edit" component={TemplateEditorV2} />
         <Route path="/shows/:id/templates-v2" component={TemplateSettingsV2} />
         <Route path="/shows/:id/global-template-settings" component={GlobalTemplateSettings} />
         <Route path="/shows/:id/settings" component={ShowSettings} />
