@@ -1785,8 +1785,8 @@ The Production Team`
                         />
                       </div>
                     </div>
-                    <DialogFooter className="flex flex-row justify-between items-center">
-                      {editingDepartment && (
+                    <DialogFooter className="flex flex-row justify-between items-center sm:justify-between">
+                      {editingDepartment ? (
                         <AlertDialog open={deletingDepartmentKey === editingDepartment.key} onOpenChange={(open) => !open && setDeletingDepartmentKey(null)}>
                           <AlertDialogTrigger asChild>
                             <Button
@@ -1822,8 +1822,9 @@ The Production Team`
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
+                      ) : (
+                        <div />
                       )}
-                      {!editingDepartment && <div />}
                       <Button 
                         onClick={editingDepartment ? handleEditDepartment : handleAddDepartment}
                         data-testid="button-confirm-add-department"
