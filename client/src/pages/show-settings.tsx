@@ -1006,8 +1006,16 @@ The Production Team`
     const updatedDepartments = { ...currentDepartments };
     updatedDepartments[editingDepartment.key] = departmentForm.name;
 
-    handleSettingsUpdate("departmentNames", updatedDepartments);
+    // Update settings directly without wrapping
+    const settingsData = settings as any || {};
+    const updatedSettings = {
+      ...settingsData,
+      departmentNames: updatedDepartments,
+    };
+    updateSettingsMutation.mutate(updatedSettings);
 
+    // Close dialog and reset form
+    setIsDepartmentDialogOpen(false);
     setEditingDepartment(null);
     setDepartmentForm({ name: '' });
     toast({
