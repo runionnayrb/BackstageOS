@@ -986,10 +986,6 @@ The Production Team`
 
     setIsDepartmentDialogOpen(false);
     setDepartmentForm({ name: '' });
-    toast({
-      title: "Department added",
-      description: "Department has been added successfully.",
-    });
   };
 
   const handleEditDepartment = () => {
@@ -1011,10 +1007,6 @@ The Production Team`
     setIsDepartmentDialogOpen(false);
     setEditingDepartment(null);
     setDepartmentForm({ name: '' });
-    toast({
-      title: "Department updated",
-      description: "Department has been updated successfully.",
-    });
   };
 
   const handleDeleteDepartment = (key: string) => {
@@ -1024,10 +1016,6 @@ The Production Team`
     handleSettingsUpdate("departmentNames", remainingDepartments);
 
     setDeletingDepartmentKey(null);
-    toast({
-      title: "Department deleted",
-      description: "Department has been deleted successfully.",
-    });
   };
 
   const copyShareLink = async () => {
