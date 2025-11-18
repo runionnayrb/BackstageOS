@@ -160,8 +160,8 @@ export default function DailyCallSheet() {
     if (!actualProjectId || !scheduleEvents || !eventLocations || !contacts) return;
     if (isEditing) return;
     
-    // If we have a saved daily call, use that data instead of regenerating
-    if (existingDailyCall && existingDailyCall.locations) {
+    // If we have a saved daily call with actual data, use that instead of regenerating
+    if (existingDailyCall && existingDailyCall.locations && existingDailyCall.locations.length > 0) {
       setCallData({
         locations: existingDailyCall.locations,
         announcements: existingDailyCall.announcements || '',
@@ -171,7 +171,7 @@ export default function DailyCallSheet() {
       return;
     }
     
-    // Otherwise, generate from schedule for display only (don't save yet)
+    // Otherwise, generate from schedule (either no saved call, or saved call has no data)
     const generatedData = generateCallFromSchedule();
     if (generatedData) {
       setCallData(prev => ({
