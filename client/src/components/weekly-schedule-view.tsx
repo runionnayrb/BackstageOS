@@ -1083,9 +1083,8 @@ export default function WeeklyScheduleView({
 
         {/* Main Schedule Grid */}
         <div className="border border-gray-200 rounded-lg overflow-hidden">
-          <div className="overflow-y-auto" style={{ maxHeight: '684px' }}>
-            {/* Header row */}
-            <div className="relative bg-gray-50 border-b border-gray-200" style={{ height: '24px' }}>
+          {/* Header row - fixed, no scroll */}
+          <div className="relative bg-gray-50 border-b border-gray-200" style={{ height: '24px', marginRight: '8px' }}>
             <div 
               style={{ 
                 position: 'absolute',
@@ -1208,6 +1207,8 @@ export default function WeeklyScheduleView({
             })}
           </div>
 
+          {/* Scrollable content wrapper */}
+          <div className="overflow-y-auto" style={{ maxHeight: '660px' }}>
             {/* All Day Events Section - directly below headers */}
             {showAllDayEvents && (
               <div className="relative min-h-[60px] bg-gray-50 border-b border-gray-200">
