@@ -138,7 +138,17 @@ export default function DailyCallSheet() {
 
   // Auto-save effect - runs once when we generate data for a new date
   useEffect(() => {
-    if (!actualProjectId || !scheduleEvents || !eventLocations || !contacts) return;
+    // Wait for all data to load
+    if (!actualProjectId || !scheduleEvents || scheduleEvents.length === 0 || !eventLocations || !contacts) {
+      console.log('⏳ Waiting for data to load...', {
+        hasProject: !!actualProjectId,
+        hasEvents: !!scheduleEvents && scheduleEvents.length > 0,
+        hasLocations: !!eventLocations,
+        hasContacts: !!contacts
+      });
+      return;
+    }
+    
     if (isEditing) return;
     if (existingDailyCall) return; // Already saved
     if (autoSavedRef.current.has(selectedDate)) return; // Already auto-saved
@@ -158,8 +168,10 @@ export default function DailyCallSheet() {
         appointmentsEvents: generatedData.appointmentsEvents || [],
         events: scheduleEvents.filter(event => event.date === selectedDate)
       });
+    } else {
+      console.log('⚠️ No locations generated for', selectedDate, 'Data:', generatedData);
     }
-  }, [selectedDate, existingDailyCall]); // Only depend on selectedDate and existingDailyCall
+  }, [selectedDate, existingDailyCall, scheduleEvents, eventLocations, contacts]); // Include data dependencies
   
   // Load existing daily call data when it changes  
   useEffect(() => {
