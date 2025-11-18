@@ -16,7 +16,7 @@ import { sql } from "drizzle-orm";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
-import { insertProjectSchema, insertSeasonSchema, insertVenueSchema, insertProjectMemberSchema, insertReportSchema, insertReportTemplateSchema, insertReportTypeSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertEmailContactSchema, insertDistributionListSchema, insertDistributionListMemberSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertCostumeSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema, insertShowContractSettingsSchema, insertPerformanceTrackerSchema, insertRehearsalTrackerSchema, insertTaskDatabaseSchema, insertTaskPropertySchema, insertTaskSchema, insertTaskAssignmentSchema, insertTaskCommentSchema, insertTaskAttachmentSchema, insertTaskViewSchema, insertNoteFolderSchema, insertNoteSchema, insertNoteCollaboratorSchema, insertNoteCommentSchema, insertNoteAttachmentSchema, insertPublicCalendarShareSchema, insertDailyCallSchema, insertUserActivitySchema, insertApiCostSchema, insertUserSessionSchema, insertFeatureUsageSchema, insertAccountTypeSchema, insertBillingPlanSchema, insertBillingPlanPriceSchema, insertBillingHistorySchema, insertPaymentMethodSchema, insertSubscriptionUsageSchema } from "@shared/schema";
+import { insertProjectSchema, insertSeasonSchema, insertVenueSchema, insertProjectMemberSchema, insertReportSchema, insertReportTemplateSchema, insertReportTemplateV2Schema, insertTemplateSectionSchema, insertTemplateFieldSchema, insertReportTypeSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertEmailContactSchema, insertDistributionListSchema, insertDistributionListMemberSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertCostumeSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema, insertShowContractSettingsSchema, insertPerformanceTrackerSchema, insertRehearsalTrackerSchema, insertTaskDatabaseSchema, insertTaskPropertySchema, insertTaskSchema, insertTaskAssignmentSchema, insertTaskCommentSchema, insertTaskAttachmentSchema, insertTaskViewSchema, insertNoteFolderSchema, insertNoteSchema, insertNoteCollaboratorSchema, insertNoteCommentSchema, insertNoteAttachmentSchema, insertPublicCalendarShareSchema, insertDailyCallSchema, insertUserActivitySchema, insertApiCostSchema, insertUserSessionSchema, insertFeatureUsageSchema, insertAccountTypeSchema, insertBillingPlanSchema, insertBillingPlanPriceSchema, insertBillingHistorySchema, insertPaymentMethodSchema, insertSubscriptionUsageSchema } from "@shared/schema";
 import { cloudflareService } from "./services/cloudflareService";
 import { ErrorClusteringService } from "./errorClusteringService";
 import { ConflictValidationService } from "./services/conflictValidationService.js";
@@ -5219,6 +5219,284 @@ Best regards,
     } catch (error) {
       console.error("Error updating report template:", error);
       res.status(500).json({ message: "Failed to update template" });
+    }
+  });
+
+  // V2 Template System API Routes
+  // Get all templates with sections and fields for a project
+  app.get("/api/projects/:id/templates-v2", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check access (owner or team member)
+      if (project.ownerId !== parseInt(req.user.id)) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(req.user.id));
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const templates = await storage.getTemplatesV2WithFullData(projectId);
+      res.json(templates);
+    } catch (error) {
+      console.error("Error fetching V2 templates:", error);
+      res.status(500).json({ message: "Failed to fetch templates" });
+    }
+  });
+
+  // Create a new V2 template
+  app.post("/api/projects/:id/templates-v2", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId !== parseInt(req.user.id)) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const validationResult = insertReportTemplateV2Schema.safeParse({
+        ...req.body,
+        projectId,
+        createdBy: parseInt(req.user.id),
+      });
+
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          message: "Invalid template data", 
+          errors: validationResult.error.errors 
+        });
+      }
+
+      const template = await storage.createTemplateV2(validationResult.data);
+      res.json(template);
+    } catch (error) {
+      console.error("Error creating V2 template:", error);
+      res.status(500).json({ message: "Failed to create template" });
+    }
+  });
+
+  // Update a V2 template
+  app.patch("/api/projects/:id/templates-v2/:templateId", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const templateId = parseInt(req.params.templateId);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId !== parseInt(req.user.id)) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const validationResult = insertReportTemplateV2Schema.partial().safeParse(req.body);
+
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          message: "Invalid template data", 
+          errors: validationResult.error.errors 
+        });
+      }
+
+      const template = await storage.updateTemplateV2(templateId, validationResult.data);
+      res.json(template);
+    } catch (error) {
+      console.error("Error updating V2 template:", error);
+      res.status(500).json({ message: "Failed to update template" });
+    }
+  });
+
+  // Delete a V2 template
+  app.delete("/api/projects/:id/templates-v2/:templateId", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const templateId = parseInt(req.params.templateId);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId !== parseInt(req.user.id)) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      await storage.deleteTemplateV2(templateId);
+      res.json({ message: "Template deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting V2 template:", error);
+      res.status(500).json({ message: "Failed to delete template" });
+    }
+  });
+
+  // Reorder V2 templates
+  app.post("/api/projects/:id/templates-v2/reorder", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId !== parseInt(req.user.id)) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      await storage.reorderTemplatesV2(req.body.templates);
+      res.json({ message: "Templates reordered successfully" });
+    } catch (error) {
+      console.error("Error reordering V2 templates:", error);
+      res.status(500).json({ message: "Failed to reorder templates" });
+    }
+  });
+
+  // Template Sections routes
+  app.post("/api/templates-v2/:templateId/sections", isAuthenticated, async (req: any, res) => {
+    try {
+      const templateId = parseInt(req.params.templateId);
+      
+      const validationResult = insertTemplateSectionSchema.safeParse({
+        ...req.body,
+        templateId,
+      });
+
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          message: "Invalid section data", 
+          errors: validationResult.error.errors 
+        });
+      }
+
+      const section = await storage.createTemplateSection(validationResult.data);
+      res.json(section);
+    } catch (error) {
+      console.error("Error creating section:", error);
+      res.status(500).json({ message: "Failed to create section" });
+    }
+  });
+
+  app.patch("/api/templates-v2/sections/:sectionId", isAuthenticated, async (req: any, res) => {
+    try {
+      const sectionId = parseInt(req.params.sectionId);
+      
+      const validationResult = insertTemplateSectionSchema.partial().safeParse(req.body);
+
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          message: "Invalid section data", 
+          errors: validationResult.error.errors 
+        });
+      }
+
+      const section = await storage.updateTemplateSection(sectionId, validationResult.data);
+      res.json(section);
+    } catch (error) {
+      console.error("Error updating section:", error);
+      res.status(500).json({ message: "Failed to update section" });
+    }
+  });
+
+  app.delete("/api/templates-v2/sections/:sectionId", isAuthenticated, async (req: any, res) => {
+    try {
+      const sectionId = parseInt(req.params.sectionId);
+      await storage.deleteTemplateSection(sectionId);
+      res.json({ message: "Section deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting section:", error);
+      res.status(500).json({ message: "Failed to delete section" });
+    }
+  });
+
+  app.post("/api/templates-v2/sections/reorder", isAuthenticated, async (req: any, res) => {
+    try {
+      await storage.reorderTemplateSections(req.body.sections);
+      res.json({ message: "Sections reordered successfully" });
+    } catch (error) {
+      console.error("Error reordering sections:", error);
+      res.status(500).json({ message: "Failed to reorder sections" });
+    }
+  });
+
+  // Template Fields routes
+  app.post("/api/templates-v2/sections/:sectionId/fields", isAuthenticated, async (req: any, res) => {
+    try {
+      const sectionId = parseInt(req.params.sectionId);
+      
+      const validationResult = insertTemplateFieldSchema.safeParse({
+        ...req.body,
+        sectionId,
+      });
+
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          message: "Invalid field data", 
+          errors: validationResult.error.errors 
+        });
+      }
+
+      const field = await storage.createTemplateField(validationResult.data);
+      res.json(field);
+    } catch (error) {
+      console.error("Error creating field:", error);
+      res.status(500).json({ message: "Failed to create field" });
+    }
+  });
+
+  app.patch("/api/templates-v2/fields/:fieldId", isAuthenticated, async (req: any, res) => {
+    try {
+      const fieldId = parseInt(req.params.fieldId);
+      
+      const validationResult = insertTemplateFieldSchema.partial().safeParse(req.body);
+
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          message: "Invalid field data", 
+          errors: validationResult.error.errors 
+        });
+      }
+
+      const field = await storage.updateTemplateField(fieldId, validationResult.data);
+      res.json(field);
+    } catch (error) {
+      console.error("Error updating field:", error);
+      res.status(500).json({ message: "Failed to update field" });
+    }
+  });
+
+  app.delete("/api/templates-v2/fields/:fieldId", isAuthenticated, async (req: any, res) => {
+    try {
+      const fieldId = parseInt(req.params.fieldId);
+      await storage.deleteTemplateField(fieldId);
+      res.json({ message: "Field deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting field:", error);
+      res.status(500).json({ message: "Failed to delete field" });
+    }
+  });
+
+  app.post("/api/templates-v2/fields/reorder", isAuthenticated, async (req: any, res) => {
+    try {
+      await storage.reorderTemplateFields(req.body.fields);
+      res.json({ message: "Fields reordered successfully" });
+    } catch (error) {
+      console.error("Error reordering fields:", error);
+      res.status(500).json({ message: "Failed to reorder fields" });
     }
   });
 

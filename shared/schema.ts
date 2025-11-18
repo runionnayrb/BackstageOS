@@ -193,6 +193,7 @@ export const templateSections = pgTable("template_sections", {
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
   index("idx_sections_template").on(table.templateId),
+  index("idx_sections_template_order").on(table.templateId, table.displayOrder),
 ]);
 
 export const templateFields = pgTable("template_fields", {
@@ -210,6 +211,7 @@ export const templateFields = pgTable("template_fields", {
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
   index("idx_fields_section").on(table.sectionId),
+  index("idx_fields_section_order").on(table.sectionId, table.displayOrder),
 ]);
 
 // Custom report types - user-defined categories for reports

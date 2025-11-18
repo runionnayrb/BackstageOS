@@ -6,6 +6,9 @@ import {
   projectMembers,
   reports,
   reportTemplates,
+  reportTemplatesV2,
+  templateSections,
+  templateFields,
   reportTypes,
   showDocuments,
   showSchedules,
@@ -97,6 +100,12 @@ import {
   type InsertReport,
   type ReportTemplate,
   type InsertReportTemplate,
+  type ReportTemplateV2,
+  type InsertReportTemplateV2,
+  type TemplateSection,
+  type InsertTemplateSection,
+  type TemplateField,
+  type InsertTemplateField,
   type ReportType,
   type InsertReportType,
   type ShowDocument,
@@ -240,7 +249,7 @@ import {
 
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, ne, sql, gte, lte, or, isNull, count, max, not } from "drizzle-orm";
+import { eq, and, desc, ne, sql, gte, lte, or, isNull, count, max, not, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (email/password auth)
@@ -326,6 +335,26 @@ export interface IStorage {
   updateReportTemplate(id: number, template: Partial<InsertReportTemplate>): Promise<ReportTemplate>;
   updateTemplateLayoutConfiguration(projectId: number, templateType: string, layoutConfiguration: any): Promise<ReportTemplate>;
   deleteReportTemplate(id: number): Promise<void>;
+
+  // V2 Template System operations
+  getTemplatesV2WithFullData(projectId: number): Promise<any[]>;
+  getTemplateV2ById(id: number): Promise<ReportTemplateV2 | undefined>;
+  createTemplateV2(template: InsertReportTemplateV2): Promise<ReportTemplateV2>;
+  updateTemplateV2(id: number, template: Partial<InsertReportTemplateV2>): Promise<ReportTemplateV2>;
+  deleteTemplateV2(id: number): Promise<void>;
+  reorderTemplatesV2(templates: { id: number; displayOrder: number }[]): Promise<void>;
+  
+  getSectionsByTemplateId(templateId: number): Promise<TemplateSection[]>;
+  createTemplateSection(section: InsertTemplateSection): Promise<TemplateSection>;
+  updateTemplateSection(id: number, section: Partial<InsertTemplateSection>): Promise<TemplateSection>;
+  deleteTemplateSection(id: number): Promise<void>;
+  reorderTemplateSections(sections: { id: number; displayOrder: number }[]): Promise<void>;
+  
+  getFieldsBySectionId(sectionId: number): Promise<TemplateField[]>;
+  createTemplateField(field: InsertTemplateField): Promise<TemplateField>;
+  updateTemplateField(id: number, field: Partial<InsertTemplateField>): Promise<TemplateField>;
+  deleteTemplateField(id: number): Promise<void>;
+  reorderTemplateFields(fields: { id: number; displayOrder: number }[]): Promise<void>;
 
   // Report notes operations
   getReportNotesByReportId(reportId: number): Promise<ReportNote[]>;
@@ -1015,6 +1044,160 @@ export class DatabaseStorage implements IStorage {
 
   async deleteReportTemplate(id: number): Promise<void> {
     await db.delete(reportTemplates).where(eq(reportTemplates.id, id));
+  }
+
+  // V2 Template System implementation
+  async getTemplatesV2WithFullData(projectId: number): Promise<any[]> {
+    // Fetch templates with their sections and fields in a single efficient query
+    const templatesData = await db
+      .select()
+      .from(reportTemplatesV2)
+      .where(eq(reportTemplatesV2.projectId, projectId))
+      .orderBy(reportTemplatesV2.displayOrder);
+    
+    // Fetch all sections for these templates
+    const templateIds = templatesData.map(t => t.id);
+    if (templateIds.length === 0) return [];
+    
+    const sectionsData = await db
+      .select()
+      .from(templateSections)
+      .where(inArray(templateSections.templateId, templateIds))
+      .orderBy(templateSections.displayOrder);
+    
+    // Fetch all fields for these sections
+    const sectionIds = sectionsData.map(s => s.id);
+    const fieldsData = sectionIds.length > 0
+      ? await db
+          .select()
+          .from(templateFields)
+          .where(inArray(templateFields.sectionId, sectionIds))
+          .orderBy(templateFields.displayOrder)
+      : [];
+    
+    // Build nested structure with explicit sorting
+    return templatesData.map(template => ({
+      ...template,
+      sections: sectionsData
+        .filter(s => s.templateId === template.id)
+        .sort((a, b) => a.displayOrder - b.displayOrder)
+        .map(section => ({
+          ...section,
+          fields: fieldsData
+            .filter(f => f.sectionId === section.id)
+            .sort((a, b) => a.displayOrder - b.displayOrder)
+        }))
+    }));
+  }
+
+  async getTemplateV2ById(id: number): Promise<ReportTemplateV2 | undefined> {
+    const result = await db.select().from(reportTemplatesV2).where(eq(reportTemplatesV2.id, id));
+    return result[0];
+  }
+
+  async createTemplateV2(template: InsertReportTemplateV2): Promise<ReportTemplateV2> {
+    const result = await db.insert(reportTemplatesV2).values(template).returning();
+    return result[0];
+  }
+
+  async updateTemplateV2(id: number, template: Partial<InsertReportTemplateV2>): Promise<ReportTemplateV2> {
+    const result = await db.update(reportTemplatesV2)
+      .set({ ...template, updatedAt: new Date() })
+      .where(eq(reportTemplatesV2.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteTemplateV2(id: number): Promise<void> {
+    await db.delete(reportTemplatesV2).where(eq(reportTemplatesV2.id, id));
+  }
+
+  async reorderTemplatesV2(templates: { id: number; displayOrder: number }[]): Promise<void> {
+    await db.transaction(async (tx) => {
+      await Promise.all(
+        templates.map(({ id, displayOrder }) =>
+          tx.update(reportTemplatesV2)
+            .set({ displayOrder, updatedAt: new Date() })
+            .where(eq(reportTemplatesV2.id, id))
+        )
+      );
+    });
+  }
+
+  async getSectionsByTemplateId(templateId: number): Promise<TemplateSection[]> {
+    const result = await db
+      .select()
+      .from(templateSections)
+      .where(eq(templateSections.templateId, templateId))
+      .orderBy(templateSections.displayOrder);
+    return result;
+  }
+
+  async createTemplateSection(section: InsertTemplateSection): Promise<TemplateSection> {
+    const result = await db.insert(templateSections).values(section).returning();
+    return result[0];
+  }
+
+  async updateTemplateSection(id: number, section: Partial<InsertTemplateSection>): Promise<TemplateSection> {
+    const result = await db.update(templateSections)
+      .set({ ...section, updatedAt: new Date() })
+      .where(eq(templateSections.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteTemplateSection(id: number): Promise<void> {
+    await db.delete(templateSections).where(eq(templateSections.id, id));
+  }
+
+  async reorderTemplateSections(sections: { id: number; displayOrder: number }[]): Promise<void> {
+    await db.transaction(async (tx) => {
+      await Promise.all(
+        sections.map(({ id, displayOrder }) =>
+          tx.update(templateSections)
+            .set({ displayOrder, updatedAt: new Date() })
+            .where(eq(templateSections.id, id))
+        )
+      );
+    });
+  }
+
+  async getFieldsBySectionId(sectionId: number): Promise<TemplateField[]> {
+    const result = await db
+      .select()
+      .from(templateFields)
+      .where(eq(templateFields.sectionId, sectionId))
+      .orderBy(templateFields.displayOrder);
+    return result;
+  }
+
+  async createTemplateField(field: InsertTemplateField): Promise<TemplateField> {
+    const result = await db.insert(templateFields).values(field).returning();
+    return result[0];
+  }
+
+  async updateTemplateField(id: number, field: Partial<InsertTemplateField>): Promise<TemplateField> {
+    const result = await db.update(templateFields)
+      .set({ ...field, updatedAt: new Date() })
+      .where(eq(templateFields.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteTemplateField(id: number): Promise<void> {
+    await db.delete(templateFields).where(eq(templateFields.id, id));
+  }
+
+  async reorderTemplateFields(fields: { id: number; displayOrder: number }[]): Promise<void> {
+    await db.transaction(async (tx) => {
+      await Promise.all(
+        fields.map(({ id, displayOrder }) =>
+          tx.update(templateFields)
+            .set({ displayOrder, updatedAt: new Date() })
+            .where(eq(templateFields.id, id))
+        )
+      );
+    });
   }
 
   // Report types operations
