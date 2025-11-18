@@ -262,22 +262,36 @@ export default function DailyScheduleView({
     return filteredEvents;
   };
 
-  // Generate time labels - use same approach as mobile weekly view
+  // Generate time labels - only for hours (matching weekly view)
   const timeLabels = useMemo(() => {
     const labels = [];
-    for (let minutes = START_MINUTES; minutes < END_MINUTES; minutes += (timeIncrement || 30)) {
-      const timeString = formatTime(minutes);
-      const label = formatTimeDisplay(timeString, timeFormat);
+    for (let minutes = START_MINUTES; minutes < END_MINUTES; minutes += 60) {
+      const position = minutesToPosition(minutes);
+      const hours = Math.floor(minutes / 60);
+      const timeString = `${hours.toString().padStart(2, '0')}:00`;
       labels.push({
         minutes,
-        label,
-        position: minutesToPosition(minutes)
+        label: formatTimeDisplay(timeString, timeFormat as '12' | '24'),
+        position
       });
     }
     return labels;
-  }, [timeFormat, timeIncrement, scheduleSettings]);
+  }, [timeFormat]);
 
-  const containerHeight = TOTAL_MINUTES + 15; // Small padding to show 11:30 PM
+  // Generate increment lines (matching weekly view)
+  const incrementLines = useMemo(() => {
+    const lines = [];
+    for (let minutes = START_MINUTES; minutes < END_MINUTES; minutes += timeIncrement) {
+      const position = minutesToPosition(minutes);
+      lines.push({
+        minutes,
+        position
+      });
+    }
+    return lines;
+  }, [timeIncrement]);
+
+  const containerHeight = TOTAL_MINUTES; // Match weekly view exactly
 
   // Helper functions for navigation
   const goToPreviousDay = () => {
@@ -357,13 +371,13 @@ export default function DailyScheduleView({
           >
             <div 
               className="relative"
-              style={{ height: `${containerHeight}px`, paddingTop: '5px' }}
+              style={{ height: `${containerHeight}px` }}
             >
               {timeLabels.map((timeLabel) => (
                 <div
                   key={timeLabel.minutes}
                   className="absolute right-2 text-xs text-gray-500"
-                  style={{ top: `${timeLabel.position + 5}px` }}
+                  style={{ top: `${timeLabel.position}px` }}
                 >
                   {timeLabel.label}
                 </div>
@@ -607,22 +621,17 @@ export default function DailyScheduleView({
               >
                 <div 
                   className="relative"
-                  style={{ height: `${containerHeight}px`, paddingTop: '5px' }}
+                  style={{ height: `${containerHeight}px` }}
                 >
                   {/* Time grid background */}
                   <div className="absolute inset-0">
-                    {timeLabels.map((timeLabel) => (
+                    {incrementLines.map((line) => (
                       <div
-                        key={timeLabel.minutes}
+                        key={`increment-${line.minutes}`}
                         className="absolute left-0 right-0 border-t border-gray-100"
-                        style={{ top: `${timeLabel.position + 5}px` }}
+                        style={{ top: `${line.position}px` }}
                       />
                     ))}
-                    {/* Midnight line */}
-                    <div
-                      className="absolute left-0 right-0 border-t border-gray-100"
-                      style={{ top: `${TOTAL_MINUTES + 5}px` }}
-                    />
                   </div>
 
                   {/* Events for this day - only non-all-day events */}
@@ -645,7 +654,7 @@ export default function DailyScheduleView({
                             <div
                               className="absolute left-1 right-1 text-white rounded px-2 py-1 text-sm overflow-hidden cursor-pointer hover:opacity-90 transition-opacity border-l-4"
                               style={{
-                                top: `${top + 5}px`,
+                                top: `${top}px`,
                                 height: `${height}px`,
                                 backgroundColor: eventTypeColor,
                                 borderLeftColor: eventTypeColor,
