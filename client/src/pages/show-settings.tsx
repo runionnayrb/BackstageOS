@@ -1786,64 +1786,50 @@ The Production Team`
                       </div>
                     </div>
                     <DialogFooter className="flex flex-row justify-between items-center">
-                      <div>
-                        {editingDepartment && (
-                          <AlertDialog open={deletingDepartmentKey === editingDepartment.key} onOpenChange={(open) => !open && setDeletingDepartmentKey(null)}>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                className="text-destructive hover:text-destructive"
-                                onClick={() => setDeletingDepartmentKey(editingDepartment.key)}
-                                data-testid="button-delete-department-modal"
+                      {editingDepartment && (
+                        <AlertDialog open={deletingDepartmentKey === editingDepartment.key} onOpenChange={(open) => !open && setDeletingDepartmentKey(null)}>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => setDeletingDepartmentKey(editingDepartment.key)}
+                              data-testid="button-delete-department-modal"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Department</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete "{editingDepartment.name}"? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => {
+                                  handleDeleteDepartment(editingDepartment.key);
+                                  setIsDepartmentDialogOpen(false);
+                                  setEditingDepartment(null);
+                                  setDepartmentForm({ name: '' });
+                                }}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                               >
-                                <Trash2 className="h-4 w-4 mr-2" />
                                 Delete
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Department</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to delete "{editingDepartment.name}"? This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => {
-                                    handleDeleteDepartment(editingDepartment.key);
-                                    setIsDepartmentDialogOpen(false);
-                                    setEditingDepartment(null);
-                                    setDepartmentForm({ name: '' });
-                                  }}
-                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                >
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        )}
-                      </div>
-                      <div className="flex gap-2">
-                        <Button 
-                          variant="outline" 
-                          onClick={() => {
-                            setIsDepartmentDialogOpen(false);
-                            setEditingDepartment(null);
-                            setDepartmentForm({ name: '' });
-                          }}
-                          data-testid="button-cancel-add-department"
-                        >
-                          Cancel
-                        </Button>
-                        <Button 
-                          onClick={editingDepartment ? handleEditDepartment : handleAddDepartment}
-                          data-testid="button-confirm-add-department"
-                        >
-                          {editingDepartment ? 'Update' : 'Add'} Department
-                        </Button>
-                      </div>
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+                      {!editingDepartment && <div />}
+                      <Button 
+                        onClick={editingDepartment ? handleEditDepartment : handleAddDepartment}
+                        data-testid="button-confirm-add-department"
+                      >
+                        {editingDepartment ? 'Update' : 'Add'} Department
+                      </Button>
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
