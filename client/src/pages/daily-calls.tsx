@@ -136,11 +136,34 @@ export default function DailyCallSheet() {
     },
   });
 
+  // Auto-save effect - runs once when we generate data for a new date
+  useEffect(() => {
+    if (!actualProjectId || !scheduleEvents || !eventLocations || !contacts) return;
+    if (isEditing) return;
+    if (existingDailyCall) return; // Already saved
+    if (autoSavedRef.current.has(selectedDate)) return; // Already auto-saved
+    
+    // Generate the call sheet data
+    const generatedData = generateCallFromSchedule();
+    
+    // Auto-save if we have data
+    if (generatedData && generatedData.locations.length > 0) {
+      console.log('💾 Auto-saving generated daily call for', selectedDate);
+      autoSavedRef.current.add(selectedDate);
+      
+      saveCallMutation.mutate({
+        locations: generatedData.locations,
+        announcements: generatedData.announcements,
+        fittingsEvents: generatedData.fittingsEvents || [],
+        appointmentsEvents: generatedData.appointmentsEvents || [],
+        events: scheduleEvents.filter(event => event.date === selectedDate)
+      });
+    }
+  }, [selectedDate, existingDailyCall]); // Only depend on selectedDate and existingDailyCall
+  
   // Load existing daily call data when it changes  
   useEffect(() => {
     if (!actualProjectId || !scheduleEvents || !eventLocations || !contacts) return;
-    
-    // Skip regeneration when editing to preserve manual changes
     if (isEditing) return;
     
     // If we have a saved daily call, use that data instead of regenerating
@@ -154,9 +177,15 @@ export default function DailyCallSheet() {
       return;
     }
     
-    // Otherwise, generate from schedule for dates without saved daily calls
-    generateCallFromSchedule();
-  }, [actualProjectId, selectedDate, timeFormat, scheduleEvents, eventLocations, contacts, isEditing, existingDailyCall]); // Include necessary data dependencies
+    // Otherwise, generate from schedule for display only (don't save yet)
+    const generatedData = generateCallFromSchedule();
+    if (generatedData) {
+      setCallData(prev => ({
+        ...prev,
+        ...generatedData
+      }));
+    }
+  }, [actualProjectId, selectedDate, timeFormat, scheduleEvents, eventLocations, contacts, isEditing, existingDailyCall]);
 
   // Date picker navigation function
   const handleDateSelect = (date: Date | undefined) => {
