@@ -1410,10 +1410,11 @@ export default function WeeklyScheduleView({
               {Array.from({ length: 7 }, (_, dayIndex) => (
                 <div
                   key={dayIndex}
-                  className="absolute top-0 bottom-0 border-l border-gray-100 hover:bg-blue-50/30 cursor-crosshair"
+                  className="absolute top-0 bottom-0 border-l border-gray-200 hover:bg-blue-50/30 cursor-crosshair"
                   style={{
                     left: `calc(64px + (100% - 64px) * ${dayIndex} / 7)`,
                     width: `calc((100% - 64px) / 7)`,
+                    boxSizing: 'border-box',
                   }}
                   onMouseDown={(e) => handleMouseDown(e, dayIndex)}
                   onContextMenu={(e) => e.preventDefault()}
