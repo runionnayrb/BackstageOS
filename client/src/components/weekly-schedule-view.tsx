@@ -1228,6 +1228,7 @@ export default function WeeklyScheduleView({
                     style={{
                       left: `calc(64px + (100% - 64px) * ${dayIndex} / 7)`,
                       width: `calc((100% - 64px) / 7)`,
+                      boxSizing: 'border-box',
                     }}
                   >
                     {dayEvents.map(event => (
