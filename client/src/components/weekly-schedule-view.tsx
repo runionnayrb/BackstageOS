@@ -167,6 +167,42 @@ export default function WeeklyScheduleView({
   const scheduleSettings = parseScheduleSettings((showSettings as any)?.scheduleSettings);
   const { timeFormat = '12', timezone, weekStartDay, workStartTime, workEndTime } = scheduleSettings;
 
+  // Calculate week dates based on settings (needed for date range filtering)
+  const getWeekDates = useCallback((weekStart: Date) => {
+    const week = [];
+    // Create date in local timezone to avoid UTC conversion issues
+    const startOfWeek = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate());
+    const currentDay = startOfWeek.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    
+    // Map week start day string to number
+    const weekStartMap: { [key: string]: number } = {
+      sunday: 0, monday: 1, tuesday: 2, wednesday: 3, 
+      thursday: 4, friday: 5, saturday: 6
+    };
+    
+    const configuredStartDay = weekStartMap[weekStartDay] || 0;
+    
+    // Calculate days to subtract to get to the configured start day
+    let daysToSubtract = currentDay - configuredStartDay;
+    if (daysToSubtract < 0) {
+      daysToSubtract += 7;
+    }
+    
+    startOfWeek.setDate(startOfWeek.getDate() - daysToSubtract);
+    
+    for (let i = 0; i < 7; i++) {
+      const weekDate = new Date(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate() + i);
+      week.push(weekDate);
+    }
+    return week;
+  }, [weekStartDay]);
+
+  const weekDates = getWeekDates(currentWeek);
+  
+  // Calculate date range for optimized API queries
+  const startDate = formatAsCalendarDate(weekDates[0]);
+  const endDate = formatAsCalendarDate(weekDates[6]);
+
   // Fetch schedule events (only for current week for better performance)
   const { data: events = [], isLoading } = useQuery<ScheduleEvent[]>({
     queryKey: [`/api/projects/${projectId}/schedule-events?startDate=${startDate}&endDate=${endDate}`],
@@ -271,42 +307,6 @@ export default function WeeklyScheduleView({
   })();
 
 
-
-  // Calculate week dates based on settings
-  const getWeekDates = useCallback((weekStart: Date) => {
-    const week = [];
-    // Create date in local timezone to avoid UTC conversion issues
-    const startOfWeek = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate());
-    const currentDay = startOfWeek.getDay(); // 0 = Sunday, 1 = Monday, etc.
-    
-    // Map week start day string to number
-    const weekStartMap: { [key: string]: number } = {
-      sunday: 0, monday: 1, tuesday: 2, wednesday: 3, 
-      thursday: 4, friday: 5, saturday: 6
-    };
-    
-    const configuredStartDay = weekStartMap[weekStartDay] || 0;
-    
-    // Calculate days to subtract to get to the configured start day
-    let daysToSubtract = currentDay - configuredStartDay;
-    if (daysToSubtract < 0) {
-      daysToSubtract += 7;
-    }
-    
-    startOfWeek.setDate(startOfWeek.getDate() - daysToSubtract);
-    
-    for (let i = 0; i < 7; i++) {
-      const weekDate = new Date(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate() + i);
-      week.push(weekDate);
-    }
-    return week;
-  }, [weekStartDay]);
-
-  const weekDates = getWeekDates(currentWeek);
-  
-  // Calculate date range for optimized API queries
-  const startDate = formatAsCalendarDate(weekDates[0]);
-  const endDate = formatAsCalendarDate(weekDates[6]);
 
   // Navigation functions
   const goToPreviousWeek = () => {
