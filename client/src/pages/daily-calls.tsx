@@ -328,6 +328,7 @@ export default function DailyCallSheet() {
   };
 
   const addEvent = (locationIndex: number) => {
+    console.log('addEvent called for location:', locationIndex);
     const newEvent = {
       id: Date.now(),
       title: 'New Event',
@@ -337,21 +338,26 @@ export default function DailyCallSheet() {
       notes: ''
     };
     
-    setCallData(prev => ({
-      ...prev,
-      locations: prev.locations.map((loc, idx) => {
+    console.log('Creating new event:', newEvent);
+    
+    setCallData(prev => {
+      console.log('Current callData:', prev);
+      const newLocations = prev.locations.map((loc, idx) => {
         if (idx === locationIndex) {
+          console.log('Updating location:', idx, loc);
           const allEventsExceptEndOfDay = (loc.events || []).filter(event => event.title !== 'END-OF-DAY');
-          const sortedEvents = [...allEventsExceptEndOfDay, newEvent].sort((a, b) => a.startTime.localeCompare(b.startTime));
+          console.log('Events except END-OF-DAY:', allEventsExceptEndOfDay);
+          const sortedEvents = [...allEventsExceptEndOfDay, newEvent];
+          console.log('Events after adding new:', sortedEvents);
           
           // Determine end-of-day time based on the last event's end time
-          let endOfDayTime = '23:59'; // Default fallback
+          let endOfDayTime = formatTimeDisplay('23:59', timeFormat as '12' | '24');
           if (sortedEvents.length > 0) {
             const lastEvent = sortedEvents[sortedEvents.length - 1];
             endOfDayTime = lastEvent.endTime;
           }
           
-          return {
+          const updatedLocation = {
             ...loc,
             events: [
               ...sortedEvents,
@@ -366,10 +372,17 @@ export default function DailyCallSheet() {
               }
             ]
           };
+          console.log('Updated location:', updatedLocation);
+          return updatedLocation;
         }
         return loc;
-      })
-    }));
+      });
+      console.log('New locations:', newLocations);
+      return {
+        ...prev,
+        locations: newLocations
+      };
+    });
     setIsEditing(true);
   };
 
