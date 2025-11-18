@@ -872,6 +872,10 @@ export default function WeeklyScheduleView({
         console.log('draggedEvent:', draggedEvent);
         
         if (hasStartedDragging && draggedEvent) {
+          // Mark this event as just dragged to prevent popover opening
+          setJustDragged(event.id);
+          setTimeout(() => setJustDragged(null), 200);
+          
           // Update event position using the current drag position
           const newDate = formatAsCalendarDate(weekDates[currentDragPosition.dayIndex]);
           
@@ -1294,7 +1298,8 @@ export default function WeeklyScheduleView({
                           key={event.id} 
                           open={openPopoverId === event.id} 
                           onOpenChange={(open) => {
-                            // Only allow popover to open if not in long-press
+                            // Don't open popover if event was just dragged or in long-press
+                            if (open && justDragged === event.id) return;
                             if (longPressEventId !== event.id) {
                               setOpenPopoverId(open ? event.id : null);
                             }
@@ -1531,7 +1536,11 @@ export default function WeeklyScheduleView({
                     <Popover 
                       key={event.id} 
                       open={openPopoverId === event.id} 
-                      onOpenChange={(open) => setOpenPopoverId(open ? event.id : null)}
+                      onOpenChange={(open) => {
+                        // Don't open popover if this event was just dragged
+                        if (open && justDragged === event.id) return;
+                        setOpenPopoverId(open ? event.id : null);
+                      }}
                     >
                       <PopoverTrigger asChild>
                         <div
