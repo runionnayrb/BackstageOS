@@ -177,6 +177,9 @@ export default function TemplateSettings() {
   const [editingField, setEditingField] = useState<string | null>(null);
   const [templates, setTemplates] = useState<Record<string, ProductionTemplate>>({});
   
+  // Track if we just completed a save to prevent useEffect from overwriting
+  const [justSaved, setJustSaved] = useState(false);
+  
   // Auto-save state
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -288,6 +291,12 @@ export default function TemplateSettings() {
     // Don't initialize with stale data while fetching fresh data
     if (templatesFetching) {
       console.log('⏸️ Skipping initialization - fetching fresh templates data');
+      return;
+    }
+    
+    // Don't overwrite templates right after a successful save
+    if (justSaved) {
+      console.log('⏸️ Skipping initialization - just completed save, state is already fresh');
       return;
     }
     
@@ -962,6 +971,9 @@ export default function TemplateSettings() {
       setIsSaving(false);
       setLastSaved(now);
       
+      // Set flag to prevent useEffect from running with stale data
+      setJustSaved(true);
+      
       // Toggle editMode to false AFTER successful save (not before)
       // This prevents the initialization useEffect from overwriting our changes
       if (variables.phase) {
@@ -971,6 +983,12 @@ export default function TemplateSettings() {
           [variables.phase]: false
         }));
       }
+      
+      // Clear the justSaved flag after a short delay to allow useEffect to run normally again
+      setTimeout(() => {
+        setJustSaved(false);
+        console.log('✅ Cleared justSaved flag - useEffect can run normally now');
+      }, 100);
       
       // Extract the template response from the mutation result
       const templateResponse = result?.templateResponse;
