@@ -167,6 +167,9 @@ export default function DailyCallSheet() {
   const generateCallFromSchedule = () => {
     if (!actualProjectId || !scheduleEvents || !eventLocations) return;
 
+    console.log('📅 Generating call for date:', selectedDate);
+    console.log('📅 Total schedule events:', scheduleEvents.length);
+
     // Filter events for the selected date - handle different date formats
     const dayEvents = scheduleEvents.filter(event => {
       try {
@@ -175,17 +178,23 @@ export default function DailyCallSheet() {
         if (event.date) {
           eventDateStr = event.date;
         } else if (event.startTime) {
-          // Extract date from startTime if needed
-          const dateFromStartTime = new Date(event.startTime).toISOString().split('T')[0];
-          eventDateStr = dateFromStartTime;
+          // Extract date from startTime without timezone conversion
+          // Just get the YYYY-MM-DD part directly
+          eventDateStr = event.startTime.split('T')[0];
         }
         
-        return eventDateStr === selectedDate;
+        const matches = eventDateStr === selectedDate;
+        if (matches) {
+          console.log('✅ Event matched:', event.title, 'on', eventDateStr);
+        }
+        return matches;
       } catch (error) {
         console.warn('Error parsing date for event:', event);
         return false;
       }
     });
+    
+    console.log('📅 Found', dayEvents.length, 'events for', selectedDate);
     
     // Group events by location type (Main, Auxiliary, Fittings, Appointments)
     const locationTypeGroups: { [key: string]: any[] } = {
