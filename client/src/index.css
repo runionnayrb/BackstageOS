@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hide scrollbar while maintaining scroll functionality */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* BackstageOS gradient hover effect - using important to override Tailwind */
 .backstage-logo {
   color: #111827 !important;
