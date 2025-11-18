@@ -279,15 +279,8 @@ export default function TemplateSettings() {
       hasUserTemplates: !!userTemplates, 
       hasShowSettings: !!showSettings,
       hasReportTypes: !!reportTypes,
-      showSettingsLayoutConfig: !!showSettings?.layoutConfiguration,
-      isSaving
+      showSettingsLayoutConfig: !!showSettings?.layoutConfiguration
     });
-    
-    // Don't reinitialize while saving to prevent race conditions
-    if (isSaving) {
-      console.log('⏸️ Skipping initialization - save in progress');
-      return;
-    }
     
     if (!reportTypes || !Array.isArray(reportTypes) || reportTypes.length === 0) {
       console.log('⏳ Waiting for report types to load...');
@@ -847,8 +840,10 @@ export default function TemplateSettings() {
         console.log('⚠️ GLOBAL SAVE: No current template to save');
       }
       
-      // Save department names if there are changes
-      if (Object.keys(dataToSave.departmentNames || {}).length > 0) {
+      // Only save department names if there are ACTUAL changes (non-empty)
+      const hasDepartmentNameChanges = dataToSave.departmentNames && 
+        Object.keys(dataToSave.departmentNames).length > 0;
+      if (hasDepartmentNameChanges) {
         console.log('📝 Saving department names...', dataToSave.departmentNames);
         savePromises.push(
           apiRequest("PUT", `/api/projects/${projectId}/settings/department-names-bulk`, {
@@ -857,8 +852,10 @@ export default function TemplateSettings() {
         );
       }
       
-      // Save department formatting if there are changes
-      if (Object.keys(dataToSave.departmentFormatting || {}).length > 0) {
+      // Only save department formatting if there are ACTUAL changes (non-empty)
+      const hasDepartmentFormattingChanges = dataToSave.departmentFormatting && 
+        Object.keys(dataToSave.departmentFormatting).length > 0;
+      if (hasDepartmentFormattingChanges) {
         console.log('🎨 Saving department formatting...', dataToSave.departmentFormatting);
         savePromises.push(
           apiRequest("PUT", `/api/projects/${projectId}/settings/department-formatting-bulk`, {
@@ -867,8 +864,10 @@ export default function TemplateSettings() {
         );
       }
       
-      // Save field header formatting if there are changes
-      if (dataToSave.fieldHeaderFormatting && Object.keys(dataToSave.fieldHeaderFormatting).length > 0) {
+      // Only save field header formatting if there are ACTUAL changes (non-empty)
+      const hasFieldHeaderFormattingChanges = dataToSave.fieldHeaderFormatting && 
+        Object.keys(dataToSave.fieldHeaderFormatting).length > 0;
+      if (hasFieldHeaderFormattingChanges) {
         console.log('📋 Saving field header formatting...', dataToSave.fieldHeaderFormatting);
         savePromises.push(
           apiRequest("PUT", `/api/projects/${projectId}/settings/field-header-formatting`, {
@@ -957,19 +956,31 @@ export default function TemplateSettings() {
       // Extract the template response from the mutation result
       const templateResponse = result?.templateResponse;
       
-      // Update local template state with the ACTUAL server timestamp
-      if (templateResponse && templateResponse.updatedAt) {
-        console.log('🕐 Using server timestamp:', templateResponse.updatedAt);
+      // Update local template state with FULL server response (including updatedAt)
+      if (templateResponse) {
+        console.log('🔄 Merging server response into local state:', {
+          id: templateResponse.id,
+          name: templateResponse.name,
+          updatedAt: templateResponse.updatedAt
+        });
+        
         setTemplates(prev => ({
           ...prev,
           [selectedPhase]: {
             ...prev[selectedPhase],
-            updatedAt: templateResponse.updatedAt, // Use server timestamp, not client-generated
-            id: templateResponse.id // Also update ID in case it was a new template
+            id: templateResponse.id.toString(),
+            name: templateResponse.name,
+            updatedAt: templateResponse.updatedAt,
+            // Merge other fields from server response
+            ...(templateResponse.description && { description: templateResponse.description }),
+            ...(templateResponse.header && { header: templateResponse.header }),
+            ...(templateResponse.footer && { footer: templateResponse.footer }),
+            ...(templateResponse.fields && { fields: templateResponse.fields }),
+            ...(templateResponse.layoutConfiguration && { layoutConfiguration: templateResponse.layoutConfiguration })
           }
         }));
       } else {
-        console.warn('⚠️ No template response or updatedAt found in server response');
+        console.warn('⚠️ No template response found in server response');
       }
       
       // Clear pending changes
@@ -983,9 +994,11 @@ export default function TemplateSettings() {
       
       console.log('🧹 GLOBAL SAVE: Pending changes cleared after successful save');
       
-      // Invalidate to refetch and confirm server state
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/templates`] });
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
+      // Consolidate invalidation - only invalidate once per save
+      await queryClient.invalidateQueries({ 
+        queryKey: [`/api/projects/${projectId}/templates`],
+        exact: true 
+      });
       
       toast({
         title: templateResponse?.name ? `${templateResponse.name} saved` : "Template saved",
