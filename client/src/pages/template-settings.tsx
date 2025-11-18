@@ -880,19 +880,15 @@ export default function TemplateSettings() {
       // Execute all saves simultaneously and capture results
       const results = await Promise.all(savePromises);
       
-      // Parse the template response (first promise result) to get the JSON data
-      let templateResponse = null;
-      if (results.length > 0 && results[0]) {
-        templateResponse = await results[0].json();
-        console.log('📦 Parsed template response:', templateResponse);
-      }
+      // apiRequest already returns parsed JSON, so use it directly
+      const templateResponse = results.length > 0 ? results[0] : null;
       
       console.log('📦 Save results:', { templateResponse, totalResults: results.length });
       
       return { 
         templateName: saveData.templateName, 
         templateData,
-        templateResponse // Return the parsed server response with fresh updatedAt
+        templateResponse // Return the server response with fresh updatedAt
       };
     },
     onMutate: async (saveData) => {
