@@ -70,7 +70,7 @@ export default function TemplateSettingsV2() {
   const [selectedTemplate, setSelectedTemplate] = useState<ReportTemplateV2 | null>(null);
   const [newTemplateName, setNewTemplateName] = useState("");
   const [newTemplateDescription, setNewTemplateDescription] = useState("");
-  const [newTemplateReportTypeId, setNewTemplateReportTypeId] = useState<string>("");
+  const [newTemplateReportTypeId, setNewTemplateReportTypeId] = useState<string | undefined>(undefined);
   const [editTemplateName, setEditTemplateName] = useState("");
   const [editTemplateDescription, setEditTemplateDescription] = useState("");
 
