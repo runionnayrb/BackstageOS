@@ -167,9 +167,9 @@ export default function WeeklyScheduleView({
   const scheduleSettings = parseScheduleSettings((showSettings as any)?.scheduleSettings);
   const { timeFormat = '12', timezone, weekStartDay, workStartTime, workEndTime } = scheduleSettings;
 
-  // Fetch schedule events
+  // Fetch schedule events (only for current week for better performance)
   const { data: events = [], isLoading } = useQuery<ScheduleEvent[]>({
-    queryKey: [`/api/projects/${projectId}/schedule-events`],
+    queryKey: [`/api/projects/${projectId}/schedule-events?startDate=${startDate}&endDate=${endDate}`],
     select: (data) => {
       console.log('📅 Weekly view - All events:', data?.map(e => ({
         id: e.id,
@@ -303,6 +303,10 @@ export default function WeeklyScheduleView({
   }, [weekStartDay]);
 
   const weekDates = getWeekDates(currentWeek);
+  
+  // Calculate date range for optimized API queries
+  const startDate = formatAsCalendarDate(weekDates[0]);
+  const endDate = formatAsCalendarDate(weekDates[6]);
 
   // Navigation functions
   const goToPreviousWeek = () => {

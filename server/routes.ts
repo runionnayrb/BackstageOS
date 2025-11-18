@@ -7006,7 +7006,11 @@ Best regards,
         }
       }
 
-      const events = await storage.getScheduleEventsByProjectId(projectId);
+      // Support optional date range filtering for better performance
+      const startDate = req.query.startDate as string | undefined;
+      const endDate = req.query.endDate as string | undefined;
+      
+      const events = await storage.getScheduleEventsByProjectId(projectId, startDate, endDate);
       res.json(events);
     } catch (error) {
       console.error("Error fetching schedule events:", error);

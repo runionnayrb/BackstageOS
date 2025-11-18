@@ -730,7 +730,7 @@ export interface IStorage {
   }): Promise<User>;
 
   // Schedule Events operations
-  getScheduleEventsByProjectId(projectId: number): Promise<any[]>;
+  getScheduleEventsByProjectId(projectId: number, startDate?: string, endDate?: string): Promise<any[]>;
   getScheduleEventsByProjectAndDate(projectId: number, date: string): Promise<any[]>;
   getScheduleEventById(eventId: number): Promise<any>;
   createScheduleEvent(event: any): Promise<any>;
@@ -2398,7 +2398,29 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Schedule Events methods
-  async getScheduleEventsByProjectId(projectId: number): Promise<any[]> {
+  async getScheduleEventsByProjectId(projectId: number, startDate?: string, endDate?: string): Promise<any[]> {
+    // Build where conditions
+    let whereConditions = eq(scheduleEvents.projectId, projectId);
+    
+    // Add date range filtering if provided
+    if (startDate && endDate) {
+      whereConditions = and(
+        whereConditions,
+        gte(scheduleEvents.date, startDate),
+        lte(scheduleEvents.date, endDate)
+      ) as any;
+    } else if (startDate) {
+      whereConditions = and(
+        whereConditions,
+        gte(scheduleEvents.date, startDate)
+      ) as any;
+    } else if (endDate) {
+      whereConditions = and(
+        whereConditions,
+        lte(scheduleEvents.date, endDate)
+      ) as any;
+    }
+    
     const result = await db.select({
       id: scheduleEvents.id,
       projectId: scheduleEvents.projectId,
@@ -2419,7 +2441,7 @@ export class DatabaseStorage implements IStorage {
       updatedAt: scheduleEvents.updatedAt,
     })
     .from(scheduleEvents)
-    .where(eq(scheduleEvents.projectId, projectId))
+    .where(whereConditions)
     .orderBy(scheduleEvents.date, scheduleEvents.startTime);
 
     // Get participants for each event
