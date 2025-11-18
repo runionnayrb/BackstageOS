@@ -777,15 +777,11 @@ export default function TemplateSettings() {
       // Prepare all changes to save
       const savePromises = [];
       
-      // CRITICAL FIX: Use validatedPhase (not selectedPhase) to ensure we get the correct template
-      const validatedPhase = reportTypes.find((rt: any) => rt.slug === selectedPhase) ? selectedPhase : reportTypes[0]?.slug;
-      
       // ALWAYS save the current template to ensure name changes and all updates persist
-      const currentTemplate = templates[validatedPhase];
+      const currentTemplate = templates[selectedPhase];
       let templateData = null;
       
       console.log('🔍 DEBUG: selectedPhase =', selectedPhase);
-      console.log('🔍 DEBUG: validatedPhase =', validatedPhase);
       console.log('🔍 DEBUG: currentTemplate =', currentTemplate);
       console.log('🔍 DEBUG: templates =', templates);
       

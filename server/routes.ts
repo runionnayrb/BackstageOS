@@ -5153,6 +5153,17 @@ Best regards,
         });
       }
       
+      // DEBUG: Log rehearsal template specifically
+      const rehearsalTemplate = templates.find(t => t.phase === 'rehearsal');
+      if (rehearsalTemplate) {
+        console.log('🎭 REHEARSAL TEMPLATE BEING RETURNED:', {
+          id: rehearsalTemplate.id,
+          name: rehearsalTemplate.name,
+          phase: rehearsalTemplate.phase,
+          type: rehearsalTemplate.type
+        });
+      }
+      
       res.json(templates);
     } catch (error) {
       console.error("Error fetching report templates:", error);
