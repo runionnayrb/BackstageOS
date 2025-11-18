@@ -875,20 +875,18 @@ export default function DailyCallSheet() {
                         <div key={event.id} className={`flex ${event.title === 'END-OF-DAY' ? 'items-center' : 'items-start'} gap-6 ${event.title === 'END-OF-DAY' ? 'bg-gray-100 py-1 relative overflow-visible' : 'py-2'}`}>
                           {/* Add Event Button in Left Margin - only show on END-OF-DAY row */}
                           {isEditing && event.title === 'END-OF-DAY' && (
-                            <Button
+                            <div
                               onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 console.log('Add event button clicked for location:', locationIndex);
                                 addEvent(locationIndex);
                               }}
-                              variant="ghost"
-                              size="sm"
-                              className="absolute -left-6 top-1/2 -translate-y-1/2 w-6 h-6 p-0 opacity-0 hover:opacity-100 transition-opacity duration-200 bg-transparent hover:bg-transparent text-black z-10"
+                              className="absolute -left-6 top-1/2 -translate-y-1/2 w-6 h-6 opacity-0 hover:opacity-100 transition-opacity duration-200 cursor-pointer z-10 flex items-center justify-center"
                               style={{ pointerEvents: 'auto' }}
                             >
-                              <Plus className="h-4 w-4" />
-                            </Button>
+                              <Plus className="h-4 w-4 text-black" />
+                            </div>
                           )}
                           <div className="w-20 text-sm font-medium text-gray-700 flex-shrink-0">
                             {event.title === 'END-OF-DAY' ? (
