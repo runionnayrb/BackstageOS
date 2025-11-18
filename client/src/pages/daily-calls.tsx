@@ -318,10 +318,12 @@ export default function DailyCallSheet() {
   };
 
   const handleSave = () => {
+    console.log('💾 Saving daily call with data:', callData);
     saveCallMutation.mutate({
       locations: callData.locations,
       announcements: callData.announcements,
-
+      fittingsEvents: callData.fittingsEvents || [],
+      appointmentsEvents: callData.appointmentsEvents || [],
       events: scheduleEvents.filter(event => event.date === selectedDate)
     });
   };
