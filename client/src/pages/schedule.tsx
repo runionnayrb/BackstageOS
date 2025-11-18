@@ -1297,96 +1297,63 @@ The Production Team`
       </Dialog>
 
       {/* Edit Event Dialog */}
-      {editingEvent && (
-        <>
-          {/* Backdrop */}
-          <div 
-            className="fixed inset-0 bg-black/50 z-40"
-            onClick={() => setEditingEvent(null)}
-            style={{ touchAction: 'none' }}
-          />
+      <Dialog open={!!editingEvent} onOpenChange={(open) => !open && setEditingEvent(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Edit Event</DialogTitle>
+          </DialogHeader>
           
-          {/* Full Screen Sheet */}
-          <div 
-            className="fixed left-0 right-0 z-50 bg-white flex flex-col"
-            style={{ 
-              top: '60px', // Just below the BackstageOS header
-              bottom: '80px', // Above mobile navigation (typically 64-80px)
-              height: 'auto',
-              maxHeight: 'calc(100vh - 140px)' // Header + mobile nav space
-            }}
-            onTouchMove={(e) => {
-              // Prevent background scrolling when touching the sheet
-              e.stopPropagation();
-            }}
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 flex-shrink-0">
-              <Button 
-                variant="ghost" 
-                onClick={() => setEditingEvent(null)}
-                className="text-gray-500 hover:text-gray-700 p-1 h-auto"
-              >
-                <X className="h-5 w-5" />
-              </Button>
-              <h1 className="text-lg font-semibold text-black">
-                Edit Event
-              </h1>
-              <div className="w-9" /> {/* Spacer for center alignment */}
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
-              <EventForm
-                projectId={parseInt(projectId)}
-                contacts={contacts}
-                eventTypes={eventTypes}
-                initialDate={editingEvent.date}
-                onSubmit={(data) => updateEventMutation.mutate({ eventId: editingEvent.id, eventData: data })}
-                onCancel={() => setEditingEvent(null)}
-                timeFormat={settings?.scheduleSettings?.timeFormat || '12'}
-                showButtons={false}
-                initialValues={{
-                  title: editingEvent.title,
-                  description: editingEvent.description || '',
-                  type: editingEvent.type,
-                  startDate: editingEvent.date,
-                  endDate: editingEvent.date,
-                  startTime: editingEvent.startTime,
-                  endTime: editingEvent.endTime,
-                  location: editingEvent.location || '',
-                  notes: editingEvent.notes || '',
-                  isAllDay: editingEvent.isAllDay,
-                  isProductionLevel: editingEvent.isProductionLevel,
-                  participantIds: editingEvent.participants.map((p: any) => p.contactId),
-                }}
-              />
-            </div>
-            
-            {/* Sticky Footer with Buttons */}
-            <div className="border-t border-gray-200 p-4 bg-white flex-shrink-0 mt-auto">
-              <div className="flex justify-end space-x-2">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setEditingEvent(null)}
-                  className="px-4 py-2"
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  type="submit" 
-                  form="event-form"
-                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2"
-                  disabled={updateEventMutation.isPending}
-                >
-                  {updateEventMutation.isPending ? "Saving..." : "Save Changes"}
-                </Button>
+          {editingEvent && (
+            <>
+              <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 px-6">
+                <EventForm
+                  projectId={parseInt(projectId)}
+                  contacts={contacts}
+                  eventTypes={eventTypes}
+                  initialDate={editingEvent.date}
+                  onSubmit={(data) => updateEventMutation.mutate({ eventId: editingEvent.id, eventData: data })}
+                  onCancel={() => setEditingEvent(null)}
+                  timeFormat={settings?.scheduleSettings?.timeFormat || '12'}
+                  showButtons={false}
+                  initialValues={{
+                    title: editingEvent.title,
+                    description: editingEvent.description || '',
+                    type: editingEvent.type,
+                    startDate: editingEvent.date,
+                    endDate: editingEvent.date,
+                    startTime: editingEvent.startTime,
+                    endTime: editingEvent.endTime,
+                    location: editingEvent.location || '',
+                    notes: editingEvent.notes || '',
+                    isAllDay: editingEvent.isAllDay,
+                    isProductionLevel: editingEvent.isProductionLevel,
+                    participantIds: editingEvent.participants.map((p: any) => p.contactId),
+                  }}
+                />
               </div>
-            </div>
-          </div>
-        </>
-      )}
+              
+              <div className="border-t border-gray-200 p-4 bg-white flex-shrink-0 mt-auto">
+                <div className="flex justify-end space-x-2">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setEditingEvent(null)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    form="event-form"
+                    disabled={updateEventMutation.isPending}
+                  >
+                    {updateEventMutation.isPending ? "Saving..." : "Save Changes"}
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Version Control - Mobile Sheet / Desktop Dialog */}
       {isMobile ? (
