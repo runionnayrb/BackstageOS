@@ -429,23 +429,19 @@ The Production Team`
     onMutate: async (eventData: any) => {
       const numericProjectId = parseInt(projectId);
       
-      await queryClient.cancelQueries({ 
-        predicate: (query) => {
-          const key = query.queryKey as any[];
-          return key[0] === '/api/projects' && 
-                 key[1] === numericProjectId && 
-                 key[2] === 'schedule-events';
-        }
-      });
+      const matchesScheduleEventsQuery = (query: any) => {
+        const key = query.queryKey as any[];
+        // Match weekly view format: ['/api/projects', projectId, 'schedule-events', ...]
+        // OR daily view format: ['/api/projects/${projectId}/schedule-events']
+        return (
+          (key[0] === '/api/projects' && key[1] === numericProjectId && key[2] === 'schedule-events') ||
+          (key[0] === `/api/projects/${numericProjectId}/schedule-events`)
+        );
+      };
       
-      const previousEvents = queryClient.getQueriesData({ 
-        predicate: (query) => {
-          const key = query.queryKey as any[];
-          return key[0] === '/api/projects' && 
-                 key[1] === numericProjectId && 
-                 key[2] === 'schedule-events';
-        }
-      });
+      await queryClient.cancelQueries({ predicate: matchesScheduleEventsQuery });
+      
+      const previousEvents = queryClient.getQueriesData({ predicate: matchesScheduleEventsQuery });
       
       const optimisticEvent = {
         ...eventData,
@@ -460,14 +456,7 @@ The Production Team`
       };
       
       queryClient.setQueriesData(
-        { 
-          predicate: (query) => {
-            const key = query.queryKey as any[];
-            return key[0] === '/api/projects' && 
-                   key[1] === numericProjectId && 
-                   key[2] === 'schedule-events';
-          }
-        },
+        { predicate: matchesScheduleEventsQuery },
         (old: any) => {
           if (!old) return old;
           return [...old, optimisticEvent];
