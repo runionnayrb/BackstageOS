@@ -427,30 +427,41 @@ The Production Team`
       ...eventData,
     }),
     onMutate: async (eventData: any) => {
-      // Optimistically add the event to the cache for instant UI update
-      // Cancel any outgoing refetches so they don't overwrite our optimistic update
       await queryClient.cancelQueries({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
       
-      // Snapshot the previous value for rollback
       const previousEvents = queryClient.getQueriesData({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
       
-      // Optimistically update all schedule-events queries
-      queryClient.setQueriesData(
+      console.log('🔍 All matching queries found:', previousEvents.length);
+      previousEvents.forEach(([key, data]: [any, any]) => {
+        console.log('  Query key:', JSON.stringify(key), 'has', data?.length || 0, 'events');
+      });
+      
+      const optimisticEvent = {
+        ...eventData,
+        id: Date.now(),
+        projectId: parseInt(projectId),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        participants: eventData.participantIds?.map((id: number) => ({
+          contactId: id,
+          contact: contacts.find((c: any) => c.id === id)
+        })) || [],
+      };
+      
+      console.log('✨ Creating optimistic event:', optimisticEvent);
+      
+      const updatedCount = queryClient.setQueriesData(
         { queryKey: ['/api/projects', projectId, 'schedule-events'] },
         (old: any) => {
+          console.log('  Updating query with', old?.length || 0, 'events');
           if (!old) return old;
-          // Create optimistic event with temporary ID
-          const optimisticEvent = {
-            ...eventData,
-            id: Date.now(), // Temporary ID
-            projectId: parseInt(projectId),
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            participants: [],
-          };
-          return [...old, optimisticEvent];
+          const newData = [...old, optimisticEvent];
+          console.log('  Now has', newData.length, 'events');
+          return newData;
         }
       );
+      
+      console.log('📝 Updated', updatedCount, 'queries');
       
       return { previousEvents };
     },
