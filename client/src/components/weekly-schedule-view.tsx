@@ -852,7 +852,7 @@ export default function WeeklyScheduleView({
           endTime = formatTime(currentDragPosition.startMinutes + duration) + ':00';
         }
 
-        queryClient.setQueryData([`/api/projects/${projectId}/schedule-events?startDate=${startDate}&endDate=${endDate}`], (old: ScheduleEvent[]) => {
+        queryClient.setQueryData(['/api/projects', projectId, 'schedule-events', { startDate, endDate }], (old: ScheduleEvent[]) => {
           const updated = old?.map((e: ScheduleEvent) => 
             e.id === event.id ? { 
               ...e, 
@@ -990,7 +990,7 @@ export default function WeeklyScheduleView({
         };
 
         // Optimistically update the cache immediately for instant visual feedback
-        queryClient.setQueryData([`/api/projects/${projectId}/schedule-events?startDate=${startDate}&endDate=${endDate}`], (old: ScheduleEvent[]) => {
+        queryClient.setQueryData(['/api/projects', projectId, 'schedule-events', { startDate, endDate }], (old: ScheduleEvent[]) => {
           return old?.map((e: ScheduleEvent) => 
             e.id === event.id ? { ...e, startTime: eventData.startTime, endTime: eventData.endTime } : e
           ) || [];
