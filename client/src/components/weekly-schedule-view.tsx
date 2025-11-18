@@ -1768,7 +1768,7 @@ export default function WeeklyScheduleView({
                 initialDate={editingEvent.date}
                 onSubmit={(data) => updateEventMutation.mutate({ eventId: editingEvent.id, eventData: data })}
                 onCancel={() => setEditingEvent(null)}
-                timeFormat={settings?.scheduleSettings?.timeFormat || '12'}
+                timeFormat={showSettings?.scheduleSettings?.timeFormat || '12'}
                 showButtons={false}
                 initialValues={{
                   title: editingEvent.title,
