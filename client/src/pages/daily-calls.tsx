@@ -343,28 +343,51 @@ export default function DailyCallSheet() {
     });
   };
 
-  // Delete mutation
+  // Delete mutation with optimistic update
   const deleteCallMutation = useMutation({
     mutationFn: async () => {
       if (!existingDailyCall?.id) throw new Error('No daily call to delete');
       return apiRequest('DELETE', `/api/projects/${actualProjectId}/daily-calls/${existingDailyCall.id}`);
+    },
+    onMutate: async () => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['/api/projects', actualProjectId, 'daily-calls-list'] });
+      
+      // Snapshot the previous value
+      const previousCalls = queryClient.getQueryData(['/api/projects', actualProjectId, 'daily-calls-list']);
+      
+      // Optimistically update by removing this call from the list
+      queryClient.setQueryData(['/api/projects', actualProjectId, 'daily-calls-list'], (old: any[]) => {
+        if (!old) return old;
+        return old.filter(call => call.id !== existingDailyCall?.id);
+      });
+      
+      // Return context with the snapshot
+      return { previousCalls };
     },
     onSuccess: () => {
       toast({
         title: "Daily Call Deleted",
         description: "The daily call has been deleted. Schedule events were not affected.",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', actualProjectId, 'daily-calls'] });
       setShowDeleteDialog(false);
       // Navigate back to the list
       setLocation(`/shows/${actualProjectId}/calls`);
     },
-    onError: () => {
+    onError: (_error, _variables, context) => {
+      // Rollback to the previous value on error
+      if (context?.previousCalls) {
+        queryClient.setQueryData(['/api/projects', actualProjectId, 'daily-calls-list'], context.previousCalls);
+      }
       toast({
         title: "Error",
         description: "Failed to delete daily call.",
         variant: "destructive",
       });
+    },
+    onSettled: () => {
+      // Refetch to ensure we're in sync with the server
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', actualProjectId, 'daily-calls-list'] });
     },
   });
 
