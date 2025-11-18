@@ -855,15 +855,15 @@ export default function WeeklyScheduleView({
         // Optimistically update the event in the cache for instant visual feedback while dragging
         const newDate = weekDates[currentDragPosition.dayIndex].toISOString().split('T')[0];
         
-        // For all-day events, only update the date, not the times
+        // For all-day events, only update the date, keep times as-is
         let startTime, endTime;
         if (event.isAllDay) {
-          startTime = event.startTime.replace(':00', '');
-          endTime = event.endTime.replace(':00', '');
+          startTime = event.startTime;
+          endTime = event.endTime;
         } else {
-          startTime = formatTime(currentDragPosition.startMinutes);
+          startTime = formatTime(currentDragPosition.startMinutes) + ':00';
           const duration = timeToMinutes(event.endTime) - timeToMinutes(event.startTime);
-          endTime = formatTime(currentDragPosition.startMinutes + duration);
+          endTime = formatTime(currentDragPosition.startMinutes + duration) + ':00';
         }
 
         queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
@@ -871,8 +871,8 @@ export default function WeeklyScheduleView({
             e.id === event.id ? { 
               ...e, 
               date: newDate,
-              startTime: startTime + ':00',
-              endTime: endTime + ':00'
+              startTime,
+              endTime
             } : e
           ) || [];
           return updated;
@@ -1229,7 +1229,7 @@ export default function WeeklyScheduleView({
           {showAllDayEvents && (
             <div className="relative min-h-[60px] bg-gray-50 border-b border-gray-200">
               <div 
-                className="absolute left-0 top-0 bottom-0 bg-gray-50 border-r border-gray-200 flex items-center justify-center text-xs font-medium text-gray-600"
+                className="absolute left-0 top-0 bottom-0 bg-gray-50 border-r border-gray-200 flex items-center justify-center text-xs font-medium text-gray-600 select-none"
                 style={{ width: '64px', minHeight: '60px' }}
               >
                 All Day
@@ -1251,9 +1251,11 @@ export default function WeeklyScheduleView({
                       const handleAllDayMouseDown = (e: React.MouseEvent) => {
                         if (e.button !== 0) return; // Ignore right clicks
                         
+                        // Prevent text selection when holding down
+                        e.preventDefault();
+                        
                         // Handle Shift+click for multi-selection
                         if (e.shiftKey) {
-                          e.preventDefault();
                           e.stopPropagation();
                           if (selectedEvents.has(event.id)) {
                             const newSelected = new Set(selectedEvents);
@@ -1312,7 +1314,7 @@ export default function WeeklyScheduleView({
                         >
                           <PopoverTrigger asChild>
                             <div
-                              className={`${getEventColor(event.type)} text-white text-xs p-1 rounded cursor-pointer hover:opacity-80 ${
+                              className={`${getEventColor(event.type)} text-white text-xs p-1 rounded cursor-pointer hover:opacity-80 select-none ${
                                 selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''
                               }`}
                               onMouseDown={handleAllDayMouseDown}
