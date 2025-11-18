@@ -791,26 +791,10 @@ export default function WeeklyScheduleView({
 
     let hasStartedDragging = false;
     let currentDragPosition = { dayIndex: draggedEvent.originalPosition.dayIndex, startMinutes: draggedEvent.originalPosition.startMinutes };
-    const moveThreshold = 3; // pixels
+    const moveThreshold = 1; // pixels - reduced threshold for better responsiveness
 
     const handleMouseMove = (e: MouseEvent) => {
         if (!hasStartedDragging) {
-          // Calculate current mouse position
-          const currentX = e.clientX - rect!.left;
-          const currentY = e.clientY - rect!.top;
-          
-          // Calculate original click position
-          const originalEventLeft = 64 + ((rect!.width - 64) * draggedEvent.originalPosition.dayIndex / 7);
-          const originalEventTop = minutesToPosition(draggedEvent.originalPosition.startMinutes);
-          const originalClickX = originalEventLeft + draggedEvent.offset.x;
-          const originalClickY = originalEventTop + draggedEvent.offset.y - (scrollContainerRef.current?.scrollTop || 0);
-          
-          const distance = Math.sqrt(
-            Math.pow(currentX - originalClickX, 2) +
-            Math.pow(currentY - originalClickY, 2)
-          );
-          
-          if (distance < moveThreshold) return;
           hasStartedDragging = true;
           setDraggedEvent(prev => prev ? { ...prev, isDragging: true } : null);
         }
@@ -870,7 +854,7 @@ export default function WeeklyScheduleView({
           endTime = formatTime(currentDragPosition.startMinutes + duration) + ':00';
         }
 
-        queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
+        queryClient.setQueryData([`/api/projects/${projectId}/schedule-events?startDate=${startDate}&endDate=${endDate}`], (old: ScheduleEvent[]) => {
           const updated = old?.map((e: ScheduleEvent) => 
             e.id === event.id ? { 
               ...e, 
@@ -1004,7 +988,7 @@ export default function WeeklyScheduleView({
         };
 
         // Optimistically update the cache immediately for instant visual feedback
-        queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
+        queryClient.setQueryData([`/api/projects/${projectId}/schedule-events?startDate=${startDate}&endDate=${endDate}`], (old: ScheduleEvent[]) => {
           return old?.map((e: ScheduleEvent) => 
             e.id === event.id ? { ...e, startTime: eventData.startTime, endTime: eventData.endTime } : e
           ) || [];
