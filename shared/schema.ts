@@ -166,6 +166,52 @@ export const reportTemplates = pgTable("report_templates", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// V2 Template System - Normalized structure for simplified template management
+export const reportTemplatesV2 = pgTable("report_templates_v2", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  reportTypeId: integer("report_type_id").references(() => reportTypes.id, { onDelete: "set null" }),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  isDefault: boolean("is_default").default(false),
+  displayOrder: integer("display_order").notNull().default(0),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_templates_v2_project").on(table.projectId),
+  index("idx_templates_v2_report_type").on(table.reportTypeId),
+]);
+
+export const templateSections = pgTable("template_sections", {
+  id: serial("id").primaryKey(),
+  templateId: integer("template_id").notNull().references(() => reportTemplatesV2.id, { onDelete: "cascade" }),
+  title: varchar("title").notNull(),
+  departmentKey: varchar("department_key"), // References key in showSettings.departmentNames
+  displayOrder: integer("display_order").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_sections_template").on(table.templateId),
+]);
+
+export const templateFields = pgTable("template_fields", {
+  id: serial("id").primaryKey(),
+  sectionId: integer("section_id").notNull().references(() => templateSections.id, { onDelete: "cascade" }),
+  type: varchar("type").notNull(), // text, textarea, number, date, time, checkbox, select
+  label: varchar("label").notNull(),
+  helperText: text("helper_text"),
+  placeholder: text("placeholder"),
+  required: boolean("required").default(false),
+  options: jsonb("options"), // For select/radio fields: {values: string[]}
+  defaultValue: text("default_value"),
+  displayOrder: integer("display_order").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_fields_section").on(table.sectionId),
+]);
+
 // Custom report types - user-defined categories for reports
 export const reportTypes = pgTable("report_types", {
   id: serial("id").primaryKey(),
@@ -2318,6 +2364,25 @@ export const insertReportTemplateSchema = createInsertSchema(reportTemplates).om
   updatedAt: true,
 });
 
+// V2 Template System Insert Schemas
+export const insertReportTemplateV2Schema = createInsertSchema(reportTemplatesV2).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertTemplateSectionSchema = createInsertSchema(templateSections).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertTemplateFieldSchema = createInsertSchema(templateFields).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertReportTypeSchema = createInsertSchema(reportTypes).omit({
   id: true,
   createdAt: true,
@@ -2784,6 +2849,12 @@ export type Report = typeof reports.$inferSelect;
 export type InsertReport = z.infer<typeof insertReportSchema>;
 export type ReportTemplate = typeof reportTemplates.$inferSelect;
 export type InsertReportTemplate = z.infer<typeof insertReportTemplateSchema>;
+export type ReportTemplateV2 = typeof reportTemplatesV2.$inferSelect;
+export type InsertReportTemplateV2 = z.infer<typeof insertReportTemplateV2Schema>;
+export type TemplateSection = typeof templateSections.$inferSelect;
+export type InsertTemplateSection = z.infer<typeof insertTemplateSectionSchema>;
+export type TemplateField = typeof templateFields.$inferSelect;
+export type InsertTemplateField = z.infer<typeof insertTemplateFieldSchema>;
 export type ReportType = typeof reportTypes.$inferSelect;
 export type InsertReportType = z.infer<typeof insertReportTypeSchema>;
 export type ShowDocument = typeof showDocuments.$inferSelect;
