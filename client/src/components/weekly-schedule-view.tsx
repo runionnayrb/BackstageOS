@@ -852,9 +852,17 @@ export default function WeeklyScheduleView({
 
         // Optimistically update the event in the cache for instant visual feedback while dragging
         const newDate = weekDates[currentDragPosition.dayIndex].toISOString().split('T')[0];
-        const startTime = formatTime(currentDragPosition.startMinutes);
-        const duration = timeToMinutes(event.endTime) - timeToMinutes(event.startTime);
-        const endTime = formatTime(currentDragPosition.startMinutes + duration);
+        
+        // For all-day events, only update the date, not the times
+        let startTime, endTime;
+        if (event.isAllDay) {
+          startTime = event.startTime.replace(':00', '');
+          endTime = event.endTime.replace(':00', '');
+        } else {
+          startTime = formatTime(currentDragPosition.startMinutes);
+          const duration = timeToMinutes(event.endTime) - timeToMinutes(event.startTime);
+          endTime = formatTime(currentDragPosition.startMinutes + duration);
+        }
 
         queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
           const updated = old?.map((e: ScheduleEvent) => 
@@ -876,10 +884,18 @@ export default function WeeklyScheduleView({
         if (hasStartedDragging && draggedEvent) {
           // Update event position using the current drag position
           const newDate = weekDates[currentDragPosition.dayIndex].toISOString().split('T')[0];
-          // Format time with seconds for database storage
-          const startTime = formatTime(currentDragPosition.startMinutes) + ':00';
-          const duration = timeToMinutes(event.endTime) - timeToMinutes(event.startTime);
-          const endTime = formatTime(currentDragPosition.startMinutes + duration) + ':00';
+          
+          // For all-day events, keep original times and only update the date
+          let startTime, endTime;
+          if (event.isAllDay) {
+            startTime = event.startTime;
+            endTime = event.endTime;
+          } else {
+            // Format time with seconds for database storage
+            startTime = formatTime(currentDragPosition.startMinutes) + ':00';
+            const duration = timeToMinutes(event.endTime) - timeToMinutes(event.startTime);
+            endTime = formatTime(currentDragPosition.startMinutes + duration) + ':00';
+          }
 
           const eventData = {
             date: newDate,
