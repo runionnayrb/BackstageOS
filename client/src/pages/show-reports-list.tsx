@@ -58,7 +58,7 @@ export default function ShowReportsList() {
             <div className="flex gap-2">
               <Button 
                 variant="outline"
-                onClick={() => setLocation(`/shows/${projectId}/templates`)}
+                onClick={() => setLocation(`/shows/${projectId}/templates-v2`)}
                 className="flex items-center gap-2"
               >
                 <Settings className="w-4 h-4" />
