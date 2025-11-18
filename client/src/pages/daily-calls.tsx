@@ -870,9 +870,9 @@ export default function DailyCallSheet() {
                       </h4>
                     </div>
                     
-                    <div className="space-y-2">
+                    <div className="space-y-2 overflow-visible">
                       {(location.events || []).map((event, eventIdx) => (
-                        <div key={event.id} className={`flex ${event.title === 'END-OF-DAY' ? 'items-center' : 'items-start'} gap-6 ${event.title === 'END-OF-DAY' ? 'bg-gray-100 py-1 relative' : 'py-2'}`}>
+                        <div key={event.id} className={`flex ${event.title === 'END-OF-DAY' ? 'items-center' : 'items-start'} gap-6 ${event.title === 'END-OF-DAY' ? 'bg-gray-100 py-1 relative overflow-visible' : 'py-2'}`}>
                           {/* Add Event Button in Left Margin - only show on END-OF-DAY row */}
                           {isEditing && event.title === 'END-OF-DAY' && (
                             <Button
