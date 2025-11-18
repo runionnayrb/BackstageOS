@@ -400,13 +400,37 @@ export default function WeeklyScheduleView({
       
       return response.json();
     },
+    onMutate: async (eventData: any) => {
+      await queryClient.cancelQueries({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
+      
+      const optimisticEvent = {
+        ...eventData,
+        id: Date.now(),
+        projectId: parseInt(projectId),
+        participants: eventData.participantIds?.map((id: number) => ({
+          contactId: id,
+          contact: contacts.find(c => c.id === id)
+        })) || []
+      };
+      
+      queryClient.setQueryData(['/api/projects', projectId, 'schedule-events', { startDate, endDate }], (old: ScheduleEvent[]) => {
+        return old ? [...old, optimisticEvent] : [optimisticEvent];
+      });
+      
+      return { optimisticEvent };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
       setCreateEventDialog({ isOpen: false });
       toast({ title: "Event created successfully" });
     },
-    onError: (error: any) => {
-      // Handle conflict validation (409 status) with user-friendly messages
+    onError: (error: any, eventData, context) => {
+      if (context?.optimisticEvent) {
+        queryClient.setQueryData(['/api/projects', projectId, 'schedule-events', { startDate, endDate }], (old: ScheduleEvent[]) => {
+          return old?.filter(e => e.id !== context.optimisticEvent.id) || [];
+        });
+      }
+      
       if (error.status === 409 && error.conflicts) {
         const conflictMessages = error.conflicts.map((conflict: any) => {
           if (conflict.conflictType === 'unavailable') {
@@ -1767,21 +1791,39 @@ export default function WeeklyScheduleView({
           </div>
           
           <div className="border-t border-gray-200 p-4 bg-white flex-shrink-0 mt-auto">
-            <div className="flex justify-end space-x-2">
+            <div className="flex justify-between items-center">
               <Button 
                 type="button" 
-                variant="outline" 
-                onClick={() => setEditingEvent(null)}
+                variant="destructive" 
+                onClick={() => {
+                  if (editingEvent && confirm('Are you sure you want to delete this event?')) {
+                    deleteEventMutation.mutate(editingEvent.id);
+                    setEditingEvent(null);
+                  }
+                }}
+                disabled={deleteEventMutation.isPending}
+                data-testid="button-delete-event"
               >
-                Cancel
+                {deleteEventMutation.isPending ? "Deleting..." : "Delete Event"}
               </Button>
-              <Button 
-                type="submit" 
-                form="event-form"
-                disabled={updateEventMutation.isPending}
-              >
-                {updateEventMutation.isPending ? "Saving..." : "Save Changes"}
-              </Button>
+              <div className="flex space-x-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setEditingEvent(null)}
+                  data-testid="button-cancel-edit"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  form="event-form"
+                  disabled={updateEventMutation.isPending}
+                  data-testid="button-save-event"
+                >
+                  {updateEventMutation.isPending ? "Saving..." : "Save Changes"}
+                </Button>
+              </div>
             </div>
           </div>
         </DialogContent>
