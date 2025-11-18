@@ -1,0 +1,2054 @@
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.Understand this error
+12The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?Understand this error
+12The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.Understand this error
+BackstageOS:1 The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.Understand this error
+BackstageOS:1 The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?Understand this error
+BackstageOS:1 The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.Understand this error
+stallwart.build.js:1 stallwart: failed ping 1
+c2c41bb2a7a7b396.js:2 
+      /////////////////////
+   ///////////////////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////        Curious and driven?
+  ///////////////@@@@@@@///////        Work with us!
+  ///////////////@@@@@@@///////
+  ///////////////@@@@@@@///////        https://join.replit.com/hack.with.us
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@#//////////////
+   ///////////////////////////
+      /////////////////////
+      
+c2c41bb2a7a7b396.js:2 Download the Apollo DevTools for a better development experience: https://chrome.google.com/webstore/detail/apollo-client-developer-t/jdkknkkbebbapilgoeccciglkfbmbnfm
+c2c41bb2a7a7b396.js:2 [LaunchDarkly] LaunchDarkly client initialized
+BackstageOS:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+ed1e693c96a75807.js:2 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+z @ ed1e693c96a75807.js:2Understand this error
+ed1e693c96a75807.js:2 Unrecognized feature: 'ambient-light-sensor'.
+z @ ed1e693c96a75807.js:2Understand this warning
+ed1e693c96a75807.js:2 Unrecognized feature: 'battery'.
+z @ ed1e693c96a75807.js:2Understand this warning
+ed1e693c96a75807.js:2 Unrecognized feature: 'execution-while-not-rendered'.
+z @ ed1e693c96a75807.js:2Understand this warning
+ed1e693c96a75807.js:2 Unrecognized feature: 'execution-while-out-of-viewport'.
+z @ ed1e693c96a75807.js:2Understand this warning
+ed1e693c96a75807.js:2 Unrecognized feature: 'layout-animations'.
+z @ ed1e693c96a75807.js:2Understand this warning
+ed1e693c96a75807.js:2 Unrecognized feature: 'legacy-image-formats'.
+z @ ed1e693c96a75807.js:2Understand this warning
+ed1e693c96a75807.js:2 Unrecognized feature: 'navigation-override'.
+z @ ed1e693c96a75807.js:2Understand this warning
+ed1e693c96a75807.js:2 Unrecognized feature: 'oversized-images'.
+z @ ed1e693c96a75807.js:2Understand this warning
+ed1e693c96a75807.js:2 Unrecognized feature: 'publickey-credentials'.
+z @ ed1e693c96a75807.js:2Understand this warning
+ed1e693c96a75807.js:2 Unrecognized feature: 'speaker-selection'.
+z @ ed1e693c96a75807.js:2Understand this warning
+ed1e693c96a75807.js:2 Unrecognized feature: 'unoptimized-images'.
+z @ ed1e693c96a75807.js:2Understand this warning
+ed1e693c96a75807.js:2 Unrecognized feature: 'unsized-media'.
+z @ ed1e693c96a75807.js:2Understand this warning
+ed1e693c96a75807.js:2 Unrecognized feature: 'pointer-lock'.
+z @ ed1e693c96a75807.js:2Understand this warning
+ed1e693c96a75807.js:2 Allow attribute will take precedence over 'allowfullscreen'.
+z @ ed1e693c96a75807.js:2Understand this warning
+ed1e693c96a75807.js:2 Allow attribute will take precedence over 'allowpaymentrequest'.
+z @ ed1e693c96a75807.js:2Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Ar4s%3A:32 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.Understand this error
+workspace_iframe.html?initialPath=%2F&id=%3Ar4s%3A:32 Unrecognized feature: 'ambient-light-sensor'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Ar4s%3A:32 Unrecognized feature: 'battery'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Ar4s%3A:32 Unrecognized feature: 'execution-while-not-rendered'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Ar4s%3A:32 Unrecognized feature: 'execution-while-out-of-viewport'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Ar4s%3A:32 Unrecognized feature: 'layout-animations'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Ar4s%3A:32 Unrecognized feature: 'legacy-image-formats'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Ar4s%3A:32 Unrecognized feature: 'navigation-override'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Ar4s%3A:32 Unrecognized feature: 'oversized-images'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Ar4s%3A:32 Unrecognized feature: 'publickey-credentials'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Ar4s%3A:32 Unrecognized feature: 'speaker-selection'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Ar4s%3A:32 Unrecognized feature: 'unoptimized-images'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Ar4s%3A:32 Unrecognized feature: 'unsized-media'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Ar4s%3A:32 Allow attribute will take precedence over 'allowfullscreen'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Ar4s%3A:32 Allow attribute will take precedence over 'allowpaymentrequest'.Understand this warning
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755616761045: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617111927: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617156617: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617175984: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617255812: editingElement=false, showToolbar=false, isEditing=true
+flexible-layout-editor.tsx:576 🔄 LAYOUT INIT: Template changed, checking for saved layout data
+flexible-layout-editor.tsx:577 🔍 Template has layoutConfiguration: true
+flexible-layout-editor.tsx:578 🔍 Layout items count: 13
+flexible-layout-editor.tsx:581 ✅ LAYOUT INIT: Applying saved layout from database
+template-settings.tsx:275 🔄 TEMPLATE INIT EFFECT: Running template initialization...
+template-settings.tsx:276 🔍 Effect deps: Object
+template-settings.tsx:360 ✅ Templates initialized with unified showSettings approach - single database table!
+template-settings.tsx:1028 🎯 ACTIVE TEMPLATE: Passing to FlexibleLayoutEditor
+template-settings.tsx:1029 🎯 Has layoutConfiguration: true
+template-settings.tsx:1030 🎯 Layout items count: 13
+template-settings.tsx:1032 🎯 ACTIVE TEMPLATE: Layout positions: Array(13)
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for scenic: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for lighting: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for audio: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for video: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for props: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755616761045: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617111927: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617156617: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617175984: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617255812: editingElement=false, showToolbar=false, isEditing=true
+flexible-layout-editor.tsx:576 🔄 LAYOUT INIT: Template changed, checking for saved layout data
+flexible-layout-editor.tsx:577 🔍 Template has layoutConfiguration: true
+flexible-layout-editor.tsx:578 🔍 Layout items count: 13
+flexible-layout-editor.tsx:581 ✅ LAYOUT INIT: Applying saved layout from database
+template-settings.tsx:275 🔄 TEMPLATE INIT EFFECT: Running template initialization...
+template-settings.tsx:276 🔍 Effect deps: Object
+template-settings.tsx:360 ✅ Templates initialized with unified showSettings approach - single database table!
+template-settings.tsx:1028 🎯 ACTIVE TEMPLATE: Passing to FlexibleLayoutEditor
+template-settings.tsx:1029 🎯 Has layoutConfiguration: true
+template-settings.tsx:1030 🎯 Layout items count: 13
+template-settings.tsx:1032 🎯 ACTIVE TEMPLATE: Layout positions: Array(13)
+content_script.js:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'control')
+    at content_script.js:1:422999
+    at Array.some (<anonymous>)
+    at shouldOfferCompletionListForField (content_script.js:1:422984)
+    at processInputEvent (content_script.js:1:426332)Understand this error
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for scenic: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for lighting: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for audio: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for video: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for props: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755616761045: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617111927: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617156617: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617175984: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617255812: editingElement=false, showToolbar=false, isEditing=true
+template-settings.tsx:275 🔄 TEMPLATE INIT EFFECT: Running template initialization...
+template-settings.tsx:276 🔍 Effect deps: Object
+template-settings.tsx:360 ✅ Templates initialized with unified showSettings approach - single database table!
+template-settings.tsx:1028 🎯 ACTIVE TEMPLATE: Passing to FlexibleLayoutEditor
+template-settings.tsx:1029 🎯 Has layoutConfiguration: true
+template-settings.tsx:1030 🎯 Layout items count: 13
+template-settings.tsx:1032 🎯 ACTIVE TEMPLATE: Layout positions: Array(13)
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for scenic: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for lighting: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for audio: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for video: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for props: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755616761045: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617111927: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617156617: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617175984: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617255812: editingElement=false, showToolbar=false, isEditing=true
+flexible-layout-editor.tsx:576 🔄 LAYOUT INIT: Template changed, checking for saved layout data
+flexible-layout-editor.tsx:577 🔍 Template has layoutConfiguration: true
+flexible-layout-editor.tsx:578 🔍 Layout items count: 13
+flexible-layout-editor.tsx:581 ✅ LAYOUT INIT: Applying saved layout from database
+template-settings.tsx:275 🔄 TEMPLATE INIT EFFECT: Running template initialization...
+template-settings.tsx:276 🔍 Effect deps: Object
+template-settings.tsx:360 ✅ Templates initialized with unified showSettings approach - single database table!
+template-settings.tsx:1028 🎯 ACTIVE TEMPLATE: Passing to FlexibleLayoutEditor
+template-settings.tsx:1029 🎯 Has layoutConfiguration: true
+template-settings.tsx:1030 🎯 Layout items count: 13
+template-settings.tsx:1032 🎯 ACTIVE TEMPLATE: Layout positions: Array(13)
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for scenic: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for lighting: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for audio: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for video: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for props: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755616761045: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617111927: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617156617: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617175984: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617255812: editingElement=false, showToolbar=false, isEditing=true
+flexible-layout-editor.tsx:653 ✅ Updating layouts from configuration
+flexible-layout-editor.tsx:654 🔍 TIMING CHECK: configuration.items.length: 13
+flexible-layout-editor.tsx:655 🔍 TIMING CHECK: configuration.items preview: Array(3)
+flexible-layout-editor.tsx:613 🔍 Converting to grid layouts: Object
+flexible-layout-editor.tsx:640 🔍 Layout items created: Array(13)
+flexible-layout-editor.tsx:660 🎯 LAYOUTS UPDATED: Successfully converted 13 items to grid layouts
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for scenic: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for lighting: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for audio: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for video: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for props: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755616761045: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617111927: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617156617: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617175984: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617255812: editingElement=false, showToolbar=false, isEditing=true
+template-settings.tsx:1169 🔄 GLOBAL SAVE TOGGLE: LOCKING (SAVE ALL) - UI updates immediately
+template-settings.tsx:1170 🔄 STATE DEBUG: Object
+template-settings.tsx:1174 🔒 LOCKING: Getting latest configuration before save...
+template-settings.tsx:1178 🔒 STEP 1: Getting ref status... Object
+template-settings.tsx:1184 🔒 STEP 2: Calling getCurrentConfiguration...
+flexible-layout-editor.tsx:1056 🔍 getCurrentConfiguration called
+flexible-layout-editor.tsx:1057 📊 Current configuration positions: Array(13)
+template-settings.tsx:1186 🔒 STEP 3: Got configuration: true 13
+template-settings.tsx:1187 🔍 SAVING: Late field position before save: Object
+template-settings.tsx:1188 🔍 SAVING: ALL positions being saved: Array(13)
+template-settings.tsx:1206 🔒 LOCKING: Saving all template changes...
+template-settings.tsx:1213 🔒 SAVE DATA prepared: Object
+template-settings.tsx:1220 🔒 EXECUTING MUTATION: About to call globalSaveMutation.mutate...
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 Object
+flexible-layout-editor.tsx:653 ✅ Updating layouts from configuration
+flexible-layout-editor.tsx:654 🔍 TIMING CHECK: configuration.items.length: 13
+flexible-layout-editor.tsx:655 🔍 TIMING CHECK: configuration.items preview: Array(3)
+flexible-layout-editor.tsx:613 🔍 Converting to grid layouts: Object
+flexible-layout-editor.tsx:640 🔍 Layout items created: Array(13)
+flexible-layout-editor.tsx:660 🎯 LAYOUTS UPDATED: Successfully converted 13 items to grid layouts
+template-settings.tsx:275 🔄 TEMPLATE INIT EFFECT: Running template initialization...
+template-settings.tsx:276 🔍 Effect deps: Object
+template-settings.tsx:360 ✅ Templates initialized with unified showSettings approach - single database table!
+template-settings.tsx:1028 🎯 ACTIVE TEMPLATE: Passing to FlexibleLayoutEditor
+template-settings.tsx:1029 🎯 Has layoutConfiguration: true
+template-settings.tsx:1030 🎯 Layout items count: 13
+template-settings.tsx:1032 🎯 ACTIVE TEMPLATE: Layout positions: Array(13)
+template-settings.tsx:905 🚀 Optimistic update applied for template: Rehearsal Report
+template-settings.tsx:771 🔒 GLOBAL SAVE: Starting comprehensive template save...
+template-settings.tsx:775 🔍 Save data being used: Object
+template-settings.tsx:784 🔍 DEBUG: selectedPhase = rehearsal
+template-settings.tsx:785 🔍 DEBUG: currentTemplate = Object
+template-settings.tsx:786 🔍 DEBUG: templates = Object
+template-settings.tsx:789 💾 GLOBAL SAVE: Saving template (including name, layout, and all fields)...
+template-settings.tsx:790 🔍 DEBUG: currentTemplate.id = 248 type: string
+template-settings.tsx:806 🔍 DEBUG: isExisting check = true | Will use: PATCH
+template-settings.tsx:807 📦 DEBUG: templateData being sent: {
+  "name": "Rehearsal Report",
+  "description": "Daily rehearsal progress and notes",
+  "type": "rehearsal",
+  "phase": "rehearsal",
+  "header": "{{showName}} - Rehearsal Report\nDate: {{date}} | Day {{rehearsalDay}}\nStage Manager: {{stageManager}}",
+  "footer": "Next rehearsal: {{nextRehearsal}}\nCompany Manager: {{companyManager}}",
+  "fields": [
+    {
+      "id": "location",
+      "type": "text",
+      "label": "Location",
+      "order": 1,
+      "required": true,
+      "placeholder": "Rehearsal room/venue"
+    },
+    {
+      "id": "scenes",
+      "type": "textarea",
+      "label": "Scenes Worked",
+      "order": 2,
+      "required": true,
+      "placeholder": "Act I, Scene 1-3"
+    },
+    {
+      "id": "notes",
+      "type": "textarea",
+      "label": "Director's Notes",
+      "order": 3,
+      "required": true
+    },
+    {
+      "id": "technical",
+      "type": "textarea",
+      "label": "Technical Notes",
+      "order": 4,
+      "required": false,
+      "placeholder": "Props, costumes, set pieces"
+    },
+    {
+      "id": "attendance",
+      "type": "textarea",
+      "label": "Attendance Notes",
+      "order": 5,
+      "required": false,
+      "placeholder": "Late arrivals, absences"
+    }
+  ],
+  "layoutConfiguration": {
+    "items": [
+      {
+        "h": 4,
+        "w": 12,
+        "x": 0,
+        "y": 4,
+        "id": "field-section-late",
+        "minH": 4,
+        "minW": 3,
+        "type": "grouped-section",
+        "content": {
+          "label": "Late",
+          "fieldId": "late"
+        },
+        "children": [
+          {
+            "h": 1,
+            "w": 12,
+            "x": 0,
+            "y": 0,
+            "id": "field-header-late",
+            "minH": 1,
+            "minW": 3,
+            "type": "field-header",
+            "content": {
+              "label": "Late",
+              "fieldId": "late"
+            }
+          },
+          {
+            "h": 3,
+            "w": 12,
+            "x": 0,
+            "y": 1,
+            "id": "field-notes-late",
+            "minH": 2,
+            "minW": 3,
+            "type": "notes",
+            "content": {
+              "fieldId": "late",
+              "placeholder": "1. No notes. Thank you."
+            }
+          }
+        ]
+      },
+      {
+        "h": 4,
+        "w": 12,
+        "x": 0,
+        "y": 11,
+        "id": "field-section-injuryIllness",
+        "minH": 4,
+        "minW": 3,
+        "type": "grouped-section",
+        "content": {
+          "label": "Injury / Illness",
+          "fieldId": "injuryIllness"
+        },
+        "children": [
+          {
+            "h": 1,
+            "w": 12,
+            "x": 0,
+            "y": 0,
+            "id": "field-header-injuryIllness",
+            "minH": 1,
+            "minW": 3,
+            "type": "field-header",
+            "content": {
+              "label": "Injury / Illness",
+              "fieldId": "injuryIllness"
+            }
+          },
+          {
+            "h": 3,
+            "w": 12,
+            "x": 0,
+            "y": 1,
+            "id": "field-notes-injuryIllness",
+            "minH": 2,
+            "minW": 3,
+            "type": "notes",
+            "content": {
+              "fieldId": "injuryIllness",
+              "placeholder": "1. No notes. Thank you."
+            }
+          }
+        ]
+      },
+      {
+        "h": 4,
+        "w": 12,
+        "x": 0,
+        "y": 0,
+        "id": "field-group-1755616750774",
+        "type": "grouped-section",
+        "content": {
+          "label": "Schedule",
+          "fieldId": "schedule"
+        },
+        "children": [
+          {
+            "h": 1,
+            "w": 12,
+            "x": 0,
+            "y": 0,
+            "id": "field-header-1755616750774",
+            "type": "field-header",
+            "content": {
+              "label": "Schedule",
+              "fieldId": "schedule"
+            }
+          },
+          {
+            "h": 3,
+            "w": 12,
+            "x": 0,
+            "y": 1,
+            "id": "field-notes-1755616750774",
+            "type": "notes",
+            "content": {
+              "fieldId": "schedule",
+              "placeholder": "Sample content..."
+            }
+          }
+        ]
+      },
+      {
+        "h": 4,
+        "w": 12,
+        "x": 0,
+        "y": 21,
+        "id": "dept-section-scenic",
+        "minH": 4,
+        "minW": 3,
+        "type": "grouped-section",
+        "content": {
+          "department": "scenic",
+          "displayName": "Scenic"
+        },
+        "children": [
+          {
+            "h": 1,
+            "w": 6,
+            "x": 0,
+            "y": 0,
+            "id": "dept-header-scenic",
+            "minH": 1,
+            "minW": 2,
+            "type": "department-header",
+            "content": {
+              "department": "scenic",
+              "displayName": "Scenic"
+            }
+          },
+          {
+            "h": 3,
+            "w": 6,
+            "x": 0,
+            "y": 1,
+            "id": "dept-notes-scenic",
+            
+template-settings.tsx:810 🔧 MAKING PATCH REQUEST: /api/projects/3/templates/248
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 Object
+template-settings.tsx:275 🔄 TEMPLATE INIT EFFECT: Running template initialization...
+template-settings.tsx:276 🔍 Effect deps: Object
+template-settings.tsx:287 ⏸️ Skipping initialization - save in progress
+template-settings.tsx:1028 🎯 ACTIVE TEMPLATE: Passing to FlexibleLayoutEditor
+template-settings.tsx:1029 🎯 Has layoutConfiguration: true
+template-settings.tsx:1030 🎯 Layout items count: 13
+template-settings.tsx:1032 🎯 ACTIVE TEMPLATE: Layout positions: Array(13)
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 Object
+template-settings.tsx:860 📦 Save results: Object
+template-settings.tsx:911 ✅ GLOBAL SAVE: All template changes saved successfully
+template-settings.tsx:912 📊 Server response: Object
+template-settings.tsx:923 🕐 Using server timestamp: 2025-11-18T08:40:32.983Z
+template-settings.tsx:945 🧹 GLOBAL SAVE: Pending changes cleared after successful save
+queryClient.ts:69 🎯 Query URL constructed: /api/projects/3/templates from queryKey: Array(1)
+queryClient.ts:69 🎯 Query URL constructed: /api/projects/3/settings from queryKey: Array(3)
+App.tsx:127 Domain routing check: Object
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at EnhancedHeader (enhanced-header.tsx:281:20)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for task-boards: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature task-boards disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at EnhancedHeader (enhanced-header.tsx:288:20)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for advanced-notes: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature advanced-notes disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at EnhancedHeader (enhanced-header.tsx:326:24)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for calendar-management: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:112 ✅ Admin has access to enabled feature calendar-management
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at EnhancedHeader (enhanced-header.tsx:332:24)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for script-editor: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature script-editor disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at EnhancedHeader (enhanced-header.tsx:338:24)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for props-tracker: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:112 ✅ Admin has access to enabled feature props-tracker
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at EnhancedHeader (enhanced-header.tsx:350:24)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for performance-tracker: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature performance-tracker disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at EnhancedHeader (enhanced-header.tsx:360:24)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for task-boards: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature task-boards disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at EnhancedHeader (enhanced-header.tsx:366:24)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for advanced-notes: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature advanced-notes disabled in beta configuration
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 Object
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:102:10)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for email-integration: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:112 ✅ Admin has access to enabled feature email-integration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:133:10)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for task-boards: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature task-boards disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:148:10)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for advanced-notes: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature advanced-notes disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:234:18)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for calendar-management: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:112 ✅ Admin has access to enabled feature calendar-management
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:240:18)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for script-editor: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature script-editor disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:246:18)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for props-tracker: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:112 ✅ Admin has access to enabled feature props-tracker
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:258:18)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for performance-tracker: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature performance-tracker disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:268:18)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for task-boards: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature task-boards disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:274:18)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for advanced-notes: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature advanced-notes disabled in beta configuration
+flexible-layout-editor.tsx:576 🔄 LAYOUT INIT: Template changed, checking for saved layout data
+flexible-layout-editor.tsx:577 🔍 Template has layoutConfiguration: true
+flexible-layout-editor.tsx:578 🔍 Layout items count: 13
+flexible-layout-editor.tsx:581 ✅ LAYOUT INIT: Applying saved layout from database
+template-settings.tsx:275 🔄 TEMPLATE INIT EFFECT: Running template initialization...
+template-settings.tsx:276 🔍 Effect deps: Object
+template-settings.tsx:360 ✅ Templates initialized with unified showSettings approach - single database table!
+template-settings.tsx:1028 🎯 ACTIVE TEMPLATE: Passing to FlexibleLayoutEditor
+template-settings.tsx:1029 🎯 Has layoutConfiguration: true
+template-settings.tsx:1030 🎯 Layout items count: 13
+template-settings.tsx:1032 🎯 ACTIVE TEMPLATE: Layout positions: Array(13)
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 Object
+flexible-layout-editor.tsx:576 🔄 LAYOUT INIT: Template changed, checking for saved layout data
+flexible-layout-editor.tsx:577 🔍 Template has layoutConfiguration: true
+flexible-layout-editor.tsx:578 🔍 Layout items count: 13
+flexible-layout-editor.tsx:581 ✅ LAYOUT INIT: Applying saved layout from database
+template-settings.tsx:275 🔄 TEMPLATE INIT EFFECT: Running template initialization...
+template-settings.tsx:276 🔍 Effect deps: Object
+template-settings.tsx:360 ✅ Templates initialized with unified showSettings approach - single database table!
+template-settings.tsx:1028 🎯 ACTIVE TEMPLATE: Passing to FlexibleLayoutEditor
+template-settings.tsx:1029 🎯 Has layoutConfiguration: true
+template-settings.tsx:1030 🎯 Layout items count: 13
+template-settings.tsx:1032 🎯 ACTIVE TEMPLATE: Layout positions: Array(13)
+template-settings.tsx:1169 🔄 GLOBAL SAVE TOGGLE: UNLOCKING - UI updates immediately
+template-settings.tsx:1170 🔄 STATE DEBUG: Object
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for scenic: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for lighting: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for audio: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for video: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for props: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755616761045: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617111927: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617156617: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617175984: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617255812: editingElement=false, showToolbar=false, isEditing=true
+inline-formatting-toolbar.tsx:64 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+inline-formatting-toolbar.tsx:64 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+inline-formatting-toolbar.tsx:64 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+inline-formatting-toolbar.tsx:64 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+inline-formatting-toolbar.tsx:64 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+inline-formatting-toolbar.tsx:64 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+inline-formatting-toolbar.tsx:64 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+inline-formatting-toolbar.tsx:64 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+inline-formatting-toolbar.tsx:64 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+inline-formatting-toolbar.tsx:64 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+inline-formatting-toolbar.tsx:64 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+inline-formatting-toolbar.tsx:64 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+inline-formatting-toolbar.tsx:64 🔧 Toolbar visibility changed - isVisible: false, targetElement: null
+flexible-layout-editor.tsx:653 ✅ Updating layouts from configuration
+flexible-layout-editor.tsx:654 🔍 TIMING CHECK: configuration.items.length: 13
+flexible-layout-editor.tsx:655 🔍 TIMING CHECK: configuration.items preview: Array(3)
+flexible-layout-editor.tsx:613 🔍 Converting to grid layouts: Object
+flexible-layout-editor.tsx:640 🔍 Layout items created: Array(13)
+flexible-layout-editor.tsx:660 🎯 LAYOUTS UPDATED: Successfully converted 13 items to grid layouts
+template-settings.tsx:275 🔄 TEMPLATE INIT EFFECT: Running template initialization...
+template-settings.tsx:276 🔍 Effect deps: Object
+template-settings.tsx:360 ✅ Templates initialized with unified showSettings approach - single database table!
+template-settings.tsx:1028 🎯 ACTIVE TEMPLATE: Passing to FlexibleLayoutEditor
+template-settings.tsx:1029 🎯 Has layoutConfiguration: true
+template-settings.tsx:1030 🎯 Layout items count: 13
+template-settings.tsx:1032 🎯 ACTIVE TEMPLATE: Layout positions: Array(13)
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for scenic: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for lighting: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for audio: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for video: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for props: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755616761045: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617111927: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617156617: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617175984: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617255812: editingElement=false, showToolbar=false, isEditing=true
+content_script.js:1 Uncaught TypeError: Cannot read properties of undefined (reading 'control')
+    at content_script.js:1:422999
+    at Array.some (<anonymous>)
+    at shouldOfferCompletionListForField (content_script.js:1:422984)
+    at elementWasFocused (content_script.js:1:423712)
+    at HTMLDocument.focusInEventHandler (content_script.js:1:423069)Understand this error
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for scenic: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for lighting: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for audio: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for video: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for props: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755616761045: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617111927: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617156617: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617175984: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617255812: editingElement=false, showToolbar=false, isEditing=true
+template-settings.tsx:275 🔄 TEMPLATE INIT EFFECT: Running template initialization...
+template-settings.tsx:276 🔍 Effect deps: Object
+template-settings.tsx:360 ✅ Templates initialized with unified showSettings approach - single database table!
+template-settings.tsx:1028 🎯 ACTIVE TEMPLATE: Passing to FlexibleLayoutEditor
+template-settings.tsx:1029 🎯 Has layoutConfiguration: true
+template-settings.tsx:1030 🎯 Layout items count: 13
+template-settings.tsx:1032 🎯 ACTIVE TEMPLATE: Layout positions: Array(13)
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for scenic: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for lighting: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for audio: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for video: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for props: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755616761045: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617111927: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617156617: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617175984: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617255812: editingElement=false, showToolbar=false, isEditing=true
+flexible-layout-editor.tsx:576 🔄 LAYOUT INIT: Template changed, checking for saved layout data
+flexible-layout-editor.tsx:577 🔍 Template has layoutConfiguration: true
+flexible-layout-editor.tsx:578 🔍 Layout items count: 13
+flexible-layout-editor.tsx:581 ✅ LAYOUT INIT: Applying saved layout from database
+template-settings.tsx:275 🔄 TEMPLATE INIT EFFECT: Running template initialization...
+template-settings.tsx:276 🔍 Effect deps: Object
+template-settings.tsx:360 ✅ Templates initialized with unified showSettings approach - single database table!
+template-settings.tsx:1028 🎯 ACTIVE TEMPLATE: Passing to FlexibleLayoutEditor
+template-settings.tsx:1029 🎯 Has layoutConfiguration: true
+template-settings.tsx:1030 🎯 Layout items count: 13
+template-settings.tsx:1032 🎯 ACTIVE TEMPLATE: Layout positions: Array(13)
+content_script.js:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'control')
+    at content_script.js:1:422999
+    at Array.some (<anonymous>)
+    at shouldOfferCompletionListForField (content_script.js:1:422984)
+    at processInputEvent (content_script.js:1:426332)Understand this error
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for scenic: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for lighting: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for audio: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for video: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for props: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755616761045: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617111927: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617156617: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617175984: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617255812: editingElement=false, showToolbar=false, isEditing=true
+flexible-layout-editor.tsx:576 🔄 LAYOUT INIT: Template changed, checking for saved layout data
+flexible-layout-editor.tsx:577 🔍 Template has layoutConfiguration: true
+flexible-layout-editor.tsx:578 🔍 Layout items count: 13
+flexible-layout-editor.tsx:581 ✅ LAYOUT INIT: Applying saved layout from database
+template-settings.tsx:275 🔄 TEMPLATE INIT EFFECT: Running template initialization...
+template-settings.tsx:276 🔍 Effect deps: Object
+template-settings.tsx:360 ✅ Templates initialized with unified showSettings approach - single database table!
+template-settings.tsx:1028 🎯 ACTIVE TEMPLATE: Passing to FlexibleLayoutEditor
+template-settings.tsx:1029 🎯 Has layoutConfiguration: true
+template-settings.tsx:1030 🎯 Layout items count: 13
+template-settings.tsx:1032 🎯 ACTIVE TEMPLATE: Layout positions: Array(13)
+content_script.js:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'control')
+    at content_script.js:1:422999
+    at Array.some (<anonymous>)
+    at shouldOfferCompletionListForField (content_script.js:1:422984)
+    at processInputEvent (content_script.js:1:426332)Understand this error
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for scenic: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for lighting: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for audio: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for video: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for props: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755616761045: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617111927: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617156617: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617175984: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617255812: editingElement=false, showToolbar=false, isEditing=true
+flexible-layout-editor.tsx:576 🔄 LAYOUT INIT: Template changed, checking for saved layout data
+flexible-layout-editor.tsx:577 🔍 Template has layoutConfiguration: true
+flexible-layout-editor.tsx:578 🔍 Layout items count: 13
+flexible-layout-editor.tsx:581 ✅ LAYOUT INIT: Applying saved layout from database
+template-settings.tsx:275 🔄 TEMPLATE INIT EFFECT: Running template initialization...
+template-settings.tsx:276 🔍 Effect deps: Object
+template-settings.tsx:360 ✅ Templates initialized with unified showSettings approach - single database table!
+template-settings.tsx:1028 🎯 ACTIVE TEMPLATE: Passing to FlexibleLayoutEditor
+template-settings.tsx:1029 🎯 Has layoutConfiguration: true
+template-settings.tsx:1030 🎯 Layout items count: 13
+template-settings.tsx:1032 🎯 ACTIVE TEMPLATE: Layout positions: Array(13)
+content_script.js:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'control')
+    at content_script.js:1:422999
+    at Array.some (<anonymous>)
+    at shouldOfferCompletionListForField (content_script.js:1:422984)
+    at processInputEvent (content_script.js:1:426332)Understand this error
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for scenic: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for lighting: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for audio: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for video: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for props: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755616761045: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617111927: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617156617: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617175984: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617255812: editingElement=false, showToolbar=false, isEditing=true
+flexible-layout-editor.tsx:576 🔄 LAYOUT INIT: Template changed, checking for saved layout data
+flexible-layout-editor.tsx:577 🔍 Template has layoutConfiguration: true
+flexible-layout-editor.tsx:578 🔍 Layout items count: 13
+flexible-layout-editor.tsx:581 ✅ LAYOUT INIT: Applying saved layout from database
+template-settings.tsx:275 🔄 TEMPLATE INIT EFFECT: Running template initialization...
+template-settings.tsx:276 🔍 Effect deps: Object
+template-settings.tsx:360 ✅ Templates initialized with unified showSettings approach - single database table!
+template-settings.tsx:1028 🎯 ACTIVE TEMPLATE: Passing to FlexibleLayoutEditor
+template-settings.tsx:1029 🎯 Has layoutConfiguration: true
+template-settings.tsx:1030 🎯 Layout items count: 13
+template-settings.tsx:1032 🎯 ACTIVE TEMPLATE: Layout positions: Array(13)
+content_script.js:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'control')
+    at content_script.js:1:422999
+    at Array.some (<anonymous>)
+    at shouldOfferCompletionListForField (content_script.js:1:422984)
+    at processInputEvent (content_script.js:1:426332)Understand this error
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for scenic: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for lighting: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for audio: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for video: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for props: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755616761045: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617111927: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617156617: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617175984: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617255812: editingElement=false, showToolbar=false, isEditing=true
+flexible-layout-editor.tsx:576 🔄 LAYOUT INIT: Template changed, checking for saved layout data
+flexible-layout-editor.tsx:577 🔍 Template has layoutConfiguration: true
+flexible-layout-editor.tsx:578 🔍 Layout items count: 13
+flexible-layout-editor.tsx:581 ✅ LAYOUT INIT: Applying saved layout from database
+template-settings.tsx:275 🔄 TEMPLATE INIT EFFECT: Running template initialization...
+template-settings.tsx:276 🔍 Effect deps: Object
+template-settings.tsx:360 ✅ Templates initialized with unified showSettings approach - single database table!
+template-settings.tsx:1028 🎯 ACTIVE TEMPLATE: Passing to FlexibleLayoutEditor
+template-settings.tsx:1029 🎯 Has layoutConfiguration: true
+template-settings.tsx:1030 🎯 Layout items count: 13
+template-settings.tsx:1032 🎯 ACTIVE TEMPLATE: Layout positions: Array(13)
+content_script.js:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'control')
+    at content_script.js:1:422999
+    at Array.some (<anonymous>)
+    at shouldOfferCompletionListForField (content_script.js:1:422984)
+    at processInputEvent (content_script.js:1:426332)Understand this error
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for scenic: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for lighting: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for audio: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for video: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for props: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755616761045: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617111927: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617156617: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617175984: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617255812: editingElement=false, showToolbar=false, isEditing=true
+flexible-layout-editor.tsx:576 🔄 LAYOUT INIT: Template changed, checking for saved layout data
+flexible-layout-editor.tsx:577 🔍 Template has layoutConfiguration: true
+flexible-layout-editor.tsx:578 🔍 Layout items count: 13
+flexible-layout-editor.tsx:581 ✅ LAYOUT INIT: Applying saved layout from database
+template-settings.tsx:275 🔄 TEMPLATE INIT EFFECT: Running template initialization...
+template-settings.tsx:276 🔍 Effect deps: Object
+template-settings.tsx:360 ✅ Templates initialized with unified showSettings approach - single database table!
+template-settings.tsx:1028 🎯 ACTIVE TEMPLATE: Passing to FlexibleLayoutEditor
+template-settings.tsx:1029 🎯 Has layoutConfiguration: true
+template-settings.tsx:1030 🎯 Layout items count: 13
+template-settings.tsx:1032 🎯 ACTIVE TEMPLATE: Layout positions: Array(13)
+content_script.js:1 Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'control')
+    at content_script.js:1:422999
+    at Array.some (<anonymous>)
+    at shouldOfferCompletionListForField (content_script.js:1:422984)
+    at processInputEvent (content_script.js:1:426332)Understand this error
+App.tsx:127 Domain routing check: Object
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at EnhancedHeader (enhanced-header.tsx:281:20)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for task-boards: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature task-boards disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at EnhancedHeader (enhanced-header.tsx:288:20)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for advanced-notes: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature advanced-notes disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at EnhancedHeader (enhanced-header.tsx:326:24)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for calendar-management: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:112 ✅ Admin has access to enabled feature calendar-management
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at EnhancedHeader (enhanced-header.tsx:332:24)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for script-editor: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature script-editor disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at EnhancedHeader (enhanced-header.tsx:338:24)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for props-tracker: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:112 ✅ Admin has access to enabled feature props-tracker
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at EnhancedHeader (enhanced-header.tsx:350:24)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for performance-tracker: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature performance-tracker disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at EnhancedHeader (enhanced-header.tsx:360:24)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for task-boards: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature task-boards disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at EnhancedHeader (enhanced-header.tsx:366:24)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for advanced-notes: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature advanced-notes disabled in beta configuration
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for scenic: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for lighting: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for audio: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for video: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for props: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755616761045: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617111927: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617156617: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617175984: editingElement=false, showToolbar=false, isEditing=true
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 Object
+editable-department-header.tsx:168 🔧 Rendering toolbar for new-dept-1755617255812: editingElement=false, showToolbar=false, isEditing=true
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:102:10)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for email-integration: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:112 ✅ Admin has access to enabled feature email-integration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:133:10)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for task-boards: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature task-boards disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:148:10)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for advanced-notes: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature advanced-notes disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:234:18)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for calendar-management: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:112 ✅ Admin has access to enabled feature calendar-management
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:240:18)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for script-editor: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature script-editor disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:246:18)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for props-tracker: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:112 ✅ Admin has access to enabled feature props-tracker
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:258:18)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for performance-tracker: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature performance-tracker disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:268:18)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for task-boards: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature task-boards disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:274:18)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for advanced-notes: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature advanced-notes disabled in beta configuration
+template-settings.tsx:275 🔄 TEMPLATE INIT EFFECT: Running template initialization...
+template-settings.tsx:276 🔍 Effect deps: Object
+template-settings.tsx:360 ✅ Templates initialized with unified showSettings approach - single database table!
+template-settings.tsx:1028 🎯 ACTIVE TEMPLATE: Passing to FlexibleLayoutEditor
+template-settings.tsx:1029 🎯 Has layoutConfiguration: true
+template-settings.tsx:1030 🎯 Layout items count: 13
+template-settings.tsx:1032 🎯 ACTIVE TEMPLATE: Layout positions: Array(13)
+template-settings.tsx:1169 🔄 GLOBAL SAVE TOGGLE: LOCKING (SAVE ALL) - UI updates immediately
+template-settings.tsx:1170 🔄 STATE DEBUG: Object
+template-settings.tsx:1174 🔒 LOCKING: Getting latest configuration before save...
+template-settings.tsx:1178 🔒 STEP 1: Getting ref status... Object
+template-settings.tsx:1184 🔒 STEP 2: Calling getCurrentConfiguration...
+flexible-layout-editor.tsx:1056 🔍 getCurrentConfiguration called
+flexible-layout-editor.tsx:1057 📊 Current configuration positions: Array(13)
+template-settings.tsx:1186 🔒 STEP 3: Got configuration: true 13
+template-settings.tsx:1187 🔍 SAVING: Late field position before save: Object
+template-settings.tsx:1188 🔍 SAVING: ALL positions being saved: Array(13)
+template-settings.tsx:1206 🔒 LOCKING: Saving all template changes...
+template-settings.tsx:1213 🔒 SAVE DATA prepared: Object
+template-settings.tsx:1220 🔒 EXECUTING MUTATION: About to call globalSaveMutation.mutate...
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 Object
+flexible-layout-editor.tsx:653 ✅ Updating layouts from configuration
+flexible-layout-editor.tsx:654 🔍 TIMING CHECK: configuration.items.length: 13
+flexible-layout-editor.tsx:655 🔍 TIMING CHECK: configuration.items preview: Array(3)
+flexible-layout-editor.tsx:613 🔍 Converting to grid layouts: Object
+flexible-layout-editor.tsx:640 🔍 Layout items created: Array(13)
+flexible-layout-editor.tsx:660 🎯 LAYOUTS UPDATED: Successfully converted 13 items to grid layouts
+template-settings.tsx:275 🔄 TEMPLATE INIT EFFECT: Running template initialization...
+template-settings.tsx:276 🔍 Effect deps: Object
+template-settings.tsx:360 ✅ Templates initialized with unified showSettings approach - single database table!
+template-settings.tsx:1028 🎯 ACTIVE TEMPLATE: Passing to FlexibleLayoutEditor
+template-settings.tsx:1029 🎯 Has layoutConfiguration: true
+template-settings.tsx:1030 🎯 Layout items count: 13
+template-settings.tsx:1032 🎯 ACTIVE TEMPLATE: Layout positions: Array(13)
+template-settings.tsx:905 🚀 Optimistic update applied for template: Reh Report
+template-settings.tsx:771 🔒 GLOBAL SAVE: Starting comprehensive template save...
+template-settings.tsx:775 🔍 Save data being used: Object
+template-settings.tsx:784 🔍 DEBUG: selectedPhase = rehearsal
+template-settings.tsx:785 🔍 DEBUG: currentTemplate = Object
+template-settings.tsx:786 🔍 DEBUG: templates = Object
+template-settings.tsx:789 💾 GLOBAL SAVE: Saving template (including name, layout, and all fields)...
+template-settings.tsx:790 🔍 DEBUG: currentTemplate.id = 248 type: string
+template-settings.tsx:806 🔍 DEBUG: isExisting check = true | Will use: PATCH
+template-settings.tsx:807 📦 DEBUG: templateData being sent: {
+  "name": "Reh Report",
+  "description": "Daily rehearsal progress and notes",
+  "type": "rehearsal",
+  "phase": "rehearsal",
+  "header": "{{showName}} - Rehearsal Report\nDate: {{date}} | Day {{rehearsalDay}}\nStage Manager: {{stageManager}}",
+  "footer": "Next rehearsal: {{nextRehearsal}}\nCompany Manager: {{companyManager}}",
+  "fields": [
+    {
+      "id": "location",
+      "type": "text",
+      "label": "Location",
+      "order": 1,
+      "required": true,
+      "placeholder": "Rehearsal room/venue"
+    },
+    {
+      "id": "scenes",
+      "type": "textarea",
+      "label": "Scenes Worked",
+      "order": 2,
+      "required": true,
+      "placeholder": "Act I, Scene 1-3"
+    },
+    {
+      "id": "notes",
+      "type": "textarea",
+      "label": "Director's Notes",
+      "order": 3,
+      "required": true
+    },
+    {
+      "id": "technical",
+      "type": "textarea",
+      "label": "Technical Notes",
+      "order": 4,
+      "required": false,
+      "placeholder": "Props, costumes, set pieces"
+    },
+    {
+      "id": "attendance",
+      "type": "textarea",
+      "label": "Attendance Notes",
+      "order": 5,
+      "required": false,
+      "placeholder": "Late arrivals, absences"
+    }
+  ],
+  "layoutConfiguration": {
+    "items": [
+      {
+        "h": 4,
+        "w": 12,
+        "x": 0,
+        "y": 4,
+        "id": "field-section-late",
+        "minH": 4,
+        "minW": 3,
+        "type": "grouped-section",
+        "content": {
+          "label": "Late",
+          "fieldId": "late"
+        },
+        "children": [
+          {
+            "h": 1,
+            "w": 12,
+            "x": 0,
+            "y": 0,
+            "id": "field-header-late",
+            "minH": 1,
+            "minW": 3,
+            "type": "field-header",
+            "content": {
+              "label": "Late",
+              "fieldId": "late"
+            }
+          },
+          {
+            "h": 3,
+            "w": 12,
+            "x": 0,
+            "y": 1,
+            "id": "field-notes-late",
+            "minH": 2,
+            "minW": 3,
+            "type": "notes",
+            "content": {
+              "fieldId": "late",
+              "placeholder": "1. No notes. Thank you."
+            }
+          }
+        ]
+      },
+      {
+        "h": 4,
+        "w": 12,
+        "x": 0,
+        "y": 11,
+        "id": "field-section-injuryIllness",
+        "minH": 4,
+        "minW": 3,
+        "type": "grouped-section",
+        "content": {
+          "label": "Injury / Illness",
+          "fieldId": "injuryIllness"
+        },
+        "children": [
+          {
+            "h": 1,
+            "w": 12,
+            "x": 0,
+            "y": 0,
+            "id": "field-header-injuryIllness",
+            "minH": 1,
+            "minW": 3,
+            "type": "field-header",
+            "content": {
+              "label": "Injury / Illness",
+              "fieldId": "injuryIllness"
+            }
+          },
+          {
+            "h": 3,
+            "w": 12,
+            "x": 0,
+            "y": 1,
+            "id": "field-notes-injuryIllness",
+            "minH": 2,
+            "minW": 3,
+            "type": "notes",
+            "content": {
+              "fieldId": "injuryIllness",
+              "placeholder": "1. No notes. Thank you."
+            }
+          }
+        ]
+      },
+      {
+        "h": 4,
+        "w": 12,
+        "x": 0,
+        "y": 0,
+        "id": "field-group-1755616750774",
+        "type": "grouped-section",
+        "content": {
+          "label": "Schedule",
+          "fieldId": "schedule"
+        },
+        "children": [
+          {
+            "h": 1,
+            "w": 12,
+            "x": 0,
+            "y": 0,
+            "id": "field-header-1755616750774",
+            "type": "field-header",
+            "content": {
+              "label": "Schedule",
+              "fieldId": "schedule"
+            }
+          },
+          {
+            "h": 3,
+            "w": 12,
+            "x": 0,
+            "y": 1,
+            "id": "field-notes-1755616750774",
+            "type": "notes",
+            "content": {
+              "fieldId": "schedule",
+              "placeholder": "Sample content..."
+            }
+          }
+        ]
+      },
+      {
+        "h": 4,
+        "w": 12,
+        "x": 0,
+        "y": 21,
+        "id": "dept-section-scenic",
+        "minH": 4,
+        "minW": 3,
+        "type": "grouped-section",
+        "content": {
+          "department": "scenic",
+          "displayName": "Scenic"
+        },
+        "children": [
+          {
+            "h": 1,
+            "w": 6,
+            "x": 0,
+            "y": 0,
+            "id": "dept-header-scenic",
+            "minH": 1,
+            "minW": 2,
+            "type": "department-header",
+            "content": {
+              "department": "scenic",
+              "displayName": "Scenic"
+            }
+          },
+          {
+            "h": 3,
+            "w": 6,
+            "x": 0,
+            "y": 1,
+            "id": "dept-notes-scenic",
+            "minH"
+template-settings.tsx:810 🔧 MAKING PATCH REQUEST: /api/projects/3/templates/248
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 Object
+template-settings.tsx:275 🔄 TEMPLATE INIT EFFECT: Running template initialization...
+template-settings.tsx:276 🔍 Effect deps: Object
+template-settings.tsx:287 ⏸️ Skipping initialization - save in progress
+template-settings.tsx:1028 🎯 ACTIVE TEMPLATE: Passing to FlexibleLayoutEditor
+template-settings.tsx:1029 🎯 Has layoutConfiguration: true
+template-settings.tsx:1030 🎯 Layout items count: 13
+template-settings.tsx:1032 🎯 ACTIVE TEMPLATE: Layout positions: Array(13)
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 Object
+template-settings.tsx:860 📦 Save results: Object
+template-settings.tsx:911 ✅ GLOBAL SAVE: All template changes saved successfully
+template-settings.tsx:912 📊 Server response: Object
+template-settings.tsx:923 🕐 Using server timestamp: 2025-11-18T08:40:40.817Z
+template-settings.tsx:945 🧹 GLOBAL SAVE: Pending changes cleared after successful save
+queryClient.ts:69 🎯 Query URL constructed: /api/projects/3/templates from queryKey: Array(1)
+queryClient.ts:69 🎯 Query URL constructed: /api/projects/3/settings from queryKey: Array(3)
+App.tsx:127 Domain routing check: Object
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at EnhancedHeader (enhanced-header.tsx:281:20)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for task-boards: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature task-boards disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at EnhancedHeader (enhanced-header.tsx:288:20)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for advanced-notes: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature advanced-notes disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at EnhancedHeader (enhanced-header.tsx:326:24)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for calendar-management: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:112 ✅ Admin has access to enabled feature calendar-management
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at EnhancedHeader (enhanced-header.tsx:332:24)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for script-editor: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature script-editor disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at EnhancedHeader (enhanced-header.tsx:338:24)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for props-tracker: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:112 ✅ Admin has access to enabled feature props-tracker
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at EnhancedHeader (enhanced-header.tsx:350:24)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for performance-tracker: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature performance-tracker disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at EnhancedHeader (enhanced-header.tsx:360:24)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for task-boards: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature task-boards disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at EnhancedHeader (enhanced-header.tsx:366:24)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for advanced-notes: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature advanced-notes disabled in beta configuration
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 Object
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:102:10)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for email-integration: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:112 ✅ Admin has access to enabled feature email-integration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:133:10)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for task-boards: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature task-boards disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:148:10)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for advanced-notes: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature advanced-notes disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:234:18)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for calendar-management: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:112 ✅ Admin has access to enabled feature calendar-management
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:240:18)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for script-editor: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature script-editor disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:246:18)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for props-tracker: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:112 ✅ Admin has access to enabled feature props-tracker
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:258:18)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for performance-tracker: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature performance-tracker disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:268:18)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for task-boards: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature task-boards disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:274:18)
+    at renderWithHooks (chunk-276SZO74.js?v=d6ec368e:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=d6ec368e:14582:28)
+    at beginWork (chunk-276SZO74.js?v=d6ec368e:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=d6ec368e:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=d6ec368e:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=d6ec368e:19137:13) Raw value: Array(12)
+hasUserAccess @ useBetaFeatures.ts:61Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for advanced-notes: Object
+useBetaFeatures.ts:96 🔍 Admin access check: Object
+useBetaFeatures.ts:106 ❌ Feature advanced-notes disabled in beta configuration
+flexible-layout-editor.tsx:576 🔄 LAYOUT INIT: Template changed, checking for saved layout data
+flexible-layout-editor.tsx:577 🔍 Template has layoutConfiguration: true
+flexible-layout-editor.tsx:578 🔍 Layout items count: 13
+flexible-layout-editor.tsx:581 ✅ LAYOUT INIT: Applying saved layout from database
+template-settings.tsx:275 🔄 TEMPLATE INIT EFFECT: Running template initialization...
+template-settings.tsx:276 🔍 Effect deps: Object
+template-settings.tsx:360 ✅ Templates initialized with unified showSettings approach - single database table!
+template-settings.tsx:1028 🎯 ACTIVE TEMPLATE: Passing to FlexibleLayoutEditor
+template-settings.tsx:1029 🎯 Has layoutConfiguration: true
+template-settings.tsx:1030 🎯 Layout items count: 13
+template-settings.tsx:1032 🎯 ACTIVE TEMPLATE: Layout positions: Array(13)
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 Object
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 Object
+flexible-layout-editor.tsx:576 🔄 LAYOUT INIT: Template changed, checking for saved layout data
+flexible-layout-editor.tsx:577 🔍 Template has layoutConfiguration: true
+flexible-layout-editor.tsx:578 🔍 Layout items count: 13
+flexible-layout-editor.tsx:581 ✅ LAYOUT INIT: Applying saved layout from database
+template-settings.tsx:275 🔄 TEMPLATE INIT EFFECT: Running template initialization...
+template-settings.tsx:276 🔍 Effect deps: Object
+template-settings.tsx:360 ✅ Templates initialized with unified showSettings approach - single database table!
+template-settings.tsx:1028 🎯 ACTIVE TEMPLATE: Passing to FlexibleLayoutEditor
+template-settings.tsx:1029 🎯 Has layoutConfiguration: true
+template-settings.tsx:1030 🎯 Layout items count: 13
+template-settings.tsx:1032 🎯 ACTIVE TEMPLATE: Layout positions: Array(13)
+3editable-field-heading.tsx:31 🔍 EditableFieldHeading mounted with onApplyToAll: false
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: scenic {isEditing: false, displayName: 'Scenic', hasDragHandle: false}
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: lighting {isEditing: false, displayName: 'Lighting', hasDragHandle: false}
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: audio {isEditing: false, displayName: 'Audio', hasDragHandle: false}
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: video {isEditing: false, displayName: 'Video', hasDragHandle: false}
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: props {isEditing: false, displayName: 'Props', hasDragHandle: false}
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755616761045 {isEditing: false, displayName: 'Wardrobe', hasDragHandle: false}
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617111927 {isEditing: false, displayName: 'Facilities', hasDragHandle: false}
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617156617 {isEditing: false, displayName: 'Automation', hasDragHandle: false}
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617175984 {isEditing: false, displayName: 'Rigging', hasDragHandle: false}
+editable-department-header.tsx:101 🔧 DEPARTMENT HEADER RENDER: new-dept-1755617255812 {isEditing: false, displayName: 'Special Effects', hasDragHandle: false}
+template-settings.tsx:275 🔄 TEMPLATE INIT EFFECT: Running template initialization...
+template-settings.tsx:276 🔍 Effect deps: {projectId: '3', hasUserTemplates: true, hasShowSettings: true, hasReportTypes: true, showSettingsLayoutConfig: true, …}
+template-settings.tsx:360 ✅ Templates initialized with unified showSettings approach - single database table!
+template-settings.tsx:1028 🎯 ACTIVE TEMPLATE: Passing to FlexibleLayoutEditor
+template-settings.tsx:1029 🎯 Has layoutConfiguration: true
+template-settings.tsx:1030 🎯 Layout items count: 13
+template-settings.tsx:1032 🎯 ACTIVE TEMPLATE: Layout positions: (13) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
