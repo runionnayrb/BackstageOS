@@ -381,10 +381,6 @@ export default function TemplateSettingsV2() {
               <p className="text-muted-foreground mb-4">
                 Create your first report template to get started.
               </p>
-              <Button onClick={() => setIsCreateDialogOpen(true)} data-testid="button-create-first-template">
-                <Plus className="h-4 w-4 mr-2" />
-                Create Template
-              </Button>
             </CardContent>
           </Card>
         ) : (
