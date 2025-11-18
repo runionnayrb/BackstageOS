@@ -90,6 +90,7 @@ interface ProductionTemplate {
   footer: string;
   fields: TemplateField[];
   layoutConfiguration?: any; // Add layout support to all templates
+  updatedAt?: string; // Timestamp from database
 }
 
 const defaultTemplates: Record<string, Omit<ProductionTemplate, "id">> = {
@@ -338,7 +339,8 @@ export default function TemplateSettings() {
             header: userTemplate.header || "",
             footer: userTemplate.footer || "",
             fields: userTemplate.fields || [],
-            layoutConfiguration: userTemplate.layoutConfiguration
+            layoutConfiguration: userTemplate.layoutConfiguration,
+            updatedAt: userTemplate.updatedAt // Include timestamp from database
           };
         }
       });
@@ -361,18 +363,35 @@ export default function TemplateSettings() {
     console.log('✅ Templates initialized with unified showSettings approach - single database table!');
     
     // Only update templates if there's an actual change from server data
-    // This prevents overwriting user edits while they're typing
+    // This prevents overwriting user edits while they're typing AND prevents flickering
     const hasTemplates = Object.keys(templates).length > 0;
-    const templateIds = userTemplates?.map((t: any) => t.id).sort().join(',');
-    
-    // Only reinitialize if:
-    // 1. Templates are empty (first load)
-    // 2. Template IDs changed (new template added/removed in DB)
-    // 3. No edit mode is active (user isn't currently editing)
     const isEditing = Object.values(editModes).some(mode => mode);
     
-    if (!hasTemplates || (!isEditing && templateIds)) {
+    // Skip if user is currently editing
+    if (isEditing) {
+      console.log('⏸️ Skipping initialization - user is editing');
+      return;
+    }
+    
+    // Only reinitialize if templates are empty (first load) or data has actually changed
+    if (!hasTemplates) {
+      console.log('📥 First load - initializing templates');
       setTemplates(initialTemplates);
+    } else {
+      // Check if there are actual changes by comparing names and timestamps
+      const hasChanges = Object.keys(initialTemplates).some(key => {
+        const initial = initialTemplates[key];
+        const current = templates[key];
+        return !current || 
+               initial.name !== current.name || 
+               initial.updatedAt !== current.updatedAt ||
+               initial.id !== current.id;
+      });
+      
+      if (hasChanges) {
+        console.log('🔄 Data changed - updating templates');
+        setTemplates(initialTemplates);
+      }
     }
   }, [projectId, userTemplates, showSettings, reportTypes]);
 
@@ -861,15 +880,19 @@ export default function TemplateSettings() {
       // Execute all saves simultaneously and capture results
       const results = await Promise.all(savePromises);
       
-      // Extract the template response (first promise result)
-      const templateResponse = results.length > 0 ? results[0] : null;
+      // Parse the template response (first promise result) to get the JSON data
+      let templateResponse = null;
+      if (results.length > 0 && results[0]) {
+        templateResponse = await results[0].json();
+        console.log('📦 Parsed template response:', templateResponse);
+      }
       
-      console.log('📦 Save results:', { templateResponse, allResults: results });
+      console.log('📦 Save results:', { templateResponse, totalResults: results.length });
       
       return { 
         templateName: saveData.templateName, 
         templateData,
-        templateResponse // Return the actual server response with fresh updatedAt
+        templateResponse // Return the parsed server response with fresh updatedAt
       };
     },
     onMutate: async (saveData) => {
