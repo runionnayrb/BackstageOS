@@ -152,7 +152,19 @@ export default function DailyCallSheet() {
     }
     
     // Otherwise, generate from schedule for dates without saved daily calls
-    generateCallFromSchedule();
+    const generatedData = generateCallFromSchedule();
+    
+    // Auto-save the generated call sheet so it appears in the list
+    if (generatedData && generatedData.locations.length > 0) {
+      console.log('💾 Auto-saving generated daily call for', selectedDate);
+      saveCallMutation.mutate({
+        locations: generatedData.locations,
+        announcements: generatedData.announcements,
+        fittingsEvents: generatedData.fittingsEvents,
+        appointmentsEvents: generatedData.appointmentsEvents,
+        events: scheduleEvents.filter(event => event.date === selectedDate)
+      });
+    }
   }, [actualProjectId, selectedDate, timeFormat, scheduleEvents, eventLocations, contacts, isEditing, existingDailyCall]); // Include necessary data dependencies
 
   // Date picker navigation function
@@ -165,7 +177,7 @@ export default function DailyCallSheet() {
   };
 
   const generateCallFromSchedule = () => {
-    if (!actualProjectId || !scheduleEvents || !eventLocations) return;
+    if (!actualProjectId || !scheduleEvents || !eventLocations) return null;
 
     console.log('📅 Generating call for date:', selectedDate);
     console.log('📅 Total schedule events:', scheduleEvents.length);
@@ -298,13 +310,22 @@ export default function DailyCallSheet() {
       });
     }
 
-    // Also store fittings and appointments data for conditional sections
-    setCallData(prev => ({
-      ...prev,
+    // Create the generated data object
+    const generatedData = {
       locations,
       fittingsEvents: locationTypeGroups.fittings,
-      appointmentsEvents: locationTypeGroups.appointments
+      appointmentsEvents: locationTypeGroups.appointments,
+      announcements: ''
+    };
+
+    // Set state with the generated data
+    setCallData(prev => ({
+      ...prev,
+      ...generatedData
     }));
+    
+    // Return the generated data for auto-saving
+    return generatedData;
   };
 
   const handleSave = () => {
