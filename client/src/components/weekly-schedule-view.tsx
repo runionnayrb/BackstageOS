@@ -11,7 +11,7 @@ import { ChevronLeft, ChevronRight, Plus, Clock, Users, Calendar, X, ChevronDown
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
-import { formatTimeDisplay, parseScheduleSettings, formatDateInTimezone } from "@/lib/timeUtils";
+import { formatTimeDisplay, parseScheduleSettings, formatAsCalendarDate } from "@/lib/timeUtils";
 import { isShowEvent, getEventTypeDisplayName, getEventTypeColor, getEventTypeBorderColor, getEventTypeColorFromDatabase } from "@/lib/eventUtils";
 import { filterEventsBySettings, getTimezoneAbbreviation } from "@/lib/scheduleUtils";
 import LocationSelect from "@/components/location-select";
@@ -628,13 +628,13 @@ export default function WeeklyScheduleView({
       minutes, 
       time: formatTimeFromMinutes(minutes), 
       dayIndex,
-      clickedDate: formatDateInTimezone(weekDates[dayIndex], timezone || 'America/New_York'),
-      weekDatesDebug: weekDates.map((d, i) => ({ index: i, date: formatDateInTimezone(d, timezone || 'America/New_York') }))
+      clickedDate: formatAsCalendarDate(weekDates[dayIndex]),
+      weekDatesDebug: weekDates.map((d, i) => ({ index: i, date: formatAsCalendarDate(d) }))
     });
 
     // Check if clicking on existing event
     const clickedEvent = filteredEvents.find(event => {
-      const eventDay = weekDates.findIndex((date: Date) => formatDateInTimezone(date, timezone || 'America/New_York') === event.date);
+      const eventDay = weekDates.findIndex((date: Date) => formatAsCalendarDate(date) === event.date);
       const eventStart = timeToMinutes(event.startTime);
       const eventEnd = timeToMinutes(event.endTime);
       return eventDay === dayIndex && minutes >= eventStart && minutes <= eventEnd && !event.isAllDay;
@@ -674,7 +674,7 @@ export default function WeeklyScheduleView({
         const endTime = Math.max(dragState.startTime, dragState.currentTime);
         
         console.log('Creating event:', {
-          date: formatDateInTimezone(weekDates[dragState.startDay], timezone || 'America/New_York'),
+          date: formatAsCalendarDate(weekDates[dragState.startDay]),
           startTime: formatTimeFromMinutes(startTime),
           endTime: formatTimeFromMinutes(endTime),
           duration: endTime - startTime,
@@ -682,7 +682,7 @@ export default function WeeklyScheduleView({
         });
         
         if (endTime - startTime >= timeIncrement) {
-          const date = formatDateInTimezone(weekDates[dragState.startDay], timezone || 'America/New_York');
+          const date = formatAsCalendarDate(weekDates[dragState.startDay]);
           setCreateEventData({
             date,
             startTime: formatTimeFromMinutes(startTime),
@@ -745,7 +745,7 @@ export default function WeeklyScheduleView({
 
     // Set up drag immediately
     const eventDate = event.date;
-    const dayIndex = weekDates.findIndex((date: Date) => formatDateInTimezone(date, timezone || 'America/New_York') === eventDate);
+    const dayIndex = weekDates.findIndex((date: Date) => formatAsCalendarDate(date) === eventDate);
     
     if (dayIndex === -1) return;
 
@@ -853,7 +853,7 @@ export default function WeeklyScheduleView({
         } : null);
 
         // Optimistically update the event in the cache for instant visual feedback while dragging
-        const newDate = formatDateInTimezone(weekDates[currentDragPosition.dayIndex], timezone || 'America/New_York');
+        const newDate = formatAsCalendarDate(weekDates[currentDragPosition.dayIndex]);
         
         // For all-day events, only update the date, keep times as-is
         let startTime, endTime;
@@ -885,7 +885,7 @@ export default function WeeklyScheduleView({
         
         if (hasStartedDragging && draggedEvent) {
           // Update event position using the current drag position
-          const newDate = formatDateInTimezone(weekDates[currentDragPosition.dayIndex], timezone || 'America/New_York');
+          const newDate = formatAsCalendarDate(weekDates[currentDragPosition.dayIndex]);
           
           // For all-day events, keep original times and only update the date
           let startTime, endTime;
@@ -1236,7 +1236,7 @@ export default function WeeklyScheduleView({
               </div>
               {weekDates.map((date, dayIndex) => {
                 const dayEvents = filteredEvents.filter(event => 
-                  event.date === formatDateInTimezone(date, timezone || 'America/New_York') && event.isAllDay
+                  event.date === formatAsCalendarDate(date) && event.isAllDay
                 );
                 return (
                   <div 
@@ -1513,7 +1513,7 @@ export default function WeeklyScheduleView({
                 .filter(event => !event.isAllDay)
                 .map(event => {
                   const eventDate = event.date;
-                  let dayIndex = weekDates.findIndex((date: Date) => formatDateInTimezone(date, timezone || 'America/New_York') === eventDate);
+                  let dayIndex = weekDates.findIndex((date: Date) => formatAsCalendarDate(date) === eventDate);
                   
                   if (dayIndex === -1) return null;
 
