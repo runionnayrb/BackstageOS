@@ -121,7 +121,17 @@ export default function DailyCallSheet() {
   const saveCallMutation = useMutation({
     mutationFn: async (data: any) => {
       if (existingDailyCall?.id) {
-        return apiRequest('PATCH', `/api/projects/${actualProjectId}/daily-calls/${existingDailyCall.id}`, data);
+        try {
+          // Try to update the existing daily call
+          return await apiRequest('PATCH', `/api/projects/${actualProjectId}/daily-calls/${existingDailyCall.id}`, data);
+        } catch (error: any) {
+          // If it was deleted (404), create a new one instead
+          if (error.status === 404 || (error.response && error.response.status === 404)) {
+            console.log('Daily call was deleted, creating new one instead');
+            return await apiRequest('POST', `/api/projects/${actualProjectId}/daily-calls`, { ...data, date: selectedDate });
+          }
+          throw error;
+        }
       } else {
         return apiRequest('POST', `/api/projects/${actualProjectId}/daily-calls`, { ...data, date: selectedDate });
       }
