@@ -1785,24 +1785,65 @@ The Production Team`
                         />
                       </div>
                     </div>
-                    <DialogFooter>
-                      <Button 
-                        variant="outline" 
-                        onClick={() => {
-                          setIsDepartmentDialogOpen(false);
-                          setEditingDepartment(null);
-                          setDepartmentForm({ name: '' });
-                        }}
-                        data-testid="button-cancel-add-department"
-                      >
-                        Cancel
-                      </Button>
-                      <Button 
-                        onClick={editingDepartment ? handleEditDepartment : handleAddDepartment}
-                        data-testid="button-confirm-add-department"
-                      >
-                        {editingDepartment ? 'Update' : 'Add'} Department
-                      </Button>
+                    <DialogFooter className="flex flex-row justify-between items-center">
+                      <div>
+                        {editingDepartment && (
+                          <AlertDialog open={deletingDepartmentKey === editingDepartment.key} onOpenChange={(open) => !open && setDeletingDepartmentKey(null)}>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                className="text-destructive hover:text-destructive"
+                                onClick={() => setDeletingDepartmentKey(editingDepartment.key)}
+                                data-testid="button-delete-department-modal"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Department</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete "{editingDepartment.name}"? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => {
+                                    handleDeleteDepartment(editingDepartment.key);
+                                    setIsDepartmentDialogOpen(false);
+                                    setEditingDepartment(null);
+                                    setDepartmentForm({ name: '' });
+                                  }}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          onClick={() => {
+                            setIsDepartmentDialogOpen(false);
+                            setEditingDepartment(null);
+                            setDepartmentForm({ name: '' });
+                          }}
+                          data-testid="button-cancel-add-department"
+                        >
+                          Cancel
+                        </Button>
+                        <Button 
+                          onClick={editingDepartment ? handleEditDepartment : handleAddDepartment}
+                          data-testid="button-confirm-add-department"
+                        >
+                          {editingDepartment ? 'Update' : 'Add'} Department
+                        </Button>
+                      </div>
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
@@ -1829,47 +1870,6 @@ The Production Team`
                             <CardTitle className="text-base">{name as string}</CardTitle>
                           </div>
                         </CardHeader>
-                        <CardContent className="px-4 pb-4 pt-0">
-                          <div className="flex justify-start">
-                            <AlertDialog open={deletingDepartmentKey === key} onOpenChange={(open) => !open && setDeletingDepartmentKey(null)}>
-                              <AlertDialogTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-destructive hover:text-destructive"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setDeletingDepartmentKey(key);
-                                  }}
-                                  data-testid={`button-delete-department-${key}`}
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Delete
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent onClick={(e) => e.stopPropagation()}>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete Department</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Are you sure you want to delete "{name}"? This action cannot be undone.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel onClick={(e) => e.stopPropagation()}>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleDeleteDepartment(key);
-                                    }}
-                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                  >
-                                    Delete
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
-                        </CardContent>
                       </Card>
                     ))}
                 </div>
