@@ -1279,8 +1279,8 @@ export default function WeeklyScheduleView({
                         // If we were in a long-press attempt, don't open popover
                         if (longPressEventId === event.id) {
                           setLongPressEventId(null);
-                        } else {
-                          // Normal click - toggle popover
+                        } else if (justDragged !== event.id) {
+                          // Normal click - toggle popover (but not if just dragged)
                           setOpenPopoverId(openPopoverId === event.id ? null : event.id);
                         }
                       };
