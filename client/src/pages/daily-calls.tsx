@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useLocation, useParams } from "wouter";
@@ -59,8 +59,6 @@ export default function DailyCallSheet() {
     announcements: ''
   });
   
-  // Track auto-saved dates to prevent infinite loops
-  const autoSavedRef = useRef<Set<string>>(new Set());
 
   // Fetch project data
   const { data: project } = useQuery<Project>({
@@ -136,43 +134,6 @@ export default function DailyCallSheet() {
     },
   });
 
-  // Auto-save effect - runs once when we generate data for a new date
-  useEffect(() => {
-    // Wait for all data to load
-    if (!actualProjectId || !scheduleEvents || scheduleEvents.length === 0 || !eventLocations || !contacts) {
-      console.log('⏳ Waiting for data to load...', {
-        hasProject: !!actualProjectId,
-        hasEvents: !!scheduleEvents && scheduleEvents.length > 0,
-        hasLocations: !!eventLocations,
-        hasContacts: !!contacts
-      });
-      return;
-    }
-    
-    if (isEditing) return;
-    if (existingDailyCall) return; // Already saved
-    if (autoSavedRef.current.has(selectedDate)) return; // Already auto-saved
-    
-    // Generate the call sheet data
-    const generatedData = generateCallFromSchedule();
-    
-    // Auto-save if we have data
-    if (generatedData && generatedData.locations.length > 0) {
-      console.log('💾 Auto-saving generated daily call for', selectedDate);
-      autoSavedRef.current.add(selectedDate);
-      
-      saveCallMutation.mutate({
-        locations: generatedData.locations,
-        announcements: generatedData.announcements,
-        fittingsEvents: generatedData.fittingsEvents || [],
-        appointmentsEvents: generatedData.appointmentsEvents || [],
-        events: scheduleEvents.filter(event => event.date === selectedDate)
-      });
-    } else {
-      console.log('⚠️ No locations generated for', selectedDate, 'Data:', generatedData);
-    }
-  }, [selectedDate, existingDailyCall, scheduleEvents, eventLocations, contacts]); // Include data dependencies
-  
   // Load existing daily call data when it changes  
   useEffect(() => {
     if (!actualProjectId || !scheduleEvents || !eventLocations || !contacts) return;
