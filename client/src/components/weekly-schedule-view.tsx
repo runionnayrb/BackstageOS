@@ -1083,8 +1083,9 @@ export default function WeeklyScheduleView({
 
         {/* Main Schedule Grid */}
         <div className="border border-gray-200 rounded-lg overflow-hidden">
-          {/* Header row */}
-          <div className="relative bg-gray-50 border-b border-gray-200 overflow-y-scroll" style={{ height: '24px' }}>
+          <div className="overflow-y-auto" style={{ maxHeight: '684px' }}>
+            {/* Header row */}
+            <div className="relative bg-gray-50 border-b border-gray-200" style={{ height: '24px' }}>
             <div 
               style={{ 
                 position: 'absolute',
@@ -1207,9 +1208,9 @@ export default function WeeklyScheduleView({
             })}
           </div>
 
-          {/* All Day Events Section - directly below headers */}
-          {showAllDayEvents && (
-            <div className="relative min-h-[60px] bg-gray-50 border-b border-gray-200 overflow-y-scroll">
+            {/* All Day Events Section - directly below headers */}
+            {showAllDayEvents && (
+              <div className="relative min-h-[60px] bg-gray-50 border-b border-gray-200">
               <div 
                 className="absolute left-0 top-0 bottom-0 bg-gray-50 border-r border-gray-200 flex items-center justify-center text-xs font-medium text-gray-600"
                 style={{ width: '64px', minHeight: '60px' }}
@@ -1383,14 +1384,13 @@ export default function WeeklyScheduleView({
             </div>
           )}
 
-          {/* Scrollable calendar content */}
-          <div 
-            ref={scrollContainerRef}
-            className="overflow-y-auto"
-            style={{ 
-              height: '600px',
-            }}
-          >
+            {/* Scrollable calendar content */}
+            <div 
+              ref={scrollContainerRef}
+              style={{ 
+                height: '600px',
+              }}
+            >
             <div 
               ref={calendarRef}
               className="relative bg-white"
@@ -1660,6 +1660,7 @@ export default function WeeklyScheduleView({
                   </div>
                 </div>
               )}
+              </div>
             </div>
           </div>
         </div>
