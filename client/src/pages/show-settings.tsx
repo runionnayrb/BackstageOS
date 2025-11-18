@@ -184,6 +184,12 @@ export default function ShowSettings() {
   const [testEmailAddress, setTestEmailAddress] = useState('');
   const [showTestEmailDialog, setShowTestEmailDialog] = useState(false);
 
+  // Department management state
+  const [isDepartmentDialogOpen, setIsDepartmentDialogOpen] = useState(false);
+  const [editingDepartment, setEditingDepartment] = useState<{ key: string; name: string } | null>(null);
+  const [departmentForm, setDepartmentForm] = useState({ name: '' });
+  const [deletingDepartmentKey, setDeletingDepartmentKey] = useState<string | null>(null);
+
   // Use admin view context to override profile type for testing
   const { selectedProfileType } = useAdminView();
   const effectiveProfileType = user ? (selectedProfileType === 'all' ? user.profileType : selectedProfileType) : 'freelance';
@@ -950,6 +956,79 @@ The Production Team`
     }
   };
 
+  // Department CRUD handlers
+  const handleAddDepartment = () => {
+    if (!departmentForm.name.trim()) {
+      toast({
+        title: "Name required",
+        description: "Please enter a department name.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const key = departmentForm.name.toLowerCase().replace(/\s+/g, '_');
+    const currentDepartments = (settings as any)?.departmentNames || {};
+    
+    if (currentDepartments[key]) {
+      toast({
+        title: "Department exists",
+        description: "A department with this name already exists.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    handleSettingsUpdate("departmentNames", {
+      ...currentDepartments,
+      [key]: departmentForm.name,
+    });
+
+    setIsDepartmentDialogOpen(false);
+    setDepartmentForm({ name: '' });
+    toast({
+      title: "Department added",
+      description: "Department has been added successfully.",
+    });
+  };
+
+  const handleEditDepartment = () => {
+    if (!departmentForm.name.trim() || !editingDepartment) {
+      toast({
+        title: "Name required",
+        description: "Please enter a department name.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const currentDepartments = (settings as any)?.departmentNames || {};
+    const updatedDepartments = { ...currentDepartments };
+    updatedDepartments[editingDepartment.key] = departmentForm.name;
+
+    handleSettingsUpdate("departmentNames", updatedDepartments);
+
+    setEditingDepartment(null);
+    setDepartmentForm({ name: '' });
+    toast({
+      title: "Department updated",
+      description: "Department has been updated successfully.",
+    });
+  };
+
+  const handleDeleteDepartment = (key: string) => {
+    const currentDepartments = (settings as any)?.departmentNames || {};
+    const { [key]: removed, ...remainingDepartments } = currentDepartments;
+
+    handleSettingsUpdate("departmentNames", remainingDepartments);
+
+    setDeletingDepartmentKey(null);
+    toast({
+      title: "Department deleted",
+      description: "Department has been deleted successfully.",
+    });
+  };
+
   const copyShareLink = async () => {
     if ((settings as any)?.sharingSettings?.shareableLink) {
       try {
@@ -1664,16 +1743,26 @@ The Production Team`
                 </div>
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button data-testid="button-add-department">
+                    <Button 
+                      data-testid="button-add-department"
+                      onClick={() => {
+                        setEditingDepartment(null);
+                        setDepartmentForm({ name: '' });
+                        setIsDepartmentDialogOpen(true);
+                      }}
+                    >
                       <Plus className="h-4 w-4 mr-2" />
                       Add Department
                     </Button>
                   </DialogTrigger>
+                </Dialog>
+                
+                <Dialog open={isDepartmentDialogOpen} onOpenChange={setIsDepartmentDialogOpen}>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Add Department</DialogTitle>
+                      <DialogTitle>{editingDepartment ? 'Edit Department' : 'Add Department'}</DialogTitle>
                       <DialogDescription>
-                        Create a new department to organize report sections.
+                        {editingDepartment ? 'Update the department name.' : 'Create a new department to organize report sections.'}
                       </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
@@ -1682,16 +1771,29 @@ The Production Team`
                         <Input
                           id="dept-name"
                           placeholder="e.g., Lighting"
+                          value={departmentForm.name}
+                          onChange={(e) => setDepartmentForm({ name: e.target.value })}
                           data-testid="input-department-name"
                         />
                       </div>
                     </div>
                     <DialogFooter>
-                      <Button variant="outline" data-testid="button-cancel-add-department">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => {
+                          setIsDepartmentDialogOpen(false);
+                          setEditingDepartment(null);
+                          setDepartmentForm({ name: '' });
+                        }}
+                        data-testid="button-cancel-add-department"
+                      >
                         Cancel
                       </Button>
-                      <Button data-testid="button-confirm-add-department">
-                        Add Department
+                      <Button 
+                        onClick={editingDepartment ? handleEditDepartment : handleAddDepartment}
+                        data-testid="button-confirm-add-department"
+                      >
+                        {editingDepartment ? 'Update' : 'Add'} Department
                       </Button>
                     </DialogFooter>
                   </DialogContent>
@@ -1700,34 +1802,68 @@ The Production Team`
             </CardHeader>
             <CardContent>
               {settings?.departmentNames && Object.keys(settings.departmentNames).length > 0 ? (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {Object.entries(settings.departmentNames).map(([key, name]) => (
-                    <Card key={key} className="cursor-pointer hover:shadow-md transition-shadow" data-testid={`card-department-${key}`}>
-                      <CardHeader className="p-4">
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-base">{name as string}</CardTitle>
-                          <div className="flex gap-1">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              data-testid={`button-edit-department-${key}`}
-                            >
-                              <Edit3 className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              data-testid={`button-delete-department-${key}`}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                <div className="space-y-3">
+                  {Object.entries(settings.departmentNames)
+                    .sort(([, a], [, b]) => (a as string).localeCompare(b as string))
+                    .map(([key, name]) => (
+                      <Card 
+                        key={key} 
+                        className="cursor-pointer hover:shadow-md transition-shadow" 
+                        data-testid={`card-department-${key}`}
+                        onClick={() => {
+                          setEditingDepartment({ key, name: name as string });
+                          setDepartmentForm({ name: name as string });
+                          setIsDepartmentDialogOpen(true);
+                        }}
+                      >
+                        <CardHeader className="p-4">
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="text-base">{name as string}</CardTitle>
                           </div>
-                        </div>
-                      </CardHeader>
-                    </Card>
-                  ))}
+                        </CardHeader>
+                        <CardContent className="px-4 pb-4 pt-0">
+                          <div className="flex justify-start">
+                            <AlertDialog open={deletingDepartmentKey === key} onOpenChange={(open) => !open && setDeletingDepartmentKey(null)}>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-destructive hover:text-destructive"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setDeletingDepartmentKey(key);
+                                  }}
+                                  data-testid={`button-delete-department-${key}`}
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Delete
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Department</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete "{name}"? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel onClick={(e) => e.stopPropagation()}>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteDepartment(key);
+                                    }}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
                 </div>
               ) : (
                 <div className="text-center py-12">
@@ -1736,7 +1872,14 @@ The Production Team`
                   <p className="text-muted-foreground mb-4">
                     Create your first department to organize report sections.
                   </p>
-                  <Button data-testid="button-add-first-department">
+                  <Button 
+                    onClick={() => {
+                      setEditingDepartment(null);
+                      setDepartmentForm({ name: '' });
+                      setIsDepartmentDialogOpen(true);
+                    }}
+                    data-testid="button-add-first-department"
+                  >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Department
                   </Button>
