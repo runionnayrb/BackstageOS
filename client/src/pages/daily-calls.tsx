@@ -140,9 +140,20 @@ export default function DailyCallSheet() {
     // Skip regeneration when editing to preserve manual changes
     if (isEditing) return;
     
-    // Always regenerate from schedule to ensure consistency and avoid duplicates
+    // If we have a saved daily call, use that data instead of regenerating
+    if (existingDailyCall && existingDailyCall.locations) {
+      setCallData({
+        locations: existingDailyCall.locations,
+        announcements: existingDailyCall.announcements || '',
+        fittingsEvents: existingDailyCall.fittingsEvents || [],
+        appointmentsEvents: existingDailyCall.appointmentsEvents || []
+      });
+      return;
+    }
+    
+    // Otherwise, generate from schedule for dates without saved daily calls
     generateCallFromSchedule();
-  }, [actualProjectId, selectedDate, timeFormat, scheduleEvents, eventLocations, contacts, isEditing]); // Include necessary data dependencies
+  }, [actualProjectId, selectedDate, timeFormat, scheduleEvents, eventLocations, contacts, isEditing, existingDailyCall]); // Include necessary data dependencies
 
   // Date picker navigation function
   const handleDateSelect = (date: Date | undefined) => {
