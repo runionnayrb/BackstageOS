@@ -1082,63 +1082,37 @@ export default function WeeklyScheduleView({
         )}
 
         {/* Main Schedule Grid */}
-        <div className="border border-gray-200 rounded-lg overflow-hidden">
+        <div className="border border-gray-200 rounded-lg overflow-hidden" style={{ 
+          display: 'grid',
+          gridTemplateColumns: '64px repeat(7, 1fr)',
+          gridTemplateRows: 'auto auto 600px'
+        }}>
           {/* Header row */}
-          <div className="relative bg-gray-50 border-b border-gray-200" style={{ height: '24px', overflowY: 'scroll' }}>
+          <div className="relative bg-gray-50 border-b border-gray-200" style={{ 
+            height: '24px',
+            gridColumn: '1 / -1',
+            display: 'grid',
+            gridTemplateColumns: 'subgrid'
+          }}>
             <div 
+              className="flex items-center justify-center border-r border-gray-200"
               style={{ 
-                position: 'absolute',
-                left: 0,
-                top: 0,
-                bottom: 0,
-                width: '64px',
-                height: '24px',
-                minHeight: '24px', 
-                maxHeight: '24px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                overflow: 'hidden',
-                backgroundColor: '#f9fafb',
-                borderRight: '1px solid #e5e7eb',
-                margin: 0,
-                padding: 0,
-                boxSizing: 'border-box'
+                gridColumn: '1',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                color: '#6b7280',
               }}
             >
-              <span 
-                style={{ 
-                  lineHeight: '14px',
-                  fontSize: '14px',
-                  fontWeight: 'bold',
-                  color: '#6b7280',
-                  margin: 0,
-                  padding: 0
-                }}
-              >
-                {getTimezoneAbbreviation(timezone || "America/New_York")}
-              </span>
+              {getTimezoneAbbreviation(timezone || "America/New_York")}
             </div>
             {weekDates.map((date, dayIndex) => {
               const isToday = date.toDateString() === new Date().toDateString();
               return (
                 <div 
                   key={dayIndex} 
-                  className="cursor-pointer transition-colors hover:bg-blue-50"
+                  className="cursor-pointer transition-colors hover:bg-blue-50 flex items-center justify-center border-l border-gray-200"
                   style={{
-                    position: 'absolute',
-                    left: `calc(64px + (100% - 64px) * ${dayIndex} / 7)`,
-                    width: `calc((100% - 64px) / 7)`,
-                    height: '24px', 
-                    minHeight: '24px', 
-                    maxHeight: '24px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    overflow: 'hidden',
-                    backgroundColor: '#f9fafb',
-                    margin: 0,
-                    padding: 0,
+                    gridColumn: `${dayIndex + 2}`,
                   }}
                   onClick={() => onDateClick(date)}
                 >
@@ -1205,26 +1179,19 @@ export default function WeeklyScheduleView({
                 </div>
               );
             })}
-            
-            {/* Vertical separator lines for header */}
-            {Array.from({ length: 7 }, (_, i) => (
-              <div
-                key={`header-separator-${i}`}
-                className="absolute top-0 bottom-0 bg-gray-200 pointer-events-none"
-                style={{
-                  left: `calc(64px + (100% - 64px) * ${i} / 7)`,
-                  width: '1px',
-                }}
-              />
-            ))}
           </div>
 
           {/* All Day Events Section - directly below headers */}
           {showAllDayEvents && (
-            <div className="relative min-h-[60px] bg-gray-50 border-b border-gray-200" style={{ overflowY: 'scroll' }}>
+            <div className="relative bg-gray-50 border-b border-gray-200" style={{ 
+              minHeight: '60px',
+              gridColumn: '1 / -1',
+              display: 'grid',
+              gridTemplateColumns: 'subgrid'
+            }}>
               <div 
-                className="absolute left-0 top-0 bottom-0 bg-gray-50 border-r border-gray-200 flex items-center justify-center text-xs font-medium text-gray-600"
-                style={{ width: '64px', minHeight: '60px' }}
+                className="border-r border-gray-200 flex items-center justify-center text-xs font-medium text-gray-600"
+                style={{ gridColumn: '1', minHeight: '60px' }}
               >
                 All Day
               </div>
@@ -1235,10 +1202,9 @@ export default function WeeklyScheduleView({
                 return (
                   <div 
                     key={dayIndex} 
-                    className="absolute top-0 bottom-0 p-2 space-y-1"
+                    className="p-2 space-y-1 border-l border-gray-200"
                     style={{
-                      left: `calc(64px + (100% - 64px) * ${dayIndex} / 7)`,
-                      width: `calc((100% - 64px) / 7)`,
+                      gridColumn: `${dayIndex + 2}`,
                     }}
                   >
                     {dayEvents.map(event => (
@@ -1392,38 +1358,33 @@ export default function WeeklyScheduleView({
                   </div>
                 );
               })}
-              
-              {/* Vertical separator lines for All Day section */}
-              {Array.from({ length: 7 }, (_, i) => (
-                <div
-                  key={`allday-separator-${i}`}
-                  className="absolute top-0 bottom-0 bg-gray-200 pointer-events-none"
-                  style={{
-                    left: `calc(64px + (100% - 64px) * ${i} / 7)`,
-                    width: '1px',
-                  }}
-                />
-              ))}
             </div>
           )}
 
           {/* Scrollable calendar content */}
           <div 
             ref={scrollContainerRef}
-            className="overflow-y-scroll"
+            className="overflow-y-auto"
             style={{ 
+              gridColumn: '1 / -1',
               height: '600px',
+              position: 'relative'
             }}
           >
             <div 
               ref={calendarRef}
-              className="relative bg-white"
-              style={{ height: `${TOTAL_MINUTES}px` }}
+              className="bg-white"
+              style={{ 
+                height: `${TOTAL_MINUTES}px`,
+                display: 'grid',
+                gridTemplateColumns: '64px repeat(7, 1fr)',
+                position: 'relative'
+              }}
             >
               {/* Time column with consistent right border */}
               <div 
-                className="absolute left-0 top-0 bottom-0 bg-gray-50 border-r border-gray-200 z-20"
-                style={{ width: '64px' }}
+                className="bg-gray-50 border-r border-gray-200 z-20"
+                style={{ gridColumn: '1', gridRow: '1' }}
               >
                 {/* Time labels */}
                 {timeLabels}
@@ -1433,25 +1394,13 @@ export default function WeeklyScheduleView({
               {Array.from({ length: 7 }, (_, dayIndex) => (
                 <div
                   key={dayIndex}
-                  className="absolute top-0 bottom-0 hover:bg-blue-50/30 cursor-crosshair"
+                  className="hover:bg-blue-50/30 cursor-crosshair border-l border-gray-200"
                   style={{
-                    left: `calc(64px + (100% - 64px) * ${dayIndex} / 7)`,
-                    width: `calc((100% - 64px) / 7)`,
+                    gridColumn: `${dayIndex + 2}`,
+                    gridRow: '1'
                   }}
                   onMouseDown={(e) => handleMouseDown(e, dayIndex)}
                   onContextMenu={(e) => e.preventDefault()}
-                />
-              ))}
-              
-              {/* Vertical separator lines */}
-              {Array.from({ length: 7 }, (_, i) => (
-                <div
-                  key={`separator-${i}`}
-                  className="absolute top-0 bottom-0 bg-gray-200 pointer-events-none"
-                  style={{
-                    left: `calc(64px + (100% - 64px) * ${i} / 7)`,
-                    width: '1px',
-                  }}
                 />
               ))}
 
