@@ -863,7 +863,12 @@ export default function DailyCallSheet() {
                           {/* Add Event Button in Left Margin - only show on END-OF-DAY row */}
                           {isEditing && event.title === 'END-OF-DAY' && (
                             <Button
-                              onClick={() => addEvent(locationIndex)}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                console.log('Add event button clicked for location:', locationIndex);
+                                addEvent(locationIndex);
+                              }}
                               variant="ghost"
                               size="sm"
                               className="absolute -left-6 top-1/2 -translate-y-1/2 w-6 h-6 p-0 opacity-0 hover:opacity-100 transition-opacity duration-200 bg-transparent hover:bg-transparent text-black"
