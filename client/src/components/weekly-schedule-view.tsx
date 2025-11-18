@@ -1124,7 +1124,7 @@ export default function WeeklyScheduleView({
               return (
                 <div 
                   key={dayIndex} 
-                  className="cursor-pointer transition-colors hover:bg-blue-50"
+                  className="cursor-pointer transition-colors hover:bg-blue-50 border-l border-gray-200"
                   style={{
                     position: 'absolute',
                     left: `calc(64px + (100% - 64px) * ${dayIndex} / 7)`,
@@ -1223,7 +1223,7 @@ export default function WeeklyScheduleView({
                 return (
                   <div 
                     key={dayIndex} 
-                    className="absolute top-0 bottom-0 p-2 space-y-1"
+                    className="absolute top-0 bottom-0 p-2 space-y-1 border-l border-gray-200"
                     style={{
                       left: `calc(64px + (100% - 64px) * ${dayIndex} / 7)`,
                       width: `calc((100% - 64px) / 7)`,
@@ -1409,7 +1409,7 @@ export default function WeeklyScheduleView({
               {Array.from({ length: 7 }, (_, dayIndex) => (
                 <div
                   key={dayIndex}
-                  className="absolute top-0 bottom-0 hover:bg-blue-50/30 cursor-crosshair"
+                  className="absolute top-0 bottom-0 hover:bg-blue-50/30 cursor-crosshair border-l border-gray-200"
                   style={{
                     left: `calc(64px + (100% - 64px) * ${dayIndex} / 7)`,
                     width: `calc((100% - 64px) / 7)`,
