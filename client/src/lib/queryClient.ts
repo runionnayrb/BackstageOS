@@ -56,10 +56,31 @@ export const getQueryFn: <T>(options: {
         // Simple string query key like ['/api/projects']
         url = queryKey[0];
       } else {
-        // Array query key like ['/api/projects', projectId, 'settings']
-        // Join the parts to create the full URL, filtering out undefined values
-        const pathParts = queryKey.filter(part => part !== undefined && part !== null);
+        // Array query key like ['/api/projects', projectId, 'settings', { params }]
+        // Separate path parts from query params (last element if it's an object)
+        const lastElement = queryKey[queryKey.length - 1];
+        const hasQueryParams = typeof lastElement === 'object' && lastElement !== null && !Array.isArray(lastElement);
+        
+        // Build path from all elements except the last one if it's query params
+        const pathParts = hasQueryParams 
+          ? queryKey.slice(0, -1).filter(part => part !== undefined && part !== null)
+          : queryKey.filter(part => part !== undefined && part !== null);
+        
         url = pathParts.join('/');
+        
+        // Append query parameters if present
+        if (hasQueryParams) {
+          const params = new URLSearchParams();
+          Object.entries(lastElement).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) {
+              params.append(key, String(value));
+            }
+          });
+          const queryString = params.toString();
+          if (queryString) {
+            url += `?${queryString}`;
+          }
+        }
       }
     } else {
       // Fallback to original behavior for non-API keys
