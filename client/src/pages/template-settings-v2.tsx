@@ -25,6 +25,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
   Select,
@@ -33,7 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Plus, Edit, Trash2, FileText } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, FileText } from "lucide-react";
 
 interface TemplateSettingsV2Params {
   id: string;
@@ -66,8 +67,8 @@ export default function TemplateSettingsV2() {
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<ReportTemplateV2 | null>(null);
+  const [deletingTemplateId, setDeletingTemplateId] = useState<number | null>(null);
   const [newTemplateName, setNewTemplateName] = useState("");
   const [newTemplateDescription, setNewTemplateDescription] = useState("");
   const [newTemplateReportTypeId, setNewTemplateReportTypeId] = useState<string | undefined>(undefined);
@@ -192,7 +193,8 @@ export default function TemplateSettingsV2() {
         title: "Template deleted",
         description: "Your template has been deleted successfully.",
       });
-      setIsDeleteDialogOpen(false);
+      setDeletingTemplateId(null);
+      setIsEditDialogOpen(false);
       setSelectedTemplate(null);
     },
     onError: () => {
@@ -249,17 +251,6 @@ export default function TemplateSettingsV2() {
         description: editTemplateDescription,
       },
     });
-  };
-
-  const handleDeleteTemplate = (template: ReportTemplateV2) => {
-    setSelectedTemplate(template);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const confirmDeleteTemplate = () => {
-    if (selectedTemplate) {
-      deleteTemplateMutation.mutate(selectedTemplate.id);
-    }
   };
 
   const getReportTypeName = (reportTypeId: number | null) => {
@@ -376,44 +367,26 @@ export default function TemplateSettingsV2() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="space-y-3">
             {templates.map((template) => (
               <Card
                 key={template.id}
                 className="cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => setLocation(`/shows/${projectId}/templates-v2/${template.id}/edit`)}
+                onClick={() => handleEditTemplate(template)}
                 data-testid={`card-template-${template.id}`}
               >
-                <CardHeader>
-                  <div className="flex items-start justify-between">
+                <CardHeader className="p-4">
+                  <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <CardTitle className="text-lg">{template.name}</CardTitle>
+                      <CardTitle className="text-base">{template.name}</CardTitle>
                       {template.description && (
-                        <CardDescription className="mt-1">{template.description}</CardDescription>
+                        <CardDescription className="mt-1 text-sm">{template.description}</CardDescription>
                       )}
-                      <div className="mt-2">
+                      <div className="mt-1">
                         <span className="text-xs text-muted-foreground">
                           {getReportTypeName(template.reportTypeId)}
                         </span>
                       </div>
-                    </div>
-                    <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEditTemplate(template)}
-                        data-testid={`button-edit-template-${template.id}`}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeleteTemplate(template)}
-                        data-testid={`button-delete-template-${template.id}`}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
                     </div>
                   </div>
                 </CardHeader>
@@ -450,49 +423,67 @@ export default function TemplateSettingsV2() {
                   data-testid="input-edit-template-description"
                 />
               </div>
+              <div>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    setIsEditDialogOpen(false);
+                    setLocation(`/shows/${projectId}/templates-v2/${selectedTemplate?.id}/edit`);
+                  }}
+                  data-testid="button-edit-template-fields"
+                >
+                  Edit Template Fields
+                </Button>
+              </div>
             </div>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsEditDialogOpen(false)}
-                data-testid="button-cancel-edit"
-              >
-                Cancel
-              </Button>
-              <Button
+            <DialogFooter className="flex flex-row justify-between items-center sm:justify-between">
+              {selectedTemplate ? (
+                <AlertDialog open={deletingTemplateId === selectedTemplate.id} onOpenChange={(open) => !open && setDeletingTemplateId(null)}>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => setDeletingTemplateId(selectedTemplate.id)}
+                      data-testid="button-delete-template-modal"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete Template</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete "{selectedTemplate.name}"? This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => {
+                          deleteTemplateMutation.mutate(selectedTemplate.id);
+                        }}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              ) : (
+                <div />
+              )}
+              <Button 
                 onClick={handleUpdateTemplate}
                 disabled={updateTemplateMutation.isPending}
                 data-testid="button-confirm-edit"
               >
-                {updateTemplateMutation.isPending ? "Updating..." : "Update Template"}
+                {updateTemplateMutation.isPending ? "Updating..." : "Update"}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
-
-        {/* Delete Confirmation Dialog */}
-        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete Template</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to delete "{selectedTemplate?.name}"? This action cannot be
-                undone. All sections and fields in this template will also be deleted.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel data-testid="button-cancel-delete">Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={confirmDeleteTemplate}
-                disabled={deleteTemplateMutation.isPending}
-                data-testid="button-confirm-delete"
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                {deleteTemplateMutation.isPending ? "Deleting..." : "Delete"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </div>
     </div>
   );
