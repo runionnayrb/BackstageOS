@@ -105,10 +105,7 @@ export default function TemplateSettingsV2() {
         (old) => [...(old || []), optimisticTemplate]
       );
 
-      return apiRequest(`/api/projects/${projectId}/templates-v2`, {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      return apiRequest("POST", `/api/projects/${projectId}/templates-v2`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -150,10 +147,7 @@ export default function TemplateSettingsV2() {
           ) || []
       );
 
-      return apiRequest(`/api/projects/${projectId}/templates-v2/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify(data),
-      });
+      return apiRequest("PATCH", `/api/projects/${projectId}/templates-v2/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -188,9 +182,7 @@ export default function TemplateSettingsV2() {
         (old) => old?.filter((t) => t.id !== id) || []
       );
 
-      return apiRequest(`/api/projects/${projectId}/templates-v2/${id}`, {
-        method: "DELETE",
-      });
+      return apiRequest("DELETE", `/api/projects/${projectId}/templates-v2/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
