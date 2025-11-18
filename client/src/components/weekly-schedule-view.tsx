@@ -1084,7 +1084,7 @@ export default function WeeklyScheduleView({
         {/* Main Schedule Grid */}
         <div className="border border-gray-200 rounded-lg overflow-hidden">
           {/* Header row - fixed, no scroll */}
-          <div className="relative bg-gray-50 border-b border-gray-200" style={{ height: '24px', marginRight: '8px' }}>
+          <div className="relative bg-gray-50 border-b border-gray-200" style={{ height: '24px', paddingRight: '15px' }}>
             <div 
               style={{ 
                 position: 'absolute',
