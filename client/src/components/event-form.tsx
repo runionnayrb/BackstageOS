@@ -54,6 +54,8 @@ export default function EventForm({
   console.log('🎭 EventForm component initializing with initialValues:', JSON.stringify(initialValues, null, 2));
   console.log('🎭 EventForm - isProductionLevel value:', initialValues?.isProductionLevel);
   console.log('🎭 EventForm - isProductionLevel type:', typeof initialValues?.isProductionLevel);
+  console.log('📅 EventForm - startDate from initialValues:', initialValues?.startDate);
+  console.log('📅 EventForm - initialDate prop:', initialDate);
   
   // Helper to format date as YYYY-MM-DD without UTC conversion
   const formatLocalDate = (date: Date) => {
