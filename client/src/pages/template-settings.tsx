@@ -361,11 +361,17 @@ export default function TemplateSettings() {
     console.log('✅ Templates initialized with unified showSettings approach - single database table!');
     
     // Only update templates if there's an actual change from server data
-    // This prevents overwriting optimistic updates during saves
-    const currentTemplatesJson = JSON.stringify(templates);
-    const newTemplatesJson = JSON.stringify(initialTemplates);
+    // This prevents overwriting user edits while they're typing
+    const hasTemplates = Object.keys(templates).length > 0;
+    const templateIds = userTemplates?.map((t: any) => t.id).sort().join(',');
     
-    if (currentTemplatesJson !== newTemplatesJson) {
+    // Only reinitialize if:
+    // 1. Templates are empty (first load)
+    // 2. Template IDs changed (new template added/removed in DB)
+    // 3. No edit mode is active (user isn't currently editing)
+    const isEditing = Object.values(editModes).some(mode => mode);
+    
+    if (!hasTemplates || (!isEditing && templateIds)) {
       setTemplates(initialTemplates);
     }
   }, [projectId, userTemplates, showSettings, reportTypes]);
