@@ -1276,11 +1276,14 @@ export default function WeeklyScheduleView({
                           longPressTimerRef.current = null;
                         }
                         
-                        // If we were in a long-press attempt, don't open popover
+                        // Don't open popover if we're in a long-press, currently dragging, or just finished dragging
+                        const isCurrentlyDragging = draggedEvent?.event.id === event.id;
+                        const wasJustDragged = justDragged === event.id;
+                        
                         if (longPressEventId === event.id) {
                           setLongPressEventId(null);
-                        } else if (justDragged !== event.id) {
-                          // Normal click - toggle popover (but not if just dragged)
+                        } else if (!isCurrentlyDragging && !wasJustDragged) {
+                          // Normal click - toggle popover
                           setOpenPopoverId(openPopoverId === event.id ? null : event.id);
                         }
                       };
