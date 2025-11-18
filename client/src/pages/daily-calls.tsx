@@ -883,7 +883,7 @@ export default function DailyCallSheet() {
                                     newLocations[locationIndex].events[eventIdx].startTime = e.target.value;
                                     setCallData(prev => ({ ...prev, locations: newLocations }));
                                   }}
-                                  className="text-xs w-16"
+                                  className="text-xs w-24"
                                   placeholder="9:00 AM"
                                 />
                               ) : event.startTime
@@ -1016,7 +1016,7 @@ export default function DailyCallSheet() {
                                         setCallData(prev => ({ ...prev, locations: newLocations }));
                                       }
                                     }}
-                                    className="text-xs w-14"
+                                    className="text-xs w-24"
                                     placeholder="9:00 AM"
                                   />
                                 ) : event.startTime}
@@ -1089,7 +1089,7 @@ export default function DailyCallSheet() {
                                         setCallData(prev => ({ ...prev, locations: newLocations }));
                                       }
                                     }}
-                                    className="text-xs w-14"
+                                    className="text-xs w-24"
                                     placeholder="9:00 AM"
                                   />
                                 ) : event.startTime}
