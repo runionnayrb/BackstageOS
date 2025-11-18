@@ -944,6 +944,13 @@ The Production Team`
         scheduleSettings: JSON.stringify(updatedScheduleSettings),
       };
       updateSettingsMutation.mutate(updatedSettings);
+    } else if (section === 'departmentNames') {
+      // For departmentNames, replace the entire object instead of merging
+      const updatedSettings = {
+        ...settingsData,
+        departmentNames: updates,
+      };
+      updateSettingsMutation.mutate(updatedSettings);
     } else {
       const updatedSettings = {
         ...settingsData,
@@ -967,22 +974,15 @@ The Production Team`
       return;
     }
 
-    const key = departmentForm.name.toLowerCase().replace(/\s+/g, '_');
+    const key = `new-dept-${Date.now()}`;
     const currentDepartments = (settings as any)?.departmentNames || {};
     
-    if (currentDepartments[key]) {
-      toast({
-        title: "Department exists",
-        description: "A department with this name already exists.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    handleSettingsUpdate("departmentNames", {
+    const updatedDepartments = {
       ...currentDepartments,
       [key]: departmentForm.name,
-    });
+    };
+
+    handleSettingsUpdate("departmentNames", updatedDepartments);
 
     setIsDepartmentDialogOpen(false);
     setDepartmentForm({ name: '' });
@@ -1006,15 +1006,8 @@ The Production Team`
     const updatedDepartments = { ...currentDepartments };
     updatedDepartments[editingDepartment.key] = departmentForm.name;
 
-    // Update settings directly without wrapping
-    const settingsData = settings as any || {};
-    const updatedSettings = {
-      ...settingsData,
-      departmentNames: updatedDepartments,
-    };
-    updateSettingsMutation.mutate(updatedSettings);
+    handleSettingsUpdate("departmentNames", updatedDepartments);
 
-    // Close dialog and reset form
     setIsDepartmentDialogOpen(false);
     setEditingDepartment(null);
     setDepartmentForm({ name: '' });
