@@ -153,8 +153,6 @@ export default function WeeklyScheduleView({
   const [selectedEvents, setSelectedEvents] = useState<Set<number>>(new Set());
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
-  const [longPressEventId, setLongPressEventId] = useState<number | null>(null);
-  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const calendarRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -1261,39 +1259,20 @@ export default function WeeklyScheduleView({
                           return;
                         }
                         
-                        // Start long-press timer for drag
-                        setLongPressEventId(event.id);
-                        longPressTimerRef.current = setTimeout(() => {
-                          setLongPressEventId(null);
-                          setOpenPopoverId(null); // Close any open popover
-                          handleEventMouseDown(e, event);
-                        }, 250); // 250ms hold to start drag
+                        // Immediately initiate drag (same as regular events)
+                        setOpenPopoverId(null); // Close any open popover
+                        handleEventMouseDown(e, event);
                       };
                       
                       const handleAllDayMouseUp = () => {
-                        if (longPressTimerRef.current) {
-                          clearTimeout(longPressTimerRef.current);
-                          longPressTimerRef.current = null;
-                        }
-                        
-                        // Don't open popover if we're in a long-press, currently dragging, or just finished dragging
+                        // Don't open popover if currently dragging or just finished dragging
                         const isCurrentlyDragging = draggedEvent?.event.id === event.id;
                         const wasJustDragged = justDragged === event.id;
                         
-                        if (longPressEventId === event.id) {
-                          setLongPressEventId(null);
-                        } else if (!isCurrentlyDragging && !wasJustDragged) {
+                        if (!isCurrentlyDragging && !wasJustDragged) {
                           // Normal click - toggle popover
                           setOpenPopoverId(openPopoverId === event.id ? null : event.id);
                         }
-                      };
-                      
-                      const handleAllDayMouseLeave = () => {
-                        if (longPressTimerRef.current) {
-                          clearTimeout(longPressTimerRef.current);
-                          longPressTimerRef.current = null;
-                        }
-                        setLongPressEventId(null);
                       };
                       
                       return (
@@ -1301,11 +1280,9 @@ export default function WeeklyScheduleView({
                           key={event.id} 
                           open={openPopoverId === event.id} 
                           onOpenChange={(open) => {
-                            // Don't open popover if event was just dragged or in long-press
+                            // Don't open popover if event was just dragged
                             if (open && justDragged === event.id) return;
-                            if (longPressEventId !== event.id) {
-                              setOpenPopoverId(open ? event.id : null);
-                            }
+                            setOpenPopoverId(open ? event.id : null);
                           }}
                         >
                           <PopoverTrigger asChild>
@@ -1315,7 +1292,6 @@ export default function WeeklyScheduleView({
                               }`}
                               onMouseDown={handleAllDayMouseDown}
                               onMouseUp={handleAllDayMouseUp}
-                              onMouseLeave={handleAllDayMouseLeave}
                             >
                               {event.title}
                             </div>
