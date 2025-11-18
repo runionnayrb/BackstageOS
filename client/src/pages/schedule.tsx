@@ -427,13 +427,22 @@ The Production Team`
       ...eventData,
     }),
     onMutate: async (eventData: any) => {
-      await queryClient.cancelQueries({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
+      await queryClient.cancelQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey as any[];
+          return key[0] === '/api/projects' && 
+                 key[1] === projectId && 
+                 key[2] === 'schedule-events';
+        }
+      });
       
-      const previousEvents = queryClient.getQueriesData({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
-      
-      console.log('🔍 All matching queries found:', previousEvents.length);
-      previousEvents.forEach(([key, data]: [any, any]) => {
-        console.log('  Query key:', JSON.stringify(key), 'has', data?.length || 0, 'events');
+      const previousEvents = queryClient.getQueriesData({ 
+        predicate: (query) => {
+          const key = query.queryKey as any[];
+          return key[0] === '/api/projects' && 
+                 key[1] === projectId && 
+                 key[2] === 'schedule-events';
+        }
       });
       
       const optimisticEvent = {
@@ -448,20 +457,20 @@ The Production Team`
         })) || [],
       };
       
-      console.log('✨ Creating optimistic event:', optimisticEvent);
-      
-      const updatedCount = queryClient.setQueriesData(
-        { queryKey: ['/api/projects', projectId, 'schedule-events'] },
+      queryClient.setQueriesData(
+        { 
+          predicate: (query) => {
+            const key = query.queryKey as any[];
+            return key[0] === '/api/projects' && 
+                   key[1] === projectId && 
+                   key[2] === 'schedule-events';
+          }
+        },
         (old: any) => {
-          console.log('  Updating query with', old?.length || 0, 'events');
           if (!old) return old;
-          const newData = [...old, optimisticEvent];
-          console.log('  Now has', newData.length, 'events');
-          return newData;
+          return [...old, optimisticEvent];
         }
       );
-      
-      console.log('📝 Updated', updatedCount, 'queries');
       
       return { previousEvents };
     },
