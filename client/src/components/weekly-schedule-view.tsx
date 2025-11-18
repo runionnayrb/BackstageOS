@@ -1207,11 +1207,9 @@ export default function WeeklyScheduleView({
             })}
           </div>
 
-          {/* Scrollable content wrapper */}
-          <div className="overflow-y-auto" style={{ maxHeight: '660px' }}>
-            {/* All Day Events Section - directly below headers */}
-            {showAllDayEvents && (
-              <div className="relative min-h-[60px] bg-gray-50 border-b border-gray-200">
+          {/* All Day Events Section - fixed, no scroll */}
+          {showAllDayEvents && (
+            <div className="relative min-h-[60px] bg-gray-50 border-b border-gray-200" style={{ paddingRight: '15px' }}>
               <div 
                 className="absolute left-0 top-0 bottom-0 bg-gray-50 border-r border-gray-200 flex items-center justify-center text-xs font-medium text-gray-600"
                 style={{ width: '64px', minHeight: '60px' }}
@@ -1385,7 +1383,8 @@ export default function WeeklyScheduleView({
             </div>
           )}
 
-            {/* Scrollable calendar content */}
+          {/* Scrollable calendar content */}
+          <div className="overflow-y-auto" style={{ maxHeight: '600px' }}>
             <div 
               ref={scrollContainerRef}
               style={{ 
