@@ -1229,23 +1229,68 @@ export default function WeeklyScheduleView({
                       width: `calc((100% - 64px) / 7)`,
                     }}
                   >
-                    {dayEvents.map(event => (
-                      <Popover 
-                        key={event.id} 
-                        open={openPopoverId === event.id} 
-                        onOpenChange={(open) => setOpenPopoverId(open ? event.id : null)}
-                      >
-                        <PopoverTrigger asChild>
-                          <div
-                            className={`${getEventColor(event.type)} text-white text-xs p-1 rounded cursor-pointer hover:opacity-80 ${
-                              selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''
-                            }`}
-                            onClick={(e) => handleEventMouseDown(e, event)}
-                            onMouseDown={(e) => handleEventMouseDown(e, event)}
-                          >
-                            {event.title}
-                          </div>
-                        </PopoverTrigger>
+                    {dayEvents.map(event => {
+                      let longPressTimer: NodeJS.Timeout | null = null;
+                      
+                      const handleAllDayMouseDown = (e: React.MouseEvent) => {
+                        if (e.button !== 0) return; // Ignore right clicks
+                        
+                        // Handle Shift+click for multi-selection
+                        if (e.shiftKey) {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (selectedEvents.has(event.id)) {
+                            const newSelected = new Set(selectedEvents);
+                            newSelected.delete(event.id);
+                            setSelectedEvents(newSelected);
+                          } else {
+                            const newSelected = new Set(selectedEvents);
+                            newSelected.add(event.id);
+                            setSelectedEvents(newSelected);
+                          }
+                          return;
+                        }
+                        
+                        // Start long-press timer for drag
+                        longPressTimer = setTimeout(() => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleEventMouseDown(e, event);
+                        }, 500); // 500ms hold to start drag
+                      };
+                      
+                      const handleAllDayMouseUp = () => {
+                        if (longPressTimer) {
+                          clearTimeout(longPressTimer);
+                          longPressTimer = null;
+                        }
+                      };
+                      
+                      const handleAllDayMouseLeave = () => {
+                        if (longPressTimer) {
+                          clearTimeout(longPressTimer);
+                          longPressTimer = null;
+                        }
+                      };
+                      
+                      return (
+                        <Popover 
+                          key={event.id} 
+                          open={openPopoverId === event.id} 
+                          onOpenChange={(open) => setOpenPopoverId(open ? event.id : null)}
+                        >
+                          <PopoverTrigger asChild>
+                            <div
+                              className={`${getEventColor(event.type)} text-white text-xs p-1 rounded cursor-pointer hover:opacity-80 ${
+                                selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''
+                              }`}
+                              onMouseDown={handleAllDayMouseDown}
+                              onMouseUp={handleAllDayMouseUp}
+                              onMouseLeave={handleAllDayMouseLeave}
+                            >
+                              {event.title}
+                            </div>
+                          </PopoverTrigger>
                         <PopoverContent className="w-80 p-0" align="start">
                           <div className="p-4 space-y-3">
                             {/* Event Header */}
@@ -1376,7 +1421,8 @@ export default function WeeklyScheduleView({
                           </div>
                         </PopoverContent>
                       </Popover>
-                    ))}
+                    );
+                    })}
                   </div>
                 );
               })}
