@@ -812,8 +812,8 @@ export default function WeeklyScheduleView({
         const eventX = mouseX - draggedEvent.offset.x;
         const eventY = mouseY - draggedEvent.offset.y;
 
-        // Calculate day index from event position
-        const newDayIndex = Math.floor((eventX - 64) / ((newRect.width - 64) / 7));
+        // Calculate day index from event position using round for symmetric left/right movement
+        const newDayIndex = Math.round((eventX - 64) / ((newRect.width - 64) / 7));
         const constrainedDayIndex = Math.max(0, Math.min(6, newDayIndex));
         
         // Calculate time position from event position
