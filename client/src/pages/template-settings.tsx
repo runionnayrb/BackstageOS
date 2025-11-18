@@ -331,8 +331,9 @@ export default function TemplateSettings() {
           initialTemplates[slug] = {
             id: userTemplate.id.toString(),
             phase: slug as any,
-            // Priority: current in-memory name > user's saved name > report type name > default name > slug
-            name: currentTemplateName || userTemplate.name || matchingReportType?.name || defaultTemplate?.name || slug,
+            // Priority: user's saved name (from database) > current in-memory name > default name > slug
+            // REMOVED: matchingReportType?.name fallback to prevent overriding saved template names
+            name: userTemplate.name || currentTemplateName || defaultTemplate?.name || slug,
             description: userTemplate.description || "",
             header: userTemplate.header || "",
             footer: userTemplate.footer || "",
