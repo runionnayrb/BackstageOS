@@ -353,10 +353,6 @@ export default function EnhancedHeader() {
                           Performance Tracker
                         </DropdownMenuItem>
                       )}
-                      <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/schedule-mapping`)}>
-                        <Calendar className="h-4 w-4 mr-2" strokeWidth={1.5} />
-                        Schedule Mapping
-                      </DropdownMenuItem>
                       {canAccessFeature('task-boards') && (
                         <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/tasks`)}>
                           <CheckSquare className="h-4 w-4 mr-2" strokeWidth={1.5} />
