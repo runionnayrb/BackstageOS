@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Plus, Trash2, GripVertical, Edit } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, GripVertical, Edit, Eye } from "lucide-react";
 
 interface TemplateEditorV2Params {
   id: string;
@@ -99,6 +99,7 @@ export default function TemplateEditorV2() {
 
   const [selectedSection, setSelectedSection] = useState<TemplateSection | null>(null);
   const [selectedField, setSelectedField] = useState<TemplateField | null>(null);
+  const [isPreviewDialogOpen, setIsPreviewDialogOpen] = useState(false);
   const [newSectionTitle, setNewSectionTitle] = useState("");
   const [newSectionDepartmentKey, setNewSectionDepartmentKey] = useState("");
   const [editSectionTitle, setEditSectionTitle] = useState("");
@@ -683,10 +684,20 @@ export default function TemplateEditorV2() {
               )}
             </div>
           </div>
-          <Button onClick={() => setIsAddSectionDialogOpen(true)} data-testid="button-add-section">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Section
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setIsPreviewDialogOpen(true)}
+              data-testid="button-preview"
+            >
+              <Eye className="h-4 w-4 mr-2" />
+              Preview
+            </Button>
+            <Button onClick={() => setIsAddSectionDialogOpen(true)} data-testid="button-add-section">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Section
+            </Button>
+          </div>
         </div>
 
         {/* Sections */}
@@ -1170,6 +1181,123 @@ export default function TemplateEditorV2() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Preview Dialog */}
+        <Dialog open={isPreviewDialogOpen} onOpenChange={setIsPreviewDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Template Preview</DialogTitle>
+              <DialogDescription>
+                This is how your template will appear when filling out a report.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-6 py-4">
+              {template.sections.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">
+                  No sections in this template yet.
+                </p>
+              ) : (
+                template.sections.map((section) => (
+                  <div key={section.id} className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-semibold">{section.title}</h3>
+                      {section.departmentKey && (
+                        <p className="text-sm text-muted-foreground">
+                          {departments[section.departmentKey] || section.departmentKey}
+                        </p>
+                      )}
+                    </div>
+                    {section.fields.length === 0 ? (
+                      <p className="text-sm text-muted-foreground italic pl-4">
+                        No fields in this section
+                      </p>
+                    ) : (
+                      <div className="space-y-4 pl-4">
+                        {section.fields.map((field) => (
+                          <div key={field.id} className="space-y-2">
+                            <Label>
+                              {field.label}
+                              {field.required && <span className="text-destructive ml-1">*</span>}
+                            </Label>
+                            {field.helperText && (
+                              <p className="text-sm text-muted-foreground">{field.helperText}</p>
+                            )}
+                            {field.type === "text" && (
+                              <Input
+                                placeholder={field.placeholder || ""}
+                                disabled
+                                className="bg-muted"
+                              />
+                            )}
+                            {field.type === "textarea" && (
+                              <Textarea
+                                placeholder={field.placeholder || ""}
+                                disabled
+                                className="bg-muted"
+                                rows={3}
+                              />
+                            )}
+                            {field.type === "number" && (
+                              <Input
+                                type="number"
+                                placeholder={field.placeholder || ""}
+                                disabled
+                                className="bg-muted"
+                              />
+                            )}
+                            {field.type === "date" && (
+                              <Input
+                                type="date"
+                                disabled
+                                className="bg-muted"
+                              />
+                            )}
+                            {field.type === "time" && (
+                              <Input
+                                type="time"
+                                disabled
+                                className="bg-muted"
+                              />
+                            )}
+                            {field.type === "checkbox" && (
+                              <div className="flex items-center space-x-2">
+                                <Checkbox disabled />
+                                <label className="text-sm text-muted-foreground">
+                                  {field.placeholder || "Check this option"}
+                                </label>
+                              </div>
+                            )}
+                            {field.type === "select" && (
+                              <div className="space-y-2">
+                                <Select disabled>
+                                  <SelectTrigger className="bg-muted">
+                                    <SelectValue placeholder={field.placeholder || "Select an option"} />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {field.options?.values?.map((option: string, idx: number) => (
+                                      <SelectItem key={idx} value={option}>
+                                        {option}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                {field.options?.values && field.options.values.length > 0 && (
+                                  <p className="text-xs text-muted-foreground">
+                                    Options: {field.options.values.join(", ")}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
