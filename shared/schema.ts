@@ -722,9 +722,11 @@ export const dailyCalls = pgTable("daily_calls", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
   date: date("date").notNull(),
-  locations: text("locations").array().notNull().default('["Rehearsal Hall"]'),
+  locations: jsonb("locations").notNull().default('[]'), // Array of location objects with events
   events: jsonb("events").notNull().default('[]'), // Array of call events
   announcements: text("announcements").default(""),
+  fittingsEvents: jsonb("fittings_events").default('[]'), // Fittings events
+  appointmentsEvents: jsonb("appointments_events").default('[]'), // Appointments events
   createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
