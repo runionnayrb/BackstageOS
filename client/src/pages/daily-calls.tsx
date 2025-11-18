@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useLocation, useParams } from "wouter";
 import { format, parseISO } from "date-fns";
-import { Calendar, Plus, Save, FileText, ChevronLeft, Users, Edit, Download, Printer } from "lucide-react";
+import { Calendar, Plus, Save, FileText, ChevronLeft, Users, Edit, Download, Printer, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +15,16 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { parseScheduleSettings, formatTimeDisplay } from "@/lib/timeUtils";
 import { CastSelector } from "@/components/cast-selector";
 import { DailyCall, Project, EmailContact, ScheduleEvent } from "@shared/schema";
@@ -49,6 +59,7 @@ export default function DailyCallSheet() {
   const urlParams = new URLSearchParams(window.location.search);
   const [isEditing, setIsEditing] = useState(urlParams.get('edit') === 'true');
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [callData, setCallData] = useState<{
     locations: CallLocation[];
     announcements: string;
@@ -331,6 +342,31 @@ export default function DailyCallSheet() {
       events: scheduleEvents.filter(event => event.date === selectedDate)
     });
   };
+
+  // Delete mutation
+  const deleteCallMutation = useMutation({
+    mutationFn: async () => {
+      if (!existingDailyCall?.id) throw new Error('No daily call to delete');
+      return apiRequest('DELETE', `/api/projects/${actualProjectId}/daily-calls/${existingDailyCall.id}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Daily Call Deleted",
+        description: "The daily call has been deleted. Schedule events were not affected.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', actualProjectId, 'daily-calls'] });
+      setShowDeleteDialog(false);
+      // Navigate back to the list
+      setLocation(`/shows/${actualProjectId}/calls`);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete daily call.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const addLocation = () => {
     const newLocation = {
@@ -840,6 +876,11 @@ export default function DailyCallSheet() {
             <Button onClick={exportToPDF} variant="ghost" size="icon" className="border-0 hover:bg-transparent">
               <Download className="h-4 w-4 hover:text-blue-600 transition-colors" />
             </Button>
+            {!isEditing && existingDailyCall && (
+              <Button onClick={() => setShowDeleteDialog(true)} variant="ghost" size="icon" className="border-0 hover:bg-transparent">
+                <Trash2 className="h-4 w-4 hover:text-red-600 transition-colors" />
+              </Button>
+            )}
             {!isEditing && (
               <Button onClick={() => setIsEditing(true)} variant="ghost" size="icon" className="border-0 hover:bg-transparent">
                 <Edit className="h-4 w-4 hover:text-blue-600 transition-colors" />
@@ -1412,6 +1453,31 @@ export default function DailyCallSheet() {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Daily Call?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will delete the saved daily call for {format(parseISO(selectedDate), 'MMMM d, yyyy')}.
+              <br /><br />
+              <strong>Your schedule events will NOT be affected.</strong> This only removes the saved daily call sheet.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteCallMutation.mutate()}
+              disabled={deleteCallMutation.isPending}
+              className="bg-red-600 hover:bg-red-700"
+              data-testid="button-confirm-delete"
+            >
+              {deleteCallMutation.isPending ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
