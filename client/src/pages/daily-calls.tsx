@@ -170,28 +170,14 @@ export default function DailyCallSheet() {
     console.log('📅 Generating call for date:', selectedDate);
     console.log('📅 Total schedule events:', scheduleEvents.length);
 
-    // Filter events for the selected date - handle different date formats
+    // Filter events for the selected date
     const dayEvents = scheduleEvents.filter(event => {
-      try {
-        // Handle different possible date formats in the event data
-        let eventDateStr = '';
-        if (event.date) {
-          eventDateStr = event.date;
-        } else if (event.startTime) {
-          // Extract date from startTime without timezone conversion
-          // Just get the YYYY-MM-DD part directly
-          eventDateStr = event.startTime.split('T')[0];
-        }
-        
-        const matches = eventDateStr === selectedDate;
-        if (matches) {
-          console.log('✅ Event matched:', event.title, 'on', eventDateStr);
-        }
-        return matches;
-      } catch (error) {
-        console.warn('Error parsing date for event:', event);
-        return false;
+      // The API returns event.date as a string like "2025-11-19"
+      const matches = event.date === selectedDate;
+      if (matches) {
+        console.log('✅ Event matched:', event.title, 'on', event.date);
       }
+      return matches;
     });
     
     console.log('📅 Found', dayEvents.length, 'events for', selectedDate);
