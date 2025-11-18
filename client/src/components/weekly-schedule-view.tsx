@@ -413,9 +413,12 @@ export default function WeeklyScheduleView({
         })) || []
       };
       
-      queryClient.setQueryData(['/api/projects', projectId, 'schedule-events', { startDate, endDate }], (old: ScheduleEvent[]) => {
-        return old ? [...old, optimisticEvent] : [optimisticEvent];
-      });
+      queryClient.setQueriesData(
+        { queryKey: ['/api/projects', projectId, 'schedule-events'] },
+        (old: any) => {
+          return old ? [...old, optimisticEvent] : [optimisticEvent];
+        }
+      );
       
       return { optimisticEvent };
     },
@@ -426,9 +429,12 @@ export default function WeeklyScheduleView({
     },
     onError: (error: any, eventData, context) => {
       if (context?.optimisticEvent) {
-        queryClient.setQueryData(['/api/projects', projectId, 'schedule-events', { startDate, endDate }], (old: ScheduleEvent[]) => {
-          return old?.filter(e => e.id !== context.optimisticEvent.id) || [];
-        });
+        queryClient.setQueriesData(
+          { queryKey: ['/api/projects', projectId, 'schedule-events'] },
+          (old: any) => {
+            return old?.filter((e: any) => e.id !== context.optimisticEvent.id) || [];
+          }
+        );
       }
       
       if (error.status === 409 && error.conflicts) {
@@ -550,12 +556,26 @@ export default function WeeklyScheduleView({
       if (!response.ok) throw new Error("Failed to delete event");
       return response.json();
     },
+    onMutate: async (eventId: number) => {
+      await queryClient.cancelQueries({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
+      
+      queryClient.setQueriesData(
+        { queryKey: ['/api/projects', projectId, 'schedule-events'] },
+        (old: any) => {
+          return old?.filter((e: any) => e.id !== eventId) || [];
+        }
+      );
+      
+      return { eventId };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
       setEditingEvent(null);
       toast({ title: "Event deleted successfully" });
     },
-    onError: (error) => {
+    onError: (error, eventId, context) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
+      
       toast({ 
         title: "Failed to delete event", 
         description: error.message,
@@ -574,13 +594,27 @@ export default function WeeklyScheduleView({
         })
       ));
     },
+    onMutate: async (eventIds: number[]) => {
+      await queryClient.cancelQueries({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
+      
+      queryClient.setQueriesData(
+        { queryKey: ['/api/projects', projectId, 'schedule-events'] },
+        (old: any) => {
+          return old?.filter((e: any) => !eventIds.includes(e.id)) || [];
+        }
+      );
+      
+      return { eventIds };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
       setSelectedEvents(new Set());
       setShowBulkDeleteDialog(false);
       toast({ title: "Selected events deleted successfully" });
     },
-    onError: (error) => {
+    onError: (error, eventIds, context) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
+      
       toast({ 
         title: "Failed to delete events", 
         description: error.message,
