@@ -233,8 +233,10 @@ export default function TemplateSettings() {
   });
 
   // Load user-created templates
-  const { data: userTemplates } = useQuery({
+  const { data: userTemplates, isLoading: templatesLoading, isFetching: templatesFetching } = useQuery({
     queryKey: [`/api/projects/${projectId}/templates`],
+    staleTime: 0, // Always consider data stale - don't show old cached data
+    refetchOnMount: 'always', // Always refetch when component mounts to get fresh data
   });
 
   // Fetch global template settings for tech report headers/footers
@@ -279,8 +281,15 @@ export default function TemplateSettings() {
       hasUserTemplates: !!userTemplates, 
       hasShowSettings: !!showSettings,
       hasReportTypes: !!reportTypes,
-      showSettingsLayoutConfig: !!showSettings?.layoutConfiguration
+      showSettingsLayoutConfig: !!showSettings?.layoutConfiguration,
+      templatesFetching
     });
+    
+    // Don't initialize with stale data while fetching fresh data
+    if (templatesFetching) {
+      console.log('⏸️ Skipping initialization - fetching fresh templates data');
+      return;
+    }
     
     if (!reportTypes || !Array.isArray(reportTypes) || reportTypes.length === 0) {
       console.log('⏳ Waiting for report types to load...');
