@@ -5250,6 +5250,41 @@ Best regards,
     }
   });
 
+  // Get a single template with full data
+  app.get("/api/projects/:id/templates-v2/:templateId", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const templateId = parseInt(req.params.templateId);
+      
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check access (owner or team member)
+      if (project.ownerId !== parseInt(req.user.id)) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(req.user.id));
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const templates = await storage.getTemplatesV2WithFullData(projectId);
+      const template = templates.find(t => t.id === templateId);
+      
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      res.json(template);
+    } catch (error) {
+      console.error("Error fetching template:", error);
+      res.status(500).json({ message: "Failed to fetch template" });
+    }
+  });
+
   // Create a new V2 template
   app.post("/api/projects/:id/templates-v2", isAuthenticated, async (req: any, res) => {
     try {

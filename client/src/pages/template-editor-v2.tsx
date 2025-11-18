@@ -123,14 +123,6 @@ export default function TemplateEditorV2() {
   // Fetch template with full data
   const { data: template, isLoading } = useQuery<TemplateWithData>({
     queryKey: ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
-    queryFn: async () => {
-      const response = await fetch(`/api/projects/${projectId}/templates-v2`);
-      if (!response.ok) throw new Error("Failed to fetch templates");
-      const templates = await response.json();
-      const template = templates.find((t: any) => t.id === parseInt(templateId!));
-      if (!template) throw new Error("Template not found");
-      return template;
-    },
   });
 
   // Fetch show settings for departments
@@ -151,6 +143,36 @@ export default function TemplateEditorV2() {
         }),
       });
     },
+    onMutate: async (newSection) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({
+        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+      });
+
+      // Snapshot previous value
+      const previousTemplate = queryClient.getQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)]);
+
+      // Optimistically update
+      queryClient.setQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          sections: [
+            ...old.sections,
+            {
+              id: Date.now(),
+              templateId: parseInt(templateId!),
+              title: newSection.title,
+              departmentKey: newSection.departmentKey,
+              displayOrder: old.sections.length,
+              fields: [],
+            },
+          ],
+        };
+      });
+
+      return { previousTemplate };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["/api/projects", parseInt(projectId!), "templates-v2"],
@@ -163,7 +185,14 @@ export default function TemplateEditorV2() {
       setNewSectionTitle("");
       setNewSectionDepartmentKey("");
     },
-    onError: () => {
+    onError: (error, variables, context) => {
+      // Revert on error
+      if (context?.previousTemplate) {
+        queryClient.setQueryData(
+          ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+          context.previousTemplate
+        );
+      }
       toast({
         title: "Error",
         description: "Failed to add section. Please try again.",
