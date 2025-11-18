@@ -864,10 +864,23 @@ export default function DailyCallSheet() {
               <div className="space-y-8">
                 {(callData.locations || []).map((location, locationIndex) => (
                   <div key={locationIndex} className="space-y-1">
-                    <div className="border-b-2 border-black pb-2">
+                    <div className="border-b-2 border-black pb-2 flex items-center justify-between">
                       <h4 className="text-lg font-semibold text-gray-900">
                         {location.name}
                       </h4>
+                      {isEditing && (
+                        <Button 
+                          onClick={() => {
+                            console.log('TEST: Add event button clicked for location:', locationIndex);
+                            addEvent(locationIndex);
+                          }}
+                          size="sm"
+                          variant="outline"
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add Event
+                        </Button>
+                      )}
                     </div>
                     
                     <div className="space-y-2 overflow-visible">
