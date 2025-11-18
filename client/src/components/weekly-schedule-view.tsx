@@ -153,6 +153,8 @@ export default function WeeklyScheduleView({
   const [selectedEvents, setSelectedEvents] = useState<Set<number>>(new Set());
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
+  const [longPressEventId, setLongPressEventId] = useState<number | null>(null);
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const calendarRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -1246,8 +1248,6 @@ export default function WeeklyScheduleView({
                     }}
                   >
                     {dayEvents.map(event => {
-                      let longPressTimer: NodeJS.Timeout | null = null;
-                      
                       const handleAllDayMouseDown = (e: React.MouseEvent) => {
                         if (e.button !== 0) return; // Ignore right clicks
                         
@@ -1268,32 +1268,47 @@ export default function WeeklyScheduleView({
                         }
                         
                         // Start long-press timer for drag
-                        longPressTimer = setTimeout(() => {
-                          e.preventDefault();
-                          e.stopPropagation();
+                        setLongPressEventId(event.id);
+                        longPressTimerRef.current = setTimeout(() => {
+                          setLongPressEventId(null);
+                          setOpenPopoverId(null); // Close any open popover
                           handleEventMouseDown(e, event);
                         }, 500); // 500ms hold to start drag
                       };
                       
                       const handleAllDayMouseUp = () => {
-                        if (longPressTimer) {
-                          clearTimeout(longPressTimer);
-                          longPressTimer = null;
+                        if (longPressTimerRef.current) {
+                          clearTimeout(longPressTimerRef.current);
+                          longPressTimerRef.current = null;
+                        }
+                        
+                        // If we were in a long-press attempt, don't open popover
+                        if (longPressEventId === event.id) {
+                          setLongPressEventId(null);
+                        } else {
+                          // Normal click - toggle popover
+                          setOpenPopoverId(openPopoverId === event.id ? null : event.id);
                         }
                       };
                       
                       const handleAllDayMouseLeave = () => {
-                        if (longPressTimer) {
-                          clearTimeout(longPressTimer);
-                          longPressTimer = null;
+                        if (longPressTimerRef.current) {
+                          clearTimeout(longPressTimerRef.current);
+                          longPressTimerRef.current = null;
                         }
+                        setLongPressEventId(null);
                       };
                       
                       return (
                         <Popover 
                           key={event.id} 
                           open={openPopoverId === event.id} 
-                          onOpenChange={(open) => setOpenPopoverId(open ? event.id : null)}
+                          onOpenChange={(open) => {
+                            // Only allow popover to open if not in long-press
+                            if (longPressEventId !== event.id) {
+                              setOpenPopoverId(open ? event.id : null);
+                            }
+                          }}
                         >
                           <PopoverTrigger asChild>
                             <div
@@ -1737,47 +1752,15 @@ export default function WeeklyScheduleView({
 
       {/* Create Event Modal - Hidden in weekly view as parent handles it */}
 
-      {/* Edit Event Dialog - Full Screen Sheet */}
-      {editingEvent && (
-        <>
-          {/* Backdrop */}
-          <div 
-            className="fixed inset-0 bg-black/50 z-40"
-            onClick={() => setEditingEvent(null)}
-            style={{ touchAction: 'none' }}
-          />
+      {/* Edit Event Dialog */}
+      <Dialog open={!!editingEvent} onOpenChange={(open) => !open && setEditingEvent(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Edit Event</DialogTitle>
+          </DialogHeader>
           
-          {/* Full Screen Sheet */}
-          <div 
-            className="fixed left-0 right-0 z-50 bg-white flex flex-col"
-            style={{ 
-              top: '60px', // Just below the BackstageOS header
-              bottom: '80px', // Above mobile navigation (typically 64-80px)
-              height: 'auto',
-              maxHeight: 'calc(100vh - 140px)' // Header + mobile nav space
-            }}
-            onTouchMove={(e) => {
-              // Prevent background scrolling when touching the sheet
-              e.stopPropagation();
-            }}
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 flex-shrink-0">
-              <Button 
-                variant="ghost" 
-                onClick={() => setEditingEvent(null)}
-                className="text-gray-500 hover:text-gray-700 p-1 h-auto"
-              >
-                <X className="h-5 w-5" />
-              </Button>
-              <h1 className="text-lg font-semibold text-black">
-                Edit Event
-              </h1>
-              <div className="w-9" /> {/* Spacer for center alignment */}
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 px-6">
+            {editingEvent && (
               <EventForm
                 projectId={projectId}
                 contacts={contacts}
@@ -1785,6 +1768,7 @@ export default function WeeklyScheduleView({
                 initialDate={editingEvent.date}
                 onSubmit={(data) => updateEventMutation.mutate({ eventId: editingEvent.id, eventData: data })}
                 onCancel={() => setEditingEvent(null)}
+                timeFormat={settings?.scheduleSettings?.timeFormat || '12'}
                 showButtons={false}
                 initialValues={{
                   title: editingEvent.title,
@@ -1801,32 +1785,29 @@ export default function WeeklyScheduleView({
                   participantIds: editingEvent.participants.map(p => p.contactId),
                 }}
               />
-            </div>
-            
-            {/* Sticky Footer with Buttons */}
-            <div className="border-t border-gray-200 p-4 bg-white flex-shrink-0 mt-auto">
-              <div className="flex justify-end space-x-2">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setEditingEvent(null)}
-                  className="px-4 py-2"
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  type="submit" 
-                  form="event-form"
-                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2"
-                  disabled={updateEventMutation.isPending}
-                >
-                  {updateEventMutation.isPending ? "Saving..." : "Save Changes"}
-                </Button>
-              </div>
+            )}
+          </div>
+          
+          <div className="border-t border-gray-200 p-4 bg-white flex-shrink-0 mt-auto">
+            <div className="flex justify-end space-x-2">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setEditingEvent(null)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                form="event-form"
+                disabled={updateEventMutation.isPending}
+              >
+                {updateEventMutation.isPending ? "Saving..." : "Save Changes"}
+              </Button>
             </div>
           </div>
-        </>
-      )}
+        </DialogContent>
+      </Dialog>
 
       {/* Bulk Delete Confirmation Dialog */}
       {showBulkDeleteDialog && (
