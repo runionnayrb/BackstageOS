@@ -292,9 +292,6 @@ export default function TemplateSettingsV2() {
             </Button>
             <div>
               <h1 className="text-3xl font-bold">Report Templates</h1>
-              <p className="text-muted-foreground">
-                Create and manage report templates for your show
-              </p>
             </div>
           </div>
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
