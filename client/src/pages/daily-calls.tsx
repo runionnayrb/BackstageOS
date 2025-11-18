@@ -872,18 +872,23 @@ export default function DailyCallSheet() {
                     
                     <div className="space-y-2 overflow-visible">
                       {(location.events || []).map((event, eventIdx) => (
-                        <div key={event.id} className={`flex ${event.title === 'END-OF-DAY' ? 'items-center' : 'items-start'} gap-6 ${event.title === 'END-OF-DAY' ? 'bg-gray-100 py-1 relative overflow-visible' : 'py-2'}`}>
+                        <div 
+                          key={event.id} 
+                          className={`flex ${event.title === 'END-OF-DAY' ? 'items-center' : 'items-start'} gap-6 ${event.title === 'END-OF-DAY' ? 'bg-gray-100 py-1 relative overflow-visible' : 'py-2'}`}
+                          onClick={(e) => {
+                            if (isEditing && event.title === 'END-OF-DAY') {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              console.log('Add event (row clicked) for location:', locationIndex);
+                              addEvent(locationIndex);
+                            }
+                          }}
+                          style={isEditing && event.title === 'END-OF-DAY' ? { cursor: 'pointer' } : {}}
+                        >
                           {/* Add Event Button in Left Margin - only show on END-OF-DAY row */}
                           {isEditing && event.title === 'END-OF-DAY' && (
                             <div
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                console.log('Add event button clicked for location:', locationIndex);
-                                addEvent(locationIndex);
-                              }}
-                              className="absolute -left-6 top-1/2 -translate-y-1/2 w-6 h-6 opacity-0 hover:opacity-100 transition-opacity duration-200 cursor-pointer z-10 flex items-center justify-center"
-                              style={{ pointerEvents: 'auto' }}
+                              className="absolute -left-6 top-1/2 -translate-y-1/2 w-6 h-6 opacity-0 hover:opacity-100 transition-opacity duration-200 z-10 flex items-center justify-center"
                             >
                               <Plus className="h-4 w-4 text-black" />
                             </div>
