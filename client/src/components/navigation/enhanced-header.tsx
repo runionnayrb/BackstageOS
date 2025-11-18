@@ -257,7 +257,7 @@ export default function EnhancedHeader() {
                   </div>
                   <DropdownMenuSeparator />
                   
-                  {isEmailEnabled() && (
+                  {canAccessFeature('email-integration') && (
                     <DropdownMenuItem onClick={() => setLocation('/email')}>
                       <Mail className="h-4 w-4 mr-2" strokeWidth={1.5} />
                       Email
