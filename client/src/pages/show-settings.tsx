@@ -291,8 +291,14 @@ export default function ShowSettings() {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/settings`] });
       
       // Check if this is a schedule filtering update (no toast for these)
-      const isScheduleFilterUpdate = variables.scheduleSettings && 
-        JSON.parse(variables.scheduleSettings || '{}').enabledEventTypes;
+      let isScheduleFilterUpdate = false;
+      try {
+        isScheduleFilterUpdate = variables.scheduleSettings && 
+          typeof variables.scheduleSettings === 'string' &&
+          JSON.parse(variables.scheduleSettings).enabledEventTypes;
+      } catch (e) {
+        // Ignore parsing errors
+      }
       
       if (!isScheduleFilterUpdate) {
         toast({
