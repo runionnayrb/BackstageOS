@@ -117,7 +117,7 @@ export default function DailyCallSheet() {
   const scheduleSettings = parseScheduleSettings((showSettings as any)?.scheduleSettings);
   const { timeFormat = '12', timezone } = scheduleSettings;
 
-  // Mutation for saving daily call
+  // Mutation for saving daily call with optimistic updates
   const saveCallMutation = useMutation({
     mutationFn: async (data: any) => {
       if (existingDailyCall?.id) {
@@ -136,22 +136,54 @@ export default function DailyCallSheet() {
         return apiRequest('POST', `/api/projects/${actualProjectId}/daily-calls`, { ...data, date: selectedDate });
       }
     },
+    onMutate: async (data) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['/api/projects', actualProjectId, 'daily-calls-list'] });
+      
+      // Snapshot the previous value
+      const previousCalls = queryClient.getQueryData(['/api/projects', actualProjectId, 'daily-calls-list']);
+      
+      // Optimistically update the list
+      if (!existingDailyCall?.id) {
+        // Creating new - add to list
+        queryClient.setQueryData(['/api/projects', actualProjectId, 'daily-calls-list'], (old: any[]) => {
+          if (!old) return old;
+          const newCall = {
+            id: -1, // Temporary ID
+            date: selectedDate,
+            projectId: actualProjectId,
+            locations: data.locations,
+            announcements: data.announcements,
+          };
+          return [...old, newCall].sort((a, b) => a.date.localeCompare(b.date));
+        });
+      }
+      
+      return { previousCalls };
+    },
     onSuccess: () => {
       toast({
         title: "Call Sheet Saved",
         description: "Daily call sheet has been saved successfully.",
       });
       setIsEditing(false);
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', actualProjectId, 'daily-calls'] });
       // Also invalidate schedule events since we're now syncing changes back to them
       queryClient.invalidateQueries({ queryKey: ['/api/projects', actualProjectId, 'schedule-events'] });
     },
-    onError: () => {
+    onError: (_error, _variables, context) => {
+      // Rollback on error
+      if (context?.previousCalls) {
+        queryClient.setQueryData(['/api/projects', actualProjectId, 'daily-calls-list'], context.previousCalls);
+      }
       toast({
         title: "Error",
         description: "Failed to save daily call sheet.",
         variant: "destructive",
       });
+    },
+    onSettled: () => {
+      // Refetch to ensure we're in sync with server
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', actualProjectId, 'daily-calls'] });
     },
   });
 
