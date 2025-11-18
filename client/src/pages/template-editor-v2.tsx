@@ -209,6 +209,25 @@ export default function TemplateEditorV2() {
         body: JSON.stringify(data),
       });
     },
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({
+        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+      });
+
+      const previousTemplate = queryClient.getQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)]);
+
+      queryClient.setQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          sections: old.sections.map((section: any) =>
+            section.id === id ? { ...section, ...data } : section
+          ),
+        };
+      });
+
+      return { previousTemplate };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["/api/projects", parseInt(projectId!), "templates-v2"],
@@ -220,7 +239,13 @@ export default function TemplateEditorV2() {
       setIsEditSectionDialogOpen(false);
       setSelectedSection(null);
     },
-    onError: () => {
+    onError: (error, variables, context) => {
+      if (context?.previousTemplate) {
+        queryClient.setQueryData(
+          ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+          context.previousTemplate
+        );
+      }
       toast({
         title: "Error",
         description: "Failed to update section. Please try again.",
@@ -236,6 +261,23 @@ export default function TemplateEditorV2() {
         method: "DELETE",
       });
     },
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({
+        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+      });
+
+      const previousTemplate = queryClient.getQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)]);
+
+      queryClient.setQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          sections: old.sections.filter((section: any) => section.id !== id),
+        };
+      });
+
+      return { previousTemplate };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["/api/projects", parseInt(projectId!), "templates-v2"],
@@ -247,7 +289,13 @@ export default function TemplateEditorV2() {
       setIsDeleteSectionDialogOpen(false);
       setSelectedSection(null);
     },
-    onError: () => {
+    onError: (error, variables, context) => {
+      if (context?.previousTemplate) {
+        queryClient.setQueryData(
+          ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+          context.previousTemplate
+        );
+      }
       toast({
         title: "Error",
         description: "Failed to delete section. Please try again.",
@@ -277,6 +325,44 @@ export default function TemplateEditorV2() {
         }),
       });
     },
+    onMutate: async (newField) => {
+      await queryClient.cancelQueries({
+        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+      });
+
+      const previousTemplate = queryClient.getQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)]);
+
+      queryClient.setQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          sections: old.sections.map((section: any) =>
+            section.id === newField.sectionId
+              ? {
+                  ...section,
+                  fields: [
+                    ...section.fields,
+                    {
+                      id: Date.now(),
+                      sectionId: newField.sectionId,
+                      type: newField.type,
+                      label: newField.label,
+                      helperText: newField.helperText || null,
+                      placeholder: newField.placeholder || null,
+                      required: newField.required,
+                      options: newField.options || null,
+                      defaultValue: newField.defaultValue || null,
+                      displayOrder: section.fields.length,
+                    },
+                  ],
+                }
+              : section
+          ),
+        };
+      });
+
+      return { previousTemplate };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["/api/projects", parseInt(projectId!), "templates-v2"],
@@ -288,7 +374,13 @@ export default function TemplateEditorV2() {
       setIsAddFieldDialogOpen(false);
       resetFieldForm();
     },
-    onError: () => {
+    onError: (error, variables, context) => {
+      if (context?.previousTemplate) {
+        queryClient.setQueryData(
+          ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+          context.previousTemplate
+        );
+      }
       toast({
         title: "Error",
         description: "Failed to add field. Please try again.",
@@ -305,6 +397,28 @@ export default function TemplateEditorV2() {
         body: JSON.stringify(data),
       });
     },
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({
+        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+      });
+
+      const previousTemplate = queryClient.getQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)]);
+
+      queryClient.setQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          sections: old.sections.map((section: any) => ({
+            ...section,
+            fields: section.fields.map((field: any) =>
+              field.id === id ? { ...field, ...data } : field
+            ),
+          })),
+        };
+      });
+
+      return { previousTemplate };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["/api/projects", parseInt(projectId!), "templates-v2"],
@@ -316,7 +430,13 @@ export default function TemplateEditorV2() {
       setIsEditFieldDialogOpen(false);
       setSelectedField(null);
     },
-    onError: () => {
+    onError: (error, variables, context) => {
+      if (context?.previousTemplate) {
+        queryClient.setQueryData(
+          ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+          context.previousTemplate
+        );
+      }
       toast({
         title: "Error",
         description: "Failed to update field. Please try again.",
@@ -332,6 +452,26 @@ export default function TemplateEditorV2() {
         method: "DELETE",
       });
     },
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({
+        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+      });
+
+      const previousTemplate = queryClient.getQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)]);
+
+      queryClient.setQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          sections: old.sections.map((section: any) => ({
+            ...section,
+            fields: section.fields.filter((field: any) => field.id !== id),
+          })),
+        };
+      });
+
+      return { previousTemplate };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["/api/projects", parseInt(projectId!), "templates-v2"],
@@ -343,7 +483,13 @@ export default function TemplateEditorV2() {
       setIsDeleteFieldDialogOpen(false);
       setSelectedField(null);
     },
-    onError: () => {
+    onError: (error, variables, context) => {
+      if (context?.previousTemplate) {
+        queryClient.setQueryData(
+          ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+          context.previousTemplate
+        );
+      }
       toast({
         title: "Error",
         description: "Failed to delete field. Please try again.",
