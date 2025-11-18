@@ -311,7 +311,7 @@ export default function EnhancedHeader() {
                       <div className="px-3 py-2 text-sm font-semibold text-gray-900">
                         {showData.name}
                       </div>
-                      {isFeatureEnabled('reports') && (
+                      {canAccessFeature('report-builder') && isFeatureEnabled('reports') && (
                         <>
                           <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/reports`)}>
                             <FileText className="h-4 w-4 mr-2" strokeWidth={1.5} />
