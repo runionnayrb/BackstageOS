@@ -1275,7 +1275,7 @@ export default function WeeklyScheduleView({
                           setLongPressEventId(null);
                           setOpenPopoverId(null); // Close any open popover
                           handleEventMouseDown(e, event);
-                        }, 500); // 500ms hold to start drag
+                        }, 250); // 250ms hold to start drag
                       };
                       
                       const handleAllDayMouseUp = () => {
