@@ -137,9 +137,12 @@ export default function DailyCallSheet() {
   useEffect(() => {
     if (!actualProjectId || !scheduleEvents || !eventLocations || !contacts) return;
     
+    // Skip regeneration when editing to preserve manual changes
+    if (isEditing) return;
+    
     // Always regenerate from schedule to ensure consistency and avoid duplicates
     generateCallFromSchedule();
-  }, [actualProjectId, selectedDate, timeFormat, scheduleEvents, eventLocations, contacts]); // Include necessary data dependencies
+  }, [actualProjectId, selectedDate, timeFormat, scheduleEvents, eventLocations, contacts, isEditing]); // Include necessary data dependencies
 
   // Date picker navigation function
   const handleDateSelect = (date: Date | undefined) => {
