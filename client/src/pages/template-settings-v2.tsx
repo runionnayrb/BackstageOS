@@ -121,7 +121,7 @@ export default function TemplateSettingsV2() {
       setIsCreateDialogOpen(false);
       setNewTemplateName("");
       setNewTemplateDescription("");
-      setNewTemplateReportTypeId("");
+      setNewTemplateReportTypeId(undefined);
     },
     onError: () => {
       // Revert optimistic update
@@ -229,7 +229,7 @@ export default function TemplateSettingsV2() {
     createTemplateMutation.mutate({
       name: newTemplateName,
       description: newTemplateDescription,
-      reportTypeId: newTemplateReportTypeId ? parseInt(newTemplateReportTypeId) : null,
+      reportTypeId: newTemplateReportTypeId && newTemplateReportTypeId.trim() ? parseInt(newTemplateReportTypeId) : null,
     });
   };
 
