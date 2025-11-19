@@ -120,9 +120,6 @@ export default function BillingStatus() {
     return formatPrice(matchingPlan.price, matchingPlan.billingInterval);
   };
 
-  const getMonthlyPlan = () => billingPlans.find(p => p.billingInterval === 'month' && p.isActive);
-  const getAnnualPlan = () => billingPlans.find(p => p.billingInterval === 'year' && p.isActive);
-
   if (isLoading || plansLoading) {
     return (
       <Card>
@@ -254,24 +251,20 @@ export default function BillingStatus() {
             <p className="text-muted-foreground">
               You don't have an active subscription.
             </p>
-            <div className="flex gap-2 justify-center">
-              {getMonthlyPlan() && (
-                <Button 
-                  onClick={() => window.location.href = `/subscribe?plan=${getMonthlyPlan()!.planId}`}
-                  size="sm"
-                >
-                  Subscribe {getMonthlyPlan()!.name} - ${getMonthlyPlan()!.price.toLocaleString()}
-                </Button>
-              )}
-              {getAnnualPlan() && (
-                <Button 
-                  onClick={() => window.location.href = `/subscribe?plan=${getAnnualPlan()!.planId}`}
-                  variant="outline"
-                  size="sm"
-                >
-                  Subscribe {getAnnualPlan()!.name} - ${Math.round(getAnnualPlan()!.price / 12).toLocaleString()}/mo
-                </Button>
-              )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {billingPlans
+                .filter(p => p.isActive)
+                .sort((a, b) => a.sortOrder - b.sortOrder)
+                .map((plan) => (
+                  <Button 
+                    key={plan.id}
+                    onClick={() => window.location.href = `/subscribe?plan=${plan.planId}`}
+                    variant={plan.billingInterval === 'year' ? 'default' : 'outline'}
+                    size="sm"
+                  >
+                    {plan.name} - {formatPrice(plan.price, plan.billingInterval)}
+                  </Button>
+                ))}
             </div>
           </div>
         )}

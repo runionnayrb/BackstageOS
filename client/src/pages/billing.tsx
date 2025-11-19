@@ -75,28 +75,6 @@ export default function Billing() {
     }
   });
 
-  // Switch between monthly and annual plans
-  const switchPlanMutation = useMutation({
-    mutationFn: async (interval: 'month' | 'year') => {
-      const res = await apiRequest('POST', '/api/billing/switch-plan', { interval });
-      return res.json();
-    },
-    onSuccess: (data, interval) => {
-      toast({
-        title: "Plan Updated",
-        description: `Successfully switched to ${interval === 'year' ? 'annual' : 'monthly'} billing${interval === 'year' ? ' with 18% savings!' : '.'}`,
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/billing/status'] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Plan Switch Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  });
-
   // Cancel trial mutation
   const cancelTrialMutation = useMutation({
     mutationFn: async () => {
@@ -257,95 +235,78 @@ export default function Billing() {
         </CardContent>
       </Card>
 
-      {/* Actions */}
-      <div className="grid md:grid-cols-2 gap-6">
+      {/* Available Plans */}
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Available Plans</CardTitle>
+            <CardDescription>Upgrade or change your subscription plan</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {billingPlans
+                .filter(plan => plan.isActive)
+                .sort((a, b) => a.sortOrder - b.sortOrder)
+                .map((plan) => {
+                  const isCurrentPlan = subscriptionData?.plan === plan.planId;
+                  return (
+                    <Card key={plan.id} className={isCurrentPlan ? "border-primary border-2" : ""}>
+                      <CardHeader>
+                        <CardTitle className="text-lg flex items-center justify-between">
+                          {plan.name}
+                          {isCurrentPlan && <Badge>Current</Badge>}
+                        </CardTitle>
+                        <CardDescription className="text-2xl font-bold text-primary">
+                          {formatPlanPrice(plan)}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          <p className="text-sm text-muted-foreground">
+                            {plan.trialDays}-day trial included
+                          </p>
+                          {!isCurrentPlan && (subscriptionData?.status === 'active' || subscriptionData?.status === 'trialing') && (
+                            <Button 
+                              onClick={() => window.location.href = `/subscribe?plan=${plan.planId}`}
+                              className="w-full"
+                              variant={isCurrentPlan ? "outline" : "default"}
+                              size="sm"
+                            >
+                              Switch to {plan.name}
+                            </Button>
+                          )}
+                          {!isCurrentPlan && (!subscriptionData?.status || subscriptionData?.status === 'canceled' || subscriptionData?.status === 'incomplete') && (
+                            <Button 
+                              onClick={() => window.location.href = `/subscribe?plan=${plan.planId}`}
+                              className="w-full"
+                              size="sm"
+                            >
+                              Subscribe to {plan.name}
+                            </Button>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Subscription Management */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <CreditCard className="h-5 w-5" />
-              Subscription Options
+              Subscription Management
             </CardTitle>
             <CardDescription>
-              Manage your subscription plan and billing
+              Manage your payment methods and subscription
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {/* Trial Management */}
-            {subscriptionData?.status === 'trialing' && (
-              <>
-                <div className="text-sm text-muted-foreground mb-3">
-                  Your 30-day free trial is active. Choose a plan before it ends to continue using BackstageOS.
-                </div>
-                
-                {getMonthlyPlan() && (
-                  <Button 
-                    onClick={() => window.location.href = `/subscribe?plan=${getMonthlyPlan()!.planId}`}
-                    className="w-full"
-                  >
-                    Choose {getMonthlyPlan()!.name} ({formatPlanPrice(getMonthlyPlan()!)})
-                  </Button>
-                )}
-                
-                {getAnnualPlan() && (
-                  <Button 
-                    onClick={() => window.location.href = `/subscribe?plan=${getAnnualPlan()!.planId}`}
-                    className="w-full"
-                    variant="outline"
-                  >
-                    Choose {getAnnualPlan()!.name} ({formatPlanPrice(getAnnualPlan()!)} - Save {calculateSavings()}%)
-                  </Button>
-                )}
-                
-                <Button
-                  onClick={() => cancelTrialMutation.mutate()}
-                  disabled={cancelTrialMutation.isPending}
-                  variant="destructive"
-                  className="w-full"
-                >
-                  {cancelTrialMutation.isPending ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    'Cancel Trial'
-                  )}
-                </Button>
-              </>
-            )}
-
-            {/* Active Subscription Management */}
             {subscriptionData?.status === 'active' && (
               <>
-                {/* Plan switching options */}
-                {subscriptionData.interval === 'month' && getAnnualPlan() && (
-                  <Button 
-                    onClick={() => switchPlanMutation.mutate('year')}
-                    disabled={switchPlanMutation.isPending}
-                    className="w-full"
-                    variant="outline"
-                  >
-                    {switchPlanMutation.isPending ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      `Switch to Annual (Save ${calculateSavings()}%)`
-                    )}
-                  </Button>
-                )}
-
-                {subscriptionData.interval === 'year' && (
-                  <Button 
-                    onClick={() => switchPlanMutation.mutate('month')}
-                    disabled={switchPlanMutation.isPending}
-                    className="w-full"
-                    variant="outline"
-                  >
-                    {switchPlanMutation.isPending ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      'Switch to Monthly Billing'
-                    )}
-                  </Button>
-                )}
-                
                 <Button
                   onClick={() => window.open('https://billing.stripe.com/p/login/test_00000000001', '_blank')}
                   variant="outline"
@@ -362,7 +323,7 @@ export default function Billing() {
                   className="w-full"
                 >
                   {cancelMutation.isPending ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4" />
                   ) : (
                     'Cancel Subscription'
                   )}
@@ -370,69 +331,29 @@ export default function Billing() {
               </>
             )}
 
-            {/* Canceled Subscription */}
-            {subscriptionData?.status === 'canceled' && (
-              <>
-                <div className="text-sm text-muted-foreground mb-3">
-                  Your subscription is canceled. You can still access the app until {new Date(subscriptionData.currentPeriodEnd).toLocaleDateString()}.
-                </div>
-                
-                {getMonthlyPlan() && (
-                  <Button 
-                    onClick={() => window.location.href = `/subscribe?plan=${getMonthlyPlan()!.planId}`}
-                    className="w-full"
-                  >
-                    Reactivate {getMonthlyPlan()!.name}
-                  </Button>
+            {subscriptionData?.status === 'trialing' && (
+              <Button
+                onClick={() => cancelTrialMutation.mutate()}
+                disabled={cancelTrialMutation.isPending}
+                variant="destructive"
+                className="w-full"
+              >
+                {cancelTrialMutation.isPending ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  'Cancel Trial'
                 )}
-                
-                {getAnnualPlan() && (
-                  <Button 
-                    onClick={() => window.location.href = `/subscribe?plan=${getAnnualPlan()!.planId}`}
-                    className="w-full"
-                    variant="outline"
-                  >
-                    Reactivate {getAnnualPlan()!.name}
-                  </Button>
-                )}
-              </>
+              </Button>
             )}
 
-            {/* Past Due */}
             {subscriptionData?.status === 'past_due' && (
-              <>
-                <Button
-                  onClick={() => window.open('https://billing.stripe.com/p/login/test_00000000001', '_blank')}
-                  className="w-full"
-                >
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                  Update Payment Method
-                </Button>
-              </>
-            )}
-
-            {/* No active subscription */}
-            {(!subscriptionData?.status || subscriptionData?.status === 'incomplete') && (
-              <>
-                {getMonthlyPlan() && (
-                  <Button 
-                    onClick={() => window.location.href = `/subscribe?plan=${getMonthlyPlan()!.planId}`}
-                    className="w-full"
-                  >
-                    Start {getMonthlyPlan()!.name} ({formatPlanPrice(getMonthlyPlan()!)})
-                  </Button>
-                )}
-                
-                {getAnnualPlan() && (
-                  <Button 
-                    onClick={() => window.location.href = `/subscribe?plan=${getAnnualPlan()!.planId}`}
-                    className="w-full"
-                    variant="outline"
-                  >
-                    Start {getAnnualPlan()!.name} ({formatPlanPrice(getAnnualPlan()!)} - Save {calculateSavings()}%)
-                  </Button>
-                )}
-              </>
+              <Button
+                onClick={() => window.open('https://billing.stripe.com/p/login/test_00000000001', '_blank')}
+                className="w-full"
+              >
+                <ExternalLink className="mr-2 h-4 w-4" />
+                Update Payment Method
+              </Button>
             )}
           </CardContent>
         </Card>

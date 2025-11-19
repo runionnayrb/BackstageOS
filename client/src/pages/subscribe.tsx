@@ -19,7 +19,7 @@ if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
 }
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
-const SubscribeForm = ({ planKey, profileType, billingPeriod }: { planKey: string; profileType: string; billingPeriod: string }) => {
+const SubscribeForm = ({ planKey, planName }: { planKey: string; planName: string }) => {
   const stripe = useStripe();
   const elements = useElements();
   const { toast } = useToast();
@@ -76,27 +76,11 @@ const SubscribeForm = ({ planKey, profileType, billingPeriod }: { planKey: strin
     }
   };
 
-  const getPlanDisplay = () => {
-    const labels = {
-      freelance: 'Freelance',
-      fulltime: 'Full-time',
-      team: 'Team'
-    };
-    return labels[profileType as keyof typeof labels] || profileType;
-  };
-
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          Subscribe to BackstageOS
-          <Badge variant="secondary" className="ml-2">
-            {billingPeriod === 'annual' ? 'Save 18%' : billingPeriod === 'lifetime' ? 'One-time' : 'Monthly'}
-          </Badge>
-        </CardTitle>
-        <CardDescription>
-          {getPlanDisplay()} {billingPeriod === 'lifetime' ? 'Lifetime' : billingPeriod === 'annual' ? 'Annual' : 'Monthly'} Plan
-        </CardDescription>
+        <CardTitle>Subscribe to BackstageOS</CardTitle>
+        <CardDescription>{planName}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -129,8 +113,6 @@ const SubscribeForm = ({ planKey, profileType, billingPeriod }: { planKey: strin
 
 export default function Subscribe() {
   const [clientSecret, setClientSecret] = useState("");
-  const [profileType, setProfileType] = useState("freelance");
-  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "annual" | "lifetime">("monthly");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -140,81 +122,30 @@ export default function Subscribe() {
   const subscriptionStatus = (user as any)?.subscriptionStatus;
 
   // Fetch billing plans from admin settings
-  const { data: billingPlans = [] } = useQuery<any[]>({
+  const { data: billingPlans = [], isLoading: plansLoading } = useQuery<any[]>({
     queryKey: ["/api/billing/plans"],
   });
 
-  // Build pricing object from billing plans
-  const getPricingFromPlans = () => {
-    const pricing: any = {
-      freelance: { monthly: 29, annual: 285 },
-      fulltime: { monthly: 49, annual: 480 },
-      team: { monthly: 99, annual: 970 },
-      lifetime: 599
-    };
+  // Use the selected plan directly from URL params
+  const [selectedPlanId, setSelectedPlanId] = useState<string>("");
 
-    billingPlans.forEach(plan => {
-      const planId = plan.planId?.toLowerCase() || '';
-      const price = plan.price;
-      const interval = plan.billingInterval;
-
-      // Match plan IDs to profile types
-      if (planId.includes('freelance')) {
-        if (interval === 'month') pricing.freelance.monthly = price;
-        if (interval === 'year') pricing.freelance.annual = price;
-      } else if (planId.includes('fulltime') || planId.includes('full-time')) {
-        if (interval === 'month') pricing.fulltime.monthly = price;
-        if (interval === 'year') pricing.fulltime.annual = price;
-      } else if (planId.includes('team')) {
-        if (interval === 'month') pricing.team.monthly = price;
-        if (interval === 'year') pricing.team.annual = price;
-      } else if (planId.includes('lifetime')) {
-        pricing.lifetime = price;
-      }
-    });
-
-    return pricing;
-  };
-
-  const pricing = getPricingFromPlans();
-
-  const getPrice = () => {
-    if (billingPeriod === 'lifetime') return pricing.lifetime;
-    return pricing[profileType as keyof typeof pricing]?.[billingPeriod as 'monthly' | 'annual'] || 0;
-  };
-
-  const planFeatures = {
-    freelance: [
-      'Solo user + 3 show editors',
-      'Unlimited shows',
-      'All core features',
-      'Email support'
-    ],
-    fulltime: [
-      'Solo user + 3 show editors',
-      'Unlimited shows', 
-      'All core features',
-      'Priority email support',
-      'Advanced reporting'
-    ],
-    team: [
-      '4+ team members',
-      'Unlimited shows',
-      'All premium features',
-      'Priority support',
-      'Team collaboration tools',
-      'Advanced analytics'
-    ]
-  };
+  // Get the selected plan object
+  const selectedPlan = billingPlans.find(p => p.planId === selectedPlanId) || billingPlans.find(p => p.isActive);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const profile = urlParams.get('profile') || 'freelance';
-    const billing = urlParams.get('billing') || 'monthly';
+    const planParam = urlParams.get('plan');
     
-    setProfileType(profile);
-    setBillingPeriod(billing as "monthly" | "annual" | "lifetime");
-  }, []);
+    if (planParam) {
+      setSelectedPlanId(planParam);
+    } else if (billingPlans.length > 0) {
+      // Default to first active plan
+      const defaultPlan = billingPlans.find(p => p.isActive);
+      if (defaultPlan) {
+        setSelectedPlanId(defaultPlan.planId);
+      }
+    }
+  }, [billingPlans]);
 
   const createSubscription = async () => {
     if (!user) {
@@ -228,14 +159,21 @@ export default function Subscribe() {
       return;
     }
 
+    if (!selectedPlanId) {
+      toast({
+        title: "No Plan Selected",
+        description: "Please select a plan to continue.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     setClientSecret("");
 
-    const planKey = billingPeriod === 'lifetime' ? 'lifetime' : `${profileType}_${billingPeriod}`;
-
     try {
       const data = await apiRequest("POST", "/api/get-or-create-subscription", {
-        planType: planKey
+        planType: selectedPlanId
       });
 
       if (data.clientSecret) {
@@ -290,12 +228,12 @@ export default function Subscribe() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || plansLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
           <Loader2 className="mx-auto h-8 w-8 animate-spin mb-4" />
-          <p className="text-muted-foreground">Setting up your subscription...</p>
+          <p className="text-muted-foreground">{isLoading ? 'Setting up your subscription...' : 'Loading plans...'}</p>
         </div>
       </div>
     );
@@ -327,90 +265,57 @@ export default function Subscribe() {
           <div className="max-w-5xl mx-auto">
             <Card className="mb-8">
               <CardHeader>
-                <CardTitle>Select Your Profile Type</CardTitle>
+                <CardTitle>Select Your Plan</CardTitle>
                 <CardDescription>Choose the plan that best fits your needs</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <RadioGroup value={profileType} onValueChange={setProfileType}>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {(['freelance', 'fulltime', 'team'] as const).map((type) => (
-                      <Label
-                        key={type}
-                        htmlFor={type}
-                        className="flex flex-col cursor-pointer rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary"
-                      >
-                        <RadioGroupItem value={type} id={type} className="sr-only" />
-                        <div className="space-y-2">
-                          <div className="font-semibold capitalize">{type}</div>
-                          <ul className="text-sm text-muted-foreground space-y-1">
-                            {planFeatures[type].map((feature, idx) => (
-                              <li key={idx} className="flex items-start gap-2">
-                                <Check className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
-                                <span>{feature}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </Label>
-                    ))}
+                <RadioGroup value={selectedPlanId} onValueChange={setSelectedPlanId}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {billingPlans
+                      .filter(plan => plan.isActive)
+                      .sort((a, b) => a.sortOrder - b.sortOrder)
+                      .map((plan) => (
+                        <Label
+                          key={plan.id}
+                          htmlFor={plan.planId}
+                          className="flex flex-col cursor-pointer rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary"
+                        >
+                          <RadioGroupItem value={plan.planId} id={plan.planId} className="sr-only" />
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <div className="font-semibold">{plan.name}</div>
+                              {plan.billingInterval === 'year' && (
+                                <Badge variant="secondary" className="text-xs">Save $</Badge>
+                              )}
+                            </div>
+                            <div className="text-2xl font-bold text-primary">
+                              ${plan.price.toLocaleString()}
+                              <span className="text-sm text-muted-foreground">
+                                /{plan.billingInterval === 'month' ? 'mo' : 'yr'}
+                              </span>
+                            </div>
+                            {plan.billingInterval === 'year' && (
+                              <div className="text-xs text-muted-foreground">
+                                ${Math.round(plan.price / 12).toLocaleString()}/mo billed annually
+                              </div>
+                            )}
+                            <div className="text-xs text-muted-foreground">
+                              {plan.trialDays}-day free trial
+                            </div>
+                            {plan.description && (
+                              <p className="text-sm text-muted-foreground">{plan.description}</p>
+                            )}
+                          </div>
+                        </Label>
+                      ))}
                   </div>
                 </RadioGroup>
-
-                <div className="border-t pt-6">
-                  <Label className="text-base font-semibold mb-3 block">Billing Period</Label>
-                  <RadioGroup value={billingPeriod} onValueChange={(v) => setBillingPeriod(v as any)}>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <Label
-                        htmlFor="monthly"
-                        className="flex flex-col cursor-pointer rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary"
-                      >
-                        <div className="flex items-center justify-between w-full mb-2">
-                          <div className="flex items-center gap-2">
-                            <RadioGroupItem value="monthly" id="monthly" />
-                            <span className="font-medium">Monthly</span>
-                          </div>
-                          <span className="text-lg font-bold">${pricing[profileType as keyof typeof pricing]?.monthly || 29}/mo</span>
-                        </div>
-                      </Label>
-                      
-                      <Label
-                        htmlFor="annual"
-                        className="flex flex-col cursor-pointer rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary"
-                      >
-                        <div className="flex items-center justify-between w-full mb-2">
-                          <div className="flex items-center gap-2">
-                            <RadioGroupItem value="annual" id="annual" />
-                            <span className="font-medium">Annual</span>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-lg font-bold">${pricing[profileType as keyof typeof pricing]?.annual || 285}/yr</div>
-                            <div className="text-xs text-muted-foreground">${Math.round((pricing[profileType as keyof typeof pricing]?.annual || 285) / 12)}/mo</div>
-                          </div>
-                        </div>
-                        <Badge variant="secondary" className="self-start">Save 18%</Badge>
-                      </Label>
-                      
-                      <Label
-                        htmlFor="lifetime"
-                        className="flex flex-col cursor-pointer rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary"
-                      >
-                        <div className="flex items-center justify-between w-full mb-2">
-                          <div className="flex items-center gap-2">
-                            <RadioGroupItem value="lifetime" id="lifetime" />
-                            <span className="font-medium">Lifetime</span>
-                          </div>
-                          <span className="text-lg font-bold">${pricing.lifetime}</span>
-                        </div>
-                        <Badge className="self-start">Limited Offer</Badge>
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </div>
 
                 <Button 
                   onClick={createSubscription} 
                   className="w-full" 
                   size="lg"
+                  disabled={!selectedPlanId}
                   data-testid="button-continue-to-payment"
                 >
                   Continue to Payment
@@ -423,19 +328,30 @@ export default function Subscribe() {
             <div>
               <Card>
                 <CardHeader>
-                  <CardTitle>What's Included</CardTitle>
+                  <CardTitle>Plan Details</CardTitle>
                   <CardDescription>
-                    {profileType.charAt(0).toUpperCase() + profileType.slice(1)} Plan Features
+                    {selectedPlan?.name || 'Selected Plan'}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {planFeatures[profileType as keyof typeof planFeatures].map((feature, index) => (
-                      <div key={index} className="flex items-center gap-3">
-                        <Check className="h-5 w-5 text-green-600 flex-shrink-0" />
-                        <span>{feature}</span>
-                      </div>
-                    ))}
+                    <div className="text-3xl font-bold text-primary">
+                      ${selectedPlan?.price.toLocaleString()}
+                      <span className="text-lg text-muted-foreground">
+                        /{selectedPlan?.billingInterval === 'month' ? 'month' : 'year'}
+                      </span>
+                    </div>
+                    {selectedPlan?.billingInterval === 'year' && (
+                      <p className="text-sm text-muted-foreground">
+                        ${Math.round((selectedPlan?.price || 0) / 12).toLocaleString()}/mo billed annually
+                      </p>
+                    )}
+                    <p className="text-sm text-muted-foreground">
+                      {selectedPlan?.trialDays}-day free trial included
+                    </p>
+                    {selectedPlan?.description && (
+                      <p className="text-sm">{selectedPlan.description}</p>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -444,9 +360,8 @@ export default function Subscribe() {
             <div>
               <Elements stripe={stripePromise} options={{ clientSecret }}>
                 <SubscribeForm 
-                  planKey={billingPeriod === 'lifetime' ? 'lifetime' : `${profileType}_${billingPeriod}`}
-                  profileType={profileType}
-                  billingPeriod={billingPeriod}
+                  planKey={selectedPlanId}
+                  planName={selectedPlan?.name || 'Selected Plan'}
                 />
               </Elements>
               
