@@ -19,12 +19,33 @@ interface SubscriptionStatus {
   stripeSubscriptionId: string | null;
 }
 
+interface BillingPlan {
+  id: number;
+  planId: string;
+  name: string;
+  description?: string;
+  price: number;
+  billingInterval: string;
+  trialDays: number;
+  features: string[];
+  maxProjects?: number;
+  maxTeamMembers?: number;
+  isActive: boolean;
+  sortOrder: number;
+  stripeProductId?: string;
+  activeStripePriceId?: string;
+}
+
 export default function BillingStatus() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const { data: subscription, isLoading } = useQuery<SubscriptionStatus>({
     queryKey: ["/api/billing/subscription-status"],
+  });
+
+  const { data: billingPlans = [], isLoading: plansLoading } = useQuery<BillingPlan[]>({
+    queryKey: ["/api/billing/plans"],
   });
 
   const cancelSubscriptionMutation = useMutation({
@@ -79,23 +100,30 @@ export default function BillingStatus() {
 
   const formatPlanName = (plan: string | null) => {
     if (!plan) return 'No Plan';
-    return plan.charAt(0).toUpperCase() + plan.slice(1);
+    const matchingPlan = billingPlans.find(p => p.planId === plan);
+    return matchingPlan?.name || plan.charAt(0).toUpperCase() + plan.slice(1);
+  };
+
+  const formatPrice = (price: number | string, interval: string) => {
+    const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+    if (interval === "year") {
+      const monthlyEquivalent = Math.round(numPrice / 12);
+      return `$${monthlyEquivalent.toLocaleString()}/mo (billed annually at $${numPrice.toLocaleString()})`;
+    }
+    return `$${numPrice.toLocaleString()}/mo`;
   };
 
   const getPlanPrice = (plan: string | null) => {
-    switch (plan) {
-      case 'monthly':
-        return '$119/month';
-      case 'annual':
-        return '$97/month (billed annually)';
-      case 'theatre':
-        return 'Custom pricing';
-      default:
-        return '';
-    }
+    if (!plan) return '';
+    const matchingPlan = billingPlans.find(p => p.planId === plan);
+    if (!matchingPlan) return '';
+    return formatPrice(matchingPlan.price, matchingPlan.billingInterval);
   };
 
-  if (isLoading) {
+  const getMonthlyPlan = () => billingPlans.find(p => p.billingInterval === 'month' && p.isActive);
+  const getAnnualPlan = () => billingPlans.find(p => p.billingInterval === 'year' && p.isActive);
+
+  if (isLoading || plansLoading) {
     return (
       <Card>
         <CardHeader>
@@ -227,19 +255,23 @@ export default function BillingStatus() {
               You don't have an active subscription.
             </p>
             <div className="flex gap-2 justify-center">
-              <Button 
-                onClick={() => window.location.href = '/subscribe?plan=monthly'}
-                size="sm"
-              >
-                Subscribe Monthly - $119
-              </Button>
-              <Button 
-                onClick={() => window.location.href = '/subscribe?plan=annual'}
-                variant="outline"
-                size="sm"
-              >
-                Subscribe Annually - $97/mo
-              </Button>
+              {getMonthlyPlan() && (
+                <Button 
+                  onClick={() => window.location.href = `/subscribe?plan=${getMonthlyPlan()!.planId}`}
+                  size="sm"
+                >
+                  Subscribe {getMonthlyPlan()!.name} - ${getMonthlyPlan()!.price.toLocaleString()}
+                </Button>
+              )}
+              {getAnnualPlan() && (
+                <Button 
+                  onClick={() => window.location.href = `/subscribe?plan=${getAnnualPlan()!.planId}`}
+                  variant="outline"
+                  size="sm"
+                >
+                  Subscribe {getAnnualPlan()!.name} - ${Math.round(getAnnualPlan()!.price / 12).toLocaleString()}/mo
+                </Button>
+              )}
             </div>
           </div>
         )}
