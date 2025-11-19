@@ -18,6 +18,23 @@ import {
   Loader2 
 } from "lucide-react";
 
+interface BillingPlan {
+  id: number;
+  planId: string;
+  name: string;
+  description?: string;
+  price: number;
+  billingInterval: string;
+  trialDays: number;
+  features: string[];
+  maxProjects?: number;
+  maxTeamMembers?: number;
+  isActive: boolean;
+  sortOrder: number;
+  stripeProductId?: string;
+  activeStripePriceId?: string;
+}
+
 export default function Billing() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -29,6 +46,11 @@ export default function Billing() {
       const res = await apiRequest('GET', '/api/billing/status');
       return res.json();
     }
+  });
+
+  // Fetch billing plans from admin dashboard
+  const { data: billingPlans = [], isLoading: plansLoading } = useQuery<BillingPlan[]>({
+    queryKey: ["/api/billing/plans"],
   });
 
   // Cancel subscription mutation
@@ -101,6 +123,29 @@ export default function Billing() {
 
 
 
+  // Helper functions for pricing
+  const getMonthlyPlan = () => billingPlans.find(p => p.billingInterval === 'month' && p.isActive);
+  const getAnnualPlan = () => billingPlans.find(p => p.billingInterval === 'year' && p.isActive);
+
+  const formatPlanPrice = (plan: BillingPlan) => {
+    if (plan.billingInterval === 'month') {
+      return `$${plan.price.toLocaleString()}/month`;
+    } else if (plan.billingInterval === 'year') {
+      const monthlyEquivalent = Math.round(plan.price / 12);
+      return `$${plan.price.toLocaleString()}/year (${monthlyEquivalent}/mo)`;
+    }
+    return `$${plan.price.toLocaleString()}`;
+  };
+
+  const calculateSavings = () => {
+    const monthly = getMonthlyPlan();
+    const annual = getAnnualPlan();
+    if (!monthly || !annual) return 0;
+    const monthlyYearlyCost = monthly.price * 12;
+    const savings = Math.round(((monthlyYearlyCost - annual.price) / monthlyYearlyCost) * 100);
+    return savings;
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
@@ -120,7 +165,7 @@ export default function Billing() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || plansLoading) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="flex items-center justify-center min-h-[400px]">
@@ -233,20 +278,24 @@ export default function Billing() {
                   Your 30-day free trial is active. Choose a plan before it ends to continue using BackstageOS.
                 </div>
                 
-                <Button 
-                  onClick={() => window.location.href = '/subscribe?plan=monthly'}
-                  className="w-full"
-                >
-                  Choose Monthly Plan ($29/month)
-                </Button>
+                {getMonthlyPlan() && (
+                  <Button 
+                    onClick={() => window.location.href = `/subscribe?plan=${getMonthlyPlan()!.planId}`}
+                    className="w-full"
+                  >
+                    Choose {getMonthlyPlan()!.name} ({formatPlanPrice(getMonthlyPlan()!)})
+                  </Button>
+                )}
                 
-                <Button 
-                  onClick={() => window.location.href = '/subscribe?plan=annual'}
-                  className="w-full"
-                  variant="outline"
-                >
-                  Choose Annual Plan ($285/year - Save 18%)
-                </Button>
+                {getAnnualPlan() && (
+                  <Button 
+                    onClick={() => window.location.href = `/subscribe?plan=${getAnnualPlan()!.planId}`}
+                    className="w-full"
+                    variant="outline"
+                  >
+                    Choose {getAnnualPlan()!.name} ({formatPlanPrice(getAnnualPlan()!)} - Save {calculateSavings()}%)
+                  </Button>
+                )}
                 
                 <Button
                   onClick={() => cancelTrialMutation.mutate()}
@@ -267,7 +316,7 @@ export default function Billing() {
             {subscriptionData?.status === 'active' && (
               <>
                 {/* Plan switching options */}
-                {subscriptionData.interval === 'month' && (
+                {subscriptionData.interval === 'month' && getAnnualPlan() && (
                   <Button 
                     onClick={() => switchPlanMutation.mutate('year')}
                     disabled={switchPlanMutation.isPending}
@@ -277,7 +326,7 @@ export default function Billing() {
                     {switchPlanMutation.isPending ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
-                      'Switch to Annual (Save 18%)'
+                      `Switch to Annual (Save ${calculateSavings()}%)`
                     )}
                   </Button>
                 )}
@@ -328,20 +377,24 @@ export default function Billing() {
                   Your subscription is canceled. You can still access the app until {new Date(subscriptionData.currentPeriodEnd).toLocaleDateString()}.
                 </div>
                 
-                <Button 
-                  onClick={() => window.location.href = '/subscribe?plan=monthly'}
-                  className="w-full"
-                >
-                  Reactivate Monthly Plan
-                </Button>
+                {getMonthlyPlan() && (
+                  <Button 
+                    onClick={() => window.location.href = `/subscribe?plan=${getMonthlyPlan()!.planId}`}
+                    className="w-full"
+                  >
+                    Reactivate {getMonthlyPlan()!.name}
+                  </Button>
+                )}
                 
-                <Button 
-                  onClick={() => window.location.href = '/subscribe?plan=annual'}
-                  className="w-full"
-                  variant="outline"
-                >
-                  Reactivate Annual Plan
-                </Button>
+                {getAnnualPlan() && (
+                  <Button 
+                    onClick={() => window.location.href = `/subscribe?plan=${getAnnualPlan()!.planId}`}
+                    className="w-full"
+                    variant="outline"
+                  >
+                    Reactivate {getAnnualPlan()!.name}
+                  </Button>
+                )}
               </>
             )}
 
@@ -361,20 +414,24 @@ export default function Billing() {
             {/* No active subscription */}
             {(!subscriptionData?.status || subscriptionData?.status === 'incomplete') && (
               <>
-                <Button 
-                  onClick={() => window.location.href = '/subscribe?plan=monthly'}
-                  className="w-full"
-                >
-                  Start Monthly Plan ($29/month)
-                </Button>
+                {getMonthlyPlan() && (
+                  <Button 
+                    onClick={() => window.location.href = `/subscribe?plan=${getMonthlyPlan()!.planId}`}
+                    className="w-full"
+                  >
+                    Start {getMonthlyPlan()!.name} ({formatPlanPrice(getMonthlyPlan()!)})
+                  </Button>
+                )}
                 
-                <Button 
-                  onClick={() => window.location.href = '/subscribe?plan=annual'}
-                  className="w-full"
-                  variant="outline"
-                >
-                  Start Annual Plan ($285/year - Save 18%)
-                </Button>
+                {getAnnualPlan() && (
+                  <Button 
+                    onClick={() => window.location.href = `/subscribe?plan=${getAnnualPlan()!.planId}`}
+                    className="w-full"
+                    variant="outline"
+                  >
+                    Start {getAnnualPlan()!.name} ({formatPlanPrice(getAnnualPlan()!)} - Save {calculateSavings()}%)
+                  </Button>
+                )}
               </>
             )}
           </CardContent>
