@@ -267,9 +267,7 @@ export default function Subscribe() {
           <h1 className="text-4xl font-bold mb-4">
             {needsPayment ? 'Resolve Payment Issue' : 'Choose Your BackstageOS Plan'}
           </h1>
-          <p className="text-xl text-muted-foreground">
-            Professional stage management tools for theater professionals
-          </p>
+          <p className="text-xl text-muted-foreground">Professional tools for professional Stage Managers.</p>
         </div>
 
         {!clientSecret ? (
