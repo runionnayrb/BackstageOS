@@ -44,7 +44,8 @@ function AdminUsersContent() {
     betaAccess: boolean;
     betaFeatures: string[];
     subscriptionPlan: string;
-  }>({ profileType: '', betaAccess: false, betaFeatures: [], subscriptionPlan: '' });
+    subscriptionStatus: string;
+  }>({ profileType: '', betaAccess: false, betaFeatures: [], subscriptionPlan: '', subscriptionStatus: '' });
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -109,7 +110,8 @@ function AdminUsersContent() {
       profileType: user.profileType || 'freelance',
       betaAccess: user.betaAccess || false,
       betaFeatures: user.betaFeatures ? JSON.parse(user.betaFeatures) : [],
-      subscriptionPlan: (user as any).subscriptionPlan || ''
+      subscriptionPlan: (user as any).subscriptionPlan || '',
+      subscriptionStatus: (user as any).subscriptionStatus || ''
     });
   };
 
@@ -124,7 +126,7 @@ function AdminUsersContent() {
 
   const cancelEdit = () => {
     setEditingUser(null);
-    setEditForm({ profileType: '', betaAccess: false, betaFeatures: [], subscriptionPlan: '' });
+    setEditForm({ profileType: '', betaAccess: false, betaFeatures: [], subscriptionPlan: '', subscriptionStatus: '' });
   };
 
   const toggleUserExpansion = (userId: string) => {
@@ -298,27 +300,50 @@ function AdminUsersContent() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label>Subscription Plan (for testing)</Label>
-                    <Select
-                      value={editForm.subscriptionPlan}
-                      onValueChange={(value) => setEditForm(prev => ({ ...prev, subscriptionPlan: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="No subscription" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">None</SelectItem>
-                        {billingPlans
-                          .filter((plan: any) => plan.isActive)
-                          .sort((a: any, b: any) => a.sortOrder - b.sortOrder)
-                          .map((plan: any) => (
-                            <SelectItem key={plan.id} value={plan.planId}>
-                              {plan.name} - ${plan.price}/{plan.billingInterval}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Subscription Plan (for testing)</Label>
+                      <Select
+                        value={editForm.subscriptionPlan}
+                        onValueChange={(value) => setEditForm(prev => ({ ...prev, subscriptionPlan: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="No subscription" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">None</SelectItem>
+                          {billingPlans
+                            .filter((plan: any) => plan.isActive)
+                            .sort((a: any, b: any) => a.sortOrder - b.sortOrder)
+                            .map((plan: any) => (
+                              <SelectItem key={plan.id} value={plan.planId}>
+                                {plan.name} - ${plan.price}/{plan.billingInterval}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Subscription Status (for testing)</Label>
+                      <Select
+                        value={editForm.subscriptionStatus}
+                        onValueChange={(value) => setEditForm(prev => ({ ...prev, subscriptionStatus: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="No status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">None</SelectItem>
+                          <SelectItem value="trialing">Trialing</SelectItem>
+                          <SelectItem value="active">Active</SelectItem>
+                          <SelectItem value="past_due">Past Due</SelectItem>
+                          <SelectItem value="canceled">Canceled</SelectItem>
+                          <SelectItem value="incomplete">Incomplete</SelectItem>
+                          <SelectItem value="unpaid">Unpaid</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
 
                   {editForm.betaAccess && (

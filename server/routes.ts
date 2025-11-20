@@ -2434,7 +2434,7 @@ Respond with valid JSON only.`;
         return res.status(403).json({ message: "Admin access required" });
       }
       
-      const { profileType, betaAccess, betaFeatures, isAdmin: userAdminStatus, subscriptionPlan } = req.body;
+      const { profileType, betaAccess, betaFeatures, isAdmin: userAdminStatus, subscriptionPlan, subscriptionStatus } = req.body;
       
       // Normalize profile type to lowercase for validation
       const normalizedProfileType = profileType ? profileType.toLowerCase().replace('-', '').trim() : null;
@@ -2452,7 +2452,8 @@ Respond with valid JSON only.`;
         betaAccess,
         betaFeatures,
         isAdmin: userAdminStatus,
-        subscriptionPlan
+        subscriptionPlan,
+        subscriptionStatus
       });
       
       res.json(updatedUser);
