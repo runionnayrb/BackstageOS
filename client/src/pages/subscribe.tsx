@@ -203,6 +203,17 @@ export default function Subscribe() {
     }
   };
 
+  // Auto-start subscription creation when coming from a direct link with plan parameter
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const planParam = urlParams.get('plan');
+    
+    // If there's a plan in the URL and we haven't started creating the subscription yet
+    if (planParam && selectedPlanId && !clientSecret && !isLoading && user) {
+      createSubscription();
+    }
+  }, [selectedPlanId, user]);
+
   const getStatusMessage = () => {
     switch (subscriptionStatus) {
       case 'past_due':
