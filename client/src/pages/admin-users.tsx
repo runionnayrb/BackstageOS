@@ -108,12 +108,19 @@ function AdminUsersContent() {
     setEditingUser(user.id);
     
     // Find matching profile type (case-insensitive) from the dropdown options
-    const matchingProfileType = profileTypes.find((pt: any) => 
-      pt.name.toLowerCase().replace('-', '').trim() === (user.profileType || '').toLowerCase().replace('-', '').trim()
-    );
+    // Only match if profileTypes is loaded (length > 0)
+    let profileTypeValue = user.profileType || 'Freelance';
+    if (profileTypes && profileTypes.length > 0) {
+      const matchingProfileType = profileTypes.find((pt: any) => 
+        pt.name.toLowerCase().replace('-', '').trim() === (user.profileType || '').toLowerCase().replace('-', '').trim()
+      );
+      if (matchingProfileType) {
+        profileTypeValue = matchingProfileType.name;
+      }
+    }
     
     setEditForm({
-      profileType: matchingProfileType?.name || user.profileType || 'Freelance',
+      profileType: profileTypeValue,
       betaAccess: user.betaAccess || false,
       betaFeatures: user.betaFeatures ? JSON.parse(user.betaFeatures) : [],
       subscriptionPlan: (user as any).subscriptionPlan || '',
@@ -272,19 +279,17 @@ function AdminUsersContent() {
                       <Select
                         value={editForm.profileType}
                         onValueChange={(value) => setEditForm(prev => ({ ...prev, profileType: value }))}
+                        disabled={!profileTypes || profileTypes.length === 0}
                       >
                         <SelectTrigger>
-                          <SelectValue />
+                          <SelectValue placeholder={profileTypes.length === 0 ? "Loading..." : "Select profile type"} />
                         </SelectTrigger>
                         <SelectContent>
-                          {profileTypes.map((profileType: any) => {
-                            console.log('Rendering profile type option:', profileType);
-                            return (
+                          {profileTypes.map((profileType: any) => (
                               <SelectItem key={profileType.id} value={profileType.name}>
                                 {profileType.name}
                               </SelectItem>
-                            );
-                          })}
+                            ))}
                         </SelectContent>
                       </Select>
                     </div>
