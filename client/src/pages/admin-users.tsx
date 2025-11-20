@@ -106,8 +106,14 @@ function AdminUsersContent() {
 
   const startEdit = (user: User) => {
     setEditingUser(user.id);
+    
+    // Find matching profile type (case-insensitive) from the dropdown options
+    const matchingProfileType = profileTypes.find((pt: any) => 
+      pt.name.toLowerCase().replace('-', '').trim() === (user.profileType || '').toLowerCase().replace('-', '').trim()
+    );
+    
     setEditForm({
-      profileType: user.profileType || 'freelance',
+      profileType: matchingProfileType?.name || user.profileType || 'Freelance',
       betaAccess: user.betaAccess || false,
       betaFeatures: user.betaFeatures ? JSON.parse(user.betaFeatures) : [],
       subscriptionPlan: (user as any).subscriptionPlan || '',
