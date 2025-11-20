@@ -2434,7 +2434,7 @@ Respond with valid JSON only.`;
         return res.status(403).json({ message: "Admin access required" });
       }
       
-      const { profileType, betaAccess, betaFeatures, isAdmin: userAdminStatus, subscriptionPlan, subscriptionStatus } = req.body;
+      const { profileType, betaAccess, betaFeatures, isAdmin: userAdminStatus, subscriptionPlan, subscriptionStatus, grandfatheredFree } = req.body;
       
       // Normalize profile type to lowercase for validation
       const normalizedProfileType = profileType ? profileType.toLowerCase().replace('-', '').trim() : null;
@@ -2447,13 +2447,18 @@ Respond with valid JSON only.`;
         return res.status(400).json({ message: "Invalid beta access value" });
       }
       
+      if (grandfatheredFree !== undefined && typeof grandfatheredFree !== 'boolean') {
+        return res.status(400).json({ message: "Invalid grandfathered free value" });
+      }
+      
       const updatedUser = await storage.updateUserAdmin(targetUserId, {
         profileType: normalizedProfileType,
         betaAccess,
         betaFeatures,
         isAdmin: userAdminStatus,
         subscriptionPlan,
-        subscriptionStatus
+        subscriptionStatus,
+        grandfatheredFree
       });
       
       res.json(updatedUser);

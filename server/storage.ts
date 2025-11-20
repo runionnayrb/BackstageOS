@@ -265,7 +265,7 @@ export interface IStorage {
   
   // Admin user management operations
   getAllUsers(): Promise<User[]>;
-  updateUserAdmin(userId: string, updates: { profileType?: string; betaAccess?: string; betaFeatures?: string[]; isAdmin?: boolean }): Promise<User>;
+  updateUserAdmin(userId: string, updates: { profileType?: string; betaAccess?: string; betaFeatures?: string[]; isAdmin?: boolean; subscriptionPlan?: string; subscriptionStatus?: string; grandfatheredFree?: boolean }): Promise<User>;
   updateAllUsersBetaFeatures(enabledFeatures: string[]): Promise<void>;
   deleteUser(userId: string): Promise<void>;
 
@@ -817,6 +817,9 @@ export class DatabaseStorage implements IStorage {
     defaultReplyToEmail?: string;
     emailDisplayName?: string;
     password?: string;
+    subscriptionPlan?: string;
+    subscriptionStatus?: string;
+    grandfatheredFree?: boolean;
   }): Promise<User> {
     const result = await db.update(users)
       .set(updates)
