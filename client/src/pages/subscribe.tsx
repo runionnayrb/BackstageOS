@@ -84,7 +84,20 @@ const SubscribeForm = ({ planKey, planName }: { planKey: string; planName: strin
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <PaymentElement onReady={() => setIsElementReady(true)} />
+          <PaymentElement 
+            onReady={() => {
+              console.log('Stripe PaymentElement ready');
+              setIsElementReady(true);
+            }}
+            onLoadError={(error) => {
+              console.error('Stripe PaymentElement load error:', error);
+              toast({
+                title: "Payment Form Error",
+                description: "Unable to load payment form. Please refresh the page and try again.",
+                variant: "destructive",
+              });
+            }}
+          />
           <Button 
             type="submit" 
             disabled={!stripe || !isElementReady || isProcessing}
