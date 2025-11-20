@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   CreditCard, 
   Calendar, 
@@ -15,7 +16,9 @@ import {
   Check, 
   X, 
   ExternalLink,
-  Loader2 
+  Loader2,
+  ArrowUp,
+  ArrowDown
 } from "lucide-react";
 
 interface BillingPlan {
@@ -38,6 +41,7 @@ interface BillingPlan {
 export default function Billing() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [selectedPlanId, setSelectedPlanId] = useState<string>("");
 
   // Get current subscription status
   const { data: subscriptionData, isLoading } = useQuery({
@@ -143,6 +147,60 @@ export default function Billing() {
     }
   };
 
+  // Helper to determine if a plan change is an upgrade or downgrade
+  const getPlanChangeType = (targetPlanId: string): 'upgrade' | 'downgrade' | null => {
+    const currentPlanId = subscriptionData?.plan;
+    if (!currentPlanId) return null;
+
+    const currentPlan = billingPlans.find(p => p.planId === currentPlanId);
+    const targetPlan = billingPlans.find(p => p.planId === targetPlanId);
+    if (!currentPlan || !targetPlan) return null;
+
+    // Extract tier and interval from plan IDs
+    // Assumes format: "freelance-monthly", "full-timer-annual", "team-monthly", etc.
+    const getCurrentTier = (planId: string) => {
+      if (planId.startsWith('freelance')) return 'freelance';
+      if (planId.startsWith('full-timer') || planId.startsWith('fulltime')) return 'fulltime';
+      if (planId.startsWith('team')) return 'team';
+      return 'unknown';
+    };
+
+    const currentTier = getCurrentTier(currentPlanId);
+    const targetTier = getCurrentTier(targetPlanId);
+    const currentInterval = currentPlan.billingInterval;
+    const targetInterval = targetPlan.billingInterval;
+
+    // Team plans are always upgrades from freelance/fulltime
+    if (targetTier === 'team' && (currentTier === 'freelance' || currentTier === 'fulltime')) {
+      return 'upgrade';
+    }
+
+    // Moving from team to freelance/fulltime is always a downgrade
+    if (currentTier === 'team' && (targetTier === 'freelance' || targetTier === 'fulltime')) {
+      return 'downgrade';
+    }
+
+    // Same tier: monthly → annual is upgrade, annual → monthly is downgrade
+    if (currentTier === targetTier) {
+      if (currentInterval === 'month' && targetInterval === 'year') return 'upgrade';
+      if (currentInterval === 'year' && targetInterval === 'month') return 'downgrade';
+    }
+
+    return null;
+  };
+
+  // Get available upgrade and downgrade options
+  const getAvailablePlans = () => {
+    const currentPlanId = subscriptionData?.plan;
+    return billingPlans
+      .filter(p => p.isActive && p.planId !== currentPlanId) // Exclude current plan
+      .map(plan => ({
+        ...plan,
+        changeType: getPlanChangeType(plan.planId)
+      }))
+      .filter(p => p.changeType !== null); // Only show valid upgrades/downgrades
+  };
+
   if (isLoading || plansLoading) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -235,52 +293,91 @@ export default function Billing() {
         </CardContent>
       </Card>
 
-      {/* Available Plans */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Available Plans</CardTitle>
-          <CardDescription>Upgrade or change your subscription plan</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {billingPlans
-              .filter(plan => plan.isActive)
-              .sort((a, b) => a.sortOrder - b.sortOrder)
-              .map((plan) => {
-                const isCurrentPlan = subscriptionData?.plan === plan.planId;
-                return (
-                  <div 
-                    key={plan.id} 
-                    className={`p-4 rounded-lg border ${isCurrentPlan ? "border-primary border-2 bg-primary/5" : "border-border"} cursor-pointer hover:bg-accent transition-colors`}
-                    onClick={() => {
-                      if (!isCurrentPlan) {
-                        window.location.href = `/subscribe?plan=${plan.planId}`;
-                      }
-                    }}
-                    data-testid={`plan-card-${plan.planId}`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-lg">{plan.name}</h3>
-                          {isCurrentPlan && <Badge>Current Plan</Badge>}
+      {/* Change Plan - Upgrade/Downgrade */}
+      {subscriptionData?.status === 'active' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Change Plan</CardTitle>
+            <CardDescription>Upgrade or downgrade your subscription</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Select a different plan</label>
+              <Select value={selectedPlanId} onValueChange={setSelectedPlanId}>
+                <SelectTrigger className="w-full" data-testid="select-plan-dropdown">
+                  <SelectValue placeholder="Choose a plan to switch to..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {getAvailablePlans()
+                    .sort((a, b) => a.sortOrder - b.sortOrder)
+                    .map((plan) => (
+                      <SelectItem 
+                        key={plan.id} 
+                        value={plan.planId}
+                        data-testid={`plan-option-${plan.planId}`}
+                      >
+                        <div className="flex items-center gap-2">
+                          {plan.changeType === 'upgrade' && <ArrowUp className="w-4 h-4 text-green-600" />}
+                          {plan.changeType === 'downgrade' && <ArrowDown className="w-4 h-4 text-orange-600" />}
+                          <span>{plan.name}</span>
+                          <span className="text-muted-foreground">
+                            — {formatPlanPrice(plan)}
+                          </span>
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          {plan.trialDays}-day trial included
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-2xl font-bold text-primary">
-                          {formatPlanPrice(plan)}
-                        </p>
-                      </div>
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {selectedPlanId && (() => {
+              const selectedPlan = billingPlans.find(p => p.planId === selectedPlanId);
+              const changeType = getPlanChangeType(selectedPlanId);
+              return selectedPlan ? (
+                <div className="space-y-4">
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      {changeType === 'upgrade' && (
+                        <>Upgrading will take effect immediately and you'll be charged a prorated amount.</>
+                      )}
+                      {changeType === 'downgrade' && (
+                        <>Downgrading will take effect at the end of your current billing period.</>
+                      )}
+                    </AlertDescription>
+                  </Alert>
+
+                  <div className="p-4 rounded-lg bg-muted">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium">New Plan:</span>
+                      <span className="text-lg font-semibold">{selectedPlan.name}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">New Price:</span>
+                      <span className="text-lg font-semibold text-primary">
+                        {formatPlanPrice(selectedPlan)}
+                      </span>
                     </div>
                   </div>
-                );
-              })}
-          </div>
-        </CardContent>
-      </Card>
+
+                  <Button 
+                    className="w-full"
+                    data-testid="button-confirm-plan-change"
+                    onClick={() => {
+                      toast({
+                        title: "Plan Change",
+                        description: "Plan switching functionality coming soon!",
+                      });
+                    }}
+                  >
+                    {changeType === 'upgrade' ? 'Upgrade Now' : 'Schedule Downgrade'}
+                  </Button>
+                </div>
+              ) : null;
+            })()}
+          </CardContent>
+        </Card>
+      )}
 
         {/* Subscription Management - Only show for active/trialing subscriptions */}
         {(subscriptionData?.status === 'active' || subscriptionData?.status === 'trialing') && (
