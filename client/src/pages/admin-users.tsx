@@ -43,7 +43,8 @@ function AdminUsersContent() {
     profileType: string;
     betaAccess: boolean;
     betaFeatures: string[];
-  }>({ profileType: '', betaAccess: false, betaFeatures: [] });
+    subscriptionPlan: string;
+  }>({ profileType: '', betaAccess: false, betaFeatures: [], subscriptionPlan: '' });
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -59,6 +60,10 @@ function AdminUsersContent() {
       console.log('Profile types data received:', data);
       return data || [];
     },
+  });
+
+  const { data: billingPlans = [] } = useQuery({
+    queryKey: ['/api/billing/plans'],
   });
 
   const updateUserMutation = useMutation({
@@ -103,7 +108,8 @@ function AdminUsersContent() {
     setEditForm({
       profileType: user.profileType || 'freelance',
       betaAccess: user.betaAccess || false,
-      betaFeatures: user.betaFeatures ? JSON.parse(user.betaFeatures) : []
+      betaFeatures: user.betaFeatures ? JSON.parse(user.betaFeatures) : [],
+      subscriptionPlan: (user as any).subscriptionPlan || ''
     });
   };
 
@@ -118,7 +124,7 @@ function AdminUsersContent() {
 
   const cancelEdit = () => {
     setEditingUser(null);
-    setEditForm({ profileType: '', betaAccess: false, betaFeatures: [] });
+    setEditForm({ profileType: '', betaAccess: false, betaFeatures: [], subscriptionPlan: '' });
   };
 
   const toggleUserExpansion = (userId: string) => {
@@ -290,6 +296,29 @@ function AdminUsersContent() {
                         </SelectContent>
                       </Select>
                     </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Subscription Plan (for testing)</Label>
+                    <Select
+                      value={editForm.subscriptionPlan}
+                      onValueChange={(value) => setEditForm(prev => ({ ...prev, subscriptionPlan: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="No subscription" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">None</SelectItem>
+                        {billingPlans
+                          .filter((plan: any) => plan.isActive)
+                          .sort((a: any, b: any) => a.sortOrder - b.sortOrder)
+                          .map((plan: any) => (
+                            <SelectItem key={plan.id} value={plan.planId}>
+                              {plan.name} - ${plan.price}/{plan.billingInterval}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   {editForm.betaAccess && (

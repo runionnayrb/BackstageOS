@@ -2434,9 +2434,12 @@ Respond with valid JSON only.`;
         return res.status(403).json({ message: "Admin access required" });
       }
       
-      const { profileType, betaAccess, betaFeatures, isAdmin: userAdminStatus } = req.body;
+      const { profileType, betaAccess, betaFeatures, isAdmin: userAdminStatus, subscriptionPlan } = req.body;
       
-      if (profileType && !['freelance', 'fulltime'].includes(profileType)) {
+      // Normalize profile type to lowercase for validation
+      const normalizedProfileType = profileType ? profileType.toLowerCase().replace('-', '').trim() : null;
+      
+      if (normalizedProfileType && !['freelance', 'fulltime'].includes(normalizedProfileType)) {
         return res.status(400).json({ message: "Invalid profile type" });
       }
       
@@ -2445,10 +2448,11 @@ Respond with valid JSON only.`;
       }
       
       const updatedUser = await storage.updateUserAdmin(targetUserId, {
-        profileType,
+        profileType: normalizedProfileType,
         betaAccess,
         betaFeatures,
-        isAdmin: userAdminStatus
+        isAdmin: userAdminStatus,
+        subscriptionPlan
       });
       
       res.json(updatedUser);
