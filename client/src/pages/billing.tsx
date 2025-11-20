@@ -236,75 +236,65 @@ export default function Billing() {
       </Card>
 
       {/* Available Plans */}
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Available Plans</CardTitle>
-            <CardDescription>Upgrade or change your subscription plan</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {billingPlans
-                .filter(plan => plan.isActive)
-                .sort((a, b) => a.sortOrder - b.sortOrder)
-                .map((plan) => {
-                  const isCurrentPlan = subscriptionData?.plan === plan.planId;
-                  return (
-                    <Card key={plan.id} className={isCurrentPlan ? "border-primary border-2" : ""}>
-                      <CardHeader>
-                        <CardTitle className="text-lg flex items-center justify-between">
-                          {plan.name}
-                          {isCurrentPlan && <Badge>Current</Badge>}
-                        </CardTitle>
-                        <CardDescription className="text-2xl font-bold text-primary">
-                          {formatPlanPrice(plan)}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-3">
-                          <p className="text-sm text-muted-foreground">
-                            {plan.trialDays}-day trial included
-                          </p>
-                          {!isCurrentPlan && (subscriptionData?.status === 'active' || subscriptionData?.status === 'trialing') && (
-                            <Button 
-                              onClick={() => window.location.href = `/subscribe?plan=${plan.planId}`}
-                              className="w-full"
-                              variant={isCurrentPlan ? "outline" : "default"}
-                              size="sm"
-                            >
-                              Switch to {plan.name}
-                            </Button>
-                          )}
-                          {!isCurrentPlan && (!subscriptionData?.status || subscriptionData?.status === 'canceled' || subscriptionData?.status === 'incomplete') && (
-                            <Button 
-                              onClick={() => window.location.href = `/subscribe?plan=${plan.planId}`}
-                              className="w-full"
-                              size="sm"
-                            >
-                              Subscribe to {plan.name}
-                            </Button>
-                          )}
+      <Card>
+        <CardHeader>
+          <CardTitle>Available Plans</CardTitle>
+          <CardDescription>Upgrade or change your subscription plan</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {billingPlans
+              .filter(plan => plan.isActive)
+              .sort((a, b) => a.sortOrder - b.sortOrder)
+              .map((plan) => {
+                const isCurrentPlan = subscriptionData?.plan === plan.planId;
+                return (
+                  <div 
+                    key={plan.id} 
+                    className={`p-4 rounded-lg border ${isCurrentPlan ? "border-primary border-2 bg-primary/5" : "border-border"} cursor-pointer hover:bg-accent transition-colors`}
+                    onClick={() => {
+                      if (!isCurrentPlan) {
+                        window.location.href = `/subscribe?plan=${plan.planId}`;
+                      }
+                    }}
+                    data-testid={`plan-card-${plan.planId}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-semibold text-lg">{plan.name}</h3>
+                          {isCurrentPlan && <Badge>Current Plan</Badge>}
                         </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-            </div>
-          </CardContent>
-        </Card>
+                        <p className="text-sm text-muted-foreground">
+                          {plan.trialDays}-day trial included
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-primary">
+                          {formatPlanPrice(plan)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </CardContent>
+      </Card>
 
-        {/* Subscription Management */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CreditCard className="h-5 w-5" />
-              Subscription Management
-            </CardTitle>
-            <CardDescription>
-              Manage your payment methods and subscription
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
+        {/* Subscription Management - Only show for active/trialing subscriptions */}
+        {(subscriptionData?.status === 'active' || subscriptionData?.status === 'trialing') && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5" />
+                Subscription Management
+              </CardTitle>
+              <CardDescription>
+                Manage your payment methods and subscription
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
             {subscriptionData?.status === 'active' && (
               <>
                 <Button
@@ -357,9 +347,7 @@ export default function Billing() {
             )}
           </CardContent>
         </Card>
-
-
-      </div>
+        )}
 
       {/* Billing History */}
       <Card>
