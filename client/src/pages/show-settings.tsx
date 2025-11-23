@@ -1214,26 +1214,26 @@ The Production Team`
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         {/* Desktop tabs - hidden on mobile */}
-        <TabsList className="hidden md:flex w-full">
-          <TabsTrigger value="general" className="flex items-center gap-2">
+        <TabsList className="hidden md:flex w-full justify-start">
+          <TabsTrigger value="general" className="flex items-center gap-2 flex-1">
             <Edit3 className="h-4 w-4" />
             General
           </TabsTrigger>
-          <TabsTrigger value="team" className="flex items-center gap-2">
+          <TabsTrigger value="team" className="flex items-center gap-2 flex-1">
             <Users className="h-4 w-4" />
             Team
           </TabsTrigger>
-          <TabsTrigger value="departments" className="flex items-center gap-2">
+          <TabsTrigger value="departments" className="flex items-center gap-2 flex-1">
             <Tag className="h-4 w-4" />
             Departments
           </TabsTrigger>
           {canAccessFeature('report-builder') && (settings as any)?.featureSettings?.reports && (
-            <TabsTrigger value="reports" className="flex items-center gap-2">
+            <TabsTrigger value="reports" className="flex items-center gap-2 flex-1">
               <BarChart3 className="h-4 w-4" />
               Reports
             </TabsTrigger>
           )}
-          <TabsTrigger value="schedule" className="flex items-center gap-2">
+          <TabsTrigger value="schedule" className="flex items-center gap-2 flex-1">
             <Calendar className="h-4 w-4" />
             Schedule
           </TabsTrigger>
