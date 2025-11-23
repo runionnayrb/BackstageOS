@@ -1,9 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useParams } from "wouter";
-import { ArrowLeft, FileText, ChevronDown, Mail, Phone, GripVertical, Calendar, Plus } from "lucide-react";
+import { ArrowLeft, FileText, ChevronDown, Mail, Phone, GripVertical, Calendar, Plus, Settings, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { apiRequest } from "@/lib/queryClient";
@@ -13,6 +15,7 @@ import { WeeklyAvailabilityEditor } from "@/components/weekly-availability-edito
 import { ContactForm } from "@/components/contact-form";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { setPageHeaderIcons, clearPageHeaderIcons } from "@/hooks/useHeaderIcons";
+import type { ContactGroup } from "@shared/schema";
 
 
 interface PersonnelParams {
@@ -72,6 +75,11 @@ export default function Personnel() {
   const [availabilityContact, setAvailabilityContact] = useState<Contact | null>(null);
   const [showAvailabilityModal, setShowAvailabilityModal] = useState(false);
   const [showNewContactModal, setShowNewContactModal] = useState(false);
+  
+  // Contact groups management
+  const [groupsModalOpen, setGroupsModalOpen] = useState(false);
+  const [newGroupName, setNewGroupName] = useState('');
+  const [draggedGroupId, setDraggedGroupId] = useState<number | null>(null);
 
   const { data: project } = useQuery({
     queryKey: [`/api/projects/${projectId}`],
@@ -88,6 +96,23 @@ export default function Personnel() {
     queryKey: [`/api/projects/${projectId}/contacts`],
     enabled: !!projectId,
   });
+
+  // Fetch contact groups
+  const { data: contactGroups = [] } = useQuery<ContactGroup[]>({
+    queryKey: [`/api/projects/${projectId}/contact-groups`],
+    enabled: !!projectId,
+  });
+
+  // Load groups from API on mount
+  useEffect(() => {
+    if (contactGroups.length > 0) {
+      const groupMap = contactGroups.map(g => ({
+        id: g.id.toString(),
+        title: g.name,
+      }));
+      setCategories(groupMap);
+    }
+  }, [contactGroups]);
 
   // Apply saved category order when project settings load
   useEffect(() => {
@@ -163,6 +188,64 @@ export default function Personnel() {
       });
     },
   });
+
+  // Contact group mutations
+  const createGroupMutation = useMutation({
+    mutationFn: (name: string) => apiRequest(`/api/projects/${projectId}/contact-groups`, {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contact-groups`] });
+      setNewGroupName('');
+      toast({ title: "Group created successfully" });
+    },
+  });
+
+  const deleteGroupMutation = useMutation({
+    mutationFn: (groupId: number) => apiRequest(`/api/contact-groups/${groupId}`, {
+      method: 'DELETE',
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contact-groups`] });
+      toast({ title: "Group deleted successfully" });
+    },
+  });
+
+  const reorderGroupsMutation = useMutation({
+    mutationFn: (groupIds: number[]) => apiRequest(`/api/projects/${projectId}/contact-groups/reorder`, {
+      method: 'PUT',
+      body: JSON.stringify({ groupIds }),
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contact-groups`] });
+    },
+  });
+
+  const handleDragStartGroup = (e: React.DragEvent, groupId: number) => {
+    setDraggedGroupId(groupId);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOverGroup = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDropGroup = (e: React.DragEvent, targetId: number) => {
+    e.preventDefault();
+    if (!draggedGroupId || draggedGroupId === targetId) return;
+
+    const sortedGroups = [...contactGroups].sort((a, b) => a.sortOrder - b.sortOrder);
+    const draggedIdx = sortedGroups.findIndex(g => g.id === draggedGroupId);
+    const targetIdx = sortedGroups.findIndex(g => g.id === targetId);
+
+    if (draggedIdx === -1 || targetIdx === -1) return;
+
+    [sortedGroups[draggedIdx], sortedGroups[targetIdx]] = [sortedGroups[targetIdx], sortedGroups[draggedIdx]];
+    reorderGroupsMutation.mutate(sortedGroups.map(g => g.id));
+    setDraggedGroupId(null);
+  };
 
   // Drag and drop handlers
   const handleDragStart = (e: React.DragEvent, index: number) => {
@@ -323,6 +406,77 @@ export default function Personnel() {
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
+            <Dialog open={groupsModalOpen} onOpenChange={setGroupsModalOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="flex items-center gap-2">
+                  <Settings className="h-4 w-4" />
+                  Groups
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Manage Contact Groups</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="newGroup">Add New Group</Label>
+                    <div className="flex gap-2 mt-2">
+                      <Input
+                        id="newGroup"
+                        value={newGroupName}
+                        onChange={(e) => setNewGroupName(e.target.value)}
+                        placeholder="e.g., Cast, Crew, Creative Team"
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter' && newGroupName) {
+                            createGroupMutation.mutate(newGroupName);
+                          }
+                        }}
+                      />
+                      <Button
+                        onClick={() => createGroupMutation.mutate(newGroupName)}
+                        disabled={!newGroupName || createGroupMutation.isPending}
+                        size="sm"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-sm font-semibold mb-2 block">Your Groups (drag to reorder)</Label>
+                    <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                      {contactGroups.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-4">No groups yet</p>
+                      ) : (
+                        contactGroups.map((group) => (
+                          <div
+                            key={group.id}
+                            draggable
+                            onDragStart={(e) => handleDragStartGroup(e, group.id)}
+                            onDragOver={handleDragOverGroup}
+                            onDrop={(e) => handleDropGroup(e, group.id)}
+                            className="flex items-center justify-between p-2 border rounded bg-white hover:bg-gray-50 cursor-grab active:cursor-grabbing"
+                          >
+                            <div className="flex items-center gap-2">
+                              <GripVertical className="h-4 w-4 text-gray-400" />
+                              <span className="text-sm">{group.name}</span>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => deleteGroupMutation.mutate(group.id)}
+                              disabled={deleteGroupMutation.isPending}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
             <Button
               variant={isReordering ? "default" : "ghost"}
               onClick={() => setIsReordering(!isReordering)}
