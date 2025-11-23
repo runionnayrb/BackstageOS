@@ -361,33 +361,6 @@ export default function Personnel() {
           <h1 className="text-3xl font-bold text-gray-900">Contacts</h1>
           
           <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleNewContactClick}
-              className="hover:bg-transparent hover:text-blue-600 transition-colors p-1"
-            >
-              <Plus className="w-5 h-5" />
-            </Button>
-            {allContacts.length > 0 && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="flex items-center gap-2">
-                    <FileText className="h-4 w-4" />
-                    Create
-                    <ChevronDown className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => setLocation(`/shows/${projectId}/contact-sheet`)}>
-                    Contact Sheet
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setLocation(`/shows/${projectId}/company-list`)}>
-                    Company List
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
             <Dialog open={groupsModalOpen} onOpenChange={setGroupsModalOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" className="flex items-center gap-2">
@@ -459,6 +432,33 @@ export default function Personnel() {
                 </div>
               </DialogContent>
             </Dialog>
+            {allContacts.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Create
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => setLocation(`/shows/${projectId}/contact-sheet`)}>
+                    Contact Sheet
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLocation(`/shows/${projectId}/company-list`)}>
+                    Company List
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleNewContactClick}
+              className="hover:bg-transparent hover:text-blue-600 transition-colors p-1"
+            >
+              <Plus className="w-5 h-5" />
+            </Button>
           </div>
         </div>
       </div>
