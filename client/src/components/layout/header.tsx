@@ -207,8 +207,8 @@ export default function Header() {
                   e.currentTarget.style.fontSize = '20px';
                 }}
               >
-                <span className="font-normal">Backstage</span>
-                <span className="font-semibold">OS</span>
+                <span style={{ fontWeight: 400 }}>Backstage</span>
+                <span style={{ fontWeight: 700 }}>OS</span>
               </span>
             </Button>
           </div>
