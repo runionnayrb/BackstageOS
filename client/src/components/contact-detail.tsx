@@ -321,33 +321,35 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
         <div className="flex gap-2">
           {isEditing ? (
             <>
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <button 
                 onClick={handleCancel}
                 disabled={updateMutation.isPending}
+                className="p-2 text-gray-600 hover:text-blue-600 transition-colors disabled:opacity-50"
               >
-                <X className="h-4 w-4 mr-2" />
-                Cancel
-              </Button>
-              <Button 
-                size="sm" 
+                <X className="h-4 w-4" />
+              </button>
+              <button 
                 onClick={handleSave}
                 disabled={updateMutation.isPending}
+                className="p-2 text-gray-600 hover:text-blue-600 transition-colors disabled:opacity-50"
               >
-                <Save className="h-4 w-4 mr-2" />
-                {updateMutation.isPending ? "Saving..." : "Save"}
-              </Button>
+                <Save className="h-4 w-4" />
+              </button>
             </>
           ) : (
-            <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-              <Edit className="h-4 w-4 mr-2" />
-              Edit
-            </Button>
+            <button 
+              onClick={() => setIsEditing(true)}
+              className="p-2 text-gray-600 hover:text-blue-600 transition-colors"
+            >
+              <Edit className="h-4 w-4" />
+            </button>
           )}
-          <Button variant="outline" size="sm" onClick={onClose}>
+          <button 
+            onClick={onClose}
+            className="p-2 text-gray-600 hover:text-blue-600 transition-colors"
+          >
             <X className="h-4 w-4" />
-          </Button>
+          </button>
         </div>
       </div>
 
