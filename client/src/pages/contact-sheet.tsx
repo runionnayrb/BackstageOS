@@ -3,15 +3,18 @@ import { useLocation, useParams } from "wouter";
 import { 
   ArrowLeft, Settings, GripVertical, Printer, Eye, Edit,
   Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight,
-  Palette, Type, Square, Minus, ChevronDown, Grid3X3, Clipboard, GitBranch, Check, Users
+  Palette, Type, Square, Minus, ChevronDown, Grid3X3, Clipboard, GitBranch, Check, Users, Plus, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
+import type { ContactGroup } from "@shared/schema";
 
 interface ContactSheetParams {
   id: string;
@@ -90,6 +93,11 @@ export default function ContactSheet() {
   const [draggedColumn, setDraggedColumn] = useState<number | null>(null);
   const [draggedContact, setDraggedContact] = useState<{ categoryId: string; contactIndex: number } | null>(null);
   const [draggedCategory, setDraggedCategory] = useState<string | null>(null);
+  
+  // Contact groups management
+  const [groupsModalOpen, setGroupsModalOpen] = useState(false);
+  const [newGroupName, setNewGroupName] = useState('');
+  const [draggedGroupId, setDraggedGroupId] = useState<number | null>(null);
   const [isResizing, setIsResizing] = useState<number | null>(null);
   const [resizeStartX, setResizeStartX] = useState(0);
   const [resizeStartWidth, setResizeStartWidth] = useState(0);
@@ -174,6 +182,64 @@ export default function ContactSheet() {
   const [showPublishVersionConfirm, setShowPublishVersionConfirm] = useState(false);
   const [selectedVersionType, setSelectedVersionType] = useState<'major' | 'minor'>('minor');
   const [isPublishing, setIsPublishing] = useState(false);
+
+  // Contact group mutations
+  const createGroupMutation = useMutation({
+    mutationFn: (name: string) => apiRequest(`/api/projects/${projectId}/contact-groups`, {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contact-groups`] });
+      setNewGroupName('');
+      toast({ title: "Group created successfully" });
+    },
+  });
+
+  const deleteGroupMutation = useMutation({
+    mutationFn: (groupId: number) => apiRequest(`/api/contact-groups/${groupId}`, {
+      method: 'DELETE',
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contact-groups`] });
+      toast({ title: "Group deleted successfully" });
+    },
+  });
+
+  const reorderGroupsMutation = useMutation({
+    mutationFn: (groupIds: number[]) => apiRequest(`/api/projects/${projectId}/contact-groups/reorder`, {
+      method: 'PUT',
+      body: JSON.stringify({ groupIds }),
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contact-groups`] });
+    },
+  });
+
+  const handleDragStartGroup = (e: React.DragEvent, groupId: number) => {
+    setDraggedGroupId(groupId);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOverGroup = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDropGroup = (e: React.DragEvent, targetId: number) => {
+    e.preventDefault();
+    if (!draggedGroupId || draggedGroupId === targetId) return;
+
+    const sortedGroups = [...contactGroups].sort((a, b) => a.sortOrder - b.sortOrder);
+    const draggedIdx = sortedGroups.findIndex(g => g.id === draggedGroupId);
+    const targetIdx = sortedGroups.findIndex(g => g.id === targetId);
+
+    if (draggedIdx === -1 || targetIdx === -1) return;
+
+    [sortedGroups[draggedIdx], sortedGroups[targetIdx]] = [sortedGroups[targetIdx], sortedGroups[draggedIdx]];
+    reorderGroupsMutation.mutate(sortedGroups.map(g => g.id));
+    setDraggedGroupId(null);
+  };
 
   // Auto-save functionality
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -269,6 +335,24 @@ export default function ContactSheet() {
     queryKey: [`/api/projects/${projectId}/settings`],
     enabled: !!projectId,
   });
+
+  // Fetch contact groups
+  const { data: contactGroups = [] } = useQuery<ContactGroup[]>({
+    queryKey: [`/api/projects/${projectId}/contact-groups`],
+    enabled: !!projectId,
+  });
+
+  // Load groups from API on mount
+  useEffect(() => {
+    if (contactGroups.length > 0) {
+      const groupMap = contactGroups.map(g => ({
+        id: g.id.toString(),
+        title: g.name,
+        visible: true
+      }));
+      setCategories(groupMap);
+    }
+  }, [contactGroups]);
 
   const { data: allContacts = [], isLoading } = useQuery<Contact[]>({
     queryKey: [`/api/projects/${projectId}/contacts`],

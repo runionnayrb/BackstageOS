@@ -6,14 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Users, RefreshCw, Plus, Mail, Building2, User, List, X, Settings, GripVertical } from "lucide-react";
+import { Users, RefreshCw, Plus, Mail, Building2, User, List, X, Settings } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import type { EmailContact, Project, DistributionList, DistributionListMember, ContactGroup } from "@shared/schema";
+import type { EmailContact, Project, DistributionList, DistributionListMember } from "@shared/schema";
 
 interface EmailContactsManagerParams {
   id: string;
@@ -25,12 +25,6 @@ export default function EmailContactsManager() {
   const queryClient = useQueryClient();
   const projectId = params.id ? parseInt(params.id) : null;
   const isGlobalView = !projectId;
-
-  // Contact groups state
-  const [groupsModalOpen, setGroupsModalOpen] = useState(false);
-  const [newGroupName, setNewGroupName] = useState('');
-  const [contactGroups, setContactGroups] = useState<ContactGroup[]>([]);
-  const [draggedGroup, setDraggedGroup] = useState<number | null>(null);
 
   const [addContactOpen, setAddContactOpen] = useState(false);
   const [newContact, setNewContact] = useState({
@@ -67,12 +61,6 @@ export default function EmailContactsManager() {
   const { data: distributionLists = [] } = useQuery<DistributionList[]>({
     queryKey: ['/api/distribution-lists', projectId],
     enabled: true,
-  });
-
-  // Fetch contact groups
-  const { data: groups = [] } = useQuery<ContactGroup[]>({
-    queryKey: ['/api/projects', projectId, 'contact-groups'],
-    enabled: !!projectId,
   });
 
 
@@ -197,65 +185,6 @@ export default function EmailContactsManager() {
     deleteDistributionListMutation.mutate(listId);
   };
 
-  // Contact groups mutations
-  const createGroupMutation = useMutation({
-    mutationFn: (name: string) => apiRequest(`/api/projects/${projectId}/contact-groups`, {
-      method: 'POST',
-      body: JSON.stringify({ name }),
-    }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'contact-groups'] });
-      setNewGroupName('');
-      toast({ title: "Group created successfully" });
-    },
-  });
-
-  const deleteGroupMutation = useMutation({
-    mutationFn: (groupId: number) => apiRequest(`/api/contact-groups/${groupId}`, {
-      method: 'DELETE',
-    }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'contact-groups'] });
-      toast({ title: "Group deleted successfully" });
-    },
-  });
-
-  const reorderGroupsMutation = useMutation({
-    mutationFn: (groupIds: number[]) => apiRequest(`/api/projects/${projectId}/contact-groups/reorder`, {
-      method: 'PUT',
-      body: JSON.stringify({ groupIds }),
-    }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'contact-groups'] });
-    },
-  });
-
-  const handleDragStart = (e: React.DragEvent, groupId: number) => {
-    setDraggedGroup(groupId);
-    e.dataTransfer.effectAllowed = 'move';
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-  };
-
-  const handleDrop = (e: React.DragEvent, targetId: number) => {
-    e.preventDefault();
-    if (!draggedGroup || draggedGroup === targetId) return;
-
-    const sortedGroups = [...groups].sort((a, b) => a.sortOrder - b.sortOrder);
-    const draggedIndex = sortedGroups.findIndex(g => g.id === draggedGroup);
-    const targetIndex = sortedGroups.findIndex(g => g.id === targetId);
-
-    if (draggedIndex === -1 || targetIndex === -1) return;
-
-    [sortedGroups[draggedIndex], sortedGroups[targetIndex]] = [sortedGroups[targetIndex], sortedGroups[draggedIndex]];
-    const newOrder = sortedGroups.map(g => g.id);
-    reorderGroupsMutation.mutate(newOrder);
-    setDraggedGroup(null);
-  };
-
   const getCategoryIcon = (category?: string) => {
     switch (category) {
       case 'cast': return <User className="h-4 w-4" />;
@@ -287,76 +216,6 @@ export default function EmailContactsManager() {
           <p className="text-muted-foreground mt-1">
             Manage your unified email contact list for {project?.name || 'all shows'}
           </p>
-        </div>
-        <div className="flex gap-2">
-          {projectId && (
-            <Dialog open={groupsModalOpen} onOpenChange={setGroupsModalOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Contact Groups
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Manage Contact Groups</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="newGroup">Add New Group</Label>
-                    <div className="flex gap-2 mt-2">
-                      <Input
-                        id="newGroup"
-                        value={newGroupName}
-                        onChange={(e) => setNewGroupName(e.target.value)}
-                        placeholder="e.g., Cast, Crew, Creative Team"
-                      />
-                      <Button
-                        onClick={() => createGroupMutation.mutate(newGroupName)}
-                        disabled={!newGroupName || createGroupMutation.isPending}
-                        size="sm"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label className="text-sm font-semibold mb-2 block">Your Groups (drag to reorder)</Label>
-                    <div className="space-y-2">
-                      {groups.length === 0 ? (
-                        <p className="text-sm text-muted-foreground text-center py-4">No groups yet</p>
-                      ) : (
-                        groups.map((group) => (
-                          <div
-                            key={group.id}
-                            draggable
-                            onDragStart={(e) => handleDragStart(e, group.id)}
-                            onDragOver={handleDragOver}
-                            onDrop={(e) => handleDrop(e, group.id)}
-                            className="flex items-center justify-between p-2 border rounded bg-white hover:bg-gray-50 cursor-grab active:cursor-grabbing"
-                          >
-                            <div className="flex items-center gap-2">
-                              <GripVertical className="h-4 w-4 text-gray-400" />
-                              <span className="text-sm">{group.name}</span>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => deleteGroupMutation.mutate(group.id)}
-                              disabled={deleteGroupMutation.isPending}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-          )}
         </div>
         <div className="flex gap-2">
           <Dialog open={addContactOpen} onOpenChange={setAddContactOpen}>
