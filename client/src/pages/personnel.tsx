@@ -440,11 +440,9 @@ export default function Personnel() {
             {allContacts.length > 0 && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="flex items-center gap-2">
-                    <FileText className="h-4 w-4" />
-                    Create
-                    <ChevronDown className="h-4 w-4" />
-                  </Button>
+                  <button className="p-1 text-gray-600 hover:text-blue-600 transition-colors">
+                    <FileText className="h-5 w-5" />
+                  </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem onClick={() => setLocation(`/shows/${projectId}/contact-sheet`)}>
