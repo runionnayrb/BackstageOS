@@ -259,9 +259,7 @@ export default function WaitlistLanding() {
               <span style={{ fontWeight: 400 }}>Backstage</span>
               <span style={{ fontWeight: 700 }}>OS</span>
             </h1>
-            <p className="text-xl lg:text-2xl mb-8 opacity-90 leading-relaxed">
-              The redefining stage management platform that's transforming how we collaborate, organize, and execute productions.
-            </p>
+            <p className="text-xl lg:text-2xl mb-8 opacity-90 leading-relaxed">One System. One Place. One Truth.</p>
             <div className="flex justify-center space-x-2 mb-4">
               <Star className="h-5 w-5 text-yellow-400 fill-current" />
               <Star className="h-5 w-5 text-yellow-400 fill-current" />
