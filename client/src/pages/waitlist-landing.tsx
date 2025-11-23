@@ -312,10 +312,7 @@ export default function WaitlistLanding() {
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
               Your Complete Production Workflow
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              From first read-through to closing night, BackstageOS streamlines every step 
-              of your production process.
-            </p>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">BackstageOS streamlines every step of your production process.</p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
