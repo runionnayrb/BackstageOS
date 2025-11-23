@@ -218,10 +218,7 @@ export default function Personnel() {
 
   // Contact group mutations
   const createGroupMutation = useMutation({
-    mutationFn: (name: string) => apiRequest(`/api/projects/${projectId}/contact-groups`, {
-      method: 'POST',
-      body: JSON.stringify({ name }),
-    }),
+    mutationFn: (name: string) => apiRequest('POST', `/api/projects/${projectId}/contact-groups`, { name }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contact-groups`] });
       setNewGroupName('');
@@ -230,9 +227,7 @@ export default function Personnel() {
   });
 
   const deleteGroupMutation = useMutation({
-    mutationFn: (groupId: number) => apiRequest(`/api/contact-groups/${groupId}`, {
-      method: 'DELETE',
-    }),
+    mutationFn: (groupId: number) => apiRequest('DELETE', `/api/contact-groups/${groupId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contact-groups`] });
       toast({ title: "Group deleted successfully" });
@@ -240,10 +235,7 @@ export default function Personnel() {
   });
 
   const reorderGroupsMutation = useMutation({
-    mutationFn: (groupIds: number[]) => apiRequest(`/api/projects/${projectId}/contact-groups/reorder`, {
-      method: 'PUT',
-      body: JSON.stringify({ groupIds }),
-    }),
+    mutationFn: (groupIds: number[]) => apiRequest('PUT', `/api/projects/${projectId}/contact-groups/reorder`, { groupIds }),
     onMutate: (groupIds: number[]) => {
       // Optimistic update - reorder groups immediately
       const previousGroups = queryClient.getQueryData<ContactGroup[]>([`/api/projects/${projectId}/contact-groups`]);
