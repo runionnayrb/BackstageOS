@@ -188,7 +188,7 @@ export default function Header() {
             <Button
               variant="ghost"
               onClick={() => setLocation("/")}
-              className="text-xl font-semibold p-0 hover:bg-transparent"
+              className="text-xl p-0 hover:bg-transparent"
             >
               <span 
                 style={{
@@ -207,7 +207,8 @@ export default function Header() {
                   e.currentTarget.style.fontSize = '20px';
                 }}
               >
-                BackstageOS
+                <span className="font-normal">Backstage</span>
+                <span className="font-semibold">OS</span>
               </span>
             </Button>
           </div>
