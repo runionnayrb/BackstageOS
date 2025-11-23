@@ -488,9 +488,7 @@ export default function WaitlistLanding() {
             <p className="text-gray-400 max-w-2xl mx-auto">
               Redefining stage management for the modern stage manager.
             </p>
-            <div className="mt-8 text-sm text-gray-500">
-              © 2025 BackstageOS. All rights reserved.
-            </div>
+            <div className="mt-8 text-sm text-gray-500">© 2025 BackstageOS. All rights reserved. Created by Bryan Runion</div>
           </div>
         </div>
       </footer>
