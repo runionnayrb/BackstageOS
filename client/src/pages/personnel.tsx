@@ -184,6 +184,11 @@ export default function Personnel() {
           title: 'Create reports'
         },
         {
+          icon: Users,
+          onClick: () => setGroupsModalOpen(true),
+          title: 'Manage groups'
+        },
+        {
           icon: Plus,
           onClick: () => handleNewContactClick(),
           title: 'Add contact'
