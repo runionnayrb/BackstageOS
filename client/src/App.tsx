@@ -166,6 +166,11 @@ function Router() {
     return <WaitlistLanding />;
   }
 
+  // Handle main landing page
+  if (window.location.pathname === '/main-landing') {
+    return <MainLanding />;
+  }
+
   // Main domain (backstageos.com) - ALWAYS show waitlist, never require authentication
   // This includes both root path and /landing path for backstageos.com
   if (isMainDomain) {
