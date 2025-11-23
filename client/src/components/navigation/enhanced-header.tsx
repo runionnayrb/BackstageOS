@@ -533,8 +533,8 @@ export default function EnhancedHeader() {
                     </>
                   )}
 
-                  {/* Switch back option for original admins */}
-                  {isOriginalAdmin(user) && switchStatus?.isViewingAs && (
+                  {/* Switch back option - ONLY show for admin when viewing as another user */}
+                  {(isOriginalAdmin(user) && switchStatus?.isViewingAs && user?.id === 2) ? (
                     <>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem 
@@ -545,7 +545,7 @@ export default function EnhancedHeader() {
                         Switch Back to Admin
                       </DropdownMenuItem>
                     </>
-                  )}
+                  ) : null}
 
                   <DropdownMenuSeparator />
                   
