@@ -994,7 +994,7 @@ The Production Team`
           <div className="flex items-center justify-between">
             {/* Dynamic Title */}
             <h1 className="text-xl font-semibold text-gray-900">
-              {getHeaderText()}
+              Schedule
             </h1>
             
             {/* Navigation Controls */}
