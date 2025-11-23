@@ -1214,7 +1214,7 @@ The Production Team`
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         {/* Desktop tabs - hidden on mobile */}
-        <TabsList className="hidden md:grid w-full grid-cols-5">
+        <TabsList className="hidden md:flex w-full">
           <TabsTrigger value="general" className="flex items-center gap-2">
             <Edit3 className="h-4 w-4" />
             General
