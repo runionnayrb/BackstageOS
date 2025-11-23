@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useParams } from "wouter";
-import { ArrowLeft, FileText, ChevronDown, Mail, Phone, GripVertical, Calendar, Plus, Settings, X } from "lucide-react";
+import { ArrowLeft, FileText, ChevronDown, Mail, Phone, GripVertical, Calendar, Plus, Settings, X, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -363,10 +363,9 @@ export default function Personnel() {
           <div className="flex items-center gap-3">
             <Dialog open={groupsModalOpen} onOpenChange={setGroupsModalOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" className="flex items-center gap-2">
-                  <Settings className="h-4 w-4" />
-                  Groups
-                </Button>
+                <button className="p-1 text-gray-600 hover:text-gray-600">
+                  <Users className="h-5 w-5" />
+                </button>
               </DialogTrigger>
               <DialogContent className="max-w-md">
                 <DialogHeader>
