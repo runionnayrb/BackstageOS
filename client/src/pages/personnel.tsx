@@ -103,6 +103,31 @@ export default function Personnel() {
     enabled: !!projectId,
   });
 
+  // Migrate default groups to database if none exist
+  const migrateDefaultGroupsMutation = useMutation({
+    mutationFn: async () => {
+      const groupsToCreate = defaultCategories.map(cat => ({
+        name: cat.title
+      }));
+      for (const group of groupsToCreate) {
+        await apiRequest(`/api/projects/${projectId}/contact-groups`, {
+          method: 'POST',
+          body: JSON.stringify(group),
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contact-groups`] });
+    },
+  });
+
+  // Auto-migrate on first load if no groups exist
+  useEffect(() => {
+    if (contactGroups.length === 0 && defaultCategories.length > 0) {
+      migrateDefaultGroupsMutation.mutate();
+    }
+  }, []);
+
   // Load groups from API on mount
   useEffect(() => {
     if (contactGroups.length > 0) {
