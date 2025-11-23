@@ -566,7 +566,7 @@ export default function Personnel() {
                 
                 {categoryContacts.length === 0 ? (
                   <div className="text-gray-500 italic py-3 px-2 text-sm">
-                    No contacts in this category yet.
+                    No contacts in this group yet.
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -663,7 +663,7 @@ export default function Personnel() {
                 
                 {categoryContacts.length === 0 ? (
                   <div className="text-gray-500 italic py-4 px-2">
-                    No contacts in this category yet.
+                    No contacts in this group yet.
                   </div>
                 ) : (
                   <div className="space-y-1">
