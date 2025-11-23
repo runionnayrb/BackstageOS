@@ -116,7 +116,7 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
   const shares = Array.isArray(sharesData) ? sharesData : [];
 
   // Fetch contacts
-  const { data: contactsData = [] } = useQuery({
+  const { data: contactsData = [], isLoading: contactsLoading } = useQuery({
     queryKey: [`/api/projects/${projectId}/contacts`],
     queryFn: () => apiRequest('GET', `/api/projects/${projectId}/contacts`)
   });
@@ -805,6 +805,28 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="contact-select">Contact</Label>
+              <Select value={selectedContact} onValueChange={setSelectedContact} disabled={contactsLoading}>
+                <SelectTrigger id="contact-select">
+                  <SelectValue placeholder={contactsLoading ? "Loading contacts..." : "Select a contact"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {contactsLoading ? (
+                    <div className="p-2 text-sm text-muted-foreground">Loading contacts...</div>
+                  ) : availableContacts.length > 0 ? (
+                    availableContacts.map((contact: Contact) => (
+                      <SelectItem key={contact.id} value={contact.id.toString()}>
+                        {getContactDisplayName(contact)}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <div className="p-2 text-sm text-muted-foreground">No available contacts</div>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
               <Label htmlFor="expires">Expires (Optional)</Label>
               <Input
                 id="expires"
@@ -829,7 +851,7 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
               </Button>
               <Button
                 onClick={handleCreateShare}
-                disabled={createShareMutation.isPending}
+                disabled={createShareMutation.isPending || contactsLoading}
               >
                 {createShareMutation.isPending ? 'Creating...' : 'Create Share'}
               </Button>
