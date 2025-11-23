@@ -1205,7 +1205,7 @@ The Production Team`
         <div className="mb-6"></div>
 
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
+          <div className="flex items-center gap-3">
             <Settings className="h-6 w-6" />
             <h1 className="text-3xl font-bold">Show Settings</h1>
           </div>

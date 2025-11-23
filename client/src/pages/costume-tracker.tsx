@@ -739,7 +739,11 @@ export default function CostumeTracker() {
                     const statusInfo = getStatusInfo(costume.status);
                     
                     return (
-                      <TableRow key={costume.id}>
+                      <TableRow 
+                        key={costume.id}
+                        className="cursor-pointer hover:bg-gray-50"
+                        onClick={() => handleEdit(costume)}
+                      >
                         <TableCell>
                           <div>
                             <div className="font-medium">{costume.piece}</div>
@@ -778,24 +782,15 @@ export default function CostumeTracker() {
                             "—"
                           )}
                         </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEdit(costume)}
-                            >
-                              <Edit3 className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDelete(costume.id)}
-                              className="text-red-600 hover:text-red-700"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(costume.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     );
@@ -824,7 +819,11 @@ export default function CostumeTracker() {
               const statusInfo = getStatusInfo(costume.status);
               
               return (
-                <Card key={costume.id}>
+                <Card 
+                  key={costume.id}
+                  className="cursor-pointer hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                  onClick={() => handleEdit(costume)}
+                >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-2">
                       <div>
@@ -833,23 +832,17 @@ export default function CostumeTracker() {
                           {[costume.act, costume.scene, costume.character].filter(Boolean).join(' • ')}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEdit(costume)}
-                        >
-                          <Edit3 className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(costume.id)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(costume.id);
+                        }}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                     
                     <div className="flex items-center justify-between">

@@ -821,7 +821,11 @@ export default function PropsTracker() {
                     const statusInfo = getStatusInfo(prop.status);
                     
                     return (
-                      <TableRow key={prop.id}>
+                      <TableRow 
+                        key={prop.id}
+                        className="cursor-pointer hover:bg-gray-50"
+                        onClick={() => handleEdit(prop)}
+                      >
                         <TableCell>
                           <div className="flex items-center gap-3">
                             {prop.imageUrl && (
@@ -862,24 +866,15 @@ export default function PropsTracker() {
                             {statusInfo.label}
                           </Badge>
                         </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEdit(prop)}
-                            >
-                              <Edit3 className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDelete(prop.id)}
-                              className="text-red-600 hover:text-red-700"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(prop.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     );
