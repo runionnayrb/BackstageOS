@@ -424,8 +424,8 @@ export default function EnhancedHeader() {
             )}
           </div>
 
-          {/* Admin Dropdowns - Only visible to original admins */}
-          {isOriginalAdmin(user) && (
+          {/* Admin-Only Dropdowns - Viewing As User / Profile Type Selection */}
+          {isOriginalAdmin(user) ? (
             <div className="hidden lg:flex items-center space-x-3">
               {/* User Selector */}
               <Select value={defaultUserId} onValueChange={(userId) => {
@@ -455,7 +455,7 @@ export default function EnhancedHeader() {
                 </SelectContent>
               </Select>
             </div>
-          )}
+          ) : null}
 
           {/* Desktop Right side - Search, User menu and admin controls */}
           <div className="hidden md:flex items-center gap-2 flex-shrink-0">
