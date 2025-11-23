@@ -564,7 +564,20 @@ export default function Personnel() {
                   <span className="text-gray-500 text-sm">({categoryContacts.length})</span>
                 </div>
                 
-                {categoryContacts.length === 0 ? (
+                {isLoading ? (
+                  <div className="space-y-2">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="p-3 bg-gray-100 border border-gray-200 rounded-lg animate-pulse">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
+                            <div className="h-3 bg-gray-300 rounded w-1/2"></div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : categoryContacts.length === 0 ? (
                   <div className="text-gray-500 italic py-3 px-2 text-sm">
                     No contacts in this group yet.
                   </div>
@@ -661,7 +674,21 @@ export default function Personnel() {
                   <span className="text-gray-500 text-sm">({categoryContacts.length})</span>
                 </div>
                 
-                {categoryContacts.length === 0 ? (
+                {isLoading ? (
+                  <div className="space-y-1">
+                    {[...Array(4)].map((_, i) => (
+                      <div key={i} className="p-2 bg-gray-100 animate-pulse rounded">
+                        <div className="grid items-center gap-6" style={{ gridTemplateColumns: "2fr 1.5fr 3fr 1.5fr auto" }}>
+                          <div className="h-4 bg-gray-300 rounded w-3/4"></div>
+                          <div className="h-4 bg-gray-300 rounded w-1/2"></div>
+                          <div className="h-4 bg-gray-300 rounded w-4/5"></div>
+                          <div className="h-4 bg-gray-300 rounded w-2/3"></div>
+                          <div className="h-4 bg-gray-300 rounded w-1/4"></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : categoryContacts.length === 0 ? (
                   <div className="text-gray-500 italic py-4 px-2">
                     No contacts in this group yet.
                   </div>
