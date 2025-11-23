@@ -1080,7 +1080,7 @@ The Production Team`
             </div>
 
             {/* Buttons and Settings - Complete unified control layout */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-around flex-1">
               {/* Time Increment for all views - rightmost */}
               <div className="no-chevron">
                 <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value) as 15 | 30 | 60)}>
