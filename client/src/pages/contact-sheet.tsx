@@ -1057,6 +1057,81 @@ export default function ContactSheet() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+              <Dialog open={groupsModalOpen} onOpenChange={setGroupsModalOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    title="Manage Contact Groups"
+                  >
+                    <Users className="h-4 w-4 mr-2" />
+                    Groups
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Manage Contact Groups</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="newGroup">Add New Group</Label>
+                      <div className="flex gap-2 mt-2">
+                        <Input
+                          id="newGroup"
+                          value={newGroupName}
+                          onChange={(e) => setNewGroupName(e.target.value)}
+                          placeholder="e.g., Cast, Crew, Creative Team"
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter' && newGroupName) {
+                              createGroupMutation.mutate(newGroupName);
+                            }
+                          }}
+                        />
+                        <Button
+                          onClick={() => createGroupMutation.mutate(newGroupName)}
+                          disabled={!newGroupName || createGroupMutation.isPending}
+                          size="sm"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label className="text-sm font-semibold mb-2 block">Your Groups (drag to reorder)</Label>
+                      <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                        {contactGroups.length === 0 ? (
+                          <p className="text-sm text-muted-foreground text-center py-4">No groups yet</p>
+                        ) : (
+                          contactGroups.map((group) => (
+                            <div
+                              key={group.id}
+                              draggable
+                              onDragStart={(e) => handleDragStartGroup(e, group.id)}
+                              onDragOver={handleDragOverGroup}
+                              onDrop={(e) => handleDropGroup(e, group.id)}
+                              className="flex items-center justify-between p-2 border rounded bg-white hover:bg-gray-50 cursor-grab active:cursor-grabbing"
+                            >
+                              <div className="flex items-center gap-2">
+                                <GripVertical className="h-4 w-4 text-gray-400" />
+                                <span className="text-sm">{group.name}</span>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => deleteGroupMutation.mutate(group.id)}
+                                disabled={deleteGroupMutation.isPending}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
