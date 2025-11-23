@@ -62,7 +62,6 @@ export function parseScheduleSettings(settings: any) {
     weekStartDay: scheduleSettings.weekStartDay || 'sunday',
     workStartTime: scheduleSettings.workStartTime || '09:00',
     workEndTime: scheduleSettings.workEndTime || '18:00',
-    allowConflicts: scheduleSettings.allowConflicts || false,
   };
 }
 

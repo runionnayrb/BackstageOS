@@ -1955,27 +1955,6 @@ The Production Team`
                 </div>
               </div>
 
-              <div className="flex items-start justify-between gap-4">
-                <div className="space-y-0.5 flex-1 min-w-0">
-                  <Label>Allow Schedule Conflicts</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Permit overlapping events in the schedule
-                  </p>
-                </div>
-                <div className="flex-shrink-0">
-                  <Switch
-                    checked={(() => {
-                      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
-                        ? safeJsonParse((settings as any).scheduleSettings, {}) 
-                        : ((settings as any)?.scheduleSettings || {});
-                      return scheduleSettings?.allowConflicts || false;
-                    })()}
-                    onCheckedChange={(checked) =>
-                      handleSettingsUpdate("scheduleSettings", { allowConflicts: checked })
-                    }
-                  />
-                </div>
-              </div>
 
             </CardContent>
           </Card>
