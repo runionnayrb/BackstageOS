@@ -1227,10 +1227,12 @@ The Production Team`
             <Tag className="h-4 w-4" />
             Departments
           </TabsTrigger>
-          <TabsTrigger value="reports" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Reports
-          </TabsTrigger>
+          {canAccessFeature('report-builder') && (settings as any)?.featureSettings?.reports && (
+            <TabsTrigger value="reports" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Reports
+            </TabsTrigger>
+          )}
           <TabsTrigger value="schedule" className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
             Schedule
@@ -1265,12 +1267,14 @@ The Production Team`
                   Departments
                 </div>
               </SelectItem>
-              <SelectItem value="reports">
-                <div className="flex items-center gap-2">
-                  <BarChart3 className="h-4 w-4" />
-                  Reports
-                </div>
-              </SelectItem>
+              {canAccessFeature('report-builder') && (settings as any)?.featureSettings?.reports && (
+                <SelectItem value="reports">
+                  <div className="flex items-center gap-2">
+                    <BarChart3 className="h-4 w-4" />
+                    Reports
+                  </div>
+                </SelectItem>
+              )}
               <SelectItem value="schedule">
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
@@ -1855,9 +1859,11 @@ The Production Team`
           </Card>
         </TabsContent>
 
-        <TabsContent value="reports" className="mt-6">
-          <GlobalTemplateSettingsContent projectId={params.id!} showSaveButton={true} />
-        </TabsContent>
+        {canAccessFeature('report-builder') && (settings as any)?.featureSettings?.reports && (
+          <TabsContent value="reports" className="mt-6">
+            <GlobalTemplateSettingsContent projectId={params.id!} showSaveButton={true} />
+          </TabsContent>
+        )}
 
         <TabsContent value="schedule" className="mt-6">
           <Card className="border-0 shadow-none">
