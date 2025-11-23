@@ -12,13 +12,17 @@ interface CalendarParams {
 }
 
 export default function Calendar() {
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const [showAvailabilityComparison, setShowAvailabilityComparison] = useState(false);
   const [showLocationAvailability, setShowLocationAvailability] = useState(false);
   const [showAvailabilityDropdown, setShowAvailabilityDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const params = useParams<CalendarParams>();
   const projectId = params.id;
+  
+  // Determine the page title based on current location
+  const isOnSchedule = location.includes('/schedule');
+  const pageTitle = isOnSchedule ? 'Schedule' : 'Calendar';
 
   // Listen for header button click
   useEffect(() => {
@@ -121,11 +125,13 @@ export default function Calendar() {
 
       {/* Desktop Header */}
       <div className="hidden md:block px-4 sm:px-6 lg:px-8 pt-6 mb-6">
-        <h1 className="text-3xl font-bold">Schedule</h1>
+        <h1 className="text-3xl font-bold">{pageTitle}</h1>
       </div>
 
-      {/* Mobile: Add minimal top padding */}
-      <div className="md:hidden pt-4"></div>
+      {/* Mobile Header */}
+      <div className="md:hidden px-4 sm:px-6 lg:px-8 pt-4 pb-4">
+        <h1 className="text-3xl font-bold">{pageTitle}</h1>
+      </div>
 
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="space-y-1">
