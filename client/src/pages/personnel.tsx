@@ -431,6 +431,12 @@ export default function Personnel() {
                 </div>
               </DialogContent>
             </Dialog>
+            <button 
+              onClick={handleNewContactClick}
+              className="p-1 text-gray-600 hover:text-blue-600 transition-colors"
+            >
+              <Plus className="w-5 h-5" />
+            </button>
             {allContacts.length > 0 && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -450,12 +456,6 @@ export default function Personnel() {
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
-            <button 
-              onClick={handleNewContactClick}
-              className="p-1 text-gray-600 hover:text-blue-600 transition-colors"
-            >
-              <Plus className="w-5 h-5" />
-            </button>
           </div>
         </div>
       </div>
