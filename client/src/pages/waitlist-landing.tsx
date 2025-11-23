@@ -283,9 +283,7 @@ export default function WaitlistLanding() {
       <section className="py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Everything You Need for Professional Stage Management
-            </h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Everything You Need for Stage Management</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               BackstageOS provides comprehensive tools for every phase of the production process, 
               from prep to closing night.
