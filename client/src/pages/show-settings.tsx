@@ -1214,7 +1214,7 @@ The Production Team`
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         {/* Desktop tabs - hidden on mobile */}
-        <TabsList className="hidden md:grid w-full grid-cols-6">
+        <TabsList className="hidden md:grid w-full grid-cols-5">
           <TabsTrigger value="general" className="flex items-center gap-2">
             <Edit3 className="h-4 w-4" />
             General
@@ -1226,10 +1226,6 @@ The Production Team`
           <TabsTrigger value="departments" className="flex items-center gap-2">
             <Tag className="h-4 w-4" />
             Departments
-          </TabsTrigger>
-          <TabsTrigger value="sharing" className="flex items-center gap-2">
-            <Share2 className="h-4 w-4" />
-            Sharing
           </TabsTrigger>
           <TabsTrigger value="reports" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
@@ -1267,12 +1263,6 @@ The Production Team`
                 <div className="flex items-center gap-2">
                   <Tag className="h-4 w-4" />
                   Departments
-                </div>
-              </SelectItem>
-              <SelectItem value="sharing">
-                <div className="flex items-center gap-2">
-                  <Share2 className="h-4 w-4" />
-                  Sharing
                 </div>
               </SelectItem>
               <SelectItem value="reports">
@@ -1723,6 +1713,82 @@ The Production Team`
                 <TeamMembersList accessLevel="viewer" />
               </CardContent>
             </Card>
+
+            {/* Sharing & Privacy Settings */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Sharing & Privacy Settings</CardTitle>
+                <CardDescription>
+                  Control who can access this {showLabel.toLowerCase()} and how it can be shared.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Make {showLabel} Public</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Anyone with the link can view this {showLabel.toLowerCase()}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={(settings as any)?.sharingSettings?.isPublic || false}
+                    onCheckedChange={(checked) =>
+                      handleSettingsUpdate("sharingSettings", { isPublic: checked })
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Allow Guest Viewing</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Non-team members can view read-only content
+                    </p>
+                  </div>
+                  <Switch
+                    checked={(settings as any)?.sharingSettings?.allowGuestView || false}
+                    onCheckedChange={(checked) =>
+                      handleSettingsUpdate("sharingSettings", { allowGuestView: checked })
+                    }
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <Label>Shareable Link</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={(settings as any)?.sharingSettings?.shareableLink || "No link generated"}
+                      readOnly
+                      className="font-mono text-sm"
+                    />
+                    <Button variant="outline" size="icon" onClick={copyShareLink}>
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={generateNewShareLink}
+                    disabled={isGeneratingLink}
+                    className="w-full"
+                  >
+                    {isGeneratingLink ? "Generating..." : "Generate New Link"}
+                  </Button>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="linkPassword">Link Password (Optional)</Label>
+                  <Input
+                    id="linkPassword"
+                    type="password"
+                    placeholder="Set a password for the share link"
+                    value={(settings as any)?.sharingSettings?.password || ""}
+                    onChange={(e) =>
+                      handleSettingsUpdate("sharingSettings", { password: e.target.value })
+                    }
+                  />
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
 
@@ -1864,83 +1930,6 @@ The Production Team`
                   </Button>
                 </div>
               )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="sharing" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Sharing & Privacy Settings</CardTitle>
-              <CardDescription>
-                Control who can access this {showLabel.toLowerCase()} and how it can be shared.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Make {showLabel} Public</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Anyone with the link can view this {showLabel.toLowerCase()}
-                  </p>
-                </div>
-                <Switch
-                  checked={(settings as any)?.sharingSettings?.isPublic || false}
-                  onCheckedChange={(checked) =>
-                    handleSettingsUpdate("sharingSettings", { isPublic: checked })
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Allow Guest Viewing</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Non-team members can view read-only content
-                  </p>
-                </div>
-                <Switch
-                  checked={(settings as any)?.sharingSettings?.allowGuestView || false}
-                  onCheckedChange={(checked) =>
-                    handleSettingsUpdate("sharingSettings", { allowGuestView: checked })
-                  }
-                />
-              </div>
-
-              <div className="space-y-3">
-                <Label>Shareable Link</Label>
-                <div className="flex gap-2">
-                  <Input
-                    value={(settings as any)?.sharingSettings?.shareableLink || "No link generated"}
-                    readOnly
-                    className="font-mono text-sm"
-                  />
-                  <Button variant="outline" size="icon" onClick={copyShareLink}>
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                </div>
-                <Button
-                  variant="outline"
-                  onClick={generateNewShareLink}
-                  disabled={isGeneratingLink}
-                  className="w-full"
-                >
-                  {isGeneratingLink ? "Generating..." : "Generate New Link"}
-                </Button>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="linkPassword">Link Password (Optional)</Label>
-                <Input
-                  id="linkPassword"
-                  type="password"
-                  placeholder="Set a password for the share link"
-                  value={(settings as any)?.sharingSettings?.password || ""}
-                  onChange={(e) =>
-                    handleSettingsUpdate("sharingSettings", { password: e.target.value })
-                  }
-                />
-              </div>
             </CardContent>
           </Card>
         </TabsContent>
