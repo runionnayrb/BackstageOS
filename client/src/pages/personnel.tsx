@@ -30,6 +30,7 @@ interface Contact {
   email?: string;
   phone?: string;
   category: string;
+  groupId?: number;
   role?: string;
   notes?: string;
 }
@@ -331,11 +332,11 @@ export default function Personnel() {
     setDraggedIndex(null);
   };
 
-  // Group contacts by category using current category order
-  const contactsByCategory = categories.reduce((acc, category) => {
-    acc[category.id] = allContacts.filter(contact => contact.category === category.id);
+  // Group contacts by group ID, using contact groups from database
+  const contactsByCategory = contactGroups.reduce((acc, group) => {
+    acc[group.id] = allContacts.filter(contact => contact.groupId === group.id);
     return acc;
-  }, {} as Record<string, Contact[]>);
+  }, {} as Record<number, Contact[]>);
 
   const handleContactClick = (contact: Contact) => {
     setSelectedContact(contact);
