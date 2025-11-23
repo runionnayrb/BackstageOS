@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,9 +15,12 @@ interface Contact {
   id: number;
   firstName: string;
   lastName: string;
+  preferredName?: string;
   email?: string;
   phone?: string;
+  whatsapp?: string;
   category: string;
+  groupId?: number;
   role?: string;
   notes?: string;
   emergencyContactName?: string;
@@ -74,8 +77,11 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
   const [formData, setFormData] = useState({
     firstName: contact?.firstName || "",
     lastName: contact?.lastName || "",
+    preferredName: contact?.preferredName || "",
     email: contact?.email || "",
     phone: contact?.phone ? formatPhoneNumber(contact.phone) : "",
+    whatsapp: contact?.whatsapp ? formatPhoneNumber(contact.whatsapp) : "",
+    groupId: contact?.groupId || "",
     category: contact?.category || "",
     role: contact?.role || "",
     notes: contact?.notes || "",
@@ -177,7 +183,9 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
       ...formData,
       // Store unformatted phone numbers in database
       phone: parsePhoneNumber(formData.phone),
+      whatsapp: parsePhoneNumber(formData.whatsapp),
       emergencyContactPhone: parsePhoneNumber(formData.emergencyContactPhone),
+      groupId: formData.groupId ? parseInt(formData.groupId) : null,
       // Only include equity status for cast members
       equityStatus: formData.category === 'cast' ? formData.equityStatus : null,
     };
@@ -200,12 +208,28 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     
-    if (name === 'phone' || name === 'emergencyContactPhone') {
+    if (name === 'phone' || name === 'whatsapp' || name === 'emergencyContactPhone') {
       // Format phone number as user types
       setFormData(prev => ({ ...prev, [name]: formatPhoneNumber(value) }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
+  };
+
+  const ContactGroupSelect = () => {
+    const { data: contactGroups = [] } = useQuery({
+      queryKey: [`/api/projects/${projectId}/contact-groups`],
+    });
+    
+    return (
+      <>
+        {contactGroups.map((group) => (
+          <SelectItem key={group.id} value={group.id.toString()}>
+            {group.name}
+          </SelectItem>
+        ))}
+      </>
+    );
   };
 
   const handleCastTypeChange = (castType: string, checked: boolean) => {
@@ -237,7 +261,7 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
             <CardTitle>Contact Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="firstName">First Name *</Label>
                 <Input
@@ -258,9 +282,18 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
                   required
                 />
               </div>
+              <div>
+                <Label htmlFor="preferredName">Preferred Name</Label>
+                <Input
+                  id="preferredName"
+                  name="preferredName"
+                  value={formData.preferredName}
+                  onChange={handleInputChange}
+                />
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -272,7 +305,7 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
                 />
               </div>
               <div>
-                <Label htmlFor="phone">Phone</Label>
+                <Label htmlFor="phone">Mobile</Label>
                 <Input
                   id="phone"
                   name="phone"
@@ -286,17 +319,41 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
                   <p className="text-sm text-red-500 mt-1">{validationErrors.phone}</p>
                 )}
               </div>
+              <div>
+                <Label htmlFor="whatsapp">WhatsApp</Label>
+                <Input
+                  id="whatsapp"
+                  name="whatsapp"
+                  type="tel"
+                  value={formData.whatsapp}
+                  onChange={handleInputChange}
+                  placeholder="(xxx) xxx-xxxx"
+                />
+              </div>
             </div>
 
-            <div>
-              <Label htmlFor="role">Role</Label>
-              <Input
-                id="role"
-                name="role"
-                value={formData.role}
-                onChange={handleInputChange}
-                placeholder="e.g., Actor, Director, Sound Engineer"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="role">Role</Label>
+                <Input
+                  id="role"
+                  name="role"
+                  value={formData.role}
+                  onChange={handleInputChange}
+                  placeholder="e.g., Actor, Director, Sound Engineer"
+                />
+              </div>
+              <div>
+                <Label htmlFor="groupId">Contact Group</Label>
+                <Select value={formData.groupId?.toString() || ''} onValueChange={(value) => setFormData(prev => ({ ...prev, groupId: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a group..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <ContactGroupSelect projectId={projectId} />
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div>

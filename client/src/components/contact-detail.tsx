@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Edit, X, Save, Mail, Phone, Camera, Upload, Trash2 } from "lucide-react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { WeeklyAvailabilityEditor } from "@/components/weekly-availability-editor";
@@ -245,8 +245,11 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
     setFormData({
       firstName: contact.firstName || '',
       lastName: contact.lastName || '',
+      preferredName: contact.preferredName || '',
       email: contact.email || '',
       phone: contact.phone || '',
+      whatsapp: contact.whatsapp || '',
+      groupId: contact.groupId || '',
       role: contact.role || '',
       notes: contact.notes || '',
       emergencyContactName: contact.emergencyContactName || '',
@@ -256,8 +259,25 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
       allergies: contact.allergies || '',
       medicalNotes: contact.medicalNotes || '',
       castTypes: contact.castTypes || [],
+      equityStatus: contact.equityStatus || '',
     });
     setIsEditing(false);
+  };
+
+  const ContactGroupSelect = ({ projectId }: { projectId: number }) => {
+    const { data: contactGroups = [] } = useQuery({
+      queryKey: [`/api/projects/${projectId}/contact-groups`],
+    });
+    
+    return (
+      <>
+        {contactGroups.map((group) => (
+          <SelectItem key={group.id} value={group.id.toString()}>
+            {group.name}
+          </SelectItem>
+        ))}
+      </>
+    );
   };
 
   const ReadOnlyField = ({ label, value, href }: { label: string; value?: string; href?: string }) => {
@@ -408,7 +428,7 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
         <div className="space-y-4">
           {isEditing ? (
             <>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="firstName">First Name *</Label>
                   <Input
@@ -429,9 +449,18 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
                     required
                   />
                 </div>
+                <div>
+                  <Label htmlFor="preferredName">Preferred Name</Label>
+                  <Input
+                    id="preferredName"
+                    name="preferredName"
+                    value={formData.preferredName}
+                    onChange={handleInputChange}
+                  />
+                </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="email">Email</Label>
                   <Input
@@ -443,7 +472,7 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
                   />
                 </div>
                 <div>
-                  <Label htmlFor="phone">Phone</Label>
+                  <Label htmlFor="phone">Mobile</Label>
                   <Input
                     id="phone"
                     name="phone"
@@ -453,17 +482,41 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
                     placeholder="(xxx) xxx-xxxx"
                   />
                 </div>
+                <div>
+                  <Label htmlFor="whatsapp">WhatsApp</Label>
+                  <Input
+                    id="whatsapp"
+                    name="whatsapp"
+                    type="tel"
+                    value={formData.whatsapp}
+                    onChange={handleInputChange}
+                    placeholder="(xxx) xxx-xxxx"
+                  />
+                </div>
               </div>
 
-              <div>
-                <Label htmlFor="role">Role</Label>
-                <Input
-                  id="role"
-                  name="role"
-                  value={formData.role}
-                  onChange={handleInputChange}
-                  placeholder="e.g., Actor, Director, Sound Engineer"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="role">Role</Label>
+                  <Input
+                    id="role"
+                    name="role"
+                    value={formData.role}
+                    onChange={handleInputChange}
+                    placeholder="e.g., Actor, Director, Sound Engineer"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="groupId">Contact Group</Label>
+                  <Select value={formData.groupId?.toString() || ''} onValueChange={(value) => setFormData(prev => ({ ...prev, groupId: value ? parseInt(value) : '' }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a group..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {contact.projectId && <ContactGroupSelect projectId={contact.projectId} />}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               {/* Cast Types Section - Only for Cast Category */}
@@ -505,17 +558,22 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
             </>
           ) : (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <ReadOnlyField label="First Name" value={contact.firstName} />
                 <ReadOnlyField label="Last Name" value={contact.lastName} />
+                <ReadOnlyField label="Preferred Name" value={contact.preferredName} />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <ReadOnlyField label="Email" value={contact.email} href={contact.email ? `mailto:${contact.email}` : undefined} />
-                <ReadOnlyField label="Phone" value={contact.phone} href={contact.phone ? `tel:${contact.phone}` : undefined} />
+                <ReadOnlyField label="Mobile" value={contact.phone} href={contact.phone ? `tel:${contact.phone}` : undefined} />
+                <ReadOnlyField label="WhatsApp" value={contact.whatsapp} href={contact.whatsapp ? `tel:${contact.whatsapp}` : undefined} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <ReadOnlyField label="Role" value={contact.role} />
-                {contact.category === 'cast' && (
+                <ReadOnlyField label="Contact Group" value={contact.groupId ? 'Assigned' : 'Not assigned'} />
+              </div>
+              {contact.category === 'cast' && (
+                <div className="grid grid-cols-2 gap-4">
                   <ReadOnlyField 
                     label="Cast Type" 
                     value={contact.castTypes && contact.castTypes.length > 0 
@@ -523,8 +581,8 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
                       : 'No Cast Assigned'
                     } 
                   />
-                )}
-              </div>
+                </div>
+              )}
               {contact.category === 'cast' && (
                 <div className="grid grid-cols-2 gap-4">
                   <ReadOnlyField 
