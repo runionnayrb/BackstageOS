@@ -1565,46 +1565,6 @@ The Production Team`
                   />
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>Event Reminders</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Send reminders before scheduled events
-                    </p>
-                  </div>
-                  <Switch
-                    checked={(settings as any)?.scheduleSettings?.reminderSettings?.enabled !== false}
-                    onCheckedChange={(checked) =>
-                      handleSettingsUpdate("scheduleSettings", {
-                        reminderSettings: {
-                          ...(settings as any)?.scheduleSettings?.reminderSettings,
-                          enabled: checked,
-                        },
-                      })
-                    }
-                  />
-                </div>
-
-                {(settings as any)?.scheduleSettings?.reminderSettings?.enabled !== false && (
-                  <div className="space-y-2">
-                    <Label htmlFor="reminderMinutes">Reminder Time (Minutes Before)</Label>
-                    <Input
-                      id="reminderMinutes"
-                      type="number"
-                      min="5"
-                      max="1440"
-                      value={(settings as any)?.scheduleSettings?.reminderSettings?.minutesBefore || 30}
-                      onChange={(e) =>
-                        handleSettingsUpdate("scheduleSettings", {
-                          reminderSettings: {
-                            ...(settings as any)?.scheduleSettings?.reminderSettings,
-                            minutesBefore: parseInt(e.target.value),
-                          },
-                        })
-                      }
-                    />
-                  </div>
-                )}
               </CardContent>
             </Card>
 
