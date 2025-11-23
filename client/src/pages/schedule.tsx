@@ -992,20 +992,10 @@ The Production Team`
         {/* Main Mobile Header */}
         <div className="px-4 py-3 border-b border-gray-200 bg-white">
           <div className="flex items-center justify-between">
-            {/* Back button and Dynamic Title */}
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setLocation(`/shows/${projectId}/calendar`)}
-                className="p-1"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <h1 className="text-xl font-semibold text-gray-900">
-                {getHeaderText()}
-              </h1>
-            </div>
+            {/* Dynamic Title */}
+            <h1 className="text-xl font-semibold text-gray-900">
+              {getHeaderText()}
+            </h1>
             
             {/* Navigation Controls */}
             <div className="flex items-center gap-2">
