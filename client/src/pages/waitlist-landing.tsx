@@ -485,9 +485,7 @@ export default function WaitlistLanding() {
               <span style={{ fontWeight: 400 }}>Backstage</span>
               <span style={{ fontWeight: 700 }}>OS</span>
             </h3>
-            <p className="text-gray-400 max-w-2xl mx-auto">
-              Redefining stage management for the modern stage manager.
-            </p>
+            <p className="text-gray-400 max-w-2xl mx-auto">One System. One Place. One Truth.</p>
             <div className="mt-8 text-sm text-gray-500">© 2025 BackstageOS. All rights reserved. Created by Bryan Runion</div>
           </div>
         </div>
