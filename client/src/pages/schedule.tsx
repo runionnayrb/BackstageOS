@@ -1027,33 +1027,6 @@ The Production Team`
               >
                 <ChevronRight className="h-5 w-5" />
               </Button>
-              {Object.keys(organizedSchedules).length > 0 && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="p-2">
-                      <User className="h-5 w-5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="max-h-80 overflow-y-auto">
-                    {Object.entries(organizedSchedules).map(([contactType, contacts]: [string, any[]]) => (
-                      <div key={contactType}>
-                        <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 uppercase border-b">
-                          {contactType}
-                        </div>
-                        {contacts.map((contact) => (
-                          <DropdownMenuItem
-                            key={contact.contactId}
-                            onClick={() => navigateToPersonalSchedule(contact.token)}
-                            className="text-sm"
-                          >
-                            {contact.name}
-                          </DropdownMenuItem>
-                        ))}
-                      </div>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
 
             </div>
           </div>
@@ -1165,6 +1138,34 @@ The Production Team`
                 </DropdownMenuContent>
               </DropdownMenu>
 
+              {/* Personal Schedules Dropdown - moved to right of publish */}
+              {Object.keys(organizedSchedules).length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="p-2">
+                      <User className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="max-h-80 overflow-y-auto">
+                    {Object.entries(organizedSchedules).map(([contactType, contacts]: [string, any[]]) => (
+                      <div key={contactType}>
+                        <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 uppercase border-b">
+                          {contactType}
+                        </div>
+                        {contacts.map((contact) => (
+                          <DropdownMenuItem
+                            key={contact.contactId}
+                            onClick={() => navigateToPersonalSchedule(contact.token)}
+                            className="text-sm"
+                          >
+                            {contact.name}
+                          </DropdownMenuItem>
+                        ))}
+                      </div>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
 
             </div>
           </div>
