@@ -363,7 +363,7 @@ export default function Personnel() {
           <div className="flex items-center gap-3">
             <Dialog open={groupsModalOpen} onOpenChange={setGroupsModalOpen}>
               <DialogTrigger asChild>
-                <button className="p-1 text-gray-600 hover:text-gray-600">
+                <button className="p-1 text-gray-600 hover:text-blue-600 transition-colors">
                   <Users className="h-5 w-5" />
                 </button>
               </DialogTrigger>
@@ -450,14 +450,12 @@ export default function Personnel() {
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
-            <Button
-              variant="ghost"
-              size="icon"
+            <button 
               onClick={handleNewContactClick}
-              className="hover:bg-transparent hover:text-blue-600 transition-colors p-1"
+              className="p-1 text-gray-600 hover:text-blue-600 transition-colors"
             >
               <Plus className="w-5 h-5" />
-            </Button>
+            </button>
           </div>
         </div>
       </div>
