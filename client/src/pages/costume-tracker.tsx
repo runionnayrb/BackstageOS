@@ -716,7 +716,6 @@ export default function CostumeTracker() {
                     </div>
                   </TableHead>
                   <TableHead className="w-1/6">Quick Change</TableHead>
-                  <TableHead className="w-1/6">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -781,16 +780,6 @@ export default function CostumeTracker() {
                           ) : (
                             "—"
                           )}
-                        </TableCell>
-                        <TableCell onClick={(e) => e.stopPropagation()}>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDelete(costume.id)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
                         </TableCell>
                       </TableRow>
                     );
@@ -984,20 +973,32 @@ export default function CostumeTracker() {
                 />
               </div>
             </div>
-            <div className="flex justify-end gap-2 pt-4">
-              <Button variant="outline" onClick={() => {
-                setIsAddingCostume(false);
-                setEditingCostume(null);
-                resetForm();
-              }}>
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleSubmit}
-                disabled={!formData.character || !formData.piece || createCostumeMutation.isPending || updateCostumeMutation.isPending}
-              >
-                {editingCostume ? "Update Costume" : "Add Costume"}
-              </Button>
+            <div className="flex justify-between gap-2 pt-4">
+              {editingCostume && (
+                <Button
+                  variant="ghost"
+                  onClick={() => handleDelete(editingCostume.id)}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+              )}
+              <div className="flex gap-2 ml-auto">
+                <Button variant="outline" onClick={() => {
+                  setIsAddingCostume(false);
+                  setEditingCostume(null);
+                  resetForm();
+                }}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleSubmit}
+                  disabled={!formData.character || !formData.piece || createCostumeMutation.isPending || updateCostumeMutation.isPending}
+                >
+                  {editingCostume ? "Update Costume" : "Add Costume"}
+                </Button>
+              </div>
             </div>
           </DialogContent>
         </Dialog>

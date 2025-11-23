@@ -798,7 +798,6 @@ export default function PropsTracker() {
                       )}
                     </div>
                   </TableHead>
-                  <TableHead className="w-24">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -865,16 +864,6 @@ export default function PropsTracker() {
                           <Badge variant="secondary" className={statusInfo.color}>
                             {statusInfo.label}
                           </Badge>
-                        </TableCell>
-                        <TableCell onClick={(e) => e.stopPropagation()}>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDelete(prop.id)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
                         </TableCell>
                       </TableRow>
                     );
@@ -1075,20 +1064,32 @@ export default function PropsTracker() {
                 />
               </div>
             </div>
-            <div className="flex justify-end gap-2 pt-4">
-              <Button variant="outline" onClick={() => {
-                setIsAddingProp(false);
-                setEditingProp(null);
-                resetForm();
-              }}>
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleSubmit}
-                disabled={!formData.name || createPropMutation.isPending || updatePropMutation.isPending}
-              >
-                {editingProp ? "Update Prop" : "Add Prop"}
-              </Button>
+            <div className="flex justify-between gap-2 pt-4">
+              {editingProp && (
+                <Button
+                  variant="ghost"
+                  onClick={() => handleDelete(editingProp.id)}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+              )}
+              <div className="flex gap-2 ml-auto">
+                <Button variant="outline" onClick={() => {
+                  setIsAddingProp(false);
+                  setEditingProp(null);
+                  resetForm();
+                }}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleSubmit}
+                  disabled={!formData.name || createPropMutation.isPending || updatePropMutation.isPending}
+                >
+                  {editingProp ? "Update Prop" : "Add Prop"}
+                </Button>
+              </div>
             </div>
           </DialogContent>
         </Dialog>
