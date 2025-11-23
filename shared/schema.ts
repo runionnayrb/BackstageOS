@@ -566,6 +566,18 @@ export const distributionListMembers = pgTable("distribution_list_members", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Contact groups for flexible group management
+export const contactGroups = pgTable("contact_groups", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  sortOrder: integer("sort_order").default(0),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Contact availability system
 export const contactAvailability = pgTable("contact_availability", {
   id: serial("id").primaryKey(),
@@ -2506,6 +2518,12 @@ export const insertDistributionListMemberSchema = createInsertSchema(distributio
   createdAt: true,
 });
 
+export const insertContactGroupSchema = createInsertSchema(contactGroups).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertScheduleEventSchema = createInsertSchema(scheduleEvents).omit({
   id: true,
   createdAt: true,
@@ -2895,6 +2913,8 @@ export type DistributionList = typeof distributionLists.$inferSelect;
 export type InsertDistributionList = z.infer<typeof insertDistributionListSchema>;
 export type DistributionListMember = typeof distributionListMembers.$inferSelect;
 export type InsertDistributionListMember = z.infer<typeof insertDistributionListMemberSchema>;
+export type ContactGroup = typeof contactGroups.$inferSelect;
+export type InsertContactGroup = z.infer<typeof insertContactGroupSchema>;
 export type DomainRoute = typeof domainRoutes.$inferSelect;
 export type InsertDomainRoute = z.infer<typeof insertDomainRouteSchema>;
 export type ErrorLog = typeof errorLogs.$inferSelect & {

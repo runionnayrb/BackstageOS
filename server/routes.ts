@@ -16,7 +16,7 @@ import { sql } from "drizzle-orm";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
-import { insertProjectSchema, insertSeasonSchema, insertVenueSchema, insertProjectMemberSchema, insertReportSchema, insertReportTemplateSchema, insertReportTemplateV2Schema, insertTemplateSectionSchema, insertTemplateFieldSchema, insertReportTypeSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertEmailContactSchema, insertDistributionListSchema, insertDistributionListMemberSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertCostumeSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema, insertShowContractSettingsSchema, insertPerformanceTrackerSchema, insertRehearsalTrackerSchema, insertTaskDatabaseSchema, insertTaskPropertySchema, insertTaskSchema, insertTaskAssignmentSchema, insertTaskCommentSchema, insertTaskAttachmentSchema, insertTaskViewSchema, insertNoteFolderSchema, insertNoteSchema, insertNoteCollaboratorSchema, insertNoteCommentSchema, insertNoteAttachmentSchema, insertPublicCalendarShareSchema, insertDailyCallSchema, insertUserActivitySchema, insertApiCostSchema, insertUserSessionSchema, insertFeatureUsageSchema, insertAccountTypeSchema, insertBillingPlanSchema, insertBillingPlanPriceSchema, insertBillingHistorySchema, insertPaymentMethodSchema, insertSubscriptionUsageSchema } from "@shared/schema";
+import { insertProjectSchema, insertSeasonSchema, insertVenueSchema, insertProjectMemberSchema, insertReportSchema, insertReportTemplateSchema, insertReportTemplateV2Schema, insertTemplateSectionSchema, insertTemplateFieldSchema, insertReportTypeSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertEmailContactSchema, insertDistributionListSchema, insertDistributionListMemberSchema, insertContactGroupSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertCostumeSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema, insertShowContractSettingsSchema, insertPerformanceTrackerSchema, insertRehearsalTrackerSchema, insertTaskDatabaseSchema, insertTaskPropertySchema, insertTaskSchema, insertTaskAssignmentSchema, insertTaskCommentSchema, insertTaskAttachmentSchema, insertTaskViewSchema, insertNoteFolderSchema, insertNoteSchema, insertNoteCollaboratorSchema, insertNoteCommentSchema, insertNoteAttachmentSchema, insertPublicCalendarShareSchema, insertDailyCallSchema, insertUserActivitySchema, insertApiCostSchema, insertUserSessionSchema, insertFeatureUsageSchema, insertAccountTypeSchema, insertBillingPlanSchema, insertBillingPlanPriceSchema, insertBillingHistorySchema, insertPaymentMethodSchema, insertSubscriptionUsageSchema } from "@shared/schema";
 import { cloudflareService } from "./services/cloudflareService";
 import { ErrorClusteringService } from "./errorClusteringService";
 import { ConflictValidationService } from "./services/conflictValidationService.js";
@@ -8093,6 +8093,111 @@ Best regards,
     } catch (error) {
       console.error("Error reordering event locations:", error);
       res.status(500).json({ message: "Failed to reorder event locations" });
+    }
+  });
+
+  // Contact groups routes
+  app.get('/api/projects/:id/contact-groups', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      
+      // Check project access
+      const project = await storage.getProjectById(projectId);
+      if (!project || project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const groups = await storage.getContactGroupsByProjectId(projectId);
+      res.json(groups);
+    } catch (error) {
+      console.error("Error fetching contact groups:", error);
+      res.status(500).json({ message: "Failed to fetch contact groups" });
+    }
+  });
+
+  app.post('/api/projects/:id/contact-groups', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      
+      // Check project access
+      const project = await storage.getProjectById(projectId);
+      if (!project || project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const groupData = insertContactGroupSchema.parse({
+        ...req.body,
+        projectId,
+        createdBy: parseInt(req.user.id.toString()),
+      });
+
+      const group = await storage.createContactGroup(groupData);
+      res.status(201).json(group);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid group data", errors: error.errors });
+      }
+      console.error("Error creating contact group:", error);
+      res.status(500).json({ message: "Failed to create contact group" });
+    }
+  });
+
+  app.patch('/api/contact-groups/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const groupData = insertContactGroupSchema.partial().parse(req.body);
+      const updatedGroup = await storage.updateContactGroup(parseInt(req.params.id), groupData);
+      res.json(updatedGroup);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid group data", errors: error.errors });
+      }
+      console.error("Error updating contact group:", error);
+      res.status(500).json({ message: "Failed to update contact group" });
+    }
+  });
+
+  app.delete('/api/contact-groups/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      await storage.deleteContactGroup(parseInt(req.params.id));
+      res.json({ message: "Contact group deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting contact group:", error);
+      res.status(500).json({ message: "Failed to delete contact group" });
+    }
+  });
+
+  app.put('/api/projects/:id/contact-groups/reorder', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const { groupIds } = req.body;
+      
+      // Check project access
+      const project = await storage.getProjectById(projectId);
+      if (!project || project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      if (!Array.isArray(groupIds)) {
+        return res.status(400).json({ message: "groupIds must be an array" });
+      }
+
+      await storage.reorderContactGroups(projectId, groupIds);
+      res.json({ message: "Contact groups reordered successfully" });
+    } catch (error) {
+      console.error("Error reordering contact groups:", error);
+      res.status(500).json({ message: "Failed to reorder contact groups" });
     }
   });
 

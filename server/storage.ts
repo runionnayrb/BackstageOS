@@ -21,6 +21,7 @@ import {
   emailContacts,
   distributionLists,
   distributionListMembers,
+  contactGroups,
   contactAvailability,
   scheduleEvents,
   scheduleEventParticipants,
@@ -130,6 +131,8 @@ import {
   type InsertDistributionList,
   type DistributionListMember,
   type InsertDistributionListMember,
+  type ContactGroup,
+  type InsertContactGroup,
   type ContactAvailability,
   type InsertContactAvailability,
   type ScheduleEvent,
@@ -430,6 +433,13 @@ export interface IStorage {
   updateEmailContact(id: number, contact: Partial<InsertEmailContact>): Promise<EmailContact>;
   deleteEmailContact(id: number): Promise<void>;
   syncShowContactsToEmailContacts(userId: number, projectId: number): Promise<void>;
+
+  // Contact groups operations
+  getContactGroupsByProjectId(projectId: number): Promise<ContactGroup[]>;
+  createContactGroup(group: InsertContactGroup): Promise<ContactGroup>;
+  updateContactGroup(id: number, group: Partial<InsertContactGroup>): Promise<ContactGroup>;
+  deleteContactGroup(id: number): Promise<void>;
+  reorderContactGroups(projectId: number, groupIds: number[]): Promise<void>;
 
   // Contact availability operations
   getContactAvailability(contactId: number, projectId: number): Promise<ContactAvailability[]>;
@@ -2729,6 +2739,54 @@ export class DatabaseStorage implements IStorage {
       ...event,
       childEvents,
     };
+  }
+
+  // Contact groups methods
+  async getContactGroupsByProjectId(projectId: number): Promise<ContactGroup[]> {
+    const result = await db.select()
+      .from(contactGroups)
+      .where(eq(contactGroups.projectId, projectId))
+      .orderBy(contactGroups.sortOrder, contactGroups.name);
+    return result;
+  }
+
+  async createContactGroup(group: InsertContactGroup): Promise<ContactGroup> {
+    const maxOrder = await db.select({ maxOrder: max(contactGroups.sortOrder) })
+      .from(contactGroups)
+      .where(eq(contactGroups.projectId, group.projectId));
+    
+    const nextOrder = (maxOrder[0]?.maxOrder || 0) + 1;
+    
+    const result = await db.insert(contactGroups).values({
+      ...group,
+      sortOrder: nextOrder
+    }).returning();
+    return result[0];
+  }
+
+  async updateContactGroup(id: number, updates: Partial<InsertContactGroup>): Promise<ContactGroup> {
+    const result = await db.update(contactGroups)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(contactGroups.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteContactGroup(id: number): Promise<void> {
+    await db.delete(contactGroups).where(eq(contactGroups.id, id));
+  }
+
+  async reorderContactGroups(projectId: number, groupIds: number[]): Promise<void> {
+    const updatePromises = groupIds.map((groupId, index) =>
+      db.update(contactGroups)
+        .set({ sortOrder: index + 1, updatedAt: new Date() })
+        .where(and(
+          eq(contactGroups.id, groupId),
+          eq(contactGroups.projectId, projectId)
+        ))
+    );
+    
+    await Promise.all(updatePromises);
   }
 
   // Event Locations methods
