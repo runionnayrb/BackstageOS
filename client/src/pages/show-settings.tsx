@@ -1756,15 +1756,6 @@ The Production Team`
                           value={departmentForm.name}
                           onChange={(e) => setDepartmentForm({ name: e.target.value })}
                           data-testid="input-department-name"
-                          onFocus={(e) => {
-                            const input = e.currentTarget;
-                            input.removeAttribute('readonly');
-                            setTimeout(() => input.setSelectionRange(0, 0), 0);
-                          }}
-                          onMouseDown={(e) => {
-                            e.preventDefault();
-                          }}
-                          readOnly
                         />
                       </div>
                     </div>
@@ -1837,7 +1828,7 @@ The Production Team`
                       >
                         <CardHeader className="p-4">
                           <div className="flex items-center justify-between">
-                            <CardTitle className="text-base">{name as string}</CardTitle>
+                            <CardTitle className="text-base select-none">{name as string}</CardTitle>
                           </div>
                         </CardHeader>
                       </Card>
