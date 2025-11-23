@@ -69,8 +69,6 @@ export default function Personnel() {
   ];
 
   const [categories, setCategories] = useState(defaultCategories);
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-  const [isReordering, setIsReordering] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
   const [availabilityContact, setAvailabilityContact] = useState<Contact | null>(null);
@@ -184,11 +182,6 @@ export default function Personnel() {
           title: 'Create reports'
         },
         {
-          icon: GripVertical,
-          onClick: () => setIsReordering(!isReordering),
-          title: 'Reorder categories'
-        },
-        {
           icon: Plus,
           onClick: () => handleNewContactClick(),
           title: 'Add contact'
@@ -199,23 +192,7 @@ export default function Personnel() {
     }
 
     return () => clearPageHeaderIcons();
-  }, [isMobile, projectId, isReordering]);
-
-  // Save category order mutation
-  const saveCategoryOrderMutation = useMutation({
-    mutationFn: async (categoryOrder: string[]) => {
-      return await apiRequest("PATCH", `/api/projects/${projectId}/settings`, {
-        contactCategoriesOrder: categoryOrder
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: "Failed to save category order",
-        variant: "destructive",
-      });
-    },
-  });
+  }, [isMobile, projectId]);
 
   // Contact group mutations
   const createGroupMutation = useMutation({
@@ -290,46 +267,6 @@ export default function Personnel() {
     [sortedGroups[draggedIdx], sortedGroups[targetIdx]] = [sortedGroups[targetIdx], sortedGroups[draggedIdx]];
     reorderGroupsMutation.mutate(sortedGroups.map(g => g.id));
     setDraggedGroupId(null);
-  };
-
-  // Drag and drop handlers
-  const handleDragStart = (e: React.DragEvent, index: number) => {
-    setDraggedIndex(index);
-    e.dataTransfer.effectAllowed = "move";
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-  };
-
-  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
-    e.preventDefault();
-    
-    if (draggedIndex === null || draggedIndex === dropIndex) {
-      setDraggedIndex(null);
-      return;
-    }
-
-    const newCategories = [...categories];
-    const draggedCategory = newCategories[draggedIndex];
-    
-    // Remove dragged item
-    newCategories.splice(draggedIndex, 1);
-    
-    // Insert at new position
-    newCategories.splice(dropIndex, 0, draggedCategory);
-    
-    setCategories(newCategories);
-    setDraggedIndex(null);
-    
-    // Save the new order
-    const categoryOrder = newCategories.map(cat => cat.id);
-    saveCategoryOrderMutation.mutate(categoryOrder);
-  };
-
-  const handleDragEnd = () => {
-    setDraggedIndex(null);
   };
 
   // Group contacts by group ID, using contact groups from database
@@ -522,14 +459,6 @@ export default function Personnel() {
                 </div>
               </DialogContent>
             </Dialog>
-            <Button
-              variant={isReordering ? "default" : "ghost"}
-              onClick={() => setIsReordering(!isReordering)}
-              className="flex items-center gap-2"
-            >
-              <GripVertical className="h-4 w-4" />
-              {isReordering ? "Done Reordering" : "Reorder"}
-            </Button>
           </div>
         </div>
       </div>
@@ -537,29 +466,14 @@ export default function Personnel() {
       {/* Mobile Contact List */}
       <div className="md:hidden px-4 pt-4 pb-4">
         <div className="space-y-6">
-          {categories.map((category, categoryIndex) => {
+          {categories.map((category) => {
             const categoryContacts = contactsByCategory[category.id] || [];
             
             return (
               <div
                 key={category.id}
-                draggable={isReordering}
-                onDragStart={isReordering ? (e) => handleDragStart(e, categoryIndex) : undefined}
-                onDragOver={isReordering ? handleDragOver : undefined}
-                onDrop={isReordering ? (e) => handleDrop(e, categoryIndex) : undefined}
-                onDragEnd={isReordering ? handleDragEnd : undefined}
-                className={`${
-                  isReordering && draggedIndex === categoryIndex 
-                    ? 'opacity-50 bg-blue-50 border-blue-200 border-2 rounded-lg p-3' 
-                    : ''
-                }`}
               >
                 <div className="flex items-center gap-2 mb-3">
-                  {isReordering && (
-                    <div className="drag-handle cursor-grab active:cursor-grabbing">
-                      <GripVertical className="h-5 w-5 text-gray-400" />
-                    </div>
-                  )}
                   <h2 className="text-lg font-semibold text-gray-900">{category.title}</h2>
                   <span className="text-gray-500 text-sm">({categoryContacts.length})</span>
                 </div>
@@ -647,29 +561,14 @@ export default function Personnel() {
       {/* Desktop Contact List */}
       <div className="hidden md:block px-4 sm:px-6 lg:px-8">
         <div className="space-y-8">
-          {categories.map((category, categoryIndex) => {
+          {categories.map((category) => {
             const categoryContacts = contactsByCategory[category.id] || [];
             
             return (
               <div
                 key={category.id}
-                draggable={isReordering}
-                onDragStart={isReordering ? (e) => handleDragStart(e, categoryIndex) : undefined}
-                onDragOver={isReordering ? handleDragOver : undefined}
-                onDrop={isReordering ? (e) => handleDrop(e, categoryIndex) : undefined}
-                onDragEnd={isReordering ? handleDragEnd : undefined}
-                className={`${
-                  isReordering && draggedIndex === categoryIndex 
-                    ? 'opacity-50 bg-blue-50 border-blue-200 border-2 rounded-lg p-4' 
-                    : ''
-                }`}
               >
                 <div className="flex items-center gap-3 mb-4">
-                  {isReordering && (
-                    <div className="drag-handle cursor-grab active:cursor-grabbing">
-                      <GripVertical className="h-5 w-5 text-gray-400" />
-                    </div>
-                  )}
                   <h2 className="text-xl font-semibold text-gray-900">{category.title}</h2>
                   <span className="text-gray-500 text-sm">({categoryContacts.length})</span>
                 </div>
