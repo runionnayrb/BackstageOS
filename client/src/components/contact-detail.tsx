@@ -568,9 +568,11 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
                 <ReadOnlyField label="Mobile" value={contact.phone} href={contact.phone ? `tel:${contact.phone}` : undefined} />
                 <ReadOnlyField label="WhatsApp" value={contact.whatsapp} href={contact.whatsapp ? `tel:${contact.whatsapp}` : undefined} />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <ReadOnlyField label="Role" value={contact.role} />
+              <div className="grid grid-cols-1 gap-4">
                 <ReadOnlyField label="Contact Group" value={contact.groupId ? 'Assigned' : 'Not assigned'} />
+              </div>
+              <div className="grid grid-cols-1 gap-4">
+                <ReadOnlyField label="Role" value={contact.role} />
               </div>
               {contact.category === 'cast' && (
                 <div className="grid grid-cols-2 gap-4">
