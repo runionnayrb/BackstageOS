@@ -351,76 +351,78 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
         </div>
       </div>
 
-      {/* Photo Management */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Photo</h3>
-        <div className="flex items-start gap-4">
-          {/* Photo Display */}
-          <div className="flex-shrink-0">
-            {contact.photoUrl ? (
-              <div className="relative">
-                <img
-                  src={contact.photoUrl}
-                  alt={`${contact.firstName} ${contact.lastName}`}
-                  className="w-24 h-24 rounded-lg object-cover border"
-                />
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
-                  onClick={handleDeletePhoto}
-                  disabled={deletePhotoMutation.isPending}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </div>
-            ) : (
-              <div className="w-24 h-24 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
-                <Camera className="h-8 w-8 text-gray-400" />
-              </div>
-            )}
-          </div>
-          
-          {/* Photo Controls */}
-          <div className="flex-grow space-y-2">
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handlePhotoUpload}
-              accept="image/*"
-              className="hidden"
-            />
+      {/* Photo Management - Only show in edit mode */}
+      {isEditing && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Photo</h3>
+          <div className="flex items-start gap-4">
+            {/* Photo Display */}
+            <div className="flex-shrink-0">
+              {contact.photoUrl ? (
+                <div className="relative">
+                  <img
+                    src={contact.photoUrl}
+                    alt={`${contact.firstName} ${contact.lastName}`}
+                    className="w-24 h-24 rounded-lg object-cover border"
+                  />
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                    onClick={handleDeletePhoto}
+                    disabled={deletePhotoMutation.isPending}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="w-24 h-24 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
+                  <Camera className="h-8 w-8 text-gray-400" />
+                </div>
+              )}
+            </div>
             
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={triggerPhotoUpload}
-              disabled={isUploadingPhoto || uploadPhotoMutation.isPending}
-            >
-              <Upload className="h-4 w-4 mr-2" />
-              {isUploadingPhoto || uploadPhotoMutation.isPending ? "Optimizing..." : contact.photoUrl ? "Replace Photo" : "Add Photo"}
-            </Button>
-            
-            {contact.photoUrl && (
+            {/* Photo Controls */}
+            <div className="flex-grow space-y-2">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handlePhotoUpload}
+                accept="image/*"
+                className="hidden"
+              />
+              
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleDeletePhoto}
-                disabled={deletePhotoMutation.isPending}
-                className="ml-2"
+                onClick={triggerPhotoUpload}
+                disabled={isUploadingPhoto || uploadPhotoMutation.isPending}
               >
-                <Trash2 className="h-4 w-4 mr-2" />
-                {deletePhotoMutation.isPending ? "Removing..." : "Remove Photo"}
+                <Upload className="h-4 w-4 mr-2" />
+                {isUploadingPhoto || uploadPhotoMutation.isPending ? "Optimizing..." : contact.photoUrl ? "Replace Photo" : "Add Photo"}
               </Button>
-            )}
-            
-            <p className="text-xs text-gray-500">
-              JPG, PNG, or GIF up to 5MB<br />
-              Images are automatically optimized to WebP format (300×300px)
-            </p>
+              
+              {contact.photoUrl && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDeletePhoto}
+                  disabled={deletePhotoMutation.isPending}
+                  className="ml-2"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  {deletePhotoMutation.isPending ? "Removing..." : "Remove Photo"}
+                </Button>
+              )}
+              
+              <p className="text-xs text-gray-500">
+                JPG, PNG, or GIF up to 5MB<br />
+                Images are automatically optimized to WebP format (300×300px)
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Contact Information */}
       <div className="space-y-4">
