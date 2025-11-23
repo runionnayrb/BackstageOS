@@ -504,8 +504,10 @@ export const contacts = pgTable("contacts", {
   projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
   firstName: varchar("first_name").notNull(),
   lastName: varchar("last_name").notNull(),
+  preferredName: varchar("preferred_name"),
   email: varchar("email"),
   phone: varchar("phone"),
+  whatsapp: varchar("whatsapp"),
   category: varchar("category").notNull(), // cast, crew, stage_management, creative_team, theater_staff
   groupId: integer("group_id").references(() => contactGroups.id, { onDelete: "set null" }), // Reference to contact group
   role: varchar("role"), // specific role within category

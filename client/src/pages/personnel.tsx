@@ -27,8 +27,10 @@ interface Contact {
   projectId: number;
   firstName: string;
   lastName: string;
+  preferredName?: string;
   email?: string;
   phone?: string;
+  whatsapp?: string;
   category: string;
   groupId?: number;
   role?: string;

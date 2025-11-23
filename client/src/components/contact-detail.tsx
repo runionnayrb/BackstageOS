@@ -30,9 +30,12 @@ interface Contact {
   projectId: number;
   firstName: string;
   lastName: string;
+  preferredName?: string;
   email?: string;
   phone?: string;
+  whatsapp?: string;
   category: string;
+  groupId?: number;
   role?: string;
   notes?: string;
   photoUrl?: string;
@@ -61,8 +64,11 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
   const [formData, setFormData] = useState({
     firstName: contact.firstName || '',
     lastName: contact.lastName || '',
+    preferredName: contact.preferredName || '',
     email: contact.email || '',
     phone: contact.phone || '',
+    whatsapp: contact.whatsapp || '',
+    groupId: contact.groupId || '',
     role: contact.role || '',
     notes: contact.notes || '',
     emergencyContactName: contact.emergencyContactName || '',
