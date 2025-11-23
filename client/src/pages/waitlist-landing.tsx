@@ -340,10 +340,7 @@ export default function WaitlistLanding() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">A System Made for Stage Managers</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              We're not just digitizing old workflows - we're reimagining what's possible 
-              when technology truly serves the art of theater.
-            </p>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">Reimagine what's possible when technology truly serves the art of live entertainment.</p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-12">
