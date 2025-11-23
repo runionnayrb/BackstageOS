@@ -244,7 +244,32 @@ export default function Personnel() {
       method: 'PUT',
       body: JSON.stringify({ groupIds }),
     }),
+    onMutate: (groupIds: number[]) => {
+      // Optimistic update - reorder groups immediately
+      const previousGroups = queryClient.getQueryData<ContactGroup[]>([`/api/projects/${projectId}/contact-groups`]);
+      if (previousGroups) {
+        const reorderedGroups = groupIds.map((id, index) => {
+          const group = previousGroups.find(g => g.id === id);
+          return group ? { ...group, sortOrder: index + 1 } : group;
+        }).filter((g): g is ContactGroup => g !== undefined);
+        
+        queryClient.setQueryData([`/api/projects/${projectId}/contact-groups`], reorderedGroups);
+      }
+      return previousGroups;
+    },
+    onError: (error, variables, context) => {
+      // Revert to previous data on error
+      if (context) {
+        queryClient.setQueryData([`/api/projects/${projectId}/contact-groups`], context);
+      }
+      toast({
+        title: "Error",
+        description: "Failed to reorder groups",
+        variant: "destructive",
+      });
+    },
     onSuccess: () => {
+      // Refetch to make sure we're in sync with server
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contact-groups`] });
     },
   });
