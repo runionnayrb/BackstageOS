@@ -55,8 +55,9 @@ export default function AuthPage() {
         {/* Hero Content */}
         <div className="text-white space-y-8 pt-6 lg:pt-16">
           <div className="text-center lg:text-left">
-            <h1 className="text-4xl lg:text-6xl font-bold mb-4 leading-tight">
-              BackstageOS
+            <h1 className="text-4xl lg:text-6xl mb-4 leading-tight">
+              <span style={{ fontWeight: 400 }}>Backstage</span>
+              <span style={{ fontWeight: 700 }}>OS</span>
             </h1>
             <p className="text-xl lg:text-2xl opacity-90 leading-relaxed">
               The complete stage management platform for professional stage managers
