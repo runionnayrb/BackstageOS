@@ -290,11 +290,6 @@ export default function PropsTracker() {
               </div>
             )
           }
-        },
-        {
-          icon: Plus,
-          onClick: () => setIsAddingProp(true),
-          title: 'Add prop'
         }
       ]);
     } else {
@@ -1093,6 +1088,12 @@ export default function PropsTracker() {
             </div>
           </DialogContent>
         </Dialog>
+        {isMobile && (
+          <FloatingActionButton
+            onClick={() => setIsAddingProp(true)}
+            title="Add prop"
+          />
+        )}
     </div>
   );
 }

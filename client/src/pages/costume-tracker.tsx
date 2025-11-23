@@ -245,11 +245,6 @@ export default function CostumeTracker() {
               </div>
             )
           }
-        },
-        {
-          icon: Plus,
-          onClick: () => setIsAddingCostume(true),
-          title: 'Add costume'
         }
       ]);
     } else {
@@ -1002,6 +997,12 @@ export default function CostumeTracker() {
             </div>
           </DialogContent>
         </Dialog>
+        {isMobile && (
+          <FloatingActionButton
+            onClick={() => setIsAddingCostume(true)}
+            title="Add costume"
+          />
+        )}
 
     </div>
   );
