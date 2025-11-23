@@ -1756,6 +1756,8 @@ The Production Team`
                           value={departmentForm.name}
                           onChange={(e) => setDepartmentForm({ name: e.target.value })}
                           data-testid="input-department-name"
+                          onFocus={(e) => e.currentTarget.removeAttribute('readonly')}
+                          readOnly
                         />
                       </div>
                     </div>
@@ -1818,7 +1820,7 @@ The Production Team`
                     .map(([key, name]) => (
                       <Card 
                         key={key} 
-                        className="cursor-pointer hover:shadow-md transition-shadow" 
+                        className="cursor-pointer hover:shadow-md transition-shadow select-none" 
                         data-testid={`card-department-${key}`}
                         onClick={() => {
                           setEditingDepartment({ key, name: name as string });
