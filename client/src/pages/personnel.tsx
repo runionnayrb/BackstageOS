@@ -15,6 +15,7 @@ import { WeeklyAvailabilityEditor } from "@/components/weekly-availability-edito
 import { ContactForm } from "@/components/contact-form";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { setPageHeaderIcons, clearPageHeaderIcons } from "@/hooks/useHeaderIcons";
+import { FloatingActionButton } from "@/components/navigation/floating-action-button";
 import type { ContactGroup } from "@shared/schema";
 
 
@@ -187,11 +188,6 @@ export default function Personnel() {
           icon: Users,
           onClick: () => setGroupsModalOpen(true),
           title: 'Manage groups'
-        },
-        {
-          icon: Plus,
-          onClick: () => handleNewContactClick(),
-          title: 'Add contact'
         }
       ]);
     } else {
@@ -686,6 +682,12 @@ export default function Personnel() {
           />
         </DialogContent>
       </Dialog>
+      {isMobile && (
+        <FloatingActionButton
+          onClick={() => handleNewContactClick()}
+          title="Add contact"
+        />
+      )}
     </div>
   );
 }
