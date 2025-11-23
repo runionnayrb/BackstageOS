@@ -14318,12 +14318,7 @@ The Production Team`;
           scheduleUpdates: true,
           majorVersionsOnly: false,
           emailEnabled: true,
-          calendarSync: false,
-          reminderSettings: {
-            scheduleChanges: 24,
-            newVersions: 2,
-            personalScheduleUpdates: true
-          }
+          calendarSync: false
         });
       }
       

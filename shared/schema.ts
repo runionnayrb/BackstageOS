@@ -2997,15 +2997,6 @@ export const notificationPreferences = pgTable("notification_preferences", {
   majorVersionsOnly: boolean("major_versions_only").default(false),
   emailEnabled: boolean("email_enabled").default(true),
   calendarSync: boolean("calendar_sync").default(false),
-  reminderSettings: jsonb("reminder_settings").$type<{
-    scheduleChanges: number; // hours before
-    newVersions: number; // hours before
-    personalScheduleUpdates: boolean;
-  }>().default({
-    scheduleChanges: 24,
-    newVersions: 2,
-    personalScheduleUpdates: true
-  }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
