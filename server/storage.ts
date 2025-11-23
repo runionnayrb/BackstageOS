@@ -263,7 +263,7 @@ export interface IStorage {
   updateUser(userId: string, updates: Partial<UpsertUser>): Promise<User>;
   
   // Beta access operations
-  updateUserBetaAccess(userId: string, betaAccess: string, betaFeatures?: string[]): Promise<User>;
+  updateUserBetaAccess(userId: string, betaAccess: boolean): Promise<User>;
   getBetaUsers(): Promise<User[]>;
   
   // Admin user management operations
@@ -793,12 +793,9 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
-  async updateUserBetaAccess(userId: string, betaAccess: string, betaFeatures?: string[]): Promise<User> {
+  async updateUserBetaAccess(userId: string, betaAccess: boolean): Promise<User> {
     const result = await db.update(users)
-      .set({ 
-        betaAccess,
-        betaFeatures: betaFeatures || []
-      })
+      .set({ betaAccess })
       .where(eq(users.id, parseInt(userId)))
       .returning();
     return result[0];
@@ -807,7 +804,7 @@ export class DatabaseStorage implements IStorage {
   async getBetaUsers(): Promise<User[]> {
     const result = await db.select()
       .from(users)
-      .where(sql`${users.betaAccess} != 'none'`);
+      .where(eq(users.betaAccess, true));
     return result;
   }
 

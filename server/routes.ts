@@ -1968,13 +1968,13 @@ Respond with valid JSON only.`;
         return res.status(403).json({ message: "Admin access required" });
       }
       
-      const { targetUserId, betaAccess, betaFeatures } = req.body;
+      const { targetUserId, betaAccess } = req.body;
       
-      if (!targetUserId || !['none', 'limited', 'full'].includes(betaAccess)) {
+      if (!targetUserId || typeof betaAccess !== 'boolean') {
         return res.status(400).json({ message: "Invalid beta access parameters" });
       }
       
-      const updatedUser = await storage.updateUserBetaAccess(targetUserId, betaAccess, betaFeatures);
+      const updatedUser = await storage.updateUserBetaAccess(targetUserId, betaAccess);
       res.json(updatedUser);
     } catch (error) {
       console.error("Error updating beta access:", error);
