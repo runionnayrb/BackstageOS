@@ -281,7 +281,6 @@ export default function WaitlistLanding() {
           </div>
         </div>
       </section>
-
       {/* Features Section */}
       <section className="py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4">
@@ -310,7 +309,6 @@ export default function WaitlistLanding() {
           </div>
         </div>
       </section>
-
       {/* Workflow Section */}
       <section className="py-24">
         <div className="max-w-7xl mx-auto px-4">
@@ -344,14 +342,11 @@ export default function WaitlistLanding() {
           </div>
         </div>
       </section>
-
       {/* Technology Section */}
       <section className="py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Pioneering Technology for Stage Managers
-            </h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">A System Made for Stage Managers</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               We're not just digitizing old workflows - we're reimagining what's possible 
               when technology truly serves the art of theater.
@@ -373,7 +368,6 @@ export default function WaitlistLanding() {
           </div>
         </div>
       </section>
-
       {/* Waitlist Form Section */}
       <section id="waitlist-form" className="py-24">
         <div className="max-w-4xl mx-auto px-4">
@@ -498,7 +492,6 @@ export default function WaitlistLanding() {
           </Card>
         </div>
       </section>
-
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4">
