@@ -4,6 +4,29 @@
 BackstageOS is a comprehensive theater management platform designed for professional stage managers. Its primary purpose is to streamline production workflows by offering show-centric organization with complete data isolation, ensuring no information cross-contamination between productions. Built as a modern full-stack application, it provides professional-grade stage management tools within an intuitive, document-style interface. Key capabilities include production and team management, a robust report system, and advanced tools for script editing, props, costume tracking, and notes. The project aims to revolutionize backstage operations by providing a unified, efficient, and intuitive digital environment for theater professionals, enhancing productivity and communication.
 
 ## Recent Changes (November 2025)
+- **Contact Management Enhancements (November 23, 2025)**:
+  - **New Contact Fields**: Added three new fields to contacts table and UI:
+    - `preferredName` - optional field for stage name or preferred name (displayed next to Last Name in edit modal)
+    - `whatsapp` - optional WhatsApp phone number (displayed next to Mobile/Phone with auto-formatting)
+    - `groupId` - foreign key linking contacts to flexible, user-configurable contact groups (replaces hardcoded categories)
+  - **Database Migration**: Successfully added missing columns to contacts table using direct SQL. All three columns are nullable VARCHAR for flexibility.
+  - **UI Layout Updates**: 
+    - Contact Information section redesigned: First row (First/Last/Preferred Name), Second row (Email/Mobile/WhatsApp), Third row (Contact Group), Fourth row (Role)
+    - Contact Group field positioned directly underneath Mobile field in read-only view
+    - Photo section now only displays when a photo exists or during edit mode (hidden in read-only view if no photo)
+  - **Label Changes**: Changed "Phone" label to "Mobile" throughout the interface for clarity
+  - **Form Cleanup**: Removed old hardcoded Contact Type field (cast, crew, creative team, etc.) from create contact modal - now uses only flexible Contact Group system
+  - **Button Styling**: Updated Edit/Save/Close buttons in contact detail modal to display as clean icon-only buttons with gray text, no background, and blue hover color effect
+  - **Mobile Header Redesign**:
+    - Removed Plus icon from mobile header
+    - Added Groups button (Users icon) between Document icon and Plus icon
+    - Implemented floating action button (FAB) at bottom right of page for adding new contacts on mobile only
+    - Fixed dropdown alignment for Contact Sheet/Company List dropdown (side="bottom" align="end" sideOffset={8})
+  - **Mobile Schedule**: Removed back arrow button from mobile schedule page header for cleaner design
+- **Mobile UI Consistency (November 23, 2025)**:
+  - **Floating Action Buttons**: Implemented blue circular + FAB at bottom right on mobile-only views for Props, Costumes, and Contacts pages
+  - **Header Icon Consolidation**: Removed Plus icon from mobile headers on Props, Costumes, and Contacts pages. Added to floating button instead for consistent mobile UX pattern
+  - **Implementation**: All three pages (Props, Costumes, Contacts) now use FloatingActionButton component from `@/components/navigation/floating-action-button` for mobile add functionality
 - **Weekly & Daily Schedule View Alignment & Standardization (November 18, 2025)**: 
   - **Weekly View Vertical Alignment Fix**: Resolved critical alignment issue where vertical day separator lines weren't aligning across header, all-day events section, and time grid. Root cause was scrollbar width discrepancy - time grid had scrollbar while header/all-day sections didn't, causing different width calculations. Solution: Hidden scrollbar visually using CSS (`.scrollbar-hide` class with `::-webkit-scrollbar { display: none }` and `scrollbarWidth: 'none'`, `msOverflowStyle: 'none'` for Firefox/IE/Edge) while maintaining scroll functionality. This ensures all sections have identical widths for perfect column alignment.
   - **Weekly View Structure**: Fixed sections now include header row (24px height with date labels) and All Day events section (60px min height), both non-scrolling. Only the time grid (600px max height) scrolls, with scrollbar hidden. All sections use same column calculation formula: `calc(64px + (100% - 64px) * ${dayIndex} / 7)` for precise alignment.
@@ -36,6 +59,7 @@ Navigation preference: Streamlined project-centric interface - click into show t
 Show organization: Reports (5 types), Calendar (Schedule + Daily Calls with drag-drop), Script, Cast, Tasks (list + board view).
 Documentation types needed: Reports, props lists, scripts, costume tracking, scene shift plots, line set schedules, character/scene breakdowns, stage plots, ground plans.
 UI Pattern Standard: List format (not gallery/grid) for all list-based views, entire cards clickable to open edit modal, no inline edit/delete icons on cards, delete button in modal footer with confirmation dialog. This pattern ensures consistency across the entire application.
+Contact Management: Flexible, user-configurable contact groups that replace hardcoded categories. Groups are project-scoped for multi-project support. Each contact can be assigned to a group and includes extended information fields (preferred name, WhatsApp).
 
 ## System Architecture
 BackstageOS is built with a show-centric design, ensuring complete data isolation per production.
@@ -50,7 +74,7 @@ BackstageOS is built with a show-centric design, ensuring complete data isolatio
 - **Form Handling**: React Hook Form with Zod validation
 - **Design System**: "new-york" style variant with CSS custom properties for themes.
 - **Responsive Design**: Mobile-first approach with Tailwind breakpoints.
-- **UI/UX Decisions**: Clean, minimal interface, borderless/document-style editing, Gmail-style email views, Apple Mail-style mobile experiences, iOS-style pull-to-reveal breadcrumbs, and consistent icon-only button designs.
+- **UI/UX Decisions**: Clean, minimal interface, borderless/document-style editing, Gmail-style email views, Apple Mail-style mobile experiences, iOS-style pull-to-reveal breadcrumbs, consistent icon-only button designs, and floating action buttons for primary mobile actions.
 
 **Backend Architecture:**
 - **Runtime**: Node.js with Express.js
@@ -63,12 +87,13 @@ BackstageOS is built with a show-centric design, ensuring complete data isolatio
 - **Database**: PostgreSQL (configured for Neon serverless)
 - **Schema Management**: Drizzle Kit for migrations
 - **Connection Pooling**: Neon serverless connection pooling
-- **Data Isolation**: All content is project-scoped via foreign keys. Key tables include `users`, `projects`, `sessions`, `reports`, `report_templates`, `show_documents`, `show_schedules`, `show_characters`, and `team_members`.
+- **Data Isolation**: All content is project-scoped via foreign keys. Key tables include `users`, `projects`, `sessions`, `reports`, `report_templates`, `show_documents`, `show_schedules`, `show_characters`, `team_members`, `contacts`, and `contact_groups`.
 
 **Core Architectural Decisions & Features:**
 - **Authentication System**: Secure login, user profiles (freelance vs full-time), and role-based permissions.
 - **Project Management**: Show-centric organization, multi-stage project lifecycle, team member management, and secure sharing.
 - **Report System**: Four report types (rehearsal, tech, performance, meeting) with custom templates, rich text editing, and document-style interface. Tech reports use global header/footer settings.
+- **Contact Management**: Flexible contact groups that replace hardcoded categories, with extended contact information fields (preferred name, WhatsApp, group assignment). Groups are project-scoped and user-configurable with drag-to-reorder functionality.
 - **Advanced Tools**: Script editor with cue-building, props/costume trackers, Apple Notes/Notion-style notes system, drag-and-drop availability management.
 - **Admin & Beta Features**: Admin dashboard for user management, user perspective switching, and a three-tier beta access control system for phased feature rollout.
 - **PWA Implementation**: Foundation for offline capabilities, background sync, native app appearance, and smart install banners.
