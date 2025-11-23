@@ -236,10 +236,11 @@ export default function EnhancedHeader() {
           {/* Desktop Layout - Left side - Logo and Navigation */}
           <div className="hidden md:flex items-center gap-1 flex-1 min-w-0">
             <div 
-              className="text-xl font-bold text-gray-900 cursor-pointer hover:text-gray-700 transition-colors flex-shrink-0"
+              className="text-xl text-gray-900 cursor-pointer hover:text-gray-700 transition-colors flex-shrink-0"
               onClick={() => setLocation('/')}
             >
-              BackstageOS
+              <span style={{ fontWeight: 400 }}>Backstage</span>
+              <span style={{ fontWeight: 700 }}>OS</span>
             </div>
             
             {/* Navigation Menu - Desktop only */}
