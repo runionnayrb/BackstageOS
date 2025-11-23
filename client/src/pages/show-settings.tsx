@@ -1209,7 +1209,6 @@ The Production Team`
             <Settings className="h-6 w-6" />
             <h1 className="text-3xl font-bold">Show Settings</h1>
           </div>
-          <p className="text-muted-foreground">{(project as any)?.name} • Configure settings and permissions</p>
         </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
