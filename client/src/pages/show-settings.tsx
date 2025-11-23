@@ -1757,8 +1757,9 @@ The Production Team`
                           onChange={(e) => setDepartmentForm({ name: e.target.value })}
                           data-testid="input-department-name"
                           onFocus={(e) => {
-                            e.currentTarget.removeAttribute('readonly');
-                            setTimeout(() => e.currentTarget.setSelectionRange(0, 0), 0);
+                            const input = e.currentTarget;
+                            input.removeAttribute('readonly');
+                            setTimeout(() => input.setSelectionRange(0, 0), 0);
                           }}
                           onMouseDown={(e) => {
                             e.preventDefault();
