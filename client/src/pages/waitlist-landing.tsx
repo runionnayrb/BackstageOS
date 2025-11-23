@@ -470,10 +470,8 @@ export default function WaitlistLanding() {
                   )}
                 </Button>
 
-                <p className="text-sm text-gray-500 text-center">
-                  By joining the waitlist, you agree to receive updates about BackstageOS. 
-                  We respect your privacy and will never share your information.
-                </p>
+                <p className="text-sm text-gray-500 text-center">By joining the waitlist, you agree to receive updates about BackstageOS. 
+                We respect your privacy and will never share your information.</p>
               </form>
             </CardContent>
           </Card>
