@@ -171,7 +171,7 @@ export default function Personnel() {
                   <FileText className="h-5 w-5" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent side="left" align="end">
                 <DropdownMenuItem onClick={() => setLocation(`/shows/${projectId}/contact-sheet`)}>
                   Contact Sheet
                 </DropdownMenuItem>
