@@ -121,7 +121,7 @@ export default function Calendar() {
 
       {/* Desktop Header */}
       <div className="hidden md:block px-4 sm:px-6 lg:px-8 pt-6 mb-6">
-        <h1 className="text-3xl font-bold">Calendar</h1>
+        <h1 className="text-3xl font-bold">Schedule</h1>
       </div>
 
       {/* Mobile: Add minimal top padding */}
