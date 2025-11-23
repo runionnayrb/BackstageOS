@@ -1,4 +1,4 @@
-import { FolderOpen, Mail, CheckSquare, FileText, MessageSquare, MoreHorizontal, Settings, CreditCard, Shield, LogOut, Plus, Users, Calendar, TrendingUp } from "lucide-react";
+import { FolderOpen, Mail, CheckSquare, FileText, MessageSquare, MoreHorizontal, Settings, CreditCard, Shield, LogOut, Plus, Users, Calendar, TrendingUp, Shirt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -261,10 +261,12 @@ export default function MobileFooterNav() {
                     Performance Tracker
                   </DropdownMenuItem>
                 )}
-                <DropdownMenuItem onClick={() => setLocation(`/shows/${showId}/schedule-mapping`)}>
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Schedule Mapping
-                </DropdownMenuItem>
+                {canAccessFeature('costume-tracker') && isFeatureEnabled('costumes') && (
+                  <DropdownMenuItem onClick={() => setLocation(`/shows/${showId}/costumes`)}>
+                    <Shirt className="h-4 w-4 mr-2" />
+                    Costumes
+                  </DropdownMenuItem>
+                )}
                 {canAccessFeature('task-boards') && (
                   <DropdownMenuItem onClick={() => setLocation(`/shows/${showId}/tasks`)}>
                     <CheckSquare className="h-4 w-4 mr-2" />
