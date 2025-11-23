@@ -1,7 +1,7 @@
 import type { RequestHandler } from "express";
 import { storage } from "./storage";
 
-// Define available beta features
+// Define available beta features (deprecated - kept for backward compatibility)
 export const BETA_FEATURES = {
   SCRIPT_EDITOR: 'script-editor',
   PROPS_TRACKER: 'props-tracker',
@@ -40,18 +40,6 @@ export const requiresBetaAccess = (requiredFeature?: string): RequestHandler => 
         });
       }
 
-      // Check specific feature access if feature is specified
-      if (requiredFeature) {
-        const betaFeatures = user.betaFeatures ? JSON.parse(user.betaFeatures as string) : [];
-        if (!betaFeatures.includes(requiredFeature)) {
-          return res.status(403).json({ 
-            message: `Access to ${requiredFeature} feature is not enabled`,
-            betaRequired: true,
-            feature: requiredFeature
-          });
-        }
-      }
-
       next();
     } catch (error) {
       console.error("Beta access check error:", error);
@@ -61,7 +49,7 @@ export const requiresBetaAccess = (requiredFeature?: string): RequestHandler => 
 };
 
 // Check if user has access to a feature (for frontend use)
-export const checkFeatureAccess = async (userId: string, feature: string): Promise<boolean> => {
+export const checkFeatureAccess = async (userId: string, feature?: string): Promise<boolean> => {
   try {
     // Owner always has access
     if (userId === '44106967') {
@@ -69,15 +57,12 @@ export const checkFeatureAccess = async (userId: string, feature: string): Promi
     }
 
     const user = await storage.getUser(userId);
-    if (!user || !user.betaAccess) {
+    if (!user) {
       return false;
     }
 
-    // Check if the specific feature is enabled for this user
-    const betaFeatures = user.betaFeatures ? JSON.parse(user.betaFeatures as string) : [];
-    return betaFeatures.includes(feature);
-
-    return false;
+    // Simple beta access check - no feature-specific logic
+    return !!user.betaAccess;
   } catch (error) {
     console.error("Feature access check error:", error);
     return false;

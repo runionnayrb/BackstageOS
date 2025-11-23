@@ -146,7 +146,7 @@ export function setupAuth(app: Express) {
         password: hashedPassword,
         firstName,
         lastName,
-        betaAccess: "limited", // Default beta access
+        betaAccess: true, // All new registrations get beta access
         defaultReplyToEmail: email, // Auto-populate with their registration email
         emailDisplayName: `${firstName} ${lastName}`.trim() || null, // Auto-populate with their name
       });
