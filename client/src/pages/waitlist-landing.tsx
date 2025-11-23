@@ -375,10 +375,7 @@ export default function WaitlistLanding() {
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
               Join the Beta Version
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Be among the first stage managers to experience the future of theater production management. 
-              Limited beta access is coming soon.
-            </p>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">Limited beta access is coming soon.</p>
           </div>
 
           <Card className="max-w-2xl mx-auto">
