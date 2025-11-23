@@ -1756,7 +1756,13 @@ The Production Team`
                           value={departmentForm.name}
                           onChange={(e) => setDepartmentForm({ name: e.target.value })}
                           data-testid="input-department-name"
-                          onFocus={(e) => e.currentTarget.removeAttribute('readonly')}
+                          onFocus={(e) => {
+                            e.currentTarget.removeAttribute('readonly');
+                            setTimeout(() => e.currentTarget.setSelectionRange(0, 0), 0);
+                          }}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                          }}
                           readOnly
                         />
                       </div>
