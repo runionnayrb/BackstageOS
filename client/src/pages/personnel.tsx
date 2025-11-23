@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { ContactDetailModal } from "@/components/contact-detail-modal";
@@ -80,6 +80,7 @@ export default function Personnel() {
   const [groupsModalOpen, setGroupsModalOpen] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [draggedGroupId, setDraggedGroupId] = useState<number | null>(null);
+  const migrationAttemptedRef = useRef(false);
 
   const { data: project } = useQuery({
     queryKey: [`/api/projects/${projectId}`],
@@ -121,12 +122,13 @@ export default function Personnel() {
     },
   });
 
-  // Auto-migrate on first load if no groups exist
+  // Auto-migrate on first load if no groups exist - triggers when query completes
   useEffect(() => {
-    if (contactGroups.length === 0 && defaultCategories.length > 0) {
+    if (!migrationAttemptedRef.current && contactGroups.length === 0 && defaultCategories.length > 0) {
+      migrationAttemptedRef.current = true;
       migrateDefaultGroupsMutation.mutate();
     }
-  }, []);
+  }, [contactGroups, projectId]);
 
   // Load groups from API on mount
   useEffect(() => {
