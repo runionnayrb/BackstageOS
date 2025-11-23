@@ -623,8 +623,8 @@ export default function EnhancedHeader() {
               </Button>
             )}
 
-            {/* Availability button - Only show on calendar page */}
-            {navContext.showId && navContext.sectionId === 'calendar' && (
+            {/* Availability button - Only show on calendar overview page (not on schedule subpage) */}
+            {navContext.showId && navContext.sectionId === 'calendar' && !location.includes('/schedule') && (
               <Button
                 variant="ghost"
                 size="sm"
