@@ -1743,9 +1743,6 @@ The Production Team`
                   <DialogContent>
                     <DialogHeader>
                       <DialogTitle>{editingDepartment ? 'Edit Department' : 'Add Department'}</DialogTitle>
-                      <DialogDescription>
-                        {editingDepartment ? 'Update the department name.' : 'Create a new department to organize report sections.'}
-                      </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
                       <div>
