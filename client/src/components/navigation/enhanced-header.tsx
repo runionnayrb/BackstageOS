@@ -518,7 +518,7 @@ export default function EnhancedHeader() {
                     Send Feedback
                   </DropdownMenuItem>
 
-                  {isEffectiveAdmin(user, switchStatus) && (
+                  {isOriginalAdmin(user) && (
                     <>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={() => setLocation('/admin')}>
