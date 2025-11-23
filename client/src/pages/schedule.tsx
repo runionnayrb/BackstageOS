@@ -1084,7 +1084,7 @@ The Production Team`
               {/* Time Increment for all views - rightmost */}
               <div className="no-chevron">
                 <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value) as 15 | 30 | 60)}>
-                  <SelectTrigger className="w-12 h-8 border-0 bg-transparent shadow-none p-1 hover:bg-gray-100 rounded-md transition-colors flex items-center justify-center">
+                  <SelectTrigger className="w-8 h-8 border-0 bg-transparent shadow-none p-2 hover:bg-gray-100 rounded-md transition-colors flex items-center justify-center">
                     <Clock className="h-4 w-4 text-gray-600" />
                   </SelectTrigger>
                   <SelectContent align="end" className="min-w-[80px] w-auto">
