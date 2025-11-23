@@ -38,7 +38,10 @@ export default function MainLanding() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <Clapperboard className="h-8 w-8 text-primary" />
-              <h1 className="text-2xl font-bold text-gray-900">BackstageOS</h1>
+              <h1 className="text-2xl text-gray-900">
+                <span style={{ fontWeight: 400 }}>Backstage</span>
+                <span style={{ fontWeight: 700 }}>OS</span>
+              </h1>
             </div>
             <div className="flex items-center space-x-4">
               <Button variant="outline" onClick={handleJoinWaitlist}>
@@ -173,7 +176,10 @@ export default function MainLanding() {
         <div className="max-w-7xl mx-auto text-center">
           <div className="flex items-center justify-center space-x-3 mb-6">
             <Clapperboard className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold text-white">BackstageOS</span>
+            <span className="text-xl text-white">
+              <span style={{ fontWeight: 400 }}>Backstage</span>
+              <span style={{ fontWeight: 700 }}>OS</span>
+            </span>
           </div>
           <p className="text-gray-400 mb-4">
             Revolutionizing stage management for the modern theater professional.
