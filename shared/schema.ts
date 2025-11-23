@@ -507,6 +507,7 @@ export const contacts = pgTable("contacts", {
   email: varchar("email"),
   phone: varchar("phone"),
   category: varchar("category").notNull(), // cast, crew, stage_management, creative_team, theater_staff
+  groupId: integer("group_id").references(() => contactGroups.id, { onDelete: "set null" }), // Reference to contact group
   role: varchar("role"), // specific role within category
   notes: text("notes"),
   photoUrl: varchar("photo_url"), // Contact photo
