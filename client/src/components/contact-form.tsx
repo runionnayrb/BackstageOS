@@ -357,59 +357,6 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
             </div>
 
             <div>
-              <Label htmlFor="category">Contact Type *</Label>
-              <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select contact type..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="creative_team">Creative Team</SelectItem>
-                  <SelectItem value="stage_management">Stage Management</SelectItem>
-                  <SelectItem value="cast">Cast</SelectItem>
-                  <SelectItem value="crew">Crew</SelectItem>
-                  <SelectItem value="theater_staff">Theater Staff</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Cast Types Section - Only for Cast Category */}
-            {formData.category === 'cast' && (
-              <div>
-                <Label>Cast Type</Label>
-                <div className="grid grid-cols-2 gap-2 mt-2">
-                  {['principle', 'understudy', 'swing', 'ensemble'].map((castType) => (
-                    <div key={castType} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={castType}
-                        checked={formData.castTypes.includes(castType)}
-                        onCheckedChange={(checked) => handleCastTypeChange(castType, checked as boolean)}
-                      />
-                      <Label htmlFor={castType} className="text-sm capitalize">
-                        {castType}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Equity Status Section - Only for Cast Category */}
-            {formData.category === 'cast' && (
-              <div>
-                <Label>Equity Status</Label>
-                <Select value={formData.equityStatus} onValueChange={(value) => setFormData(prev => ({ ...prev, equityStatus: value }))}>
-                  <SelectTrigger className="mt-2">
-                    <SelectValue placeholder="Select equity status..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="equity">Equity</SelectItem>
-                    <SelectItem value="non-equity">Non-Equity</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            <div>
               <Label htmlFor="notes">Notes</Label>
               <Textarea
                 id="notes"
