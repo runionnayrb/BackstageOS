@@ -6,9 +6,33 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, CheckCircle, Archive } from "lucide-react";
 import { Link } from "wouter";
 
-const CURRENT_VERSION = "26.2.0";
+const CURRENT_VERSION = "26.3.0";
 
 const RELEASE_NOTES = [
+  {
+    version: "26.3.0",
+    date: "November 23, 2025",
+    type: "Major",
+    features: [
+      "<strong><u>CONTACT MANAGEMENT ENHANCEMENTS:</u></strong>",
+      "New contact fields: Preferred Name for stage names, WhatsApp for alternative contact method, and Contact Group for flexible team organization",
+      "Database migration with three new nullable columns (preferredName, whatsapp, groupId) for extended contact information",
+      "Redesigned contact information layout: First/Last/Preferred Name in first row, Email/Mobile/WhatsApp in second, Contact Group and Role below",
+      "Removed hardcoded contact types in favor of flexible, user-configurable contact groups that replace old category system",
+      "Button styling updated to clean icon-only design with gray text and blue hover effects in contact detail modal",
+      "<strong><u>MOBILE UI OPTIMIZATION:</u></strong>",
+      "Implemented floating action buttons (FAB) at bottom right for primary mobile actions on Props, Costumes, and Contacts pages",
+      "Removed Plus icons from mobile headers across all three pages for cleaner, focused mobile interface",
+      "Added Groups management button (Users icon) to mobile contacts header between Document and Groups buttons",
+      "Fixed dropdown alignment for Contact Sheet/Company List dropdown with proper side and align positioning",
+      "Removed back arrow button from mobile schedule page header for streamlined navigation",
+      "<strong><u>SCHEDULE FIXES:</u></strong>",
+      "Completed weekly and daily schedule view alignment standardization with scrollbar hiding and perfect column alignment",
+      "Fixed vertical day separator line alignment across header, all-day events, and time grid sections",
+      "Daily view now matches weekly view structure with identical time label and increment line logic",
+      "Consistent spacing with 1:1 pixel-to-minute ratio across both calendar views"
+    ]
+  },
   {
     version: "26.2.0",
     date: "July 20, 2025",
