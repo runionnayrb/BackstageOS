@@ -1975,7 +1975,7 @@ The Production Team`
                     id="prepStartDate"
                     type="date"
                     value={(project as any)?.prepStartDate ? new Date((project as any).prepStartDate).toISOString().split('T')[0] : ''}
-                    onChange={(e) => handleProjectUpdate({ prepStartDate: e.target.value ? new Date(e.target.value) : null })}
+                    onChange={(e) => handleProjectUpdate({ prepStartDate: e.target.value.trim() ? new Date(e.target.value) : null })}
                   />
                 </div>
                 
@@ -1985,7 +1985,7 @@ The Production Team`
                     id="firstRehearsalDate"
                     type="date"
                     value={(project as any)?.firstRehearsalDate ? new Date((project as any).firstRehearsalDate).toISOString().split('T')[0] : ''}
-                    onChange={(e) => handleProjectUpdate({ firstRehearsalDate: e.target.value ? new Date(e.target.value) : null })}
+                    onChange={(e) => handleProjectUpdate({ firstRehearsalDate: e.target.value.trim() ? new Date(e.target.value) : null })}
                   />
                 </div>
                 
@@ -1995,7 +1995,7 @@ The Production Team`
                     id="designerRunDate"
                     type="date"
                     value={(project as any)?.designerRunDate ? new Date((project as any).designerRunDate).toISOString().split('T')[0] : ''}
-                    onChange={(e) => handleProjectUpdate({ designerRunDate: e.target.value ? new Date(e.target.value) : null })}
+                    onChange={(e) => handleProjectUpdate({ designerRunDate: e.target.value.trim() ? new Date(e.target.value) : null })}
                   />
                 </div>
                 
@@ -2005,7 +2005,7 @@ The Production Team`
                     id="firstTechDate"
                     type="date"
                     value={(project as any)?.firstTechDate ? new Date((project as any).firstTechDate).toISOString().split('T')[0] : ''}
-                    onChange={(e) => handleProjectUpdate({ firstTechDate: e.target.value ? new Date(e.target.value) : null })}
+                    onChange={(e) => handleProjectUpdate({ firstTechDate: e.target.value.trim() ? new Date(e.target.value) : null })}
                   />
                 </div>
                 
@@ -2015,7 +2015,7 @@ The Production Team`
                     id="firstPreviewDate"
                     type="date"
                     value={(project as any)?.firstPreviewDate ? new Date((project as any).firstPreviewDate).toISOString().split('T')[0] : ''}
-                    onChange={(e) => handleProjectUpdate({ firstPreviewDate: e.target.value ? new Date(e.target.value) : null })}
+                    onChange={(e) => handleProjectUpdate({ firstPreviewDate: e.target.value.trim() ? new Date(e.target.value) : null })}
                   />
                 </div>
                 
@@ -2025,7 +2025,7 @@ The Production Team`
                     id="openingNight"
                     type="date"
                     value={(project as any)?.openingNight ? new Date((project as any).openingNight).toISOString().split('T')[0] : ''}
-                    onChange={(e) => handleProjectUpdate({ openingNight: e.target.value ? new Date(e.target.value) : null })}
+                    onChange={(e) => handleProjectUpdate({ openingNight: e.target.value.trim() ? new Date(e.target.value) : null })}
                   />
                 </div>
                 
@@ -2035,7 +2035,7 @@ The Production Team`
                     id="closingDate"
                     type="date"
                     value={(project as any)?.closingDate ? new Date((project as any).closingDate).toISOString().split('T')[0] : ''}
-                    onChange={(e) => handleProjectUpdate({ closingDate: e.target.value ? new Date(e.target.value) : null })}
+                    onChange={(e) => handleProjectUpdate({ closingDate: e.target.value.trim() ? new Date(e.target.value) : null })}
                   />
                 </div>
               </div>
