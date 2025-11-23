@@ -232,7 +232,7 @@ export default function WaitlistLanding() {
               You're on the list!
             </h2>
             <p className="text-gray-600 mb-4">
-              You're #{waitlistPosition} in line for early access to BackstageOS.
+              You're #{waitlistPosition} in line for early access to <span style={{ fontWeight: 400 }}>Backstage</span><span style={{ fontWeight: 700 }}>OS</span>.
             </p>
             <p className="text-sm text-gray-500 mb-6">
               We'll email you when it's your turn to join the beta. In the meantime, 
@@ -255,8 +255,9 @@ export default function WaitlistLanding() {
       <section className="bg-gradient-to-br from-primary to-secondary text-white">
         <div className="max-w-7xl mx-auto px-4 py-24">
           <div className="text-center max-w-4xl mx-auto">
-            <h1 className="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
-              BackstageOS
+            <h1 className="text-5xl lg:text-7xl mb-6 leading-tight">
+              <span style={{ fontWeight: 400 }}>Backstage</span>
+              <span style={{ fontWeight: 700 }}>OS</span>
             </h1>
             <p className="text-xl lg:text-2xl mb-8 opacity-90 leading-relaxed">
               The redefining stage management platform that's transforming how we collaborate, organize, and execute productions.
@@ -502,7 +503,10 @@ export default function WaitlistLanding() {
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center">
-            <h3 className="text-2xl font-bold mb-4">BackstageOS</h3>
+            <h3 className="text-2xl mb-4">
+              <span style={{ fontWeight: 400 }}>Backstage</span>
+              <span style={{ fontWeight: 700 }}>OS</span>
+            </h3>
             <p className="text-gray-400 max-w-2xl mx-auto">
               Redefining stage management for the modern stage manager.
             </p>
