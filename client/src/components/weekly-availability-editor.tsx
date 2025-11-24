@@ -1120,8 +1120,8 @@ export function WeeklyAvailabilityEditor({ contact, isOpen: externalIsOpen, onOp
                       key={dayIndex}
                       className="absolute h-full border-r border-gray-200 cursor-crosshair"
                       style={{ 
-                        left: `calc(60px + (100% - 60px) * ${dayIndex} / 7)`,
-                        width: `calc((100% - 60px) / 7)`
+                        left: `${(dayIndex / 7) * 100}%`,
+                        width: `${100 / 7}%`
                       }}
                       onMouseDown={(e) => handleMouseDown(e, dayIndex)}
                     />
@@ -1161,8 +1161,8 @@ export function WeeklyAvailabilityEditor({ contact, isOpen: externalIsOpen, onOp
                         key={item.id}
                         className={`absolute rounded cursor-move border-2 transition-opacity ${getAvailabilityColor(item.availabilityType)} ${isBeingDragged ? 'opacity-80 shadow-lg z-50' : 'hover:opacity-90'}`}
                         style={{
-                          left: `calc(60px + (100% - 60px) * ${displayDayIndex} / 7 + 2px)`,
-                          width: `calc((100% - 60px) / 7 - 4px)`,
+                          left: `${(displayDayIndex / 7) * 100 + 0.5}%`,
+                          width: `${100 / 7 - 1}%`,
                           top: `${minutesToPosition(displayStartMinutes)}px`,
                           height: `${minutesToHeight(displayEndMinutes - displayStartMinutes)}px`,
                           transform: isBeingDragged || isBeingResized ? 'scale(1.02)' : 'none'
