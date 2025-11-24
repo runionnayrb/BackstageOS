@@ -4,6 +4,7 @@ import { ArrowLeft, FileText, ChevronDown, Mail, Phone, GripVertical, Calendar, 
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
@@ -84,6 +85,8 @@ export default function Personnel() {
   const [draggedGroupId, setDraggedGroupId] = useState<number | null>(null);
   const [editingGroupId, setEditingGroupId] = useState<number | null>(null);
   const [editingGroupName, setEditingGroupName] = useState('');
+  const [deletingGroupId, setDeletingGroupId] = useState<number | null>(null);
+  const [deletingGroupName, setDeletingGroupName] = useState('');
   const migrationAttemptedRef = useRef(false);
 
   const { data: project } = useQuery({
@@ -480,7 +483,10 @@ export default function Personnel() {
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => deleteGroupMutation.mutate(group.id)}
+                                    onClick={() => {
+                                      setDeletingGroupId(group.id);
+                                      setDeletingGroupName(group.name);
+                                    }}
                                     disabled={deleteGroupMutation.isPending}
                                     title="Delete group"
                                   >
@@ -730,6 +736,38 @@ export default function Personnel() {
           onOpenChange={setShowAvailabilityModal}
         />
       )}
+
+      {/* Delete Group Confirmation Dialog */}
+      <AlertDialog open={deletingGroupId !== null} onOpenChange={(open) => {
+        if (!open) {
+          setDeletingGroupId(null);
+          setDeletingGroupName('');
+        }
+      }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Contact Group?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the "{deletingGroupName}" group? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex gap-3 justify-end">
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deletingGroupId) {
+                  deleteGroupMutation.mutate(deletingGroupId);
+                  setDeletingGroupId(null);
+                  setDeletingGroupName('');
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* New Contact Modal */}
       <Dialog open={showNewContactModal} onOpenChange={setShowNewContactModal}>
