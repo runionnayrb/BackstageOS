@@ -1686,7 +1686,7 @@ The Production Team`
               <CardHeader>
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div className="flex items-center justify-between">
-                    <CardTitle>Stage Management Team (Editors)</CardTitle>
+                    <CardTitle>Stage Management Team</CardTitle>
                     <div className="md:hidden">
                       <InviteTeamMemberDialog 
                         variant="editor" 
