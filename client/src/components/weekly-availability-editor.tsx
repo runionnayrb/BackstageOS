@@ -1232,7 +1232,7 @@ export function WeeklyAvailabilityEditor({ contact, isOpen: externalIsOpen, onOp
 
                         <div className="p-1 text-white text-xs">
                           <div className="font-medium">
-                            {minutesToTime(displayStartMinutes)} - {minutesToTime(displayEndMinutes)}
+                            {formatTimeFromMinutes(displayStartMinutes, timeFormat)} - {formatTimeFromMinutes(displayEndMinutes, timeFormat)}
                           </div>
                           <div className="capitalize opacity-90">
                             {item.availabilityType}
@@ -1298,8 +1298,8 @@ export function WeeklyAvailabilityEditor({ contact, isOpen: externalIsOpen, onOp
                     >
                       <div className="p-1 text-white text-xs">
                         <div className="font-medium">
-                          {minutesToTime(Math.min(isDragCreating.startTime, isDragCreating.currentTime))} - 
-                          {minutesToTime(Math.max(isDragCreating.startTime, isDragCreating.currentTime))}
+                          {formatTimeFromMinutes(Math.min(isDragCreating.startTime, isDragCreating.currentTime), timeFormat)} - 
+                          {formatTimeFromMinutes(Math.max(isDragCreating.startTime, isDragCreating.currentTime), timeFormat)}
                         </div>
                         <div className="capitalize">{isDragCreating.availabilityType}</div>
                       </div>
@@ -1320,8 +1320,8 @@ export function WeeklyAvailabilityEditor({ contact, isOpen: externalIsOpen, onOp
                     >
                       <div className="p-1 text-white text-xs">
                         <div className="font-medium">
-                          {minutesToTime(draggedItem.currentPosition.startMinutes)} - 
-                          {minutesToTime(draggedItem.currentPosition.startMinutes + (timeToMinutes(draggedItem.item.endTime) - timeToMinutes(draggedItem.item.startTime)))}
+                          {formatTimeFromMinutes(draggedItem.currentPosition.startMinutes, timeFormat)} - 
+                          {formatTimeFromMinutes(draggedItem.currentPosition.startMinutes + (timeToMinutes(draggedItem.item.endTime) - timeToMinutes(draggedItem.item.startTime)), timeFormat)}
                         </div>
                         <div className="capitalize">{draggedItem.item.availabilityType}</div>
                       </div>
