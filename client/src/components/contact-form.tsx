@@ -261,7 +261,7 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
             <CardTitle>Contact Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="firstName">First Name *</Label>
                 <Input
@@ -270,16 +270,6 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
                   value={formData.firstName}
                   onChange={handleInputChange}
                   required
-                />
-              </div>
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
                 />
               </div>
               <div>
@@ -303,8 +293,17 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-              <div></div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                />
+              </div>
               <div>
                 <Label htmlFor="phone">Mobile</Label>
                 <Input
@@ -331,7 +330,6 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
                   placeholder="(xxx) xxx-xxxx"
                 />
               </div>
-              <div></div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
