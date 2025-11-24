@@ -132,7 +132,14 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Apply phone formatting for phone and whatsapp fields
+    if (name === 'phone' || name === 'whatsapp') {
+      const formattedValue = formatPhoneNumber(value);
+      setFormData(prev => ({ ...prev, [name]: formattedValue }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleCastTypeChange = (castType: string, checked: boolean) => {
@@ -558,8 +565,8 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
                 <ReadOnlyField label="First Name" value={contact.firstName} />
                 <ReadOnlyField label="Last Name" value={contact.lastName} />
                 <ReadOnlyField label="Preferred Name" value={contact.preferredName} />
-                <ReadOnlyField label="Mobile" value={contact.phone} href={contact.phone ? `tel:${contact.phone}` : undefined} />
-                <ReadOnlyField label="WhatsApp" value={contact.whatsapp} href={contact.whatsapp ? `tel:${contact.whatsapp}` : undefined} />
+                <ReadOnlyField label="Mobile" value={contact.phone ? formatPhoneNumber(contact.phone) : undefined} href={contact.phone ? `tel:${contact.phone}` : undefined} />
+                <ReadOnlyField label="WhatsApp" value={contact.whatsapp ? formatPhoneNumber(contact.whatsapp) : undefined} href={contact.whatsapp ? `tel:${contact.whatsapp}` : undefined} />
                 <ReadOnlyField label="Email" value={contact.email} href={contact.email ? `mailto:${contact.email}` : undefined} />
               </div>
               <div className="grid grid-cols-1 gap-4">
