@@ -127,7 +127,7 @@ export function WeeklyAvailabilityEditor({ contact, isOpen: externalIsOpen, onOp
 
   // Parse schedule settings with time format preference
   const scheduleSettings = parseScheduleSettings((showSettings as any)?.scheduleSettings);
-  const { timeFormat, timezone: timeZone, weekStartDay, workStartTime, workEndTime } = scheduleSettings;
+  const { timeFormat = '12', timezone: timeZone = 'America/New_York', weekStartDay = 'sunday', workStartTime, workEndTime } = scheduleSettings;
   
   // Provide defaults for working hours if not set
   const workingHours = { 
