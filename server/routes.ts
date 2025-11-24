@@ -26,6 +26,8 @@ import { billingSyncService } from "./services/billingSyncService";
 import { z } from "zod";
 import sgMail from "@sendgrid/mail";
 import Stripe from "stripe";
+import { gmailIntegrationService } from "./services/gmailIntegrationService";
+import { outlookIntegrationService } from "./services/outlookIntegrationService";
 
 // Function to generate HTML for daily call PDF
 function generateDailyCallHTML(callData: any, projectName: string, date: string): string {
@@ -2542,6 +2544,134 @@ Respond with valid JSON only.`;
     } catch (error) {
       console.error("Error updating profile:", error);
       res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
+  // Email provider integration routes
+  app.get('/api/user/email-provider', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user;
+      res.json({
+        provider: user.connectedEmailProvider || null,
+        emailAddress: user.connectedEmailAddress || null,
+        connectedAt: user.emailProviderConnectedAt || null,
+      });
+    } catch (error) {
+      console.error("Error fetching email provider:", error);
+      res.status(500).json({ message: "Failed to fetch email provider" });
+    }
+  });
+
+  app.post('/api/user/email-provider/connect', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      const { provider } = req.body;
+
+      if (!provider || !['gmail', 'outlook'].includes(provider)) {
+        return res.status(400).json({ message: "Invalid provider. Must be 'gmail' or 'outlook'" });
+      }
+
+      let emailAddress: string;
+      let isConnected: boolean;
+
+      if (provider === 'gmail') {
+        isConnected = await gmailIntegrationService.checkConnection();
+        if (!isConnected) {
+          return res.status(400).json({ message: "Gmail is not connected. Please connect your Google account first." });
+        }
+        emailAddress = await gmailIntegrationService.getUserEmail();
+      } else {
+        isConnected = await outlookIntegrationService.checkConnection();
+        if (!isConnected) {
+          return res.status(400).json({ message: "Outlook is not connected. Please connect your Microsoft account first." });
+        }
+        emailAddress = await outlookIntegrationService.getUserEmail();
+      }
+
+      const updatedUser = await storage.updateUserAdmin(userId, {
+        connectedEmailProvider: provider,
+        connectedEmailAddress: emailAddress,
+        emailProviderConnectedAt: new Date(),
+      });
+
+      const { password, ...userResponse } = updatedUser;
+      res.json(userResponse);
+    } catch (error: any) {
+      console.error("Error connecting email provider:", error);
+      res.status(500).json({ message: error.message || "Failed to connect email provider" });
+    }
+  });
+
+  app.delete('/api/user/email-provider/disconnect', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+
+      const updatedUser = await storage.updateUserAdmin(userId, {
+        connectedEmailProvider: null,
+        connectedEmailAddress: null,
+        emailProviderConnectedAt: null,
+      });
+
+      const { password, ...userResponse } = updatedUser;
+      res.json(userResponse);
+    } catch (error) {
+      console.error("Error disconnecting email provider:", error);
+      res.status(500).json({ message: "Failed to disconnect email provider" });
+    }
+  });
+
+  app.post('/api/user/email-provider/send', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user;
+      const { to, cc, bcc, subject, body, isHtml } = req.body;
+
+      if (!user.connectedEmailProvider) {
+        return res.status(400).json({ message: "No email provider connected" });
+      }
+
+      if (!to || !Array.isArray(to) || to.length === 0) {
+        return res.status(400).json({ message: "At least one recipient is required" });
+      }
+
+      if (!subject) {
+        return res.status(400).json({ message: "Subject is required" });
+      }
+
+      if (!body) {
+        return res.status(400).json({ message: "Email body is required" });
+      }
+
+      let result;
+      if (user.connectedEmailProvider === 'gmail') {
+        result = await gmailIntegrationService.sendEmail({
+          to,
+          cc,
+          bcc,
+          subject,
+          body,
+          isHtml: isHtml || false,
+        });
+      } else if (user.connectedEmailProvider === 'outlook') {
+        result = await outlookIntegrationService.sendEmail({
+          to,
+          cc,
+          bcc,
+          subject,
+          body,
+          isHtml: isHtml || false,
+        });
+      } else {
+        return res.status(400).json({ message: "Invalid email provider" });
+      }
+
+      if (result.success) {
+        res.json({ success: true, messageId: result.messageId });
+      } else {
+        res.status(500).json({ success: false, error: result.error });
+      }
+    } catch (error: any) {
+      console.error("Error sending email via provider:", error);
+      res.status(500).json({ message: error.message || "Failed to send email" });
     }
   });
 
@@ -10745,6 +10875,69 @@ Best regards,
   // Send internal email with attachments
   app.post('/api/email/send', isAuthenticated, emailAttachmentUpload.array('attachments'), async (req: any, res) => {
     try {
+      const user = req.user;
+
+      // Check if user has connected Gmail or Outlook and no attachments
+      // If so, use the native email integration for better deliverability
+      if (user.connectedEmailProvider && (!req.files || req.files.length === 0)) {
+        const {
+          toAddresses,
+          subject,
+          content,
+          htmlContent,
+          ccAddresses,
+          bccAddresses,
+        } = req.body;
+
+        if (!toAddresses || !subject) {
+          return res.status(400).json({ success: false, error: "To address and subject are required" });
+        }
+
+        // Parse addresses - handle both comma-separated strings and arrays
+        const parseAddresses = (addresses: string | string[] | undefined): string[] => {
+          if (!addresses) return [];
+          if (Array.isArray(addresses)) return addresses.filter(Boolean);
+          return addresses.split(',').map(a => a.trim()).filter(Boolean);
+        };
+
+        const to = parseAddresses(toAddresses);
+        const cc = parseAddresses(ccAddresses);
+        const bcc = parseAddresses(bccAddresses);
+
+        let result;
+        try {
+          if (user.connectedEmailProvider === 'gmail') {
+            result = await gmailIntegrationService.sendEmail({
+              to,
+              cc,
+              bcc,
+              subject,
+              body: htmlContent || content,
+              isHtml: !!htmlContent,
+            });
+          } else if (user.connectedEmailProvider === 'outlook') {
+            result = await outlookIntegrationService.sendEmail({
+              to,
+              cc,
+              bcc,
+              subject,
+              body: htmlContent || content,
+              isHtml: !!htmlContent,
+            });
+          } else {
+            throw new Error("Invalid email provider");
+          }
+
+          if (result.success) {
+            return res.json({ success: true, messageId: result.messageId });
+          } else {
+            console.error('Native email provider failed, falling back to internal system:', result.error);
+          }
+        } catch (providerError) {
+          console.error('Native email provider error, falling back to internal system:', providerError);
+        }
+      }
+
       // Check if this is a multipart request with files
       if (req.files && req.files.length > 0) {
         // Handle multipart form data with attachments
