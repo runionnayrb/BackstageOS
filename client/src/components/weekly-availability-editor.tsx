@@ -1078,9 +1078,8 @@ export function WeeklyAvailabilityEditor({ contact, isOpen: externalIsOpen, onOp
               }}
             >
               <div style={{ height: '960px', position: 'relative', boxSizing: 'border-box' }}> {/* 8 AM to midnight (16 hours) */}
-                <div className="flex h-full" style={{ boxSizing: 'border-box' }}>
                 {/* Time column */}
-                <div className="border-r bg-gray-50" style={{ width: '60px', flexShrink: 0, boxSizing: 'border-box' }}>
+                <div className="border-r bg-gray-50 absolute left-0 top-0 bottom-0" style={{ width: '60px', boxSizing: 'border-box', zIndex: 20 }}>
                   <div className="relative h-full">
                     {timeLabels.map(({ hour, label, position }) => (
                       <div
@@ -1094,8 +1093,8 @@ export function WeeklyAvailabilityEditor({ contact, isOpen: externalIsOpen, onOp
                   </div>
                 </div>
 
-                {/* Day columns */}
-                <div className="flex-1 relative select-none" ref={calendarRef}>
+                {/* Calendar body */}
+                <div className="relative select-none w-full h-full" ref={calendarRef} style={{ boxSizing: 'border-box' }}>
                   {/* Working hours background highlight */}
                   <div
                     className="absolute w-full bg-blue-50 opacity-30"
@@ -1120,8 +1119,10 @@ export function WeeklyAvailabilityEditor({ contact, isOpen: externalIsOpen, onOp
                       key={dayIndex}
                       className="absolute h-full border-r border-gray-200 cursor-crosshair"
                       style={{ 
-                        left: `${(dayIndex / 7) * 100}%`,
-                        width: `${100 / 7}%`
+                        left: `calc(60px + (100% - 60px) * ${dayIndex} / 7)`,
+                        width: `calc((100% - 60px) / 7)`,
+                        top: 0,
+                        bottom: 0
                       }}
                       onMouseDown={(e) => handleMouseDown(e, dayIndex)}
                     />
@@ -1161,8 +1162,8 @@ export function WeeklyAvailabilityEditor({ contact, isOpen: externalIsOpen, onOp
                         key={item.id}
                         className={`absolute rounded cursor-move border-2 transition-opacity ${getAvailabilityColor(item.availabilityType)} ${isBeingDragged ? 'opacity-80 shadow-lg z-50' : 'hover:opacity-90'}`}
                         style={{
-                          left: `${(displayDayIndex / 7) * 100 + 0.5}%`,
-                          width: `${100 / 7 - 1}%`,
+                          left: `calc(60px + (100% - 60px) * ${displayDayIndex} / 7 + 2px)`,
+                          width: `calc((100% - 60px) / 7 - 4px)`,
                           top: `${minutesToPosition(displayStartMinutes)}px`,
                           height: `${minutesToHeight(displayEndMinutes - displayStartMinutes)}px`,
                           transform: isBeingDragged || isBeingResized ? 'scale(1.02)' : 'none'
@@ -1325,11 +1326,10 @@ export function WeeklyAvailabilityEditor({ contact, isOpen: externalIsOpen, onOp
                       </div>
                     </div>
                   )}
-                </div>  {/* Close Day columns - line 1031 */}
-              </div>  {/* Close Flex container - line 1014 */}
-            </div>  {/* Close Height container - line 1013 */}
-          </div>  {/* Close Calendar body - line 1000 */}
-        </div>  {/* Close Calendar grid - line 940 */}
+                </div>  {/* Close Day columns */}
+              </div>  {/* Close Height container */}
+            </div>  {/* Close Calendar body */}
+          </div>  {/* Close Calendar grid */}
 
           {/* Legend */}
           <div className="flex items-center justify-between">
