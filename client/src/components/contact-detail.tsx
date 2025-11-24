@@ -496,8 +496,8 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
                     <SelectContent>
                       {COUNTRIES.map((country) => (
                         <SelectItem key={country.code} value={country.code}>
-                          <span className="font-mono">{country.dialCode.padEnd(5)}</span>
-                          {country.name}
+                          <span className="font-mono w-12">{country.dialCode}</span>
+                          <span className="ml-4">{country.name}</span>
                         </SelectItem>
                       ))}
                     </SelectContent>
