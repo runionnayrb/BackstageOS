@@ -1,18 +1,15 @@
-import { Link } from "wouter";
 import { ArrowLeft } from "lucide-react";
 
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="bg-gradient-to-br from-primary to-secondary text-white py-12 px-4">
+      <div className="bg-gradient-to-br from-blue-900 to-blue-700 text-white py-12 px-4">
         <div className="max-w-4xl mx-auto">
-          <Link href="/landing">
-            <a className="inline-flex items-center space-x-2 mb-6 hover:opacity-80">
-              <ArrowLeft className="h-5 w-5" />
-              <span>Back</span>
-            </a>
-          </Link>
+          <a href="/landing" className="inline-flex items-center space-x-2 mb-6 hover:opacity-80">
+            <ArrowLeft className="h-5 w-5" />
+            <span>Back</span>
+          </a>
           <h1 className="text-4xl font-bold mb-4">Privacy Policy</h1>
           <p className="text-xl opacity-90">How we collect, use, and protect your information</p>
         </div>
