@@ -287,7 +287,11 @@ export function WeeklyAvailabilityEditor({ contact, isOpen: externalIsOpen, onOp
 
   // Time utilities
   const timeToMinutes = (time: string): number => {
-    const [hours, minutes] = time.split(':').map(Number);
+    if (!time || typeof time !== 'string') return 0;
+    const parts = time.split(':');
+    if (parts.length < 2) return 0;
+    const [hours, minutes] = parts.map(Number);
+    if (isNaN(hours) || isNaN(minutes)) return 0;
     return hours * 60 + minutes;
   };
 
@@ -1232,7 +1236,7 @@ export function WeeklyAvailabilityEditor({ contact, isOpen: externalIsOpen, onOp
 
                         <div className="p-1 text-white text-xs">
                           <div className="font-medium">
-                            {formatTimeFromMinutes(displayStartMinutes, timeFormat)} - {formatTimeFromMinutes(displayEndMinutes, timeFormat)}
+                            {formatTimeFromMinutes(displayStartMinutes, timeFormat || '12')} - {formatTimeFromMinutes(displayEndMinutes, timeFormat || '12')}
                           </div>
                           <div className="capitalize opacity-90">
                             {item.availabilityType}
@@ -1298,8 +1302,8 @@ export function WeeklyAvailabilityEditor({ contact, isOpen: externalIsOpen, onOp
                     >
                       <div className="p-1 text-white text-xs">
                         <div className="font-medium">
-                          {formatTimeFromMinutes(Math.min(isDragCreating.startTime, isDragCreating.currentTime), timeFormat)} - 
-                          {formatTimeFromMinutes(Math.max(isDragCreating.startTime, isDragCreating.currentTime), timeFormat)}
+                          {formatTimeFromMinutes(Math.min(isDragCreating.startTime, isDragCreating.currentTime), timeFormat || '12')} - 
+                          {formatTimeFromMinutes(Math.max(isDragCreating.startTime, isDragCreating.currentTime), timeFormat || '12')}
                         </div>
                         <div className="capitalize">{isDragCreating.availabilityType}</div>
                       </div>
@@ -1320,8 +1324,8 @@ export function WeeklyAvailabilityEditor({ contact, isOpen: externalIsOpen, onOp
                     >
                       <div className="p-1 text-white text-xs">
                         <div className="font-medium">
-                          {formatTimeFromMinutes(draggedItem.currentPosition.startMinutes, timeFormat)} - 
-                          {formatTimeFromMinutes(draggedItem.currentPosition.startMinutes + (timeToMinutes(draggedItem.item.endTime) - timeToMinutes(draggedItem.item.startTime)), timeFormat)}
+                          {formatTimeFromMinutes(draggedItem.currentPosition.startMinutes, timeFormat || '12')} - 
+                          {formatTimeFromMinutes(draggedItem.currentPosition.startMinutes + (timeToMinutes(draggedItem.item.endTime) - timeToMinutes(draggedItem.item.startTime)), timeFormat || '12')}
                         </div>
                         <div className="capitalize">{draggedItem.item.availabilityType}</div>
                       </div>
