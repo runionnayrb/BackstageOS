@@ -846,7 +846,7 @@ export function WeeklyAvailabilityEditor({ contact, isOpen: externalIsOpen, onOp
           </Button>
         </DialogTrigger>
       )}
-      <DialogContent className="max-w-7xl max-h-[90vh] w-[95vw]">
+      <DialogContent className="max-w-7xl max-h-[90vh] w-[95vw] flex flex-col">
         <DialogHeader>
           <DialogTitle>
             Weekly Availability - {contact.firstName} {contact.lastName}
@@ -856,7 +856,7 @@ export function WeeklyAvailabilityEditor({ contact, isOpen: externalIsOpen, onOp
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-4">
+        <div className="flex-1 flex flex-col space-y-4 overflow-hidden">
           {/* Schedule-style unified header */}
           <div className="flex items-center justify-between mb-4">
             {/* Left side - Week range display */}
@@ -940,7 +940,7 @@ export function WeeklyAvailabilityEditor({ contact, isOpen: externalIsOpen, onOp
           </div>
 
           {/* Calendar grid */}
-          <div className="border rounded-lg overflow-hidden bg-white">
+          <div className="flex-1 border rounded-lg overflow-hidden bg-white flex flex-col">
             {/* Day headers */}
             <div className="flex bg-gray-50 border-b">
               <div className="p-3 text-xs font-medium text-gray-500 border-r bg-gray-50" style={{ width: '60px', flexShrink: 0 }}>Time</div>
@@ -1065,9 +1065,8 @@ export function WeeklyAvailabilityEditor({ contact, isOpen: externalIsOpen, onOp
             {/* Calendar body */}
             <div 
               ref={scrollContainerRef}
-              className="border-t scrollbar-hide"
+              className="flex-1 border-t scrollbar-hide"
               style={{ 
-                height: '400px',
                 overflowY: 'scroll',
                 position: 'relative',
                 boxSizing: 'border-box'
