@@ -40,7 +40,7 @@ export function ContactDetailModal({ contact, isOpen, onClose, onEdit }: Contact
 
   return (
     <Dialog open={isOpen}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto [&>button]:hidden w-[95vw] md:w-auto px-4 md:px-6">
+      <DialogContent className="w-[95vw] sm:max-w-sm md:max-w-md lg:max-w-4xl max-h-[90vh] overflow-y-auto [&>button]:hidden">
         <ContactDetail
           contact={contact}
           onEdit={() => onEdit(contact)}
