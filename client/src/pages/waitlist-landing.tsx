@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -480,13 +481,24 @@ export default function WaitlistLanding() {
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center">
+          <div className="text-center space-y-6">
             <h3 className="text-2xl mb-4">
               <span style={{ fontWeight: 400 }}>Backstage</span>
               <span style={{ fontWeight: 700 }}>OS</span>
             </h3>
             <p className="text-gray-400 max-w-2xl mx-auto">One System. One Place. One Truth.</p>
-            <div className="mt-8 text-sm text-gray-500">© 2025 BackstageOS. All rights reserved. Created by Bryan Runion</div>
+            <div className="flex justify-center gap-6 text-sm">
+              <Link href="/security">
+                <a className="text-gray-400 hover:text-white transition">Security</a>
+              </Link>
+              <Link href="/privacy">
+                <a className="text-gray-400 hover:text-white transition">Privacy Policy</a>
+              </Link>
+              <Link href="/terms">
+                <a className="text-gray-400 hover:text-white transition">Terms of Service</a>
+              </Link>
+            </div>
+            <div className="text-sm text-gray-500">© 2025 BackstageOS. All rights reserved. Created by Bryan Runion</div>
           </div>
         </div>
       </footer>
