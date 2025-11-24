@@ -1065,7 +1065,7 @@ export function WeeklyAvailabilityEditor({ contact, isOpen: externalIsOpen, onOp
             {/* Calendar body */}
             <div 
               ref={scrollContainerRef}
-              className="border-t hide-scrollbar"
+              className="border-t scrollbar-hide"
               style={{ 
                 height: '400px',
                 overflowY: 'scroll',
