@@ -319,7 +319,7 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
                   type="tel"
                   value={formData.whatsapp}
                   onChange={handleInputChange}
-                  placeholder="+1 (501) 282-5870"
+                  placeholder="+1 (xxx) xxx-xxxx"
                 />
               </div>
               <div>

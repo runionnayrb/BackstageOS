@@ -486,7 +486,7 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
                     type="tel"
                     value={formData.whatsapp}
                     onChange={handleInputChange}
-                    placeholder="+1 (501) 282-5870"
+                    placeholder="+1 (xxx) xxx-xxxx"
                   />
                 </div>
                 <div>
