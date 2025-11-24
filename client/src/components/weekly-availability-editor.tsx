@@ -1077,9 +1077,9 @@ export function WeeklyAvailabilityEditor({ contact, isOpen: externalIsOpen, onOp
                 setScrollPosition(scrollTop);
               }}
             >
-              <div style={{ height: '960px', position: 'relative', boxSizing: 'border-box' }}> {/* 8 AM to midnight (16 hours) */}
+              <div className="flex" style={{ height: '960px', boxSizing: 'border-box' }}> {/* 8 AM to midnight (16 hours) */}
                 {/* Time column */}
-                <div className="border-r bg-gray-50 absolute left-0 top-0 bottom-0" style={{ width: '60px', boxSizing: 'border-box', zIndex: 20 }}>
+                <div className="border-r bg-gray-50" style={{ width: '60px', flexShrink: 0, boxSizing: 'border-box', position: 'relative', zIndex: 20 }}>
                   <div className="relative h-full">
                     {timeLabels.map(({ hour, label, position }) => (
                       <div
@@ -1094,7 +1094,7 @@ export function WeeklyAvailabilityEditor({ contact, isOpen: externalIsOpen, onOp
                 </div>
 
                 {/* Calendar body */}
-                <div className="relative select-none w-full h-full" ref={calendarRef} style={{ boxSizing: 'border-box' }}>
+                <div className="flex-1 relative select-none" ref={calendarRef} style={{ boxSizing: 'border-box' }}>
                   {/* Working hours background highlight */}
                   <div
                     className="absolute w-full bg-blue-50 opacity-30"
@@ -1119,8 +1119,8 @@ export function WeeklyAvailabilityEditor({ contact, isOpen: externalIsOpen, onOp
                       key={dayIndex}
                       className="absolute h-full cursor-crosshair"
                       style={{ 
-                        left: `calc(60px + (100% - 60px) * ${dayIndex} / 7)`,
-                        width: `calc((100% - 60px) / 7)`,
+                        left: `${(dayIndex / 7) * 100}%`,
+                        width: `${100 / 7}%`,
                         top: 0,
                         bottom: 0,
                         boxShadow: 'inset -1px 0 0 0 #e5e7eb'
@@ -1163,8 +1163,8 @@ export function WeeklyAvailabilityEditor({ contact, isOpen: externalIsOpen, onOp
                         key={item.id}
                         className={`absolute rounded cursor-move border-2 transition-opacity ${getAvailabilityColor(item.availabilityType)} ${isBeingDragged ? 'opacity-80 shadow-lg z-50' : 'hover:opacity-90'}`}
                         style={{
-                          left: `calc(60px + (100% - 60px) * ${displayDayIndex} / 7 + 2px)`,
-                          width: `calc((100% - 60px) / 7 - 4px)`,
+                          left: `${(displayDayIndex / 7) * 100 + 0.5}%`,
+                          width: `${100 / 7 - 1}%`,
                           top: `${minutesToPosition(displayStartMinutes)}px`,
                           height: `${minutesToHeight(displayEndMinutes - displayStartMinutes)}px`,
                           transform: isBeingDragged || isBeingResized ? 'scale(1.02)' : 'none'
