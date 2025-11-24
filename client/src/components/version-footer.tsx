@@ -135,7 +135,7 @@ export default function VersionFooter() {
   return (
     <>
       <footer className="border-t bg-gray-50 mt-auto hidden md:block">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3">
+        <div className="px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4 flex-1">
               <span className="text-xs text-muted-foreground">© 2025 BackstageOS. All rights reserved. Created by Bryan Runion</span>
