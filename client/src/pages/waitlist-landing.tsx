@@ -491,7 +491,7 @@ export default function WaitlistLanding() {
               <a href="/privacy" className="text-gray-400 hover:text-white transition">Privacy Policy</a>
               <a href="/terms" className="text-gray-400 hover:text-white transition">Terms of Service</a>
             </div>
-            <div className="text-sm text-gray-500">© 2025 BackstageOS. All rights reserved. Created by Bryan Runion</div>
+            <div className="text-sm text-gray-500">© 2025 BackstageOS. All rights reserved.<span className="block sm:inline"> Created by Bryan Runion</span></div>
           </div>
         </div>
       </footer>

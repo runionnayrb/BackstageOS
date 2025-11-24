@@ -105,7 +105,7 @@ export default function Landing() {
       <footer className="w-full bg-black/30 text-white py-8 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center space-y-4">
-            <p className="text-sm opacity-90">© 2025 BackstageOS. All rights reserved. Created by Bryan Runion</p>
+            <p className="text-sm opacity-90">© 2025 BackstageOS. All rights reserved.<span className="block sm:inline"> Created by Bryan Runion</span></p>
             <div className="flex justify-center gap-6 text-sm">
               <a href="/security" className="hover:opacity-80 transition">Security</a>
               <a href="/privacy" className="hover:opacity-80 transition">Privacy Policy</a>
