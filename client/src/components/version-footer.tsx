@@ -134,96 +134,103 @@ export default function VersionFooter() {
 
   return (
     <>
-      <footer className="border-t bg-gray-50 mt-auto">
+      <footer className="border-t bg-gray-50 mt-auto hidden md:block">
         <div className="container mx-auto px-4 py-3">
-          <div className="flex justify-center items-center space-x-4 flex-wrap gap-2">
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="text-xs text-muted-foreground hover:text-foreground"
-                >
-                  BackstageOS Version {CURRENT_VERSION}
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[80vh]">
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    Release Notes
-                  </DialogTitle>
-                  <DialogDescription>
-                    Latest updates and improvements to BackstageOS. Weekly Updates.
-                  </DialogDescription>
-                </DialogHeader>
-                
-                <ScrollArea className="h-[60vh] pr-4">
-                  <div className="space-y-6">
-                    {RELEASE_NOTES.map((release, index) => (
-                      <div key={release.version} className="border-b pb-6 last:border-b-0">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-3">
-                            <h3 className="text-lg font-semibold">
-                              Version {release.version}
-                              {index === 0 && (
-                                <Badge variant="secondary" className="ml-2">Current</Badge>
-                              )}
-                            </h3>
-                            <Badge className={getTypeColor(release.type)}>
-                              {release.type}
-                            </Badge>
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-4 flex-1">
+              <span className="text-xs text-muted-foreground">© 2025 BackstageOS. All rights reserved. Created by Bryan Runion</span>
+              <span className="text-xs text-muted-foreground">|</span>
+              <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-xs text-muted-foreground hover:text-foreground p-0 h-auto"
+                  >
+                    Version {CURRENT_VERSION}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[80vh]">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      Release Notes
+                    </DialogTitle>
+                    <DialogDescription>
+                      Latest updates and improvements to BackstageOS. Weekly Updates.
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <ScrollArea className="h-[60vh] pr-4">
+                    <div className="space-y-6">
+                      {RELEASE_NOTES.map((release, index) => (
+                        <div key={release.version} className="border-b pb-6 last:border-b-0">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                              <h3 className="text-lg font-semibold">
+                                Version {release.version}
+                                {index === 0 && (
+                                  <Badge variant="secondary" className="ml-2">Current</Badge>
+                                )}
+                              </h3>
+                              <Badge className={getTypeColor(release.type)}>
+                                {release.type}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                              <Calendar className="h-4 w-4" />
+                              {release.date}
+                            </div>
                           </div>
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <Calendar className="h-4 w-4" />
-                            {release.date}
-                          </div>
+                          
+                          <ul className="space-y-2">
+                            {release.features.map((feature, featureIndex) => {
+                              // Check if this is a header (contains <strong><u>)
+                              const isHeader = feature.includes('<strong><u>') && feature.includes('</u></strong>');
+                              
+                              if (isHeader) {
+                                // Extract the header text
+                                const headerText = feature.replace('<strong><u>', '').replace('</u></strong>', '');
+                                return (
+                                  <li key={featureIndex} className="mt-4 first:mt-0">
+                                    <h4 className="font-bold underline text-sm text-gray-900">{headerText}</h4>
+                                  </li>
+                                );
+                              } else {
+                                return (
+                                  <li key={featureIndex} className="flex items-start gap-2 text-sm">
+                                    <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                                    <span>{feature}</span>
+                                  </li>
+                                );
+                              }
+                            })}
+                          </ul>
                         </div>
-                        
-                        <ul className="space-y-2">
-                          {release.features.map((feature, featureIndex) => {
-                            // Check if this is a header (contains <strong><u>)
-                            const isHeader = feature.includes('<strong><u>') && feature.includes('</u></strong>');
-                            
-                            if (isHeader) {
-                              // Extract the header text
-                              const headerText = feature.replace('<strong><u>', '').replace('</u></strong>', '');
-                              return (
-                                <li key={featureIndex} className="mt-4 first:mt-0">
-                                  <h4 className="font-bold underline text-sm text-gray-900">{headerText}</h4>
-                                </li>
-                              );
-                            } else {
-                              return (
-                                <li key={featureIndex} className="flex items-start gap-2 text-sm">
-                                  <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                                  <span>{feature}</span>
-                                </li>
-                              );
-                            }
-                          })}
-                        </ul>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </DialogContent>
-            </Dialog>
-            <Button asChild variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground">
-              <Link href="/security">
-                Security
-              </Link>
-            </Button>
-            <Button asChild variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground">
-              <Link href="/privacy">
-                Privacy
-              </Link>
-            </Button>
-            <Button asChild variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground">
-              <Link href="/terms">
-                Terms
-              </Link>
-            </Button>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </DialogContent>
+              </Dialog>
+              <span className="text-xs text-muted-foreground">|</span>
+              <Button asChild variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground p-0 h-auto">
+                <Link href="/security">
+                  Security
+                </Link>
+              </Button>
+              <span className="text-xs text-muted-foreground">|</span>
+              <Button asChild variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground p-0 h-auto">
+                <Link href="/privacy">
+                  Privacy
+                </Link>
+              </Button>
+              <span className="text-xs text-muted-foreground">|</span>
+              <Button asChild variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground p-0 h-auto">
+                <Link href="/terms">
+                  Terms
+                </Link>
+              </Button>
+            </div>
             <Button asChild variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground">
               <Link href="/projects/archived" className="flex items-center gap-1">
                 <Archive className="h-3 w-3" />
