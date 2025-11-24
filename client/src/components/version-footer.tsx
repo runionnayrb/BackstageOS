@@ -136,7 +136,7 @@ export default function VersionFooter() {
     <>
       <footer className="border-t bg-gray-50 mt-auto">
         <div className="container mx-auto px-4 py-3">
-          <div className="flex justify-center items-center space-x-4">
+          <div className="flex justify-center items-center space-x-4 flex-wrap gap-2">
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
                 <Button 
@@ -209,6 +209,21 @@ export default function VersionFooter() {
                 </ScrollArea>
               </DialogContent>
             </Dialog>
+            <Button asChild variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground">
+              <Link href="/security">
+                Security
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground">
+              <Link href="/privacy">
+                Privacy
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground">
+              <Link href="/terms">
+                Terms
+              </Link>
+            </Button>
             <Button asChild variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground">
               <Link href="/projects/archived" className="flex items-center gap-1">
                 <Archive className="h-3 w-3" />
