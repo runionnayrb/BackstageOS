@@ -195,7 +195,7 @@ export default function AuthPage() {
               </button>
             </div>
 
-            <div className="mt-6 text-center text-sm text-gray-500 space-y-2">
+            <div className="mt-6 text-center text-xs text-gray-500 space-y-2">
               <p>
                 By signing in, you agree to our{" "}
                 <a href="/terms" className="text-primary hover:underline">
