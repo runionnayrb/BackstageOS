@@ -659,19 +659,22 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
               </div>
             </>
           ) : (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <ReadOnlyField label="Name" value={contact.emergencyContactName} />
-                <ReadOnlyField label="Relationship" value={contact.emergencyContactRelationship} />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <ReadOnlyField label="Phone" value={contact.emergencyContactPhone} href={contact.emergencyContactPhone ? `tel:${contact.emergencyContactPhone}` : undefined} />
-                <ReadOnlyField label="Email" value={contact.emergencyContactEmail} href={contact.emergencyContactEmail ? `mailto:${contact.emergencyContactEmail}` : undefined} />
-              </div>
-              {(!contact.emergencyContactName && !contact.emergencyContactPhone && !contact.emergencyContactEmail && !contact.emergencyContactRelationship) && (
+            <>
+              {(!contact.emergencyContactName && !contact.emergencyContactPhone && !contact.emergencyContactEmail && !contact.emergencyContactRelationship) ? (
                 <p className="text-sm text-gray-500 italic">No emergency contact information provided</p>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <ReadOnlyField label="Name" value={contact.emergencyContactName} />
+                    <ReadOnlyField label="Relationship" value={contact.emergencyContactRelationship} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <ReadOnlyField label="Phone" value={contact.emergencyContactPhone} href={contact.emergencyContactPhone ? `tel:${contact.emergencyContactPhone}` : undefined} />
+                    <ReadOnlyField label="Email" value={contact.emergencyContactEmail} href={contact.emergencyContactEmail ? `mailto:${contact.emergencyContactEmail}` : undefined} />
+                  </div>
+                </div>
               )}
-            </div>
+            </>
           )}
         </div>
       </div>
