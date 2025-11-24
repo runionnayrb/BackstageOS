@@ -49,7 +49,16 @@ export function getTimeGridLabels(startHour: number, endHour: number, timeFormat
 }
 
 export function parseScheduleSettings(settings: any) {
-  if (!settings) return {};
+  // Always return defaults, even if settings are undefined
+  const defaultSettings = {
+    timeFormat: '12',
+    timezone: 'America/New_York',
+    weekStartDay: 'sunday',
+    workStartTime: '09:00',
+    workEndTime: '18:00',
+  };
+  
+  if (!settings) return defaultSettings;
   
   // Handle both string and object formats
   const scheduleSettings = typeof settings === 'string' 
@@ -57,11 +66,11 @@ export function parseScheduleSettings(settings: any) {
     : settings;
     
   return {
-    timeFormat: scheduleSettings.timeFormat || '12',
-    timezone: scheduleSettings.timeZone || scheduleSettings.timezone || 'America/New_York',
-    weekStartDay: scheduleSettings.weekStartDay || 'sunday',
-    workStartTime: scheduleSettings.workStartTime || '09:00',
-    workEndTime: scheduleSettings.workEndTime || '18:00',
+    timeFormat: scheduleSettings.timeFormat || defaultSettings.timeFormat,
+    timezone: scheduleSettings.timeZone || scheduleSettings.timezone || defaultSettings.timezone,
+    weekStartDay: scheduleSettings.weekStartDay || defaultSettings.weekStartDay,
+    workStartTime: scheduleSettings.workStartTime || defaultSettings.workStartTime,
+    workEndTime: scheduleSettings.workEndTime || defaultSettings.workEndTime,
   };
 }
 
