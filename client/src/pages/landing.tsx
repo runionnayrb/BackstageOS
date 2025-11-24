@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FileText, Users, Calendar, Clapperboard, Settings, Shield } from "lucide-react";
-import { Link } from "wouter";
 
 export default function Landing() {
   return (
@@ -88,17 +87,13 @@ export default function Landing() {
             <div className="mt-6 text-center text-sm text-gray-500">
               <p>
                 By signing in, you agree to our{" "}
-                <Link href="/terms">
-                  <a className="text-primary hover:underline">
-                    Terms of Service
-                  </a>
-                </Link>
+                <a href="/terms" className="text-primary hover:underline">
+                  Terms of Service
+                </a>
                 {" "}and{" "}
-                <Link href="/privacy">
-                  <a className="text-primary hover:underline">
-                    Privacy Policy
-                  </a>
-                </Link>
+                <a href="/privacy" className="text-primary hover:underline">
+                  Privacy Policy
+                </a>
               </p>
             </div>
           </CardContent>
@@ -112,15 +107,9 @@ export default function Landing() {
           <div className="text-center space-y-4">
             <p className="text-sm opacity-90">© 2025 BackstageOS. All rights reserved. Created by Bryan Runion</p>
             <div className="flex justify-center gap-6 text-sm">
-              <Link href="/security">
-                <a className="hover:opacity-80 transition">Security</a>
-              </Link>
-              <Link href="/privacy">
-                <a className="hover:opacity-80 transition">Privacy Policy</a>
-              </Link>
-              <Link href="/terms">
-                <a className="hover:opacity-80 transition">Terms of Service</a>
-              </Link>
+              <a href="/security" className="hover:opacity-80 transition">Security</a>
+              <a href="/privacy" className="hover:opacity-80 transition">Privacy Policy</a>
+              <a href="/terms" className="hover:opacity-80 transition">Terms of Service</a>
             </div>
           </div>
         </div>

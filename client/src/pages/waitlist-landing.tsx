@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -488,15 +487,9 @@ export default function WaitlistLanding() {
             </h3>
             <p className="text-gray-400 max-w-2xl mx-auto">One System. One Place. One Truth.</p>
             <div className="flex justify-center gap-6 text-sm">
-              <Link href="/security">
-                <a className="text-gray-400 hover:text-white transition">Security</a>
-              </Link>
-              <Link href="/privacy">
-                <a className="text-gray-400 hover:text-white transition">Privacy Policy</a>
-              </Link>
-              <Link href="/terms">
-                <a className="text-gray-400 hover:text-white transition">Terms of Service</a>
-              </Link>
+              <a href="/security" className="text-gray-400 hover:text-white transition">Security</a>
+              <a href="/privacy" className="text-gray-400 hover:text-white transition">Privacy Policy</a>
+              <a href="/terms" className="text-gray-400 hover:text-white transition">Terms of Service</a>
             </div>
             <div className="text-sm text-gray-500">© 2025 BackstageOS. All rights reserved. Created by Bryan Runion</div>
           </div>
