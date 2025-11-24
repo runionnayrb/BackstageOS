@@ -86,6 +86,9 @@ import EmailSetupPage from "@/pages/EmailSetupPage";
 import AppleMailSetupPage from "@/pages/AppleMailSetupPage";
 import EmailForwardingSetupPage from "@/pages/EmailForwardingSetupPage";
 import ScheduleRelationshipMapping from "@/components/schedule-relationship-mapping";
+import SecurityPage from "@/pages/security";
+import PrivacyPage from "@/pages/privacy";
+import TermsPage from "@/pages/terms";
 
 
 function Router() {
@@ -169,6 +172,19 @@ function Router() {
   // Handle main landing page
   if (window.location.pathname === '/main-landing') {
     return <MainLanding />;
+  }
+
+  // Handle policy pages - no authentication required for any domain
+  if (window.location.pathname === '/security') {
+    return <SecurityPage />;
+  }
+
+  if (window.location.pathname === '/privacy') {
+    return <PrivacyPage />;
+  }
+
+  if (window.location.pathname === '/terms') {
+    return <TermsPage />;
   }
 
   // Main domain (backstageos.com) - ALWAYS show waitlist, never require authentication

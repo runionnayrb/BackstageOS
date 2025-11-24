@@ -1,11 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FileText, Users, Calendar, Clapperboard, Settings, Shield } from "lucide-react";
+import { Link } from "wouter";
 
 export default function Landing() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary to-secondary flex items-center justify-center px-4">
-      <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+    <div className="min-h-screen bg-gradient-to-br from-primary to-secondary flex flex-col items-center justify-center px-4">
+      <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center flex-1">
         {/* Hero Content */}
         <div className="text-white space-y-8">
           <div>
@@ -13,7 +14,7 @@ export default function Landing() {
               BackstageOS
             </h1>
             <p className="text-xl lg:text-2xl opacity-90 leading-relaxed">
-              The complete stage management platform for modern theater professionals
+              One System. One Place. One Truth.
             </p>
           </div>
           <div className="grid sm:grid-cols-2 gap-6 text-sm">
@@ -86,18 +87,42 @@ export default function Landing() {
             <div className="mt-6 text-center text-sm text-gray-500">
               <p>
                 By signing in, you agree to our{" "}
-                <a href="#" className="text-primary hover:underline">
-                  Terms of Service
-                </a>{" "}
-                and{" "}
-                <a href="#" className="text-primary hover:underline">
-                  Privacy Policy
-                </a>
+                <Link href="/terms">
+                  <a className="text-primary hover:underline">
+                    Terms of Service
+                  </a>
+                </Link>
+                {" "}and{" "}
+                <Link href="/privacy">
+                  <a className="text-primary hover:underline">
+                    Privacy Policy
+                  </a>
+                </Link>
               </p>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Footer */}
+      <footer className="w-full bg-black/30 text-white py-8 px-4 mt-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center space-y-4">
+            <p className="text-sm opacity-90">© 2025 BackstageOS. All rights reserved. Created by Bryan Runion</p>
+            <div className="flex justify-center gap-6 text-sm">
+              <Link href="/security">
+                <a className="hover:opacity-80 transition">Security</a>
+              </Link>
+              <Link href="/privacy">
+                <a className="hover:opacity-80 transition">Privacy Policy</a>
+              </Link>
+              <Link href="/terms">
+                <a className="hover:opacity-80 transition">Terms of Service</a>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
