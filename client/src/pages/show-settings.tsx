@@ -1748,25 +1748,46 @@ The Production Team`
         <TabsContent value="departments" className="mt-6">
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
+              <div className="flex items-center justify-between md:flex-row md:items-center md:justify-between">
+                <div className="flex items-center justify-between flex-1">
                   <CardTitle>Department Management</CardTitle>
+                  <div className="md:hidden">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button 
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          data-testid="button-add-department"
+                          onClick={() => {
+                            setEditingDepartment(null);
+                            setDepartmentForm({ name: '' });
+                            setIsDepartmentDialogOpen(true);
+                          }}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                    </Dialog>
+                  </div>
                 </div>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button 
-                      data-testid="button-add-department"
-                      onClick={() => {
-                        setEditingDepartment(null);
-                        setDepartmentForm({ name: '' });
-                        setIsDepartmentDialogOpen(true);
-                      }}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Department
-                    </Button>
-                  </DialogTrigger>
-                </Dialog>
+                <div className="hidden md:block">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button 
+                        data-testid="button-add-department"
+                        onClick={() => {
+                          setEditingDepartment(null);
+                          setDepartmentForm({ name: '' });
+                          setIsDepartmentDialogOpen(true);
+                        }}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Department
+                      </Button>
+                    </DialogTrigger>
+                  </Dialog>
+                </div>
                 
                 <Dialog open={isDepartmentDialogOpen} onOpenChange={setIsDepartmentDialogOpen}>
                   <DialogContent>
