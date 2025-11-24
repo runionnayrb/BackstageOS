@@ -461,16 +461,6 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div>
                   <Label htmlFor="phone">Mobile</Label>
                   <Input
                     id="phone"
@@ -490,6 +480,16 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
                     value={formData.whatsapp}
                     onChange={handleInputChange}
                     placeholder="(xxx) xxx-xxxx"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
                   />
                 </div>
               </div>
@@ -563,9 +563,9 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
                 <ReadOnlyField label="Preferred Name" value={contact.preferredName} />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                <ReadOnlyField label="Email" value={contact.email} href={contact.email ? `mailto:${contact.email}` : undefined} />
                 <ReadOnlyField label="Mobile" value={contact.phone} href={contact.phone ? `tel:${contact.phone}` : undefined} />
                 <ReadOnlyField label="WhatsApp" value={contact.whatsapp} href={contact.whatsapp ? `tel:${contact.whatsapp}` : undefined} />
+                <ReadOnlyField label="Email" value={contact.email} href={contact.email ? `mailto:${contact.email}` : undefined} />
               </div>
               <div className="grid grid-cols-1 gap-4">
                 <ReadOnlyField label="Contact Group" value={contact.groupId ? 'Assigned' : 'Not assigned'} />

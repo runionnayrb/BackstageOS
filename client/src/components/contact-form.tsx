@@ -295,16 +295,6 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div>
                 <Label htmlFor="phone">Mobile</Label>
                 <Input
                   id="phone"
@@ -328,6 +318,16 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
                   value={formData.whatsapp}
                   onChange={handleInputChange}
                   placeholder="(xxx) xxx-xxxx"
+                />
+              </div>
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
                 />
               </div>
             </div>
