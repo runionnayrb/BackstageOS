@@ -871,67 +871,58 @@ export default function PropsTracker() {
         </Card>
 
         {/* Mobile Props List */}
-        <div className="md:hidden space-y-1">
-        {filteredProps.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-8">
+        <div className="space-y-3 md:hidden">
+          {filteredProps.length === 0 ? (
+            <Card className="p-8 text-center">
               <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">No props found</p>
+              <p className="text-muted-foreground mb-4">No props found</p>
               <Button
                 variant="outline"
-                className="mt-2"
                 onClick={() => setIsAddingProp(true)}
               >
                 Add your first prop
               </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          filteredProps.map((prop: Prop) => {
-            const statusInfo = getStatusInfo(prop.status);
-            
-            return (
-              <div
-                key={prop.id}
-                className="p-4 bg-white border border-transparent hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer"
-                onClick={() => setLocation(`/shows/${projectId}/props/${prop.id}`)}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-semibold text-gray-900 truncate">{prop.name}</h3>
-                      <div className="flex items-center gap-1 text-sm text-gray-500 flex-shrink-0">
-                        <span className="text-lg font-medium">{prop.quantity}</span>
+            </Card>
+          ) : (
+            filteredProps.map((prop: Prop) => {
+              const statusInfo = getStatusInfo(prop.status);
+              
+              return (
+                <Card 
+                  key={prop.id}
+                  className="cursor-pointer hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                  onClick={() => handleEdit(prop)}
+                >
+                  <CardContent className="p-4">
+                    <div className="mb-2">
+                      <div className="font-medium text-base">{prop.name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {[prop.act, prop.scene, prop.character].filter(Boolean).join(' • ')}
                       </div>
                     </div>
                     
-                    <div className="text-sm text-muted-foreground">
-                      <div>
-                        {prop.act && prop.scene ? `Act ${prop.act}, Scene ${prop.scene}` : 
-                         prop.act ? `Act ${prop.act}` : 
-                         prop.scene ? `Scene ${prop.scene}` : ''}
-                      </div>
-                      <div>{prop.character}</div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between mt-2">
-                      <div className="flex items-center gap-4 text-sm text-gray-600">
-                      </div>
-                      
-                      <Badge variant="secondary" className={`${statusInfo.color} text-xs px-2 py-1 flex-shrink-0`}>
+                    <div className="flex items-center justify-between">
+                      <Badge variant="secondary" className={statusInfo.color}>
                         {statusInfo.label}
                       </Badge>
+                      
+                      {prop.quantity > 1 && (
+                        <div className="text-sm font-medium text-gray-600">
+                          Qty: {prop.quantity}
+                        </div>
+                      )}
                     </div>
-                  </div>
-                  
-                  <div className="ml-3 text-gray-400">
-                    <span className="text-lg">→</span>
-                  </div>
-                </div>
-              </div>
-            );
-          })
-        )}
+                    
+                    {prop.description && (
+                      <div className="mt-2 text-sm text-muted-foreground">
+                        {prop.description}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })
+          )}
         </div>
       </div>
 
