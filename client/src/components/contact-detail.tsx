@@ -301,47 +301,47 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
+      <div>
+        <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">
             {isEditing ? "Edit Contact" : "Contact Details"}
           </h2>
-          {contact.updatedAt && (
-            <p className="text-sm text-gray-500 mt-1">
-              Last updated: {new Date(contact.updatedAt).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              })}
-            </p>
-          )}
-        </div>
-        <div className="flex gap-2">
-          {isEditing ? (
+          <div className="flex gap-2">
+            {isEditing ? (
+              <button 
+                onClick={handleSave}
+                disabled={updateMutation.isPending}
+                className="p-2 text-gray-600 hover:text-blue-600 transition-colors disabled:opacity-50"
+              >
+                <Save className="h-4 w-4" />
+              </button>
+            ) : (
+              <button 
+                onClick={() => setIsEditing(true)}
+                className="p-2 text-gray-600 hover:text-blue-600 transition-colors"
+              >
+                <Edit className="h-4 w-4" />
+              </button>
+            )}
             <button 
-              onClick={handleSave}
-              disabled={updateMutation.isPending}
-              className="p-2 text-gray-600 hover:text-blue-600 transition-colors disabled:opacity-50"
-            >
-              <Save className="h-4 w-4" />
-            </button>
-          ) : (
-            <button 
-              onClick={() => setIsEditing(true)}
+              onClick={onClose}
               className="p-2 text-gray-600 hover:text-blue-600 transition-colors"
             >
-              <Edit className="h-4 w-4" />
+              <X className="h-4 w-4" />
             </button>
-          )}
-          <button 
-            onClick={onClose}
-            className="p-2 text-gray-600 hover:text-blue-600 transition-colors"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          </div>
         </div>
+        {contact.updatedAt && (
+          <p className="text-sm text-gray-500 mt-1">
+            Last updated: {new Date(contact.updatedAt).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            })}
+          </p>
+        )}
       </div>
 
       {/* Photo Management */}
