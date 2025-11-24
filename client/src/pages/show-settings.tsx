@@ -1684,15 +1684,30 @@ The Production Team`
             {/* Editor Invitations */}
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div className="flex items-center justify-between">
                     <CardTitle>Stage Management Team (Editors)</CardTitle>
-                    <CardDescription>
-                      Invite up to 3 team members with editing permissions for this production.
-                    </CardDescription>
+                    <div className="md:hidden">
+                      <InviteTeamMemberDialog 
+                        variant="editor" 
+                        trigger={
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <UserPlus className="h-4 w-4" />
+                          </Button>
+                        }
+                      />
+                    </div>
                   </div>
-                  <InviteTeamMemberDialog variant="editor" />
+                  <div className="hidden md:block">
+                    <InviteTeamMemberDialog variant="editor" />
+                  </div>
+                  <CardDescription className="md:hidden">
+                    Invite up to 3 team members with editing permissions for this production.
+                  </CardDescription>
                 </div>
+                <CardDescription className="hidden md:block">
+                  Invite up to 3 team members with editing permissions for this production.
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <TeamMembersList accessLevel="editor" />
@@ -1702,15 +1717,30 @@ The Production Team`
             {/* Viewer Invitations */}
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div className="flex items-center justify-between">
                     <CardTitle>Production Team</CardTitle>
-                    <CardDescription>
-                      Invite unlimited viewers with read-only access to production information.
-                    </CardDescription>
+                    <div className="md:hidden">
+                      <InviteTeamMemberDialog 
+                        variant="viewer" 
+                        trigger={
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        }
+                      />
+                    </div>
                   </div>
-                  <InviteTeamMemberDialog variant="viewer" />
+                  <div className="hidden md:block">
+                    <InviteTeamMemberDialog variant="viewer" />
+                  </div>
+                  <CardDescription className="md:hidden">
+                    Invite unlimited viewers with read-only access to production information.
+                  </CardDescription>
                 </div>
+                <CardDescription className="hidden md:block">
+                  Invite unlimited viewers with read-only access to production information.
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <TeamMembersList accessLevel="viewer" />
