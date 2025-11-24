@@ -566,12 +566,12 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
             </>
           ) : (
             <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
                 <ReadOnlyField label="First Name" value={contact.firstName} />
                 <ReadOnlyField label="Last Name" value={contact.lastName} />
                 <ReadOnlyField label="Preferred Name" value={contact.preferredName} />
               </div>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
                 <ReadOnlyField label="Email" value={contact.email} href={contact.email ? `mailto:${contact.email}` : undefined} />
                 <ReadOnlyField label="Mobile" value={contact.phone} href={contact.phone ? `tel:${contact.phone}` : undefined} />
                 <ReadOnlyField label="WhatsApp" value={contact.whatsapp} href={contact.whatsapp ? `tel:${contact.whatsapp}` : undefined} />
@@ -583,7 +583,7 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
                 <ReadOnlyField label="Role" value={contact.role} />
               </div>
               {contact.category === 'cast' && (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   <ReadOnlyField 
                     label="Cast Type" 
                     value={contact.castTypes && contact.castTypes.length > 0 
@@ -594,7 +594,7 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
                 </div>
               )}
               {contact.category === 'cast' && (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   <ReadOnlyField 
                     label="Equity Status" 
                     value={contact.equityStatus 
@@ -615,7 +615,7 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
         <div className="space-y-4">
           {isEditing ? (
             <>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
                 <div>
                   <Label htmlFor="emergencyContactName">Name</Label>
                   <Input
@@ -637,7 +637,7 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
                 <div>
                   <Label htmlFor="emergencyContactPhone">Phone</Label>
                   <Input

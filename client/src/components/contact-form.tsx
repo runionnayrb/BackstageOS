@@ -261,7 +261,7 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
             <CardTitle>Contact Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
               <div>
                 <Label htmlFor="firstName">First Name *</Label>
                 <Input
@@ -293,7 +293,7 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
               <div>
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -332,7 +332,7 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
               <div>
                 <Label htmlFor="role">Role</Label>
                 <Input
@@ -376,7 +376,7 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
             <CardTitle>Emergency Contact</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
               <div>
                 <Label htmlFor="emergencyContactName">Name</Label>
                 <Input
@@ -399,7 +399,7 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
               <div>
                 <Label htmlFor="emergencyContactPhone">Phone</Label>
                 <Input
