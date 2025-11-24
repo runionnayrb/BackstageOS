@@ -207,9 +207,9 @@ export default function AuthPage() {
                 </a>
               </p>
               <p>
-                Learn more about our security practices on our{" "}
+                Learn more about our{" "}
                 <a href="/security" className="text-primary hover:underline">
-                  Security page
+                  Security Practices
                 </a>
               </p>
             </div>
