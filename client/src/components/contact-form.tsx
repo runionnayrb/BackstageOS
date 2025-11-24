@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { COUNTRIES, formatPhoneByCountry, extractCountryFromPhone, type Country } from "@/utils/countryCodes";
 
 interface Contact {
   id: number;
@@ -96,6 +97,9 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
   });
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [whatsappCountry, setWhatsappCountry] = useState<Country | undefined>(
+    contact?.whatsapp ? extractCountryFromPhone(contact.whatsapp) : COUNTRIES[0]
+  );
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -183,7 +187,8 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
       ...formData,
       // Store unformatted phone numbers in database
       phone: parsePhoneNumber(formData.phone),
-      whatsapp: parsePhoneNumber(formData.whatsapp),
+      // For WhatsApp, include country code in storage
+      whatsapp: whatsappCountry ? `${whatsappCountry.dialCode} ${formatPhoneByCountry(formData.whatsapp, whatsappCountry)}` : parsePhoneNumber(formData.whatsapp),
       emergencyContactPhone: parsePhoneNumber(formData.emergencyContactPhone),
       groupId: formData.groupId ? parseInt(formData.groupId) : null,
       // Only include equity status for cast members
@@ -307,14 +312,32 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
                 )}
               </div>
               <div>
-                <Label htmlFor="whatsapp">WhatsApp</Label>
+                <Label htmlFor="whatsappCountry">WhatsApp Country</Label>
+                <Select value={whatsappCountry?.code || "US"} onValueChange={(code) => {
+                  const country = COUNTRIES.find(c => c.code === code);
+                  setWhatsappCountry(country);
+                }}>
+                  <SelectTrigger className="mt-2">
+                    <SelectValue placeholder="Select country..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {COUNTRIES.map((country) => (
+                      <SelectItem key={country.code} value={country.code}>
+                        {country.dialCode} {country.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="whatsapp">WhatsApp Number</Label>
                 <Input
                   id="whatsapp"
                   name="whatsapp"
                   type="tel"
                   value={formData.whatsapp}
                   onChange={handleInputChange}
-                  placeholder="(xxx) xxx-xxxx"
+                  placeholder="Enter phone number"
                 />
               </div>
               <div>

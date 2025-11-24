@@ -11,6 +11,7 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { WeeklyAvailabilityEditor } from "@/components/weekly-availability-editor";
+import { COUNTRIES, formatPhoneByCountry, extractCountryFromPhone, type Country } from "@/utils/countryCodes";
 
 // Phone number formatting function
 const formatPhoneNumber = (value: string): string => {
@@ -61,13 +62,17 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
   const [isEditing, setIsEditing] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [whatsappCountry, setWhatsappCountry] = useState<Country | undefined>(
+    contact.whatsapp ? extractCountryFromPhone(contact.whatsapp) : COUNTRIES[0]
+  );
+  
   const [formData, setFormData] = useState({
     firstName: contact.firstName || '',
     lastName: contact.lastName || '',
     preferredName: contact.preferredName || '',
     email: contact.email || '',
     phone: contact.phone || '',
-    whatsapp: contact.whatsapp || '',
+    whatsapp: contact.whatsapp ? contact.whatsapp.replace(/^[\+\d\s\-()]+\s/, '') : '',
     groupId: contact.groupId || '',
     role: contact.role || '',
     notes: contact.notes || '',
@@ -152,7 +157,11 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
   };
 
   const handleSave = () => {
-    updateMutation.mutate(formData);
+    const dataToSave = {
+      ...formData,
+      whatsapp: whatsappCountry ? `${whatsappCountry.dialCode} ${formatPhoneByCountry(formData.whatsapp, whatsappCountry)}` : formData.whatsapp,
+    };
+    updateMutation.mutate(dataToSave);
   };
 
   const handleDelete = () => {
@@ -476,14 +485,32 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
                   />
                 </div>
                 <div>
-                  <Label htmlFor="whatsapp">WhatsApp</Label>
+                  <Label htmlFor="whatsappCountry">WhatsApp Country</Label>
+                  <Select value={whatsappCountry?.code || "US"} onValueChange={(code) => {
+                    const country = COUNTRIES.find(c => c.code === code);
+                    setWhatsappCountry(country);
+                  }}>
+                    <SelectTrigger className="mt-2">
+                      <SelectValue placeholder="Select country..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COUNTRIES.map((country) => (
+                        <SelectItem key={country.code} value={country.code}>
+                          {country.dialCode} {country.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="whatsapp">WhatsApp Number</Label>
                   <Input
                     id="whatsapp"
                     name="whatsapp"
                     type="tel"
                     value={formData.whatsapp}
                     onChange={handleInputChange}
-                    placeholder="(xxx) xxx-xxxx"
+                    placeholder="Enter phone number"
                   />
                 </div>
                 <div>
@@ -566,7 +593,7 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
                 <ReadOnlyField label="Last Name" value={contact.lastName} />
                 <ReadOnlyField label="Preferred Name" value={contact.preferredName} />
                 <ReadOnlyField label="Mobile" value={contact.phone ? formatPhoneNumber(contact.phone) : undefined} href={contact.phone ? `tel:${contact.phone}` : undefined} />
-                <ReadOnlyField label="WhatsApp" value={contact.whatsapp ? formatPhoneNumber(contact.whatsapp) : undefined} href={contact.whatsapp ? `tel:${contact.whatsapp}` : undefined} />
+                <ReadOnlyField label="WhatsApp" value={contact.whatsapp ? `${extractCountryFromPhone(contact.whatsapp)?.dialCode} ${formatPhoneByCountry(contact.whatsapp, extractCountryFromPhone(contact.whatsapp))}` : undefined} href={contact.whatsapp ? `tel:${contact.whatsapp}` : undefined} />
                 <ReadOnlyField label="Email" value={contact.email} href={contact.email ? `mailto:${contact.email}` : undefined} />
               </div>
               <div className="grid grid-cols-1 gap-4">
