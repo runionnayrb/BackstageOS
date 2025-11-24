@@ -990,6 +990,13 @@ textarea:active {
   }
 }
 
+/* Custom grid layout for contact form columns */
+@media (min-width: 768px) {
+  [data-grid-layout="custom-widths"] {
+    grid-template-columns: 30% 30% 1fr !important;
+  }
+}
+
 /* TipTap editor mobile optimizations */
 .ProseMirror {
   -webkit-user-select: text;
