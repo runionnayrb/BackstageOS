@@ -427,8 +427,8 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
         <div className="space-y-4">
           {isEditing ? (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                <div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:flex md:gap-2">
+                <div className="md:w-[22%]">
                   <Label htmlFor="firstName">First Name *</Label>
                   <Input
                     id="firstName"
@@ -438,7 +438,7 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
                     required
                   />
                 </div>
-                <div>
+                <div className="md:w-[22%]">
                   <Label htmlFor="lastName">Last Name *</Label>
                   <Input
                     id="lastName"
@@ -448,7 +448,7 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
                     required
                   />
                 </div>
-                <div>
+                <div className="md:w-[22%]">
                   <Label htmlFor="preferredName">Preferred Name</Label>
                   <Input
                     id="preferredName"
@@ -459,8 +459,8 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                <div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:flex md:gap-2">
+                <div className="md:w-[22%]">
                   <Label htmlFor="phone">Mobile</Label>
                   <Input
                     id="phone"
@@ -471,7 +471,7 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
                     placeholder="(xxx) xxx-xxxx"
                   />
                 </div>
-                <div>
+                <div className="md:w-[22%]">
                   <Label htmlFor="whatsapp">WhatsApp</Label>
                   <Input
                     id="whatsapp"
@@ -482,7 +482,7 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
                     placeholder="(xxx) xxx-xxxx"
                   />
                 </div>
-                <div>
+                <div className="md:w-[34%]">
                   <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
@@ -557,15 +557,27 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
             </>
           ) : (
             <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                <ReadOnlyField label="First Name" value={contact.firstName} />
-                <ReadOnlyField label="Last Name" value={contact.lastName} />
-                <ReadOnlyField label="Preferred Name" value={contact.preferredName} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:flex md:gap-2">
+                <div className="md:w-[22%]">
+                  <ReadOnlyField label="First Name" value={contact.firstName} />
+                </div>
+                <div className="md:w-[22%]">
+                  <ReadOnlyField label="Last Name" value={contact.lastName} />
+                </div>
+                <div className="md:w-[22%]">
+                  <ReadOnlyField label="Preferred Name" value={contact.preferredName} />
+                </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                <ReadOnlyField label="Mobile" value={contact.phone} href={contact.phone ? `tel:${contact.phone}` : undefined} />
-                <ReadOnlyField label="WhatsApp" value={contact.whatsapp} href={contact.whatsapp ? `tel:${contact.whatsapp}` : undefined} />
-                <ReadOnlyField label="Email" value={contact.email} href={contact.email ? `mailto:${contact.email}` : undefined} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:flex md:gap-2">
+                <div className="md:w-[22%]">
+                  <ReadOnlyField label="Mobile" value={contact.phone} href={contact.phone ? `tel:${contact.phone}` : undefined} />
+                </div>
+                <div className="md:w-[22%]">
+                  <ReadOnlyField label="WhatsApp" value={contact.whatsapp} href={contact.whatsapp ? `tel:${contact.whatsapp}` : undefined} />
+                </div>
+                <div className="md:w-[34%]">
+                  <ReadOnlyField label="Email" value={contact.email} href={contact.email ? `mailto:${contact.email}` : undefined} />
+                </div>
               </div>
               <div className="grid grid-cols-1 gap-4">
                 <ReadOnlyField label="Contact Group" value={contact.groupId ? 'Assigned' : 'Not assigned'} />

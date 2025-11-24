@@ -261,8 +261,8 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
             <CardTitle>Contact Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-              <div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:flex md:gap-2">
+              <div className="md:w-[22%]">
                 <Label htmlFor="firstName">First Name *</Label>
                 <Input
                   id="firstName"
@@ -272,7 +272,7 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
                   required
                 />
               </div>
-              <div>
+              <div className="md:w-[22%]">
                 <Label htmlFor="lastName">Last Name *</Label>
                 <Input
                   id="lastName"
@@ -282,7 +282,7 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
                   required
                 />
               </div>
-              <div>
+              <div className="md:w-[22%]">
                 <Label htmlFor="preferredName">Preferred Name</Label>
                 <Input
                   id="preferredName"
@@ -293,8 +293,8 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-              <div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:flex md:gap-2">
+              <div className="md:w-[22%]">
                 <Label htmlFor="phone">Mobile</Label>
                 <Input
                   id="phone"
@@ -309,7 +309,7 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
                   <p className="text-sm text-red-500 mt-1">{validationErrors.phone}</p>
                 )}
               </div>
-              <div>
+              <div className="md:w-[22%]">
                 <Label htmlFor="whatsapp">WhatsApp</Label>
                 <Input
                   id="whatsapp"
@@ -320,7 +320,7 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
                   placeholder="(xxx) xxx-xxxx"
                 />
               </div>
-              <div>
+              <div className="md:w-[34%]">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
