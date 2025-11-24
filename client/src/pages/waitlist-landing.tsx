@@ -480,8 +480,8 @@ export default function WaitlistLanding() {
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center space-y-6">
-            <h3 className="text-2xl mb-4">
+          <div className="text-center space-y-2">
+            <h3 className="text-2xl mb-0">
               <span style={{ fontWeight: 400 }}>Backstage</span>
               <span style={{ fontWeight: 700 }}>OS</span>
             </h3>
