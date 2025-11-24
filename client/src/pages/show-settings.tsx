@@ -1750,7 +1750,7 @@ The Production Team`
             <CardHeader>
               <div className="flex items-center justify-between md:flex-row md:items-center md:justify-between">
                 <div className="flex items-center justify-between flex-1">
-                  <CardTitle>Department Management</CardTitle>
+                  <CardTitle>Departments</CardTitle>
                   <div className="md:hidden">
                     <Dialog>
                       <DialogTrigger asChild>
