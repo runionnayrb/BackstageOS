@@ -427,7 +427,7 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
         <div className="space-y-4">
           {isEditing ? (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-0">
                 <div>
                   <Label htmlFor="firstName">First Name *</Label>
                   <Input
@@ -459,7 +459,7 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-0">
                 <div>
                   <Label htmlFor="phone">Mobile</Label>
                   <Input
@@ -557,12 +557,12 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
             </>
           ) : (
             <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-0">
                 <ReadOnlyField label="First Name" value={contact.firstName} />
                 <ReadOnlyField label="Last Name" value={contact.lastName} />
                 <ReadOnlyField label="Preferred Name" value={contact.preferredName} />
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-0">
                 <ReadOnlyField label="Mobile" value={contact.phone} href={contact.phone ? `tel:${contact.phone}` : undefined} />
                 <ReadOnlyField label="WhatsApp" value={contact.whatsapp} href={contact.whatsapp ? `tel:${contact.whatsapp}` : undefined} />
                 <ReadOnlyField label="Email" value={contact.email} href={contact.email ? `mailto:${contact.email}` : undefined} />
