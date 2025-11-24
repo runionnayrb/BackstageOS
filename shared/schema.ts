@@ -53,10 +53,15 @@ export const users = pgTable("users", {
   // Email settings for show-specific communications via sm@backstageos.com
   defaultReplyToEmail: varchar("default_reply_to_email"),
   emailDisplayName: varchar("email_display_name"),
-  // Connected email provider for native email sending (Gmail or Outlook)
+  // Connected email provider for native email sending (Gmail or Outlook) - Per-user OAuth
   connectedEmailProvider: varchar("connected_email_provider"), // 'gmail' or 'outlook'
   connectedEmailAddress: varchar("connected_email_address"), // The actual email address from the connected provider
   emailProviderConnectedAt: timestamp("email_provider_connected_at"),
+  // OAuth tokens for per-user email integration (encrypted)
+  emailOAuthRefreshToken: text("email_oauth_refresh_token"), // Encrypted refresh token
+  emailOAuthAccessToken: text("email_oauth_access_token"), // Current access token
+  emailOAuthTokenExpiry: timestamp("email_oauth_token_expiry"), // When access token expires
+  emailOAuthScopes: text("email_oauth_scopes"), // Granted OAuth scopes
   // Billing and subscription fields
   stripeCustomerId: varchar("stripe_customer_id"),
   stripeSubscriptionId: varchar("stripe_subscription_id"),
