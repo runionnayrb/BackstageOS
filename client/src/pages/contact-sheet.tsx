@@ -3,7 +3,7 @@ import { useLocation, useParams } from "wouter";
 import { 
   ArrowLeft, Settings, GripVertical, Printer, Eye, Edit,
   Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight,
-  Palette, Type, Square, Minus, ChevronDown, Grid3X3, Clipboard, GitBranch, Check, Users, Plus, X
+  Palette, Type, Square, Minus, ChevronDown, Grid3X3, Clipboard, GitBranch, Check, Users, Plus, X, Save
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -98,6 +98,8 @@ export default function ContactSheet() {
   const [groupsModalOpen, setGroupsModalOpen] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [draggedGroupId, setDraggedGroupId] = useState<number | null>(null);
+  const [editingGroupId, setEditingGroupId] = useState<number | null>(null);
+  const [editingGroupName, setEditingGroupName] = useState('');
   const [isResizing, setIsResizing] = useState<number | null>(null);
   const [resizeStartX, setResizeStartX] = useState(0);
   const [resizeStartWidth, setResizeStartWidth] = useState(0);
@@ -213,6 +215,19 @@ export default function ContactSheet() {
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contact-groups`] });
+    },
+  });
+
+  const renameGroupMutation = useMutation({
+    mutationFn: (data: { groupId: number; name: string }) => apiRequest(`/api/contact-groups/${data.groupId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ name: data.name }),
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contact-groups`] });
+      setEditingGroupId(null);
+      setEditingGroupName('');
+      toast({ title: "Group renamed successfully" });
     },
   });
 
@@ -1106,24 +1121,75 @@ export default function ContactSheet() {
                           contactGroups.map((group) => (
                             <div
                               key={group.id}
-                              draggable
+                              draggable={editingGroupId !== group.id}
                               onDragStart={(e) => handleDragStartGroup(e, group.id)}
                               onDragOver={handleDragOverGroup}
                               onDrop={(e) => handleDropGroup(e, group.id)}
                               className="flex items-center justify-between p-2 border rounded bg-white hover:bg-gray-50 cursor-grab active:cursor-grabbing"
                             >
-                              <div className="flex items-center gap-2">
-                                <GripVertical className="h-4 w-4 text-gray-400" />
-                                <span className="text-sm">{group.name}</span>
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => deleteGroupMutation.mutate(group.id)}
-                                disabled={deleteGroupMutation.isPending}
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
+                              {editingGroupId === group.id ? (
+                                <div className="flex items-center gap-2 flex-1">
+                                  <Input
+                                    value={editingGroupName}
+                                    onChange={(e) => setEditingGroupName(e.target.value)}
+                                    placeholder="Group name"
+                                    className="flex-1 h-8"
+                                    autoFocus
+                                    onKeyPress={(e) => {
+                                      if (e.key === 'Enter' && editingGroupName) {
+                                        renameGroupMutation.mutate({ groupId: group.id, name: editingGroupName });
+                                      }
+                                    }}
+                                  />
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => renameGroupMutation.mutate({ groupId: group.id, name: editingGroupName })}
+                                    disabled={!editingGroupName || renameGroupMutation.isPending}
+                                  >
+                                    <Save className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      setEditingGroupId(null);
+                                      setEditingGroupName('');
+                                    }}
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              ) : (
+                                <>
+                                  <div className="flex items-center gap-2">
+                                    <GripVertical className="h-4 w-4 text-gray-400" />
+                                    <span className="text-sm">{group.name}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        setEditingGroupId(group.id);
+                                        setEditingGroupName(group.name);
+                                      }}
+                                      title="Rename group"
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => deleteGroupMutation.mutate(group.id)}
+                                      disabled={deleteGroupMutation.isPending}
+                                      title="Delete group"
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </>
+                              )}
                             </div>
                           ))
                         )}
