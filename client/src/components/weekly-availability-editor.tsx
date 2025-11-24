@@ -1069,17 +1069,18 @@ export function WeeklyAvailabilityEditor({ contact, isOpen: externalIsOpen, onOp
               style={{ 
                 height: '400px',
                 overflowY: 'scroll',
-                position: 'relative'
+                position: 'relative',
+                boxSizing: 'border-box'
               }}
               onScroll={(e) => {
                 const scrollTop = e.currentTarget.scrollTop;
                 setScrollPosition(scrollTop);
               }}
             >
-              <div style={{ height: '960px', position: 'relative' }}> {/* 8 AM to midnight (16 hours) */}
-                <div className="flex h-full">
+              <div style={{ height: '960px', position: 'relative', boxSizing: 'border-box' }}> {/* 8 AM to midnight (16 hours) */}
+                <div className="flex h-full" style={{ boxSizing: 'border-box' }}>
                 {/* Time column */}
-                <div className="border-r bg-gray-50" style={{ width: '60px', flexShrink: 0 }}>
+                <div className="border-r bg-gray-50" style={{ width: '60px', flexShrink: 0, boxSizing: 'border-box' }}>
                   <div className="relative h-full">
                     {timeLabels.map(({ hour, label, position }) => (
                       <div
