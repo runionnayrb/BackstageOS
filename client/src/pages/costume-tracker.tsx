@@ -810,24 +810,11 @@ export default function CostumeTracker() {
                   onClick={() => handleEdit(costume)}
                 >
                   <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <div className="font-medium text-base">{costume.piece}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {[costume.act, costume.scene, costume.character].filter(Boolean).join(' • ')}
-                        </div>
+                    <div className="mb-2">
+                      <div className="font-medium text-base">{costume.piece}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {[costume.act, costume.scene, costume.character].filter(Boolean).join(' • ')}
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(costume.id);
-                        }}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
                     </div>
                     
                     <div className="flex items-center justify-between">
