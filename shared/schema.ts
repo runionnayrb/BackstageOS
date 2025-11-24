@@ -53,6 +53,10 @@ export const users = pgTable("users", {
   // Email settings for show-specific communications via sm@backstageos.com
   defaultReplyToEmail: varchar("default_reply_to_email"),
   emailDisplayName: varchar("email_display_name"),
+  // Connected email provider for native email sending (Gmail or Outlook)
+  connectedEmailProvider: varchar("connected_email_provider"), // 'gmail' or 'outlook'
+  connectedEmailAddress: varchar("connected_email_address"), // The actual email address from the connected provider
+  emailProviderConnectedAt: timestamp("email_provider_connected_at"),
   // Billing and subscription fields
   stripeCustomerId: varchar("stripe_customer_id"),
   stripeSubscriptionId: varchar("stripe_subscription_id"),
