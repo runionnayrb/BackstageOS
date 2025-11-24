@@ -1701,9 +1701,7 @@ The Production Team`
                   <div className="hidden md:block">
                     <InviteTeamMemberDialog variant="editor" />
                   </div>
-                  <CardDescription className="md:hidden">
-                    Invite up to 3 team members with editing permissions for this production.
-                  </CardDescription>
+                  <CardDescription className="md:hidden">Invite up to 3 team members</CardDescription>
                 </div>
                 <CardDescription className="hidden md:block">
                   Invite up to 3 team members with editing permissions for this production.
