@@ -193,8 +193,10 @@ function Router() {
     return <WaitlistLanding />;
   }
   
-  // For dev environment, show authentication page if not authenticated (except for explicit waitlist routes)
-  if (isDevEnvironment && !user && !isLoading && window.location.pathname !== '/landing') {
+  // For dev environment, show authentication page if not authenticated (except for explicit public routes)
+  const publicRoutes = ['/landing', '/security', '/privacy', '/terms', '/main-landing'];
+  const isPublicRoute = publicRoutes.includes(window.location.pathname);
+  if (isDevEnvironment && !user && !isLoading && !isPublicRoute) {
     return <AuthPage />;
   }
 
