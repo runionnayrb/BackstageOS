@@ -5,8 +5,9 @@ import { Link } from "wouter";
 
 export default function Landing() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary to-secondary flex flex-col items-center justify-center px-4">
-      <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center flex-1">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-primary to-secondary">
+      <div className="flex-1 flex items-center justify-center px-4">
+        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center w-full">
         {/* Hero Content */}
         <div className="text-white space-y-8">
           <div>
@@ -102,10 +103,11 @@ export default function Landing() {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
 
       {/* Footer */}
-      <footer className="w-full bg-black/30 text-white py-8 px-4 mt-8">
+      <footer className="w-full bg-black/30 text-white py-8 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center space-y-4">
             <p className="text-sm opacity-90">© 2025 BackstageOS. All rights reserved. Created by Bryan Runion</p>
