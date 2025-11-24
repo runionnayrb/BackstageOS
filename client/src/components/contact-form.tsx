@@ -323,7 +323,7 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
                   <SelectContent>
                     {COUNTRIES.map((country) => (
                       <SelectItem key={country.code} value={country.code}>
-                        {`${country.dialCode.padEnd(10)}${country.name}`}
+                        {`${country.dialCode}${'\u00A0'.repeat(10 - country.dialCode.length)}${country.name}`}
                       </SelectItem>
                     ))}
                   </SelectContent>
