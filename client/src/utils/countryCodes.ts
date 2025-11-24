@@ -267,3 +267,41 @@ export const extractCountryFromPhone = (phoneValue: string): Country | undefined
   
   return undefined;
 };
+
+// Format WhatsApp with auto-detected country code
+export const formatWhatsAppWithCountry = (value: string): string => {
+  if (!value) return '';
+  
+  // Remove all non-digits and plus signs except the leading one
+  let cleaned = value.replace(/[^\d+]/g, '');
+  if (!cleaned) return '';
+  
+  // Try to find matching country by dial code
+  let matchedCountry: Country | undefined;
+  let dialCodeLength = 0;
+  
+  // Sort by length descending to match longest dial code first
+  const sortedCountries = [...COUNTRIES].sort((a, b) => b.dialCode.length - a.dialCode.length);
+  
+  for (const country of sortedCountries) {
+    const dialCodeWithPlus = country.dialCode;
+    if (cleaned.startsWith(dialCodeWithPlus)) {
+      matchedCountry = country;
+      dialCodeLength = dialCodeWithPlus.length;
+      break;
+    }
+  }
+  
+  if (!matchedCountry || dialCodeLength === 0) {
+    // No country code found, just return as-is
+    return cleaned.startsWith('+') ? cleaned : '+' + cleaned;
+  }
+  
+  // Extract the phone number part (without country code)
+  const phoneDigits = cleaned.substring(dialCodeLength);
+  
+  // Format using country rules
+  const formatted = formatPhoneByCountry(phoneDigits, matchedCountry);
+  
+  return `${matchedCountry.dialCode} ${formatted}`;
+};
