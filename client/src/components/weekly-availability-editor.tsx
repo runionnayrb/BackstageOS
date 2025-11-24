@@ -1117,12 +1117,13 @@ export function WeeklyAvailabilityEditor({ contact, isOpen: externalIsOpen, onOp
                   {weekDates.map((_: Date, dayIndex: number) => (
                     <div
                       key={dayIndex}
-                      className="absolute h-full border-r border-gray-200 cursor-crosshair"
+                      className="absolute h-full cursor-crosshair"
                       style={{ 
                         left: `calc(60px + (100% - 60px) * ${dayIndex} / 7)`,
                         width: `calc((100% - 60px) / 7)`,
                         top: 0,
-                        bottom: 0
+                        bottom: 0,
+                        boxShadow: 'inset -1px 0 0 0 #e5e7eb'
                       }}
                       onMouseDown={(e) => handleMouseDown(e, dayIndex)}
                     />
