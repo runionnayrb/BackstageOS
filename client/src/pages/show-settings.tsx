@@ -1734,9 +1734,7 @@ The Production Team`
                   <div className="hidden md:block">
                     <InviteTeamMemberDialog variant="viewer" />
                   </div>
-                  <CardDescription className="md:hidden">
-                    Invite unlimited viewers with read-only access to production information.
-                  </CardDescription>
+                  <CardDescription className="md:hidden">Invite unlimited viewers with read-only access</CardDescription>
                 </div>
                 <CardDescription className="hidden md:block">
                   Invite unlimited viewers with read-only access to production information.
