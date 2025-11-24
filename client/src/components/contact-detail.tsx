@@ -314,7 +314,7 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
       <div>
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">
-            {isEditing ? "Edit Contact" : "Contact Details"}
+            {isEditing ? "Edit Contact" : `${contact.firstName} ${contact.lastName}`}
           </h2>
           <div className="flex gap-2">
             {isEditing ? (
