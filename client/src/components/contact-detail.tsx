@@ -427,7 +427,7 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
         <div className="space-y-4">
           {isEditing ? (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2" data-grid-layout="custom-widths">
                 <div>
                   <Label htmlFor="firstName">First Name *</Label>
                   <Input
@@ -554,7 +554,7 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
             </>
           ) : (
             <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2" data-grid-layout="custom-widths">
                 <ReadOnlyField label="First Name" value={contact.firstName} />
                 <ReadOnlyField label="Last Name" value={contact.lastName} />
                 <ReadOnlyField label="Preferred Name" value={contact.preferredName} />
