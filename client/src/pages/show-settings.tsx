@@ -2102,20 +2102,30 @@ The Production Team`
           {/* Event Locations Management */}
           <Card className="mt-6 border-0 shadow-none">
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>
-                    Event Locations
-                  </CardTitle>
-                  <CardDescription>
-                    Manage locations where events can take place
-                  </CardDescription>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>
+                      Event Locations
+                    </CardTitle>
+                  </div>
+                  <Button onClick={handleCreateLocation} size="sm" variant="ghost" className="h-8 w-8 p-0 md:hidden">
+                    <Plus className="h-4 w-4" />
+                  </Button>
                 </div>
-                <Button onClick={handleCreateLocation} size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Location
-                </Button>
+                <div className="hidden md:block">
+                  <Button onClick={handleCreateLocation} size="sm">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Location
+                  </Button>
+                </div>
+                <CardDescription className="md:hidden">
+                  Manage locations where events can take place
+                </CardDescription>
               </div>
+              <CardDescription className="hidden md:block">
+                Manage locations where events can take place
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -2215,20 +2225,30 @@ The Production Team`
           {/* Event Types Management */}
           <Card className="mt-6 border-0 shadow-none">
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>
-                    Event Types
-                  </CardTitle>
-                  <CardDescription>
-                    Manage custom event types for your schedule
-                  </CardDescription>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>
+                      Event Types
+                    </CardTitle>
+                  </div>
+                  <Button onClick={handleCreateEventType} size="sm" variant="ghost" className="h-8 w-8 p-0 md:hidden">
+                    <Plus className="h-4 w-4" />
+                  </Button>
                 </div>
-                <Button onClick={handleCreateEventType} size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Event Type
-                </Button>
+                <div className="hidden md:block">
+                  <Button onClick={handleCreateEventType} size="sm">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Event Type
+                  </Button>
+                </div>
+                <CardDescription className="md:hidden">
+                  Manage custom event types for your schedule
+                </CardDescription>
               </div>
+              <CardDescription className="hidden md:block">
+                Manage custom event types for your schedule
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
