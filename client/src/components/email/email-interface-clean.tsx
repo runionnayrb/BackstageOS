@@ -945,7 +945,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                     }}
                   >
                     {/* Desktop Layout - Keep existing horizontal layout */}
-                    <div className="hidden md:flex items-center gap-1 w-full overflow-hidden">
+                    <div className="hidden md:flex items-center gap-2 w-full" style={{ maxWidth: '100%' }}>
                       {/* Hover Checkbox - Desktop only */}
                       <div className="w-6 h-6 flex-shrink-0">
                         {isSelectionMode ? (
@@ -975,9 +975,9 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                         <div className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0"></div>
                       )}
 
-                      {/* Sender name - fixed width, wider for better readability */}
-                      <div className="w-48 flex-shrink-0">
-                        <span className={`text-sm font-medium truncate block ${!message.isRead ? 'font-semibold text-black' : 'text-gray-700'}`}>
+                      {/* Sender name - fixed width */}
+                      <div className="w-40 flex-shrink-0 overflow-hidden">
+                        <span className={`text-sm truncate block ${!message.isRead ? 'font-semibold text-black' : 'text-gray-700'}`}>
                           <ContactPreview emailAddress={message.fromAddress || ''}>
                             <span className="hover:text-blue-600 transition-colors cursor-pointer">
                               {getDisplayName(message.fromAddress || '')}
@@ -986,32 +986,29 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                         </span>
                       </div>
 
-                      {/* Subject + Message Preview - flexible width with proper constraints */}
-                      <div className="flex-1 min-w-0 mr-2">
-                        <div className="flex items-center gap-1 overflow-hidden">
-                          {message.hasAttachments && (
-                            <span className="text-xs text-gray-500 flex-shrink-0">📎</span>
+                      {/* Subject + Message Preview - flexible width, must truncate */}
+                      <div className="flex-1 min-w-0 overflow-hidden">
+                        <span className="block truncate text-sm">
+                          {message.hasAttachments && <span className="text-gray-500 mr-1">📎</span>}
+                          {message.isImportant && <span className="text-yellow-500 mr-1">⭐</span>}
+                          <span className={!message.isRead ? 'font-semibold text-black' : 'text-gray-700'}>
+                            {message.subject || 'No Subject'}
+                          </span>
+                          {message.content && (
+                            <span className="text-gray-500"> — {message.content.slice(0, 100)}</span>
                           )}
-                          {message.isImportant && (
-                            <span className="text-xs text-yellow-500 flex-shrink-0">⭐</span>
-                          )}
-                          <div className="truncate">
-                            <span className={`text-sm ${!message.isRead ? 'font-semibold text-black' : 'text-gray-700'}`}>
-                              {message.subject || 'No Subject'}
-                            </span>
-                            {message.content && (
-                              <span className="text-sm text-gray-500">
-                                {' — '}{message.content.slice(0, 150)}
-                              </span>
-                            )}
-                          </div>
-                        </div>
+                        </span>
                       </div>
 
-                      {/* Hover actions and Date - right aligned, fixed width */}
-                      <div className="flex-shrink-0 flex items-center gap-1 w-auto">
-                        {/* Hover action icons - hidden by default, shown on row hover */}
-                        <div className="hidden group-hover:flex items-center gap-1 mr-2">
+                      {/* Right side: Date always visible, hover actions appear on hover */}
+                      <div className="flex-shrink-0 flex items-center gap-2 ml-auto pl-4">
+                        {/* Date - always visible, hides on hover when actions show */}
+                        <span className="text-xs text-gray-500 whitespace-nowrap group-hover:hidden">
+                          {formatDate(message.dateSent)}
+                        </span>
+                        
+                        {/* Hover action icons - shown on row hover, replacing date */}
+                        <div className="hidden group-hover:flex items-center gap-1">
                           <Button
                             variant="ghost"
                             size="sm"
@@ -1021,137 +1018,11 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                                 onReply(message, 'reply');
                               }
                             }}
-                            className="h-6 w-6 p-0 hover:bg-transparent group/icon"
+                            className="h-7 w-7 p-0 hover:bg-gray-100 rounded"
                             title="Reply"
                           >
-                            <Reply className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
+                            <Reply className="h-4 w-4 text-gray-600" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setForwardMessage(message);
-                              setComposeMode('forward');
-                              if (onShowComposeChange) {
-                                onShowComposeChange(true);
-                              }
-                            }}
-                            className="h-6 w-6 p-0 hover:bg-transparent group/icon"
-                            title="Forward"
-                          >
-                            <Forward className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
-                          </Button>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => e.stopPropagation()}
-                                className="h-6 w-6 p-0 hover:bg-transparent group/icon"
-                                title="Move to folder"
-                              >
-                                <FolderOpen className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-40" align="end">
-                              <div className="space-y-1">
-                                <div className="px-2 py-1 text-xs font-medium text-gray-700 border-b border-gray-100">
-                                  Move to:
-                                </div>
-                                {activeFolder !== 'inbox' && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => {
-                                      bulkActionMutation.mutate({
-                                        messageIds: [message.id],
-                                        action: 'move',
-                                        accountId: selectedAccount.id,
-                                        targetFolder: 'inbox'
-                                      });
-                                    }}
-                                    className="w-full h-7 justify-start text-xs"
-                                  >
-                                    <Mail className="h-3 w-3 mr-2" />
-                                    Inbox
-                                  </Button>
-                                )}
-                                {activeFolder !== 'sent' && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => {
-                                      bulkActionMutation.mutate({
-                                        messageIds: [message.id],
-                                        action: 'move',
-                                        accountId: selectedAccount.id,
-                                        targetFolder: 'sent'
-                                      });
-                                    }}
-                                    className="w-full h-7 justify-start text-xs"
-                                  >
-                                    <Send className="h-3 w-3 mr-2" />
-                                    Sent
-                                  </Button>
-                                )}
-                                {activeFolder !== 'drafts' && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => {
-                                      bulkActionMutation.mutate({
-                                        messageIds: [message.id],
-                                        action: 'move',
-                                        accountId: selectedAccount.id,
-                                        targetFolder: 'drafts'
-                                      });
-                                    }}
-                                    className="w-full h-7 justify-start text-xs"
-                                  >
-                                    <File className="h-3 w-3 mr-2" />
-                                    Drafts
-                                  </Button>
-                                )}
-                                {activeFolder !== 'archive' && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => {
-                                      bulkActionMutation.mutate({
-                                        messageIds: [message.id],
-                                        action: 'archive',
-                                        accountId: selectedAccount.id,
-                                        targetFolder: 'archive'
-                                      });
-                                    }}
-                                    className="w-full h-7 justify-start text-xs"
-                                  >
-                                    <Archive className="h-3 w-3 mr-2" />
-                                    Archive
-                                  </Button>
-                                )}
-                                {activeFolder !== 'trash' && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => {
-                                      bulkActionMutation.mutate({
-                                        messageIds: [message.id],
-                                        action: 'move',
-                                        accountId: selectedAccount.id,
-                                        targetFolder: 'trash'
-                                      });
-                                    }}
-                                    className="w-full h-7 justify-start text-xs"
-                                  >
-                                    <Trash2 className="h-3 w-3 mr-2" />
-                                    Trash
-                                  </Button>
-                                )}
-                              </div>
-                            </PopoverContent>
-                          </Popover>
                           <Button
                             variant="ghost"
                             size="sm"
@@ -1164,10 +1035,10 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                                 targetFolder: 'archive'
                               });
                             }}
-                            className="h-6 w-6 p-0 hover:bg-transparent group/icon"
+                            className="h-7 w-7 p-0 hover:bg-gray-100 rounded"
                             title="Archive"
                           >
-                            <Archive className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
+                            <Archive className="h-4 w-4 text-gray-600" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -1181,17 +1052,12 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                                 targetFolder: 'trash'
                               });
                             }}
-                            className="h-6 w-6 p-0 hover:bg-transparent group/icon"
+                            className="h-7 w-7 p-0 hover:bg-gray-100 rounded"
                             title="Delete"
                           >
-                            <Trash2 className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
+                            <Trash2 className="h-4 w-4 text-gray-600" />
                           </Button>
                         </div>
-                        
-                        {/* Date - always visible */}
-                        <span className="text-sm text-gray-500">
-                          {formatDate(message.dateSent)}
-                        </span>
                       </div>
                     </div>
 
