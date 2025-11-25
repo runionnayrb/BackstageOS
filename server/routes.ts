@@ -10485,6 +10485,17 @@ Best regards,
   app.get('/api/email/accounts/:accountId/signature', isAuthenticated, async (req: any, res) => {
     try {
       const accountId = parseInt(req.params.accountId);
+      const userId = req.user.id;
+
+      // For OAuth users (accountId = -1), get signature from emailSignatures table
+      if (accountId === -1) {
+        const { EmailService } = await import('./services/emailService.js');
+        const emailService = new EmailService();
+        const signatures = await emailService.getEmailSignatures(userId);
+        // Get the default signature or the first one
+        const defaultSig = signatures.find(s => s.isDefault) || signatures[0];
+        return res.json({ signature: defaultSig?.content || '' });
+      }
 
       const { EmailService } = await import('./services/emailService.js');
       const emailService = new EmailService();
@@ -10502,9 +10513,30 @@ Best regards,
     try {
       const accountId = parseInt(req.params.accountId);
       const { signature } = req.body;
+      const userId = req.user.id;
 
       const { EmailService } = await import('./services/emailService.js');
       const emailService = new EmailService();
+
+      // For OAuth users (accountId = -1), save signature to emailSignatures table
+      if (accountId === -1) {
+        const existingSignatures = await emailService.getEmailSignatures(userId);
+        const defaultSig = existingSignatures.find(s => s.isDefault) || existingSignatures[0];
+        
+        if (defaultSig) {
+          // Update existing signature
+          await emailService.updateEmailSignature(defaultSig.id, { content: signature });
+        } else {
+          // Create new signature
+          await emailService.createEmailSignature({
+            userId,
+            name: 'Default',
+            content: signature,
+            isDefault: true,
+          });
+        }
+        return res.json({ success: true, signature });
+      }
       
       const updatedAccount = await emailService.updateEmailAccount(accountId, { signature });
       res.json(updatedAccount);

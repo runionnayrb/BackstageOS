@@ -469,6 +469,22 @@ export class EmailService {
     return signature;
   }
 
+  /**
+   * Update an email signature
+   */
+  async updateEmailSignature(signatureId: number, updates: Partial<Pick<EmailSignature, 'name' | 'content' | 'isDefault'>>): Promise<EmailSignature> {
+    const [updatedSignature] = await db
+      .update(emailSignatures)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(emailSignatures.id, signatureId))
+      .returning();
+
+    return updatedSignature;
+  }
+
   // ========== STATISTICS ==========
 
   /**
