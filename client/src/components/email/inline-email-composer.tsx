@@ -522,7 +522,7 @@ export function InlineEmailComposer({
                   data-testid="menu-item-schedule-tomorrow-morning"
                 >
                   <Clock className="h-4 w-4" />
-                  <span>Tomorrow morning (9:00 AM)</span>
+                  <span>Tomorrow at 9:00 AM</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem 
                   onClick={() => handleQuickSchedule('tomorrow_afternoon')}
@@ -755,7 +755,6 @@ export function InlineEmailComposer({
           </div>
         </div>
       </div>
-
       {/* Exit confirmation dialog */}
       <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog}>
         <AlertDialogContent className="z-[70]" style={{ zIndex: '70' }}>
@@ -775,7 +774,6 @@ export function InlineEmailComposer({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
     </>
   );
 }
