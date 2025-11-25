@@ -615,65 +615,73 @@ export function InlineEmailComposer({
                   <span>Tomorrow at 2:00 PM</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger className="flex items-center gap-2" data-testid="menu-item-schedule-custom">
-                    <Calendar className="h-4 w-4" />
-                    <span>Pick date & time...</span>
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent 
-                    className="p-0 w-auto max-h-[80vh] overflow-y-auto" 
-                    side="bottom"
-                    align="start"
-                    sideOffset={2}
-                    collisionPadding={16}
-                    style={{ zIndex: 10003 }}
-                  >
-                    {/* Date and Time header */}
-                    <div className="flex border-b border-gray-200">
-                      <div className="flex-1 px-3 py-2 border-r border-gray-200">
-                        <span className="text-sm text-gray-900">
-                          {scheduledDate ? format(scheduledDate, 'MMM d, yyyy') : 'Select date'}
-                        </span>
-                      </div>
-                      <div className="px-3 py-2 flex items-center">
-                        <input
-                          type="time"
-                          value={scheduledTime}
-                          onChange={(e) => setScheduledTime(e.target.value)}
-                          className="text-sm text-gray-900 bg-transparent border-none outline-none w-[75px]"
-                        />
-                      </div>
-                    </div>
-                    
-                    {/* Calendar */}
-                    <CalendarComponent
-                      mode="single"
-                      selected={scheduledDate}
-                      onSelect={setScheduledDate}
-                      disabled={(date) => isBefore(date, startOfToday())}
-                      initialFocus
-                    />
-
-                    {/* Footer */}
-                    <div className="flex justify-between items-center px-3 py-2 border-t border-gray-200">
-                      <span className="text-xs text-gray-500">
-                        {scheduledDate && scheduledTime ? 
-                          `${format(scheduledDate, 'MMM d')} at ${scheduledTime}` : 
-                          'Select date & time'}
-                      </span>
-                      <Button
-                        size="sm"
-                        onClick={handleCustomScheduleConfirm}
-                        disabled={!scheduledDate}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 h-7 text-xs rounded"
-                      >
-                        Schedule
-                      </Button>
-                    </div>
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
+                <DropdownMenuItem 
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    setShowDatePicker(true);
+                  }}
+                  className="flex items-center gap-2"
+                  data-testid="menu-item-schedule-custom"
+                >
+                  <Calendar className="h-4 w-4" />
+                  <span>Pick date & time...</span>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            
+            {/* Date picker popover - positioned below */}
+            {showDatePicker && (
+              <div 
+                className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 mx-4"
+                style={{ zIndex: 10003 }}
+              >
+                {/* Date and Time header */}
+                <div className="flex border-b border-gray-200">
+                  <div className="flex-1 px-3 py-2 border-r border-gray-200">
+                    <span className="text-sm text-gray-900">
+                      {scheduledDate ? format(scheduledDate, 'MMM d, yyyy') : 'Select date'}
+                    </span>
+                  </div>
+                  <div className="px-3 py-2 flex items-center">
+                    <input
+                      type="time"
+                      value={scheduledTime}
+                      onChange={(e) => setScheduledTime(e.target.value)}
+                      className="text-sm text-gray-900 bg-transparent border-none outline-none w-[75px]"
+                    />
+                  </div>
+                </div>
+                
+                {/* Calendar */}
+                <CalendarComponent
+                  mode="single"
+                  selected={scheduledDate}
+                  onSelect={setScheduledDate}
+                  disabled={(date) => isBefore(date, startOfToday())}
+                  initialFocus
+                />
+
+                {/* Footer */}
+                <div className="flex justify-between items-center px-3 py-2 border-t border-gray-200">
+                  <span className="text-xs text-gray-500">
+                    {scheduledDate && scheduledTime ? 
+                      `${format(scheduledDate, 'MMM d')} at ${scheduledTime}` : 
+                      'Select date & time'}
+                  </span>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      handleCustomScheduleConfirm();
+                      setShowDatePicker(false);
+                    }}
+                    disabled={!scheduledDate}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 h-7 text-xs rounded"
+                  >
+                    Schedule
+                  </Button>
+                </div>
+              </div>
+            )}
             {onMinimize && (
               <Button 
                 variant="ghost" 
