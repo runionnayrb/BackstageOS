@@ -999,12 +999,12 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
 
                       {/* Right side: Date always visible, hover actions appear on hover */}
                       <div className="flex-shrink-0 flex items-center gap-2 ml-auto pl-4">
-                        {/* Date - always visible, hides on hover when actions show */}
-                        <span className="text-xs text-gray-500 whitespace-nowrap group-hover:hidden">
+                        {/* Date - always visible */}
+                        <span className="text-xs text-gray-500 whitespace-nowrap">
                           {formatDate(message.dateSent)}
                         </span>
                         
-                        {/* Hover action icons - shown on row hover, replacing date */}
+                        {/* Hover action icons - shown on row hover */}
                         <div className="hidden group-hover:flex items-center gap-1">
                           <Button
                             variant="ghost"
