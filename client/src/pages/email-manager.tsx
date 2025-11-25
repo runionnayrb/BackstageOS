@@ -343,6 +343,11 @@ export default function EmailManager() {
   const [expandedProjects, setExpandedProjects] = useState<string[]>([]);
   const { toast } = useToast();
 
+  // Fetch current user data for name and admin status
+  const { data: user } = useQuery({
+    queryKey: ['/api/user'],
+  });
+
   // Fetch user's connected email provider (Gmail/Outlook OAuth)
   const { data: connectedProvider, isLoading: providerLoading } = useQuery({
     queryKey: ['/api/user/email-provider'],
@@ -350,11 +355,25 @@ export default function EmailManager() {
   });
 
   // Create virtual account from connected provider for the UI
+  // Use user's actual name from profile, fallback to email prefix
+  const getUserDisplayName = () => {
+    if (user?.firstName && user?.lastName) {
+      return `${user.firstName} ${user.lastName}`;
+    }
+    if (user?.firstName) {
+      return user.firstName;
+    }
+    if (user?.displayName) {
+      return user.displayName;
+    }
+    return connectedProvider?.emailAddress?.split('@')[0] || 'Connected Account';
+  };
+
   const emailAccounts: EmailAccount[] = connectedProvider?.provider ? [{
     id: -1, // Virtual ID for connected provider
     userId: 0,
     emailAddress: connectedProvider.emailAddress || '',
-    displayName: connectedProvider.emailAddress?.split('@')[0] || 'Connected Account',
+    displayName: getUserDisplayName(),
     accountType: connectedProvider.provider, // 'gmail' or 'outlook'
     isDefault: true,
     isActive: true,
@@ -383,11 +402,6 @@ export default function EmailManager() {
   const { data: allSharedInboxes } = useQuery({
     queryKey: ['/api/shared-inboxes'],
     enabled: true,
-  });
-
-  // Fetch current user data for admin status
-  const { data: user } = useQuery({
-    queryKey: ['/api/user'],
   });
 
   // Fetch account stats for selected account
