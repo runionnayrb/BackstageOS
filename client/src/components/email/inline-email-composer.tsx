@@ -550,14 +550,13 @@ export function InlineEmailComposer({
                           {scheduledDate ? format(scheduledDate, 'MMM d, yyyy') : 'Select date'}
                         </span>
                       </div>
-                      <div className="px-3 py-2 flex items-center gap-1">
+                      <div className="px-3 py-2 flex items-center">
                         <input
                           type="time"
                           value={scheduledTime}
                           onChange={(e) => setScheduledTime(e.target.value)}
-                          className="text-sm text-gray-900 bg-transparent border-none outline-none w-[68px]"
+                          className="text-sm text-gray-900 bg-transparent border-none outline-none w-[75px]"
                         />
-                        <Clock className="h-3.5 w-3.5 text-gray-400" />
                       </div>
                     </div>
                     
