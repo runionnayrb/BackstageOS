@@ -62,10 +62,38 @@ export function EmailContactSelector({
   const getContactEmail = (contact: EmailContact) => 
     contact.email || `${contact.firstName.toLowerCase()}.${contact.lastName.toLowerCase()}@example.com`;
 
+  // Format email with display name: "FirstName LastName <email@example.com>"
+  const formatEmailWithDisplayName = (contact: EmailContact) => {
+    const displayName = formatContactDisplay(contact);
+    const email = getContactEmail(contact);
+    return `${displayName} <${email}>`;
+  };
+
+  // Extract just the email address from "Name <email>" format
+  const extractEmailAddress = (value: string): string => {
+    const match = value.match(/<(.+?)>/);
+    return match ? match[1] : value;
+  };
+
+  // Extract display name from "Name <email>" format
+  const extractDisplayName = (value: string): string => {
+    if (value.startsWith('distro:')) {
+      return value.split(':').pop() || value;
+    }
+    const match = value.match(/^(.+?)\s*<.+>$/);
+    return match ? match[1].trim() : value;
+  };
+
   // Filter available contacts (not already selected)
+  // Checks both full format "Name <email>" and plain email
   const availableContacts = contacts.filter(contact => {
     const email = getContactEmail(contact);
-    return !selectedEmails.includes(email);
+    const formattedEmail = formatEmailWithDisplayName(contact);
+    // Check if any selected email matches this contact
+    return !selectedEmails.some(selected => {
+      const selectedEmail = extractEmailAddress(selected);
+      return selectedEmail === email || selected === formattedEmail;
+    });
   });
 
   // Filter by search input
@@ -100,9 +128,12 @@ export function EmailContactSelector({
   });
 
   const handleSelectContact = (contact: EmailContact) => {
+    const formattedEmail = formatEmailWithDisplayName(contact);
+    // Check if not already selected (by email address)
     const email = getContactEmail(contact);
-    if (!selectedEmails.includes(email)) {
-      onChange([...selectedEmails, email]);
+    const alreadySelected = selectedEmails.some(selected => extractEmailAddress(selected) === email);
+    if (!alreadySelected) {
+      onChange([...selectedEmails, formattedEmail]);
     }
     setInputValue("");
     setOpen(false);
@@ -215,7 +246,7 @@ export function EmailContactSelector({
           >
             {selectedEmails.map((email, index) => {
               const isDistro = email.startsWith('distro:');
-              const displayEmail = isDistro ? email.split(':').pop() : email;
+              const displayEmail = extractDisplayName(email);
               const distroId = isDistro ? parseInt(email.split(':')[1]) : null;
               const distroGroup = distroId ? emailGroups.find(g => g.id === distroId) : null;
               
