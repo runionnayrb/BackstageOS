@@ -65,38 +65,38 @@ export function PWAManager({ children }: PWAManagerProps) {
         
         console.log('[PWA] Service Worker registered successfully');
 
-        // Listen for updates
-        registration.addEventListener('updatefound', () => {
-          const newWorker = registration.installing;
-          if (newWorker) {
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                setHasUpdate(true);
-                toast({
-                  title: "Update available",
-                  description: "A new version of BackstageOS is ready.",
-                  action: (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={handleUpdate}
-                      disabled={isUpdating}
-                    >
-                      {isUpdating ? (
-                        <>
-                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                          Updating...
-                        </>
-                      ) : (
-                        'Update Now'
-                      )}
-                    </Button>
-                  ),
-                });
-              }
-            });
-          }
-        });
+        // Listen for updates - DISABLED: Remove update notification
+        // registration.addEventListener('updatefound', () => {
+        //   const newWorker = registration.installing;
+        //   if (newWorker) {
+        //     newWorker.addEventListener('statechange', () => {
+        //       if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+        //         setHasUpdate(true);
+        //         toast({
+        //           title: "Update available",
+        //           description: "A new version of BackstageOS is ready.",
+        //           action: (
+        //             <Button 
+        //               variant="outline" 
+        //               size="sm" 
+        //               onClick={handleUpdate}
+        //               disabled={isUpdating}
+        //             >
+        //               {isUpdating ? (
+        //                 <>
+        //                   <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+        //                   Updating...
+        //                 </>
+        //               ) : (
+        //                 'Update Now'
+        //               )}
+        //             </Button>
+        //           ),
+        //         });
+        //       }
+        //     });
+        //   }
+        // });
 
         // Listen for messages from service worker
         navigator.serviceWorker.addEventListener('message', (event) => {
@@ -183,7 +183,8 @@ export function PWAManager({ children }: PWAManagerProps) {
           </div>
         )}
         
-        {isOnline && hasUpdate && (
+        {/* Update indicator DISABLED - Hide update notification */}
+        {/* {isOnline && hasUpdate && (
           <div className="bg-blue-500 text-blue-50 px-3 py-2 rounded-lg shadow-lg flex items-center space-x-2 text-sm">
             <RefreshCw className="h-4 w-4" />
             <span>Update available</span>
@@ -197,7 +198,7 @@ export function PWAManager({ children }: PWAManagerProps) {
               {isUpdating ? 'Updating...' : 'Update'}
             </Button>
           </div>
-        )}
+        )} */}
       </div>
     </>
   );
