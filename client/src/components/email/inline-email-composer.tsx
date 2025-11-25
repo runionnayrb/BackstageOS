@@ -1,11 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { X, Send, ChevronDown, Paperclip, MoreHorizontal, FileText, Minus } from 'lucide-react';
+import { X, Send, ChevronDown, Paperclip, MoreHorizontal, FileText, Minus, Clock, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { EmailContactSelector } from './email-contact-selector';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,6 +29,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { format, addHours, addDays, setHours, setMinutes, startOfTomorrow } from 'date-fns';
 
 interface InlineEmailComposerProps {
   isOpen: boolean;
@@ -124,6 +138,9 @@ export function InlineEmailComposer({
   const [showBcc, setShowBcc] = useState(replyRecipients.showBcc);
   const [showExitDialog, setShowExitDialog] = useState(false);
   const [attachments, setAttachments] = useState<File[]>([]);
+  const [showCustomScheduleDialog, setShowCustomScheduleDialog] = useState(false);
+  const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined);
+  const [scheduledTime, setScheduledTime] = useState('09:00');
   const [subject, setSubject] = useState(() => {
     if (replyToMessage) {
       return replyToMessage.subject.startsWith('Re: ') ? replyToMessage.subject : `Re: ${replyToMessage.subject}`;
@@ -317,6 +334,95 @@ export function InlineEmailComposer({
     sendEmailMutation.mutate();
   };
 
+  // Schedule email mutation
+  const scheduleEmailMutation = useMutation({
+    mutationFn: async (scheduledFor: Date) => {
+      if (toAddresses.length === 0 || !subject.trim()) {
+        throw new Error('To address and subject are required');
+      }
+
+      const toAddressesStr = toAddresses.join(', ');
+      const ccAddressesStr = ccAddresses.length > 0 ? ccAddresses.join(', ') : '';
+      const bccAddressesStr = bccAddresses.length > 0 ? bccAddresses.join(', ') : '';
+
+      const emailData = {
+        fromAccountId: selectedAccountId,
+        toAddresses: toAddressesStr,
+        ccAddresses: ccAddressesStr || undefined,
+        bccAddresses: bccAddressesStr || undefined,
+        subject: subject.trim(),
+        content: content.trim(),
+        scheduledFor: scheduledFor.toISOString(),
+      };
+
+      return apiRequest('POST', '/api/email/schedule', emailData);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Email scheduled",
+        description: "Your message has been scheduled for delivery.",
+      });
+      
+      // Clear form and close
+      setToAddresses([]);
+      setCcAddresses([]);
+      setBccAddresses([]);
+      setSubject('');
+      setContent('');
+      setAttachments([]);
+      setShowCc(false);
+      setShowBcc(false);
+      onClose();
+      
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: ['/api/email/scheduled'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/email/scheduled/count'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to schedule email",
+        description: error.message || "Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handle quick schedule options
+  const handleQuickSchedule = (option: 'later_today' | 'tomorrow_morning' | 'tomorrow_afternoon' | 'custom') => {
+    const now = new Date();
+    let scheduledFor: Date;
+
+    switch (option) {
+      case 'later_today':
+        scheduledFor = addHours(now, 4);
+        break;
+      case 'tomorrow_morning':
+        scheduledFor = setMinutes(setHours(startOfTomorrow(), 9), 0);
+        break;
+      case 'tomorrow_afternoon':
+        scheduledFor = setMinutes(setHours(startOfTomorrow(), 14), 0);
+        break;
+      case 'custom':
+        setScheduledDate(addDays(now, 1));
+        setScheduledTime('09:00');
+        setShowCustomScheduleDialog(true);
+        return;
+    }
+
+    scheduleEmailMutation.mutate(scheduledFor);
+  };
+
+  // Handle custom schedule confirmation
+  const handleCustomScheduleConfirm = () => {
+    if (!scheduledDate) return;
+    
+    const [hours, minutes] = scheduledTime.split(':').map(Number);
+    const scheduledFor = setMinutes(setHours(scheduledDate, hours), minutes);
+    
+    scheduleEmailMutation.mutate(scheduledFor);
+    setShowCustomScheduleDialog(false);
+  };
+
   const handleClose = () => {
     if (hasContent()) {
       setShowExitDialog(true);
@@ -404,14 +510,64 @@ export function InlineEmailComposer({
             >
               <Paperclip className="h-4 w-4" />
             </Button>
-            <Button
-              onClick={handleSend}
-              disabled={sendEmailMutation.isPending || toAddresses.length === 0 || !subject.trim()}
-              className="text-blue-600 hover:text-blue-700 p-2 h-auto rounded-full disabled:opacity-50"
-              variant="ghost"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
+            {/* Send dropdown with schedule options */}
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  disabled={(sendEmailMutation.isPending || scheduleEmailMutation.isPending) || toAddresses.length === 0 || !subject.trim()}
+                  className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-2 h-8 rounded-full disabled:opacity-50 flex items-center gap-1"
+                  variant="ghost"
+                  data-testid="button-send-dropdown"
+                >
+                  <Send className="h-4 w-4" />
+                  <ChevronDown className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" sideOffset={5} className="w-56 z-[10002]">
+                <DropdownMenuItem 
+                  onClick={handleSend}
+                  className="flex items-center gap-2"
+                  data-testid="menu-item-send-now"
+                >
+                  <Send className="h-4 w-4" />
+                  <span>Send now</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={() => handleQuickSchedule('later_today')}
+                  className="flex items-center gap-2"
+                  data-testid="menu-item-schedule-later-today"
+                >
+                  <Clock className="h-4 w-4" />
+                  <span>Later today</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => handleQuickSchedule('tomorrow_morning')}
+                  className="flex items-center gap-2"
+                  data-testid="menu-item-schedule-tomorrow-morning"
+                >
+                  <Clock className="h-4 w-4" />
+                  <span>Tomorrow morning (9:00 AM)</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => handleQuickSchedule('tomorrow_afternoon')}
+                  className="flex items-center gap-2"
+                  data-testid="menu-item-schedule-tomorrow-afternoon"
+                >
+                  <Clock className="h-4 w-4" />
+                  <span>Tomorrow afternoon (2:00 PM)</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={() => handleQuickSchedule('custom')}
+                  className="flex items-center gap-2"
+                  data-testid="menu-item-schedule-custom"
+                >
+                  <Calendar className="h-4 w-4" />
+                  <span>Pick date & time...</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             {onMinimize && (
               <Button 
                 variant="ghost" 
@@ -620,6 +776,61 @@ export function InlineEmailComposer({
             </AlertDialogCancel>
             <AlertDialogAction onClick={handleSaveDraft}>
               Save Draft
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Custom schedule dialog */}
+      <AlertDialog open={showCustomScheduleDialog} onOpenChange={setShowCustomScheduleDialog}>
+        <AlertDialogContent className="z-[10003]" style={{ zIndex: 10003 }}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Schedule Email</AlertDialogTitle>
+            <AlertDialogDescription>
+              Choose when you want this email to be sent.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          
+          <div className="py-4 space-y-4">
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">Date</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start text-left font-normal">
+                    <Calendar className="mr-2 h-4 w-4" />
+                    {scheduledDate ? format(scheduledDate, 'PPP') : 'Pick a date'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 z-[10004]" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={scheduledDate}
+                    onSelect={setScheduledDate}
+                    disabled={(date) => date < new Date()}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">Time</label>
+              <input
+                type="time"
+                value={scheduledTime}
+                onChange={(e) => setScheduledTime(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleCustomScheduleConfirm}
+              disabled={!scheduledDate}
+            >
+              Schedule
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
