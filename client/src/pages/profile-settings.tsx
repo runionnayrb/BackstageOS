@@ -42,19 +42,22 @@ export default function ProfileSettings() {
     confirmPassword: false,
   });
 
-  // Handle OAuth callback messages
+  // Handle OAuth popup messages
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const oauthResult = urlParams.get('oauth');
-    const error = urlParams.get('error');
-
-    if (oauthResult === 'success' || error) {
-      queryClient.invalidateQueries({ queryKey: ["/api/user/email-provider"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
-      // Clear URL params
-      window.history.replaceState({}, '', '/profile');
-    }
-  }, [location]);
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'oauth-success') {
+        queryClient.invalidateQueries({ queryKey: ["/api/user/email-provider"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+        setIsConnecting(null);
+      } else if (event.data?.type === 'oauth-error') {
+        setErrorMessage(event.data.message || 'OAuth failed');
+        setIsConnecting(null);
+      }
+    };
+    
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [queryClient]);
 
   const togglePasswordVisibility = (field: keyof typeof passwordVisibility) => {
     setPasswordVisibility(prev => ({
@@ -69,6 +72,7 @@ export default function ProfileSettings() {
 
   const initiateOAuth = async (provider: 'gmail' | 'outlook') => {
     setIsConnecting(provider);
+    setErrorMessage(null);
     try {
       const endpoint = provider === 'gmail' 
         ? '/api/oauth/google/initiate' 
@@ -85,8 +89,21 @@ export default function ProfileSettings() {
       
       const data = await response.json();
       
-      // Redirect to OAuth provider
-      window.location.href = data.authUrl;
+      // Open OAuth in popup window to avoid Vite HMR issues
+      const width = 600;
+      const height = 700;
+      const left = window.screenX + (window.outerWidth - width) / 2;
+      const top = window.screenY + (window.outerHeight - height) / 2;
+      
+      const popup = window.open(
+        data.authUrl,
+        'oauth-popup',
+        `width=${width},height=${height},left=${left},top=${top},popup=1`
+      );
+      
+      if (!popup) {
+        throw new Error('Popup blocked. Please allow popups for this site.');
+      }
     } catch (error: any) {
       setErrorMessage(error.message || "Failed to start email connection.");
       setIsConnecting(null);

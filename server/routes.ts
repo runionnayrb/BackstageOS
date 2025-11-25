@@ -2590,8 +2590,6 @@ Respond with valid JSON only.`;
             h1 { font-size: 24px; margin-bottom: 10px; }
             p { color: #888; margin-bottom: 20px; }
             .email { color: #4ade80; font-weight: 500; }
-            a { display: inline-block; background: #fff; color: #000; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500; }
-            a:hover { background: #eee; }
           </style>
         </head>
         <body>
@@ -2599,8 +2597,14 @@ Respond with valid JSON only.`;
             <div class="icon">${isError ? '❌' : '✅'}</div>
             <h1>${isError ? 'Connection Failed' : 'Gmail Connected!'}</h1>
             <p>${message}${email ? ` <span class="email">${email}</span>` : ''}</p>
-            <a href="/profile">Back to Profile Settings</a>
+            <p style="font-size: 14px; color: #666;">This window will close automatically...</p>
           </div>
+          <script>
+            if (window.opener) {
+              window.opener.postMessage({ type: '${isError ? 'oauth-error' : 'oauth-success'}', message: '${isError ? message : ''}', email: '${email || ''}' }, '*');
+              setTimeout(() => window.close(), 1500);
+            }
+          </script>
         </body>
         </html>
       `);
@@ -2635,7 +2639,8 @@ Respond with valid JSON only.`;
       sendResultPage('Your Gmail account has been connected:', emailAddress);
     } catch (error: any) {
       console.error("Error in Google OAuth callback:", error);
-      sendResultPage(error.message || 'OAuth failed. Please try again.', null, true);
+      const errorMsg = (error.message || 'OAuth failed').replace(/'/g, "\\'");
+      sendResultPage(errorMsg, null, true);
     }
   });
 
