@@ -997,14 +997,14 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                         </span>
                       </div>
 
-                      {/* Right side: Date always visible, hover actions appear on hover */}
-                      <div className="flex-shrink-0 flex items-center gap-2 ml-auto pl-4">
-                        {/* Date - always visible */}
-                        <span className="text-xs text-gray-500 whitespace-nowrap">
+                      {/* Right side: Date visible normally, icons replace date on hover */}
+                      <div className="flex-shrink-0 flex items-center ml-auto pl-4">
+                        {/* Date - hidden on hover */}
+                        <span className="text-xs text-gray-500 whitespace-nowrap block group-hover:hidden">
                           {formatDate(message.dateSent)}
                         </span>
                         
-                        {/* Hover action icons - shown on row hover */}
+                        {/* Hover action icons - shown on row hover, replaces date */}
                         <div className="hidden group-hover:flex items-center gap-1">
                           <Button
                             variant="ghost"
