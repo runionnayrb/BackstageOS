@@ -12,6 +12,9 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
 } from '@/components/ui/dropdown-menu';
 import {
   Popover,
@@ -145,9 +148,8 @@ export function InlineEmailComposer({
   const [showBcc, setShowBcc] = useState(replyRecipients.showBcc);
   const [showExitDialog, setShowExitDialog] = useState(false);
   const [attachments, setAttachments] = useState<File[]>([]);
-  const [showCustomScheduleDialog, setShowCustomScheduleDialog] = useState(false);
-  const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined);
-  const [scheduledTime, setScheduledTime] = useState('09:00');
+  const [scheduledDate, setScheduledDate] = useState<Date | undefined>(() => new Date());
+  const [scheduledTime, setScheduledTime] = useState(() => format(addMinutes(new Date(), 5), 'HH:mm'));
   const [subject, setSubject] = useState(() => {
     if (replyToMessage) {
       return replyToMessage.subject.startsWith('Re: ') ? replyToMessage.subject : `Re: ${replyToMessage.subject}`;
@@ -354,7 +356,7 @@ export function InlineEmailComposer({
   });
 
   // Handle quick schedule options
-  const handleQuickSchedule = (option: 'later_today' | 'tomorrow_morning' | 'tomorrow_afternoon' | 'custom') => {
+  const handleQuickSchedule = (option: 'later_today' | 'tomorrow_morning' | 'tomorrow_afternoon') => {
     const now = new Date();
     let scheduledFor: Date;
 
@@ -368,13 +370,6 @@ export function InlineEmailComposer({
       case 'tomorrow_afternoon':
         scheduledFor = setMinutes(setHours(startOfTomorrow(), 14), 0);
         break;
-      case 'custom':
-        // Default to today with current time + 5 minutes
-        const defaultTime = addMinutes(now, 5);
-        setScheduledDate(now);
-        setScheduledTime(format(defaultTime, 'HH:mm'));
-        setShowCustomScheduleDialog(true);
-        return;
     }
 
     scheduleEmailMutation.mutate(scheduledFor);
@@ -539,14 +534,61 @@ export function InlineEmailComposer({
                   <span>Tomorrow afternoon (2:00 PM)</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  onClick={() => handleQuickSchedule('custom')}
-                  className="flex items-center gap-2"
-                  data-testid="menu-item-schedule-custom"
-                >
-                  <Calendar className="h-4 w-4" />
-                  <span>Pick date & time...</span>
-                </DropdownMenuItem>
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger className="flex items-center gap-2" data-testid="menu-item-schedule-custom">
+                    <Calendar className="h-4 w-4" />
+                    <span>Pick date & time...</span>
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent 
+                    className="p-0 w-auto" 
+                    sideOffset={8}
+                    style={{ zIndex: 10003 }}
+                  >
+                    {/* Date and Time header */}
+                    <div className="flex border-b border-gray-200">
+                      <div className="flex-1 px-3 py-2 border-r border-gray-200">
+                        <span className="text-sm text-gray-900">
+                          {scheduledDate ? format(scheduledDate, 'MMM d, yyyy') : 'Select date'}
+                        </span>
+                      </div>
+                      <div className="px-3 py-2 flex items-center gap-1">
+                        <input
+                          type="time"
+                          value={scheduledTime}
+                          onChange={(e) => setScheduledTime(e.target.value)}
+                          className="text-sm text-gray-900 bg-transparent border-none outline-none w-[68px]"
+                        />
+                        <Clock className="h-3.5 w-3.5 text-gray-400" />
+                      </div>
+                    </div>
+                    
+                    {/* Calendar */}
+                    <CalendarComponent
+                      mode="single"
+                      selected={scheduledDate}
+                      onSelect={setScheduledDate}
+                      disabled={(date) => isBefore(date, startOfToday())}
+                      initialFocus
+                    />
+
+                    {/* Footer */}
+                    <div className="flex justify-between items-center px-3 py-2 border-t border-gray-200">
+                      <span className="text-xs text-gray-500">
+                        {scheduledDate && scheduledTime ? 
+                          `${format(scheduledDate, 'MMM d')} at ${scheduledTime}` : 
+                          'Select date & time'}
+                      </span>
+                      <Button
+                        size="sm"
+                        onClick={handleCustomScheduleConfirm}
+                        disabled={!scheduledDate}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 h-7 text-xs rounded"
+                      >
+                        Schedule
+                      </Button>
+                    </div>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
               </DropdownMenuContent>
             </DropdownMenu>
             {onMinimize && (
@@ -736,58 +778,6 @@ export function InlineEmailComposer({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Custom schedule dialog - compact date picker style */}
-      <AlertDialog open={showCustomScheduleDialog} onOpenChange={setShowCustomScheduleDialog}>
-        <AlertDialogContent className="z-[10003] max-w-[280px] p-0 rounded-lg shadow-lg" style={{ zIndex: 10003 }}>
-          {/* Date and Time inputs at top */}
-          <div className="flex border-b border-gray-200">
-            <div className="flex-1 px-3 py-2.5 border-r border-gray-200">
-              <span className="text-sm text-gray-900">
-                {scheduledDate ? format(scheduledDate, 'MMM d, yyyy') : 'Select date'}
-              </span>
-            </div>
-            <div className="px-3 py-2.5 flex items-center gap-1.5">
-              <input
-                type="time"
-                value={scheduledTime}
-                onChange={(e) => setScheduledTime(e.target.value)}
-                className="text-sm text-gray-900 bg-transparent border-none outline-none w-[70px]"
-              />
-              <Clock className="h-3.5 w-3.5 text-gray-400" />
-            </div>
-          </div>
-          
-          {/* Compact calendar */}
-          <div className="p-2">
-            <CalendarComponent
-              mode="single"
-              selected={scheduledDate}
-              onSelect={setScheduledDate}
-              disabled={(date) => isBefore(date, startOfToday())}
-            />
-          </div>
-
-          {/* Footer with Close and Save */}
-          <div className="flex justify-between items-center px-3 py-2.5 border-t border-gray-200">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowCustomScheduleDialog(false)}
-              className="text-gray-600 hover:text-gray-800 hover:bg-transparent px-2 h-8"
-            >
-              Close
-            </Button>
-            <Button
-              size="sm"
-              onClick={handleCustomScheduleConfirm}
-              disabled={!scheduledDate}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 h-8 rounded"
-            >
-              Save
-            </Button>
-          </div>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 }
