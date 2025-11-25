@@ -29,6 +29,8 @@ import Stripe from "stripe";
 import { googleOAuthService } from "./services/googleOAuthService";
 import { microsoftOAuthService } from "./services/microsoftOAuthService";
 import { oauthTokenService } from "./services/oauthTokenService";
+import { gmailIntegrationService } from "./services/gmailIntegrationService";
+import { outlookIntegrationService } from "./services/outlookIntegrationService";
 
 // Function to generate HTML for daily call PDF
 function generateDailyCallHTML(callData: any, projectName: string, date: string): string {
