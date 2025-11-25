@@ -616,9 +616,8 @@ export function InlineEmailComposer({
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
-                  onSelect={(e) => {
-                    e.preventDefault();
-                    setShowDatePicker(true);
+                  onClick={() => {
+                    setTimeout(() => setShowDatePicker(true), 100);
                   }}
                   className="flex items-center gap-2"
                   data-testid="menu-item-schedule-custom"

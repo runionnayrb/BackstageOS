@@ -45,6 +45,7 @@ import {
   Folder,
   FolderOpen,
   PenTool,
+  CalendarClock,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -96,6 +97,8 @@ export default function EmailManager() {
         return 'Inbox';
       case 'sent':
         return 'Sent';
+      case 'scheduled':
+        return 'Scheduled';
       case 'drafts':
         return 'Drafts';
       case 'archive':
@@ -410,6 +413,12 @@ export default function EmailManager() {
     enabled: !!selectedAccount?.id,
   });
 
+  // Fetch scheduled emails count
+  const { data: scheduledCountData } = useQuery<{ count: number }>({
+    queryKey: ['/api/email/scheduled/count'],
+  });
+  const scheduledCount = scheduledCountData?.count || 0;
+
   // Email groups data
   const { data: emailGroups = [] } = useQuery({
     queryKey: ['/api/email/groups'],
@@ -613,6 +622,8 @@ export default function EmailManager() {
   const folders = [
     { id: "inbox", name: "Inbox", icon: Inbox, count: accountStats?.unreadMessages || 0 },
     { id: "sent", name: "Sent", icon: Send, count: 0 },
+    // Only show Scheduled folder if there are scheduled emails
+    ...(scheduledCount > 0 ? [{ id: "scheduled", name: "Scheduled", icon: CalendarClock, count: scheduledCount }] : []),
     { id: "drafts", name: "Drafts", icon: Clock, count: accountStats?.draftCount || 0 },
     { id: "archive", name: "Archive", icon: Archive, count: 0 },
     { id: "trash", name: "Trash", icon: Trash2, count: 0 },
