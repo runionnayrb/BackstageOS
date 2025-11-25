@@ -2577,25 +2577,29 @@ Respond with valid JSON only.`;
 
   // Google OAuth callback
   app.get('/api/oauth/google/callback', async (req: any, res) => {
-    const sendRedirectPage = (url: string, message: string, isError = false) => {
+    const sendResultPage = (message: string, email: string | null, isError = false) => {
       res.send(`
         <!DOCTYPE html>
         <html>
         <head>
-          <title>${isError ? 'Connection Failed' : 'Connection Successful'}</title>
-          <meta http-equiv="refresh" content="2;url=${url}">
+          <title>${isError ? 'Connection Failed' : 'Gmail Connected'}</title>
           <style>
             body { font-family: system-ui, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #0a0a0a; color: white; }
-            .container { text-align: center; }
-            .spinner { width: 40px; height: 40px; border: 3px solid #333; border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
-            @keyframes spin { to { transform: rotate(360deg); } }
+            .container { text-align: center; max-width: 400px; padding: 40px; }
+            .icon { font-size: 48px; margin-bottom: 20px; }
+            h1 { font-size: 24px; margin-bottom: 10px; }
+            p { color: #888; margin-bottom: 20px; }
+            .email { color: #4ade80; font-weight: 500; }
+            a { display: inline-block; background: #fff; color: #000; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500; }
+            a:hover { background: #eee; }
           </style>
         </head>
         <body>
           <div class="container">
-            <div class="spinner"></div>
-            <p>${message}</p>
-            <p style="font-size: 12px; color: #666;">Redirecting...</p>
+            <div class="icon">${isError ? '❌' : '✅'}</div>
+            <h1>${isError ? 'Connection Failed' : 'Gmail Connected!'}</h1>
+            <p>${message}${email ? ` <span class="email">${email}</span>` : ''}</p>
+            <a href="/profile">Back to Profile Settings</a>
           </div>
         </body>
         </html>
@@ -2606,7 +2610,7 @@ Respond with valid JSON only.`;
       const { code, state } = req.query;
       
       if (!code || !state) {
-        return sendRedirectPage('/profile?error=missing_oauth_params', 'Missing OAuth parameters', true);
+        return sendResultPage('Missing OAuth parameters. Please try again.', null, true);
       }
 
       const userId = state as string;
@@ -2628,10 +2632,10 @@ Respond with valid JSON only.`;
       });
 
       console.log(`✅ Gmail connected successfully for user ${userId}: ${emailAddress}`);
-      sendRedirectPage('/profile?oauth=success&provider=gmail', `Gmail connected: ${emailAddress}`);
+      sendResultPage('Your Gmail account has been connected:', emailAddress);
     } catch (error: any) {
       console.error("Error in Google OAuth callback:", error);
-      sendRedirectPage(`/profile?error=${encodeURIComponent(error.message || 'oauth_failed')}`, `Connection failed: ${error.message}`, true);
+      sendResultPage(error.message || 'OAuth failed. Please try again.', null, true);
     }
   });
 
