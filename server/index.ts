@@ -127,6 +127,10 @@ async function initializeDefaultAccountTypes() {
   // Initialize default data
   await initializeDefaultAccountTypes();
 
+  // Start scheduled email processor (checks every minute)
+  const { startScheduledEmailProcessor } = await import('./services/scheduledEmailProcessor.js');
+  startScheduledEmailProcessor();
+
   // Initialize IMAP server for Apple Mail integration
   try {
     const { imapServerManager } = await import('./services/imapServerManager.js');
