@@ -127,9 +127,10 @@ export default function ProfileSettings() {
   const [testEmailSuccess, setTestEmailSuccess] = useState(false);
   const sendTestEmailMutation = useMutation({
     mutationFn: async () => {
+      setErrorMessage(null); // Clear any previous errors immediately
       return await apiRequest("POST", "/api/user/email-provider/test");
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       setErrorMessage(null);
       setTestEmailSuccess(true);
       setTimeout(() => setTestEmailSuccess(false), 5000);
@@ -141,8 +142,7 @@ export default function ProfileSettings() {
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("PATCH", "/api/user/profile", data);
-      return response.json();
+      return await apiRequest("PATCH", "/api/user/profile", data);
     },
     onSuccess: () => {
       setErrorMessage(null);
