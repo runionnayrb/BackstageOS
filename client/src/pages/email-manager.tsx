@@ -1711,13 +1711,13 @@ export default function EmailManager() {
         </DialogContent>
       </Dialog>
 
-      {/* Mobile Settings Dialog */}
+      {/* Signature Settings Dialog */}
       <Dialog open={showMobileSettings} onOpenChange={setShowMobileSettings}>
         <DialogContent className="sm:max-w-[95vw] max-h-[95vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Email Settings</DialogTitle>
+            <DialogTitle>Signature Settings</DialogTitle>
             <DialogDescription>
-              Manage your email account settings and preferences.
+              Customize your email signature.
             </DialogDescription>
           </DialogHeader>
           

@@ -10,7 +10,7 @@ import {
   Clock, 
   Star,
   Plus,
-  Settings,
+  PenLine,
   Mail,
   ArrowLeft,
   ArrowRight,
@@ -287,21 +287,21 @@ export function EmailSidebar({
               )}
             </button>
 
-            {/* Settings */}
+            {/* Signature Settings */}
             <button 
               onClick={onSettings}
               className={cn(
                 "w-full flex items-center rounded-md hover:bg-gray-50 transition-colors text-gray-700",
                 isCollapsed ? "justify-center p-3" : "px-3 py-2 text-sm"
               )}
-              title={isCollapsed ? "Settings" : undefined}
+              title={isCollapsed ? "Signature Settings" : undefined}
             >
               {isCollapsed ? (
-                <Settings className="h-5 w-5" />
+                <PenLine className="h-5 w-5" />
               ) : (
                 <div className="flex items-center space-x-2">
-                  <Settings className="h-5 w-5" />
-                  <span>Settings</span>
+                  <PenLine className="h-5 w-5" />
+                  <span>Signature Settings</span>
                 </div>
               )}
             </button>
