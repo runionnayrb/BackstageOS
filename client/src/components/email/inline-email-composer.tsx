@@ -92,6 +92,12 @@ export function InlineEmailComposer({
     enabled: isOpen,
   });
 
+  // Fetch signature for the email account
+  const { data: signatureData } = useQuery<{ signature: string }>({
+    queryKey: ['/api/email/accounts', fromAccountId, 'signature'],
+    enabled: isOpen && fromAccountId > 0,
+  });
+
   // State for showing the full email dropdown
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
   const [selectedAccountId, setSelectedAccountId] = useState<number>(fromAccountId);
@@ -183,6 +189,13 @@ export function InlineEmailComposer({
   };
 
   const [content, setContent] = useState('');
+  const [signatureInitialized, setSignatureInitialized] = useState(false);
+
+  // Convert HTML signature to plain text for the textarea
+  const getPlainTextSignature = () => {
+    if (!signatureData?.signature) return '';
+    return '\n\n--\n' + htmlToPlainText(signatureData.signature);
+  };
 
   // Update selectedAccountId when fromAccountId prop changes
   useEffect(() => {
@@ -198,6 +211,7 @@ export function InlineEmailComposer({
       setBccAddresses(recipients.bcc);
       setShowCc(recipients.showCc);
       setShowBcc(recipients.showBcc);
+      setSignatureInitialized(false);
       
       if (composeMode === 'compose' && !replyToMessage && !forwardMessage) {
         setSubject('');
@@ -206,6 +220,17 @@ export function InlineEmailComposer({
     }
   }, [isOpen, replyToMessage, forwardMessage, composeMode, initialRecipient]);
 
+  // Initialize signature when it's loaded
+  useEffect(() => {
+    if (isOpen && signatureData?.signature && !signatureInitialized) {
+      const plainSig = getPlainTextSignature();
+      if (plainSig && !content.includes('--\n')) {
+        setContent(prev => prev + plainSig);
+        setSignatureInitialized(true);
+      }
+    }
+  }, [isOpen, signatureData, signatureInitialized]);
+
   // Update recipient when initialRecipient changes
   useEffect(() => {
     if (composeMode === 'compose' && initialRecipient && isOpen) {
@@ -213,16 +238,37 @@ export function InlineEmailComposer({
     }
   }, [initialRecipient, composeMode, isOpen]);
 
-  // Helper function to check if there's meaningful content
+  // Helper function to check if there's meaningful content (excluding auto-inserted signature)
   const hasContent = () => {
     const hasToAddresses = toAddresses.length > 0;
     const hasCcAddresses = ccAddresses.length > 0;
     const hasBccAddresses = bccAddresses.length > 0;
     const trimmedSubject = subject.trim();
-    const trimmedContent = content.trim();
+    // Remove signature from content check
+    const contentWithoutSig = content.replace(/\n\n--\n[\s\S]*$/, '').trim();
     
     // Check if any field has content
-    return hasToAddresses || hasCcAddresses || hasBccAddresses || trimmedSubject.length > 0 || trimmedContent.length > 0;
+    return hasToAddresses || hasCcAddresses || hasBccAddresses || trimmedSubject.length > 0 || contentWithoutSig.length > 0;
+  };
+
+  // Build full email content with quoted reply for replies
+  const buildFullEmailContent = () => {
+    let fullContent = content.trim();
+    
+    // For replies/reply-all, append the quoted original message after the signature
+    if ((composeMode === 'reply' || composeMode === 'replyAll') && replyToMessage) {
+      const quotedHeader = `\n\nOn ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}, ${replyToMessage.fromAddress} wrote:`;
+      const quotedContent = replyToMessage.content.split('\n').map(line => `> ${line}`).join('\n');
+      fullContent += quotedHeader + '\n\n' + quotedContent;
+    }
+    
+    // For forwards, append the original message
+    if (composeMode === 'forward' && forwardMessage) {
+      const forwardHeader = `\n\n---------- Forwarded message ----------\nFrom: ${forwardMessage.fromAddress}\nSubject: ${forwardMessage.subject}\n`;
+      fullContent += forwardHeader + '\n' + forwardMessage.content;
+    }
+    
+    return fullContent;
   };
 
   // Send email mutation
@@ -236,6 +282,8 @@ export function InlineEmailComposer({
       const ccAddressesStr = ccAddresses.length > 0 ? ccAddresses.join(', ') : '';
       const bccAddressesStr = bccAddresses.length > 0 ? bccAddresses.join(', ') : '';
 
+      const fullContent = buildFullEmailContent();
+
       if (attachments.length > 0) {
         const formData = new FormData();
         formData.append('fromAccountId', selectedAccountId.toString());
@@ -243,7 +291,7 @@ export function InlineEmailComposer({
         if (ccAddressesStr) formData.append('ccAddresses', ccAddressesStr);
         if (bccAddressesStr) formData.append('bccAddresses', bccAddressesStr);
         formData.append('subject', subject.trim());
-        formData.append('content', content.trim());
+        formData.append('content', fullContent);
         if (replyToMessage?.id) formData.append('threadId', replyToMessage.id);
         
         attachments.forEach((file) => {
@@ -266,7 +314,7 @@ export function InlineEmailComposer({
           ccAddresses: ccAddressesStr || undefined,
           bccAddresses: bccAddressesStr || undefined,
           subject: subject.trim(),
-          content: content.trim(),
+          content: fullContent,
           threadId: replyToMessage?.id ? parseInt(replyToMessage.id) : null
         };
 
@@ -313,13 +361,15 @@ export function InlineEmailComposer({
         throw new Error('To address and subject are required');
       }
 
+      const fullContent = buildFullEmailContent();
+
       const emailData = {
         accountId: selectedAccountId,
         toAddresses: toAddresses,
         ccAddresses: ccAddresses.length > 0 ? ccAddresses : undefined,
         bccAddresses: bccAddresses.length > 0 ? bccAddresses : undefined,
         subject: subject.trim(),
-        content: content.trim(),
+        content: fullContent,
         scheduledFor: scheduledFor.toISOString(),
       };
 

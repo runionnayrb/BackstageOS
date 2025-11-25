@@ -10481,6 +10481,22 @@ Best regards,
     }
   });
 
+  // Get email account signature
+  app.get('/api/email/accounts/:accountId/signature', isAuthenticated, async (req: any, res) => {
+    try {
+      const accountId = parseInt(req.params.accountId);
+
+      const { EmailService } = await import('./services/emailService.js');
+      const emailService = new EmailService();
+      
+      const account = await emailService.getEmailAccount(accountId);
+      res.json({ signature: account?.signature || '' });
+    } catch (error) {
+      console.error("Error fetching email account signature:", error);
+      res.status(500).json({ message: "Failed to fetch email account signature" });
+    }
+  });
+
   // Update email account signature
   app.put('/api/email/accounts/:accountId/signature', isAuthenticated, async (req: any, res) => {
     try {
