@@ -76,6 +76,18 @@ const getEmailAddress = (emailAddress: string): string => {
   return emailAddress;
 };
 
+// Utility function to format all recipients for display (used in scheduled emails)
+// Combines to, cc, and bcc addresses
+const formatAllRecipients = (toAddresses?: string[], ccAddresses?: string[], bccAddresses?: string[]): string => {
+  const allRecipients = [
+    ...(toAddresses || []),
+    ...(ccAddresses || []),
+    ...(bccAddresses || [])
+  ];
+  if (allRecipients.length === 0) return 'No recipients';
+  return allRecipients.map(addr => getDisplayName(addr)).join('; ');
+};
+
 // Utility function to clean email snippet/preview content
 const cleanEmailPreview = (content: string): string => {
   if (!content) return '';
@@ -1135,14 +1147,20 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                         <div className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0"></div>
                       )}
 
-                      {/* Sender name - fixed width */}
+                      {/* Sender name (or recipients for scheduled emails) - fixed width */}
                       <div className="w-48 flex-none overflow-hidden">
                         <span className={`text-sm truncate block ${!message.isRead ? 'font-semibold text-black' : 'text-gray-700'}`}>
-                          <ContactPreview emailAddress={message.fromAddress || ''}>
-                            <span className="hover:text-blue-600 transition-colors cursor-pointer">
-                              {getDisplayName(message.fromAddress || '')}
+                          {activeFolder === 'scheduled' ? (
+                            <span className="text-gray-700">
+                              {formatAllRecipients(message.toAddresses, message.ccAddresses, message.bccAddresses)}
                             </span>
-                          </ContactPreview>
+                          ) : (
+                            <ContactPreview emailAddress={message.fromAddress || ''}>
+                              <span className="hover:text-blue-600 transition-colors cursor-pointer">
+                                {getDisplayName(message.fromAddress || '')}
+                              </span>
+                            </ContactPreview>
+                          )}
                         </span>
                       </div>
 
@@ -1405,13 +1423,19 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                             <div className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0"></div>
                           )}
 
-                          {/* Sender name - Bold with forced truncation */}
+                          {/* Sender name (or recipients for scheduled) - Bold with forced truncation */}
                           <span className="font-bold text-black truncate block min-w-0">
-                            <ContactPreview emailAddress={message.fromAddress || ''}>
-                              <span className="hover:text-blue-600 transition-colors cursor-pointer">
-                                {getDisplayName(message.fromAddress || '')}
+                            {activeFolder === 'scheduled' ? (
+                              <span>
+                                {formatAllRecipients(message.toAddresses, message.ccAddresses, message.bccAddresses)}
                               </span>
-                            </ContactPreview>
+                            ) : (
+                              <ContactPreview emailAddress={message.fromAddress || ''}>
+                                <span className="hover:text-blue-600 transition-colors cursor-pointer">
+                                  {getDisplayName(message.fromAddress || '')}
+                                </span>
+                              </ContactPreview>
+                            )}
                           </span>
                         </div>
 
