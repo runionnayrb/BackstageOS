@@ -2568,8 +2568,14 @@ Respond with valid JSON only.`;
   // Initiate Google OAuth flow for Gmail
   app.get('/api/oauth/google/initiate', isAuthenticated, async (req: any, res) => {
     try {
+      // Prevent browser caching of auth URL
+      res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+      res.set('Pragma', 'no-cache');
+      res.set('Expires', '0');
+      
       const userId = req.user.id.toString();
       const authUrl = googleOAuthService.getAuthUrl(userId);
+      console.log('Generated Google OAuth URL with scopes');
       res.json({ authUrl });
     } catch (error: any) {
       console.error("Error initiating Google OAuth:", error);
