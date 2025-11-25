@@ -10489,7 +10489,7 @@ Best regards,
       const { EmailService } = await import('./services/emailService.js');
       const emailService = new EmailService();
       
-      const account = await emailService.getEmailAccount(accountId);
+      const account = await emailService.getEmailAccountById(accountId);
       res.json({ signature: account?.signature || '' });
     } catch (error) {
       console.error("Error fetching email account signature:", error);

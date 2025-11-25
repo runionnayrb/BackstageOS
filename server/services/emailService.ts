@@ -164,7 +164,7 @@ export class EmailService {
   /**
    * Update an email account
    */
-  async updateEmailAccount(accountId: number, updates: Partial<Pick<EmailAccount, 'displayName'>>): Promise<EmailAccount> {
+  async updateEmailAccount(accountId: number, updates: Partial<Pick<EmailAccount, 'displayName' | 'signature'>>): Promise<EmailAccount> {
     const [updatedAccount] = await db
       .update(emailAccounts)
       .set({
