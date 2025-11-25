@@ -187,25 +187,6 @@ export function InlineEmailComposer({
     setSelectedAccountId(fromAccountId);
   }, [fromAccountId]);
 
-  // Load signature when email account is available
-  useEffect(() => {
-    if (emailAccount?.signature && composeMode === 'compose' && content === '') {
-      console.log('Signature effect triggered:', { emailAccount, signature: emailAccount.signature, isLoadingAccounts, content, composeMode, selectedAccountId });
-      
-      console.log('Signature loaded:', emailAccount.signature);
-      const plainTextSignature = htmlToPlainText(emailAccount.signature);
-      console.log('Plain text signature:', plainTextSignature);
-      console.log('Current content:', content);
-      
-      if (plainTextSignature) {
-        console.log('Adding signature to content');
-        const newContent = `\n\n${plainTextSignature}`;
-        console.log('New content with signature:', newContent);
-        setContent(newContent);
-      }
-    }
-  }, [emailAccount, composeMode, selectedAccountId]);
-
   // Reset form when modal opens/closes or recipient changes
   useEffect(() => {
     if (isOpen) {
@@ -230,7 +211,7 @@ export function InlineEmailComposer({
     }
   }, [initialRecipient, composeMode, isOpen]);
 
-  // Helper function to check if there's meaningful content (excluding signature)
+  // Helper function to check if there's meaningful content
   const hasContent = () => {
     const hasToAddresses = toAddresses.length > 0;
     const hasCcAddresses = ccAddresses.length > 0;
@@ -239,25 +220,7 @@ export function InlineEmailComposer({
     const trimmedContent = content.trim();
     
     // Check if any field has content
-    if (hasToAddresses || hasCcAddresses || hasBccAddresses || trimmedSubject) {
-      return true;
-    }
-    
-    // If we have email account data, check if content is only signature
-    if (emailAccount?.signature) {
-      const plainTextSignature = htmlToPlainText(emailAccount.signature);
-      
-      // Remove signature from content to see if there's anything else
-      const contentWithoutSignature = trimmedContent
-        .replace(plainTextSignature, '')
-        .replace(/^\s*\n+/, '') // Remove leading newlines
-        .replace(/\n+\s*$/, '') // Remove trailing newlines
-        .trim();
-      
-      return contentWithoutSignature.length > 0;
-    }
-    
-    return trimmedContent.length > 0;
+    return hasToAddresses || hasCcAddresses || hasBccAddresses || trimmedSubject.length > 0 || trimmedContent.length > 0;
   };
 
   // Send email mutation
