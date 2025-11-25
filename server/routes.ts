@@ -2555,9 +2555,16 @@ Respond with valid JSON only.`;
   app.get('/api/user/email-provider', isAuthenticated, async (req: any, res) => {
     try {
       const user = req.user;
+      // Build display name from user's profile
+      const displayName = user.emailDisplayName || 
+        (user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : null) ||
+        user.firstName ||
+        null;
+      
       res.json({
         provider: user.connectedEmailProvider || null,
         emailAddress: user.connectedEmailAddress || null,
+        displayName: displayName,
         connectedAt: user.emailProviderConnectedAt || null,
       });
     } catch (error) {
