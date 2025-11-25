@@ -511,7 +511,7 @@ export function InlineEmailComposer({
               <Paperclip className="h-4 w-4" />
             </Button>
             {/* Send dropdown with schedule options */}
-            <DropdownMenu>
+            <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
@@ -522,7 +522,12 @@ export function InlineEmailComposer({
                   <Send className="h-4 w-4" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" sideOffset={5} className="w-56 z-[10002]">
+              <DropdownMenuContent 
+                align="end" 
+                sideOffset={5} 
+                className="w-56 z-[10002]"
+                onCloseAutoFocus={(e) => e.preventDefault()}
+              >
                 <DropdownMenuItem 
                   onClick={handleSend}
                   className="flex items-center gap-2"
