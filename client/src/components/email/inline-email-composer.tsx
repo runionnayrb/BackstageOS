@@ -393,7 +393,6 @@ export function InlineEmailComposer({
     }
     
     scheduleEmailMutation.mutate(scheduledFor);
-    setShowCustomScheduleDialog(false);
   };
 
   const handleClose = () => {
