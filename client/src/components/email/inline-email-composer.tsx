@@ -514,7 +514,7 @@ export function InlineEmailComposer({
                   data-testid="menu-item-schedule-later-today"
                 >
                   <Clock className="h-4 w-4" />
-                  <span>Later today</span>
+                  <span>In 4 hours</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem 
                   onClick={() => handleQuickSchedule('tomorrow_morning')}
