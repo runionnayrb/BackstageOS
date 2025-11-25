@@ -500,6 +500,7 @@ export function InlineEmailComposer({
       };
 
       console.log('📧 Sending draft data:', draftData);
+      console.log('📧 toAddresses type:', typeof draftData.toAddresses, 'is array:', Array.isArray(draftData.toAddresses));
       return apiRequest('POST', '/api/email/drafts', draftData);
     },
     onSuccess: () => {
@@ -513,9 +514,13 @@ export function InlineEmailComposer({
       setShowExitDialog(false);
       onClose();
       
-      // Invalidate email queries to refresh drafts folder
+      // Invalidate all email queries to refresh drafts folder
       queryClient.invalidateQueries({ queryKey: ['/api/email'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user/email-provider/emails'] });
+      // Also specifically invalidate drafts query with -1 account ID (OAuth account)
+      queryClient.invalidateQueries({ queryKey: ['/api/email/accounts', -1, 'drafts'] });
+      // And inbox OAuth provider query
+      queryClient.invalidateQueries({ queryKey: ['/api/user/email-provider/emails', { exact: false }] });
     },
     onError: (error: any) => {
       console.log('❌ Draft save failed:', error);

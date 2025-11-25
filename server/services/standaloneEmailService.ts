@@ -578,7 +578,7 @@ export class StandaloneEmailService {
    * Get draft messages for an account
    */
   async getDraftMessages(accountId: number): Promise<EmailMessage[]> {
-    return await db
+    const drafts = await db
       .select()
       .from(emailMessages)
       .where(
@@ -588,6 +588,14 @@ export class StandaloneEmailService {
         )
       )
       .orderBy(desc(emailMessages.updatedAt));
+    
+    // Log retrieved drafts to verify recipients are present
+    console.log(`📨 getDraftMessages retrieved ${drafts.length} drafts for account ${accountId}`);
+    drafts.forEach((draft, idx) => {
+      console.log(`  Draft ${idx + 1}: to=${draft.toAddresses}, cc=${draft.ccAddresses}, bcc=${draft.bccAddresses}`);
+    });
+    
+    return drafts;
   }
 
   /**
