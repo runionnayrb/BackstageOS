@@ -511,17 +511,16 @@ export function InlineEmailComposer({
               <Paperclip className="h-4 w-4" />
             </Button>
             {/* Send dropdown with schedule options */}
-            <DropdownMenu modal={false}>
+            <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
+                <button
+                  type="button"
                   disabled={(sendEmailMutation.isPending || scheduleEmailMutation.isPending) || toAddresses.length === 0 || !subject.trim()}
-                  className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-2 h-8 rounded-full disabled:opacity-50 flex items-center gap-1"
-                  variant="ghost"
+                  className="text-blue-600 hover:text-blue-700 p-2 rounded-full disabled:opacity-50 cursor-pointer"
                   data-testid="button-send-dropdown"
                 >
                   <Send className="h-4 w-4" />
-                  <ChevronDown className="h-3 w-3" />
-                </Button>
+                </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" sideOffset={5} className="w-56 z-[10002]">
                 <DropdownMenuItem 
