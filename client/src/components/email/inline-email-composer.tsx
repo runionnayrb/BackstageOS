@@ -171,37 +171,6 @@ export function InlineEmailComposer({
     return '';
   });
 
-  // Helper function to convert HTML signature to plain text
-  const htmlToPlainText = (html: string) => {
-    // First, convert block elements to newlines before stripping tags
-    let processed = html
-      // Add newlines for block elements
-      .replace(/<\/div>/gi, '\n')
-      .replace(/<\/p>/gi, '\n')
-      .replace(/<br\s*\/?>/gi, '\n')
-      .replace(/<\/li>/gi, '\n')
-      .replace(/<\/tr>/gi, '\n');
-    
-    // Create a temporary element to parse remaining HTML
-    const temp = document.createElement('div');
-    temp.innerHTML = processed;
-    
-    // Get text content which strips all remaining HTML tags
-    let text = temp.textContent || temp.innerText || '';
-    
-    // Clean up extra whitespace but preserve intentional line breaks
-    text = text
-      .replace(/\r\n/g, '\n')
-      .replace(/\r/g, '\n')
-      .replace(/[ \t]+/g, ' ') // Collapse multiple spaces/tabs to single space
-      .replace(/\n /g, '\n') // Remove leading space after newline
-      .replace(/ \n/g, '\n') // Remove trailing space before newline
-      .replace(/\n{3,}/g, '\n\n') // Collapse 3+ newlines to 2
-      .trim();
-    
-    return text;
-  };
-
   const [signatureInitialized, setSignatureInitialized] = useState(false);
 
   // Clean up HTML signature from Tailwind CSS variables
@@ -394,7 +363,7 @@ export function InlineEmailComposer({
       setCcAddresses([]);
       setBccAddresses([]);
       setSubject('');
-      setContent('');
+      editor?.commands.setContent('');
       setAttachments([]);
       setShowCc(false);
       setShowBcc(false);
@@ -448,7 +417,7 @@ export function InlineEmailComposer({
       setCcAddresses([]);
       setBccAddresses([]);
       setSubject('');
-      setContent('');
+      editor?.commands.setContent('');
       setAttachments([]);
       setShowCc(false);
       setShowBcc(false);
