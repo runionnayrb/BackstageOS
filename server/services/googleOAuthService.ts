@@ -35,12 +35,17 @@ export class GoogleOAuthService {
       'https://www.googleapis.com/auth/userinfo.email',
     ];
 
-    return this.oauth2Client.generateAuthUrl({
+    const authUrl = this.oauth2Client.generateAuthUrl({
       access_type: 'offline',
       scope: scopes,
       state: state,
       prompt: 'consent',
     });
+    
+    console.log('🔐 Generated OAuth URL with scopes:', scopes.join(', '));
+    console.log('🔐 Full auth URL:', authUrl);
+    
+    return authUrl;
   }
 
   async exchangeCodeForTokens(code: string): Promise<{
@@ -50,6 +55,9 @@ export class GoogleOAuthService {
     scope: string;
   }> {
     const { tokens } = await this.oauth2Client.getToken(code);
+    
+    console.log('🔐 Token exchange - received scopes:', tokens.scope);
+    console.log('🔐 Token exchange - has refresh token:', !!tokens.refresh_token);
     
     if (!tokens.refresh_token) {
       throw new Error('No refresh token received. User may need to revoke access and reconnect.');
