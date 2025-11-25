@@ -2910,6 +2910,18 @@ Respond with valid JSON only.`;
         return res.status(400).json({ message: "No email provider connected" });
       }
 
+      // Special handling for drafts folder - include locally-saved drafts
+      if (folder === 'drafts') {
+        const { standaloneEmailService } = await import('./services/standaloneEmailService.js');
+        // Use account ID -1 for OAuth connected accounts
+        const localDrafts = await standaloneEmailService.getDraftMessages(-1);
+        res.json({
+          messages: localDrafts || [],
+          pageToken: null,
+        });
+        return;
+      }
+
       let result;
       if (user.connectedEmailProvider === 'gmail') {
         // Set user context for Gmail service to use per-user OAuth tokens
