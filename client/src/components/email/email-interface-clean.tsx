@@ -941,8 +941,8 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                         <div className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0"></div>
                       )}
 
-                      {/* Sender name - fixed width */}
-                      <div className="w-40 flex-shrink-0">
+                      {/* Sender name - fixed width, wider for better readability */}
+                      <div className="w-48 flex-shrink-0">
                         <span className={`text-sm font-medium truncate block ${!message.isRead ? 'font-semibold text-black' : 'text-gray-700'}`}>
                           <ContactPreview emailAddress={message.fromAddress || ''}>
                             <span className="hover:text-blue-600 transition-colors cursor-pointer">
@@ -952,18 +952,25 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                         </span>
                       </div>
 
-                      {/* Subject - flexible width */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className={`text-sm truncate ${!message.isRead ? 'font-semibold text-black' : 'text-gray-700'}`}>
-                            {message.subject || 'No Subject'}
-                          </span>
+                      {/* Subject + Message Preview - flexible width, responsive */}
+                      <div className="flex-1 min-w-0 overflow-hidden">
+                        <div className="flex items-center gap-1">
                           {message.hasAttachments && (
                             <span className="text-xs text-gray-500 flex-shrink-0">📎</span>
                           )}
                           {message.isImportant && (
                             <span className="text-xs text-yellow-500 flex-shrink-0">⭐</span>
                           )}
+                          <span className="truncate">
+                            <span className={`text-sm ${!message.isRead ? 'font-semibold text-black' : 'text-gray-700'}`}>
+                              {message.subject || 'No Subject'}
+                            </span>
+                            {message.content && (
+                              <span className="text-sm text-gray-500">
+                                {' '}{message.content.replace(/<[^>]*>/g, '').slice(0, 200)}
+                              </span>
+                            )}
+                          </span>
                         </div>
                       </div>
 
