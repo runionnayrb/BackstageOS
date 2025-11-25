@@ -1290,10 +1290,10 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
 
       {/* Email Modal - Full viewport height, positioned after sidebar */}
       {showEmailModal && modalEmail && (
-        <div className={`fixed top-16 left-0 ${isSidebarCollapsed ? 'md:left-16' : 'md:left-64'} right-0 bottom-0 z-50 bg-white flex flex-col transition-transform duration-300 ease-out ${
+        <div className={`fixed top-16 left-0 ${isSidebarCollapsed ? 'md:left-16' : 'md:left-64'} right-0 bottom-0 z-50 bg-white flex flex-col transition-all duration-300 ease-out ${
           emailModalClosing 
-            ? 'animate-out slide-out-to-bottom-full' 
-            : 'animate-in slide-in-from-bottom-full'
+            ? 'opacity-0 translate-y-4' 
+            : 'opacity-100 translate-y-0'
         }`}>
           {/* Header */}
           <div className="flex items-center justify-between border-b bg-white">
