@@ -73,9 +73,13 @@ export function InlineEmailComposer({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch all email accounts and find the specific one
-  const { data: emailAccounts, isLoading: isLoadingAccounts } = useQuery({
-    queryKey: ['/api/email/accounts'],
+  // Fetch connected email provider (OAuth account)
+  const { data: emailProvider } = useQuery<{
+    provider: string;
+    emailAddress: string;
+    displayName?: string;
+  }>({
+    queryKey: ['/api/user/email-provider'],
     enabled: isOpen,
   });
 
@@ -85,13 +89,16 @@ export function InlineEmailComposer({
     enabled: isOpen,
   });
 
-  // State for selected account (initialize with the passed fromAccountId)
-  const [selectedAccountId, setSelectedAccountId] = useState<number>(fromAccountId);
+  // State for showing the full email dropdown
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
+  const [selectedAccountId, setSelectedAccountId] = useState<number>(fromAccountId);
 
-  // Find the specific account from the accounts list
-  const emailAccount = (emailAccounts as any[])?.find((account: any) => account.id === selectedAccountId);
-  const selectedAccount = emailAccount;
+  // Use the connected email provider as the selected account
+  const selectedAccount = emailProvider ? {
+    id: -1,
+    displayName: emailProvider.displayName || emailProvider.emailAddress?.split('@')[0] || 'Me',
+    emailAddress: emailProvider.emailAddress,
+  } : null;
 
 
 
@@ -645,50 +652,26 @@ export function InlineEmailComposer({
             />
           )}
 
-          {/* From field with account selector */}
+          {/* From field - shows display name, expands to show email on click */}
           <div className="flex items-center px-4 py-3 border-b border-gray-100">
             <span className="text-gray-500 text-sm w-12 flex-shrink-0">From:</span>
             <div className="flex-1">
-              {emailAccounts && (emailAccounts as any[]).length > 1 ? (
-                <div className="relative">
-                  <div 
-                    className="w-full cursor-pointer text-sm text-gray-600 hover:text-gray-900"
-                    onClick={() => setShowAccountDropdown(!showAccountDropdown)}
-                  >
-                    <div className="flex items-center justify-between w-full">
-                      <div className="flex flex-col items-start text-left">
-                        <div className="font-medium">{selectedAccount?.displayName}</div>
-                        <div className="text-xs text-gray-500">{selectedAccount?.emailAddress}</div>
-                      </div>
-                      <ChevronDown className={`h-4 w-4 text-gray-400 flex-shrink-0 ml-2 transition-transform ${showAccountDropdown ? 'rotate-180' : ''}`} />
+              <div 
+                className="cursor-pointer text-sm text-gray-700 hover:text-gray-900"
+                onClick={() => setShowAccountDropdown(!showAccountDropdown)}
+              >
+                <div className="flex items-center">
+                  {showAccountDropdown ? (
+                    <div className="flex flex-col items-start">
+                      <span className="font-medium">{selectedAccount?.displayName}</span>
+                      <span className="text-xs text-gray-500">{selectedAccount?.emailAddress}</span>
                     </div>
-                  </div>
-                  
-                  {showAccountDropdown && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-[9999] max-h-60 overflow-auto">
-                      {(emailAccounts as any[]).map((account: any) => (
-                        <div
-                          key={account.id}
-                          className="px-3 py-2 cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
-                          onClick={() => {
-                            setSelectedAccountId(account.id);
-                            setShowAccountDropdown(false);
-                          }}
-                        >
-                          <div className="flex flex-col items-start">
-                            <div className="font-medium text-sm">{account.displayName}</div>
-                            <div className="text-xs text-gray-500">{account.emailAddress}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                  ) : (
+                    <span className="font-medium">{selectedAccount?.displayName}</span>
                   )}
+                  <ChevronDown className={`h-4 w-4 text-gray-400 flex-shrink-0 ml-2 transition-transform ${showAccountDropdown ? 'rotate-180' : ''}`} />
                 </div>
-              ) : (
-                <span className="text-sm text-gray-600">
-                  {selectedAccount?.displayName} ({selectedAccount?.emailAddress})
-                </span>
-              )}
+              </div>
             </div>
           </div>
 
