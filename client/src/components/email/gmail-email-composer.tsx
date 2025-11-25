@@ -696,7 +696,7 @@ export function GmailEmailComposer({
             </Button>
             
             {/* Send dropdown with schedule options */}
-            <DropdownMenu>
+            <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <Button
                   disabled={(sendEmailMutation.isPending || scheduleEmailMutation.isPending) || toAddresses.length === 0 || !subject.trim()}
@@ -708,7 +708,7 @@ export function GmailEmailComposer({
                   <ChevronDown className="h-3 w-3" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56" style={{ zIndex: 10002 }}>
+              <DropdownMenuContent align="end" sideOffset={5} className="w-56 z-[10002]">
                 <DropdownMenuItem 
                   onClick={handleSend}
                   className="flex items-center gap-2"

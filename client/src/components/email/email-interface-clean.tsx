@@ -553,6 +553,65 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
     },
   });
 
+  // Scheduled email actions
+  const sendScheduledNowMutation = useMutation({
+    mutationFn: async (emailId: number) => {
+      const response = await fetch(`/api/email/scheduled/${emailId}/send-now`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to send email');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Email sent",
+        description: "Your scheduled email has been sent successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/email/scheduled'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/email/scheduled/count'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/email/accounts', selectedAccount.id, activeFolder] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to send email",
+        description: error.message || "Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const cancelScheduledMutation = useMutation({
+    mutationFn: async (emailId: number) => {
+      const response = await fetch(`/api/email/scheduled/${emailId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to cancel scheduled email');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Email cancelled",
+        description: "Your scheduled email has been cancelled.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/email/scheduled'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/email/scheduled/count'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/email/accounts', selectedAccount.id, activeFolder] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to cancel email",
+        description: error.message || "Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Fetch messages for the selected account and folder
   // For OAuth connected accounts (id === -1), use the new provider endpoints
   // For BackstageOS accounts (id > 0), use the old endpoints
@@ -594,6 +653,40 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
         });
       }
       
+      // Special handling for scheduled emails
+      if (activeFolder === 'scheduled') {
+        const response = await fetch('/api/email/scheduled');
+        if (!response.ok) {
+          throw new Error('Failed to fetch scheduled emails');
+        }
+        const scheduledEmails = await response.json();
+        // Transform scheduled emails to match EmailMessage format
+        return scheduledEmails.map((email: any) => ({
+          id: email.id,
+          accountId: email.accountId || selectedAccount.id,
+          fromAddress: selectedAccount.emailAddress,
+          toAddresses: email.toAddresses,
+          ccAddresses: email.ccAddresses || [],
+          bccAddresses: email.bccAddresses || [],
+          subject: email.subject,
+          content: email.content,
+          htmlContent: null,
+          folder: 'scheduled',
+          isRead: true,
+          isStarred: false,
+          hasAttachments: false,
+          dateSent: new Date(email.scheduledFor),
+          receivedAt: new Date(email.createdAt),
+          sentAt: null,
+          createdAt: new Date(email.createdAt),
+          threadId: email.threadId,
+          attachments: [],
+          // Add scheduled-specific fields for UI
+          scheduledFor: new Date(email.scheduledFor),
+          scheduledStatus: email.status,
+        }));
+      }
+
       // Use the old BackstageOS endpoints for non-OAuth accounts
       let endpoint;
       switch (activeFolder) {
@@ -1064,44 +1157,89 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                       </div>
 
                       {/* Right side: Fixed width container with date, hover icons overlay on top */}
-                      <div className="relative flex-shrink-0 w-32 text-right">
+                      <div className="relative flex-shrink-0 w-40 text-right">
                         {/* Date - fades out on hover */}
                         <span className="text-sm text-gray-500 whitespace-nowrap transition-opacity group-hover:opacity-0">
-                          {formatDate(message.dateSent)}
+                          {activeFolder === 'scheduled' && (message as any).scheduledFor ? (
+                            <span className="text-blue-600">
+                              Scheduled: {new Date((message as any).scheduledFor).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} at {new Date((message as any).scheduledFor).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                            </span>
+                          ) : (
+                            formatDate(message.dateSent)
+                          )}
                         </span>
                         
                         {/* Hover action icons - overlay on top of date */}
                         <div className="absolute inset-0 flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-50">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (onReply) {
-                                onReply(message, 'reply');
-                              }
-                            }}
-                            className="h-6 w-6 p-0 hover:bg-transparent group/icon"
-                            title="Reply"
-                          >
-                            <Reply className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setForwardMessage(message);
-                              setComposeMode('forward');
-                              if (onShowComposeChange) {
-                                onShowComposeChange(true);
-                              }
-                            }}
-                            className="h-6 w-6 p-0 hover:bg-transparent group/icon"
-                            title="Forward"
-                          >
-                            <Forward className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
-                          </Button>
+                          {activeFolder === 'scheduled' ? (
+                            <>
+                              {/* Scheduled email actions */}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  sendScheduledNowMutation.mutate(message.id);
+                                }}
+                                disabled={sendScheduledNowMutation.isPending}
+                                className="h-6 px-2 hover:bg-blue-50 group/icon text-xs"
+                                title="Send Now"
+                              >
+                                <Send className="h-3 w-3 mr-1 text-blue-500" />
+                                <span className="text-blue-600">Send Now</span>
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  cancelScheduledMutation.mutate(message.id);
+                                }}
+                                disabled={cancelScheduledMutation.isPending}
+                                className="h-6 px-2 hover:bg-red-50 group/icon text-xs"
+                                title="Cancel"
+                              >
+                                <X className="h-3 w-3 mr-1 text-red-500" />
+                                <span className="text-red-600">Cancel</span>
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              {/* Regular email actions */}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (onReply) {
+                                    onReply(message, 'reply');
+                                  }
+                                }}
+                                className="h-6 w-6 p-0 hover:bg-transparent group/icon"
+                                title="Reply"
+                              >
+                                <Reply className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setForwardMessage(message);
+                                  setComposeMode('forward');
+                                  if (onShowComposeChange) {
+                                    onShowComposeChange(true);
+                                  }
+                                }}
+                                className="h-6 w-6 p-0 hover:bg-transparent group/icon"
+                                title="Forward"
+                              >
+                                <Forward className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
+                              </Button>
+                            </>
+                          )}
+                          {activeFolder !== 'scheduled' && (
+                          <>
                           <Popover>
                             <PopoverTrigger asChild>
                               <Button
@@ -1246,6 +1384,8 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                           >
                             <Trash2 className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
                           </Button>
+                          </>
+                          )}
                         </div>
                       </div>
                     </div>
