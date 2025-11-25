@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { X, Send, ChevronDown, Paperclip, MoreHorizontal, FileText, Minus, Clock, Calendar } from 'lucide-react';
+import { X, Send, ChevronDown, Paperclip, MoreHorizontal, FileText, Minus, Clock, Calendar, Bold, Italic, Underline, List, ListOrdered, Link2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -33,6 +33,11 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { format, addHours, addDays, addMinutes, setHours, setMinutes, startOfToday, startOfTomorrow, isBefore } from 'date-fns';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Link from '@tiptap/extension-link';
+import Placeholder from '@tiptap/extension-placeholder';
+import TiptapUnderline from '@tiptap/extension-underline';
 
 interface InlineEmailComposerProps {
   isOpen: boolean;
@@ -197,14 +202,54 @@ export function InlineEmailComposer({
     return text;
   };
 
-  const [content, setContent] = useState('');
   const [signatureInitialized, setSignatureInitialized] = useState(false);
 
-  // Convert HTML signature to plain text for the textarea
-  const getPlainTextSignature = () => {
+  // Clean up HTML signature from Tailwind CSS variables
+  const cleanSignatureHtml = useCallback((html: string) => {
+    // Remove Tailwind CSS variables but preserve the important styles
+    return html
+      .replace(/--tw-[^:;]+:\s*[^;]*;?\s*/g, '')
+      .replace(/style="[^"]*"/g, (match) => {
+        // Keep only the meaningful styles
+        const keepStyles = match.match(/(font-weight:\s*[^;]+|color:\s*[^;]+|text-decoration:\s*[^;]+)/g);
+        if (keepStyles && keepStyles.length > 0) {
+          return `style="${keepStyles.join('; ')}"`;
+        }
+        return '';
+      });
+  }, []);
+
+  // Get HTML signature for editor
+  const getHtmlSignature = useCallback(() => {
     if (!signatureData?.signature) return '';
-    return '\n\n--\n' + htmlToPlainText(signatureData.signature);
-  };
+    const cleanedSig = cleanSignatureHtml(signatureData.signature);
+    return `<p></p><p>--</p>${cleanedSig}`;
+  }, [signatureData, cleanSignatureHtml]);
+
+  // TipTap editor setup
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        heading: false,
+      }),
+      TiptapUnderline,
+      Link.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          class: 'text-blue-600 underline hover:text-blue-800',
+        },
+      }),
+      Placeholder.configure({
+        placeholder: 'Write your message...',
+      }),
+    ],
+    content: '',
+    editorProps: {
+      attributes: {
+        class: 'prose prose-sm max-w-none focus:outline-none min-h-[200px] text-gray-900',
+      },
+    },
+  });
 
   // Update selectedAccountId when fromAccountId prop changes
   useEffect(() => {
@@ -224,36 +269,28 @@ export function InlineEmailComposer({
       
       if (composeMode === 'compose' && !replyToMessage && !forwardMessage) {
         setSubject('');
-        setContent('');
+        editor?.commands.setContent('');
       }
     }
-  }, [isOpen, replyToMessage, forwardMessage, composeMode, initialRecipient]);
+  }, [isOpen, replyToMessage, forwardMessage, composeMode, initialRecipient, editor]);
 
   // Initialize signature when it's loaded
   useEffect(() => {
-    console.log('Signature effect triggered:', {
-      isOpen,
-      signatureData,
-      isLoadingSignature,
-      signatureInitialized,
-      content
-    });
-    
-    if (isLoadingSignature) {
-      console.log('Still loading signature...');
+    if (isLoadingSignature || !editor) {
       return;
     }
     
     if (isOpen && signatureData?.signature && !signatureInitialized) {
-      const plainSig = getPlainTextSignature();
-      console.log('Plain text signature:', plainSig);
-      if (plainSig && !content.includes('--\n')) {
-        console.log('Adding signature to content');
-        setContent(prev => prev + plainSig);
+      const htmlSig = getHtmlSignature();
+      const currentContent = editor.getHTML();
+      if (htmlSig && !currentContent.includes('--')) {
+        editor.commands.setContent(htmlSig);
+        // Move cursor to the beginning
+        editor.commands.focus('start');
         setSignatureInitialized(true);
       }
     }
-  }, [isOpen, signatureData, isLoadingSignature, signatureInitialized]);
+  }, [isOpen, signatureData, isLoadingSignature, signatureInitialized, editor, getHtmlSignature]);
 
   // Update recipient when initialRecipient changes
   useEffect(() => {
@@ -268,8 +305,9 @@ export function InlineEmailComposer({
     const hasCcAddresses = ccAddresses.length > 0;
     const hasBccAddresses = bccAddresses.length > 0;
     const trimmedSubject = subject.trim();
-    // Remove signature from content check
-    const contentWithoutSig = content.replace(/\n\n--\n[\s\S]*$/, '').trim();
+    // Get text content from editor and remove signature
+    const editorText = editor?.getText() || '';
+    const contentWithoutSig = editorText.replace(/--[\s\S]*$/, '').trim();
     
     // Check if any field has content
     return hasToAddresses || hasCcAddresses || hasBccAddresses || trimmedSubject.length > 0 || contentWithoutSig.length > 0;
@@ -277,7 +315,7 @@ export function InlineEmailComposer({
 
   // Build full email content with quoted reply for replies
   const buildFullEmailContent = () => {
-    let fullContent = content.trim();
+    let fullContent = editor?.getHTML() || '';
     
     // For replies/reply-all, append the quoted original message after the signature
     if ((composeMode === 'reply' || composeMode === 'replyAll') && replyToMessage) {
@@ -799,19 +837,76 @@ export function InlineEmailComposer({
             />
           </div>
 
-          {/* Message content */}
-          <div className="flex-1 p-4 flex flex-col">
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              className="w-full text-sm text-gray-900 bg-transparent border-none outline-none placeholder-gray-400 resize-none"
-              placeholder="Write your message..."
+          {/* Message content - Rich text editor */}
+          <div className="flex-1 p-4 flex flex-col overflow-hidden">
+            {/* Formatting toolbar */}
+            <div className="flex items-center gap-1 pb-2 border-b border-gray-100 mb-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => editor?.chain().focus().toggleBold().run()}
+                className={`h-7 w-7 p-0 ${editor?.isActive('bold') ? 'bg-gray-200' : ''}`}
+                data-testid="button-bold"
+              >
+                <Bold className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => editor?.chain().focus().toggleItalic().run()}
+                className={`h-7 w-7 p-0 ${editor?.isActive('italic') ? 'bg-gray-200' : ''}`}
+                data-testid="button-italic"
+              >
+                <Italic className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => editor?.chain().focus().toggleUnderline().run()}
+                className={`h-7 w-7 p-0 ${editor?.isActive('underline') ? 'bg-gray-200' : ''}`}
+                data-testid="button-underline"
+              >
+                <Underline className="h-4 w-4" />
+              </Button>
+              <div className="w-px h-4 bg-gray-200 mx-1" />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => editor?.chain().focus().toggleBulletList().run()}
+                className={`h-7 w-7 p-0 ${editor?.isActive('bulletList') ? 'bg-gray-200' : ''}`}
+                data-testid="button-bullet-list"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+                className={`h-7 w-7 p-0 ${editor?.isActive('orderedList') ? 'bg-gray-200' : ''}`}
+                data-testid="button-ordered-list"
+              >
+                <ListOrdered className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            {/* Editor content */}
+            <div 
+              className="flex-1 overflow-y-auto"
               style={{ 
                 minHeight: '200px',
                 maxHeight: composeMode === 'reply' && replyToMessage ? '200px' : '400px',
-                flex: composeMode === 'reply' && replyToMessage ? 'none' : '1'
               }}
-            />
+            >
+              <EditorContent 
+                editor={editor} 
+                className="w-full h-full text-sm [&_.ProseMirror]:outline-none [&_.ProseMirror]:min-h-[200px] [&_.ProseMirror_p]:my-1 [&_.ProseMirror_strong]:font-bold"
+              />
+            </div>
             
             {/* Original email thread for replies */}
             {composeMode === 'reply' && replyToMessage && (
