@@ -12,7 +12,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 import { storage } from "./storage";
 import { db } from "./db";
-import { sql } from "drizzle-orm";
+import { sql, and, eq } from "drizzle-orm";
+import { scheduledEmails } from "@shared/schema";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
@@ -11781,6 +11782,272 @@ Best regards,
         message: "Failed to send email",
         error: error instanceof Error ? error.message : "Unknown error"
       });
+    }
+  });
+
+  // ========== SCHEDULED EMAILS ==========
+
+  // Schedule an email for later sending
+  app.post('/api/email/schedule', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user;
+      const {
+        accountId,
+        toAddresses,
+        ccAddresses,
+        bccAddresses,
+        subject,
+        content,
+        scheduledFor,
+        threadId
+      } = req.body;
+
+      if (!toAddresses || !Array.isArray(toAddresses) || toAddresses.length === 0) {
+        return res.status(400).json({ message: "At least one recipient is required" });
+      }
+      if (!subject) {
+        return res.status(400).json({ message: "Subject is required" });
+      }
+      if (!scheduledFor) {
+        return res.status(400).json({ message: "Scheduled time is required" });
+      }
+
+      const scheduledDate = new Date(scheduledFor);
+      if (scheduledDate <= new Date()) {
+        return res.status(400).json({ message: "Scheduled time must be in the future" });
+      }
+
+      // Insert into scheduled_emails table
+      const [scheduledEmail] = await db.insert(scheduledEmails).values({
+        userId: user.id,
+        accountId: accountId || null,
+        toAddresses,
+        ccAddresses: ccAddresses || [],
+        bccAddresses: bccAddresses || [],
+        subject,
+        content: content || '',
+        scheduledFor: scheduledDate,
+        status: 'pending',
+        threadId: threadId || null
+      }).returning();
+
+      console.log('📅 Email scheduled:', scheduledEmail.id, 'for', scheduledDate);
+
+      res.json({ 
+        success: true, 
+        scheduledEmailId: scheduledEmail.id,
+        scheduledFor: scheduledEmail.scheduledFor
+      });
+    } catch (error) {
+      console.error("Error scheduling email:", error);
+      res.status(500).json({ message: "Failed to schedule email" });
+    }
+  });
+
+  // Get all scheduled emails for the current user
+  app.get('/api/email/scheduled', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user;
+      
+      const emails = await db.select()
+        .from(scheduledEmails)
+        .where(and(
+          eq(scheduledEmails.userId, user.id),
+          eq(scheduledEmails.status, 'pending')
+        ))
+        .orderBy(scheduledEmails.scheduledFor);
+
+      res.json(emails);
+    } catch (error) {
+      console.error("Error fetching scheduled emails:", error);
+      res.status(500).json({ message: "Failed to fetch scheduled emails" });
+    }
+  });
+
+  // Get count of scheduled emails (for sidebar badge)
+  app.get('/api/email/scheduled/count', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user;
+      
+      const result = await db.select({ count: sql<number>`count(*)` })
+        .from(scheduledEmails)
+        .where(and(
+          eq(scheduledEmails.userId, user.id),
+          eq(scheduledEmails.status, 'pending')
+        ));
+
+      res.json({ count: result[0]?.count || 0 });
+    } catch (error) {
+      console.error("Error fetching scheduled emails count:", error);
+      res.status(500).json({ message: "Failed to fetch scheduled emails count" });
+    }
+  });
+
+  // Cancel a scheduled email
+  app.delete('/api/email/scheduled/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user;
+      const emailId = parseInt(req.params.id);
+
+      const [email] = await db.select()
+        .from(scheduledEmails)
+        .where(and(
+          eq(scheduledEmails.id, emailId),
+          eq(scheduledEmails.userId, user.id)
+        ));
+
+      if (!email) {
+        return res.status(404).json({ message: "Scheduled email not found" });
+      }
+
+      if (email.status !== 'pending') {
+        return res.status(400).json({ message: "Can only cancel pending scheduled emails" });
+      }
+
+      await db.update(scheduledEmails)
+        .set({ status: 'cancelled' })
+        .where(eq(scheduledEmails.id, emailId));
+
+      console.log('🚫 Scheduled email cancelled:', emailId);
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error cancelling scheduled email:", error);
+      res.status(500).json({ message: "Failed to cancel scheduled email" });
+    }
+  });
+
+  // Reschedule an email
+  app.put('/api/email/scheduled/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user;
+      const emailId = parseInt(req.params.id);
+      const { scheduledFor } = req.body;
+
+      const [email] = await db.select()
+        .from(scheduledEmails)
+        .where(and(
+          eq(scheduledEmails.id, emailId),
+          eq(scheduledEmails.userId, user.id)
+        ));
+
+      if (!email) {
+        return res.status(404).json({ message: "Scheduled email not found" });
+      }
+
+      if (email.status !== 'pending') {
+        return res.status(400).json({ message: "Can only reschedule pending emails" });
+      }
+
+      const newScheduledDate = new Date(scheduledFor);
+      if (newScheduledDate <= new Date()) {
+        return res.status(400).json({ message: "Scheduled time must be in the future" });
+      }
+
+      await db.update(scheduledEmails)
+        .set({ scheduledFor: newScheduledDate })
+        .where(eq(scheduledEmails.id, emailId));
+
+      console.log('📅 Email rescheduled:', emailId, 'to', newScheduledDate);
+
+      res.json({ success: true, scheduledFor: newScheduledDate });
+    } catch (error) {
+      console.error("Error rescheduling email:", error);
+      res.status(500).json({ message: "Failed to reschedule email" });
+    }
+  });
+
+  // Send scheduled email now (skip schedule)
+  app.post('/api/email/scheduled/:id/send-now', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user;
+      const emailId = parseInt(req.params.id);
+
+      const [email] = await db.select()
+        .from(scheduledEmails)
+        .where(and(
+          eq(scheduledEmails.id, emailId),
+          eq(scheduledEmails.userId, user.id)
+        ));
+
+      if (!email) {
+        return res.status(404).json({ message: "Scheduled email not found" });
+      }
+
+      if (email.status !== 'pending') {
+        return res.status(400).json({ message: "Can only send pending scheduled emails" });
+      }
+
+      // Mark as sending
+      await db.update(scheduledEmails)
+        .set({ status: 'sending' })
+        .where(eq(scheduledEmails.id, emailId));
+
+      // Try to send using the appropriate provider
+      let success = false;
+      let error = null;
+
+      try {
+        if (user.connectedEmailProvider === 'gmail') {
+          setGmailUserId(user.id.toString());
+          const result = await gmailIntegrationService.sendEmail({
+            to: email.toAddresses,
+            cc: email.ccAddresses,
+            bcc: email.bccAddresses,
+            subject: email.subject,
+            body: email.content,
+            isHtml: false
+          });
+          success = result.success;
+          if (!success) error = result.error;
+        } else if (user.connectedEmailProvider === 'outlook') {
+          const result = await outlookIntegrationService.sendEmail({
+            to: email.toAddresses,
+            cc: email.ccAddresses,
+            bcc: email.bccAddresses,
+            subject: email.subject,
+            body: email.content,
+            isHtml: false
+          });
+          success = result.success;
+          if (!success) error = result.error;
+        } else {
+          // Use internal email system
+          const { standaloneEmailService } = await import('./services/standaloneEmailService.js');
+          const result = await standaloneEmailService.sendInternalEmail(
+            email.accountId || 0,
+            email.toAddresses,
+            email.subject,
+            email.content,
+            undefined,
+            email.ccAddresses,
+            email.bccAddresses
+          );
+          success = result.success;
+          if (!success) error = result.error;
+        }
+      } catch (sendError) {
+        error = sendError instanceof Error ? sendError.message : 'Unknown error';
+      }
+
+      if (success) {
+        await db.update(scheduledEmails)
+          .set({ status: 'sent', sentAt: new Date() })
+          .where(eq(scheduledEmails.id, emailId));
+        
+        console.log('✅ Scheduled email sent immediately:', emailId);
+        res.json({ success: true });
+      } else {
+        await db.update(scheduledEmails)
+          .set({ status: 'failed', error: error || 'Failed to send email' })
+          .where(eq(scheduledEmails.id, emailId));
+        
+        console.error('❌ Failed to send scheduled email:', emailId, error);
+        res.status(500).json({ message: error || "Failed to send email" });
+      }
+    } catch (error) {
+      console.error("Error sending scheduled email now:", error);
+      res.status(500).json({ message: "Failed to send scheduled email" });
     }
   });
 
