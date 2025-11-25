@@ -413,6 +413,13 @@ export default function EmailManager() {
     enabled: !!selectedAccount?.id,
   });
 
+  // Fetch unread count for Inbox badge
+  const { data: unreadCountData } = useQuery<{ totalUnread: number }>({
+    queryKey: ['/api/email/unread-count'],
+    refetchInterval: 600000, // Refresh every 10 minutes
+  });
+  const unreadCount = unreadCountData?.totalUnread || 0;
+
   // Fetch scheduled emails count
   const { data: scheduledCountData } = useQuery<{ count: number }>({
     queryKey: ['/api/email/scheduled/count'],
@@ -620,7 +627,7 @@ export default function EmailManager() {
 
   // Define folders array similar to desktop sidebar
   const folders = [
-    { id: "inbox", name: "Inbox", icon: Inbox, count: accountStats?.unreadMessages || 0 },
+    { id: "inbox", name: "Inbox", icon: Inbox, count: unreadCount },
     { id: "sent", name: "Sent", icon: Send, count: 0 },
     // Only show Scheduled folder if there are scheduled emails
     ...(scheduledCount > 0 ? [{ id: "scheduled", name: "Scheduled", icon: CalendarClock, count: scheduledCount }] : []),
