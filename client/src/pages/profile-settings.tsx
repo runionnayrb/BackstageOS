@@ -125,6 +125,22 @@ export default function ProfileSettings() {
     },
   });
 
+  const [testEmailSuccess, setTestEmailSuccess] = useState(false);
+  const sendTestEmailMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/user/email-provider/test");
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setErrorMessage(null);
+      setTestEmailSuccess(true);
+      setTimeout(() => setTestEmailSuccess(false), 5000);
+    },
+    onError: (error: any) => {
+      setErrorMessage(error.message || "Failed to send test email.");
+    },
+  });
+
   const updateProfileMutation = useMutation({
     mutationFn: async (data: any) => {
       const response = await apiRequest("PATCH", "/api/user/profile", data);
@@ -298,18 +314,42 @@ export default function ProfileSettings() {
                           )}
                         </div>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => disconnectProviderMutation.mutate()}
-                        disabled={disconnectProviderMutation.isPending}
-                        className="ml-2 flex-shrink-0"
-                        data-testid="button-disconnect-email"
-                      >
-                        <XCircle className="h-4 w-4 mr-1" />
-                        Disconnect
-                      </Button>
+                      <div className="flex gap-2 ml-2 flex-shrink-0">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => sendTestEmailMutation.mutate()}
+                          disabled={sendTestEmailMutation.isPending}
+                          data-testid="button-test-email"
+                        >
+                          {sendTestEmailMutation.isPending ? (
+                            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                          ) : (
+                            <Mail className="h-4 w-4 mr-1" />
+                          )}
+                          Test
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => disconnectProviderMutation.mutate()}
+                          disabled={disconnectProviderMutation.isPending}
+                          className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                          data-testid="button-disconnect-email"
+                        >
+                          <XCircle className="h-4 w-4 mr-1" />
+                          Disconnect
+                        </Button>
+                      </div>
                     </div>
+                    {testEmailSuccess && (
+                      <Alert className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+                        <Mail className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                        <AlertDescription className="text-blue-700 dark:text-blue-300">
+                          Test email sent! Check your inbox at {emailProvider.emailAddress}
+                        </AlertDescription>
+                      </Alert>
+                    )}
                   </div>
                 ) : (
                   <div className="space-y-4">

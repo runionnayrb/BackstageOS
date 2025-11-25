@@ -2785,6 +2785,69 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Send test email to verify OAuth connection
+  app.post('/api/user/email-provider/test', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user;
+      const userId = user.id.toString();
+
+      if (!user.connectedEmailProvider || !user.connectedEmailAddress) {
+        return res.status(400).json({ message: "No email provider connected" });
+      }
+
+      const testSubject = "Backstage OS - Email Connection Test";
+      const testBody = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #4f46e5;">Email Connection Successful!</h2>
+          <p>This is a test email from Backstage OS to confirm your ${user.connectedEmailProvider === 'gmail' ? 'Gmail' : 'Outlook'} account is properly connected.</p>
+          <p><strong>Connected Account:</strong> ${user.connectedEmailAddress}</p>
+          <p><strong>Test sent at:</strong> ${new Date().toLocaleString()}</p>
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+          <p style="color: #6b7280; font-size: 14px;">You can now send emails directly from Backstage OS using your personal email address.</p>
+        </div>
+      `;
+
+      let result;
+      if (user.connectedEmailProvider === 'gmail') {
+        const accessToken = await oauthTokenService.getValidGmailAccessToken(userId);
+        if (!accessToken) {
+          return res.status(401).json({ message: "Gmail token expired. Please reconnect your account." });
+        }
+        result = await googleOAuthService.sendEmail(accessToken, {
+          to: [user.connectedEmailAddress],
+          subject: testSubject,
+          body: testBody,
+          isHtml: true,
+          fromEmail: user.connectedEmailAddress,
+          fromName: user.emailDisplayName || `${user.firstName} ${user.lastName}`,
+        });
+      } else if (user.connectedEmailProvider === 'outlook') {
+        const accessToken = await oauthTokenService.getValidOutlookAccessToken(userId);
+        if (!accessToken) {
+          return res.status(401).json({ message: "Outlook token expired. Please reconnect your account." });
+        }
+        result = await microsoftOAuthService.sendEmail(accessToken, {
+          to: [user.connectedEmailAddress],
+          subject: testSubject,
+          body: testBody,
+          isHtml: true,
+        });
+      } else {
+        return res.status(400).json({ message: "Invalid email provider" });
+      }
+
+      if (result.success) {
+        console.log(`✅ Test email sent successfully to ${user.connectedEmailAddress}`);
+        res.json({ success: true, messageId: result.messageId, sentTo: user.connectedEmailAddress });
+      } else {
+        res.status(500).json({ success: false, error: result.error });
+      }
+    } catch (error: any) {
+      console.error("Error sending test email:", error);
+      res.status(500).json({ message: error.message || "Failed to send test email" });
+    }
+  });
+
   // Project routes
   app.get('/api/projects', isAuthenticated, async (req: any, res) => {
     try {
