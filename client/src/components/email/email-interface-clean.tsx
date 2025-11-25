@@ -986,17 +986,14 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                         </span>
                       </div>
 
-                      {/* Subject + Message Preview - flexible width, must truncate */}
-                      <div className="flex-1 min-w-0 overflow-hidden">
-                        <span className="block truncate text-sm">
+                      {/* Subject + Message Preview - limited to 50 chars */}
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm">
                           {message.hasAttachments && <span className="text-gray-500 mr-1">📎</span>}
                           {message.isImportant && <span className="text-yellow-500 mr-1">⭐</span>}
                           <span className={!message.isRead ? 'font-semibold text-black' : 'text-gray-700'}>
-                            {message.subject || 'No Subject'}
+                            {(message.subject || 'No Subject').slice(0, 50)}{(message.subject || '').length > 50 ? '...' : ''}
                           </span>
-                          {message.content && (
-                            <span className="text-gray-500"> — {message.content.slice(0, 100)}</span>
-                          )}
                         </span>
                       </div>
 
