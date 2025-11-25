@@ -3058,6 +3058,19 @@ Respond with valid JSON only.`;
         return res.status(400).json({ message: "No email provider connected" });
       }
 
+      // Check if this is a locally-saved draft by trying to delete from database first
+      const { standaloneEmailService } = await import('./services/standaloneEmailService.js');
+      const messageIdNum = parseInt(messageId);
+      
+      // Try to delete from local database (for drafts)
+      const localDeleteSuccess = await standaloneEmailService.deleteMessage(messageIdNum, -1);
+      if (localDeleteSuccess) {
+        console.log(`✅ Deleted local draft ID ${messageId} from database`);
+        res.json({ success: true });
+        return;
+      }
+
+      // If not a local draft, delete from Gmail/Outlook
       if (user.connectedEmailProvider === 'gmail') {
         // Set user context for Gmail service to use per-user OAuth tokens
         setGmailUserId(user.id.toString());
