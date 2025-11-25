@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -343,19 +343,35 @@ export default function EmailManager() {
   const [expandedProjects, setExpandedProjects] = useState<string[]>([]);
   const { toast } = useToast();
 
-  // Fetch email accounts
-  const { data: emailAccounts, isLoading: accountsLoading, error: accountsError } = useQuery({
-    queryKey: ['/api/email/accounts'],
+  // Fetch user's connected email provider (Gmail/Outlook OAuth)
+  const { data: connectedProvider, isLoading: providerLoading } = useQuery({
+    queryKey: ['/api/user/email-provider'],
     enabled: true,
   });
 
-  // Check if user has personal account
-  const { data: hasPersonalData } = useQuery({
-    queryKey: ['/api/email/accounts/has-personal'],
-    enabled: true,
-  });
+  // Create virtual account from connected provider for the UI
+  const emailAccounts: EmailAccount[] = connectedProvider?.provider ? [{
+    id: -1, // Virtual ID for connected provider
+    userId: 0,
+    emailAddress: connectedProvider.emailAddress || '',
+    displayName: connectedProvider.emailAddress?.split('@')[0] || 'Connected Account',
+    accountType: connectedProvider.provider, // 'gmail' or 'outlook'
+    isDefault: true,
+    isActive: true,
+    createdAt: connectedProvider.connectedAt || new Date().toISOString(),
+  }] : [];
 
-  const hasPersonalAccount = hasPersonalData?.hasPersonal || false;
+  const accountsLoading = providerLoading;
+  const accountsError = !connectedProvider?.provider && !providerLoading ? new Error('No email connected') : null;
+
+  // HIDDEN: BackstageOS email accounts - keeping for future use
+  // const { data: emailAccounts, isLoading: accountsLoading, error: accountsError } = useQuery({
+  //   queryKey: ['/api/email/accounts'],
+  //   enabled: true,
+  // });
+
+  // Check if user has personal account (now based on connected provider)
+  const hasPersonalAccount = !!connectedProvider?.provider;
 
   // Fetch projects for shared inboxes
   const { data: projects } = useQuery({
@@ -546,22 +562,32 @@ export default function EmailManager() {
     );
   }
 
-  // Error state
-  if (accountsError) {
+  // No connected account state - show connect account prompt
+  if (!connectedProvider?.provider && !providerLoading) {
     return (
       <div className="w-full min-h-screen bg-white flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-red-600">Email System Error</CardTitle>
+              <div className="mx-auto w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+                <Mail className="h-6 w-6 text-blue-600" />
+              </div>
+              <CardTitle>Connect Your Email</CardTitle>
+              <CardDescription className="mt-2">
+                Connect your Gmail or Outlook account to send and receive emails from BackstageOS.
+              </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <Button 
-                onClick={() => window.location.reload()}
+                onClick={() => setLocation('/profile?tab=email')}
                 className="w-full"
               >
-                Retry
+                <Settings className="h-4 w-4 mr-2" />
+                Go to Email Settings
               </Button>
+              <p className="text-xs text-gray-500 text-center">
+                Your connected email will be used to send emails for your shows.
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -615,124 +641,28 @@ export default function EmailManager() {
 
               {/* Scrollable Content */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 min-h-0">
-                {/* Account Selector Section */}
+                {/* Connected Account Display - Shows connected Gmail/Outlook account */}
                 <div className="bg-white p-3 rounded">
-                  <div className="text-sm font-medium mb-2">Account</div>
-                  <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex-1 justify-between mr-2 border-none">
-                      <div className="flex items-center space-x-2">
-                        <div className="text-left">
-                          <div className="font-medium text-sm">
-                            {selectedAccount?.displayName || "Select Account"}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {selectedAccount?.emailAddress || "No account selected"}
-                          </div>
-                        </div>
+                  <div className="text-sm font-medium mb-2">Connected Account</div>
+                  {selectedAccount ? (
+                    <div className="bg-gray-50 rounded-md p-3">
+                      <div className="font-medium text-sm">
+                        {selectedAccount.displayName}
                       </div>
-                      <ChevronDown className="w-4 h-4 text-gray-500" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-64 max-w-[calc(100vw-32px)]">
-                    {emailAccounts && Array.isArray(emailAccounts) && (emailAccounts as EmailAccount[]).length > 0 ? (
-                      <>
-                        {/* Personal Accounts */}
-                        {(emailAccounts as EmailAccount[]).filter(account => account.accountType === 'personal').map((account) => (
-                          <DropdownMenuItem
-                            key={account.id}
-                            onClick={() => {
-                              setSelectedAccount(account);
-                              closeMobileMenu();
-                            }}
-                            className={selectedAccount?.id === account.id ? 'bg-blue-50' : ''}
-                          >
-                            <div className="w-full">
-                              <div className="font-medium">{account.displayName}</div>
-                              <div className="text-xs text-gray-500">{account.emailAddress}</div>
-                            </div>
-                          </DropdownMenuItem>
-                        ))}
-                        
-                        {/* Shared Inboxes - Flattened list */}
-                        {allSharedInboxes && allSharedInboxes.length > 0 && (
-                          <>
-                            <DropdownMenuSeparator />
-                            <div className="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
-                              Shared Inboxes
-                            </div>
-                            {allSharedInboxes.map((inbox: any) => (
-                              <DropdownMenuItem
-                                key={inbox.id}
-                                onClick={async () => {
-                                  console.log('Mobile shared inbox clicked:', inbox);
-                                  
-                                  // Find the corresponding email account for this shared inbox
-                                  try {
-                                    const matchingAccount = (emailAccounts as EmailAccount[]).find(account => 
-                                      account.emailAddress === inbox.emailAddress
-                                    );
-                                    
-                                    if (matchingAccount) {
-                                      console.log('Setting selected account to real shared inbox account:', matchingAccount);
-                                      setSelectedAccount(matchingAccount);
-                                    } else {
-                                      console.error('No matching email account found for shared inbox:', inbox.emailAddress);
-                                      // Fallback to virtual account if no real account exists
-                                      const sharedInboxAsAccount: EmailAccount = {
-                                        id: inbox.id + 1000,
-                                        userId: 0,
-                                        projectId: inbox.projectId,
-                                        emailAddress: inbox.emailAddress,
-                                        displayName: inbox.name,
-                                        accountType: 'shared',
-                                        isDefault: false,
-                                        isActive: inbox.isActive,
-                                        createdAt: new Date().toISOString(),
-                                      };
-                                      setSelectedAccount(sharedInboxAsAccount);
-                                    }
-                                  } catch (error) {
-                                    console.error('Error finding email account for shared inbox:', error);
-                                  }
-                                  
-                                  closeMobileMenu();
-                                }}
-                                className={cn(
-                                  "flex flex-col items-start space-y-1 p-3 cursor-pointer",
-                                  selectedAccount?.emailAddress === inbox.emailAddress && "bg-blue-50"
-                                )}
-                              >
-                                <p className="text-sm font-medium text-gray-900">
-                                  {inbox.name}
-                                </p>
-                                <p className="text-xs text-gray-500">
-                                  {inbox.emailAddress}
-                                </p>
-                              </DropdownMenuItem>
-                            ))}
-                          </>
-                        )}
-                        
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setIsCreateDialogOpen(true);
-                            closeMobileMenu();
-                          }}
-                          className="flex items-center space-x-2 p-3 text-blue-600"
-                        >
-                          <Plus className="h-4 w-4" />
-                          <span>{hasPersonalAccount && !user?.isAdmin ? "New Team Account" : "New Account"}</span>
-                        </DropdownMenuItem>
-                        
-
-                      </>
-                    ) : (
-                      <DropdownMenuItem disabled>No accounts found</DropdownMenuItem>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                      <div className="text-xs text-gray-500">
+                        {selectedAccount.emailAddress}
+                      </div>
+                      {selectedAccount.accountType && (
+                        <div className="text-xs text-blue-600 mt-1 capitalize">
+                          {selectedAccount.accountType === 'gmail' ? 'Gmail' : 
+                           selectedAccount.accountType === 'outlook' ? 'Outlook' : 
+                           selectedAccount.accountType}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-gray-500">No account connected</div>
+                  )}
                 </div>
 
                 {/* Folders Section */}

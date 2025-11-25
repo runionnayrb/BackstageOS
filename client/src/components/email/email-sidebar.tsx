@@ -123,10 +123,10 @@ export function EmailSidebar({
             </Button>
           </div>
 
-          {/* Bottom Row: Account Selector (Expanded) or Compose Button (Collapsed) */}
+          {/* Bottom Row: Account Display and Compose Button */}
           <div className="flex items-end">
             {isCollapsed && selectedAccount ? (
-              // Collapsed: Show compose button with right-click menu
+              // Collapsed: Show compose button only
               <div className="w-full relative">
                 <Button
                   variant="ghost"
@@ -136,134 +136,29 @@ export function EmailSidebar({
                     e.preventDefault();
                     onCompose();
                   }}
-                  onContextMenu={(e) => {
-                    e.preventDefault();
-                    setDropdownOpen(true);
-                  }}
                 >
                   <Edit className="h-5 w-5 text-gray-600" />
                 </Button>
-                
-                {/* Right-click dropdown */}
-                <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
-                  <DropdownMenuTrigger asChild>
-                    <div className="absolute inset-0 pointer-events-none" />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-60" align="center" side="right" sideOffset={4}>
-                    {/* Existing email accounts */}
-                    {emailAccounts.map((account) => (
-                      <DropdownMenuItem 
-                        key={account.id} 
-                        onClick={() => onAccountSelect(account)}
-                        className={cn(
-                          "flex-col items-start p-3",
-                          selectedAccount?.id === account.id && "bg-blue-50"
-                        )}
-                      >
-                        <div className="flex items-center justify-between w-full">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">
-                              {account.displayName}
-                            </p>
-                            <p className="text-xs text-gray-500 truncate">
-                              {account.emailAddress}
-                            </p>
-                            {account.accountType && (
-                              <p className="text-xs text-blue-600 capitalize">
-                                {account.accountType} Account
-                              </p>
-                            )}
-                          </div>
-                          {selectedAccount?.id === account.id && (
-                            <div className="ml-2">
-                              <div className="h-2 w-2 rounded-full bg-blue-600"></div>
-                            </div>
-                          )}
-                        </div>
-                      </DropdownMenuItem>
-                    ))}
-                    
-                    {emailAccounts.length > 0 && <DropdownMenuSeparator />}
-                    
-                    {/* Action options */}
-                    <DropdownMenuItem onClick={onCreateAccount}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Account
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={onCreateSharedInbox}>
-                      <Users className="h-4 w-4 mr-2" />
-                      New Shared Inbox
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
               </div>
             ) : (
-              // Expanded: Show account selector with compose button
+              // Expanded: Show connected account info with compose button
               selectedAccount && (
                 <div className="w-full relative">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <div className="flex items-center justify-between p-2 pr-12 rounded-md cursor-pointer transition-colors hover:bg-gray-50">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">
-                            {selectedAccount.displayName}
-                          </p>
-                          <p className="text-xs text-gray-500 truncate">
-                            {selectedAccount.emailAddress}
-                          </p>
-                        </div>
-                        <div className="flex items-center">
-                          <ChevronDown className="h-4 w-4 text-gray-400" />
-                        </div>
-                      </div>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-60" align="start">
-                      {/* Existing email accounts */}
-                      {emailAccounts.map((account) => (
-                        <DropdownMenuItem 
-                          key={account.id} 
-                          onClick={() => onAccountSelect(account)}
-                          className={cn(
-                            "flex-col items-start p-3",
-                            selectedAccount?.id === account.id && "bg-blue-50"
-                          )}
-                        >
-                          <div className="flex items-center justify-between w-full">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-gray-900 truncate">
-                                {account.displayName}
-                              </p>
-                              <p className="text-xs text-gray-500 truncate">
-                                {account.emailAddress}
-                              </p>
-                              {account.accountType && (
-                                <p className="text-xs text-blue-600 capitalize">
-                                  {account.accountType} Account
-                                </p>
-                              )}
-                            </div>
-                            {selectedAccount?.id === account.id && (
-                              <div className="ml-2">
-                                <div className="h-2 w-2 rounded-full bg-blue-600"></div>
-                              </div>
-                            )}
-                          </div>
-                        </DropdownMenuItem>
-                      ))}
-                      
-                      {emailAccounts.length > 0 && <DropdownMenuSeparator />}
-                      
-                      {/* Action options */}
-                      <DropdownMenuItem onClick={onCreateAccount}>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Account
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={onCreateSharedInbox}>
-                        <Users className="h-4 w-4 mr-2" />
-                        New Shared Inbox
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <div className="flex items-center justify-between p-2 pr-12 rounded-md bg-gray-50">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {selectedAccount.displayName}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {selectedAccount.emailAddress}
+                      </p>
+                      {selectedAccount.accountType && (
+                        <p className="text-xs text-blue-600 capitalize">
+                          {selectedAccount.accountType === 'gmail' ? 'Gmail' : selectedAccount.accountType === 'outlook' ? 'Outlook' : selectedAccount.accountType}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                   
                   {/* Compose button positioned absolutely */}
                   <div
