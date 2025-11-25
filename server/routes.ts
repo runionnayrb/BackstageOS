@@ -11084,9 +11084,9 @@ Best regards,
     try {
       const user = req.user;
 
-      // Check if user has connected Gmail or Outlook and no attachments
-      // If so, use the native email integration for better deliverability
-      if (user.connectedEmailProvider && (!req.files || req.files.length === 0)) {
+      // Check if user has connected Gmail or Outlook
+      // Use the native email integration for better deliverability (supports attachments)
+      if (user.connectedEmailProvider) {
         const {
           toAddresses,
           subject,
@@ -11111,6 +11111,21 @@ Best regards,
         const cc = parseAddresses(ccAddresses);
         const bcc = parseAddresses(bccAddresses);
 
+        // Process attachments if present
+        let attachments: Array<{ filename: string; content: string; encoding: string }> = [];
+        if (req.files && req.files.length > 0) {
+          console.log('📎 Processing attachments for OAuth email:', req.files.length, 'files');
+          attachments = req.files.map((file: any) => {
+            const fileContent = fs.readFileSync(file.path);
+            const base64Content = fileContent.toString('base64');
+            return {
+              filename: file.originalname,
+              content: base64Content,
+              encoding: 'base64',
+            };
+          });
+        }
+
         let result;
         try {
           if (user.connectedEmailProvider === 'gmail') {
@@ -11121,6 +11136,7 @@ Best regards,
               subject,
               body: htmlContent || content,
               isHtml: !!htmlContent,
+              attachments: attachments.length > 0 ? attachments : undefined,
             });
           } else if (user.connectedEmailProvider === 'outlook') {
             result = await outlookIntegrationService.sendEmail({
@@ -11130,12 +11146,21 @@ Best regards,
               subject,
               body: htmlContent || content,
               isHtml: !!htmlContent,
+              attachments: attachments.length > 0 ? attachments : undefined,
             });
           } else {
             throw new Error("Invalid email provider");
           }
 
           if (result.success) {
+            // Clean up uploaded files after successful send
+            if (req.files) {
+              for (const file of req.files as any[]) {
+                if (fs.existsSync(file.path)) {
+                  fs.unlinkSync(file.path);
+                }
+              }
+            }
             return res.json({ success: true, messageId: result.messageId });
           } else {
             console.error('Native email provider failed, falling back to internal system:', result.error);

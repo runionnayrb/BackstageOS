@@ -77,18 +77,25 @@ export class GmailIntegrationService {
     try {
       const gmail = await getUncachableGmailClient();
 
-      const messageParts = [
-        `To: ${params.to.join(', ')}`,
-        params.cc && params.cc.length > 0 ? `Cc: ${params.cc.join(', ')}` : '',
-        params.bcc && params.bcc.length > 0 ? `Bcc: ${params.bcc.join(', ')}` : '',
-        `Subject: ${params.subject}`,
-        params.isHtml ? 'Content-Type: text/html; charset=utf-8' : 'Content-Type: text/plain; charset=utf-8',
-        '',
-        params.body
-      ].filter(Boolean);
+      let rawMessage: string;
 
-      const message = messageParts.join('\n');
-      const encodedMessage = Buffer.from(message)
+      if (params.attachments && params.attachments.length > 0) {
+        rawMessage = this.buildMimeMessageWithAttachments(params);
+      } else {
+        const messageParts = [
+          `To: ${params.to.join(', ')}`,
+          params.cc && params.cc.length > 0 ? `Cc: ${params.cc.join(', ')}` : '',
+          params.bcc && params.bcc.length > 0 ? `Bcc: ${params.bcc.join(', ')}` : '',
+          `Subject: ${params.subject}`,
+          params.isHtml ? 'Content-Type: text/html; charset=utf-8' : 'Content-Type: text/plain; charset=utf-8',
+          '',
+          params.body
+        ].filter(Boolean);
+
+        rawMessage = messageParts.join('\n');
+      }
+
+      const encodedMessage = Buffer.from(rawMessage)
         .toString('base64')
         .replace(/\+/g, '-')
         .replace(/\//g, '_')
@@ -112,6 +119,75 @@ export class GmailIntegrationService {
         error: error.message || 'Failed to send email via Gmail',
       };
     }
+  }
+
+  private buildMimeMessageWithAttachments(params: GmailSendEmailParams): string {
+    const boundary = `----=_Part_${Date.now()}_${Math.random().toString(36).substring(2)}`;
+    
+    const headers = [
+      `To: ${params.to.join(', ')}`,
+      params.cc && params.cc.length > 0 ? `Cc: ${params.cc.join(', ')}` : '',
+      params.bcc && params.bcc.length > 0 ? `Bcc: ${params.bcc.join(', ')}` : '',
+      `Subject: ${params.subject}`,
+      'MIME-Version: 1.0',
+      `Content-Type: multipart/mixed; boundary="${boundary}"`,
+    ].filter(Boolean).join('\r\n');
+
+    const bodyPart = [
+      `--${boundary}`,
+      `Content-Type: ${params.isHtml ? 'text/html' : 'text/plain'}; charset=utf-8`,
+      'Content-Transfer-Encoding: 7bit',
+      '',
+      params.body,
+    ].join('\r\n');
+
+    const attachmentParts = (params.attachments || []).map(attachment => {
+      const mimeType = this.getMimeType(attachment.filename);
+      return [
+        `--${boundary}`,
+        `Content-Type: ${mimeType}; name="${attachment.filename}"`,
+        'Content-Transfer-Encoding: base64',
+        `Content-Disposition: attachment; filename="${attachment.filename}"`,
+        '',
+        attachment.content,
+      ].join('\r\n');
+    });
+
+    return [
+      headers,
+      '',
+      bodyPart,
+      ...attachmentParts,
+      `--${boundary}--`,
+    ].join('\r\n');
+  }
+
+  private getMimeType(filename: string): string {
+    const ext = filename.split('.').pop()?.toLowerCase() || '';
+    const mimeTypes: Record<string, string> = {
+      'pdf': 'application/pdf',
+      'doc': 'application/msword',
+      'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'xls': 'application/vnd.ms-excel',
+      'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'ppt': 'application/vnd.ms-powerpoint',
+      'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'txt': 'text/plain',
+      'csv': 'text/csv',
+      'png': 'image/png',
+      'jpg': 'image/jpeg',
+      'jpeg': 'image/jpeg',
+      'gif': 'image/gif',
+      'svg': 'image/svg+xml',
+      'zip': 'application/zip',
+      'rar': 'application/x-rar-compressed',
+      'mp3': 'audio/mpeg',
+      'mp4': 'video/mp4',
+      'json': 'application/json',
+      'xml': 'application/xml',
+      'html': 'text/html',
+    };
+    return mimeTypes[ext] || 'application/octet-stream';
   }
 
   async checkConnection(): Promise<boolean> {
