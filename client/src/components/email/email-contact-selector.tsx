@@ -96,7 +96,7 @@ export function EmailContactSelector({
     });
   });
 
-  // Filter by search input
+  // Filter by search input and sort alphabetically by first name
   const filteredContacts = availableContacts.filter(contact => {
     const displayName = formatContactDisplay(contact);
     const email = getContactEmail(contact);
@@ -106,7 +106,7 @@ export function EmailContactSelector({
            contact.firstName.toLowerCase().includes(searchTerm) ||
            contact.lastName.toLowerCase().includes(searchTerm) ||
            email.toLowerCase().includes(searchTerm);
-  });
+  }).sort((a, b) => a.firstName.toLowerCase().localeCompare(b.firstName.toLowerCase()));
 
   // Format distribution list display (use group name as "email address")
   const formatDistroDisplay = (group: EmailGroup) => group.name;
