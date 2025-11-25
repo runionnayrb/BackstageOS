@@ -1000,7 +1000,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                       {/* Right side: Fixed width container with date, hover icons overlay on top */}
                       <div className="relative flex-shrink-0 w-32 text-right">
                         {/* Date - fades out on hover */}
-                        <span className="text-xs text-gray-500 whitespace-nowrap transition-opacity group-hover:opacity-0">
+                        <span className="text-sm text-gray-500 whitespace-nowrap transition-opacity group-hover:opacity-0">
                           {formatDate(message.dateSent)}
                         </span>
                         
