@@ -165,26 +165,21 @@ export function GmailEmailComposer({
   
   // Helper function to convert HTML signature to plain text
   const htmlToPlainText = (html: string) => {
-    // Convert common HTML tags to plain text equivalents
-    return html
-      .replace(/<b>/g, '')
-      .replace(/<\/b>/g, '')
-      .replace(/<i>/g, '')
-      .replace(/<\/i>/g, '')
-      .replace(/<u>/g, '')
-      .replace(/<\/u>/g, '')
-      .replace(/<div>/g, '\n')
-      .replace(/<\/div>/g, '')
-      .replace(/<br>/g, '\n')
-      .replace(/<br\/>/g, '\n')
-      .replace(/<p>/g, '')
-      .replace(/<\/p>/g, '\n')
-      .replace(/&nbsp;/g, ' ')
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"')
+    // Create a temporary element to parse HTML properly
+    const temp = document.createElement('div');
+    temp.innerHTML = html;
+    
+    // Get text content which strips all HTML tags
+    let text = temp.textContent || temp.innerText || '';
+    
+    // Clean up extra whitespace but preserve line breaks
+    text = text
+      .replace(/\r\n/g, '\n')
+      .replace(/\r/g, '\n')
+      .replace(/\n\s*\n\s*\n/g, '\n\n') // Collapse multiple newlines
       .trim();
+    
+    return text;
   };
 
   // Helper function to get content with signature
