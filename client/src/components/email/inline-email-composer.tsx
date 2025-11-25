@@ -168,18 +168,30 @@ export function InlineEmailComposer({
 
   // Helper function to convert HTML signature to plain text
   const htmlToPlainText = (html: string) => {
-    // Create a temporary element to parse HTML properly
-    const temp = document.createElement('div');
-    temp.innerHTML = html;
+    // First, convert block elements to newlines before stripping tags
+    let processed = html
+      // Add newlines for block elements
+      .replace(/<\/div>/gi, '\n')
+      .replace(/<\/p>/gi, '\n')
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/li>/gi, '\n')
+      .replace(/<\/tr>/gi, '\n');
     
-    // Get text content which strips all HTML tags
+    // Create a temporary element to parse remaining HTML
+    const temp = document.createElement('div');
+    temp.innerHTML = processed;
+    
+    // Get text content which strips all remaining HTML tags
     let text = temp.textContent || temp.innerText || '';
     
-    // Clean up extra whitespace but preserve line breaks
+    // Clean up extra whitespace but preserve intentional line breaks
     text = text
       .replace(/\r\n/g, '\n')
       .replace(/\r/g, '\n')
-      .replace(/\n\s*\n\s*\n/g, '\n\n') // Collapse multiple newlines
+      .replace(/[ \t]+/g, ' ') // Collapse multiple spaces/tabs to single space
+      .replace(/\n /g, '\n') // Remove leading space after newline
+      .replace(/ \n/g, '\n') // Remove trailing space before newline
+      .replace(/\n{3,}/g, '\n\n') // Collapse 3+ newlines to 2
       .trim();
     
     return text;
