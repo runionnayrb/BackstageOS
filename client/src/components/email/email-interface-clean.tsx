@@ -1157,91 +1157,86 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                         </span>
                       </div>
 
-                      {/* Right side: Fixed width container with date, hover icons overlay on top */}
-                      <div className="relative flex-shrink-0 w-40 text-right">
-                        {/* Date - fades out on hover */}
-                        <span className="text-sm text-gray-500 whitespace-nowrap transition-opacity group-hover:opacity-0">
-                          {activeFolder === 'scheduled' && (message as any).scheduledFor ? (
-                            <span className="text-blue-600">
-                              Scheduled: {new Date((message as any).scheduledFor).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} at {new Date((message as any).scheduledFor).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
-                            </span>
-                          ) : (
-                            formatDate(message.dateSent)
-                          )}
-                        </span>
-                        
-                        {/* Hover action icons - overlay on top of date */}
-                        <div className="absolute inset-0 flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-50">
-                          {activeFolder === 'scheduled' ? (
-                            <>
-                              {/* Scheduled email actions */}
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  sendScheduledNowMutation.mutate(message.id);
-                                }}
-                                disabled={sendScheduledNowMutation.isPending}
-                                className="h-6 px-2 hover:bg-blue-50 group/icon text-xs"
-                                title="Send Now"
-                              >
-                                <Send className="h-3 w-3 mr-1 text-blue-500" />
-                                <span className="text-blue-600">Send Now</span>
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  cancelScheduledMutation.mutate(message.id);
-                                }}
-                                disabled={cancelScheduledMutation.isPending}
-                                className="h-6 px-2 hover:bg-red-50 group/icon text-xs"
-                                title="Cancel"
-                              >
-                                <X className="h-3 w-3 mr-1 text-red-500" />
-                                <span className="text-red-600">Cancel</span>
-                              </Button>
-                            </>
-                          ) : (
-                            <>
-                              {/* Regular email actions */}
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (onReply) {
-                                    onReply(message, 'reply');
-                                  }
-                                }}
-                                className="h-6 w-6 p-0 hover:bg-transparent group/icon"
-                                title="Reply"
-                              >
-                                <Reply className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setForwardMessage(message);
-                                  setComposeMode('forward');
-                                  if (onShowComposeChange) {
-                                    onShowComposeChange(true);
-                                  }
-                                }}
-                                className="h-6 w-6 p-0 hover:bg-transparent group/icon"
-                                title="Forward"
-                              >
-                                <Forward className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
-                              </Button>
-                            </>
-                          )}
-                          {activeFolder !== 'scheduled' && (
-                          <>
-                          <Popover>
+                      {/* Right side: For scheduled emails, show hover actions on left of date */}
+                      {activeFolder === 'scheduled' && (message as any).scheduledFor ? (
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {/* Hover action buttons - appear on left of date */}
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                sendScheduledNowMutation.mutate(message.id);
+                              }}
+                              disabled={sendScheduledNowMutation.isPending}
+                              className="h-6 px-2 hover:bg-blue-50 group/icon text-xs"
+                              title="Send Now"
+                            >
+                              <Send className="h-3 w-3 mr-1 text-blue-500" />
+                              <span className="text-blue-600">Send Now</span>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                cancelScheduledMutation.mutate(message.id);
+                              }}
+                              disabled={cancelScheduledMutation.isPending}
+                              className="h-6 px-2 hover:bg-red-50 group/icon text-xs"
+                              title="Cancel"
+                            >
+                              <X className="h-3 w-3 mr-1 text-red-500" />
+                              <span className="text-red-600">Cancel</span>
+                            </Button>
+                          </div>
+                          {/* Scheduled date - always visible */}
+                          <span className="text-sm text-blue-600 whitespace-nowrap">
+                            Scheduled: {new Date((message as any).scheduledFor).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} at {new Date((message as any).scheduledFor).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                          </span>
+                        </div>
+                      ) : (
+                        /* Regular emails: Fixed width container with date, hover icons overlay on top */
+                        <div className="relative flex-shrink-0 w-40 text-right">
+                          {/* Date - fades out on hover */}
+                          <span className="text-sm text-gray-500 whitespace-nowrap transition-opacity group-hover:opacity-0">
+                            {formatDate(message.dateSent)}
+                          </span>
+                          
+                          {/* Hover action icons - overlay on top of date */}
+                          <div className="absolute inset-0 flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-50">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (onReply) {
+                                  onReply(message, 'reply');
+                                }
+                              }}
+                              className="h-6 w-6 p-0 hover:bg-transparent group/icon"
+                              title="Reply"
+                            >
+                              <Reply className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setForwardMessage(message);
+                                setComposeMode('forward');
+                                if (onShowComposeChange) {
+                                  onShowComposeChange(true);
+                                }
+                              }}
+                              className="h-6 w-6 p-0 hover:bg-transparent group/icon"
+                              title="Forward"
+                            >
+                              <Forward className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
+                            </Button>
+                            <Popover>
                             <PopoverTrigger asChild>
                               <Button
                                 variant="ghost"
@@ -1385,10 +1380,9 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                           >
                             <Trash2 className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
                           </Button>
-                          </>
-                          )}
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
 
                     {/* Mobile Layout - Gmail-style vertical layout */}
