@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -17,7 +18,8 @@ import {
   Users,
   ChevronDown,
   FileText,
-  Contact
+  Contact,
+  CalendarClock
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
@@ -84,9 +86,19 @@ export function EmailSidebar({
 }: EmailSidebarProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
+  // Query for scheduled emails count
+  const { data: scheduledCountData } = useQuery<{ count: number }>({
+    queryKey: ['/api/email/scheduled/count'],
+  });
+
+  const scheduledCount = scheduledCountData?.count || 0;
+
+  // Base folders with conditional Scheduled folder after Sent
   const folders = [
     { id: "inbox", name: "Inbox", icon: Inbox, count: accountStats?.unreadMessages || 0 },
     { id: "sent", name: "Sent", icon: Send, count: 0 },
+    // Only show Scheduled folder if there are scheduled emails
+    ...(scheduledCount > 0 ? [{ id: "scheduled", name: "Scheduled", icon: CalendarClock, count: scheduledCount }] : []),
     { id: "drafts", name: "Drafts", icon: Clock, count: accountStats?.draftCount || 0 },
     { id: "starred", name: "Starred", icon: Star, count: 0 },
     { id: "archive", name: "Archive", icon: Archive, count: 0 },
