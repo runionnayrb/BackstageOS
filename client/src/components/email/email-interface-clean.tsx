@@ -976,7 +976,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                       )}
 
                       {/* Sender name - fixed width */}
-                      <div className="w-40 flex-shrink-0 overflow-hidden">
+                      <div className="w-48 flex-none overflow-hidden">
                         <span className={`text-sm truncate block ${!message.isRead ? 'font-semibold text-black' : 'text-gray-700'}`}>
                           <ContactPreview emailAddress={message.fromAddress || ''}>
                             <span className="hover:text-blue-600 transition-colors cursor-pointer">
