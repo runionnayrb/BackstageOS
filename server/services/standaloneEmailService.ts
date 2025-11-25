@@ -682,10 +682,11 @@ export class StandaloneEmailService {
     htmlContent?: string,
     ccAddresses?: string[],
     bccAddresses?: string[],
-    draftId?: number
+    draftId?: number,
+    userId?: number
   ): Promise<{ success: boolean; draftId?: number }> {
     try {
-      console.log('💾 saveDraft called:', { accountId, subject, toCount: toAddresses?.length, hasHtmlContent: !!htmlContent });
+      console.log('💾 saveDraft called:', { accountId, subject, toCount: toAddresses?.length, hasHtmlContent: !!htmlContent, userId });
       
       // Ensure the virtual account exists for OAuth drafts
       if (accountId === -1) {
@@ -696,9 +697,10 @@ export class StandaloneEmailService {
           .limit(1);
         
         if (!existingAccount.length) {
-          console.log('📦 Creating virtual account for OAuth drafts');
+          console.log('📦 Creating virtual account for OAuth drafts with userId:', userId);
           await db.insert(emailAccounts).values({
             id: -1,
+            userId: userId || 1, // Use provided userId or default to 1
             emailAddress: 'oauth-drafts@local',
             accountType: 'oauth',
             isActive: true,
