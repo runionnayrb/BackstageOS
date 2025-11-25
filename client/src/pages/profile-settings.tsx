@@ -128,8 +128,7 @@ export default function ProfileSettings() {
   const [testEmailSuccess, setTestEmailSuccess] = useState(false);
   const sendTestEmailMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/user/email-provider/test");
-      return response.json();
+      return await apiRequest("POST", "/api/user/email-provider/test");
     },
     onSuccess: (data) => {
       setErrorMessage(null);
