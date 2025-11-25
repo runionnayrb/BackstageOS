@@ -76,6 +76,12 @@ export function GmailEmailComposer({
     enabled: isOpen && !!fromAccountId,
   });
 
+  // Fetch signature separately (needed for OAuth users where accountId is -1)
+  const { data: signatureData, isLoading: isLoadingSignature } = useQuery<{ signature: string }>({
+    queryKey: [`/api/email/accounts/${fromAccountId}/signature`],
+    enabled: isOpen && !!fromAccountId,
+  });
+
   // Fetch email contacts for the contact selector (unified contacts from all shows + personal)
   const { data: contacts = [], isLoading: isLoadingContacts, error: contactsError } = useQuery({
     queryKey: ['/api/email-contacts', projectId],
@@ -261,33 +267,32 @@ export function GmailEmailComposer({
     toAddresses 
   });
 
-  // Update content with signature when email account is loaded
+  // Update content with signature when signature data is loaded
   useEffect(() => {
+    // Use signature from dedicated query (works for both OAuth and regular accounts)
+    const signature = signatureData?.signature || emailAccount?.signature;
+    
     console.log('Signature effect triggered:', {
+      signatureData,
       emailAccount,
-      signature: emailAccount?.signature,
+      signature,
+      isLoadingSignature,
       isLoadingAccounts,
       content,
       composeMode,
       fromAccountId
     });
     
-    if (isLoadingAccounts) {
-      console.log('Still loading accounts...');
+    if (isLoadingSignature) {
+      console.log('Still loading signature...');
       return;
     }
     
-    if (!emailAccount) {
-      console.log('No email account data received');
+    if (!signature) {
+      console.log('No signature found');
       return;
     }
     
-    if (!emailAccount.signature) {
-      console.log('Email account loaded but no signature found:', emailAccount);
-      return;
-    }
-    
-    const signature = emailAccount.signature;
     console.log('Signature loaded:', signature);
     
     // Convert HTML signature to plain text for checking
@@ -306,7 +311,7 @@ export function GmailEmailComposer({
     const newContent = getContentWithSignature(content, signature);
     console.log('New content with signature:', newContent);
     setContent(newContent);
-  }, [emailAccount, isLoadingAccounts]);
+  }, [signatureData, emailAccount, isLoadingSignature]);
 
   // Check if there's any content in the email (excluding signature-only content)
   const hasContent = () => {
@@ -319,9 +324,12 @@ export function GmailEmailComposer({
     const trimmedContent = content.trim();
     if (!trimmedContent) return false;
     
-    // If we have email account data, check if content is only signature
-    if (emailAccount?.signature) {
-      const plainTextSignature = htmlToPlainText(emailAccount.signature);
+    // Get signature from either source
+    const signature = signatureData?.signature || emailAccount?.signature;
+    
+    // If we have signature data, check if content is only signature
+    if (signature) {
+      const plainTextSignature = htmlToPlainText(signature);
       
       // Remove signature from content to see if there's anything else
       const contentWithoutSignature = trimmedContent
