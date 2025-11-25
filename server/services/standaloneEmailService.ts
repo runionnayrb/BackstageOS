@@ -686,6 +686,27 @@ export class StandaloneEmailService {
   ): Promise<{ success: boolean; draftId?: number }> {
     try {
       console.log('💾 saveDraft called:', { accountId, subject, toCount: toAddresses?.length, hasHtmlContent: !!htmlContent });
+      
+      // Ensure the virtual account exists for OAuth drafts
+      if (accountId === -1) {
+        const existingAccount = await db
+          .select()
+          .from(emailAccounts)
+          .where(eq(emailAccounts.id, -1))
+          .limit(1);
+        
+        if (!existingAccount.length) {
+          console.log('📦 Creating virtual account for OAuth drafts');
+          await db.insert(emailAccounts).values({
+            id: -1,
+            emailAddress: 'oauth-drafts@local',
+            accountType: 'oauth',
+            isActive: true,
+            displayName: 'OAuth Drafts'
+          });
+        }
+      }
+
       const messageId = `draft-${Date.now()}-${Math.random().toString(36).substr(2, 9)}@backstageos.com`;
       
       const draftData: InsertEmailMessage = {
