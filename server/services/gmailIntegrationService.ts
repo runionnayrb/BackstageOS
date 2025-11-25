@@ -1,38 +1,24 @@
 import { google } from 'googleapis';
+import { oauthTokenService } from './oauthTokenService';
 
-let connectionSettings: any;
+// Store current user ID for the request context
+let currentUserId: string | null = null;
 
-async function getAccessToken() {
-  if (connectionSettings && connectionSettings.settings.expires_at && new Date(connectionSettings.settings.expires_at).getTime() > Date.now()) {
-    return connectionSettings.settings.access_token;
+export function setCurrentUserId(userId: string) {
+  currentUserId = userId;
+}
+
+async function getAccessToken(): Promise<string> {
+  if (!currentUserId) {
+    throw new Error('No user context set for Gmail access');
   }
   
-  const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME
-  const xReplitToken = process.env.REPL_IDENTITY 
-    ? 'repl ' + process.env.REPL_IDENTITY 
-    : process.env.WEB_REPL_RENEWAL 
-    ? 'depl ' + process.env.WEB_REPL_RENEWAL 
-    : null;
-
-  if (!xReplitToken) {
-    throw new Error('X_REPLIT_TOKEN not found for repl/depl');
+  const accessToken = await oauthTokenService.getValidGmailAccessToken(currentUserId);
+  
+  if (!accessToken) {
+    throw new Error('Gmail not connected or token expired');
   }
-
-  connectionSettings = await fetch(
-    'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=google-mail',
-    {
-      headers: {
-        'Accept': 'application/json',
-        'X_REPLIT_TOKEN': xReplitToken
-      }
-    }
-  ).then(res => res.json()).then(data => data.items?.[0]);
-
-  const accessToken = connectionSettings?.settings?.access_token || connectionSettings.settings?.oauth?.credentials?.access_token;
-
-  if (!connectionSettings || !accessToken) {
-    throw new Error('Gmail not connected');
-  }
+  
   return accessToken;
 }
 

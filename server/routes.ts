@@ -29,7 +29,7 @@ import Stripe from "stripe";
 import { googleOAuthService } from "./services/googleOAuthService";
 import { microsoftOAuthService } from "./services/microsoftOAuthService";
 import { oauthTokenService } from "./services/oauthTokenService";
-import { gmailIntegrationService } from "./services/gmailIntegrationService";
+import { gmailIntegrationService, setCurrentUserId as setGmailUserId } from "./services/gmailIntegrationService";
 import { outlookIntegrationService } from "./services/outlookIntegrationService";
 
 // Function to generate HTML for daily call PDF
@@ -2904,6 +2904,8 @@ Respond with valid JSON only.`;
 
       let result;
       if (user.connectedEmailProvider === 'gmail') {
+        // Set user context for Gmail service to use per-user OAuth tokens
+        setGmailUserId(user.id.toString());
         result = await gmailIntegrationService.getEmails(folder, limit, pageToken);
       } else if (user.connectedEmailProvider === 'outlook') {
         const skip = parseInt(req.query.skip as string) || 0;
@@ -2931,6 +2933,8 @@ Respond with valid JSON only.`;
 
       let message;
       if (user.connectedEmailProvider === 'gmail') {
+        // Set user context for Gmail service to use per-user OAuth tokens
+        setGmailUserId(user.id.toString());
         message = await gmailIntegrationService.getEmail(messageId);
       } else if (user.connectedEmailProvider === 'outlook') {
         message = await outlookIntegrationService.getEmail(messageId);
@@ -2956,6 +2960,8 @@ Respond with valid JSON only.`;
       }
 
       if (user.connectedEmailProvider === 'gmail') {
+        // Set user context for Gmail service to use per-user OAuth tokens
+        setGmailUserId(user.id.toString());
         await gmailIntegrationService.markAsRead(messageId);
       } else if (user.connectedEmailProvider === 'outlook') {
         await outlookIntegrationService.markAsRead(messageId);
@@ -2979,6 +2985,8 @@ Respond with valid JSON only.`;
       }
 
       if (user.connectedEmailProvider === 'gmail') {
+        // Set user context for Gmail service to use per-user OAuth tokens
+        setGmailUserId(user.id.toString());
         await gmailIntegrationService.markAsUnread(messageId);
       } else if (user.connectedEmailProvider === 'outlook') {
         await outlookIntegrationService.markAsUnread(messageId);
@@ -3002,6 +3010,8 @@ Respond with valid JSON only.`;
       }
 
       if (user.connectedEmailProvider === 'gmail') {
+        // Set user context for Gmail service to use per-user OAuth tokens
+        setGmailUserId(user.id.toString());
         await gmailIntegrationService.moveToTrash(messageId);
       } else if (user.connectedEmailProvider === 'outlook') {
         await outlookIntegrationService.moveToTrash(messageId);
@@ -3025,6 +3035,8 @@ Respond with valid JSON only.`;
       }
 
       if (user.connectedEmailProvider === 'gmail') {
+        // Set user context for Gmail service to use per-user OAuth tokens
+        setGmailUserId(user.id.toString());
         await gmailIntegrationService.archiveEmail(messageId);
       } else if (user.connectedEmailProvider === 'outlook') {
         await outlookIntegrationService.archiveEmail(messageId);
@@ -11284,6 +11296,8 @@ Best regards,
         let result;
         try {
           if (user.connectedEmailProvider === 'gmail') {
+            // Set user context for Gmail service to use per-user OAuth tokens
+            setGmailUserId(user.id.toString());
             result = await gmailIntegrationService.sendEmail({
               to,
               cc,
