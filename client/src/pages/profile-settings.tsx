@@ -112,8 +112,7 @@ export default function ProfileSettings() {
 
   const disconnectProviderMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("DELETE", "/api/user/email-provider/disconnect");
-      return response.json();
+      return await apiRequest("DELETE", "/api/user/email-provider/disconnect");
     },
     onSuccess: () => {
       setErrorMessage(null);
