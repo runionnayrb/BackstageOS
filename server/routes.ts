@@ -2906,29 +2906,8 @@ Respond with valid JSON only.`;
       if (user.connectedEmailProvider === 'gmail') {
         // Set user context for Gmail service to use per-user OAuth tokens
         setGmailUserId(user.id.toString());
-        const gmailResult = await gmailIntegrationService.getEmails(folder, limit, pageToken);
-        // Transform Gmail response to match frontend expected format
-        result = {
-          messages: gmailResult.messages.map((msg: any) => ({
-            id: msg.id,
-            threadId: msg.threadId,
-            subject: msg.subject,
-            fromAddress: msg.from,
-            toAddress: msg.to,
-            ccAddress: msg.cc,
-            bccAddress: msg.bcc,
-            dateSent: msg.date,
-            content: msg.snippet || msg.body?.slice(0, 200) || '',
-            body: msg.body,
-            isHtml: msg.isHtml,
-            isRead: !msg.isUnread,
-            isStarred: msg.isStarred,
-            hasAttachments: msg.attachments && msg.attachments.length > 0,
-            attachments: msg.attachments,
-            labelIds: msg.labelIds,
-          })),
-          nextPageToken: gmailResult.nextPageToken,
-        };
+        // Return Gmail data directly - frontend handles the transformation
+        result = await gmailIntegrationService.getEmails(folder, limit, pageToken);
       } else if (user.connectedEmailProvider === 'outlook') {
         const skip = parseInt(req.query.skip as string) || 0;
         result = await outlookIntegrationService.getEmails(folder, limit, skip);
@@ -2957,26 +2936,8 @@ Respond with valid JSON only.`;
       if (user.connectedEmailProvider === 'gmail') {
         // Set user context for Gmail service to use per-user OAuth tokens
         setGmailUserId(user.id.toString());
-        const gmailMsg = await gmailIntegrationService.getEmail(messageId);
-        // Transform Gmail response to match frontend expected format
-        message = {
-          id: gmailMsg.id,
-          threadId: gmailMsg.threadId,
-          subject: gmailMsg.subject,
-          fromAddress: gmailMsg.from,
-          toAddress: gmailMsg.to,
-          ccAddress: gmailMsg.cc,
-          bccAddress: gmailMsg.bcc,
-          dateSent: gmailMsg.date,
-          content: gmailMsg.snippet || gmailMsg.body?.slice(0, 200) || '',
-          body: gmailMsg.body,
-          isHtml: gmailMsg.isHtml,
-          isRead: !gmailMsg.isUnread,
-          isStarred: gmailMsg.isStarred,
-          hasAttachments: gmailMsg.attachments && gmailMsg.attachments.length > 0,
-          attachments: gmailMsg.attachments,
-          labelIds: gmailMsg.labelIds,
-        };
+        // Return Gmail data directly - frontend handles the transformation
+        message = await gmailIntegrationService.getEmail(messageId);
       } else if (user.connectedEmailProvider === 'outlook') {
         message = await outlookIntegrationService.getEmail(messageId);
       } else {

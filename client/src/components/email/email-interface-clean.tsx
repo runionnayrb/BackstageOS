@@ -511,7 +511,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
           ccAddresses: msg.cc ? [msg.cc] : [],
           bccAddresses: msg.bcc ? [msg.bcc] : [],
           subject: msg.subject || '(No Subject)',
-          content: msg.body || msg.snippet || '',
+          content: cleanEmailPreview(msg.snippet || ''),
           htmlContent: msg.isHtml ? msg.body : null,
           folder: activeFolder,
           isRead: !msg.isUnread,
@@ -997,7 +997,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                             </span>
                             {message.content && (
                               <span className="text-sm text-gray-500">
-                                {' — '}{cleanEmailPreview(message.content).slice(0, 150)}
+                                {' — '}{message.content.slice(0, 150)}
                               </span>
                             )}
                           </div>
