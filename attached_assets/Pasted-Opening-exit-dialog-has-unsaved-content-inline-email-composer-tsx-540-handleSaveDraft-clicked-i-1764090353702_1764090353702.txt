@@ -1,0 +1,343 @@
+Opening exit dialog - has unsaved content
+inline-email-composer.tsx:540 💾 handleSaveDraft clicked
+inline-email-composer.tsx:489 💾 saveDraftMutation called with accountId: -1
+inline-email-composer.tsx:502 📧 Sending draft data: {accountId: -1, toAddresses: Array(1), ccAddresses: Array(0), bccAddresses: Array(0), subject: 'testing', …}
+inline-email-composer.tsx:506 ✅ Draft saved successfully
+App.tsx:132 Domain routing check: {hostname: '54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev', isJoinDomain: false, isMainDomain: false, isBetaDomain: false, isDevEnvironment: true}
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at EnhancedHeader (enhanced-header.tsx:261:20)
+    at renderWithHooks (chunk-276SZO74.js?v=718cf45b:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=718cf45b:14582:28)
+    at beginWork (chunk-276SZO74.js?v=718cf45b:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=718cf45b:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=718cf45b:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=718cf45b:19137:13) Raw value: (10) ['props-tracker', 'costume-tracker', 'calendar-management', 'contact-management', 'availability-management', 'team-management', 'email-integration', 'admin-dashboard', 'error-logging', 'feedback-system']
+hasUserAccess @ useBetaFeatures.ts:61
+canAccessFeature @ useBetaFeatures.ts:84
+EnhancedHeader @ enhanced-header.tsx:261
+renderWithHooks @ chunk-276SZO74.js?v=718cf45b:11548
+updateFunctionComponent @ chunk-276SZO74.js?v=718cf45b:14582
+beginWork @ chunk-276SZO74.js?v=718cf45b:15924
+beginWork$1 @ chunk-276SZO74.js?v=718cf45b:19753
+performUnitOfWork @ chunk-276SZO74.js?v=718cf45b:19198
+workLoopSync @ chunk-276SZO74.js?v=718cf45b:19137
+renderRootSync @ chunk-276SZO74.js?v=718cf45b:19116
+performConcurrentWorkOnRoot @ chunk-276SZO74.js?v=718cf45b:18678
+workLoop @ chunk-276SZO74.js?v=718cf45b:197
+flushWork @ chunk-276SZO74.js?v=718cf45b:176
+performWorkUntilDeadline @ chunk-276SZO74.js?v=718cf45b:384Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for email-integration: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: false, …}
+useBetaFeatures.ts:96 🔍 Admin access check: {userIsAdmin: true, isOriginalAdmin: true, isViewingAsAdmin: false, isAdmin: true, featureEnabled: true}
+useBetaFeatures.ts:112 ✅ Admin has access to enabled feature email-integration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at EnhancedHeader (enhanced-header.tsx:282:20)
+    at renderWithHooks (chunk-276SZO74.js?v=718cf45b:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=718cf45b:14582:28)
+    at beginWork (chunk-276SZO74.js?v=718cf45b:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=718cf45b:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=718cf45b:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=718cf45b:19137:13) Raw value: (10) ['props-tracker', 'costume-tracker', 'calendar-management', 'contact-management', 'availability-management', 'team-management', 'email-integration', 'admin-dashboard', 'error-logging', 'feedback-system']
+hasUserAccess @ useBetaFeatures.ts:61
+canAccessFeature @ useBetaFeatures.ts:84
+EnhancedHeader @ enhanced-header.tsx:282
+renderWithHooks @ chunk-276SZO74.js?v=718cf45b:11548
+updateFunctionComponent @ chunk-276SZO74.js?v=718cf45b:14582
+beginWork @ chunk-276SZO74.js?v=718cf45b:15924
+beginWork$1 @ chunk-276SZO74.js?v=718cf45b:19753
+performUnitOfWork @ chunk-276SZO74.js?v=718cf45b:19198
+workLoopSync @ chunk-276SZO74.js?v=718cf45b:19137
+renderRootSync @ chunk-276SZO74.js?v=718cf45b:19116
+performConcurrentWorkOnRoot @ chunk-276SZO74.js?v=718cf45b:18678
+workLoop @ chunk-276SZO74.js?v=718cf45b:197
+flushWork @ chunk-276SZO74.js?v=718cf45b:176
+performWorkUntilDeadline @ chunk-276SZO74.js?v=718cf45b:384Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for task-boards: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: false, …}
+useBetaFeatures.ts:96 🔍 Admin access check: {userIsAdmin: true, isOriginalAdmin: true, isViewingAsAdmin: false, isAdmin: true, featureEnabled: false}
+useBetaFeatures.ts:106 ❌ Feature task-boards disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at EnhancedHeader (enhanced-header.tsx:289:20)
+    at renderWithHooks (chunk-276SZO74.js?v=718cf45b:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=718cf45b:14582:28)
+    at beginWork (chunk-276SZO74.js?v=718cf45b:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=718cf45b:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=718cf45b:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=718cf45b:19137:13) Raw value: (10) ['props-tracker', 'costume-tracker', 'calendar-management', 'contact-management', 'availability-management', 'team-management', 'email-integration', 'admin-dashboard', 'error-logging', 'feedback-system']
+hasUserAccess @ useBetaFeatures.ts:61
+canAccessFeature @ useBetaFeatures.ts:84
+EnhancedHeader @ enhanced-header.tsx:289
+renderWithHooks @ chunk-276SZO74.js?v=718cf45b:11548
+updateFunctionComponent @ chunk-276SZO74.js?v=718cf45b:14582
+beginWork @ chunk-276SZO74.js?v=718cf45b:15924
+beginWork$1 @ chunk-276SZO74.js?v=718cf45b:19753
+performUnitOfWork @ chunk-276SZO74.js?v=718cf45b:19198
+workLoopSync @ chunk-276SZO74.js?v=718cf45b:19137
+renderRootSync @ chunk-276SZO74.js?v=718cf45b:19116
+performConcurrentWorkOnRoot @ chunk-276SZO74.js?v=718cf45b:18678
+workLoop @ chunk-276SZO74.js?v=718cf45b:197
+flushWork @ chunk-276SZO74.js?v=718cf45b:176
+performWorkUntilDeadline @ chunk-276SZO74.js?v=718cf45b:384Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for advanced-notes: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: false, …}
+useBetaFeatures.ts:96 🔍 Admin access check: {userIsAdmin: true, isOriginalAdmin: true, isViewingAsAdmin: false, isAdmin: true, featureEnabled: false}
+useBetaFeatures.ts:106 ❌ Feature advanced-notes disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:102:10)
+    at renderWithHooks (chunk-276SZO74.js?v=718cf45b:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=718cf45b:14582:28)
+    at beginWork (chunk-276SZO74.js?v=718cf45b:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=718cf45b:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=718cf45b:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=718cf45b:19137:13) Raw value: (10) ['props-tracker', 'costume-tracker', 'calendar-management', 'contact-management', 'availability-management', 'team-management', 'email-integration', 'admin-dashboard', 'error-logging', 'feedback-system']
+hasUserAccess @ useBetaFeatures.ts:61
+canAccessFeature @ useBetaFeatures.ts:84
+MobileFooterNav @ mobile-footer-nav.tsx:102
+renderWithHooks @ chunk-276SZO74.js?v=718cf45b:11548
+updateFunctionComponent @ chunk-276SZO74.js?v=718cf45b:14582
+beginWork @ chunk-276SZO74.js?v=718cf45b:15924
+beginWork$1 @ chunk-276SZO74.js?v=718cf45b:19753
+performUnitOfWork @ chunk-276SZO74.js?v=718cf45b:19198
+workLoopSync @ chunk-276SZO74.js?v=718cf45b:19137
+renderRootSync @ chunk-276SZO74.js?v=718cf45b:19116
+performConcurrentWorkOnRoot @ chunk-276SZO74.js?v=718cf45b:18678
+workLoop @ chunk-276SZO74.js?v=718cf45b:197
+flushWork @ chunk-276SZO74.js?v=718cf45b:176
+performWorkUntilDeadline @ chunk-276SZO74.js?v=718cf45b:384Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for email-integration: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: false, …}
+useBetaFeatures.ts:96 🔍 Admin access check: {userIsAdmin: true, isOriginalAdmin: true, isViewingAsAdmin: false, isAdmin: true, featureEnabled: true}
+useBetaFeatures.ts:112 ✅ Admin has access to enabled feature email-integration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:133:10)
+    at renderWithHooks (chunk-276SZO74.js?v=718cf45b:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=718cf45b:14582:28)
+    at beginWork (chunk-276SZO74.js?v=718cf45b:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=718cf45b:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=718cf45b:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=718cf45b:19137:13) Raw value: (10) ['props-tracker', 'costume-tracker', 'calendar-management', 'contact-management', 'availability-management', 'team-management', 'email-integration', 'admin-dashboard', 'error-logging', 'feedback-system']
+hasUserAccess @ useBetaFeatures.ts:61
+canAccessFeature @ useBetaFeatures.ts:84
+MobileFooterNav @ mobile-footer-nav.tsx:133
+renderWithHooks @ chunk-276SZO74.js?v=718cf45b:11548
+updateFunctionComponent @ chunk-276SZO74.js?v=718cf45b:14582
+beginWork @ chunk-276SZO74.js?v=718cf45b:15924
+beginWork$1 @ chunk-276SZO74.js?v=718cf45b:19753
+performUnitOfWork @ chunk-276SZO74.js?v=718cf45b:19198
+workLoopSync @ chunk-276SZO74.js?v=718cf45b:19137
+renderRootSync @ chunk-276SZO74.js?v=718cf45b:19116
+performConcurrentWorkOnRoot @ chunk-276SZO74.js?v=718cf45b:18678
+workLoop @ chunk-276SZO74.js?v=718cf45b:197
+flushWork @ chunk-276SZO74.js?v=718cf45b:176
+performWorkUntilDeadline @ chunk-276SZO74.js?v=718cf45b:384Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for task-boards: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: false, …}
+useBetaFeatures.ts:96 🔍 Admin access check: {userIsAdmin: true, isOriginalAdmin: true, isViewingAsAdmin: false, isAdmin: true, featureEnabled: false}
+useBetaFeatures.ts:106 ❌ Feature task-boards disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:148:10)
+    at renderWithHooks (chunk-276SZO74.js?v=718cf45b:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=718cf45b:14582:28)
+    at beginWork (chunk-276SZO74.js?v=718cf45b:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=718cf45b:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=718cf45b:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=718cf45b:19137:13) Raw value: (10) ['props-tracker', 'costume-tracker', 'calendar-management', 'contact-management', 'availability-management', 'team-management', 'email-integration', 'admin-dashboard', 'error-logging', 'feedback-system']
+hasUserAccess @ useBetaFeatures.ts:61
+canAccessFeature @ useBetaFeatures.ts:84
+MobileFooterNav @ mobile-footer-nav.tsx:148
+renderWithHooks @ chunk-276SZO74.js?v=718cf45b:11548
+updateFunctionComponent @ chunk-276SZO74.js?v=718cf45b:14582
+beginWork @ chunk-276SZO74.js?v=718cf45b:15924
+beginWork$1 @ chunk-276SZO74.js?v=718cf45b:19753
+performUnitOfWork @ chunk-276SZO74.js?v=718cf45b:19198
+workLoopSync @ chunk-276SZO74.js?v=718cf45b:19137
+renderRootSync @ chunk-276SZO74.js?v=718cf45b:19116
+performConcurrentWorkOnRoot @ chunk-276SZO74.js?v=718cf45b:18678
+workLoop @ chunk-276SZO74.js?v=718cf45b:197
+flushWork @ chunk-276SZO74.js?v=718cf45b:176
+performWorkUntilDeadline @ chunk-276SZO74.js?v=718cf45b:384Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for advanced-notes: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: false, …}
+useBetaFeatures.ts:96 🔍 Admin access check: {userIsAdmin: true, isOriginalAdmin: true, isViewingAsAdmin: false, isAdmin: true, featureEnabled: false}
+useBetaFeatures.ts:106 ❌ Feature advanced-notes disabled in beta configuration
+App.tsx:132 Domain routing check: {hostname: '54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev', isJoinDomain: false, isMainDomain: false, isBetaDomain: false, isDevEnvironment: true}
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at EnhancedHeader (enhanced-header.tsx:261:20)
+    at renderWithHooks (chunk-276SZO74.js?v=718cf45b:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=718cf45b:14582:28)
+    at beginWork (chunk-276SZO74.js?v=718cf45b:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=718cf45b:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=718cf45b:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=718cf45b:19137:13) Raw value: (10) ['props-tracker', 'costume-tracker', 'calendar-management', 'contact-management', 'availability-management', 'team-management', 'email-integration', 'admin-dashboard', 'error-logging', 'feedback-system']
+hasUserAccess @ useBetaFeatures.ts:61
+canAccessFeature @ useBetaFeatures.ts:84
+EnhancedHeader @ enhanced-header.tsx:261
+renderWithHooks @ chunk-276SZO74.js?v=718cf45b:11548
+updateFunctionComponent @ chunk-276SZO74.js?v=718cf45b:14582
+beginWork @ chunk-276SZO74.js?v=718cf45b:15924
+beginWork$1 @ chunk-276SZO74.js?v=718cf45b:19753
+performUnitOfWork @ chunk-276SZO74.js?v=718cf45b:19198
+workLoopSync @ chunk-276SZO74.js?v=718cf45b:19137
+renderRootSync @ chunk-276SZO74.js?v=718cf45b:19116
+performConcurrentWorkOnRoot @ chunk-276SZO74.js?v=718cf45b:18678
+workLoop @ chunk-276SZO74.js?v=718cf45b:197
+flushWork @ chunk-276SZO74.js?v=718cf45b:176
+performWorkUntilDeadline @ chunk-276SZO74.js?v=718cf45b:384Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for email-integration: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: false, …}
+useBetaFeatures.ts:96 🔍 Admin access check: {userIsAdmin: true, isOriginalAdmin: true, isViewingAsAdmin: false, isAdmin: true, featureEnabled: true}
+useBetaFeatures.ts:112 ✅ Admin has access to enabled feature email-integration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at EnhancedHeader (enhanced-header.tsx:282:20)
+    at renderWithHooks (chunk-276SZO74.js?v=718cf45b:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=718cf45b:14582:28)
+    at beginWork (chunk-276SZO74.js?v=718cf45b:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=718cf45b:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=718cf45b:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=718cf45b:19137:13) Raw value: (10) ['props-tracker', 'costume-tracker', 'calendar-management', 'contact-management', 'availability-management', 'team-management', 'email-integration', 'admin-dashboard', 'error-logging', 'feedback-system']
+hasUserAccess @ useBetaFeatures.ts:61
+canAccessFeature @ useBetaFeatures.ts:84
+EnhancedHeader @ enhanced-header.tsx:282
+renderWithHooks @ chunk-276SZO74.js?v=718cf45b:11548
+updateFunctionComponent @ chunk-276SZO74.js?v=718cf45b:14582
+beginWork @ chunk-276SZO74.js?v=718cf45b:15924
+beginWork$1 @ chunk-276SZO74.js?v=718cf45b:19753
+performUnitOfWork @ chunk-276SZO74.js?v=718cf45b:19198
+workLoopSync @ chunk-276SZO74.js?v=718cf45b:19137
+renderRootSync @ chunk-276SZO74.js?v=718cf45b:19116
+performConcurrentWorkOnRoot @ chunk-276SZO74.js?v=718cf45b:18678
+workLoop @ chunk-276SZO74.js?v=718cf45b:197
+flushWork @ chunk-276SZO74.js?v=718cf45b:176
+performWorkUntilDeadline @ chunk-276SZO74.js?v=718cf45b:384Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for task-boards: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: false, …}
+useBetaFeatures.ts:96 🔍 Admin access check: {userIsAdmin: true, isOriginalAdmin: true, isViewingAsAdmin: false, isAdmin: true, featureEnabled: false}
+useBetaFeatures.ts:106 ❌ Feature task-boards disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at EnhancedHeader (enhanced-header.tsx:289:20)
+    at renderWithHooks (chunk-276SZO74.js?v=718cf45b:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=718cf45b:14582:28)
+    at beginWork (chunk-276SZO74.js?v=718cf45b:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=718cf45b:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=718cf45b:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=718cf45b:19137:13) Raw value: (10) ['props-tracker', 'costume-tracker', 'calendar-management', 'contact-management', 'availability-management', 'team-management', 'email-integration', 'admin-dashboard', 'error-logging', 'feedback-system']
+hasUserAccess @ useBetaFeatures.ts:61
+canAccessFeature @ useBetaFeatures.ts:84
+EnhancedHeader @ enhanced-header.tsx:289
+renderWithHooks @ chunk-276SZO74.js?v=718cf45b:11548
+updateFunctionComponent @ chunk-276SZO74.js?v=718cf45b:14582
+beginWork @ chunk-276SZO74.js?v=718cf45b:15924
+beginWork$1 @ chunk-276SZO74.js?v=718cf45b:19753
+performUnitOfWork @ chunk-276SZO74.js?v=718cf45b:19198
+workLoopSync @ chunk-276SZO74.js?v=718cf45b:19137
+renderRootSync @ chunk-276SZO74.js?v=718cf45b:19116
+performConcurrentWorkOnRoot @ chunk-276SZO74.js?v=718cf45b:18678
+workLoop @ chunk-276SZO74.js?v=718cf45b:197
+flushWork @ chunk-276SZO74.js?v=718cf45b:176
+performWorkUntilDeadline @ chunk-276SZO74.js?v=718cf45b:384Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for advanced-notes: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: false, …}
+useBetaFeatures.ts:96 🔍 Admin access check: {userIsAdmin: true, isOriginalAdmin: true, isViewingAsAdmin: false, isAdmin: true, featureEnabled: false}
+useBetaFeatures.ts:106 ❌ Feature advanced-notes disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:102:10)
+    at renderWithHooks (chunk-276SZO74.js?v=718cf45b:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=718cf45b:14582:28)
+    at beginWork (chunk-276SZO74.js?v=718cf45b:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=718cf45b:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=718cf45b:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=718cf45b:19137:13) Raw value: (10) ['props-tracker', 'costume-tracker', 'calendar-management', 'contact-management', 'availability-management', 'team-management', 'email-integration', 'admin-dashboard', 'error-logging', 'feedback-system']
+hasUserAccess @ useBetaFeatures.ts:61
+canAccessFeature @ useBetaFeatures.ts:84
+MobileFooterNav @ mobile-footer-nav.tsx:102
+renderWithHooks @ chunk-276SZO74.js?v=718cf45b:11548
+updateFunctionComponent @ chunk-276SZO74.js?v=718cf45b:14582
+beginWork @ chunk-276SZO74.js?v=718cf45b:15924
+beginWork$1 @ chunk-276SZO74.js?v=718cf45b:19753
+performUnitOfWork @ chunk-276SZO74.js?v=718cf45b:19198
+workLoopSync @ chunk-276SZO74.js?v=718cf45b:19137
+renderRootSync @ chunk-276SZO74.js?v=718cf45b:19116
+performConcurrentWorkOnRoot @ chunk-276SZO74.js?v=718cf45b:18678
+workLoop @ chunk-276SZO74.js?v=718cf45b:197
+flushWork @ chunk-276SZO74.js?v=718cf45b:176
+performWorkUntilDeadline @ chunk-276SZO74.js?v=718cf45b:384Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for email-integration: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: false, …}
+useBetaFeatures.ts:96 🔍 Admin access check: {userIsAdmin: true, isOriginalAdmin: true, isViewingAsAdmin: false, isAdmin: true, featureEnabled: true}
+useBetaFeatures.ts:112 ✅ Admin has access to enabled feature email-integration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:133:10)
+    at renderWithHooks (chunk-276SZO74.js?v=718cf45b:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=718cf45b:14582:28)
+    at beginWork (chunk-276SZO74.js?v=718cf45b:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=718cf45b:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=718cf45b:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=718cf45b:19137:13) Raw value: (10) ['props-tracker', 'costume-tracker', 'calendar-management', 'contact-management', 'availability-management', 'team-management', 'email-integration', 'admin-dashboard', 'error-logging', 'feedback-system']
+hasUserAccess @ useBetaFeatures.ts:61
+canAccessFeature @ useBetaFeatures.ts:84
+MobileFooterNav @ mobile-footer-nav.tsx:133
+renderWithHooks @ chunk-276SZO74.js?v=718cf45b:11548
+updateFunctionComponent @ chunk-276SZO74.js?v=718cf45b:14582
+beginWork @ chunk-276SZO74.js?v=718cf45b:15924
+beginWork$1 @ chunk-276SZO74.js?v=718cf45b:19753
+performUnitOfWork @ chunk-276SZO74.js?v=718cf45b:19198
+workLoopSync @ chunk-276SZO74.js?v=718cf45b:19137
+renderRootSync @ chunk-276SZO74.js?v=718cf45b:19116
+performConcurrentWorkOnRoot @ chunk-276SZO74.js?v=718cf45b:18678
+workLoop @ chunk-276SZO74.js?v=718cf45b:197
+flushWork @ chunk-276SZO74.js?v=718cf45b:176
+performWorkUntilDeadline @ chunk-276SZO74.js?v=718cf45b:384Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for task-boards: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: false, …}
+useBetaFeatures.ts:96 🔍 Admin access check: {userIsAdmin: true, isOriginalAdmin: true, isViewingAsAdmin: false, isAdmin: true, featureEnabled: false}
+useBetaFeatures.ts:106 ❌ Feature task-boards disabled in beta configuration
+useBetaFeatures.ts:61 Error parsing betaFeatures JSON: SyntaxError: Unexpected token 'p', "props-trac"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at hasUserAccess (useBetaFeatures.ts:58:62)
+    at canAccessFeature (useBetaFeatures.ts:84:19)
+    at MobileFooterNav (mobile-footer-nav.tsx:148:10)
+    at renderWithHooks (chunk-276SZO74.js?v=718cf45b:11548:26)
+    at updateFunctionComponent (chunk-276SZO74.js?v=718cf45b:14582:28)
+    at beginWork (chunk-276SZO74.js?v=718cf45b:15924:22)
+    at beginWork$1 (chunk-276SZO74.js?v=718cf45b:19753:22)
+    at performUnitOfWork (chunk-276SZO74.js?v=718cf45b:19198:20)
+    at workLoopSync (chunk-276SZO74.js?v=718cf45b:19137:13) Raw value: (10) ['props-tracker', 'costume-tracker', 'calendar-management', 'contact-management', 'availability-management', 'team-management', 'email-integration', 'admin-dashboard', 'error-logging', 'feedback-system']
+hasUserAccess @ useBetaFeatures.ts:61
+canAccessFeature @ useBetaFeatures.ts:84
+MobileFooterNav @ mobile-footer-nav.tsx:148
+renderWithHooks @ chunk-276SZO74.js?v=718cf45b:11548
+updateFunctionComponent @ chunk-276SZO74.js?v=718cf45b:14582
+beginWork @ chunk-276SZO74.js?v=718cf45b:15924
+beginWork$1 @ chunk-276SZO74.js?v=718cf45b:19753
+performUnitOfWork @ chunk-276SZO74.js?v=718cf45b:19198
+workLoopSync @ chunk-276SZO74.js?v=718cf45b:19137
+renderRootSync @ chunk-276SZO74.js?v=718cf45b:19116
+performConcurrentWorkOnRoot @ chunk-276SZO74.js?v=718cf45b:18678
+workLoop @ chunk-276SZO74.js?v=718cf45b:197
+flushWork @ chunk-276SZO74.js?v=718cf45b:176
+performWorkUntilDeadline @ chunk-276SZO74.js?v=718cf45b:384Understand this warning
+useBetaFeatures.ts:76 🔍 Beta Access Check for advanced-notes: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: false, …}
+useBetaFeatures.ts:96 🔍 Admin access check: {userIsAdmin: true, isOriginalAdmin: true, isViewingAsAdmin: false, isAdmin: true, featureEnabled: false}
+useBetaFeatures.ts:106 ❌ Feature advanced-notes disabled in beta configuration
