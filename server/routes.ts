@@ -11695,7 +11695,8 @@ Best regards,
         htmlContent,
         ccAddresses,
         bccAddresses,
-        draftId
+        draftId,
+        req.user?.id
       );
 
       res.json(result);
