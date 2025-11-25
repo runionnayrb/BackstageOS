@@ -1147,10 +1147,10 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                         <div className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0"></div>
                       )}
 
-                      {/* Sender name (or recipients for scheduled emails) - fixed width */}
+                      {/* Sender name (or recipients for scheduled/draft emails) - fixed width */}
                       <div className="w-48 flex-none overflow-hidden">
                         <span className={`text-sm truncate block ${!message.isRead ? 'font-semibold text-black' : 'text-gray-700'}`}>
-                          {activeFolder === 'scheduled' ? (
+                          {activeFolder === 'scheduled' || activeFolder === 'drafts' ? (
                             <span className="text-gray-700">
                               {formatAllRecipients(message.toAddresses, message.ccAddresses, message.bccAddresses)}
                             </span>
@@ -1423,9 +1423,9 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                             <div className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0"></div>
                           )}
 
-                          {/* Sender name (or recipients for scheduled) - Bold with forced truncation */}
+                          {/* Sender name (or recipients for scheduled/draft) - Bold with forced truncation */}
                           <span className="font-bold text-black truncate block min-w-0">
-                            {activeFolder === 'scheduled' ? (
+                            {activeFolder === 'scheduled' || activeFolder === 'drafts' ? (
                               <span>
                                 {formatAllRecipients(message.toAddresses, message.ccAddresses, message.bccAddresses)}
                               </span>
