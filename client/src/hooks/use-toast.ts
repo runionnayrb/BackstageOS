@@ -1,4 +1,4 @@
-import * as React from "react"
+import { useState, useEffect } from "react"
 
 import type {
   ToastActionElement,
@@ -166,40 +166,23 @@ function toast({ ...props }: Toast) {
   }
 }
 
-const fallbackReturn = {
-  toasts: [] as ToasterToast[],
-  toast,
-  dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
-}
-
 function useToast() {
-  try {
-    const useState = React.useState
-    const useEffect = React.useEffect
-    
-    if (typeof useState !== 'function') {
-      return fallbackReturn
-    }
+  const [state, setState] = useState<State>(memoryState)
 
-    const [state, setState] = useState<State>(memoryState)
-
-    useEffect(() => {
-      listeners.push(setState)
-      return () => {
-        const index = listeners.indexOf(setState)
-        if (index > -1) {
-          listeners.splice(index, 1)
-        }
+  useEffect(() => {
+    listeners.push(setState)
+    return () => {
+      const index = listeners.indexOf(setState)
+      if (index > -1) {
+        listeners.splice(index, 1)
       }
-    }, [state])
-
-    return {
-      ...state,
-      toast,
-      dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
     }
-  } catch {
-    return fallbackReturn
+  }, [state])
+
+  return {
+    ...state,
+    toast,
+    dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
   }
 }
 
