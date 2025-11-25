@@ -1,4 +1,5 @@
 import { SignatureEditor } from './signature-editor';
+import { useQuery } from '@tanstack/react-query';
 
 interface EmailAccountConfigProps {
   account?: {
@@ -13,11 +14,23 @@ interface EmailAccountConfigProps {
 }
 
 export function EmailAccountConfig({ account, onClose }: EmailAccountConfigProps) {
+  const { data: signatureData, isLoading } = useQuery<{ signature: string }>({
+    queryKey: [`/api/email/accounts/${account?.id}/signature`],
+    enabled: !!account?.id,
+  });
+
   if (!account) return null;
 
   return (
     <div className="space-y-6">
-      <SignatureEditor accountId={account.id} />
+      {isLoading ? (
+        <div className="text-sm text-gray-500">Loading signature...</div>
+      ) : (
+        <SignatureEditor 
+          accountId={account.id} 
+          initialSignature={signatureData?.signature || ''} 
+        />
+      )}
     </div>
   );
 }

@@ -35,7 +35,7 @@ export function SignatureEditor({ accountId, initialSignature = '' }: SignatureE
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (initialSignature && signature !== initialSignature) {
+    if (initialSignature) {
       setSignature(initialSignature);
       if (editorRef.current) {
         editorRef.current.innerHTML = initialSignature;
@@ -49,7 +49,7 @@ export function SignatureEditor({ accountId, initialSignature = '' }: SignatureE
     },
     onSuccess: () => {
       toast({ title: 'Signature updated successfully' });
-      queryClient.invalidateQueries({ queryKey: ['/api/email/accounts'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/email/accounts/${accountId}/signature`] });
     },
     onError: (error: any) => {
       toast({
