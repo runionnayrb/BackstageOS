@@ -2658,11 +2658,44 @@ Respond with valid JSON only.`;
 
   // Microsoft OAuth callback
   app.get('/api/oauth/microsoft/callback', async (req: any, res) => {
+    const sendResultPage = (message: string, email: string | null, isError = false) => {
+      res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>${isError ? 'Connection Failed' : 'Outlook Connected'}</title>
+          <style>
+            body { font-family: system-ui, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #0a0a0a; color: white; }
+            .container { text-align: center; max-width: 400px; padding: 40px; }
+            .icon { font-size: 48px; margin-bottom: 20px; }
+            h1 { font-size: 24px; margin-bottom: 10px; }
+            p { color: #888; margin-bottom: 20px; }
+            .email { color: #60a5fa; font-weight: 500; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="icon">${isError ? '❌' : '✅'}</div>
+            <h1>${isError ? 'Connection Failed' : 'Outlook Connected!'}</h1>
+            <p>${message}${email ? ` <span class="email">${email}</span>` : ''}</p>
+            <p style="font-size: 14px; color: #666;">This window will close automatically...</p>
+          </div>
+          <script>
+            if (window.opener) {
+              window.opener.postMessage({ type: '${isError ? 'oauth-error' : 'oauth-success'}', message: '${isError ? message : ''}', email: '${email || ''}' }, '*');
+              setTimeout(() => window.close(), 1500);
+            }
+          </script>
+        </body>
+        </html>
+      `);
+    };
+
     try {
       const { code, state } = req.query;
       
       if (!code || !state) {
-        return res.redirect('/profile?error=missing_oauth_params');
+        return sendResultPage('Missing OAuth parameters. Please try again.', null, true);
       }
 
       const userId = state as string;
@@ -2683,10 +2716,11 @@ Respond with valid JSON only.`;
         emailProviderConnectedAt: new Date(),
       });
 
-      res.redirect('/profile?oauth=success&provider=outlook');
+      console.log(`✅ Outlook connected successfully for user ${userId}: ${emailAddress}`);
+      sendResultPage('Successfully connected', emailAddress, false);
     } catch (error: any) {
       console.error("Error in Microsoft OAuth callback:", error);
-      res.redirect(`/profile?error=${encodeURIComponent(error.message || 'oauth_failed')}`);
+      sendResultPage(error.message || 'Failed to connect Outlook', null, true);
     }
   });
 
