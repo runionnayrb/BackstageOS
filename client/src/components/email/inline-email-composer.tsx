@@ -483,6 +483,45 @@ export function InlineEmailComposer({
     scheduleEmailMutation.mutate(scheduledFor);
   };
 
+  // Save draft mutation
+  const saveDraftMutation = useMutation({
+    mutationFn: async () => {
+      const fullContent = buildFullEmailContent();
+      
+      const draftData = {
+        accountId: selectedAccountId,
+        toAddresses: toAddresses,
+        ccAddresses: ccAddresses.length > 0 ? ccAddresses : [],
+        bccAddresses: bccAddresses.length > 0 ? bccAddresses : [],
+        subject: subject.trim(),
+        content: fullContent,
+        htmlContent: editor?.getHTML() || fullContent,
+      };
+
+      return apiRequest('POST', '/api/email/drafts', draftData);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Draft saved",
+        description: "Your draft has been saved to the Drafts folder.",
+      });
+      
+      // Close the composer
+      setShowExitDialog(false);
+      onClose();
+      
+      // Invalidate email queries to refresh drafts folder
+      queryClient.invalidateQueries({ queryKey: ['/api/email'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to save draft",
+        description: error.message || "Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleClose = () => {
     if (hasContent()) {
       setShowExitDialog(true);
@@ -492,9 +531,7 @@ export function InlineEmailComposer({
   };
 
   const handleSaveDraft = () => {
-    setShowExitDialog(false);
-    // TODO: Implement save draft
-    onClose();
+    saveDraftMutation.mutate();
   };
 
   const handleDeleteDraft = () => {
