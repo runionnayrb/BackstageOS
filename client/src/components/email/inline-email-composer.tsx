@@ -620,8 +620,10 @@ export function InlineEmailComposer({
                     <span>Pick date & time...</span>
                   </DropdownMenuSubTrigger>
                   <DropdownMenuSubContent 
-                    className="p-0 w-auto" 
-                    sideOffset={8}
+                    className="p-0 w-auto max-h-[80vh] overflow-y-auto" 
+                    sideOffset={2}
+                    collisionPadding={16}
+                    avoidCollisions={true}
                     style={{ zIndex: 10003 }}
                   >
                     {/* Date and Time header */}
