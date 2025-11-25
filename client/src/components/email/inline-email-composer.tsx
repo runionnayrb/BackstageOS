@@ -736,12 +736,12 @@ export function InlineEmailComposer({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Custom schedule dialog - Gmail style */}
+      {/* Custom schedule dialog - Gmail style date picker */}
       <AlertDialog open={showCustomScheduleDialog} onOpenChange={setShowCustomScheduleDialog}>
-        <AlertDialogContent className="z-[10003] max-w-[320px] p-0" style={{ zIndex: 10003 }}>
+        <AlertDialogContent className="z-[10003] max-w-[700px] w-full p-0" style={{ zIndex: 10003 }}>
           {/* Date and Time inputs at top */}
           <div className="flex border-b border-gray-200">
-            <div className="flex-1 px-3 py-2 border-r border-gray-200">
+            <div className="flex-1 px-4 py-3 border-r border-gray-200">
               <input
                 type="text"
                 readOnly
@@ -750,18 +750,19 @@ export function InlineEmailComposer({
                 placeholder="Select date"
               />
             </div>
-            <div className="w-24 px-3 py-2">
+            <div className="px-4 py-3 flex items-center gap-2">
               <input
                 type="time"
                 value={scheduledTime}
                 onChange={(e) => setScheduledTime(e.target.value)}
-                className="w-full text-sm text-gray-900 bg-transparent border-none outline-none"
+                className="text-sm text-gray-900 bg-transparent border-none outline-none"
               />
+              <Clock className="h-4 w-4 text-gray-400" />
             </div>
           </div>
           
-          {/* Calendar inline */}
-          <div className="p-2">
+          {/* Wide calendar */}
+          <div className="px-4 py-4">
             <CalendarComponent
               mode="single"
               selected={scheduledDate}
@@ -769,22 +770,22 @@ export function InlineEmailComposer({
               disabled={(date) => isBefore(date, startOfToday())}
               className="w-full"
               classNames={{
-                months: "flex flex-col",
-                month: "space-y-2",
-                caption: "flex justify-center pt-1 relative items-center",
-                caption_label: "text-sm font-medium",
+                months: "flex flex-col w-full",
+                month: "space-y-4 w-full",
+                caption: "flex justify-center pt-1 relative items-center mb-4",
+                caption_label: "text-base font-medium",
                 nav: "space-x-1 flex items-center",
-                nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 inline-flex items-center justify-center",
-                nav_button_previous: "absolute left-1",
-                nav_button_next: "absolute right-1",
+                nav_button: "h-8 w-8 bg-transparent p-0 opacity-50 hover:opacity-100 inline-flex items-center justify-center rounded-full hover:bg-gray-100",
+                nav_button_previous: "absolute left-0",
+                nav_button_next: "absolute right-0",
                 table: "w-full border-collapse",
-                head_row: "flex justify-between",
-                head_cell: "text-gray-500 w-8 font-normal text-[0.75rem]",
-                row: "flex w-full justify-between mt-1",
-                cell: "text-center text-sm relative p-0",
-                day: "h-8 w-8 p-0 font-normal hover:bg-gray-100 rounded-full inline-flex items-center justify-center",
+                head_row: "flex w-full",
+                head_cell: "text-gray-500 flex-1 font-normal text-sm text-center py-2",
+                row: "flex w-full mt-2",
+                cell: "flex-1 text-center text-sm relative p-0",
+                day: "h-10 w-full p-0 font-normal hover:bg-gray-100 rounded-full inline-flex items-center justify-center mx-auto max-w-[40px]",
                 day_selected: "bg-blue-600 text-white hover:bg-blue-600",
-                day_today: "border border-blue-600",
+                day_today: "bg-blue-100 text-blue-600 font-semibold",
                 day_outside: "text-gray-300",
                 day_disabled: "text-gray-300 hover:bg-transparent cursor-not-allowed",
               }}
@@ -792,18 +793,18 @@ export function InlineEmailComposer({
           </div>
 
           {/* Footer with Close and Save */}
-          <div className="flex justify-between items-center px-3 py-2 border-t border-gray-200">
+          <div className="flex justify-between items-center px-4 py-3 border-t border-gray-200">
             <Button
               variant="ghost"
               onClick={() => setShowCustomScheduleDialog(false)}
-              className="text-gray-600 hover:text-gray-800 px-4"
+              className="text-gray-700 hover:text-gray-900 hover:bg-transparent px-4"
             >
               Close
             </Button>
             <Button
               onClick={handleCustomScheduleConfirm}
               disabled={!scheduledDate}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-md"
             >
               Save
             </Button>
