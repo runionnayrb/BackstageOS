@@ -92,10 +92,10 @@ export function InlineEmailComposer({
     enabled: isOpen,
   });
 
-  // Fetch signature for the email account
-  const { data: signatureData } = useQuery<{ signature: string }>({
-    queryKey: ['/api/email/accounts', fromAccountId, 'signature'],
-    enabled: isOpen && fromAccountId > 0,
+  // Fetch signature for the email account (works for OAuth users with -1 account ID)
+  const { data: signatureData, isLoading: isLoadingSignature } = useQuery<{ signature: string }>({
+    queryKey: [`/api/email/accounts/${fromAccountId}/signature`],
+    enabled: isOpen && !!fromAccountId,
   });
 
   // State for showing the full email dropdown
@@ -222,14 +222,29 @@ export function InlineEmailComposer({
 
   // Initialize signature when it's loaded
   useEffect(() => {
+    console.log('Signature effect triggered:', {
+      isOpen,
+      signatureData,
+      isLoadingSignature,
+      signatureInitialized,
+      content
+    });
+    
+    if (isLoadingSignature) {
+      console.log('Still loading signature...');
+      return;
+    }
+    
     if (isOpen && signatureData?.signature && !signatureInitialized) {
       const plainSig = getPlainTextSignature();
+      console.log('Plain text signature:', plainSig);
       if (plainSig && !content.includes('--\n')) {
+        console.log('Adding signature to content');
         setContent(prev => prev + plainSig);
         setSignatureInitialized(true);
       }
     }
-  }, [isOpen, signatureData, signatureInitialized]);
+  }, [isOpen, signatureData, isLoadingSignature, signatureInitialized]);
 
   // Update recipient when initialRecipient changes
   useEffect(() => {
