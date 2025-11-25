@@ -530,7 +530,7 @@ export function InlineEmailComposer({
                   data-testid="menu-item-schedule-tomorrow-afternoon"
                 >
                   <Clock className="h-4 w-4" />
-                  <span>Tomorrow afternoon (2:00 PM)</span>
+                  <span>Tomorrow at 2:00 PM</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuSub>
