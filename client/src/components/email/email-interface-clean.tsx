@@ -997,15 +997,15 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                         </span>
                       </div>
 
-                      {/* Right side: Date visible normally, icons replace date on hover */}
-                      <div className="flex-shrink-0 flex items-center ml-auto pl-4">
-                        {/* Date - hidden on hover */}
-                        <span className="text-xs text-gray-500 whitespace-nowrap block group-hover:hidden">
+                      {/* Right side: Fixed width container with date, hover icons overlay on top */}
+                      <div className="relative flex-shrink-0 w-24 text-right">
+                        {/* Date - fades out on hover */}
+                        <span className="text-xs text-gray-500 whitespace-nowrap transition-opacity group-hover:opacity-0">
                           {formatDate(message.dateSent)}
                         </span>
                         
-                        {/* Hover action icons - shown on row hover, replaces date */}
-                        <div className="hidden group-hover:flex items-center gap-1">
+                        {/* Hover action icons - overlay on top of date */}
+                        <div className="absolute inset-0 flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-50">
                           <Button
                             variant="ghost"
                             size="sm"
@@ -1015,7 +1015,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                                 onReply(message, 'reply');
                               }
                             }}
-                            className="h-7 w-7 p-0 hover:bg-gray-100 rounded"
+                            className="h-7 w-7 p-0 hover:bg-gray-200 rounded"
                             title="Reply"
                           >
                             <Reply className="h-4 w-4 text-gray-600" />
@@ -1032,7 +1032,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                                 targetFolder: 'archive'
                               });
                             }}
-                            className="h-7 w-7 p-0 hover:bg-gray-100 rounded"
+                            className="h-7 w-7 p-0 hover:bg-gray-200 rounded"
                             title="Archive"
                           >
                             <Archive className="h-4 w-4 text-gray-600" />
@@ -1049,7 +1049,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                                 targetFolder: 'trash'
                               });
                             }}
-                            className="h-7 w-7 p-0 hover:bg-gray-100 rounded"
+                            className="h-7 w-7 p-0 hover:bg-gray-200 rounded"
                             title="Delete"
                           >
                             <Trash2 className="h-4 w-4 text-gray-600" />
