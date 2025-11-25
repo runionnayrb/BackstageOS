@@ -341,15 +341,11 @@ export function InlineEmailComposer({
         throw new Error('To address and subject are required');
       }
 
-      const toAddressesStr = toAddresses.join(', ');
-      const ccAddressesStr = ccAddresses.length > 0 ? ccAddresses.join(', ') : '';
-      const bccAddressesStr = bccAddresses.length > 0 ? bccAddresses.join(', ') : '';
-
       const emailData = {
-        fromAccountId: selectedAccountId,
-        toAddresses: toAddressesStr,
-        ccAddresses: ccAddressesStr || undefined,
-        bccAddresses: bccAddressesStr || undefined,
+        accountId: selectedAccountId,
+        toAddresses: toAddresses,
+        ccAddresses: ccAddresses.length > 0 ? ccAddresses : undefined,
+        bccAddresses: bccAddresses.length > 0 ? bccAddresses : undefined,
         subject: subject.trim(),
         content: content.trim(),
         scheduledFor: scheduledFor.toISOString(),
