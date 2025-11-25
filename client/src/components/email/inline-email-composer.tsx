@@ -495,7 +495,7 @@ export function InlineEmailComposer({
   return (
     <>
       {/* Inline composer panel */}
-      <div className="w-full h-full bg-white flex flex-col">
+      <div className="w-full h-full bg-white flex flex-col" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">
@@ -511,7 +511,7 @@ export function InlineEmailComposer({
               <Paperclip className="h-4 w-4" />
             </Button>
             {/* Send dropdown with schedule options */}
-            <DropdownMenu>
+            <DropdownMenu modal={false}>
               <DropdownMenuTrigger 
                 disabled={(sendEmailMutation.isPending || scheduleEmailMutation.isPending) || toAddresses.length === 0 || !subject.trim()}
                 className="text-blue-600 hover:text-blue-700 p-2 rounded-full disabled:opacity-50 focus:outline-none"
@@ -524,6 +524,8 @@ export function InlineEmailComposer({
                 sideOffset={5} 
                 className="w-56"
                 style={{ zIndex: 10002 }}
+                onCloseAutoFocus={(e) => e.preventDefault()}
+                onOpenAutoFocus={(e) => e.preventDefault()}
               >
                 <DropdownMenuItem 
                   onClick={handleSend}
@@ -590,7 +592,7 @@ export function InlineEmailComposer({
         </div>
 
         {/* Email fields */}
-        <div className="flex-1 flex flex-col bg-white overflow-y-auto">
+        <div className="flex-1 flex flex-col bg-white overflow-y-auto [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           {/* To field */}
           <div className="relative">
             <EmailContactSelector
