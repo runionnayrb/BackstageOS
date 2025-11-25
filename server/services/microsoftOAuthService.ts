@@ -7,14 +7,22 @@ export class MicrosoftOAuthService {
   private tenantId: string;
 
   constructor() {
-    this.clientId = process.env.MICROSOFT_CLIENT_ID || '';
-    this.clientSecret = process.env.MICROSOFT_CLIENT_SECRET || '';
+    this.clientId = process.env.MICROSOFT_CLIENT_ID?.trim() || '';
+    this.clientSecret = process.env.MICROSOFT_CLIENT_SECRET?.trim() || '';
     this.tenantId = process.env.MICROSOFT_TENANT_ID || 'common';
     
     const baseUrl = process.env.REPLIT_DEV_DOMAIN 
       ? `https://${process.env.REPLIT_DEV_DOMAIN}`
       : 'http://localhost:5000';
     this.redirectUri = `${baseUrl}/api/oauth/microsoft/callback`;
+    
+    console.log('Microsoft OAuth Config:', {
+      clientId: this.clientId,
+      clientSecretLength: this.clientSecret.length,
+      clientSecretPrefix: this.clientSecret.substring(0, 8) + '...',
+      redirectUri: this.redirectUri,
+      tenantId: this.tenantId,
+    });
     
     if (!this.clientId || !this.clientSecret) {
       console.warn('⚠️  Microsoft OAuth credentials not configured. Set MICROSOFT_CLIENT_ID and MICROSOFT_CLIENT_SECRET');
