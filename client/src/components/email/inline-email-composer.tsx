@@ -158,6 +158,7 @@ export function InlineEmailComposer({
   const [showCc, setShowCc] = useState(replyRecipients.showCc);
   const [showBcc, setShowBcc] = useState(replyRecipients.showBcc);
   const [showExitDialog, setShowExitDialog] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [attachments, setAttachments] = useState<File[]>([]);
   const [scheduledDate, setScheduledDate] = useState<Date | undefined>(() => new Date());
   const [scheduledTime, setScheduledTime] = useState(() => format(addMinutes(new Date(), 5), 'HH:mm'));
@@ -621,9 +622,10 @@ export function InlineEmailComposer({
                   </DropdownMenuSubTrigger>
                   <DropdownMenuSubContent 
                     className="p-0 w-auto max-h-[80vh] overflow-y-auto" 
+                    side="bottom"
+                    align="start"
                     sideOffset={2}
                     collisionPadding={16}
-                    avoidCollisions={true}
                     style={{ zIndex: 10003 }}
                   >
                     {/* Date and Time header */}
