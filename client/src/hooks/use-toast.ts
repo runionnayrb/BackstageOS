@@ -5,8 +5,6 @@ import type {
   ToastProps,
 } from "@/components/ui/toast"
 
-const { useState, useEffect } = React
-
 const TOAST_LIMIT = 1
 const TOAST_REMOVE_DELAY = 1000000
 
@@ -168,23 +166,40 @@ function toast({ ...props }: Toast) {
   }
 }
 
+const fallbackReturn = {
+  toasts: [] as ToasterToast[],
+  toast,
+  dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
+}
+
 function useToast() {
-  const [state, setState] = useState<State>(memoryState)
-
-  useEffect(() => {
-    listeners.push(setState)
-    return () => {
-      const index = listeners.indexOf(setState)
-      if (index > -1) {
-        listeners.splice(index, 1)
-      }
+  try {
+    const useState = React.useState
+    const useEffect = React.useEffect
+    
+    if (typeof useState !== 'function') {
+      return fallbackReturn
     }
-  }, [state])
 
-  return {
-    ...state,
-    toast,
-    dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
+    const [state, setState] = useState<State>(memoryState)
+
+    useEffect(() => {
+      listeners.push(setState)
+      return () => {
+        const index = listeners.indexOf(setState)
+        if (index > -1) {
+          listeners.splice(index, 1)
+        }
+      }
+    }, [state])
+
+    return {
+      ...state,
+      toast,
+      dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
+    }
+  } catch {
+    return fallbackReturn
   }
 }
 
