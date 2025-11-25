@@ -503,26 +503,30 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
         }
         const data = await response.json();
         // Transform the response to match the expected EmailMessage format
-        return (data.messages || []).map((msg: any) => ({
-          id: msg.id,
-          accountId: -1,
-          fromAddress: msg.from || '',
-          toAddresses: msg.to ? [msg.to] : [],
-          ccAddresses: msg.cc ? [msg.cc] : [],
-          bccAddresses: msg.bcc ? [msg.bcc] : [],
-          subject: msg.subject || '(No Subject)',
-          content: cleanEmailPreview(msg.snippet || ''),
-          htmlContent: msg.isHtml ? msg.body : null,
-          folder: activeFolder,
-          isRead: !msg.isUnread,
-          isStarred: msg.isStarred || false,
-          hasAttachments: (msg.attachments && msg.attachments.length > 0) || msg.hasAttachments,
-          receivedAt: msg.date ? new Date(msg.date) : new Date(parseInt(msg.internalDate)),
-          sentAt: msg.date ? new Date(msg.date) : new Date(parseInt(msg.internalDate)),
-          createdAt: msg.date ? new Date(msg.date) : new Date(parseInt(msg.internalDate)),
-          threadId: msg.threadId || null,
-          attachments: msg.attachments || [],
-        }));
+        return (data.messages || []).map((msg: any) => {
+          const emailDate = msg.date ? new Date(msg.date) : new Date(parseInt(msg.internalDate));
+          return {
+            id: msg.id,
+            accountId: -1,
+            fromAddress: msg.from || '',
+            toAddresses: msg.to ? [msg.to] : [],
+            ccAddresses: msg.cc ? [msg.cc] : [],
+            bccAddresses: msg.bcc ? [msg.bcc] : [],
+            subject: msg.subject || '(No Subject)',
+            content: cleanEmailPreview(msg.snippet || ''),
+            htmlContent: msg.isHtml ? msg.body : null,
+            folder: activeFolder,
+            isRead: !msg.isUnread,
+            isStarred: msg.isStarred || false,
+            hasAttachments: (msg.attachments && msg.attachments.length > 0) || msg.hasAttachments,
+            dateSent: emailDate,
+            receivedAt: emailDate,
+            sentAt: emailDate,
+            createdAt: emailDate,
+            threadId: msg.threadId || null,
+            attachments: msg.attachments || [],
+          };
+        });
       }
       
       // Use the old BackstageOS endpoints for non-OAuth accounts
@@ -941,7 +945,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                     }}
                   >
                     {/* Desktop Layout - Keep existing horizontal layout */}
-                    <div className="hidden md:flex items-center gap-1">
+                    <div className="hidden md:flex items-center gap-1 w-full overflow-hidden">
                       {/* Hover Checkbox - Desktop only */}
                       <div className="w-6 h-6 flex-shrink-0">
                         {isSelectionMode ? (
