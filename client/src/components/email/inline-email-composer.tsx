@@ -736,58 +736,78 @@ export function InlineEmailComposer({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Custom schedule dialog */}
+      {/* Custom schedule dialog - Gmail style */}
       <AlertDialog open={showCustomScheduleDialog} onOpenChange={setShowCustomScheduleDialog}>
-        <AlertDialogContent className="z-[10003]" style={{ zIndex: 10003 }}>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Schedule Email</AlertDialogTitle>
-            <AlertDialogDescription>
-              Choose when you want this email to be sent.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          
-          <div className="py-4 space-y-4">
-            <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Date</label>
-              <Popover modal={true}>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start text-left font-normal">
-                    <Calendar className="mr-2 h-4 w-4" />
-                    {scheduledDate ? format(scheduledDate, 'PPP') : 'Pick a date'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start" style={{ zIndex: 10005 }}>
-                  <CalendarComponent
-                    mode="single"
-                    selected={scheduledDate}
-                    onSelect={setScheduledDate}
-                    disabled={(date) => isBefore(date, startOfToday())}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+        <AlertDialogContent className="z-[10003] max-w-[320px] p-0" style={{ zIndex: 10003 }}>
+          {/* Date and Time inputs at top */}
+          <div className="flex border-b border-gray-200">
+            <div className="flex-1 px-3 py-2 border-r border-gray-200">
+              <input
+                type="text"
+                readOnly
+                value={scheduledDate ? format(scheduledDate, 'MMM d, yyyy') : ''}
+                className="w-full text-sm text-gray-900 bg-transparent border-none outline-none cursor-default"
+                placeholder="Select date"
+              />
             </div>
-            
-            <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Time</label>
+            <div className="w-24 px-3 py-2">
               <input
                 type="time"
                 value={scheduledTime}
                 onChange={(e) => setScheduledTime(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full text-sm text-gray-900 bg-transparent border-none outline-none"
               />
             </div>
           </div>
+          
+          {/* Calendar inline */}
+          <div className="p-2">
+            <CalendarComponent
+              mode="single"
+              selected={scheduledDate}
+              onSelect={setScheduledDate}
+              disabled={(date) => isBefore(date, startOfToday())}
+              className="w-full"
+              classNames={{
+                months: "flex flex-col",
+                month: "space-y-2",
+                caption: "flex justify-center pt-1 relative items-center",
+                caption_label: "text-sm font-medium",
+                nav: "space-x-1 flex items-center",
+                nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 inline-flex items-center justify-center",
+                nav_button_previous: "absolute left-1",
+                nav_button_next: "absolute right-1",
+                table: "w-full border-collapse",
+                head_row: "flex justify-between",
+                head_cell: "text-gray-500 w-8 font-normal text-[0.75rem]",
+                row: "flex w-full justify-between mt-1",
+                cell: "text-center text-sm relative p-0",
+                day: "h-8 w-8 p-0 font-normal hover:bg-gray-100 rounded-full inline-flex items-center justify-center",
+                day_selected: "bg-blue-600 text-white hover:bg-blue-600",
+                day_today: "border border-blue-600",
+                day_outside: "text-gray-300",
+                day_disabled: "text-gray-300 hover:bg-transparent cursor-not-allowed",
+              }}
+            />
+          </div>
 
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
+          {/* Footer with Close and Save */}
+          <div className="flex justify-between items-center px-3 py-2 border-t border-gray-200">
+            <Button
+              variant="ghost"
+              onClick={() => setShowCustomScheduleDialog(false)}
+              className="text-gray-600 hover:text-gray-800 px-4"
+            >
+              Close
+            </Button>
+            <Button
               onClick={handleCustomScheduleConfirm}
               disabled={!scheduledDate}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6"
             >
-              Schedule
-            </AlertDialogAction>
-          </AlertDialogFooter>
+              Save
+            </Button>
+          </div>
         </AlertDialogContent>
       </AlertDialog>
     </>
