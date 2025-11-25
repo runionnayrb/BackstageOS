@@ -2916,15 +2916,32 @@ Respond with valid JSON only.`;
         // Use account ID -1 for OAuth connected accounts
         const localDrafts = await standaloneEmailService.getDraftMessages(-1);
         
-        // Ensure all drafts have toAddresses as arrays
-        const formattedDrafts = (localDrafts || []).map(draft => ({
-          ...draft,
-          toAddresses: Array.isArray(draft.toAddresses) ? draft.toAddresses : (draft.toAddresses ? [draft.toAddresses] : []),
-          ccAddresses: Array.isArray(draft.ccAddresses) ? draft.ccAddresses : (draft.ccAddresses ? [draft.ccAddresses] : []),
-          bccAddresses: Array.isArray(draft.bccAddresses) ? draft.bccAddresses : (draft.bccAddresses ? [draft.bccAddresses] : []),
-        }));
+        // Helper to decode HTML entities
+        const decodeHtmlEntity = (text: string) => {
+          if (!text) return text;
+          return text
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, "'")
+            .replace(/&amp;/g, '&');
+        };
         
-        console.log('📤 Returning drafts:', formattedDrafts.map(d => ({ id: d.id, to: d.toAddresses, subject: d.subject })));
+        // Ensure all drafts have toAddresses as arrays and decode HTML entities
+        const formattedDrafts = (localDrafts || []).map(draft => {
+          const toAddresses = Array.isArray(draft.toAddresses) ? draft.toAddresses : (draft.toAddresses ? [draft.toAddresses] : []);
+          const ccAddresses = Array.isArray(draft.ccAddresses) ? draft.ccAddresses : (draft.ccAddresses ? [draft.ccAddresses] : []);
+          const bccAddresses = Array.isArray(draft.bccAddresses) ? draft.bccAddresses : (draft.bccAddresses ? [draft.bccAddresses] : []);
+          
+          return {
+            ...draft,
+            toAddresses: toAddresses.map(addr => typeof addr === 'string' ? decodeHtmlEntity(addr) : addr),
+            ccAddresses: ccAddresses.map(addr => typeof addr === 'string' ? decodeHtmlEntity(addr) : addr),
+            bccAddresses: bccAddresses.map(addr => typeof addr === 'string' ? decodeHtmlEntity(addr) : addr),
+          };
+        });
+        
+        console.log('📤 Returning decoded drafts:', formattedDrafts.map(d => ({ id: d.id, to: d.toAddresses, subject: d.subject })));
         res.json({
           messages: formattedDrafts,
           pageToken: null,
