@@ -29,7 +29,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { format, addHours, addDays, setHours, setMinutes, startOfTomorrow } from 'date-fns';
+import { format, addHours, addDays, addMinutes, setHours, setMinutes, startOfToday, startOfTomorrow, isBefore } from 'date-fns';
 
 interface InlineEmailComposerProps {
   isOpen: boolean;
@@ -369,8 +369,10 @@ export function InlineEmailComposer({
         scheduledFor = setMinutes(setHours(startOfTomorrow(), 14), 0);
         break;
       case 'custom':
-        setScheduledDate(addDays(now, 1));
-        setScheduledTime('09:00');
+        // Default to today with current time + 5 minutes
+        const defaultTime = addMinutes(now, 5);
+        setScheduledDate(now);
+        setScheduledTime(format(defaultTime, 'HH:mm'));
         setShowCustomScheduleDialog(true);
         return;
     }
@@ -384,6 +386,16 @@ export function InlineEmailComposer({
     
     const [hours, minutes] = scheduledTime.split(':').map(Number);
     const scheduledFor = setMinutes(setHours(scheduledDate, hours), minutes);
+    
+    // Validate that scheduled time is in the future
+    if (isBefore(scheduledFor, new Date())) {
+      toast({
+        title: "Invalid time",
+        description: "Please select a time in the future.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     scheduleEmailMutation.mutate(scheduledFor);
     setShowCustomScheduleDialog(false);
@@ -749,7 +761,7 @@ export function InlineEmailComposer({
                     mode="single"
                     selected={scheduledDate}
                     onSelect={setScheduledDate}
-                    disabled={(date) => date < new Date()}
+                    disabled={(date) => isBefore(date, startOfToday())}
                     initialFocus
                   />
                 </PopoverContent>
