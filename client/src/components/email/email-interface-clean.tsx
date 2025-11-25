@@ -37,18 +37,29 @@ interface EmailInterfaceProps {
   isSidebarCollapsed?: boolean;
 }
 
+// Utility function to HTML decode strings
+const htmlDecode = (text: string): string => {
+  if (!text) return text;
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = text;
+  return textarea.value;
+};
+
 // Utility function to extract display name from email address
 const getDisplayName = (emailAddress: string): string => {
   if (!emailAddress) return 'Unknown';
   
+  // HTML decode first in case address is HTML-encoded
+  const decoded = htmlDecode(emailAddress);
+  
   // Check if email has display name format: "Display Name <email@domain.com>"
-  const displayNameMatch = emailAddress.match(/^(.+?)\s*<.*>$/);
+  const displayNameMatch = decoded.match(/^(.+?)\s*<.*>$/);
   if (displayNameMatch) {
     return displayNameMatch[1].replace(/['"]/g, '').trim();
   }
   
   // Extract name from email address before @ symbol
-  const localPart = emailAddress.split('@')[0];
+  const localPart = decoded.split('@')[0];
   
   // Handle common name patterns
   const nameParts = localPart.split(/[._-]/);
@@ -67,13 +78,16 @@ const getDisplayName = (emailAddress: string): string => {
 const getEmailAddress = (emailAddress: string): string => {
   if (!emailAddress) return '';
   
+  // HTML decode first in case address is HTML-encoded
+  const decoded = htmlDecode(emailAddress);
+  
   // Extract email from "Display Name <email@domain.com>" format
-  const emailMatch = emailAddress.match(/<(.+?)>/);
+  const emailMatch = decoded.match(/<(.+?)>/);
   if (emailMatch) {
     return emailMatch[1];
   }
   
-  return emailAddress;
+  return decoded;
 };
 
 // Utility function to format all recipients for display (used in scheduled emails)
