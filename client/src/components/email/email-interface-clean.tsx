@@ -690,13 +690,20 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
         // Transform the response to match the expected EmailMessage format
         return (data.messages || []).map((msg: any) => {
           const emailDate = msg.date ? new Date(msg.date) : new Date(parseInt(msg.internalDate));
+          
+          // For drafts and scheduled emails from database, toAddresses is already an array
+          // For Gmail messages, to/cc/bcc are single strings that need to be wrapped in arrays
+          const toAddresses = msg.toAddresses ? (Array.isArray(msg.toAddresses) ? msg.toAddresses : [msg.toAddresses]) : (msg.to ? [msg.to] : []);
+          const ccAddresses = msg.ccAddresses ? (Array.isArray(msg.ccAddresses) ? msg.ccAddresses : [msg.ccAddresses]) : (msg.cc ? [msg.cc] : []);
+          const bccAddresses = msg.bccAddresses ? (Array.isArray(msg.bccAddresses) ? msg.bccAddresses : [msg.bccAddresses]) : (msg.bcc ? [msg.bcc] : []);
+          
           return {
             id: msg.id,
             accountId: -1,
             fromAddress: msg.from || '',
-            toAddresses: msg.to ? [msg.to] : [],
-            ccAddresses: msg.cc ? [msg.cc] : [],
-            bccAddresses: msg.bcc ? [msg.bcc] : [],
+            toAddresses: toAddresses,
+            ccAddresses: ccAddresses,
+            bccAddresses: bccAddresses,
             subject: msg.subject || '(No Subject)',
             content: cleanEmailPreview(msg.snippet || ''),
             htmlContent: msg.isHtml ? msg.body : null,
