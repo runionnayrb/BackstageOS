@@ -998,7 +998,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                       </div>
 
                       {/* Right side: Fixed width container with date, hover icons overlay on top */}
-                      <div className="relative flex-shrink-0 w-24 text-right">
+                      <div className="relative flex-shrink-0 w-32 text-right">
                         {/* Date - fades out on hover */}
                         <span className="text-xs text-gray-500 whitespace-nowrap transition-opacity group-hover:opacity-0">
                           {formatDate(message.dateSent)}
@@ -1015,11 +1015,137 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                                 onReply(message, 'reply');
                               }
                             }}
-                            className="h-7 w-7 p-0 hover:bg-gray-200 rounded"
+                            className="h-6 w-6 p-0 hover:bg-transparent group/icon"
                             title="Reply"
                           >
-                            <Reply className="h-4 w-4 text-gray-600" />
+                            <Reply className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
                           </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setForwardMessage(message);
+                              setComposeMode('forward');
+                              if (onShowComposeChange) {
+                                onShowComposeChange(true);
+                              }
+                            }}
+                            className="h-6 w-6 p-0 hover:bg-transparent group/icon"
+                            title="Forward"
+                          >
+                            <Forward className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
+                          </Button>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => e.stopPropagation()}
+                                className="h-6 w-6 p-0 hover:bg-transparent group/icon"
+                                title="Move to folder"
+                              >
+                                <FolderOpen className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-40" align="end">
+                              <div className="space-y-1">
+                                <div className="px-2 py-1 text-xs font-medium text-gray-700 border-b border-gray-100">
+                                  Move to:
+                                </div>
+                                {activeFolder !== 'inbox' && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      bulkActionMutation.mutate({
+                                        messageIds: [message.id],
+                                        action: 'move',
+                                        accountId: selectedAccount.id,
+                                        targetFolder: 'inbox'
+                                      });
+                                    }}
+                                    className="w-full h-7 justify-start text-xs"
+                                  >
+                                    <Mail className="h-3 w-3 mr-2" />
+                                    Inbox
+                                  </Button>
+                                )}
+                                {activeFolder !== 'sent' && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      bulkActionMutation.mutate({
+                                        messageIds: [message.id],
+                                        action: 'move',
+                                        accountId: selectedAccount.id,
+                                        targetFolder: 'sent'
+                                      });
+                                    }}
+                                    className="w-full h-7 justify-start text-xs"
+                                  >
+                                    <Send className="h-3 w-3 mr-2" />
+                                    Sent
+                                  </Button>
+                                )}
+                                {activeFolder !== 'drafts' && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      bulkActionMutation.mutate({
+                                        messageIds: [message.id],
+                                        action: 'move',
+                                        accountId: selectedAccount.id,
+                                        targetFolder: 'drafts'
+                                      });
+                                    }}
+                                    className="w-full h-7 justify-start text-xs"
+                                  >
+                                    <File className="h-3 w-3 mr-2" />
+                                    Drafts
+                                  </Button>
+                                )}
+                                {activeFolder !== 'archive' && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      bulkActionMutation.mutate({
+                                        messageIds: [message.id],
+                                        action: 'archive',
+                                        accountId: selectedAccount.id,
+                                        targetFolder: 'archive'
+                                      });
+                                    }}
+                                    className="w-full h-7 justify-start text-xs"
+                                  >
+                                    <Archive className="h-3 w-3 mr-2" />
+                                    Archive
+                                  </Button>
+                                )}
+                                {activeFolder !== 'trash' && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      bulkActionMutation.mutate({
+                                        messageIds: [message.id],
+                                        action: 'move',
+                                        accountId: selectedAccount.id,
+                                        targetFolder: 'trash'
+                                      });
+                                    }}
+                                    className="w-full h-7 justify-start text-xs"
+                                  >
+                                    <Trash2 className="h-3 w-3 mr-2" />
+                                    Trash
+                                  </Button>
+                                )}
+                              </div>
+                            </PopoverContent>
+                          </Popover>
                           <Button
                             variant="ghost"
                             size="sm"
@@ -1032,10 +1158,10 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                                 targetFolder: 'archive'
                               });
                             }}
-                            className="h-7 w-7 p-0 hover:bg-gray-200 rounded"
+                            className="h-6 w-6 p-0 hover:bg-transparent group/icon"
                             title="Archive"
                           >
-                            <Archive className="h-4 w-4 text-gray-600" />
+                            <Archive className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -1049,10 +1175,10 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                                 targetFolder: 'trash'
                               });
                             }}
-                            className="h-7 w-7 p-0 hover:bg-gray-200 rounded"
+                            className="h-6 w-6 p-0 hover:bg-transparent group/icon"
                             title="Delete"
                           >
-                            <Trash2 className="h-4 w-4 text-gray-600" />
+                            <Trash2 className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
                           </Button>
                         </div>
                       </div>
