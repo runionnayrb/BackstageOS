@@ -329,7 +329,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
     });
   };
 
-  // Mark email as read mutation
+  // Mark email as read mutation with optimistic updates
   const markAsReadMutation = useMutation({
     mutationFn: async ({ messageId, accountId }: { messageId: number | string; accountId: number }) => {
       // For OAuth connected accounts, use the new provider endpoints
@@ -359,19 +359,42 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
       }
       return response.json();
     },
-    onSuccess: () => {
-      // Invalidate and refetch email queries
-      queryClient.invalidateQueries({ queryKey: ['/api/email/accounts', selectedAccount.id, activeFolder] });
+    onMutate: async ({ messageId }) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['/api/email/accounts', selectedAccount.id, activeFolder] });
+      
+      // Snapshot previous value
+      const previousMessages = queryClient.getQueryData<EmailMessage[]>(['/api/email/accounts', selectedAccount.id, activeFolder]);
+      
+      // Optimistically update to the new value
+      queryClient.setQueryData<EmailMessage[]>(
+        ['/api/email/accounts', selectedAccount.id, activeFolder],
+        (old) => old?.map(msg => 
+          msg.id === messageId ? { ...msg, isRead: true } : msg
+        )
+      );
+      
+      return { previousMessages };
+    },
+    onError: (err, variables, context) => {
+      // Roll back on error
+      if (context?.previousMessages) {
+        queryClient.setQueryData(
+          ['/api/email/accounts', selectedAccount.id, activeFolder],
+          context.previousMessages
+        );
+      }
+    },
+    onSettled: () => {
+      // Sync with server in background
       queryClient.invalidateQueries({ queryKey: ['/api/email/unread-count'] });
       queryClient.invalidateQueries({ queryKey: ['/api/email/stats', selectedAccount.id] });
     },
   });
 
-  // Bulk actions mutation
+  // Bulk actions mutation with optimistic updates
   const bulkActionMutation = useMutation({
     mutationFn: async ({ messageIds, action, targetFolder }: { messageIds: (number | string)[]; action: string; targetFolder?: string }) => {
-      console.log('🗑️ Bulk action requested:', { messageIds, action, targetFolder, accountId: selectedAccount.id });
-      
       // For OAuth connected accounts, perform actions via the new provider endpoints
       if (selectedAccount.id === -1) {
         const results = await Promise.all(
@@ -424,40 +447,90 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
         throw new Error('Failed to perform bulk action');
       }
       const result = await response.json();
-      console.log('✅ Bulk action completed:', result);
       return { result, action, messageIds, targetFolder };
     },
-    onSuccess: ({ result, action, messageIds, targetFolder }) => {
-      // Clear selection and exit selection mode
+    onMutate: async ({ messageIds, action, targetFolder }) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['/api/email/accounts', selectedAccount.id, activeFolder] });
+      
+      // Snapshot previous value
+      const previousMessages = queryClient.getQueryData<EmailMessage[]>(['/api/email/accounts', selectedAccount.id, activeFolder]);
+      
+      // Optimistically update based on action
+      queryClient.setQueryData<EmailMessage[]>(
+        ['/api/email/accounts', selectedAccount.id, activeFolder],
+        (old) => {
+          if (!old) return old;
+          
+          const messageIdSet = new Set(messageIds.map(id => String(id)));
+          
+          switch (action) {
+            case 'delete':
+            case 'archive':
+            case 'move':
+              // Remove messages from current view immediately
+              return old.filter(msg => !messageIdSet.has(String(msg.id)));
+            case 'mark-read':
+              return old.map(msg => 
+                messageIdSet.has(String(msg.id)) ? { ...msg, isRead: true } : msg
+              );
+            case 'mark-unread':
+              return old.map(msg => 
+                messageIdSet.has(String(msg.id)) ? { ...msg, isRead: false } : msg
+              );
+            default:
+              return old;
+          }
+        }
+      );
+      
+      // Clear selection immediately for responsive feel
       setSelectedMessages(new Set());
       setIsSelectionMode(false);
       
-      // Show specific success message based on action
+      return { previousMessages };
+    },
+    onError: (err, variables, context) => {
+      // Roll back on error
+      if (context?.previousMessages) {
+        queryClient.setQueryData(
+          ['/api/email/accounts', selectedAccount.id, activeFolder],
+          context.previousMessages
+        );
+      }
+      toast({
+        title: "Action failed",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    },
+    onSuccess: ({ action, messageIds, targetFolder }) => {
+      // Show success toast
       const count = messageIds.length;
       const messageText = count === 1 ? 'message' : 'messages';
       
       switch (action) {
         case 'delete':
           toast({
-            title: "Messages deleted",
+            title: "Deleted",
             description: `${count} ${messageText} moved to trash`,
           });
           break;
         case 'archive':
           toast({
-            title: "Messages archived",
-            description: `${count} ${messageText} moved to archive`,
+            title: "Archived",
+            description: `${count} ${messageText} archived`,
           });
           break;
         case 'mark-read':
           toast({
-            title: "Messages marked as read",
+            title: "Marked as read",
             description: `${count} ${messageText} marked as read`,
           });
           break;
         case 'mark-unread':
           toast({
-            title: "Messages marked as unread",
+            title: "Marked as unread",
             description: `${count} ${messageText} marked as unread`,
           });
           break;
@@ -467,24 +540,16 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                             targetFolder === 'archive' ? 'Archive' :
                             targetFolder === 'trash' ? 'Trash' : targetFolder;
           toast({
-            title: "Messages moved",
+            title: "Moved",
             description: `${count} ${messageText} moved to ${folderName}`,
           });
           break;
-        default:
-          toast({
-            title: "Action completed",
-            description: `Bulk action completed for ${count} ${messageText}`,
-          });
       }
-      
-      // Invalidate and refetch ALL email queries to ensure fresh data
-      queryClient.invalidateQueries({ queryKey: ['/api/email/accounts', selectedAccount.id] });
+    },
+    onSettled: () => {
+      // Sync with server in background (don't wait for this)
       queryClient.invalidateQueries({ queryKey: ['/api/email/unread-count'] });
       queryClient.invalidateQueries({ queryKey: ['/api/email/stats', selectedAccount.id] });
-      
-      // Force refresh the current view
-      queryClient.refetchQueries({ queryKey: ['/api/email/accounts', selectedAccount.id, activeFolder] });
     },
   });
 
@@ -554,8 +619,9 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
       return response.json();
     },
     enabled: !!selectedAccount?.id,
-    staleTime: 0, // Force fresh data on every request
-    gcTime: 0, // Don't cache the results (renamed from cacheTime in v5)
+    staleTime: 30000, // Show cached data for 30 seconds before refetching
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
+    refetchOnWindowFocus: false, // Don't refetch on every tab switch
   });
 
   const filteredMessages = (inboxMessages || []).filter((message: EmailMessage) =>
