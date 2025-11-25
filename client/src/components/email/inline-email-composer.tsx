@@ -32,6 +32,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { format, addHours, addDays, addMinutes, setHours, setMinutes, startOfToday, startOfTomorrow, isBefore } from 'date-fns';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -616,9 +622,7 @@ export function InlineEmailComposer({
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
-                  onClick={() => {
-                    setTimeout(() => setShowDatePicker(true), 100);
-                  }}
+                  onClick={() => setShowDatePicker(true)}
                   className="flex items-center gap-2"
                   data-testid="menu-item-schedule-custom"
                 >
@@ -628,14 +632,15 @@ export function InlineEmailComposer({
               </DropdownMenuContent>
             </DropdownMenu>
             
-            {/* Date picker popover - positioned below */}
-            {showDatePicker && (
-              <div 
-                className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 mx-4"
-                style={{ zIndex: 10003 }}
-              >
+            {/* Date picker dialog for mobile */}
+            <Dialog open={showDatePicker} onOpenChange={setShowDatePicker}>
+              <DialogContent className="sm:max-w-[350px] p-0">
+                <DialogHeader className="px-4 pt-4 pb-2">
+                  <DialogTitle>Schedule Email</DialogTitle>
+                </DialogHeader>
+                
                 {/* Date and Time header */}
-                <div className="flex border-b border-gray-200">
+                <div className="flex border-b border-t border-gray-200">
                   <div className="flex-1 px-3 py-2 border-r border-gray-200">
                     <span className="text-sm text-gray-900">
                       {scheduledDate ? format(scheduledDate, 'MMM d, yyyy') : 'Select date'}
@@ -652,16 +657,18 @@ export function InlineEmailComposer({
                 </div>
                 
                 {/* Calendar */}
-                <CalendarComponent
-                  mode="single"
-                  selected={scheduledDate}
-                  onSelect={setScheduledDate}
-                  disabled={(date) => isBefore(date, startOfToday())}
-                  initialFocus
-                />
+                <div className="px-2">
+                  <CalendarComponent
+                    mode="single"
+                    selected={scheduledDate}
+                    onSelect={setScheduledDate}
+                    disabled={(date) => isBefore(date, startOfToday())}
+                    initialFocus
+                  />
+                </div>
 
                 {/* Footer */}
-                <div className="flex justify-between items-center px-3 py-2 border-t border-gray-200">
+                <div className="flex justify-between items-center px-4 py-3 border-t border-gray-200">
                   <span className="text-xs text-gray-500">
                     {scheduledDate && scheduledTime ? 
                       `${format(scheduledDate, 'MMM d')} at ${scheduledTime}` : 
@@ -679,8 +686,8 @@ export function InlineEmailComposer({
                     Schedule
                   </Button>
                 </div>
-              </div>
-            )}
+              </DialogContent>
+            </Dialog>
             {onMinimize && (
               <Button 
                 variant="ghost" 
