@@ -76,6 +76,36 @@ const getEmailAddress = (emailAddress: string): string => {
   return emailAddress;
 };
 
+// Utility function to clean email snippet/preview content
+const cleanEmailPreview = (content: string): string => {
+  if (!content) return '';
+  
+  // Remove HTML tags
+  let cleaned = content.replace(/<[^>]*>/g, ' ');
+  
+  // Remove CSS-like patterns (common in email snippets)
+  cleaned = cleaned.replace(/\{[^}]*\}/g, ' ');
+  cleaned = cleaned.replace(/[a-zA-Z-]+\s*:\s*[^;]+;/g, ' ');
+  cleaned = cleaned.replace(/@(media|import|font-face)[^{]*\{[^}]*\}/gi, ' ');
+  cleaned = cleaned.replace(/\.(awl|abml|link)[a-z0-9-]*\s*[a-zA-Z{]/gi, ' ');
+  
+  // Remove CSS selectors and properties
+  cleaned = cleaned.replace(/\*\{[^}]*\}/g, ' ');
+  cleaned = cleaned.replace(/\b(color|background|font-family|font-size|margin|padding|border|text-decoration|width|height|max-width):\s*[^;{}]+[;{}]/gi, ' ');
+  
+  // Remove URLs and email-like patterns in CSS context
+  cleaned = cleaned.replace(/url\([^)]*\)/gi, ' ');
+  
+  // Remove remaining CSS artifacts
+  cleaned = cleaned.replace(/![a-z]+;?/gi, ' ');
+  cleaned = cleaned.replace(/\d+px|\d+%|\d+em/g, ' ');
+  
+  // Clean up whitespace
+  cleaned = cleaned.replace(/\s+/g, ' ').trim();
+  
+  return cleaned;
+};
+
 // Simple name display with tooltip showing email address
 interface ContactPreviewProps {
   emailAddress: string;
@@ -952,30 +982,30 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                         </span>
                       </div>
 
-                      {/* Subject + Message Preview - flexible width, responsive */}
-                      <div className="flex-1 min-w-0 overflow-hidden">
-                        <div className="flex items-center gap-1">
+                      {/* Subject + Message Preview - flexible width with proper constraints */}
+                      <div className="flex-1 min-w-0 mr-2">
+                        <div className="flex items-center gap-1 overflow-hidden">
                           {message.hasAttachments && (
                             <span className="text-xs text-gray-500 flex-shrink-0">📎</span>
                           )}
                           {message.isImportant && (
                             <span className="text-xs text-yellow-500 flex-shrink-0">⭐</span>
                           )}
-                          <span className="truncate">
+                          <div className="truncate">
                             <span className={`text-sm ${!message.isRead ? 'font-semibold text-black' : 'text-gray-700'}`}>
                               {message.subject || 'No Subject'}
                             </span>
                             {message.content && (
                               <span className="text-sm text-gray-500">
-                                {' '}{message.content.replace(/<[^>]*>/g, '').slice(0, 200)}
+                                {' — '}{cleanEmailPreview(message.content).slice(0, 150)}
                               </span>
                             )}
-                          </span>
+                          </div>
                         </div>
                       </div>
 
-                      {/* Hover actions and Date - right aligned */}
-                      <div className="flex-shrink-0 flex items-center gap-1">
+                      {/* Hover actions and Date - right aligned, fixed width */}
+                      <div className="flex-shrink-0 flex items-center gap-1 w-auto">
                         {/* Hover action icons - hidden by default, shown on row hover */}
                         <div className="hidden group-hover:flex items-center gap-1 mr-2">
                           <Button
