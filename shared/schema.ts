@@ -991,6 +991,27 @@ export const emailQueue = pgTable("email_queue", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Scheduled emails for send later functionality
+export const scheduledEmails = pgTable("scheduled_emails", {
+  id: serial("id").primaryKey(),
+  accountId: integer("account_id").notNull().references(() => emailAccounts.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  toAddresses: text("to_addresses").array().notNull(),
+  ccAddresses: text("cc_addresses").array(),
+  bccAddresses: text("bcc_addresses").array(),
+  subject: varchar("subject").notNull(),
+  content: text("content"),
+  htmlContent: text("html_content"),
+  attachments: jsonb("attachments"), // Store attachment info as JSON
+  scheduledFor: timestamp("scheduled_for").notNull(),
+  status: varchar("status").notNull().default("scheduled"), // 'scheduled', 'sent', 'failed', 'cancelled'
+  threadId: varchar("thread_id"), // For replies
+  errorMessage: text("error_message"),
+  sentAt: timestamp("sent_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // ========== PHASE 5: SHARED INBOXES & TEAM COLLABORATION ==========
 
 // Shared inboxes for production teams
@@ -3370,6 +3391,13 @@ export const insertEmailQueueSchema = createInsertSchema(emailQueue).omit({
   updatedAt: true,
 });
 
+export const insertScheduledEmailSchema = createInsertSchema(scheduledEmails).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  sentAt: true,
+});
+
 export const insertEmailGroupSchema = createInsertSchema(emailGroups).omit({
   id: true,
   createdAt: true,
@@ -3427,6 +3455,8 @@ export type EmailSyncJob = typeof emailSyncJobs.$inferSelect;
 export type InsertEmailSyncJob = z.infer<typeof insertEmailSyncJobSchema>;
 export type EmailQueueItem = typeof emailQueue.$inferSelect;
 export type InsertEmailQueueItem = z.infer<typeof insertEmailQueueSchema>;
+export type ScheduledEmail = typeof scheduledEmails.$inferSelect;
+export type InsertScheduledEmail = z.infer<typeof insertScheduledEmailSchema>;
 export type EmailGroup = typeof emailGroups.$inferSelect;
 export type InsertEmailGroup = z.infer<typeof insertEmailGroupSchema>;
 
