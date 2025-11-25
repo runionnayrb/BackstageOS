@@ -1219,7 +1219,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                         <div className="relative flex-shrink-0 w-40 text-right">
                           {/* Date - fades out on hover */}
                           <span className="text-sm text-gray-500 whitespace-nowrap transition-opacity group-hover:opacity-0">
-                            {formatDate(message.dateSent)}
+                            {activeFolder === 'drafts' ? 'Unsent' : formatDate(message.dateSent)}
                           </span>
                           
                           {/* Hover action icons - overlay on top of date */}
@@ -1442,7 +1442,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                         {/* Date/Time + Chevron - Fixed 80px width on right */}
                         <div className="flex items-center gap-1 text-gray-600 justify-end" style={{width: '80px', flexShrink: 0}}>
                           <span className="text-sm">
-                            {formatMobileDateTime(message.dateSent)}
+                            {activeFolder === 'drafts' ? 'Unsent' : formatMobileDateTime(message.dateSent)}
                           </span>
                           <ChevronRight className="h-4 w-4" />
                         </div>
