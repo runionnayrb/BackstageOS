@@ -47,23 +47,10 @@ export default function ProfileSettings() {
     const urlParams = new URLSearchParams(window.location.search);
     const oauthResult = urlParams.get('oauth');
     const error = urlParams.get('error');
-    const provider = urlParams.get('provider');
 
-    if (oauthResult === 'success') {
-      toast({
-        title: "Email connected",
-        description: `Your ${provider === 'gmail' ? 'Gmail' : 'Outlook'} account has been connected successfully.`,
-      });
+    if (oauthResult === 'success' || error) {
       queryClient.invalidateQueries({ queryKey: ["/api/user/email-provider"] });
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
-      // Clear URL params
-      window.history.replaceState({}, '', '/profile');
-    } else if (error) {
-      toast({
-        title: "Connection failed",
-        description: decodeURIComponent(error) || "Failed to connect email provider.",
-        variant: "destructive",
-      });
       // Clear URL params
       window.history.replaceState({}, '', '/profile');
     }

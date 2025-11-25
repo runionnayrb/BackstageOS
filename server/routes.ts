@@ -2577,11 +2577,36 @@ Respond with valid JSON only.`;
 
   // Google OAuth callback
   app.get('/api/oauth/google/callback', async (req: any, res) => {
+    const sendRedirectPage = (url: string, message: string, isError = false) => {
+      res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>${isError ? 'Connection Failed' : 'Connection Successful'}</title>
+          <meta http-equiv="refresh" content="2;url=${url}">
+          <style>
+            body { font-family: system-ui, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #0a0a0a; color: white; }
+            .container { text-align: center; }
+            .spinner { width: 40px; height: 40px; border: 3px solid #333; border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+            @keyframes spin { to { transform: rotate(360deg); } }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="spinner"></div>
+            <p>${message}</p>
+            <p style="font-size: 12px; color: #666;">Redirecting...</p>
+          </div>
+        </body>
+        </html>
+      `);
+    };
+
     try {
       const { code, state } = req.query;
       
       if (!code || !state) {
-        return res.redirect('/profile?error=missing_oauth_params');
+        return sendRedirectPage('/profile?error=missing_oauth_params', 'Missing OAuth parameters', true);
       }
 
       const userId = state as string;
@@ -2602,10 +2627,11 @@ Respond with valid JSON only.`;
         emailProviderConnectedAt: new Date(),
       });
 
-      res.redirect('/profile?oauth=success&provider=gmail');
+      console.log(`✅ Gmail connected successfully for user ${userId}: ${emailAddress}`);
+      sendRedirectPage('/profile?oauth=success&provider=gmail', `Gmail connected: ${emailAddress}`);
     } catch (error: any) {
       console.error("Error in Google OAuth callback:", error);
-      res.redirect(`/profile?error=${encodeURIComponent(error.message || 'oauth_failed')}`);
+      sendRedirectPage(`/profile?error=${encodeURIComponent(error.message || 'oauth_failed')}`, `Connection failed: ${error.message}`, true);
     }
   });
 
