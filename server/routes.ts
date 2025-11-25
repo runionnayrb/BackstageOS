@@ -2915,8 +2915,18 @@ Respond with valid JSON only.`;
         const { standaloneEmailService } = await import('./services/standaloneEmailService.js');
         // Use account ID -1 for OAuth connected accounts
         const localDrafts = await standaloneEmailService.getDraftMessages(-1);
+        
+        // Ensure all drafts have toAddresses as arrays
+        const formattedDrafts = (localDrafts || []).map(draft => ({
+          ...draft,
+          toAddresses: Array.isArray(draft.toAddresses) ? draft.toAddresses : (draft.toAddresses ? [draft.toAddresses] : []),
+          ccAddresses: Array.isArray(draft.ccAddresses) ? draft.ccAddresses : (draft.ccAddresses ? [draft.ccAddresses] : []),
+          bccAddresses: Array.isArray(draft.bccAddresses) ? draft.bccAddresses : (draft.bccAddresses ? [draft.bccAddresses] : []),
+        }));
+        
+        console.log('📤 Returning drafts:', formattedDrafts.map(d => ({ id: d.id, to: d.toAddresses, subject: d.subject })));
         res.json({
-          messages: localDrafts || [],
+          messages: formattedDrafts,
           pageToken: null,
         });
         return;
