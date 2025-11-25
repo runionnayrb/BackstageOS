@@ -618,6 +618,41 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   const { data: inboxMessages, isLoading, error } = useQuery<EmailMessage[]>({
     queryKey: ['/api/email/accounts', selectedAccount.id, activeFolder],
     queryFn: async () => {
+      // Special handling for scheduled emails - check FIRST before OAuth check
+      // Scheduled emails are stored locally, not in the email provider
+      if (activeFolder === 'scheduled') {
+        const response = await fetch('/api/email/scheduled');
+        if (!response.ok) {
+          throw new Error('Failed to fetch scheduled emails');
+        }
+        const scheduledEmails = await response.json();
+        // Transform scheduled emails to match EmailMessage format
+        return scheduledEmails.map((email: any) => ({
+          id: email.id,
+          accountId: email.accountId || selectedAccount.id,
+          fromAddress: selectedAccount.emailAddress,
+          toAddresses: email.toAddresses,
+          ccAddresses: email.ccAddresses || [],
+          bccAddresses: email.bccAddresses || [],
+          subject: email.subject,
+          content: email.content,
+          htmlContent: null,
+          folder: 'scheduled',
+          isRead: true,
+          isStarred: false,
+          hasAttachments: false,
+          dateSent: new Date(email.scheduledFor),
+          receivedAt: new Date(email.createdAt),
+          sentAt: null,
+          createdAt: new Date(email.createdAt),
+          threadId: email.threadId,
+          attachments: [],
+          // Add scheduled-specific fields for UI
+          scheduledFor: new Date(email.scheduledFor),
+          scheduledStatus: email.status,
+        }));
+      }
+
       // Check if this is an OAuth connected account (virtual account with id = -1)
       if (selectedAccount.id === -1) {
         // Use the new OAuth provider endpoints
@@ -651,40 +686,6 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
             attachments: msg.attachments || [],
           };
         });
-      }
-      
-      // Special handling for scheduled emails
-      if (activeFolder === 'scheduled') {
-        const response = await fetch('/api/email/scheduled');
-        if (!response.ok) {
-          throw new Error('Failed to fetch scheduled emails');
-        }
-        const scheduledEmails = await response.json();
-        // Transform scheduled emails to match EmailMessage format
-        return scheduledEmails.map((email: any) => ({
-          id: email.id,
-          accountId: email.accountId || selectedAccount.id,
-          fromAddress: selectedAccount.emailAddress,
-          toAddresses: email.toAddresses,
-          ccAddresses: email.ccAddresses || [],
-          bccAddresses: email.bccAddresses || [],
-          subject: email.subject,
-          content: email.content,
-          htmlContent: null,
-          folder: 'scheduled',
-          isRead: true,
-          isStarred: false,
-          hasAttachments: false,
-          dateSent: new Date(email.scheduledFor),
-          receivedAt: new Date(email.createdAt),
-          sentAt: null,
-          createdAt: new Date(email.createdAt),
-          threadId: email.threadId,
-          attachments: [],
-          // Add scheduled-specific fields for UI
-          scheduledFor: new Date(email.scheduledFor),
-          scheduledStatus: email.status,
-        }));
       }
 
       // Use the old BackstageOS endpoints for non-OAuth accounts

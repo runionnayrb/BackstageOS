@@ -793,14 +793,14 @@ export function InlineEmailComposer({
           <div className="py-4 space-y-4">
             <div>
               <label className="text-sm font-medium text-gray-700 mb-2 block">Date</label>
-              <Popover>
+              <Popover modal={true}>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-start text-left font-normal">
                     <Calendar className="mr-2 h-4 w-4" />
                     {scheduledDate ? format(scheduledDate, 'PPP') : 'Pick a date'}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 z-[10004]" align="start">
+                <PopoverContent className="w-auto p-0" align="start" style={{ zIndex: 10005 }}>
                   <CalendarComponent
                     mode="single"
                     selected={scheduledDate}
