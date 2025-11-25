@@ -685,6 +685,7 @@ export class StandaloneEmailService {
     draftId?: number
   ): Promise<{ success: boolean; draftId?: number }> {
     try {
+      console.log('💾 saveDraft called:', { accountId, subject, toCount: toAddresses?.length, hasHtmlContent: !!htmlContent });
       const messageId = `draft-${Date.now()}-${Math.random().toString(36).substr(2, 9)}@backstageos.com`;
       
       const draftData: InsertEmailMessage = {
@@ -697,6 +698,7 @@ export class StandaloneEmailService {
         ccAddresses: ccAddresses || [],
         bccAddresses: bccAddresses || [],
         content,
+        htmlContent: htmlContent || content, // Use htmlContent if provided, otherwise fallback to content
         isRead: true,
         isDraft: true,
         isSent: false,
@@ -707,6 +709,7 @@ export class StandaloneEmailService {
 
       if (draftId) {
         // Update existing draft
+        console.log('🔄 Updating existing draft with ID:', draftId);
         await db
           .update(emailMessages)
           .set({ ...draftData, updatedAt: new Date() })
@@ -717,14 +720,17 @@ export class StandaloneEmailService {
               eq(emailMessages.isDraft, true)
             )
           );
+        console.log('✅ Draft updated successfully');
         return { success: true, draftId };
       } else {
         // Create new draft
+        console.log('📝 Creating new draft');
         const [draft] = await db.insert(emailMessages).values(draftData).returning();
+        console.log('✅ Draft created with ID:', draft.id);
         return { success: true, draftId: draft.id };
       }
     } catch (error) {
-      console.error('Error saving draft:', error);
+      console.error('❌ Error saving draft:', error);
       return { success: false };
     }
   }
