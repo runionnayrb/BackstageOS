@@ -616,23 +616,21 @@ export function InlineEmailComposer({
           )}
 
           {/* From field - shows display name, expands to show email on click */}
-          <div className="flex items-center px-4 py-3 border-b border-gray-100">
-            <span className="text-gray-500 text-sm w-12 flex-shrink-0">From:</span>
+          <div className="flex items-start px-4 py-3 border-b border-gray-100">
+            <span className="text-gray-500 text-sm w-12 flex-shrink-0 leading-5">From:</span>
             <div className="flex-1">
               <div 
                 className="cursor-pointer text-sm text-gray-700 hover:text-gray-900"
                 onClick={() => setShowAccountDropdown(!showAccountDropdown)}
               >
-                <div className="flex items-center">
-                  {showAccountDropdown ? (
-                    <div className="flex flex-col items-start">
-                      <span className="font-medium">{selectedAccount?.displayName}</span>
+                <div className="flex items-start">
+                  <div className="flex flex-col items-start">
+                    <span className="font-medium leading-5">{selectedAccount?.displayName}</span>
+                    {showAccountDropdown && (
                       <span className="text-xs text-gray-500">{selectedAccount?.emailAddress}</span>
-                    </div>
-                  ) : (
-                    <span className="font-medium">{selectedAccount?.displayName}</span>
-                  )}
-                  <ChevronDown className={`h-4 w-4 text-gray-400 flex-shrink-0 ml-2 transition-transform ${showAccountDropdown ? 'rotate-180' : ''}`} />
+                    )}
+                  </div>
+                  <ChevronDown className={`h-4 w-4 text-gray-400 flex-shrink-0 ml-2 mt-0.5 transition-transform ${showAccountDropdown ? 'rotate-180' : ''}`} />
                 </div>
               </div>
             </div>
