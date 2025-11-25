@@ -5,14 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Save, Key, Mail, User, Eye, EyeOff, MailPlus, CheckCircle2, XCircle, Link as LinkIcon, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Key, Mail, User, Eye, EyeOff, MailPlus, CheckCircle2, XCircle, Link as LinkIcon, Loader2, AlertCircle } from "lucide-react";
 import { useLocation } from "wouter";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
 import { SiGmail } from "react-icons/si";
 import { MdOutlineMail } from "react-icons/md";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface EmailProviderData {
   provider: string | null;
@@ -22,10 +22,10 @@ interface EmailProviderData {
 
 export default function ProfileSettings() {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [location, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const [isConnecting, setIsConnecting] = useState<'gmail' | 'outlook' | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
   const [profileData, setProfileData] = useState({
     firstName: user?.firstName || "",
@@ -88,11 +88,7 @@ export default function ProfileSettings() {
       // Redirect to OAuth provider
       window.location.href = data.authUrl;
     } catch (error: any) {
-      toast({
-        title: "Connection failed",
-        description: error.message || "Failed to start email connection.",
-        variant: "destructive",
-      });
+      setErrorMessage(error.message || "Failed to start email connection.");
       setIsConnecting(null);
     }
   };
@@ -103,19 +99,12 @@ export default function ProfileSettings() {
       return response.json();
     },
     onSuccess: () => {
-      toast({
-        title: "Email provider disconnected",
-        description: "Your email account has been disconnected.",
-      });
+      setErrorMessage(null);
       queryClient.invalidateQueries({ queryKey: ["/api/user/email-provider"] });
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
     },
     onError: (error: any) => {
-      toast({
-        title: "Disconnection failed",
-        description: error.message || "Failed to disconnect email provider.",
-        variant: "destructive",
-      });
+      setErrorMessage(error.message || "Failed to disconnect email provider.");
     },
   });
 
@@ -125,10 +114,7 @@ export default function ProfileSettings() {
       return response.json();
     },
     onSuccess: () => {
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been updated successfully.",
-      });
+      setErrorMessage(null);
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       setProfileData(prev => ({
         ...prev,
@@ -138,11 +124,7 @@ export default function ProfileSettings() {
       }));
     },
     onError: (error: any) => {
-      toast({
-        title: "Update failed",
-        description: error.message || "Failed to update profile.",
-        variant: "destructive",
-      });
+      setErrorMessage(error.message || "Failed to update profile.");
     },
   });
 
@@ -165,20 +147,12 @@ export default function ProfileSettings() {
     // Only include password fields if user is trying to change password
     if (profileData.newPassword) {
       if (profileData.newPassword !== profileData.confirmPassword) {
-        toast({
-          title: "Password mismatch",
-          description: "New password and confirmation don't match.",
-          variant: "destructive",
-        });
+        setErrorMessage("New password and confirmation don't match.");
         return;
       }
       
       if (!profileData.currentPassword) {
-        toast({
-          title: "Current password required",
-          description: "Please enter your current password to change it.",
-          variant: "destructive",
-        });
+        setErrorMessage("Please enter your current password to change it.");
         return;
       }
 
@@ -202,6 +176,13 @@ export default function ProfileSettings() {
               Manage your account information and security settings.
             </p>
           </div>
+
+          {errorMessage && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{errorMessage}</AlertDescription>
+            </Alert>
+          )}
 
           <form onSubmit={handleProfileUpdate} className="space-y-6">
             {/* Personal Information */}
