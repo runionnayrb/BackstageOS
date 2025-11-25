@@ -2882,6 +2882,153 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Fetch emails from connected provider
+  app.get('/api/user/email-provider/emails', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user;
+      const folder = req.query.folder as string || 'inbox';
+      const limit = parseInt(req.query.limit as string) || 50;
+      const pageToken = req.query.pageToken as string;
+
+      if (!user.connectedEmailProvider || !user.connectedEmailAddress) {
+        return res.status(400).json({ message: "No email provider connected" });
+      }
+
+      let result;
+      if (user.connectedEmailProvider === 'gmail') {
+        result = await gmailIntegrationService.getEmails(folder, limit, pageToken);
+      } else if (user.connectedEmailProvider === 'outlook') {
+        const skip = parseInt(req.query.skip as string) || 0;
+        result = await outlookIntegrationService.getEmails(folder, limit, skip);
+      } else {
+        return res.status(400).json({ message: "Invalid email provider" });
+      }
+
+      res.json(result);
+    } catch (error: any) {
+      console.error("Error fetching emails:", error);
+      res.status(500).json({ message: error.message || "Failed to fetch emails" });
+    }
+  });
+
+  // Get a single email from connected provider
+  app.get('/api/user/email-provider/emails/:messageId', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user;
+      const messageId = req.params.messageId;
+
+      if (!user.connectedEmailProvider || !user.connectedEmailAddress) {
+        return res.status(400).json({ message: "No email provider connected" });
+      }
+
+      let message;
+      if (user.connectedEmailProvider === 'gmail') {
+        message = await gmailIntegrationService.getEmail(messageId);
+      } else if (user.connectedEmailProvider === 'outlook') {
+        message = await outlookIntegrationService.getEmail(messageId);
+      } else {
+        return res.status(400).json({ message: "Invalid email provider" });
+      }
+
+      res.json(message);
+    } catch (error: any) {
+      console.error("Error fetching email:", error);
+      res.status(500).json({ message: error.message || "Failed to fetch email" });
+    }
+  });
+
+  // Mark email as read
+  app.post('/api/user/email-provider/emails/:messageId/read', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user;
+      const messageId = req.params.messageId;
+
+      if (!user.connectedEmailProvider) {
+        return res.status(400).json({ message: "No email provider connected" });
+      }
+
+      if (user.connectedEmailProvider === 'gmail') {
+        await gmailIntegrationService.markAsRead(messageId);
+      } else if (user.connectedEmailProvider === 'outlook') {
+        await outlookIntegrationService.markAsRead(messageId);
+      }
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Error marking email as read:", error);
+      res.status(500).json({ message: error.message || "Failed to mark email as read" });
+    }
+  });
+
+  // Mark email as unread
+  app.post('/api/user/email-provider/emails/:messageId/unread', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user;
+      const messageId = req.params.messageId;
+
+      if (!user.connectedEmailProvider) {
+        return res.status(400).json({ message: "No email provider connected" });
+      }
+
+      if (user.connectedEmailProvider === 'gmail') {
+        await gmailIntegrationService.markAsUnread(messageId);
+      } else if (user.connectedEmailProvider === 'outlook') {
+        await outlookIntegrationService.markAsUnread(messageId);
+      }
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Error marking email as unread:", error);
+      res.status(500).json({ message: error.message || "Failed to mark email as unread" });
+    }
+  });
+
+  // Move email to trash
+  app.delete('/api/user/email-provider/emails/:messageId', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user;
+      const messageId = req.params.messageId;
+
+      if (!user.connectedEmailProvider) {
+        return res.status(400).json({ message: "No email provider connected" });
+      }
+
+      if (user.connectedEmailProvider === 'gmail') {
+        await gmailIntegrationService.moveToTrash(messageId);
+      } else if (user.connectedEmailProvider === 'outlook') {
+        await outlookIntegrationService.moveToTrash(messageId);
+      }
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Error moving email to trash:", error);
+      res.status(500).json({ message: error.message || "Failed to move email to trash" });
+    }
+  });
+
+  // Archive email
+  app.post('/api/user/email-provider/emails/:messageId/archive', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user;
+      const messageId = req.params.messageId;
+
+      if (!user.connectedEmailProvider) {
+        return res.status(400).json({ message: "No email provider connected" });
+      }
+
+      if (user.connectedEmailProvider === 'gmail') {
+        await gmailIntegrationService.archiveEmail(messageId);
+      } else if (user.connectedEmailProvider === 'outlook') {
+        await outlookIntegrationService.archiveEmail(messageId);
+      }
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Error archiving email:", error);
+      res.status(500).json({ message: error.message || "Failed to archive email" });
+    }
+  });
+
   // Project routes
   app.get('/api/projects', isAuthenticated, async (req: any, res) => {
     try {

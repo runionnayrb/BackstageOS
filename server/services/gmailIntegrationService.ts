@@ -199,6 +199,211 @@ export class GmailIntegrationService {
       return false;
     }
   }
+
+  // Map folder names to Gmail label IDs
+  private getFolderQuery(folder: string): string {
+    const folderMap: Record<string, string> = {
+      'inbox': 'in:inbox',
+      'sent': 'in:sent',
+      'drafts': 'in:drafts',
+      'trash': 'in:trash',
+      'archive': '-in:inbox -in:sent -in:drafts -in:trash -in:spam',
+      'starred': 'is:starred',
+      'spam': 'in:spam',
+    };
+    return folderMap[folder] || 'in:inbox';
+  }
+
+  async getEmails(folder: string = 'inbox', limit: number = 50, pageToken?: string): Promise<{
+    messages: any[];
+    nextPageToken?: string;
+  }> {
+    try {
+      const gmail = await getUncachableGmailClient();
+      
+      const query = this.getFolderQuery(folder);
+      
+      // List messages
+      const listResponse = await gmail.users.messages.list({
+        userId: 'me',
+        q: query,
+        maxResults: limit,
+        pageToken: pageToken,
+      });
+
+      const messages = listResponse.data.messages || [];
+      const nextPageToken = listResponse.data.nextPageToken;
+
+      // Fetch full details for each message
+      const fullMessages = await Promise.all(
+        messages.map(async (msg) => {
+          try {
+            const fullMessage = await gmail.users.messages.get({
+              userId: 'me',
+              id: msg.id!,
+              format: 'full',
+            });
+            return this.parseGmailMessage(fullMessage.data);
+          } catch (error) {
+            console.error(`Error fetching message ${msg.id}:`, error);
+            return null;
+          }
+        })
+      );
+
+      return {
+        messages: fullMessages.filter(m => m !== null),
+        nextPageToken,
+      };
+    } catch (error: any) {
+      console.error('Error fetching Gmail emails:', error);
+      throw new Error(error.message || 'Failed to fetch emails from Gmail');
+    }
+  }
+
+  async getEmail(messageId: string): Promise<any> {
+    try {
+      const gmail = await getUncachableGmailClient();
+      
+      const response = await gmail.users.messages.get({
+        userId: 'me',
+        id: messageId,
+        format: 'full',
+      });
+
+      return this.parseGmailMessage(response.data);
+    } catch (error: any) {
+      console.error('Error fetching Gmail email:', error);
+      throw new Error(error.message || 'Failed to fetch email from Gmail');
+    }
+  }
+
+  private parseGmailMessage(message: any): any {
+    const headers = message.payload?.headers || [];
+    const getHeader = (name: string) => headers.find((h: any) => h.name.toLowerCase() === name.toLowerCase())?.value || '';
+
+    // Extract body content
+    let body = '';
+    let htmlBody = '';
+    
+    const extractBody = (part: any): void => {
+      if (part.mimeType === 'text/plain' && part.body?.data) {
+        body = Buffer.from(part.body.data, 'base64').toString('utf-8');
+      } else if (part.mimeType === 'text/html' && part.body?.data) {
+        htmlBody = Buffer.from(part.body.data, 'base64').toString('utf-8');
+      } else if (part.parts) {
+        part.parts.forEach(extractBody);
+      }
+    };
+
+    if (message.payload) {
+      extractBody(message.payload);
+    }
+
+    // Extract attachments info
+    const attachments: any[] = [];
+    const extractAttachments = (part: any): void => {
+      if (part.filename && part.body?.attachmentId) {
+        attachments.push({
+          id: part.body.attachmentId,
+          filename: part.filename,
+          mimeType: part.mimeType,
+          size: part.body.size,
+        });
+      }
+      if (part.parts) {
+        part.parts.forEach(extractAttachments);
+      }
+    };
+
+    if (message.payload) {
+      extractAttachments(message.payload);
+    }
+
+    const labelIds = message.labelIds || [];
+    const isUnread = labelIds.includes('UNREAD');
+    const isStarred = labelIds.includes('STARRED');
+
+    return {
+      id: message.id,
+      threadId: message.threadId,
+      subject: getHeader('Subject'),
+      from: getHeader('From'),
+      to: getHeader('To'),
+      cc: getHeader('Cc'),
+      bcc: getHeader('Bcc'),
+      date: getHeader('Date'),
+      snippet: message.snippet,
+      body: htmlBody || body,
+      isHtml: !!htmlBody,
+      isUnread,
+      isStarred,
+      labelIds,
+      attachments,
+      internalDate: message.internalDate,
+    };
+  }
+
+  async markAsRead(messageId: string): Promise<void> {
+    try {
+      const gmail = await getUncachableGmailClient();
+      await gmail.users.messages.modify({
+        userId: 'me',
+        id: messageId,
+        requestBody: {
+          removeLabelIds: ['UNREAD'],
+        },
+      });
+    } catch (error: any) {
+      console.error('Error marking email as read:', error);
+      throw new Error(error.message || 'Failed to mark email as read');
+    }
+  }
+
+  async markAsUnread(messageId: string): Promise<void> {
+    try {
+      const gmail = await getUncachableGmailClient();
+      await gmail.users.messages.modify({
+        userId: 'me',
+        id: messageId,
+        requestBody: {
+          addLabelIds: ['UNREAD'],
+        },
+      });
+    } catch (error: any) {
+      console.error('Error marking email as unread:', error);
+      throw new Error(error.message || 'Failed to mark email as unread');
+    }
+  }
+
+  async moveToTrash(messageId: string): Promise<void> {
+    try {
+      const gmail = await getUncachableGmailClient();
+      await gmail.users.messages.trash({
+        userId: 'me',
+        id: messageId,
+      });
+    } catch (error: any) {
+      console.error('Error moving email to trash:', error);
+      throw new Error(error.message || 'Failed to move email to trash');
+    }
+  }
+
+  async archiveEmail(messageId: string): Promise<void> {
+    try {
+      const gmail = await getUncachableGmailClient();
+      await gmail.users.messages.modify({
+        userId: 'me',
+        id: messageId,
+        requestBody: {
+          removeLabelIds: ['INBOX'],
+        },
+      });
+    } catch (error: any) {
+      console.error('Error archiving email:', error);
+      throw new Error(error.message || 'Failed to archive email');
+    }
+  }
 }
 
 export const gmailIntegrationService = new GmailIntegrationService();

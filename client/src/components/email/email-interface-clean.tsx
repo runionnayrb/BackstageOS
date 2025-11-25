@@ -301,7 +301,22 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
 
   // Mark email as read mutation
   const markAsReadMutation = useMutation({
-    mutationFn: async ({ messageId, accountId }: { messageId: number; accountId: number }) => {
+    mutationFn: async ({ messageId, accountId }: { messageId: number | string; accountId: number }) => {
+      // For OAuth connected accounts, use the new provider endpoints
+      if (accountId === -1) {
+        const response = await fetch(`/api/user/email-provider/emails/${messageId}/read`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        if (!response.ok) {
+          throw new Error('Failed to mark message as read');
+        }
+        return response.json();
+      }
+      
+      // For BackstageOS accounts, use the old endpoints
       const response = await fetch(`/api/email/messages/${messageId}/read`, {
         method: 'PUT',
         headers: {
@@ -324,9 +339,45 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
 
   // Bulk actions mutation
   const bulkActionMutation = useMutation({
-    mutationFn: async ({ messageIds, action, targetFolder }: { messageIds: number[]; action: string; targetFolder?: string }) => {
+    mutationFn: async ({ messageIds, action, targetFolder }: { messageIds: (number | string)[]; action: string; targetFolder?: string }) => {
       console.log('🗑️ Bulk action requested:', { messageIds, action, targetFolder, accountId: selectedAccount.id });
       
+      // For OAuth connected accounts, perform actions via the new provider endpoints
+      if (selectedAccount.id === -1) {
+        const results = await Promise.all(
+          messageIds.map(async (messageId) => {
+            let endpoint = '';
+            let method = 'POST';
+            
+            switch (action) {
+              case 'mark-read':
+                endpoint = `/api/user/email-provider/emails/${messageId}/read`;
+                break;
+              case 'mark-unread':
+                endpoint = `/api/user/email-provider/emails/${messageId}/unread`;
+                break;
+              case 'delete':
+                endpoint = `/api/user/email-provider/emails/${messageId}`;
+                method = 'DELETE';
+                break;
+              case 'archive':
+                endpoint = `/api/user/email-provider/emails/${messageId}/archive`;
+                break;
+              default:
+                throw new Error(`Unsupported action: ${action}`);
+            }
+            
+            const response = await fetch(endpoint, { method });
+            if (!response.ok) {
+              throw new Error(`Failed to ${action} message`);
+            }
+            return response.json();
+          })
+        );
+        return { result: results, action, messageIds, targetFolder };
+      }
+      
+      // For BackstageOS accounts, use the old bulk action endpoint
       const response = await fetch('/api/email/messages/bulk-action', {
         method: 'POST',
         headers: {
@@ -408,9 +459,43 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   });
 
   // Fetch messages for the selected account and folder
+  // For OAuth connected accounts (id === -1), use the new provider endpoints
+  // For BackstageOS accounts (id > 0), use the old endpoints
   const { data: inboxMessages, isLoading, error } = useQuery<EmailMessage[]>({
     queryKey: ['/api/email/accounts', selectedAccount.id, activeFolder],
     queryFn: async () => {
+      // Check if this is an OAuth connected account (virtual account with id = -1)
+      if (selectedAccount.id === -1) {
+        // Use the new OAuth provider endpoints
+        const response = await fetch(`/api/user/email-provider/emails?folder=${activeFolder}&limit=50`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch ${activeFolder} messages from connected account`);
+        }
+        const data = await response.json();
+        // Transform the response to match the expected EmailMessage format
+        return (data.messages || []).map((msg: any) => ({
+          id: msg.id,
+          accountId: -1,
+          fromAddress: msg.from || '',
+          toAddresses: msg.to ? [msg.to] : [],
+          ccAddresses: msg.cc ? [msg.cc] : [],
+          bccAddresses: msg.bcc ? [msg.bcc] : [],
+          subject: msg.subject || '(No Subject)',
+          content: msg.body || msg.snippet || '',
+          htmlContent: msg.isHtml ? msg.body : null,
+          folder: activeFolder,
+          isRead: !msg.isUnread,
+          isStarred: msg.isStarred || false,
+          hasAttachments: (msg.attachments && msg.attachments.length > 0) || msg.hasAttachments,
+          receivedAt: msg.date ? new Date(msg.date) : new Date(parseInt(msg.internalDate)),
+          sentAt: msg.date ? new Date(msg.date) : new Date(parseInt(msg.internalDate)),
+          createdAt: msg.date ? new Date(msg.date) : new Date(parseInt(msg.internalDate)),
+          threadId: msg.threadId || null,
+          attachments: msg.attachments || [],
+        }));
+      }
+      
+      // Use the old BackstageOS endpoints for non-OAuth accounts
       let endpoint;
       switch (activeFolder) {
         case 'sent':
@@ -434,9 +519,9 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
       }
       return response.json();
     },
-    enabled: selectedAccount?.id > 0,
+    enabled: !!selectedAccount?.id,
     staleTime: 0, // Force fresh data on every request
-    cacheTime: 0, // Don't cache the results
+    gcTime: 0, // Don't cache the results (renamed from cacheTime in v5)
   });
 
   const filteredMessages = (inboxMessages || []).filter((message: EmailMessage) =>

@@ -159,6 +159,144 @@ export class OutlookIntegrationService {
       return false;
     }
   }
+
+  // Map folder names to Outlook folder paths
+  private getFolderPath(folder: string): string {
+    const folderMap: Record<string, string> = {
+      'inbox': 'inbox',
+      'sent': 'sentItems',
+      'drafts': 'drafts',
+      'trash': 'deletedItems',
+      'archive': 'archive',
+      'junk': 'junkemail',
+    };
+    return folderMap[folder] || 'inbox';
+  }
+
+  async getEmails(folder: string = 'inbox', limit: number = 50, skip: number = 0): Promise<{
+    messages: any[];
+    nextLink?: string;
+  }> {
+    try {
+      const client = await getUncachableOutlookClient();
+      
+      const folderPath = this.getFolderPath(folder);
+      
+      const response = await client
+        .api(`/me/mailFolders/${folderPath}/messages`)
+        .top(limit)
+        .skip(skip)
+        .orderby('receivedDateTime desc')
+        .select('id,subject,from,toRecipients,ccRecipients,bccRecipients,receivedDateTime,bodyPreview,body,isRead,hasAttachments,importance,flag')
+        .get();
+
+      const messages = (response.value || []).map((msg: any) => this.parseOutlookMessage(msg));
+
+      return {
+        messages,
+        nextLink: response['@odata.nextLink'],
+      };
+    } catch (error: any) {
+      console.error('Error fetching Outlook emails:', error);
+      throw new Error(error.message || 'Failed to fetch emails from Outlook');
+    }
+  }
+
+  async getEmail(messageId: string): Promise<any> {
+    try {
+      const client = await getUncachableOutlookClient();
+      
+      const response = await client
+        .api(`/me/messages/${messageId}`)
+        .select('id,subject,from,toRecipients,ccRecipients,bccRecipients,receivedDateTime,bodyPreview,body,isRead,hasAttachments,importance,flag,attachments')
+        .expand('attachments')
+        .get();
+
+      return this.parseOutlookMessage(response);
+    } catch (error: any) {
+      console.error('Error fetching Outlook email:', error);
+      throw new Error(error.message || 'Failed to fetch email from Outlook');
+    }
+  }
+
+  private parseOutlookMessage(message: any): any {
+    const from = message.from?.emailAddress;
+    const toRecipients = message.toRecipients || [];
+    const ccRecipients = message.ccRecipients || [];
+    const bccRecipients = message.bccRecipients || [];
+
+    return {
+      id: message.id,
+      subject: message.subject || '(No Subject)',
+      from: from ? `${from.name || ''} <${from.address}>`.trim() : '',
+      to: toRecipients.map((r: any) => `${r.emailAddress?.name || ''} <${r.emailAddress?.address}>`.trim()).join(', '),
+      cc: ccRecipients.map((r: any) => `${r.emailAddress?.name || ''} <${r.emailAddress?.address}>`.trim()).join(', '),
+      bcc: bccRecipients.map((r: any) => `${r.emailAddress?.name || ''} <${r.emailAddress?.address}>`.trim()).join(', '),
+      date: message.receivedDateTime,
+      snippet: message.bodyPreview || '',
+      body: message.body?.content || '',
+      isHtml: message.body?.contentType === 'html',
+      isUnread: !message.isRead,
+      isStarred: message.flag?.flagStatus === 'flagged',
+      importance: message.importance,
+      hasAttachments: message.hasAttachments,
+      attachments: (message.attachments || []).map((att: any) => ({
+        id: att.id,
+        filename: att.name,
+        mimeType: att.contentType,
+        size: att.size,
+      })),
+      internalDate: new Date(message.receivedDateTime).getTime().toString(),
+    };
+  }
+
+  async markAsRead(messageId: string): Promise<void> {
+    try {
+      const client = await getUncachableOutlookClient();
+      await client
+        .api(`/me/messages/${messageId}`)
+        .patch({ isRead: true });
+    } catch (error: any) {
+      console.error('Error marking email as read:', error);
+      throw new Error(error.message || 'Failed to mark email as read');
+    }
+  }
+
+  async markAsUnread(messageId: string): Promise<void> {
+    try {
+      const client = await getUncachableOutlookClient();
+      await client
+        .api(`/me/messages/${messageId}`)
+        .patch({ isRead: false });
+    } catch (error: any) {
+      console.error('Error marking email as unread:', error);
+      throw new Error(error.message || 'Failed to mark email as unread');
+    }
+  }
+
+  async moveToTrash(messageId: string): Promise<void> {
+    try {
+      const client = await getUncachableOutlookClient();
+      await client
+        .api(`/me/messages/${messageId}/move`)
+        .post({ destinationId: 'deletedItems' });
+    } catch (error: any) {
+      console.error('Error moving email to trash:', error);
+      throw new Error(error.message || 'Failed to move email to trash');
+    }
+  }
+
+  async archiveEmail(messageId: string): Promise<void> {
+    try {
+      const client = await getUncachableOutlookClient();
+      await client
+        .api(`/me/messages/${messageId}/move`)
+        .post({ destinationId: 'archive' });
+    } catch (error: any) {
+      console.error('Error archiving email:', error);
+      throw new Error(error.message || 'Failed to archive email');
+    }
+  }
 }
 
 export const outlookIntegrationService = new OutlookIntegrationService();
