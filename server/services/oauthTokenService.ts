@@ -2,12 +2,17 @@ import crypto from 'crypto';
 import { db } from '../db';
 import { users } from '../../shared/schema';
 import { eq } from 'drizzle-orm';
+import { googleOAuthService } from './googleOAuthService';
+import { microsoftOAuthService } from './microsoftOAuthService';
 
-const ENCRYPTION_KEY = process.env.OAUTH_ENCRYPTION_KEY || crypto.randomBytes(32).toString('hex');
+const ENCRYPTION_KEY = process.env.OAUTH_ENCRYPTION_KEY || '';
 const ALGORITHM = 'aes-256-gcm';
 
 export class OAuthTokenService {
   private encryptToken(token: string): string {
+    if (!ENCRYPTION_KEY) {
+      throw new Error('OAUTH_ENCRYPTION_KEY is not configured');
+    }
     const iv = crypto.randomBytes(16);
     const cipher = crypto.createCipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY.slice(0, 64), 'hex'), iv);
     
@@ -19,6 +24,9 @@ export class OAuthTokenService {
   }
 
   private decryptToken(encryptedToken: string): string {
+    if (!ENCRYPTION_KEY) {
+      throw new Error('OAUTH_ENCRYPTION_KEY is not configured');
+    }
     const parts = encryptedToken.split(':');
     const iv = Buffer.from(parts[0], 'hex');
     const authTag = Buffer.from(parts[1], 'hex');
@@ -33,83 +41,152 @@ export class OAuthTokenService {
     return decrypted;
   }
 
-  async storeTokens(
-    userId: number,
-    provider: 'gmail' | 'outlook',
-    accessToken: string,
-    refreshToken: string,
-    expiresIn: number,
-    scopes: string,
+  async saveGmailTokens(
+    userId: string,
+    tokens: { access_token: string; refresh_token: string; expires_in: number; scope: string },
     emailAddress: string
   ): Promise<void> {
-    const encryptedRefreshToken = this.encryptToken(refreshToken);
-    const encryptedAccessToken = this.encryptToken(accessToken);
-    const tokenExpiry = new Date(Date.now() + expiresIn * 1000);
+    const encryptedRefreshToken = this.encryptToken(tokens.refresh_token);
+    const encryptedAccessToken = this.encryptToken(tokens.access_token);
+    const tokenExpiry = new Date(Date.now() + tokens.expires_in * 1000);
 
     await db.update(users)
       .set({
-        connectedEmailProvider: provider,
+        emailOAuthAccessToken: encryptedAccessToken,
+        emailOAuthRefreshToken: encryptedRefreshToken,
+        emailOAuthTokenExpiry: tokenExpiry,
+        emailOAuthScopes: tokens.scope,
+        connectedEmailProvider: 'gmail',
         connectedEmailAddress: emailAddress,
         emailProviderConnectedAt: new Date(),
-        emailOAuthRefreshToken: encryptedRefreshToken,
-        emailOAuthAccessToken: encryptedAccessToken,
-        emailOAuthTokenExpiry: tokenExpiry,
-        emailOAuthScopes: scopes,
       })
-      .where(eq(users.id, userId));
+      .where(eq(users.id, parseInt(userId)));
   }
 
-  async getTokens(userId: number): Promise<{
-    accessToken: string;
-    refreshToken: string;
-    expiry: Date;
-    provider: string;
-  } | null> {
+  async saveOutlookTokens(
+    userId: string,
+    tokens: { access_token: string; refresh_token: string; expires_in: number; scope: string },
+    emailAddress: string
+  ): Promise<void> {
+    const encryptedRefreshToken = this.encryptToken(tokens.refresh_token);
+    const encryptedAccessToken = this.encryptToken(tokens.access_token);
+    const tokenExpiry = new Date(Date.now() + tokens.expires_in * 1000);
+
+    await db.update(users)
+      .set({
+        emailOAuthAccessToken: encryptedAccessToken,
+        emailOAuthRefreshToken: encryptedRefreshToken,
+        emailOAuthTokenExpiry: tokenExpiry,
+        emailOAuthScopes: tokens.scope,
+        connectedEmailProvider: 'outlook',
+        connectedEmailAddress: emailAddress,
+        emailProviderConnectedAt: new Date(),
+      })
+      .where(eq(users.id, parseInt(userId)));
+  }
+
+  async getValidGmailAccessToken(userId: string): Promise<string | null> {
     const [user] = await db.select()
       .from(users)
-      .where(eq(users.id, userId))
+      .where(eq(users.id, parseInt(userId)))
       .limit(1);
 
-    if (!user || !user.emailOAuthRefreshToken || !user.emailOAuthAccessToken) {
+    if (!user || !user.emailOAuthAccessToken || !user.emailOAuthRefreshToken || user.connectedEmailProvider !== 'gmail') {
       return null;
     }
 
-    return {
-      accessToken: this.decryptToken(user.emailOAuthAccessToken),
-      refreshToken: this.decryptToken(user.emailOAuthRefreshToken),
-      expiry: user.emailOAuthTokenExpiry!,
-      provider: user.connectedEmailProvider!,
-    };
+    const expiry = user.emailOAuthTokenExpiry;
+    const isExpired = expiry ? new Date() >= new Date(expiry) : true;
+
+    if (isExpired) {
+      try {
+        const refreshToken = this.decryptToken(user.emailOAuthRefreshToken);
+        const refreshed = await googleOAuthService.refreshAccessToken(refreshToken);
+        
+        const encryptedAccessToken = this.encryptToken(refreshed.access_token);
+        const newExpiry = new Date(Date.now() + refreshed.expires_in * 1000);
+        
+        await db.update(users)
+          .set({
+            emailOAuthAccessToken: encryptedAccessToken,
+            emailOAuthTokenExpiry: newExpiry,
+          })
+          .where(eq(users.id, parseInt(userId)));
+        
+        return refreshed.access_token;
+      } catch (error) {
+        console.error('Failed to refresh Gmail access token:', error);
+        return null;
+      }
+    }
+
+    return this.decryptToken(user.emailOAuthAccessToken);
   }
 
-  async updateAccessToken(userId: number, accessToken: string, expiresIn: number): Promise<void> {
-    const encryptedAccessToken = this.encryptToken(accessToken);
-    const tokenExpiry = new Date(Date.now() + expiresIn * 1000);
+  async getValidOutlookAccessToken(userId: string): Promise<string | null> {
+    const [user] = await db.select()
+      .from(users)
+      .where(eq(users.id, parseInt(userId)))
+      .limit(1);
 
-    await db.update(users)
-      .set({
-        emailOAuthAccessToken: encryptedAccessToken,
-        emailOAuthTokenExpiry: tokenExpiry,
-      })
-      .where(eq(users.id, userId));
+    if (!user || !user.emailOAuthAccessToken || !user.emailOAuthRefreshToken || user.connectedEmailProvider !== 'outlook') {
+      return null;
+    }
+
+    const expiry = user.emailOAuthTokenExpiry;
+    const isExpired = expiry ? new Date() >= new Date(expiry) : true;
+
+    if (isExpired) {
+      try {
+        const refreshToken = this.decryptToken(user.emailOAuthRefreshToken);
+        const refreshed = await microsoftOAuthService.refreshAccessToken(refreshToken);
+        
+        const encryptedAccessToken = this.encryptToken(refreshed.access_token);
+        const newExpiry = new Date(Date.now() + refreshed.expires_in * 1000);
+        
+        await db.update(users)
+          .set({
+            emailOAuthAccessToken: encryptedAccessToken,
+            emailOAuthTokenExpiry: newExpiry,
+          })
+          .where(eq(users.id, parseInt(userId)));
+        
+        return refreshed.access_token;
+      } catch (error) {
+        console.error('Failed to refresh Outlook access token:', error);
+        return null;
+      }
+    }
+
+    return this.decryptToken(user.emailOAuthAccessToken);
   }
 
-  async clearTokens(userId: number): Promise<void> {
+  async clearGmailTokens(userId: string): Promise<void> {
     await db.update(users)
       .set({
+        emailOAuthAccessToken: null,
+        emailOAuthRefreshToken: null,
+        emailOAuthTokenExpiry: null,
+        emailOAuthScopes: null,
         connectedEmailProvider: null,
         connectedEmailAddress: null,
         emailProviderConnectedAt: null,
-        emailOAuthRefreshToken: null,
-        emailOAuthAccessToken: null,
-        emailOAuthTokenExpiry: null,
-        emailOAuthScopes: null,
       })
-      .where(eq(users.id, userId));
+      .where(eq(users.id, parseInt(userId)));
   }
 
-  isTokenExpired(expiry: Date): boolean {
-    return new Date() >= new Date(expiry);
+  async clearOutlookTokens(userId: string): Promise<void> {
+    await db.update(users)
+      .set({
+        emailOAuthAccessToken: null,
+        emailOAuthRefreshToken: null,
+        emailOAuthTokenExpiry: null,
+        emailOAuthScopes: null,
+        connectedEmailProvider: null,
+        connectedEmailAddress: null,
+        emailProviderConnectedAt: null,
+      })
+      .where(eq(users.id, parseInt(userId)));
   }
 }
 

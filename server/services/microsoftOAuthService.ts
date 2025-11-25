@@ -1,5 +1,4 @@
 import { Client } from '@microsoft/microsoft-graph-client';
-import { oauthTokenService } from './oauthTokenService';
 
 export class MicrosoftOAuthService {
   private clientId: string;
@@ -11,7 +10,11 @@ export class MicrosoftOAuthService {
     this.clientId = process.env.MICROSOFT_CLIENT_ID || '';
     this.clientSecret = process.env.MICROSOFT_CLIENT_SECRET || '';
     this.tenantId = process.env.MICROSOFT_TENANT_ID || 'common';
-    this.redirectUri = process.env.MICROSOFT_REDIRECT_URI || `${process.env.REPL_HOME || 'http://localhost:5000'}/api/oauth/microsoft/callback`;
+    
+    const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+      ? `https://${process.env.REPLIT_DEV_DOMAIN}`
+      : 'http://localhost:5000';
+    this.redirectUri = `${baseUrl}/api/oauth/microsoft/callback`;
     
     if (!this.clientId || !this.clientSecret) {
       console.warn('⚠️  Microsoft OAuth credentials not configured. Set MICROSOFT_CLIENT_ID and MICROSOFT_CLIENT_SECRET');
@@ -40,10 +43,10 @@ export class MicrosoftOAuthService {
   }
 
   async exchangeCodeForTokens(code: string): Promise<{
-    accessToken: string;
-    refreshToken: string;
-    expiresIn: number;
-    scopes: string;
+    access_token: string;
+    refresh_token: string;
+    expires_in: number;
+    scope: string;
   }> {
     const params = new URLSearchParams({
       client_id: this.clientId,
@@ -76,16 +79,16 @@ export class MicrosoftOAuthService {
     }
 
     return {
-      accessToken: data.access_token,
-      refreshToken: data.refresh_token,
-      expiresIn: data.expires_in || 3600,
-      scopes: data.scope || '',
+      access_token: data.access_token,
+      refresh_token: data.refresh_token,
+      expires_in: data.expires_in || 3600,
+      scope: data.scope || '',
     };
   }
 
   async refreshAccessToken(refreshToken: string): Promise<{
-    accessToken: string;
-    expiresIn: number;
+    access_token: string;
+    expires_in: number;
   }> {
     const params = new URLSearchParams({
       client_id: this.clientId,
@@ -113,8 +116,8 @@ export class MicrosoftOAuthService {
     const data = await response.json();
 
     return {
-      accessToken: data.access_token,
-      expiresIn: data.expires_in || 3600,
+      access_token: data.access_token,
+      expires_in: data.expires_in || 3600,
     };
   }
 
@@ -129,28 +132,7 @@ export class MicrosoftOAuthService {
     return user.mail || user.userPrincipalName || '';
   }
 
-  async getValidAccessToken(userId: number): Promise<string | null> {
-    const tokens = await oauthTokenService.getTokens(userId);
-    
-    if (!tokens) {
-      return null;
-    }
-
-    if (oauthTokenService.isTokenExpired(tokens.expiry)) {
-      try {
-        const refreshed = await this.refreshAccessToken(tokens.refreshToken);
-        await oauthTokenService.updateAccessToken(userId, refreshed.accessToken, refreshed.expiresIn);
-        return refreshed.accessToken;
-      } catch (error) {
-        console.error('Failed to refresh Microsoft access token:', error);
-        return null;
-      }
-    }
-
-    return tokens.accessToken;
-  }
-
-  async sendEmail(userId: number, params: {
+  async sendEmail(accessToken: string, params: {
     to: string[];
     cc?: string[];
     bcc?: string[];
@@ -159,15 +141,6 @@ export class MicrosoftOAuthService {
     isHtml?: boolean;
   }): Promise<{ success: boolean; messageId?: string; error?: string }> {
     try {
-      const accessToken = await this.getValidAccessToken(userId);
-      
-      if (!accessToken) {
-        return {
-          success: false,
-          error: 'No valid access token available',
-        };
-      }
-
       const client = Client.initWithMiddleware({
         authProvider: {
           getAccessToken: async () => accessToken,
@@ -191,7 +164,7 @@ export class MicrosoftOAuthService {
         })),
       };
 
-      const response = await client
+      await client
         .api('/me/sendMail')
         .post({
           message,
@@ -200,7 +173,7 @@ export class MicrosoftOAuthService {
 
       return {
         success: true,
-        messageId: response?.id || 'sent',
+        messageId: 'sent',
       };
     } catch (error: any) {
       console.error('Error sending email via Outlook:', error);

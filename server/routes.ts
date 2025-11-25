@@ -26,8 +26,9 @@ import { billingSyncService } from "./services/billingSyncService";
 import { z } from "zod";
 import sgMail from "@sendgrid/mail";
 import Stripe from "stripe";
-import { gmailIntegrationService } from "./services/gmailIntegrationService";
-import { outlookIntegrationService } from "./services/outlookIntegrationService";
+import { googleOAuthService } from "./services/googleOAuthService";
+import { microsoftOAuthService } from "./services/microsoftOAuthService";
+import { oauthTokenService } from "./services/oauthTokenService";
 
 // Function to generate HTML for daily call PDF
 function generateDailyCallHTML(callData: any, projectName: string, date: string): string {
@@ -2547,7 +2548,7 @@ Respond with valid JSON only.`;
     }
   });
 
-  // Email provider integration routes
+  // Email provider integration routes - Per-user OAuth
   app.get('/api/user/email-provider', isAuthenticated, async (req: any, res) => {
     try {
       const user = req.user;
@@ -2562,49 +2563,110 @@ Respond with valid JSON only.`;
     }
   });
 
-  app.post('/api/user/email-provider/connect', isAuthenticated, async (req: any, res) => {
+  // Initiate Google OAuth flow for Gmail
+  app.get('/api/oauth/google/initiate', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id.toString();
-      const { provider } = req.body;
+      const authUrl = googleOAuthService.getAuthUrl(userId);
+      res.json({ authUrl });
+    } catch (error: any) {
+      console.error("Error initiating Google OAuth:", error);
+      res.status(500).json({ message: error.message || "Failed to initiate Google OAuth" });
+    }
+  });
 
-      if (!provider || !['gmail', 'outlook'].includes(provider)) {
-        return res.status(400).json({ message: "Invalid provider. Must be 'gmail' or 'outlook'" });
+  // Google OAuth callback
+  app.get('/api/oauth/google/callback', async (req: any, res) => {
+    try {
+      const { code, state } = req.query;
+      
+      if (!code || !state) {
+        return res.redirect('/profile?error=missing_oauth_params');
       }
 
-      let emailAddress: string;
-      let isConnected: boolean;
-
-      if (provider === 'gmail') {
-        isConnected = await gmailIntegrationService.checkConnection();
-        if (!isConnected) {
-          return res.status(400).json({ message: "Gmail is not connected. Please connect your Google account first." });
-        }
-        emailAddress = await gmailIntegrationService.getUserEmail();
-      } else {
-        isConnected = await outlookIntegrationService.checkConnection();
-        if (!isConnected) {
-          return res.status(400).json({ message: "Outlook is not connected. Please connect your Microsoft account first." });
-        }
-        emailAddress = await outlookIntegrationService.getUserEmail();
-      }
-
-      const updatedUser = await storage.updateUserAdmin(userId, {
-        connectedEmailProvider: provider,
+      const userId = state as string;
+      
+      // Exchange code for tokens
+      const tokens = await googleOAuthService.exchangeCodeForTokens(code as string);
+      
+      // Get user's email address from Google
+      const emailAddress = await googleOAuthService.getUserEmail(tokens.access_token);
+      
+      // Save tokens securely
+      await oauthTokenService.saveGmailTokens(userId, tokens, emailAddress);
+      
+      // Update user's connected email provider
+      await storage.updateUserAdmin(userId, {
+        connectedEmailProvider: 'gmail',
         connectedEmailAddress: emailAddress,
         emailProviderConnectedAt: new Date(),
       });
 
-      const { password, ...userResponse } = updatedUser;
-      res.json(userResponse);
+      res.redirect('/profile?oauth=success&provider=gmail');
     } catch (error: any) {
-      console.error("Error connecting email provider:", error);
-      res.status(500).json({ message: error.message || "Failed to connect email provider" });
+      console.error("Error in Google OAuth callback:", error);
+      res.redirect(`/profile?error=${encodeURIComponent(error.message || 'oauth_failed')}`);
     }
   });
 
+  // Initiate Microsoft OAuth flow for Outlook
+  app.get('/api/oauth/microsoft/initiate', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      const authUrl = microsoftOAuthService.getAuthUrl(userId);
+      res.json({ authUrl });
+    } catch (error: any) {
+      console.error("Error initiating Microsoft OAuth:", error);
+      res.status(500).json({ message: error.message || "Failed to initiate Microsoft OAuth" });
+    }
+  });
+
+  // Microsoft OAuth callback
+  app.get('/api/oauth/microsoft/callback', async (req: any, res) => {
+    try {
+      const { code, state } = req.query;
+      
+      if (!code || !state) {
+        return res.redirect('/profile?error=missing_oauth_params');
+      }
+
+      const userId = state as string;
+      
+      // Exchange code for tokens
+      const tokens = await microsoftOAuthService.exchangeCodeForTokens(code as string);
+      
+      // Get user's email address from Microsoft
+      const emailAddress = await microsoftOAuthService.getUserEmail(tokens.access_token);
+      
+      // Save tokens securely
+      await oauthTokenService.saveOutlookTokens(userId, tokens, emailAddress);
+      
+      // Update user's connected email provider
+      await storage.updateUserAdmin(userId, {
+        connectedEmailProvider: 'outlook',
+        connectedEmailAddress: emailAddress,
+        emailProviderConnectedAt: new Date(),
+      });
+
+      res.redirect('/profile?oauth=success&provider=outlook');
+    } catch (error: any) {
+      console.error("Error in Microsoft OAuth callback:", error);
+      res.redirect(`/profile?error=${encodeURIComponent(error.message || 'oauth_failed')}`);
+    }
+  });
+
+  // Disconnect email provider
   app.delete('/api/user/email-provider/disconnect', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id.toString();
+      const user = req.user;
+
+      // Clear OAuth tokens based on current provider
+      if (user.connectedEmailProvider === 'gmail') {
+        await oauthTokenService.clearGmailTokens(userId);
+      } else if (user.connectedEmailProvider === 'outlook') {
+        await oauthTokenService.clearOutlookTokens(userId);
+      }
 
       const updatedUser = await storage.updateUserAdmin(userId, {
         connectedEmailProvider: null,
@@ -2623,6 +2685,7 @@ Respond with valid JSON only.`;
   app.post('/api/user/email-provider/send', isAuthenticated, async (req: any, res) => {
     try {
       const user = req.user;
+      const userId = user.id.toString();
       const { to, cc, bcc, subject, body, isHtml } = req.body;
 
       if (!user.connectedEmailProvider) {
@@ -2643,16 +2706,28 @@ Respond with valid JSON only.`;
 
       let result;
       if (user.connectedEmailProvider === 'gmail') {
-        result = await gmailIntegrationService.sendEmail({
+        // Get valid access token (auto-refreshes if needed)
+        const accessToken = await oauthTokenService.getValidGmailAccessToken(userId);
+        if (!accessToken) {
+          return res.status(401).json({ message: "Gmail token expired. Please reconnect your account." });
+        }
+        result = await googleOAuthService.sendEmail(accessToken, {
           to,
           cc,
           bcc,
           subject,
           body,
           isHtml: isHtml || false,
+          fromEmail: user.connectedEmailAddress,
+          fromName: user.emailDisplayName || `${user.firstName} ${user.lastName}`,
         });
       } else if (user.connectedEmailProvider === 'outlook') {
-        result = await outlookIntegrationService.sendEmail({
+        // Get valid access token (auto-refreshes if needed)
+        const accessToken = await oauthTokenService.getValidOutlookAccessToken(userId);
+        if (!accessToken) {
+          return res.status(401).json({ message: "Outlook token expired. Please reconnect your account." });
+        }
+        result = await microsoftOAuthService.sendEmail(accessToken, {
           to,
           cc,
           bcc,

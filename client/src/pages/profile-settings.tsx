@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -6,18 +6,26 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Save, Key, Mail, User, Eye, EyeOff, MailPlus, CheckCircle2, XCircle, Link as LinkIcon } from "lucide-react";
+import { ArrowLeft, Save, Key, Mail, User, Eye, EyeOff, MailPlus, CheckCircle2, XCircle, Link as LinkIcon, Loader2 } from "lucide-react";
 import { useLocation } from "wouter";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
-import { SiGmail, SiMicrosoftoutlook } from "react-icons/si";
+import { SiGmail } from "react-icons/si";
+import { MdOutlineMail } from "react-icons/md";
+
+interface EmailProviderData {
+  provider: string | null;
+  emailAddress: string | null;
+  connectedAt: string | null;
+}
 
 export default function ProfileSettings() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const queryClient = useQueryClient();
+  const [isConnecting, setIsConnecting] = useState<'gmail' | 'outlook' | null>(null);
   
   const [profileData, setProfileData] = useState({
     firstName: user?.firstName || "",
@@ -34,6 +42,33 @@ export default function ProfileSettings() {
     confirmPassword: false,
   });
 
+  // Handle OAuth callback messages
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const oauthResult = urlParams.get('oauth');
+    const error = urlParams.get('error');
+    const provider = urlParams.get('provider');
+
+    if (oauthResult === 'success') {
+      toast({
+        title: "Email connected",
+        description: `Your ${provider === 'gmail' ? 'Gmail' : 'Outlook'} account has been connected successfully.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/email-provider"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      // Clear URL params
+      window.history.replaceState({}, '', '/profile');
+    } else if (error) {
+      toast({
+        title: "Connection failed",
+        description: decodeURIComponent(error) || "Failed to connect email provider.",
+        variant: "destructive",
+      });
+      // Clear URL params
+      window.history.replaceState({}, '', '/profile');
+    }
+  }, [location]);
+
   const togglePasswordVisibility = (field: keyof typeof passwordVisibility) => {
     setPasswordVisibility(prev => ({
       ...prev,
@@ -41,31 +76,39 @@ export default function ProfileSettings() {
     }));
   };
 
-  const { data: emailProvider, isLoading: isLoadingProvider } = useQuery({
+  const { data: emailProvider, isLoading: isLoadingProvider } = useQuery<EmailProviderData>({
     queryKey: ['/api/user/email-provider'],
   });
 
-  const connectProviderMutation = useMutation({
-    mutationFn: async (provider: 'gmail' | 'outlook') => {
-      const response = await apiRequest("POST", "/api/user/email-provider/connect", { provider });
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Email provider connected",
-        description: "Your email account has been connected successfully.",
+  const initiateOAuth = async (provider: 'gmail' | 'outlook') => {
+    setIsConnecting(provider);
+    try {
+      const endpoint = provider === 'gmail' 
+        ? '/api/oauth/google/initiate' 
+        : '/api/oauth/microsoft/initiate';
+      
+      const response = await fetch(endpoint, {
+        credentials: 'include',
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/user/email-provider"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
-    },
-    onError: (error: any) => {
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to initiate OAuth');
+      }
+      
+      const data = await response.json();
+      
+      // Redirect to OAuth provider
+      window.location.href = data.authUrl;
+    } catch (error: any) {
       toast({
         title: "Connection failed",
-        description: error.message || "Failed to connect email provider.",
+        description: error.message || "Failed to start email connection.",
         variant: "destructive",
       });
-    },
-  });
+      setIsConnecting(null);
+    }
+  };
 
   const disconnectProviderMutation = useMutation({
     mutationFn: async () => {
@@ -255,7 +298,7 @@ export default function ProfileSettings() {
                               </>
                             ) : (
                               <>
-                                <SiMicrosoftoutlook className="h-4 w-4 text-blue-500" />
+                                <MdOutlineMail className="h-4 w-4 text-blue-500" />
                                 <span className="font-medium text-green-900 dark:text-green-100">Outlook Connected</span>
                               </>
                             )}
@@ -292,11 +335,15 @@ export default function ProfileSettings() {
                       <Button
                         variant="outline"
                         className="h-auto p-4 justify-start"
-                        onClick={() => connectProviderMutation.mutate('gmail')}
-                        disabled={connectProviderMutation.isPending}
+                        onClick={() => initiateOAuth('gmail')}
+                        disabled={isConnecting !== null}
                         data-testid="button-connect-gmail"
                       >
-                        <SiGmail className="h-5 w-5 text-red-500 mr-3" />
+                        {isConnecting === 'gmail' ? (
+                          <Loader2 className="h-5 w-5 mr-3 animate-spin" />
+                        ) : (
+                          <SiGmail className="h-5 w-5 text-red-500 mr-3" />
+                        )}
                         <div className="text-left">
                           <div className="font-medium">Connect Gmail</div>
                           <div className="text-xs text-muted-foreground">Send emails from your Google account</div>
@@ -305,11 +352,15 @@ export default function ProfileSettings() {
                       <Button
                         variant="outline"
                         className="h-auto p-4 justify-start"
-                        onClick={() => connectProviderMutation.mutate('outlook')}
-                        disabled={connectProviderMutation.isPending}
+                        onClick={() => initiateOAuth('outlook')}
+                        disabled={isConnecting !== null}
                         data-testid="button-connect-outlook"
                       >
-                        <SiMicrosoftoutlook className="h-5 w-5 text-blue-500 mr-3" />
+                        {isConnecting === 'outlook' ? (
+                          <Loader2 className="h-5 w-5 mr-3 animate-spin" />
+                        ) : (
+                          <MdOutlineMail className="h-5 w-5 text-blue-500 mr-3" />
+                        )}
                         <div className="text-left">
                           <div className="font-medium">Connect Outlook</div>
                           <div className="text-xs text-muted-foreground">Send emails from your Microsoft account</div>

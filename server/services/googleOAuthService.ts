@@ -1,5 +1,4 @@
 import { google } from 'googleapis';
-import { oauthTokenService } from './oauthTokenService';
 
 export class GoogleOAuthService {
   private oauth2Client: any;
@@ -10,7 +9,11 @@ export class GoogleOAuthService {
   constructor() {
     this.clientId = process.env.GOOGLE_CLIENT_ID || '';
     this.clientSecret = process.env.GOOGLE_CLIENT_SECRET || '';
-    this.redirectUri = process.env.GOOGLE_REDIRECT_URI || `${process.env.REPL_HOME || 'http://localhost:5000'}/api/oauth/google/callback`;
+    
+    const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+      ? `https://${process.env.REPLIT_DEV_DOMAIN}`
+      : 'http://localhost:5000';
+    this.redirectUri = `${baseUrl}/api/oauth/google/callback`;
     
     if (!this.clientId || !this.clientSecret) {
       console.warn('⚠️  Google OAuth credentials not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET');
@@ -39,10 +42,10 @@ export class GoogleOAuthService {
   }
 
   async exchangeCodeForTokens(code: string): Promise<{
-    accessToken: string;
-    refreshToken: string;
-    expiresIn: number;
-    scopes: string;
+    access_token: string;
+    refresh_token: string;
+    expires_in: number;
+    scope: string;
   }> {
     const { tokens } = await this.oauth2Client.getToken(code);
     
@@ -51,16 +54,16 @@ export class GoogleOAuthService {
     }
 
     return {
-      accessToken: tokens.access_token!,
-      refreshToken: tokens.refresh_token,
-      expiresIn: tokens.expiry_date ? Math.floor((tokens.expiry_date - Date.now()) / 1000) : 3600,
-      scopes: (tokens.scope || '').toString(),
+      access_token: tokens.access_token!,
+      refresh_token: tokens.refresh_token,
+      expires_in: tokens.expiry_date ? Math.floor((tokens.expiry_date - Date.now()) / 1000) : 3600,
+      scope: (tokens.scope || '').toString(),
     };
   }
 
   async refreshAccessToken(refreshToken: string): Promise<{
-    accessToken: string;
-    expiresIn: number;
+    access_token: string;
+    expires_in: number;
   }> {
     this.oauth2Client.setCredentials({
       refresh_token: refreshToken,
@@ -69,8 +72,8 @@ export class GoogleOAuthService {
     const { credentials } = await this.oauth2Client.refreshAccessToken();
 
     return {
-      accessToken: credentials.access_token!,
-      expiresIn: credentials.expiry_date ? Math.floor((credentials.expiry_date - Date.now()) / 1000) : 3600,
+      access_token: credentials.access_token!,
+      expires_in: credentials.expiry_date ? Math.floor((credentials.expiry_date - Date.now()) / 1000) : 3600,
     };
   }
 
@@ -85,52 +88,31 @@ export class GoogleOAuthService {
     return profile.data.emailAddress || '';
   }
 
-  async getValidAccessToken(userId: number): Promise<string | null> {
-    const tokens = await oauthTokenService.getTokens(userId);
-    
-    if (!tokens) {
-      return null;
-    }
-
-    if (oauthTokenService.isTokenExpired(tokens.expiry)) {
-      try {
-        const refreshed = await this.refreshAccessToken(tokens.refreshToken);
-        await oauthTokenService.updateAccessToken(userId, refreshed.accessToken, refreshed.expiresIn);
-        return refreshed.accessToken;
-      } catch (error) {
-        console.error('Failed to refresh Google access token:', error);
-        return null;
-      }
-    }
-
-    return tokens.accessToken;
-  }
-
-  async sendEmail(userId: number, params: {
+  async sendEmail(accessToken: string, params: {
     to: string[];
     cc?: string[];
     bcc?: string[];
     subject: string;
     body: string;
     isHtml?: boolean;
+    fromEmail?: string;
+    fromName?: string;
   }): Promise<{ success: boolean; messageId?: string; error?: string }> {
     try {
-      const accessToken = await this.getValidAccessToken(userId);
-      
-      if (!accessToken) {
-        return {
-          success: false,
-          error: 'No valid access token available',
-        };
-      }
-
       this.oauth2Client.setCredentials({
         access_token: accessToken,
       });
 
       const gmail = google.gmail({ version: 'v1', auth: this.oauth2Client });
 
+      const fromHeader = params.fromName && params.fromEmail 
+        ? `From: "${params.fromName}" <${params.fromEmail}>`
+        : params.fromEmail 
+          ? `From: ${params.fromEmail}`
+          : '';
+
       const messageParts = [
+        fromHeader,
         `To: ${params.to.join(', ')}`,
         params.cc && params.cc.length > 0 ? `Cc: ${params.cc.join(', ')}` : '',
         params.bcc && params.bcc.length > 0 ? `Bcc: ${params.bcc.join(', ')}` : '',
@@ -156,7 +138,7 @@ export class GoogleOAuthService {
 
       return {
         success: true,
-        messageId: response.data.id,
+        messageId: response.data.id || undefined,
       };
     } catch (error: any) {
       console.error('Error sending email via Gmail:', error);
