@@ -170,13 +170,18 @@ export default function AuthPage() {
                 />
                 {isLogin && (
                   <div className="text-right mt-1">
-                    <Link
-                      href="/forgot-password"
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setLocation('/forgot-password');
+                      }}
                       className="text-sm text-primary hover:underline"
                       data-testid="link-forgot-password"
                     >
                       Forgot password?
-                    </Link>
+                    </button>
                   </div>
                 )}
               </div>
