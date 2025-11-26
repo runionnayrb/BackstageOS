@@ -54,17 +54,23 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
-      // CRITICAL: Clear ALL cached data BEFORE login to prevent showing previous user's data
+      // CRITICAL: Cancel any in-flight /api/user queries to prevent race condition
+      await queryClient.cancelQueries({ queryKey: ["/api/user"] });
+      
+      // Clear ALL cached data BEFORE login to prevent showing previous user's data
       queryClient.clear();
-      console.log("[Auth] Cache cleared before login to ensure data isolation");
+      console.log("[Auth] Queries canceled and cache cleared before login");
       
       const res = await apiRequest("POST", "/api/login", credentials);
       return res;
     },
     onSuccess: (user: User) => {
-      // Set the new user data - cache is already cleared so no stale data exists
+      // Set the new user data immediately
       queryClient.setQueryData(["/api/user"], user);
-      console.log("[Auth] New user set, fetching fresh data for user:", user.id);
+      console.log("[Auth] Login success, user set:", user.id);
+      
+      // Force refetch to ensure we have latest session state
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
     },
     onError: (error: Error) => {
       toast({
@@ -77,17 +83,23 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
 
   const registerMutation = useMutation({
     mutationFn: async (credentials: RegisterData) => {
-      // CRITICAL: Clear ALL cached data BEFORE registration to prevent showing previous user's data
+      // CRITICAL: Cancel any in-flight /api/user queries to prevent race condition
+      await queryClient.cancelQueries({ queryKey: ["/api/user"] });
+      
+      // Clear ALL cached data BEFORE registration to prevent showing previous user's data
       queryClient.clear();
-      console.log("[Auth] Cache cleared before registration to ensure data isolation");
+      console.log("[Auth] Queries canceled and cache cleared before registration");
       
       const res = await apiRequest("POST", "/api/register", credentials);
       return res;
     },
     onSuccess: (user: User) => {
-      // Set the new user data - cache is already cleared so no stale data exists
+      // Set the new user data immediately
       queryClient.setQueryData(["/api/user"], user);
-      console.log("[Auth] New user registered, user:", user.id);
+      console.log("[Auth] Registration success, user set:", user.id);
+      
+      // Force refetch to ensure we have latest session state
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
     },
     onError: (error: Error) => {
       toast({
