@@ -196,10 +196,19 @@ function Router() {
   }
   
   // For dev environment, show authentication page if not authenticated (except for explicit public routes)
-  const publicRoutes = ['/landing', '/security', '/privacy', '/terms', '/main-landing'];
+  const publicRoutes = ['/landing', '/security', '/privacy', '/terms', '/main-landing', '/forgot-password', '/reset-password', '/auth', '/login'];
   const isPublicRoute = publicRoutes.includes(window.location.pathname);
   if (isDevEnvironment && !user && !isLoading && !isPublicRoute) {
     return <AuthPage />;
+  }
+  
+  // Handle password reset pages - no authentication required
+  if (window.location.pathname === '/forgot-password') {
+    return <ForgotPassword />;
+  }
+  
+  if (window.location.pathname === '/reset-password') {
+    return <ResetPassword />;
   }
 
   if (isLoading) {
