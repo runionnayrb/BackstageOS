@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,11 @@ export default function Projects() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const { selectedProfileType } = useAdminView();
+  
+  // Scroll to top when page loads
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   
   // Check if user is full-time either by their actual profile type OR if admin has selected full-time view
   const isFullTime = (user as any)?.profileType === "fulltime" || 
