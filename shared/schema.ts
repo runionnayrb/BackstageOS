@@ -40,7 +40,7 @@ export const users = pgTable("users", {
   profileType: varchar("profile_type"), // 'freelance' or 'fulltime'
   // User role and access management
   userRole: varchar("user_role").notNull().default("user"), // 'admin', 'user', 'editor', 'viewer'
-  betaAccess: boolean("beta_access").default(false), // true/false for beta access
+  betaAccess: boolean("beta_access").default(false), // Automatically granted to users on the waitlist at registration
   betaFeatures: jsonb("beta_features"), // Array of enabled features for beta users
   isAdmin: boolean("is_admin").default(false), // Admin status for user management access
   // Editor limits tracking
