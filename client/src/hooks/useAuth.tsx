@@ -54,17 +54,17 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
+      // CRITICAL: Clear ALL cached data BEFORE login to prevent showing previous user's data
+      queryClient.clear();
+      console.log("[Auth] Cache cleared before login to ensure data isolation");
+      
       const res = await apiRequest("POST", "/api/login", credentials);
       return res;
     },
     onSuccess: (user: User) => {
-      // Set the new user data first
+      // Set the new user data - cache is already cleared so no stale data exists
       queryClient.setQueryData(["/api/user"], user);
-      // Invalidate all user-dependent queries and refetch immediately
-      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin"] });
-      queryClient.refetchQueries({ queryKey: ["/api/projects"] });
-      queryClient.refetchQueries({ queryKey: ["/api/admin"] });
+      console.log("[Auth] New user set, fetching fresh data for user:", user.id);
     },
     onError: (error: Error) => {
       toast({
@@ -77,17 +77,17 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
 
   const registerMutation = useMutation({
     mutationFn: async (credentials: RegisterData) => {
+      // CRITICAL: Clear ALL cached data BEFORE registration to prevent showing previous user's data
+      queryClient.clear();
+      console.log("[Auth] Cache cleared before registration to ensure data isolation");
+      
       const res = await apiRequest("POST", "/api/register", credentials);
       return res;
     },
     onSuccess: (user: User) => {
-      // Set the new user data first
+      // Set the new user data - cache is already cleared so no stale data exists
       queryClient.setQueryData(["/api/user"], user);
-      // Invalidate all user-dependent queries and refetch immediately
-      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin"] });
-      queryClient.refetchQueries({ queryKey: ["/api/projects"] });
-      queryClient.refetchQueries({ queryKey: ["/api/admin"] });
+      console.log("[Auth] New user registered, user:", user.id);
     },
     onError: (error: Error) => {
       toast({
