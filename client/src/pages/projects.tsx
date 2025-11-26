@@ -105,7 +105,7 @@ export default function Projects() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       <div className="w-full">
         {/* Desktop Header Only */}
         <div className="hidden md:block px-4 sm:px-6 lg:px-8 py-4">
