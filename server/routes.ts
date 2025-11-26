@@ -703,29 +703,7 @@ async function requireAdmin(req: any, res: any, next: any) {
     userAgent: req.headers['user-agent']?.substring(0, 50)
   });
   
-  // Check Safari admin bypass first (same as isAuthenticated middleware)
-  if ((req.headers['user-agent']?.includes('Safari') || req.headers['user-agent']?.includes('Mozilla')) && !req.isAuthenticated()) {
-    try {
-      const adminUser = await storage.getUserByEmail('runion.bryan@gmail.com');
-      if (adminUser && adminUser.isAdmin) {
-        console.log(`SAFARI ADMIN BYPASS: ${req.url} allowing access for admin user`);
-        req.user = {
-          ...adminUser,
-          id: parseInt(adminUser.id.toString()),
-          firstName: adminUser.firstName || undefined,
-          lastName: adminUser.lastName || undefined,
-          profileType: adminUser.profileType || undefined,
-          betaAccess: adminUser.betaAccess || false,
-          isAdmin: adminUser.isAdmin || false,
-          isActive: adminUser.isActive !== false,
-        };
-        return next();
-      }
-    } catch (error) {
-      console.log("Admin bypass check failed:", error);
-    }
-  }
-  
+  // SECURITY: No bypass - admin users must be properly authenticated
   if (!req.isAuthenticated()) {
     return res.status(401).json({ message: "Authentication required" });
   }
@@ -749,31 +727,8 @@ async function isAuthenticated(req: any, res: any, next: any) {
     userId: req.user?.id
   });
   
-  // TEMPORARY: Check if this is an admin user trying to access the system
-  // This bypasses the session issue for admin users on Safari/iPad
-  if (req.headers['user-agent']?.includes('Safari') && !req.isAuthenticated()) {
-    try {
-      // Look for the correct admin user (Bryan Runion)
-      const adminUser = await storage.getUserByEmail('runion.bryan@gmail.com');
-      if (adminUser && adminUser.isAdmin) {
-        console.log(`SAFARI ADMIN BYPASS: ${req.url} allowing access for admin user`);
-        // Transform user to match Express.User interface with numeric ID
-        req.user = {
-          ...adminUser,
-          id: parseInt(adminUser.id.toString()), // Ensure ID is numeric
-          firstName: adminUser.firstName || undefined,
-          lastName: adminUser.lastName || undefined,
-          profileType: adminUser.profileType || undefined,
-          betaAccess: adminUser.betaAccess || false,
-          isAdmin: adminUser.isAdmin || false,
-          isActive: adminUser.isActive !== false,
-        };
-        return next();
-      }
-    } catch (error) {
-      console.log("Admin bypass check failed:", error);
-    }
-  }
+  // SECURITY: No bypass - users must be properly authenticated
+  // Each user must only see their own data
   
   if (req.isAuthenticated()) {
     // Check if user account is active
@@ -2180,14 +2135,8 @@ Respond with valid JSON only.`;
   });
 
   // User Analytics endpoints
-  app.get('/api/admin/user-analytics', async (req: any, res) => {
+  app.get('/api/admin/user-analytics', requireAdmin, async (req: any, res) => {
     try {
-      // Safari admin bypass with logging
-      const sessionId = req.session?.id || req.sessionID;
-      const userAgent = req.get('User-Agent') || '';
-      
-      console.log(`SAFARI ADMIN BYPASS: /api/admin/user-analytics allowing access for admin user`);
-      
       const analytics = await storage.getNonEditorUserAnalytics();
       res.json(analytics);
     } catch (error) {
@@ -2197,10 +2146,8 @@ Respond with valid JSON only.`;
   });
 
   // All users analytics (for admin debugging - includes editors)
-  app.get('/api/admin/all-user-analytics', async (req: any, res) => {
+  app.get('/api/admin/all-user-analytics', requireAdmin, async (req: any, res) => {
     try {
-      console.log(`SAFARI ADMIN BYPASS: /api/admin/all-user-analytics allowing access for admin user`);
-      
       const analytics = await storage.getUserAnalytics();
       res.json(analytics);
     } catch (error) {
@@ -2225,10 +2172,8 @@ Respond with valid JSON only.`;
     }
   });
 
-  app.get('/api/admin/editor-analytics-stats', async (req: any, res) => {
+  app.get('/api/admin/editor-analytics-stats', requireAdmin, async (req: any, res) => {
     try {
-      console.log(`SAFARI ADMIN BYPASS: /api/admin/editor-analytics-stats allowing access for admin user`);
-      
       const stats = await storage.getEditorAnalyticsStats();
       res.json(stats);
     } catch (error) {
@@ -7068,16 +7013,7 @@ Best regards,
   // Global contacts route for email system (returns all user's contacts across projects)
   app.get('/api/contacts', isAuthenticated, async (req: any, res) => {
     try {
-      let userId = req.user?.id?.toString();
-      
-      // Handle Safari admin bypass
-      if (!userId && req.headers['user-agent']?.includes('Safari')) {
-        const adminUser = await storage.getUserByEmail('runion.bryan@gmail.com');
-        if (adminUser && adminUser.isAdmin) {
-          console.log("SAFARI ADMIN BYPASS: /api/contacts allowing access for admin user");
-          userId = adminUser.id.toString();
-        }
-      }
+      const userId = req.user?.id?.toString();
       
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
@@ -16059,24 +15995,7 @@ The Production Team`;
 
   // Account Types API Routes
   // Get account types
-  app.get("/api/admin/account-types", async (req, res) => {
-    // Apply Safari admin bypass if needed
-    if (!req.isAuthenticated() && req.headers['user-agent']?.includes('Safari')) {
-      try {
-        const adminUser = await storage.getUserByEmail('runion.bryan@gmail.com');
-        if (adminUser && adminUser.isAdmin) {
-          console.log(`SAFARI ADMIN BYPASS: ${req.url} allowing access for admin user`);
-          req.user = adminUser;
-        }
-      } catch (error) {
-        console.log("Admin bypass check failed:", error);
-      }
-    }
-
-    if (!req.isAuthenticated() || !isAdmin(req.user.id.toString())) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
+  app.get("/api/admin/account-types", requireAdmin, async (req: any, res) => {
     try {
       const accountTypes = await storage.getAccountTypes();
       res.json(accountTypes);
@@ -16086,24 +16005,7 @@ The Production Team`;
   });
 
   // Get specific account type
-  app.get("/api/admin/account-types/:id", async (req, res) => {
-    // Apply Safari admin bypass if needed
-    if (!req.isAuthenticated() && req.headers['user-agent']?.includes('Safari')) {
-      try {
-        const adminUser = await storage.getUserByEmail('runion.bryan@gmail.com');
-        if (adminUser && adminUser.isAdmin) {
-          console.log(`SAFARI ADMIN BYPASS: ${req.url} allowing access for admin user`);
-          req.user = adminUser;
-        }
-      } catch (error) {
-        console.log("Admin bypass check failed:", error);
-      }
-    }
-
-    if (!req.isAuthenticated() || !isAdmin(req.user.id.toString())) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
+  app.get("/api/admin/account-types/:id", requireAdmin, async (req: any, res) => {
     try {
       const accountType = await storage.getAccountTypeById(parseInt(req.params.id));
       if (!accountType) {
@@ -16116,24 +16018,7 @@ The Production Team`;
   });
 
   // Create account type
-  app.post("/api/admin/account-types", async (req, res) => {
-    // Apply Safari admin bypass if needed
-    if (!req.isAuthenticated() && req.headers['user-agent']?.includes('Safari')) {
-      try {
-        const adminUser = await storage.getUserByEmail('runion.bryan@gmail.com');
-        if (adminUser && adminUser.isAdmin) {
-          console.log(`SAFARI ADMIN BYPASS: ${req.url} allowing access for admin user`);
-          req.user = adminUser;
-        }
-      } catch (error) {
-        console.log("Admin bypass check failed:", error);
-      }
-    }
-
-    if (!req.isAuthenticated() || !isAdmin(req.user.id.toString())) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
+  app.post("/api/admin/account-types", requireAdmin, async (req: any, res) => {
     try {
       const accountTypeData = insertAccountTypeSchema.parse(req.body);
       const accountType = await storage.createAccountType(accountTypeData);
@@ -16144,24 +16029,7 @@ The Production Team`;
   });
 
   // Update account type
-  app.put("/api/admin/account-types/:id", async (req, res) => {
-    // Apply Safari admin bypass if needed
-    if (!req.isAuthenticated() && req.headers['user-agent']?.includes('Safari')) {
-      try {
-        const adminUser = await storage.getUserByEmail('runion.bryan@gmail.com');
-        if (adminUser && adminUser.isAdmin) {
-          console.log(`SAFARI ADMIN BYPASS: ${req.url} allowing access for admin user`);
-          req.user = adminUser;
-        }
-      } catch (error) {
-        console.log("Admin bypass check failed:", error);
-      }
-    }
-
-    if (!req.isAuthenticated() || !isAdmin(req.user.id.toString())) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
+  app.put("/api/admin/account-types/:id", requireAdmin, async (req: any, res) => {
     try {
       const accountType = await storage.updateAccountType(parseInt(req.params.id), req.body);
       res.json(accountType);
@@ -16171,24 +16039,7 @@ The Production Team`;
   });
 
   // Delete account type
-  app.delete("/api/admin/account-types/:id", async (req, res) => {
-    // Apply Safari admin bypass if needed
-    if (!req.isAuthenticated() && req.headers['user-agent']?.includes('Safari')) {
-      try {
-        const adminUser = await storage.getUserByEmail('runion.bryan@gmail.com');
-        if (adminUser && adminUser.isAdmin) {
-          console.log(`SAFARI ADMIN BYPASS: ${req.url} allowing access for admin user`);
-          req.user = adminUser;
-        }
-      } catch (error) {
-        console.log("Admin bypass check failed:", error);
-      }
-    }
-
-    if (!req.isAuthenticated() || !isAdmin(req.user.id.toString())) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
+  app.delete("/api/admin/account-types/:id", requireAdmin, async (req: any, res) => {
     try {
       await storage.deleteAccountType(parseInt(req.params.id));
       res.json({ message: "Account type deleted successfully" });
@@ -16232,24 +16083,7 @@ The Production Team`;
   };
 
   // Admin: Create billing plan
-  app.post("/api/admin/billing/plans", async (req, res) => {
-    // Apply Safari admin bypass if needed
-    if (!req.isAuthenticated() && req.headers['user-agent']?.includes('Safari')) {
-      try {
-        const adminUser = await storage.getUserByEmail('runion.bryan@gmail.com');
-        if (adminUser && adminUser.isAdmin) {
-          console.log(`SAFARI ADMIN BYPASS: ${req.url} allowing access for admin user`);
-          req.user = adminUser;
-        }
-      } catch (error) {
-        console.log("Admin bypass check failed:", error);
-      }
-    }
-
-    if (!req.isAuthenticated() || !isAdmin(req.user.id.toString())) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
+  app.post("/api/admin/billing/plans", requireAdmin, async (req: any, res) => {
     try {
       // Auto-generate planId from name
       const planDataWithId = {
@@ -16267,24 +16101,7 @@ The Production Team`;
   });
 
   // Admin: Update billing plan
-  app.put("/api/admin/billing/plans/:id", async (req, res) => {
-    // Apply Safari admin bypass if needed
-    if (!req.isAuthenticated() && req.headers['user-agent']?.includes('Safari')) {
-      try {
-        const adminUser = await storage.getUserByEmail('runion.bryan@gmail.com');
-        if (adminUser && adminUser.isAdmin) {
-          console.log(`SAFARI ADMIN BYPASS: ${req.url} allowing access for admin user`);
-          req.user = adminUser;
-        }
-      } catch (error) {
-        console.log("Admin bypass check failed:", error);
-      }
-    }
-
-    if (!req.isAuthenticated() || !isAdmin(req.user.id.toString())) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
+  app.put("/api/admin/billing/plans/:id", requireAdmin, async (req: any, res) => {
     try {
       // Auto-generate planId from name if name is being updated
       const planDataWithId = {
@@ -16300,24 +16117,7 @@ The Production Team`;
   });
 
   // Admin: Delete billing plan
-  app.delete("/api/admin/billing/plans/:id", async (req, res) => {
-    // Apply Safari admin bypass if needed
-    if (!req.isAuthenticated() && req.headers['user-agent']?.includes('Safari')) {
-      try {
-        const adminUser = await storage.getUserByEmail('runion.bryan@gmail.com');
-        if (adminUser && adminUser.isAdmin) {
-          console.log(`SAFARI ADMIN BYPASS: ${req.url} allowing access for admin user`);
-          req.user = adminUser;
-        }
-      } catch (error) {
-        console.log("Admin bypass check failed:", error);
-      }
-    }
-
-    if (!req.isAuthenticated() || !isAdmin(req.user.id.toString())) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
+  app.delete("/api/admin/billing/plans/:id", requireAdmin, async (req: any, res) => {
     try {
       await storage.deleteBillingPlan(parseInt(req.params.id));
       res.json({ message: "Billing plan deleted successfully" });
@@ -16826,21 +16626,7 @@ The Production Team`;
   });
 
   // Get current subscription status
-  app.get("/api/billing/subscription-status", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      console.log('SAFARI ADMIN BYPASS: /api/billing/subscription-status allowing access for admin user');
-      // Mock admin user for billing status demo
-      const adminUser = {
-        id: 7,
-        email: 'admin@backstageos.com',
-        stripeCustomerId: null,
-        stripeSubscriptionId: null,
-        subscriptionStatus: 'none',
-        subscriptionPlan: null
-      };
-      req.user = adminUser;
-    }
-
+  app.get("/api/billing/subscription-status", isAuthenticated, async (req: any, res) => {
     try {
       const user = req.user;
       let subscriptionData = {
@@ -16878,12 +16664,7 @@ The Production Team`;
   });
 
   // Cancel subscription
-  app.post("/api/billing/cancel-subscription", async (req, res) => {
-    if (!req.isAuthenticated()) {
-      console.log('SAFARI ADMIN BYPASS: /api/billing/cancel-subscription allowing access for admin user');
-      return res.status(401).json({ message: "Please log in to cancel subscription" });
-    }
-
+  app.post("/api/billing/cancel-subscription", isAuthenticated, async (req: any, res) => {
     try {
       const user = req.user;
       

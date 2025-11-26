@@ -258,30 +258,8 @@ export function setupAuth(app: Express) {
       return res.json(req.user);
     }
     
-    // TEMPORARY: Safari admin bypass for iPad session issues
-    if (req.headers['user-agent']?.includes('Safari')) {
-      try {
-        // Look for the correct admin user (Bryan Runion)
-        const adminUser = await storage.getUserByEmail('runion.bryan@gmail.com');
-        if (adminUser && adminUser.isAdmin) {
-          console.log("SAFARI ADMIN BYPASS: /api/user allowing access for admin user");
-          // Transform user to match Express.User interface
-          const transformedUser = {
-            ...adminUser,
-            firstName: adminUser.firstName || undefined,
-            lastName: adminUser.lastName || undefined,
-            profileType: adminUser.profileType || undefined,
-            betaAccess: adminUser.betaAccess || false,
-            isAdmin: adminUser.isAdmin || false,
-            isActive: adminUser.isActive !== false, // Default to true unless explicitly false
-          };
-          return res.json(transformedUser);
-        }
-      } catch (error) {
-        console.log("Admin bypass check failed:", error);
-      }
-    }
-    
+    // SECURITY: No bypass - users must be properly authenticated
+    // Return 401 for unauthenticated requests
     return res.sendStatus(401);
   });
 }
