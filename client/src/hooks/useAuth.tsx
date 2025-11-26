@@ -58,11 +58,13 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
       return res;
     },
     onSuccess: (user: User) => {
-      // Invalidate all user-dependent queries to force fresh data for new user
+      // Set the new user data first
+      queryClient.setQueryData(["/api/user"], user);
+      // Invalidate all user-dependent queries and refetch immediately
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin"] });
-      // Set the new user data
-      queryClient.setQueryData(["/api/user"], user);
+      queryClient.refetchQueries({ queryKey: ["/api/projects"] });
+      queryClient.refetchQueries({ queryKey: ["/api/admin"] });
     },
     onError: (error: Error) => {
       toast({
@@ -79,11 +81,13 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
       return res;
     },
     onSuccess: (user: User) => {
-      // Invalidate all user-dependent queries to force fresh data for new user
+      // Set the new user data first
+      queryClient.setQueryData(["/api/user"], user);
+      // Invalidate all user-dependent queries and refetch immediately
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin"] });
-      // Set the new user data
-      queryClient.setQueryData(["/api/user"], user);
+      queryClient.refetchQueries({ queryKey: ["/api/projects"] });
+      queryClient.refetchQueries({ queryKey: ["/api/admin"] });
     },
     onError: (error: Error) => {
       toast({
