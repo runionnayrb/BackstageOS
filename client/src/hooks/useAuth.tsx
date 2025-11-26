@@ -58,6 +58,8 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
       return res;
     },
     onSuccess: (user: User) => {
+      // Clear cache before login to ensure fresh data for new user
+      queryClient.clear();
       queryClient.setQueryData(["/api/user"], user);
     },
     onError: (error: Error) => {
@@ -75,6 +77,8 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
       return res;
     },
     onSuccess: (user: User) => {
+      // Clear cache before registration to ensure fresh data for new user
+      queryClient.clear();
       queryClient.setQueryData(["/api/user"], user);
     },
     onError: (error: Error) => {
@@ -91,6 +95,8 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
       await apiRequest("POST", "/api/logout");
     },
     onSuccess: () => {
+      // Clear ALL cached data when logging out to prevent other users from seeing previous user's data
+      queryClient.clear();
       queryClient.setQueryData(["/api/user"], null);
     },
     onError: (error: Error) => {
