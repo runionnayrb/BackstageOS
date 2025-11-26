@@ -197,7 +197,7 @@ export function setupAuth(app: Express) {
         console.error('Error converting waitlist entry:', waitlistError);
       }
 
-      // Log them in automatically with session regeneration
+      // Log them in automatically
       const transformedUser = {
         ...user,
         firstName: user.firstName || undefined,
@@ -208,20 +208,14 @@ export function setupAuth(app: Express) {
         isActive: user.isActive !== false,
       };
       
-      req.session.regenerate((regenerateErr) => {
-        if (regenerateErr) {
-          console.error("Session regeneration error on register:", regenerateErr);
-        }
+      req.login(transformedUser, (loginErr) => {
+        if (loginErr) return next(loginErr);
         
-        req.login(transformedUser, (loginErr) => {
-          if (loginErr) return next(loginErr);
-          
-          req.session.save((saveErr) => {
-            if (saveErr) {
-              console.error("Session save error on register:", saveErr);
-            }
-            res.status(201).json(transformedUser);
-          });
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            console.error("Session save error on register:", saveErr);
+          }
+          res.status(201).json(transformedUser);
         });
       });
     } catch (error) {
@@ -230,41 +224,27 @@ export function setupAuth(app: Express) {
     }
   });
 
-  // Login endpoint with session regeneration for security
+  // Login endpoint
   app.post("/api/login", passport.authenticate("local"), (req, res) => {
-    const user = req.user;
     const host = req.get('host') || '';
     
-    req.session.regenerate((regenerateErr) => {
-      if (regenerateErr) {
-        console.error("Session regeneration error:", regenerateErr);
+    console.log("Login successful:", {
+      userId: req.user?.id,
+      sessionId: req.session?.id,
+      isAuthenticated: req.isAuthenticated(),
+      host: host,
+      cookieDomain: req.session?.cookie?.domain,
+      cookieSecure: req.session?.cookie?.secure,
+      userAgent: req.get('User-Agent')?.substring(0, 50)
+    });
+    
+    req.session.save((saveErr) => {
+      if (saveErr) {
+        console.error("Session save error:", saveErr);
+      } else {
+        console.log("Session saved successfully with ID:", req.session?.id);
       }
-      
-      req.login(user!, (loginErr) => {
-        if (loginErr) {
-          console.error("Re-login after regeneration error:", loginErr);
-          return res.status(500).json({ message: "Login failed" });
-        }
-        
-        console.log("Login successful:", {
-          userId: req.user?.id,
-          sessionId: req.session?.id,
-          isAuthenticated: req.isAuthenticated(),
-          host: host,
-          cookieDomain: req.session?.cookie?.domain,
-          cookieSecure: req.session?.cookie?.secure,
-          userAgent: req.get('User-Agent')?.substring(0, 50)
-        });
-        
-        req.session.save((saveErr) => {
-          if (saveErr) {
-            console.error("Session save error:", saveErr);
-          } else {
-            console.log("Session saved successfully with ID:", req.session?.id);
-          }
-          res.status(200).json(req.user);
-        });
-      });
+      res.status(200).json(req.user);
     });
   });
 
