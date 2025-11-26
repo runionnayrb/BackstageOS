@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { FileText, Users, Calendar, Clapperboard, Settings, Shield } from "lucide-react";
 
 export default function AuthPage() {
@@ -170,13 +170,13 @@ export default function AuthPage() {
                 />
                 {isLogin && (
                   <div className="text-right mt-1">
-                    <a
+                    <Link
                       href="/forgot-password"
                       className="text-sm text-primary hover:underline"
                       data-testid="link-forgot-password"
                     >
                       Forgot password?
-                    </a>
+                    </Link>
                   </div>
                 )}
               </div>
