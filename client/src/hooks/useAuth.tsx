@@ -58,8 +58,10 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
       return res;
     },
     onSuccess: (user: User) => {
-      // Clear cache before login to ensure fresh data for new user
-      queryClient.clear();
+      // Invalidate all user-dependent queries to force fresh data for new user
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin"] });
+      // Set the new user data
       queryClient.setQueryData(["/api/user"], user);
     },
     onError: (error: Error) => {
@@ -77,8 +79,10 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
       return res;
     },
     onSuccess: (user: User) => {
-      // Clear cache before registration to ensure fresh data for new user
-      queryClient.clear();
+      // Invalidate all user-dependent queries to force fresh data for new user
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin"] });
+      // Set the new user data
       queryClient.setQueryData(["/api/user"], user);
     },
     onError: (error: Error) => {
@@ -98,6 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
       // Clear ALL cached data when logging out to prevent other users from seeing previous user's data
       queryClient.clear();
       queryClient.setQueryData(["/api/user"], null);
+      console.log("[Auth] Cache cleared on logout");
     },
     onError: (error: Error) => {
       toast({
