@@ -15,11 +15,6 @@ export default function Projects() {
   const [, setLocation] = useLocation();
   const { selectedProfileType } = useAdminView();
   
-  // Scroll to top when page loads
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-  
   // Check if user is full-time either by their actual profile type OR if admin has selected full-time view
   const isFullTime = (user as any)?.profileType === "fulltime" || 
     (isAdmin(user) && selectedProfileType === "fulltime");
