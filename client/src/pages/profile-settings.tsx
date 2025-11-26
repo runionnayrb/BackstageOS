@@ -73,6 +73,39 @@ export default function ProfileSettings() {
   const initiateOAuth = async (provider: 'gmail' | 'outlook') => {
     setIsConnecting(provider);
     setErrorMessage(null);
+    
+    // Open popup IMMEDIATELY on user click to avoid Safari blocking
+    // This preserves the direct user interaction chain
+    const width = 600;
+    const height = 700;
+    const left = window.screenX + (window.outerWidth - width) / 2;
+    const top = window.screenY + (window.outerHeight - height) / 2;
+    
+    const popup = window.open(
+      'about:blank',
+      'oauth-popup',
+      `width=${width},height=${height},left=${left},top=${top},popup=1`
+    );
+    
+    if (!popup) {
+      setErrorMessage('Popup blocked. Please allow popups for this site and try again.');
+      setIsConnecting(null);
+      return;
+    }
+    
+    // Show loading message in popup while we fetch the auth URL
+    popup.document.write(`
+      <html>
+        <head><title>Connecting...</title></head>
+        <body style="display:flex;align-items:center;justify-content:center;height:100vh;margin:0;font-family:system-ui,sans-serif;background:#f5f5f5;">
+          <div style="text-align:center;">
+            <div style="font-size:24px;margin-bottom:16px;">🔐</div>
+            <div style="color:#333;">Connecting to ${provider === 'gmail' ? 'Gmail' : 'Outlook'}...</div>
+          </div>
+        </body>
+      </html>
+    `);
+    
     try {
       const endpoint = provider === 'gmail' 
         ? '/api/oauth/google/initiate' 
@@ -89,22 +122,10 @@ export default function ProfileSettings() {
       
       const data = await response.json();
       
-      // Open OAuth in popup window to avoid Vite HMR issues
-      const width = 600;
-      const height = 700;
-      const left = window.screenX + (window.outerWidth - width) / 2;
-      const top = window.screenY + (window.outerHeight - height) / 2;
-      
-      const popup = window.open(
-        data.authUrl,
-        'oauth-popup',
-        `width=${width},height=${height},left=${left},top=${top},popup=1`
-      );
-      
-      if (!popup) {
-        throw new Error('Popup blocked. Please allow popups for this site.');
-      }
+      // Navigate the already-open popup to the auth URL
+      popup.location.href = data.authUrl;
     } catch (error: any) {
+      popup.close();
       setErrorMessage(error.message || "Failed to start email connection.");
       setIsConnecting(null);
     }
