@@ -34,8 +34,20 @@ async function comparePasswords(supplied: string, stored: string) {
   return await bcrypt.compare(supplied, stored);
 }
 
+function getCookieDomain(host: string): string | undefined {
+  if (host.includes('backstageos.com')) {
+    return '.backstageos.com';
+  }
+  return undefined;
+}
+
+function isProductionHost(host: string): boolean {
+  return host.includes('backstageos.com') || 
+         host.includes('.replit.app') ||
+         host.includes('.replit.dev');
+}
+
 export function setupAuth(app: Express) {
-  // Use PostgreSQL store for session persistence
   const PgSession = connectPg(session);
   const pgStore = new PgSession({
     pool: pool,
@@ -49,17 +61,32 @@ export function setupAuth(app: Express) {
     saveUninitialized: false,
     store: pgStore,
     cookie: {
-      secure: false,
+      secure: process.env.NODE_ENV === 'production',
       httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days for better persistence
+      maxAge: 7 * 24 * 60 * 60 * 1000,
       sameSite: 'lax',
     },
     name: 'backstage.sid',
-    rolling: true, // Extends session on each request
+    rolling: true,
   };
 
   app.set("trust proxy", 1);
   app.use(session(sessionSettings));
+  
+  app.use((req, res, next) => {
+    const host = req.get('host') || '';
+    const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https';
+    
+    if (req.session && req.session.cookie) {
+      req.session.cookie.secure = isSecure;
+      
+      const domain = getCookieDomain(host);
+      if (domain) {
+        req.session.cookie.domain = domain;
+      }
+    }
+    next();
+  });
   
   // Session refresh middleware - extends session on each request
   app.use((req, res, next) => {
@@ -170,7 +197,7 @@ export function setupAuth(app: Express) {
         console.error('Error converting waitlist entry:', waitlistError);
       }
 
-      // Log them in automatically
+      // Log them in automatically with session regeneration
       const transformedUser = {
         ...user,
         firstName: user.firstName || undefined,
@@ -178,11 +205,24 @@ export function setupAuth(app: Express) {
         profileType: user.profileType || undefined,
         betaAccess: user.betaAccess || "none",
         isAdmin: user.isAdmin || false,
-        isActive: user.isActive !== false, // Default to true unless explicitly false
+        isActive: user.isActive !== false,
       };
-      req.login(transformedUser, (err) => {
-        if (err) return next(err);
-        res.status(201).json(transformedUser);
+      
+      req.session.regenerate((regenerateErr) => {
+        if (regenerateErr) {
+          console.error("Session regeneration error on register:", regenerateErr);
+        }
+        
+        req.login(transformedUser, (loginErr) => {
+          if (loginErr) return next(loginErr);
+          
+          req.session.save((saveErr) => {
+            if (saveErr) {
+              console.error("Session save error on register:", saveErr);
+            }
+            res.status(201).json(transformedUser);
+          });
+        });
       });
     } catch (error) {
       console.error("Registration error:", error);
@@ -190,31 +230,71 @@ export function setupAuth(app: Express) {
     }
   });
 
-  // Login endpoint
+  // Login endpoint with session regeneration for security
   app.post("/api/login", passport.authenticate("local"), (req, res) => {
-    console.log("Login successful:", {
-      userId: req.user?.id,
-      sessionId: req.session?.id,
-      isAuthenticated: req.isAuthenticated(),
-      userAgent: req.get('User-Agent')?.substring(0, 50)
-    });
+    const user = req.user;
+    const host = req.get('host') || '';
     
-    // Force session save for mobile Safari compatibility
-    req.session.save((err) => {
-      if (err) {
-        console.error("Session save error:", err);
-      } else {
-        console.log("Session saved successfully");
+    req.session.regenerate((regenerateErr) => {
+      if (regenerateErr) {
+        console.error("Session regeneration error:", regenerateErr);
       }
-      res.status(200).json(req.user);
+      
+      req.login(user!, (loginErr) => {
+        if (loginErr) {
+          console.error("Re-login after regeneration error:", loginErr);
+          return res.status(500).json({ message: "Login failed" });
+        }
+        
+        console.log("Login successful:", {
+          userId: req.user?.id,
+          sessionId: req.session?.id,
+          isAuthenticated: req.isAuthenticated(),
+          host: host,
+          cookieDomain: req.session?.cookie?.domain,
+          cookieSecure: req.session?.cookie?.secure,
+          userAgent: req.get('User-Agent')?.substring(0, 50)
+        });
+        
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            console.error("Session save error:", saveErr);
+          } else {
+            console.log("Session saved successfully with ID:", req.session?.id);
+          }
+          res.status(200).json(req.user);
+        });
+      });
     });
   });
 
-  // Logout endpoint
+  // Logout endpoint - fully destroy session and clear cookie
   app.post("/api/logout", (req, res, next) => {
-    req.logout((err) => {
-      if (err) return next(err);
-      res.sendStatus(200);
+    const host = req.get('host') || '';
+    const cookieDomain = getCookieDomain(host);
+    
+    req.logout((logoutErr) => {
+      if (logoutErr) {
+        console.error("Logout error:", logoutErr);
+        return next(logoutErr);
+      }
+      
+      req.session.destroy((destroyErr) => {
+        if (destroyErr) {
+          console.error("Session destroy error:", destroyErr);
+        }
+        
+        res.clearCookie('backstage.sid', {
+          path: '/',
+          domain: cookieDomain,
+          httpOnly: true,
+          secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
+          sameSite: 'lax'
+        });
+        
+        console.log("Logout complete, session destroyed, cookie cleared");
+        res.sendStatus(200);
+      });
     });
   });
 
