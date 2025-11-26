@@ -52,7 +52,8 @@ export function setupAuth(app: Express) {
   const pgStore = new PgSession({
     pool: pool,
     tableName: 'sessions',
-    createTableIfMissing: true
+    createTableIfMissing: true,
+    disableTouch: true,
   });
 
   const sessionSettings: session.SessionOptions = {
@@ -67,7 +68,7 @@ export function setupAuth(app: Express) {
       sameSite: 'lax',
     },
     name: 'backstage.sid',
-    rolling: true,
+    rolling: false,
   };
 
   app.set("trust proxy", 1);
@@ -84,15 +85,6 @@ export function setupAuth(app: Express) {
       if (domain) {
         req.session.cookie.domain = domain;
       }
-    }
-    next();
-  });
-  
-  // Session refresh middleware - extends session on each request
-  app.use((req, res, next) => {
-    if (req.session && req.user) {
-      // Reset the session timeout on each request
-      req.session.touch();
     }
     next();
   });
