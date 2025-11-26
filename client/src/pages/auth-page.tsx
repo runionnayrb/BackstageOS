@@ -168,6 +168,17 @@ export default function AuthPage() {
                   onChange={handleInputChange}
                   required
                 />
+                {isLogin && (
+                  <div className="text-right mt-1">
+                    <a
+                      href="/forgot-password"
+                      className="text-sm text-primary hover:underline"
+                      data-testid="link-forgot-password"
+                    >
+                      Forgot password?
+                    </a>
+                  </div>
+                )}
               </div>
 
               <Button 

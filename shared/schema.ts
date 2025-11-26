@@ -72,6 +72,9 @@ export const users = pgTable("users", {
   paymentMethodRequired: boolean("payment_method_required").default(false),
   grandfatheredFree: boolean("grandfathered_free").default(false), // For beta users
   isActive: boolean("is_active").default(true), // User status based on billing/subscription
+  // Password reset fields
+  passwordResetToken: varchar("password_reset_token"),
+  passwordResetExpires: timestamp("password_reset_expires"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

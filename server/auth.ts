@@ -3,10 +3,14 @@ import { Strategy as LocalStrategy } from "passport-local";
 import { Express } from "express";
 import session from "express-session";
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 import { storage } from "./storage";
 import { User } from "@shared/schema";
 import connectPg from "connect-pg-simple";
-import { pool } from "./db";
+import { pool, db } from "./db";
+import { users } from "@shared/schema";
+import { eq } from "drizzle-orm";
+import { SendGridService } from "./services/sendgridService";
 
 declare global {
   namespace Express {
@@ -313,5 +317,127 @@ export function setupAuth(app: Express) {
     // SECURITY: No bypass - users must be properly authenticated
     // Return 401 for unauthenticated requests
     return res.sendStatus(401);
+  });
+
+  // Forgot password - send reset email
+  app.post("/api/auth/forgot-password", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+
+      const user = await storage.getUserByEmail(email);
+      
+      // Always return success to prevent email enumeration
+      if (!user) {
+        return res.json({ message: "If an account exists with that email, you will receive a password reset link." });
+      }
+
+      // Generate a secure reset token
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      const resetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+
+      // Save token to database
+      await db.update(users)
+        .set({
+          passwordResetToken: resetToken,
+          passwordResetExpires: resetExpires,
+        })
+        .where(eq(users.id, user.id));
+
+      // Build reset URL
+      const host = req.get('host') || 'backstageos.com';
+      const protocol = req.secure || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
+      const resetUrl = `${protocol}://${host}/reset-password?token=${resetToken}`;
+
+      // Send reset email via SendGrid
+      try {
+        const sendgridService = new SendGridService();
+        await sendgridService.sendEmail({
+          to: [email],
+          subject: "Reset Your BackstageOS Password",
+          html: `
+            <div style="font-family: system-ui, -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <h1 style="color: #333; font-size: 24px; margin-bottom: 20px;">Reset Your Password</h1>
+              <p style="color: #555; font-size: 16px; line-height: 1.5;">
+                You requested to reset your password for your BackstageOS account. Click the button below to set a new password:
+              </p>
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${resetUrl}" 
+                   style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 500; display: inline-block;">
+                  Reset Password
+                </a>
+              </div>
+              <p style="color: #777; font-size: 14px; line-height: 1.5;">
+                This link will expire in 1 hour. If you didn't request a password reset, you can safely ignore this email.
+              </p>
+              <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+              <p style="color: #999; font-size: 12px;">
+                BackstageOS - Professional Stage Management Platform
+              </p>
+            </div>
+          `,
+        });
+        console.log(`Password reset email sent to ${email}`);
+      } catch (emailError) {
+        console.error("Failed to send password reset email:", emailError);
+        // Don't expose email sending errors to user
+      }
+
+      res.json({ message: "If an account exists with that email, you will receive a password reset link." });
+    } catch (error) {
+      console.error("Forgot password error:", error);
+      res.status(500).json({ message: "An error occurred. Please try again." });
+    }
+  });
+
+  // Reset password with token
+  app.post("/api/auth/reset-password", async (req, res) => {
+    try {
+      const { token, password } = req.body;
+      
+      if (!token || !password) {
+        return res.status(400).json({ message: "Token and password are required" });
+      }
+
+      if (password.length < 6) {
+        return res.status(400).json({ message: "Password must be at least 6 characters" });
+      }
+
+      // Find user with valid token
+      const [user] = await db.select()
+        .from(users)
+        .where(eq(users.passwordResetToken, token))
+        .limit(1);
+
+      if (!user) {
+        return res.status(400).json({ message: "Invalid or expired reset link" });
+      }
+
+      // Check if token is expired
+      if (!user.passwordResetExpires || new Date() > user.passwordResetExpires) {
+        return res.status(400).json({ message: "Reset link has expired. Please request a new one." });
+      }
+
+      // Hash new password and update user
+      const hashedPassword = await hashPassword(password);
+      
+      await db.update(users)
+        .set({
+          password: hashedPassword,
+          passwordResetToken: null,
+          passwordResetExpires: null,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, user.id));
+
+      console.log(`Password reset successful for user ${user.email}`);
+      res.json({ message: "Password has been reset successfully. You can now log in with your new password." });
+    } catch (error) {
+      console.error("Reset password error:", error);
+      res.status(500).json({ message: "An error occurred. Please try again." });
+    }
   });
 }

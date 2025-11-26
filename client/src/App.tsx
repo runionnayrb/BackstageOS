@@ -89,6 +89,8 @@ import ScheduleRelationshipMapping from "@/components/schedule-relationship-mapp
 import SecurityPage from "@/pages/security";
 import PrivacyPage from "@/pages/privacy";
 import TermsPage from "@/pages/terms";
+import ForgotPassword from "@/pages/forgot-password";
+import ResetPassword from "@/pages/reset-password";
 
 
 function Router() {
@@ -276,6 +278,8 @@ function Router() {
         <Route path="/feedback" component={FeedbackPage} />
         <Route path="/auth" component={AuthPage} />
         <Route path="/login" component={AuthPage} />
+        <Route path="/forgot-password" component={ForgotPassword} />
+        <Route path="/reset-password" component={ResetPassword} />
 
         <Route path="/admin" component={AdminDashboard} />
         <Route path="/admin/user-roles" component={AdminUserRoles} />
