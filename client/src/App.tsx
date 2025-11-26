@@ -1,4 +1,4 @@
-import { Switch, Route, useParams } from "wouter";
+import { Switch, Route, useParams, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -95,6 +95,7 @@ import ResetPassword from "@/pages/reset-password";
 
 function Router() {
   const { user, isLoading } = useAuth();
+  const [location] = useLocation();
   
   // Initialize SEO for dynamic meta tags based on domain
   useSEO();
@@ -105,7 +106,7 @@ function Router() {
   // Initialize error logging - always call
   useEffect(() => {
     // Set current page for error logging
-    errorLogger.setCurrentPage(window.location.pathname);
+    errorLogger.setCurrentPage(location);
     
     // Track page changes
     const handleRouteChange = () => {
@@ -114,7 +115,7 @@ function Router() {
     
     window.addEventListener('popstate', handleRouteChange);
     return () => window.removeEventListener('popstate', handleRouteChange);
-  }, []);
+  }, [location]);
 
   // Update user ID when authentication changes - always call
   useEffect(() => {
@@ -139,53 +140,53 @@ function Router() {
   }
   
   // Special routes that bypass domain restrictions
-  if (window.location.pathname === '/seo-test') {
+  if (location === '/seo-test') {
     return <SEOTest />;
   }
   
   // Personal schedule viewer route - public access with token
-  if (window.location.pathname.startsWith('/personal-schedule/')) {
-    const token = window.location.pathname.split('/personal-schedule/')[1];
+  if (location.startsWith('/personal-schedule/')) {
+    const token = location.split('/personal-schedule/')[1];
     return <PersonalScheduleViewer token={token} />;
   }
 
   // Public calendar viewer route - public access with token
-  if (window.location.pathname.startsWith('/public-calendar/event-type/')) {
+  if (location.startsWith('/public-calendar/event-type/')) {
     return <PublicEventTypeCalendar />;
   }
   
-  if (window.location.pathname.startsWith('/public-calendar/')) {
+  if (location.startsWith('/public-calendar/')) {
     return <PublicCalendar />;
   }
 
   
   // If this is the join domain, redirect to /landing
-  if (isJoinDomain && window.location.pathname !== '/landing') {
+  if (isJoinDomain && location !== '/landing') {
     window.location.pathname = '/landing';
     return null;
   }
   
   // DOMAIN-BASED ROUTING FIRST - Check domain before any authentication logic
   // Handle landing page route - no authentication required for any domain
-  if (window.location.pathname === '/landing') {
+  if (location === '/landing') {
     return <WaitlistLanding />;
   }
 
   // Handle main landing page
-  if (window.location.pathname === '/main-landing') {
+  if (location === '/main-landing') {
     return <MainLanding />;
   }
 
   // Handle policy pages - no authentication required for any domain
-  if (window.location.pathname === '/security') {
+  if (location === '/security') {
     return <SecurityPage />;
   }
 
-  if (window.location.pathname === '/privacy') {
+  if (location === '/privacy') {
     return <PrivacyPage />;
   }
 
-  if (window.location.pathname === '/terms') {
+  if (location === '/terms') {
     return <TermsPage />;
   }
 
@@ -197,17 +198,17 @@ function Router() {
   
   // For dev environment, show authentication page if not authenticated (except for explicit public routes)
   const publicRoutes = ['/landing', '/security', '/privacy', '/terms', '/main-landing', '/forgot-password', '/reset-password', '/auth', '/login'];
-  const isPublicRoute = publicRoutes.includes(window.location.pathname);
+  const isPublicRoute = publicRoutes.includes(location);
   if (isDevEnvironment && !user && !isLoading && !isPublicRoute) {
     return <AuthPage />;
   }
   
   // Handle password reset pages - no authentication required
-  if (window.location.pathname === '/forgot-password') {
+  if (location === '/forgot-password') {
     return <ForgotPassword />;
   }
   
-  if (window.location.pathname === '/reset-password') {
+  if (location === '/reset-password') {
     return <ResetPassword />;
   }
 
@@ -230,7 +231,7 @@ function Router() {
   }
 
   // Check if user needs payment (past_due, canceled, incomplete)
-  if (user && (user as any).needsPayment && window.location.pathname !== '/subscribe' && window.location.pathname !== '/checkout') {
+  if (user && (user as any).needsPayment && location !== '/subscribe' && location !== '/checkout') {
     window.location.href = '/subscribe';
     return null;
   }
