@@ -139,14 +139,24 @@ export function setupAuth(app: Express) {
         return res.status(400).json({ message: "User already exists with this email" });
       }
 
-      // Create new user
+      // Check if email is on the waitlist for beta access
+      let hasWaitlistAccess = false;
+      try {
+        const waitlistEntry = await storage.getWaitlistByEmail(email);
+        hasWaitlistAccess = !!waitlistEntry;
+        console.log(`Waitlist check for ${email}: ${hasWaitlistAccess ? 'FOUND' : 'NOT FOUND'}`);
+      } catch (waitlistError) {
+        console.error('Error checking waitlist:', waitlistError);
+      }
+
+      // Create new user - only grant beta access if they're on the waitlist
       const hashedPassword = await hashPassword(password);
       const user = await storage.createUser({
         email,
         password: hashedPassword,
         firstName,
         lastName,
-        betaAccess: true, // All new registrations get beta access
+        betaAccess: hasWaitlistAccess, // Only grant beta access if on waitlist
         defaultReplyToEmail: email, // Auto-populate with their registration email
         emailDisplayName: `${firstName} ${lastName}`.trim() || null, // Auto-populate with their name
       });
