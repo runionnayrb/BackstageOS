@@ -214,7 +214,7 @@ export default function GlobalSearchBar({
                           <p className="text-gray-600 text-xs mt-1">
                             {result.description}
                           </p>
-                          {result.projectName && (
+                          {result.projectName && !projectId && (
                             <p className="text-blue-600 text-xs mt-1">
                               {result.projectName}
                             </p>
