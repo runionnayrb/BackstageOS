@@ -78,10 +78,10 @@ export async function generateContactSheetPDF(
     pdf.setFontSize(12);
     
     const colWidths = {
-      name: 1.5,
+      name: 1.6,
       role: 2.0,
-      email: 2.5,
-      phone: 1.5
+      email: 2.7,
+      phone: 1.2
     };
 
     const startX = marginInches;
@@ -131,7 +131,7 @@ export async function generateContactSheetPDF(
       pdf.text(fullName, startX, yPosition);
       pdf.text(role, startX + colWidths.name, yPosition);
       pdf.text(email, startX + colWidths.name + colWidths.role, yPosition);
-      pdf.text(phone, rightMarginX, yPosition, { align: 'right' });
+      pdf.text(phone, phoneStartX, yPosition, { maxWidth: colWidths.phone, align: 'left' });
 
       yPosition += rowHeight;
     }
