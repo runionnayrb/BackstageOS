@@ -85,12 +85,13 @@ export async function generateContactSheetPDF(
     };
 
     const startX = marginInches;
+    const rightMarginX = pageWidth - marginInches;
     const headerY = yPosition;
     
     pdf.text('Name', startX, headerY);
     pdf.text('Position', startX + colWidths.name, headerY);
     pdf.text('Email', startX + colWidths.name + colWidths.role, headerY);
-    pdf.text('Phone', startX + colWidths.name + colWidths.role + colWidths.email, headerY);
+    pdf.text('Phone', rightMarginX, headerY, { align: 'right' });
     
     yPosition += lineHeight * 1.5;
 
@@ -113,7 +114,7 @@ export async function generateContactSheetPDF(
         pdf.text('Name', startX, yPosition);
         pdf.text('Position', startX + colWidths.name, yPosition);
         pdf.text('Email', startX + colWidths.name + colWidths.role, yPosition);
-        pdf.text('Phone', startX + colWidths.name + colWidths.role + colWidths.email, yPosition);
+        pdf.text('Phone', rightMarginX, yPosition, { align: 'right' });
         
         yPosition += lineHeight * 1.5;
 
@@ -129,7 +130,7 @@ export async function generateContactSheetPDF(
       pdf.text(fullName, startX, yPosition);
       pdf.text(role, startX + colWidths.name, yPosition);
       pdf.text(email, startX + colWidths.name + colWidths.role, yPosition);
-      pdf.text(phone, startX + colWidths.name + colWidths.role + colWidths.email, yPosition);
+      pdf.text(phone, rightMarginX, yPosition, { align: 'right' });
 
       yPosition += rowHeight;
     }
