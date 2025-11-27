@@ -16829,13 +16829,11 @@ The Production Team`;
         console.log('🔍 Searching contacts...');
         const contacts = await storage.getAllContactsByUserId(userId.toString());
         const matchingContacts = contacts.filter(contact => {
+          // Only search in name and email fields to avoid false matches
           const searchText = [
             contact.firstName,
             contact.lastName,
-            contact.email,
-            contact.phone,
-            contact.role,
-            contact.notes
+            contact.email
           ].filter(Boolean).join(' ').toLowerCase();
           
           return keywords.some(keyword => searchText.includes(keyword));
