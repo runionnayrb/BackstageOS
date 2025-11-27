@@ -57,20 +57,23 @@ export default function GlobalSearchBar({
     const value = e.target.value;
     setQuery(value);
     console.log('🔍 Search input:', value);
-    
-    if (value.length === 0) {
-      setResults([]);
-      setIsOpen(false);
-    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (query.trim() && query.length >= 2) {
-      console.log('🔍 Search submitted:', query);
-      searchMutation.mutate(query);
-    }
-  };
+  // Auto-search as user types with debouncing
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (query.trim() && query.length >= 2) {
+        console.log('🔍 Auto-searching for:', query);
+        searchMutation.mutate(query);
+        setIsOpen(true);
+      } else if (query.length === 0) {
+        setResults([]);
+        setIsOpen(false);
+      }
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timer);
+  }, [query]);
 
   const handleSearchClick = () => {
     setIsExpanded(true);
@@ -149,7 +152,7 @@ export default function GlobalSearchBar({
           <div className="bg-white rounded-lg border shadow-lg max-h-[60vh] sm:max-h-[80vh] overflow-hidden flex flex-col">
             {/* Search Input */}
             <div className="p-3 border-b border-gray-200">
-              <form onSubmit={handleSubmit} className="relative">
+              <div className="relative">
                 <Input
                   ref={inputRef}
                   type="text"
@@ -166,7 +169,7 @@ export default function GlobalSearchBar({
                     <Search className="h-4 w-4 text-gray-400" />
                   )}
                 </div>
-              </form>
+              </div>
             </div>
 
             {/* Results Content */}
@@ -258,7 +261,7 @@ export default function GlobalSearchBar({
           // Expanded search bar with results below - slides in from right
           <div className="fixed top-3 right-3 left-3 z-50 animate-in slide-in-from-right-4 duration-300">
             <div className="relative">
-              <form onSubmit={handleSubmit} className="relative">
+              <div className="relative">
                 <Input
                 ref={inputRef}
                 type="text"
@@ -285,7 +288,7 @@ export default function GlobalSearchBar({
                   <X className="h-3 w-3" />
                 </Button>
               </div>
-              </form>
+              </div>
 
             {/* Google-style dropdown results */}
             {query.length >= 1 && (
