@@ -50,9 +50,23 @@ export async function generateContactSheetPDF(
   let currentPage = 1;
   let yPosition = marginInches;
   const lineHeight = 0.2;
+  let isFirstPage = true;
+
+  // Function to add page header
+  const addPageHeader = () => {
+    pdf.setFont('Helvetica', 'bold');
+    pdf.setFontSize(20);
+    const pageWidth_val = pageWidth;
+    const centerX = pageWidth_val / 2;
+    pdf.text('Contact Sheet', centerX, marginInches + 0.3, { align: 'center' });
+    return marginInches + 0.8; // Return new y position after header
+  };
 
   // Sort groups by sort order
   const sortedGroups = [...contactGroups].sort((a, b) => a.sortOrder - b.sortOrder);
+  
+  // Add header to first page
+  yPosition = addPageHeader();
 
   // Process each group
   for (const group of sortedGroups) {
@@ -64,7 +78,7 @@ export async function generateContactSheetPDF(
     if (yPosition + lineHeight * 2.5 > maxContentY) {
       pdf.addPage();
       currentPage++;
-      yPosition = marginInches;
+      yPosition = addPageHeader();
     }
 
     // Group heading - 15pt
@@ -107,7 +121,7 @@ export async function generateContactSheetPDF(
       if (yPosition + rowHeight > maxContentY) {
         pdf.addPage();
         currentPage++;
-        yPosition = marginInches;
+        yPosition = addPageHeader();
 
         // Re-add header on new page
         pdf.setFont('Helvetica', 'bold');
