@@ -78,10 +78,10 @@ export async function generateContactSheetPDF(
     pdf.setFontSize(12);
     
     const colWidths = {
-      name: usableWidth * 0.25,
-      role: usableWidth * 0.2,
-      email: usableWidth * 0.3,
-      phone: usableWidth * 0.25
+      name: 1.9,
+      role: 1.7,
+      email: 2.4,
+      phone: 1.5
     };
 
     const startX = marginInches;
