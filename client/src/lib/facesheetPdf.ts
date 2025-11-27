@@ -78,7 +78,7 @@ export async function generateFacesheetPDF(
   // Calculate layout
   const colWidth = usableWidth / colsPerRow;
   const rowHeight = (maxContentY - addPageHeader()) / rowsPerPage;
-  const photoSize = colWidth * 0.9; // Square photos: 1:1 aspect ratio
+  const photoSize = colWidth * 0.75; // Square photos: 1:1 aspect ratio, leaving room for name and position
 
   let yPosition = addPageHeader();
   let currentRow = 0;
@@ -123,16 +123,27 @@ export async function generateFacesheetPDF(
       }
     }
 
-    // Add contact name below photo
+    // Add contact name below photo (bold)
     const fullName = [contact.firstName, contact.lastName].filter(Boolean).join(' ');
-    pdf.setFont('Helvetica', 'normal');
+    pdf.setFont('Helvetica', 'bold');
     pdf.setFontSize(9);
     
-    const nameY = yPos + photoSize + 0.02;
+    const nameY = yPos + photoSize + 0.03;
     pdf.text(fullName, xPos + photoSize / 2, nameY, { 
       align: 'center',
       maxWidth: photoSize
     });
+
+    // Add position below name
+    if (contact.position) {
+      pdf.setFont('Helvetica', 'normal');
+      pdf.setFontSize(8);
+      const positionY = nameY + 0.12;
+      pdf.text(contact.position, xPos + photoSize / 2, positionY, { 
+        align: 'center',
+        maxWidth: photoSize
+      });
+    }
 
     // Move to next position
     currentCol++;
