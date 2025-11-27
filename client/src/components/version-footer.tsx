@@ -6,9 +6,22 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, CheckCircle, Archive } from "lucide-react";
 import { Link } from "wouter";
 
-const CURRENT_VERSION = "26.3.0";
+const CURRENT_VERSION = "26.4.0";
 
 const RELEASE_NOTES = [
+  {
+    version: "26.4.0",
+    date: "November 27, 2025",
+    type: "Major",
+    features: [
+      "<strong><u>FACE SHEET PDF ENHANCEMENTS:</u></strong>",
+      "Updated face sheet layout to 5 columns × 5 rows (25 contacts per page) for larger contact cards",
+      "Changed photo format to 1:1 square aspect ratio for consistent visual presentation",
+      "Added contact role display below each name (10pt bold name, 9pt role text)",
+      "Removed Company List option from document dropdown menu, keeping Contact Sheet and Face Sheet PDFs only",
+      "Improved text spacing and sizing for better readability of contact information on printed sheets"
+    ]
+  },
   {
     version: "26.3.0",
     date: "November 23, 2025",
