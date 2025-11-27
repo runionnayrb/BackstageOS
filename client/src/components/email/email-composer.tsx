@@ -248,7 +248,6 @@ export function EmailComposer({
     setAutoSaveStatus('');
     setLastSaved(null);
     setDraftId(null);
-    setSheetPosition(0);
     
     if (autoSaveTimerRef.current) {
       clearTimeout(autoSaveTimerRef.current);

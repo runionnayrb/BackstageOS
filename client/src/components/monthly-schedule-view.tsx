@@ -607,7 +607,48 @@ export default function MonthlyScheduleView({
   );
 }
 
-// Event form component is now imported from external file
+// Inline edit form component for event editing
+interface EditEventFormProps {
+  projectId: number;
+  eventData: any;
+  onSave: (data: any) => void;
+  onCancel: () => void;
+}
+
+function EditEventForm({ projectId, eventData, onSave, onCancel }: EditEventFormProps) {
+  const [formData, setFormData] = useState({
+    title: eventData?.title || '',
+    description: eventData?.description || '',
+    startDate: eventData?.date || '',
+    endDate: eventData?.date || '',
+    startTime: eventData?.startTime || '',
+    endTime: eventData?.endTime || '',
+    type: eventData?.type || 'rehearsal',
+    location: eventData?.location || '',
+    notes: eventData?.notes || '',
+    isAllDay: eventData?.isAllDay || false,
+    participants: eventData?.participants?.map((p: any) => p.contactId) || [],
+  });
+
+  const { data: contacts = [] } = useQuery<Contact[]>({
+    queryKey: [`/api/projects/${projectId}/contacts`],
+    enabled: !!projectId,
+  });
+
+  const handleStartDateChange = (value: string) => {
+    setFormData({ ...formData, startDate: value });
+  };
+
+  return (
+    <form onSubmit={(e) => { e.preventDefault(); onSave(formData); }} className="space-y-4">
+      <div>
+        <Label htmlFor="title">Title</Label>
+        <Input
+          id="title"
+          value={formData.title}
+          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+          required
+        />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
