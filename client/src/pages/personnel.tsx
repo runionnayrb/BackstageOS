@@ -17,6 +17,7 @@ import { ContactForm } from "@/components/contact-form";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { setPageHeaderIcons, clearPageHeaderIcons } from "@/hooks/useHeaderIcons";
 import { FloatingActionButton } from "@/components/navigation/floating-action-button";
+import { generateContactSheetPDF } from "@/lib/contactSheetPdf";
 import type { ContactGroup } from "@shared/schema";
 
 
@@ -336,6 +337,20 @@ export default function Personnel() {
     setLocation(`/shows/${projectId}/compose?to=${encodeURIComponent(email)}`);
   };
 
+  const handleDownloadContactSheet = async () => {
+    try {
+      await generateContactSheetPDF(allContacts, contactGroups, project?.name || 'Contact Sheet');
+      toast({ title: "Contact sheet downloaded successfully" });
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast({
+        title: "Error generating PDF",
+        description: "Failed to create contact sheet PDF",
+        variant: "destructive",
+      });
+    }
+  };
+
   const formatPhoneNumber = (phone: string | undefined): string => {
     if (!phone) return '';
     
@@ -517,8 +532,11 @@ export default function Personnel() {
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
+                  <DropdownMenuItem onClick={handleDownloadContactSheet}>
+                    Download Contact Sheet (PDF)
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setLocation(`/shows/${projectId}/contact-sheet`)}>
-                    Contact Sheet
+                    Contact Sheet Editor
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setLocation(`/shows/${projectId}/company-list`)}>
                     Company List
