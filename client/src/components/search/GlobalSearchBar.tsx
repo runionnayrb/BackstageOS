@@ -234,18 +234,12 @@ export default function GlobalSearchBar({
             
             {/* Footer with search stats */}
             {(results.length > 0 || searchMutation.isPending) && (
-              <div className="border-t bg-gray-50 px-3 py-2 text-xs text-gray-500 flex justify-between items-center">
-                <span>
-                  {searchMutation.isPending ? (
-                    "Searching..."
-                  ) : (
-                    `${results.length} result${results.length !== 1 ? 's' : ''} found`
-                  )}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Sparkles className="h-3 w-3" />
-                  Smart search
-                </span>
+              <div className="border-t bg-gray-50 px-3 py-2 text-xs text-gray-500">
+                {searchMutation.isPending ? (
+                  "Searching..."
+                ) : (
+                  `${results.length} result${results.length !== 1 ? 's' : ''} found`
+                )}
               </div>
             )}
           </div>
