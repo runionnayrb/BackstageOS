@@ -34,8 +34,8 @@ export async function generateFacesheetPDF(
 
   let currentPage = 1;
   let contactIndex = 0;
-  const contactsPerPage = 30;
-  const colsPerRow = 6;
+  const contactsPerPage = 25;
+  const colsPerRow = 5;
   const rowsPerPage = 5;
 
   // Function to add page header
@@ -121,7 +121,7 @@ export async function generateFacesheetPDF(
     // Add contact name below photo (bold)
     const fullName = [contact.firstName, contact.lastName].filter(Boolean).join(' ');
     pdf.setFont('Helvetica', 'bold');
-    pdf.setFontSize(8);
+    pdf.setFontSize(10);
     
     const nameY = yPos + photoSize + 0.02;
     pdf.text(fullName, xPos + photoSize / 2, nameY, { 
@@ -132,8 +132,8 @@ export async function generateFacesheetPDF(
     // Add position below name
     if (contact.position) {
       pdf.setFont('Helvetica', 'normal');
-      pdf.setFontSize(7);
-      const positionY = nameY + 0.08;
+      pdf.setFontSize(9);
+      const positionY = nameY + 0.09;
       pdf.text(contact.position, xPos + photoSize / 2, positionY, { 
         align: 'center',
         maxWidth: photoSize
