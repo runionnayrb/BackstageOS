@@ -78,8 +78,7 @@ export async function generateFacesheetPDF(
   // Calculate layout
   const colWidth = usableWidth / colsPerRow;
   const rowHeight = (maxContentY - addPageHeader()) / rowsPerPage;
-  const photoSize = colWidth * 0.9;
-  const photoHeight = rowHeight * 0.75; // Photos take up 75% of row height
+  const photoSize = colWidth * 0.9; // Square photos: 1:1 aspect ratio
 
   let yPosition = addPageHeader();
   let currentRow = 0;
@@ -106,7 +105,7 @@ export async function generateFacesheetPDF(
     // Add placeholder for photo (light gray rectangle)
     pdf.setDrawColor(200, 200, 200);
     pdf.setLineWidth(0.01);
-    pdf.rect(xPos, yPos, photoSize, photoHeight);
+    pdf.rect(xPos, yPos, photoSize, photoSize);
 
     // If contact has photo, draw it
     if (contact.photo) {
@@ -117,7 +116,7 @@ export async function generateFacesheetPDF(
           xPos,
           yPos,
           photoSize,
-          photoHeight
+          photoSize
         );
       } catch (error) {
         // Photo couldn't be loaded, placeholder remains
@@ -129,7 +128,7 @@ export async function generateFacesheetPDF(
     pdf.setFont('Helvetica', 'normal');
     pdf.setFontSize(9);
     
-    const nameY = yPos + photoHeight + 0.02;
+    const nameY = yPos + photoSize + 0.02;
     pdf.text(fullName, xPos + photoSize / 2, nameY, { 
       align: 'center',
       maxWidth: photoSize
