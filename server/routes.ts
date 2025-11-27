@@ -16829,27 +16829,51 @@ The Production Team`;
         console.log('🔍 Searching contacts...');
         const contacts = await storage.getAllContactsByUserId(userId.toString());
         const matchingContacts = contacts.filter(contact => {
-          // Only search in name and email fields to avoid false matches
           const searchText = [
             contact.firstName,
             contact.lastName,
-            contact.email
+            contact.email,
+            contact.phone,
+            contact.role,
+            contact.notes
           ].filter(Boolean).join(' ').toLowerCase();
           
           return keywords.some(keyword => searchText.includes(keyword));
         });
         
         matchingContacts.forEach(contact => {
+          // Determine which field matched to provide context
+          let matchContext = '';
+          const nameMatch = keywords.some(keyword => 
+            [contact.firstName, contact.lastName].filter(Boolean).join(' ').toLowerCase().includes(keyword)
+          );
+          const emailMatch = keywords.some(keyword => 
+            contact.email?.toLowerCase().includes(keyword)
+          );
+          const roleMatch = keywords.some(keyword => 
+            contact.role?.toLowerCase().includes(keyword)
+          );
+          const notesMatch = keywords.some(keyword => 
+            contact.notes?.toLowerCase().includes(keyword)
+          );
+          
+          if (roleMatch) {
+            matchContext = `${contact.role}`;
+          } else if (notesMatch) {
+            const matchedKeyword = keywords.find(keyword => contact.notes?.toLowerCase().includes(keyword));
+            matchContext = `Notes: "${contact.notes}"`;
+          } else if (emailMatch) {
+            matchContext = contact.email || '';
+          }
+          
           results.push({
             id: `contact-${contact.id}`,
             type: 'contact',
             title: [contact.firstName, contact.lastName].filter(Boolean).join(' ') || contact.email || 'Unknown Contact',
-            description: `${contact.role || 'Contact'}${contact.email ? ` • ${contact.email}` : ''}${contact.phone ? ` • ${contact.phone}` : ''}`,
+            description: `${contact.role || 'Contact'}${contact.email ? ` • ${contact.email}` : ''}${matchContext && !nameMatch ? ` (matched: ${matchContext})` : ''}${contact.phone ? ` • ${contact.phone}` : ''}`,
             snippet: contact.notes || '',
             date: contact.updatedAt?.toISOString(),
-            relevanceScore: keywords.some(keyword => 
-              [contact.firstName, contact.lastName, contact.email].filter(Boolean).join(' ').toLowerCase().includes(keyword)
-            ) ? 3.0 + Math.random() : 1.0 + Math.random(),
+            relevanceScore: nameMatch ? 3.0 + Math.random() : emailMatch ? 2.5 + Math.random() : roleMatch ? 2.0 + Math.random() : 1.0 + Math.random(),
             metadata: {
               role: contact.role,
               email: contact.email,
@@ -17020,6 +17044,128 @@ The Production Team`;
             },
             projectName: costume.projectName,
             url: `/shows/${costume.projectId}/props-costumes`
+          });
+        });
+
+        // Search tasks in relevant projects
+        console.log('🔍 Searching tasks...');
+        const allTasks = [];
+        for (const project of projectsToSearch) {
+          try {
+            const tasks = await storage.getTasksByProjectId(project.id);
+            allTasks.push(...tasks.map(task => ({ ...task, projectName: project.name, projectId: project.id })));
+          } catch (error) {
+            console.log(`🔍 Could not get tasks for project ${project.id}`);
+          }
+        }
+
+        const matchingTasks = allTasks.filter(task => {
+          const searchText = [
+            task.title,
+            task.description,
+            task.status,
+            task.assignee
+          ].filter(Boolean).join(' ').toLowerCase();
+          
+          return keywords.some(keyword => searchText.includes(keyword));
+        });
+
+        matchingTasks.forEach(task => {
+          results.push({
+            id: `task-${task.id}`,
+            type: 'note',
+            title: task.title,
+            description: `Task • Status: ${task.status || 'Unknown'}${task.assignee ? ` • Assigned to: ${task.assignee}` : ''}`,
+            snippet: task.description || '',
+            date: task.updatedAt?.toISOString(),
+            relevanceScore: keywords.some(keyword => 
+              task.title.toLowerCase().includes(keyword)
+            ) ? 3.0 + Math.random() : 1.0 + Math.random(),
+            metadata: {
+              status: task.status,
+              assignee: task.assignee
+            },
+            projectName: task.projectName,
+            url: `/shows/${task.projectId}`
+          });
+        });
+
+        // Search notes in relevant projects
+        console.log('🔍 Searching notes...');
+        const allNotes = [];
+        for (const project of projectsToSearch) {
+          try {
+            const notes = await storage.getNotesByProjectId(project.id);
+            allNotes.push(...notes.map(note => ({ ...note, projectName: project.name, projectId: project.id })));
+          } catch (error) {
+            console.log(`🔍 Could not get notes for project ${project.id}`);
+          }
+        }
+
+        const matchingNotes = allNotes.filter(note => {
+          const searchText = [
+            note.title,
+            note.content
+          ].filter(Boolean).join(' ').toLowerCase();
+          
+          return keywords.some(keyword => searchText.includes(keyword));
+        });
+
+        matchingNotes.forEach(note => {
+          results.push({
+            id: `note-${note.id}`,
+            type: 'note',
+            title: note.title || 'Untitled Note',
+            description: 'Note',
+            snippet: note.content?.substring(0, 100) || '',
+            date: note.updatedAt?.toISOString(),
+            relevanceScore: keywords.some(keyword => 
+              note.title?.toLowerCase().includes(keyword)
+            ) ? 3.0 + Math.random() : 1.0 + Math.random(),
+            metadata: {},
+            projectName: note.projectName,
+            url: `/shows/${note.projectId}`
+          });
+        });
+
+        // Search reports in relevant projects
+        console.log('🔍 Searching reports...');
+        const allReports = [];
+        for (const project of projectsToSearch) {
+          try {
+            const reports = await storage.getReportsByProjectId(project.id);
+            allReports.push(...reports.map(report => ({ ...report, projectName: project.name, projectId: project.id })));
+          } catch (error) {
+            console.log(`🔍 Could not get reports for project ${project.id}`);
+          }
+        }
+
+        const matchingReports = allReports.filter(report => {
+          const searchText = [
+            report.title,
+            report.type,
+            report.description
+          ].filter(Boolean).join(' ').toLowerCase();
+          
+          return keywords.some(keyword => searchText.includes(keyword));
+        });
+
+        matchingReports.forEach(report => {
+          results.push({
+            id: `report-${report.id}`,
+            type: 'report',
+            title: report.title || `${report.type} Report`,
+            description: `Report • Type: ${report.type || 'Unknown'}`,
+            snippet: report.description || '',
+            date: report.updatedAt?.toISOString(),
+            relevanceScore: keywords.some(keyword => 
+              report.title?.toLowerCase().includes(keyword)
+            ) ? 3.0 + Math.random() : 1.0 + Math.random(),
+            metadata: {
+              type: report.type
+            },
+            projectName: report.projectName,
+            url: `/shows/${report.projectId}/reports`
           });
         });
         
