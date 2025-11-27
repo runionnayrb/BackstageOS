@@ -215,9 +215,7 @@ export default function Header() {
 
           {/* Search Bar - centered */}
           <div className="flex-1 max-w-md mx-2 md:mx-8">
-            <div style={{ border: '3px solid red', padding: '4px' }}>
-              <GlobalSearchBar />
-            </div>
+            <GlobalSearchBar />
           </div>
           
           <div className="flex items-center space-x-4">

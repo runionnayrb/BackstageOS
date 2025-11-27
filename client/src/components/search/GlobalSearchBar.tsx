@@ -146,7 +146,29 @@ export default function GlobalSearchBar({
             side="bottom"
             sideOffset={8}
           >
-          <div className="bg-white rounded-lg border shadow-lg max-h-[60vh] sm:max-h-[80vh] overflow-hidden">
+          <div className="bg-white rounded-lg border shadow-lg max-h-[60vh] sm:max-h-[80vh] overflow-hidden flex flex-col">
+            {/* Search Input */}
+            <div className="p-3 border-b border-gray-200">
+              <form onSubmit={handleSubmit} className="relative">
+                <Input
+                  ref={inputRef}
+                  type="text"
+                  placeholder="Search productions, people, schedules..."
+                  value={query}
+                  onChange={handleInputChange}
+                  className="w-full h-10 pl-3 pr-10 bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-lg"
+                  autoFocus
+                />
+                <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                  {searchMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
+                  ) : (
+                    <Search className="h-4 w-4 text-gray-400" />
+                  )}
+                </div>
+              </form>
+            </div>
+
             {/* Results Content */}
             <div className="flex-1 overflow-y-auto">
               {searchMutation.isPending ? (
