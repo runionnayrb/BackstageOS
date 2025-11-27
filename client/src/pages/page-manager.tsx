@@ -236,6 +236,26 @@ const ALL_APP_PAGES: Page[] = [
         updatedAt: '2025-06-30T00:00:00Z',
         children: [
           {
+            id: 'contact-sheet',
+            name: 'Contact Sheet',
+            slug: '/shows/:id/contact-sheet',
+            description: 'Generated contact sheet',
+            isSystem: true,
+            parent: 'show-contacts',
+            createdAt: '2025-06-30T00:00:00Z',
+            updatedAt: '2025-06-30T00:00:00Z'
+          },
+          {
+            id: 'company-list',
+            name: 'Company List',
+            slug: '/shows/:id/company-list',
+            description: 'Company directory',
+            isSystem: true,
+            parent: 'show-contacts',
+            createdAt: '2025-06-30T00:00:00Z',
+            updatedAt: '2025-06-30T00:00:00Z'
+          },
+          {
             id: 'personnel-category',
             name: 'Personnel by Category',
             slug: '/shows/:id/contacts/:category',

@@ -118,7 +118,10 @@ export default function Personnel() {
         name: cat.title
       }));
       for (const group of groupsToCreate) {
-        await apiRequest('POST', `/api/projects/${projectId}/contact-groups`, group);
+        await apiRequest(`/api/projects/${projectId}/contact-groups`, {
+          method: 'POST',
+          body: JSON.stringify(group),
+        });
       }
     },
     onSuccess: () => {
@@ -175,6 +178,12 @@ export default function Personnel() {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="bottom" align="end" sideOffset={8}>
+                <DropdownMenuItem onClick={() => setLocation(`/shows/${projectId}/contact-sheet`)}>
+                  Contact Sheet
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLocation(`/shows/${projectId}/company-list`)}>
+                  Company List
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ),
@@ -217,16 +226,10 @@ export default function Personnel() {
       // Optimistic update - reorder groups immediately
       const previousGroups = queryClient.getQueryData<ContactGroup[]>([`/api/projects/${projectId}/contact-groups`]);
       if (previousGroups) {
-        const reorderedGroups = groupIds
-          .map((id, index) => {
-            const group = previousGroups.find(g => g.id === id);
-            if (group) {
-              const updated: ContactGroup = { ...group, sortOrder: index + 1 };
-              return updated;
-            }
-            return undefined;
-          })
-          .filter((g): g is ContactGroup => g !== undefined);
+        const reorderedGroups = groupIds.map((id, index) => {
+          const group = previousGroups.find(g => g.id === id);
+          return group ? { ...group, sortOrder: index + 1 } : group;
+        }).filter((g): g is ContactGroup => g !== undefined);
         
         queryClient.setQueryData([`/api/projects/${projectId}/contact-groups`], reorderedGroups);
       }
@@ -273,7 +276,7 @@ export default function Personnel() {
     e.preventDefault();
     if (!draggedGroupId || draggedGroupId === targetId) return;
 
-    const sortedGroups = [...contactGroups].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+    const sortedGroups = [...contactGroups].sort((a, b) => a.sortOrder - b.sortOrder);
     const draggedIdx = sortedGroups.findIndex(g => g.id === draggedGroupId);
     const targetIdx = sortedGroups.findIndex(g => g.id === targetId);
 
@@ -286,9 +289,9 @@ export default function Personnel() {
 
   // Group contacts by group ID, using contact groups from database
   const contactsByCategory = contactGroups.reduce((acc, group) => {
-    acc[group.id.toString()] = allContacts.filter(contact => contact.groupId === group.id);
+    acc[group.id] = allContacts.filter(contact => contact.groupId === group.id);
     return acc;
-  }, {} as Record<string, Contact[]>);
+  }, {} as Record<number, Contact[]>);
 
   const handleContactClick = (contact: Contact) => {
     setSelectedContact(contact);
@@ -506,6 +509,23 @@ export default function Personnel() {
             >
               <Plus className="w-5 h-5" />
             </button>
+            {allContacts.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="p-1 text-gray-600 hover:text-blue-600 transition-colors">
+                    <FileText className="h-5 w-5" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => setLocation(`/shows/${projectId}/contact-sheet`)}>
+                    Contact Sheet
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLocation(`/shows/${projectId}/company-list`)}>
+                    Company List
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </div>
       </div>
@@ -513,7 +533,7 @@ export default function Personnel() {
       {/* Mobile Contact List */}
       <div className="md:hidden px-4 pt-4 pb-4">
         <div className="space-y-6">
-          {categories.map((category: typeof categories[0]) => {
+          {categories.map((category) => {
             const categoryContacts = contactsByCategory[category.id] || [];
             
             return (
@@ -544,7 +564,7 @@ export default function Personnel() {
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {categoryContacts.map((contact: Contact) => (
+                    {categoryContacts.map((contact) => (
                       <div
                         key={contact.id}
                         className="p-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
@@ -608,7 +628,7 @@ export default function Personnel() {
       {/* Desktop Contact List */}
       <div className="hidden md:block px-4 sm:px-6 lg:px-8">
         <div className="space-y-8">
-          {categories.map((category: typeof categories[0]) => {
+          {categories.map((category) => {
             const categoryContacts = contactsByCategory[category.id] || [];
             
             return (
@@ -640,7 +660,7 @@ export default function Personnel() {
                   </div>
                 ) : (
                   <div className="space-y-1">
-                    {categoryContacts.map((contact: Contact) => (
+                    {categoryContacts.map((contact) => (
                       <div
                         key={contact.id}
                         className="p-2 hover:bg-gray-50 cursor-pointer transition-colors"
@@ -766,7 +786,7 @@ export default function Personnel() {
       {isMobile && (
         <FloatingActionButton
           onClick={() => handleNewContactClick()}
-          icon={Plus}
+          title="Add contact"
         />
       )}
     </div>
