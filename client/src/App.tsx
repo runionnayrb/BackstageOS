@@ -178,16 +178,29 @@ function Router() {
   }
 
   // Handle policy pages - no authentication required for any domain
+  // These need to be outside Layout to work properly
   if (location === '/security') {
-    return <SecurityPage />;
+    return (
+      <ErrorBoundary>
+        <SecurityPage />
+      </ErrorBoundary>
+    );
   }
 
   if (location === '/privacy') {
-    return <PrivacyPage />;
+    return (
+      <ErrorBoundary>
+        <PrivacyPage />
+      </ErrorBoundary>
+    );
   }
 
   if (location === '/terms') {
-    return <TermsPage />;
+    return (
+      <ErrorBoundary>
+        <TermsPage />
+      </ErrorBoundary>
+    );
   }
 
   // Main domain (backstageos.com) - ALWAYS show waitlist, never require authentication
@@ -314,9 +327,6 @@ function Router() {
         <Route path="/checkout" component={Checkout} />
         <Route path="/subscribe" component={Subscribe} />
         <Route path="/billing" component={Billing} />
-        <Route path="/security" component={() => <SecurityPage />} />
-        <Route path="/privacy" component={() => <PrivacyPage />} />
-        <Route path="/terms" component={() => <TermsPage />} />
         <Route component={NotFound} />
         </Switch>
       </Layout>
