@@ -64,9 +64,9 @@ export async function generateContactSheetPDF(
     
     // Contact Sheet - 18pt
     pdf.setFontSize(18);
-    pdf.text('Contact Sheet', centerX, marginInches + 0.5, { align: 'center' });
+    pdf.text('Contact Sheet', centerX, marginInches + 0.52, { align: 'center' });
     
-    return marginInches + 0.9; // Return new y position after header
+    return marginInches + 0.92; // Return new y position after header
   };
 
   // Sort groups by sort order
