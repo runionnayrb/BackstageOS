@@ -166,6 +166,11 @@ export async function generateContactSheetPDF(
   }
 
   // Download the PDF
-  const filename = `${projectName}-contact-sheet-${new Date().toISOString().split('T')[0]}.pdf`;
+  const downloadDate = new Date().toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  });
+  const filename = `${projectName} Contact Sheet - ${downloadDate}.pdf`;
   pdf.save(filename);
 }
