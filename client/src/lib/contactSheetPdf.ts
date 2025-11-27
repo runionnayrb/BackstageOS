@@ -55,11 +55,18 @@ export async function generateContactSheetPDF(
   // Function to add page header
   const addPageHeader = () => {
     pdf.setFont('Helvetica', 'bold');
-    pdf.setFontSize(20);
     const pageWidth_val = pageWidth;
     const centerX = pageWidth_val / 2;
-    pdf.text('Contact Sheet', centerX, marginInches + 0.3, { align: 'center' });
-    return marginInches + 0.8; // Return new y position after header
+    
+    // Show name - 20pt
+    pdf.setFontSize(20);
+    pdf.text(projectName, centerX, marginInches + 0.3, { align: 'center' });
+    
+    // Contact Sheet - 18pt
+    pdf.setFontSize(18);
+    pdf.text('Contact Sheet', centerX, marginInches + 0.65, { align: 'center' });
+    
+    return marginInches + 1.1; // Return new y position after header
   };
 
   // Sort groups by sort order
