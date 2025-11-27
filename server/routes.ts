@@ -16800,26 +16800,34 @@ The Production Team`;
     try {
       const { query, filters = [] } = req.body;
       const userId = req.user.id;
-      const projectId = req.body.projectId;
+      const projectId = req.body.projectId; // May be null if searching from shows page
 
       if (!query?.trim()) {
         return res.status(400).json({ message: "Search query is required" });
       }
 
-      console.log('🔍 Search engine initialized successfully');
-      
-      // For now, search contacts which we know works
       const keywords = query.toLowerCase().split(' ').filter(word => word.length > 0);
-      console.log('🔍 Starting search for userId:', userId, 'keywords:', keywords);
+      console.log('🔍 Search for userId:', userId, 'projectId:', projectId, 'keywords:', keywords);
       
       const results = [];
       
       try {
-        // Search contacts
+        // Get projects to search in
+        let projectsToSearch = [];
+        if (projectId) {
+          // If inside a show, get only that project
+          const project = await storage.getProjectById(projectId);
+          if (project) projectsToSearch = [project];
+        } else {
+          // If on shows page, get all user's projects
+          projectsToSearch = await storage.getProjectsByUserId(userId.toString());
+        }
+
+        console.log('🔍 Searching in', projectsToSearch.length, 'project(s)');
+
+        // Search contacts in relevant projects
         console.log('🔍 Searching contacts...');
         const contacts = await storage.getAllContactsByUserId(userId.toString());
-        console.log('🔍 Found contacts:', contacts.length);
-        
         const matchingContacts = contacts.filter(contact => {
           const searchText = [
             contact.firstName,
@@ -16832,8 +16840,6 @@ The Production Team`;
           
           return keywords.some(keyword => searchText.includes(keyword));
         });
-        
-        console.log('🔍 Matching contacts:', matchingContacts.length);
         
         matchingContacts.forEach(contact => {
           results.push({
@@ -16854,49 +16860,44 @@ The Production Team`;
             url: `/contacts`
           });
         });
-        
-        // Search projects  
-        console.log('🔍 Searching projects...');
-        const projects = await storage.getProjectsByUserId(userId.toString());
-        console.log('🔍 Found projects:', projects.length);
-        
-        const matchingProjects = projects.filter(project => {
-          const searchText = [
-            project.name,
-            project.description,
-            project.venue
-          ].filter(Boolean).join(' ').toLowerCase();
-          
-          return keywords.some(keyword => searchText.includes(keyword));
-        });
-        
-        console.log('🔍 Matching projects:', matchingProjects.length);
-        
-        matchingProjects.forEach(project => {
-          results.push({
-            id: `project-${project.id}`,
-            type: 'project',
-            title: project.name,
-            description: `${project.venue || 'Production'}${project.description ? ` • ${project.description}` : ''}`,
-            snippet: project.description || '',
-            date: project.updatedAt?.toISOString(),
-            relevanceScore: keywords.some(keyword => 
-              project.name.toLowerCase().includes(keyword)
-            ) ? 3.0 + Math.random() : 1.0 + Math.random(),
-            metadata: {
-              venue: project.venue,
-              openingNight: project.openingNight
-            },
-            url: `/shows/${project.id}`
+
+        // If not in a specific project, search all projects
+        if (!projectId) {
+          console.log('🔍 Searching projects...');
+          const matchingProjects = projectsToSearch.filter(project => {
+            const searchText = [
+              project.name,
+              project.description,
+              project.venue
+            ].filter(Boolean).join(' ').toLowerCase();
+            
+            return keywords.some(keyword => searchText.includes(keyword));
           });
-        });
+          
+          matchingProjects.forEach(project => {
+            results.push({
+              id: `project-${project.id}`,
+              type: 'event', // Using 'event' type for project results
+              title: project.name,
+              description: `${project.venue || 'Production'}${project.description ? ` • ${project.description}` : ''}`,
+              snippet: project.description || '',
+              date: project.updatedAt?.toISOString(),
+              relevanceScore: keywords.some(keyword => 
+                project.name.toLowerCase().includes(keyword)
+              ) ? 3.0 + Math.random() : 1.0 + Math.random(),
+              metadata: {
+                venue: project.venue,
+                openingNight: project.openingNight
+              },
+              url: `/shows/${project.id}`
+            });
+          });
+        }
         
-        // Search schedule events for questions about schedules
+        // Search schedule events in relevant projects
         console.log('🔍 Searching schedule events...');
         const allEvents = [];
-        
-        // Get events from all user's projects
-        for (const project of projects) {
+        for (const project of projectsToSearch) {
           try {
             const events = await storage.getEventsByProjectId(project.id);
             allEvents.push(...events.map(event => ({ ...event, projectName: project.name, projectId: project.id })));
@@ -16905,21 +16906,16 @@ The Production Team`;
           }
         }
         
-        console.log('🔍 Found total events:', allEvents.length);
-        
         const matchingEvents = allEvents.filter(event => {
           const searchText = [
             event.title,
             event.description,
             event.location,
-            event.eventType,
-            event.projectName
+            event.eventType
           ].filter(Boolean).join(' ').toLowerCase();
           
           return keywords.some(keyword => searchText.includes(keyword));
         });
-        
-        console.log('🔍 Matching schedule events:', matchingEvents.length);
         
         matchingEvents.forEach(event => {
           results.push({
@@ -16940,6 +16936,92 @@ The Production Team`;
             },
             projectName: event.projectName,
             url: `/shows/${event.projectId}/schedule`
+          });
+        });
+
+        // Search props in relevant projects
+        console.log('🔍 Searching props...');
+        const allProps = [];
+        for (const project of projectsToSearch) {
+          try {
+            const props = await storage.getPropsByProjectId(project.id);
+            allProps.push(...props.map(prop => ({ ...prop, projectName: project.name, projectId: project.id })));
+          } catch (error) {
+            console.log(`🔍 Could not get props for project ${project.id}`);
+          }
+        }
+
+        const matchingProps = allProps.filter(prop => {
+          const searchText = [
+            prop.name,
+            prop.description,
+            prop.category,
+            prop.status
+          ].filter(Boolean).join(' ').toLowerCase();
+          
+          return keywords.some(keyword => searchText.includes(keyword));
+        });
+
+        matchingProps.forEach(prop => {
+          results.push({
+            id: `prop-${prop.id}`,
+            type: 'prop',
+            title: prop.name,
+            description: `${prop.category || 'Prop'} • Status: ${prop.status || 'Unknown'}`,
+            snippet: prop.description || '',
+            date: prop.updatedAt?.toISOString(),
+            relevanceScore: keywords.some(keyword => 
+              prop.name.toLowerCase().includes(keyword)
+            ) ? 3.0 + Math.random() : 1.0 + Math.random(),
+            metadata: {
+              category: prop.category,
+              status: prop.status
+            },
+            projectName: prop.projectName,
+            url: `/shows/${prop.projectId}/props-costumes`
+          });
+        });
+
+        // Search costumes in relevant projects
+        console.log('🔍 Searching costumes...');
+        const allCostumes = [];
+        for (const project of projectsToSearch) {
+          try {
+            const costumes = await storage.getCostumesByProjectId(project.id);
+            allCostumes.push(...costumes.map(costume => ({ ...costume, projectName: project.name, projectId: project.id })));
+          } catch (error) {
+            console.log(`🔍 Could not get costumes for project ${project.id}`);
+          }
+        }
+
+        const matchingCostumes = allCostumes.filter(costume => {
+          const searchText = [
+            costume.name,
+            costume.description,
+            costume.character,
+            costume.status
+          ].filter(Boolean).join(' ').toLowerCase();
+          
+          return keywords.some(keyword => searchText.includes(keyword));
+        });
+
+        matchingCostumes.forEach(costume => {
+          results.push({
+            id: `costume-${costume.id}`,
+            type: 'costume',
+            title: costume.name,
+            description: `${costume.character || 'Costume'} • Status: ${costume.status || 'Unknown'}`,
+            snippet: costume.description || '',
+            date: costume.updatedAt?.toISOString(),
+            relevanceScore: keywords.some(keyword => 
+              costume.name.toLowerCase().includes(keyword)
+            ) ? 3.0 + Math.random() : 1.0 + Math.random(),
+            metadata: {
+              character: costume.character,
+              status: costume.status
+            },
+            projectName: costume.projectName,
+            url: `/shows/${costume.projectId}/props-costumes`
           });
         });
         

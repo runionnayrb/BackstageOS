@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { useLocation } from 'wouter';
 
 interface SearchResult {
   id: string;
@@ -33,13 +34,21 @@ export default function GlobalSearchBar({
   const [isExpanded, setIsExpanded] = useState(false);
   const [results, setResults] = useState<SearchResult[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [location] = useLocation();
+  
+  // Extract projectId from URL (format: /shows/:id/...)
+  const projectId = (() => {
+    const match = location.match(/\/shows\/(\d+)/);
+    return match ? parseInt(match[1]) : null;
+  })();
 
   // AI Search mutation with cost controls
   const searchMutation = useMutation({
     mutationFn: async (searchQuery: string) => {
-      console.log('🔍 Performing search for:', searchQuery);
+      console.log('🔍 Performing search for:', searchQuery, 'in project:', projectId);
       return await apiRequest('POST', '/api/search/natural', {
         query: searchQuery,
+        projectId,
         maxResults: 10
       });
     },
