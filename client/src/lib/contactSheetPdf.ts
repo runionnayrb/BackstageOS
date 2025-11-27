@@ -74,8 +74,11 @@ export async function generateContactSheetPDF(
     
     if (groupContacts.length === 0) continue;
 
-    // Check if we need a new page for the group heading
-    if (yPosition + lineHeight * 2.5 > maxContentY) {
+    // Calculate space needed for this group: heading + table header + all contacts + spacing
+    const spaceNeededForGroup = lineHeight * 2 + lineHeight * 1.2 + (groupContacts.length * lineHeight) + lineHeight;
+
+    // Check if entire group fits on current page; if not, move to next page
+    if (yPosition + spaceNeededForGroup > maxContentY) {
       pdf.addPage();
       currentPage++;
       yPosition = addPageHeader();
@@ -115,28 +118,6 @@ export async function generateContactSheetPDF(
     pdf.setFontSize(11);
 
     for (const contact of groupContacts) {
-      const rowHeight = lineHeight;
-      
-      // Check if we need a new page (account for footer space)
-      if (yPosition + rowHeight > maxContentY) {
-        pdf.addPage();
-        currentPage++;
-        yPosition = addPageHeader();
-
-        // Re-add header on new page
-        pdf.setFont('Helvetica', 'bold');
-        pdf.setFontSize(12);
-        pdf.text('Name', startX, yPosition);
-        pdf.text('Position', startX + colWidths.name, yPosition);
-        pdf.text('Email', startX + colWidths.name + colWidths.role, yPosition);
-        pdf.text('Phone', phoneStartX, yPosition);
-        
-        yPosition += lineHeight * 1.2;
-
-        pdf.setFont('Helvetica', 'normal');
-        pdf.setFontSize(11);
-      }
-
       const fullName = [contact.firstName, contact.lastName].filter(Boolean).join(' ');
       const role = contact.role || '';
       const email = contact.email || '';
@@ -147,7 +128,7 @@ export async function generateContactSheetPDF(
       pdf.text(email, startX + colWidths.name + colWidths.role, yPosition);
       pdf.text(phone, phoneStartX, yPosition, { maxWidth: colWidths.phone, align: 'left' });
 
-      yPosition += rowHeight;
+      yPosition += lineHeight;
     }
 
     yPosition += lineHeight; // Space between groups
