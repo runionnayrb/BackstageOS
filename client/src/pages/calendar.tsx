@@ -121,11 +121,43 @@ export default function Calendar() {
 
       {/* Desktop Header */}
       <div className="hidden md:block px-4 sm:px-6 lg:px-8 pt-6 mb-6">
-        <h1 className="text-3xl font-bold">Calendar</h1>
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold">Calendar</h1>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAvailabilityComparison(true)}
+              data-testid="button-team-availability"
+            >
+              <Users className="h-4 w-4 mr-2" />
+              Team Availability
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowLocationAvailability(true)}
+              data-testid="button-location-availability"
+            >
+              <MapPin className="h-4 w-4 mr-2" />
+              Location Availability
+            </Button>
+          </div>
+        </div>
       </div>
 
-      {/* Mobile: Add minimal top padding */}
-      <div className="md:hidden pt-4"></div>
+      {/* Mobile Header */}
+      <div className="md:hidden px-4 sm:px-6 pt-4 pb-4 flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Calendar</h1>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowAvailabilityDropdown(true)}
+          data-testid="button-availability-menu"
+        >
+          <ChevronDown className="h-4 w-4" />
+        </Button>
+      </div>
 
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="space-y-1">
