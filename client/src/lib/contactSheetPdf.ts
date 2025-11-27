@@ -55,26 +55,6 @@ export async function generateContactSheetPDF(
   // Sort groups by sort order
   const sortedGroups = [...contactGroups].sort((a, b) => a.sortOrder - b.sortOrder);
 
-  const addFooter = () => {
-    const now = new Date();
-    const formattedDate = now.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
-
-    pdf.setFont('Helvetica', 'normal');
-    pdf.setFontSize(7);
-
-    // Left: Published date
-    pdf.text(`Published: ${formattedDate}`, marginInches, footerY);
-
-    // Right: Page X of X (we'll update this at the end)
-    const pageText = `Page ${currentPage} of [TOTAL]`;
-    const textWidth = pdf.getTextWidth(pageText);
-    pdf.text(pageText, pageWidth - marginInches - textWidth, footerY);
-  };
-
   // Process each group
   for (const group of sortedGroups) {
     const groupContacts = contacts.filter(c => c.groupId === group.id);
@@ -83,7 +63,6 @@ export async function generateContactSheetPDF(
 
     // Check if we need a new page for the group heading
     if (yPosition + lineHeight * 2.5 > maxContentY) {
-      addFooter();
       pdf.addPage();
       currentPage++;
       yPosition = marginInches;
@@ -125,7 +104,6 @@ export async function generateContactSheetPDF(
       
       // Check if we need a new page (account for footer space)
       if (yPosition + rowHeight > maxContentY) {
-        addFooter();
         pdf.addPage();
         currentPage++;
         yPosition = marginInches;
@@ -160,26 +138,25 @@ export async function generateContactSheetPDF(
     yPosition += lineHeight; // Space between groups
   }
 
-  // Add footer to last page
-  addFooter();
-
-  // Fix page numbers
+  // Add footers to all pages
   const pageCount = pdf.getNumberOfPages();
+  const now = new Date();
+  const formattedDate = now.toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  });
+
   for (let i = 1; i <= pageCount; i++) {
     pdf.setPage(i);
     
     pdf.setFont('Helvetica', 'normal');
     pdf.setFontSize(7);
     
-    const now = new Date();
-    const formattedDate = now.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
-
+    // Left: Published date
     pdf.text(`Published: ${formattedDate}`, marginInches, footerY);
     
+    // Right: Page X of Y
     const pageText = `Page ${i} of ${pageCount}`;
     const textWidth = pdf.getTextWidth(pageText);
     pdf.text(pageText, pageWidth - marginInches - textWidth, footerY);
