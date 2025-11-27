@@ -553,9 +553,6 @@ export default function Personnel() {
                   <DropdownMenuItem onClick={handleDownloadFacesheet}>
                     Download Face Sheet (PDF)
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setLocation(`/shows/${projectId}/company-list`)}>
-                    Company List
-                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
