@@ -133,7 +133,7 @@ export async function generateFacesheetPDF(
     if (contact.role) {
       pdf.setFont('Helvetica', 'normal');
       pdf.setFontSize(9);
-      const roleY = nameY + 0.09;
+      const roleY = nameY + 1.1;
       pdf.text(contact.role, xPos + photoSize / 2, roleY, { 
         align: 'center',
         maxWidth: photoSize
