@@ -78,9 +78,9 @@ export async function generateContactSheetPDF(
     pdf.setFontSize(12);
     
     const colWidths = {
-      name: 1.9,
-      role: 1.7,
-      email: 2.4,
+      name: 1.5,
+      role: 2.0,
+      email: 2.5,
       phone: 1.5
     };
 
