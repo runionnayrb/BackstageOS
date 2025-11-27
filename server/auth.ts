@@ -172,14 +172,14 @@ export function setupAuth(app: Express) {
         console.error('Error checking waitlist:', waitlistError);
       }
 
-      // Create new user - only grant beta access if they're on the waitlist
+      // Create new user - grant beta access to all new users
       const hashedPassword = await hashPassword(password);
       const user = await storage.createUser({
         email,
         password: hashedPassword,
         firstName,
         lastName,
-        betaAccess: hasWaitlistAccess, // Only grant beta access if on waitlist
+        betaAccess: true, // All new users get beta access
         defaultReplyToEmail: email, // Auto-populate with their registration email
         emailDisplayName: `${firstName} ${lastName}`.trim() || null, // Auto-populate with their name
       });
