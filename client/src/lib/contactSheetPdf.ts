@@ -131,7 +131,7 @@ export async function generateContactSheetPDF(
       pdf.text(fullName, startX, yPosition);
       pdf.text(role, startX + colWidths.name, yPosition);
       pdf.text(email, startX + colWidths.name + colWidths.role, yPosition);
-      pdf.text(phone, rightMarginX, yPosition, { align: 'right' }); // Phone numbers right-aligned to margin
+      pdf.text(phone, rightMarginX, yPosition, { align: 'right' });
 
       yPosition += rowHeight;
     }
