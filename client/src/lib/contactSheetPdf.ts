@@ -1,5 +1,4 @@
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 
 interface Contact {
   id: number;
@@ -37,7 +36,6 @@ export async function generateContactSheetPDF(
   const pageWidth = 8.5;
   const pageHeight = 11;
   const marginInches = 0.5;
-  const marginPts = marginInches * 72; // Convert inches to points
   
   const pdf = new jsPDF({
     orientation: 'portrait',
@@ -46,13 +44,12 @@ export async function generateContactSheetPDF(
   });
 
   const usableWidth = pageWidth - marginInches * 2;
-  const usableHeight = pageHeight - marginInches * 2;
-  const footerHeight = 0.3;
-  const contentHeight = usableHeight - footerHeight;
+  const footerY = pageHeight - marginInches + 0.1;
+  const maxContentY = footerY - 0.25; // Leave space for footer
 
   let currentPage = 1;
   let yPosition = marginInches;
-  const lineHeight = 0.2;
+  const lineHeight = 0.18;
   const fontSize = 10;
 
   // Sort groups by sort order
@@ -67,15 +64,15 @@ export async function generateContactSheetPDF(
     });
 
     pdf.setFont('Helvetica', 'normal');
-    pdf.setFontSize(8);
+    pdf.setFontSize(7);
 
     // Left: Published date
-    pdf.text(`Published: ${formattedDate}`, marginInches, pageHeight - marginInches + 0.15);
+    pdf.text(`Published: ${formattedDate}`, marginInches, footerY);
 
     // Right: Page X of X (we'll update this at the end)
     const pageText = `Page ${currentPage} of [TOTAL]`;
     const textWidth = pdf.getTextWidth(pageText);
-    pdf.text(pageText, pageWidth - marginInches - textWidth, pageHeight - marginInches + 0.15);
+    pdf.text(pageText, pageWidth - marginInches - textWidth, footerY);
   };
 
   // Process each group
@@ -85,7 +82,7 @@ export async function generateContactSheetPDF(
     if (groupContacts.length === 0) continue;
 
     // Check if we need a new page for the group heading
-    if (yPosition + lineHeight * 2 > marginInches + contentHeight) {
+    if (yPosition + lineHeight * 2.5 > maxContentY) {
       addFooter();
       pdf.addPage();
       currentPage++;
@@ -96,11 +93,11 @@ export async function generateContactSheetPDF(
     pdf.setFont('Helvetica', 'bold');
     pdf.setFontSize(12);
     pdf.text(group.name, marginInches, yPosition);
-    yPosition += lineHeight * 2;
+    yPosition += lineHeight * 1.8;
 
     // Table header
     pdf.setFont('Helvetica', 'bold');
-    pdf.setFontSize(fontSize);
+    pdf.setFontSize(fontSize - 1);
     
     const colWidths = {
       name: usableWidth * 0.25,
@@ -110,28 +107,24 @@ export async function generateContactSheetPDF(
     };
 
     const startX = marginInches;
-    pdf.text('Name', startX, yPosition);
-    pdf.text('Position', startX + colWidths.name, yPosition);
-    pdf.text('Email', startX + colWidths.name + colWidths.role, yPosition);
-    pdf.text('Phone', startX + colWidths.name + colWidths.role + colWidths.email, yPosition);
+    const headerY = yPosition;
     
-    yPosition += lineHeight;
+    pdf.text('Name', startX, headerY);
+    pdf.text('Position', startX + colWidths.name, headerY);
+    pdf.text('Email', startX + colWidths.name + colWidths.role, headerY);
+    pdf.text('Phone', startX + colWidths.name + colWidths.role + colWidths.email, headerY);
     
-    // Underline header
-    pdf.setDrawColor(0);
-    pdf.setLineWidth(0.5);
-    pdf.line(marginInches, yPosition, pageWidth - marginInches, yPosition);
-    yPosition += lineHeight;
+    yPosition += lineHeight * 1.5;
 
     // Contact rows
     pdf.setFont('Helvetica', 'normal');
-    pdf.setFontSize(fontSize - 1);
+    pdf.setFontSize(fontSize - 2);
 
     for (const contact of groupContacts) {
       const rowHeight = lineHeight;
       
-      // Check if we need a new page
-      if (yPosition + rowHeight > marginInches + contentHeight) {
+      // Check if we need a new page (account for footer space)
+      if (yPosition + rowHeight > maxContentY) {
         addFooter();
         pdf.addPage();
         currentPage++;
@@ -139,47 +132,22 @@ export async function generateContactSheetPDF(
 
         // Re-add header on new page
         pdf.setFont('Helvetica', 'bold');
-        pdf.setFontSize(fontSize);
+        pdf.setFontSize(fontSize - 1);
         pdf.text('Name', startX, yPosition);
         pdf.text('Position', startX + colWidths.name, yPosition);
         pdf.text('Email', startX + colWidths.name + colWidths.role, yPosition);
         pdf.text('Phone', startX + colWidths.name + colWidths.role + colWidths.email, yPosition);
         
-        yPosition += lineHeight;
-        pdf.setDrawColor(0);
-        pdf.setLineWidth(0.5);
-        pdf.line(marginInches, yPosition, pageWidth - marginInches, yPosition);
-        yPosition += lineHeight;
+        yPosition += lineHeight * 1.5;
 
         pdf.setFont('Helvetica', 'normal');
-        pdf.setFontSize(fontSize - 1);
+        pdf.setFontSize(fontSize - 2);
       }
 
       const fullName = [contact.firstName, contact.lastName].filter(Boolean).join(' ');
       const role = contact.role || '';
       const email = contact.email || '';
       const phone = formatPhoneNumber(contact.phone);
-
-      // Text wrapping for long content
-      const wrapText = (text: string, maxWidth: number): string[] => {
-        if (!text) return [''];
-        const lines: string[] = [];
-        let currentLine = '';
-        
-        for (let i = 0; i < text.length; i++) {
-          const testLine = currentLine + text[i];
-          const width = pdf.getTextWidth(testLine);
-          
-          if (width > maxWidth) {
-            lines.push(currentLine);
-            currentLine = text[i];
-          } else {
-            currentLine = testLine;
-          }
-        }
-        lines.push(currentLine);
-        return lines;
-      };
 
       pdf.text(fullName, startX, yPosition);
       pdf.text(role, startX + colWidths.name, yPosition);
@@ -201,11 +169,20 @@ export async function generateContactSheetPDF(
     pdf.setPage(i);
     
     pdf.setFont('Helvetica', 'normal');
-    pdf.setFontSize(8);
+    pdf.setFontSize(7);
+    
+    const now = new Date();
+    const formattedDate = now.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+
+    pdf.text(`Published: ${formattedDate}`, marginInches, footerY);
     
     const pageText = `Page ${i} of ${pageCount}`;
     const textWidth = pdf.getTextWidth(pageText);
-    pdf.text(pageText, pageWidth - marginInches - textWidth, pageHeight - marginInches + 0.15);
+    pdf.text(pageText, pageWidth - marginInches - textWidth, footerY);
   }
 
   // Download the PDF
