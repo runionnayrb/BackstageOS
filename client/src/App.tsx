@@ -314,6 +314,9 @@ function Router() {
         <Route path="/checkout" component={Checkout} />
         <Route path="/subscribe" component={Subscribe} />
         <Route path="/billing" component={Billing} />
+        <Route path="/security" component={() => <SecurityPage />} />
+        <Route path="/privacy" component={() => <PrivacyPage />} />
+        <Route path="/terms" component={() => <TermsPage />} />
         <Route component={NotFound} />
         </Switch>
       </Layout>
