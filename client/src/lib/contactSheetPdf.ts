@@ -49,8 +49,7 @@ export async function generateContactSheetPDF(
 
   let currentPage = 1;
   let yPosition = marginInches;
-  const lineHeight = 0.18;
-  const fontSize = 10;
+  const lineHeight = 0.2;
 
   // Sort groups by sort order
   const sortedGroups = [...contactGroups].sort((a, b) => a.sortOrder - b.sortOrder);
@@ -68,15 +67,15 @@ export async function generateContactSheetPDF(
       yPosition = marginInches;
     }
 
-    // Group heading
+    // Group heading - 15pt
+    pdf.setFont('Helvetica', 'bold');
+    pdf.setFontSize(15);
+    pdf.text(group.name, marginInches, yPosition);
+    yPosition += lineHeight * 2;
+
+    // Table header - 12pt
     pdf.setFont('Helvetica', 'bold');
     pdf.setFontSize(12);
-    pdf.text(group.name, marginInches, yPosition);
-    yPosition += lineHeight * 1.8;
-
-    // Table header
-    pdf.setFont('Helvetica', 'bold');
-    pdf.setFontSize(fontSize - 1);
     
     const colWidths = {
       name: usableWidth * 0.25,
@@ -95,9 +94,9 @@ export async function generateContactSheetPDF(
     
     yPosition += lineHeight * 1.5;
 
-    // Contact rows
+    // Contact rows - 11pt
     pdf.setFont('Helvetica', 'normal');
-    pdf.setFontSize(fontSize - 2);
+    pdf.setFontSize(11);
 
     for (const contact of groupContacts) {
       const rowHeight = lineHeight;
@@ -110,7 +109,7 @@ export async function generateContactSheetPDF(
 
         // Re-add header on new page
         pdf.setFont('Helvetica', 'bold');
-        pdf.setFontSize(fontSize - 1);
+        pdf.setFontSize(12);
         pdf.text('Name', startX, yPosition);
         pdf.text('Position', startX + colWidths.name, yPosition);
         pdf.text('Email', startX + colWidths.name + colWidths.role, yPosition);
@@ -119,7 +118,7 @@ export async function generateContactSheetPDF(
         yPosition += lineHeight * 1.5;
 
         pdf.setFont('Helvetica', 'normal');
-        pdf.setFontSize(fontSize - 2);
+        pdf.setFontSize(11);
       }
 
       const fullName = [contact.firstName, contact.lastName].filter(Boolean).join(' ');
