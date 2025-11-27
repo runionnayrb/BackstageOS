@@ -234,12 +234,17 @@ export default function GlobalSearchBar({
             
             {/* Footer with search stats */}
             {(results.length > 0 || searchMutation.isPending) && (
-              <div className="border-t bg-gray-50 px-3 py-2 text-xs text-gray-500">
-                {searchMutation.isPending ? (
-                  "Searching..."
-                ) : (
-                  `${results.length} result${results.length !== 1 ? 's' : ''} found`
-                )}
+              <div className="border-t bg-gray-50 px-3 py-2 text-xs text-gray-500 flex justify-between items-center">
+                <span>
+                  {searchMutation.isPending ? (
+                    "Searching..."
+                  ) : (
+                    `${results.length} result${results.length !== 1 ? 's' : ''} found`
+                  )}
+                </span>
+                <span className="text-gray-400 italic">
+                  I'm not lazy, I'm just on energy-saving mode.
+                </span>
               </div>
             )}
           </div>
