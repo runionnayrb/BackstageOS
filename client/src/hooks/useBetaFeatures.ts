@@ -51,12 +51,12 @@ export function useBetaFeatures() {
       return true;
     }
 
-    // If user has beta access, they get access to all beta features
-    if (effectiveUser.betaAccess) {
-      return true;
-    }
+    // User must have beta access enabled
+    if (!effectiveUser.betaAccess) return false;
     
-    return false;
+    // If user has beta access, they can access any globally-enabled feature
+    // (Global feature enablement is checked separately in canAccessFeature via isFeatureEnabled)
+    return true;
   };
 
   const canAccessFeature = (featureId: string): boolean => {

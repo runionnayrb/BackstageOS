@@ -6416,13 +6416,11 @@ Best regards,
     }
   });
 
-  // Beta feature settings API (admin only)
+  // Beta feature settings API (read: all authenticated users, write: admin only)
   app.get('/api/admin/beta-settings', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
-      if (!isAdmin(userId)) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
+      // All authenticated users can read beta settings to know which features are available
+      // Only admins can UPDATE beta settings (handled in PUT endpoint)
 
       // Get settings from database, fallback to default if not found
       let settings = await storage.getBetaSettings();
