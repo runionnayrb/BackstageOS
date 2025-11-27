@@ -18,6 +18,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { setPageHeaderIcons, clearPageHeaderIcons } from "@/hooks/useHeaderIcons";
 import { FloatingActionButton } from "@/components/navigation/floating-action-button";
 import { generateContactSheetPDF } from "@/lib/contactSheetPdf";
+import { generateFacesheetPDF } from "@/lib/facesheetPdf";
 import type { ContactGroup } from "@shared/schema";
 
 
@@ -351,6 +352,20 @@ export default function Personnel() {
     }
   };
 
+  const handleDownloadFacesheet = async () => {
+    try {
+      await generateFacesheetPDF(allContacts, project?.name || 'Company Face Sheet');
+      toast({ title: "Face sheet downloaded successfully" });
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast({
+        title: "Error generating PDF",
+        description: "Failed to create face sheet PDF",
+        variant: "destructive",
+      });
+    }
+  };
+
   const formatPhoneNumber = (phone: string | undefined): string => {
     if (!phone) return '';
     
@@ -534,6 +549,9 @@ export default function Personnel() {
                 <DropdownMenuContent>
                   <DropdownMenuItem onClick={handleDownloadContactSheet}>
                     Download Contact Sheet (PDF)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleDownloadFacesheet}>
+                    Download Face Sheet (PDF)
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setLocation(`/shows/${projectId}/company-list`)}>
                     Company List
