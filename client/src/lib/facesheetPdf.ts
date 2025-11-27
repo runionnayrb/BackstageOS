@@ -129,12 +129,12 @@ export async function generateFacesheetPDF(
       maxWidth: photoSize
     });
 
-    // Add position below name
-    if (contact.position) {
+    // Add role below name
+    if (contact.role) {
       pdf.setFont('Helvetica', 'normal');
       pdf.setFontSize(9);
-      const positionY = nameY + 0.09;
-      pdf.text(contact.position, xPos + photoSize / 2, positionY, { 
+      const roleY = nameY + 0.09;
+      pdf.text(contact.role, xPos + photoSize / 2, roleY, { 
         align: 'center',
         maxWidth: photoSize
       });
