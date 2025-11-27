@@ -54,7 +54,7 @@ export async function generateFacesheetPDF(
     return marginInches + 0.92;
   };
 
-  // Function to add footer
+  // Function to add footer (only published date, page numbers added later)
   const addFooter = () => {
     const now = new Date();
     const formattedDate = now.toLocaleDateString('en-US', { 
@@ -68,11 +68,6 @@ export async function generateFacesheetPDF(
     
     // Left: Published date
     pdf.text(`Published: ${formattedDate}`, marginInches, footerY);
-    
-    // Right: Page X of Y (will be fixed at the end)
-    const pageText = `Page ${currentPage} of [TOTAL]`;
-    const textWidth = pdf.getTextWidth(pageText);
-    pdf.text(pageText, pageWidth - marginInches - textWidth, footerY);
   };
 
   // Calculate layout
