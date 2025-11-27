@@ -535,9 +535,6 @@ export default function Personnel() {
                   <DropdownMenuItem onClick={handleDownloadContactSheet}>
                     Download Contact Sheet (PDF)
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setLocation(`/shows/${projectId}/contact-sheet`)}>
-                    Contact Sheet Editor
-                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setLocation(`/shows/${projectId}/company-list`)}>
                     Company List
                   </DropdownMenuItem>
