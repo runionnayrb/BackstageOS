@@ -94,7 +94,7 @@ export async function generateContactSheetPDF(
     pdf.text('Email', startX + colWidths.name + colWidths.role, headerY);
     pdf.text('Phone', phoneStartX, headerY);
     
-    yPosition += lineHeight * 1.5;
+    yPosition += lineHeight * 1.2;
 
     // Contact rows - 11pt
     pdf.setFont('Helvetica', 'normal');
@@ -117,7 +117,7 @@ export async function generateContactSheetPDF(
         pdf.text('Email', startX + colWidths.name + colWidths.role, yPosition);
         pdf.text('Phone', phoneStartX, yPosition);
         
-        yPosition += lineHeight * 1.5;
+        yPosition += lineHeight * 1.2;
 
         pdf.setFont('Helvetica', 'normal');
         pdf.setFontSize(11);
