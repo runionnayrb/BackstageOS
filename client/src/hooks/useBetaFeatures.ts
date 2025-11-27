@@ -51,16 +51,12 @@ export function useBetaFeatures() {
       return true;
     }
 
-    // Check if user has beta access and the specific feature
-    if (!effectiveUser.betaAccess) return false;
-    
-    try {
-      const betaFeatures = effectiveUser.betaFeatures ? JSON.parse(effectiveUser.betaFeatures as string) : [];
-      return betaFeatures.includes(featureId);
-    } catch (error) {
-      console.warn('Error parsing betaFeatures JSON:', error, 'Raw value:', effectiveUser.betaFeatures);
-      return false;
+    // If user has beta access, they get access to all beta features
+    if (effectiveUser.betaAccess) {
+      return true;
     }
+    
+    return false;
   };
 
   const canAccessFeature = (featureId: string): boolean => {
