@@ -178,12 +178,6 @@ export default function Personnel() {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="bottom" align="end" sideOffset={8}>
-                <DropdownMenuItem onClick={() => setLocation(`/shows/${projectId}/contact-sheet`)}>
-                  Contact Sheet
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLocation(`/shows/${projectId}/company-list`)}>
-                  Company List
-                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ),
@@ -509,23 +503,6 @@ export default function Personnel() {
             >
               <Plus className="w-5 h-5" />
             </button>
-            {allContacts.length > 0 && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="p-1 text-gray-600 hover:text-blue-600 transition-colors">
-                    <FileText className="h-5 w-5" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => setLocation(`/shows/${projectId}/contact-sheet`)}>
-                    Contact Sheet
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setLocation(`/shows/${projectId}/company-list`)}>
-                    Company List
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
           </div>
         </div>
       </div>
