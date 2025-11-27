@@ -217,17 +217,7 @@ export default function GlobalSearchBar({
                 <div className="p-8 text-center">
                   <p className="text-gray-500 text-sm">No results found. Try a different search term.</p>
                 </div>
-              ) : (
-                <div className="p-8 text-center">
-                  <div className="flex items-center justify-center gap-2 text-blue-600 mb-2">
-                    <Sparkles className="h-5 w-5" />
-                    <span className="font-medium">Smart Search</span>
-                  </div>
-                  <p className="text-gray-500 text-sm">
-                    Ask questions like "Who's playing Lady Macbeth?" or "What props do we need for Act 2?"
-                  </p>
-                </div>
-              )}
+              ) : null}
             </div>
             
             {/* Footer with search stats */}
