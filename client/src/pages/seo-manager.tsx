@@ -700,9 +700,12 @@ ${JSON.stringify(settings.structuredData, null, 2)}
                             <div className="flex items-center space-x-3">
                               <div className="flex-1">
                                 <img 
-                                  src={form.watch('faviconUrl')} 
+                                  src={form.watch('faviconUrl').startsWith('http') ? form.watch('faviconUrl') : `${window.location.origin}${form.watch('faviconUrl')}`} 
                                   alt="Favicon preview" 
                                   className="h-8 w-8 rounded border"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                  }}
                                 />
                                 <p className="text-xs text-gray-500 mt-1 truncate">
                                   {form.watch('faviconUrl')}
@@ -953,9 +956,12 @@ ${JSON.stringify(settings.structuredData, null, 2)}
                             <div className="flex items-center space-x-3">
                               <div className="flex-1">
                                 <img 
-                                  src={form.watch('shareImageUrl')} 
+                                  src={form.watch('shareImageUrl').startsWith('http') ? form.watch('shareImageUrl') : `${window.location.origin}${form.watch('shareImageUrl')}`} 
                                   alt="Share preview" 
                                   className="h-20 w-auto rounded border"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                  }}
                                 />
                                 <p className="text-xs text-gray-500 mt-1 truncate">
                                   {form.watch('shareImageUrl')}
