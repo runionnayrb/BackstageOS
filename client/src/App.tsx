@@ -143,6 +143,19 @@ function Router() {
   if (location === '/seo-test') {
     return <SEOTest />;
   }
+
+  // Policy pages - no authentication required
+  if (location === '/security') {
+    return <SecurityPage />;
+  }
+
+  if (location === '/privacy') {
+    return <PrivacyPage />;
+  }
+
+  if (location === '/terms') {
+    return <TermsPage />;
+  }
   
   // Personal schedule viewer route - public access with token
   if (location.startsWith('/personal-schedule/')) {
@@ -197,19 +210,6 @@ function Router() {
   
   if (location === '/reset-password') {
     return <ResetPassword />;
-  }
-
-  // Handle policy pages - accessible to authenticated users
-  if (location === '/security') {
-    return <SecurityPage />;
-  }
-
-  if (location === '/privacy') {
-    return <PrivacyPage />;
-  }
-
-  if (location === '/terms') {
-    return <TermsPage />;
   }
 
   if (isLoading) {
