@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, CheckCircle, Archive } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 
 const CURRENT_VERSION = "26.4.0";
 
@@ -143,6 +143,7 @@ const getTypeColor = (type: string) => {
 };
 
 export default function VersionFooter() {
+  const [, setLocation] = useLocation();
   const [open, setOpen] = useState(false);
 
   return (
@@ -226,17 +227,17 @@ export default function VersionFooter() {
                 </DialogContent>
               </Dialog>
               <span className="text-xs text-muted-foreground">|</span>
-              <Link to="/security" className="text-xs text-muted-foreground hover:text-foreground cursor-pointer">
+              <button onClick={() => setLocation('/security')} className="text-xs text-muted-foreground hover:text-foreground cursor-pointer bg-transparent border-0 p-0">
                 Security
-              </Link>
+              </button>
               <span className="text-xs text-muted-foreground">|</span>
-              <Link to="/privacy" className="text-xs text-muted-foreground hover:text-foreground cursor-pointer">
+              <button onClick={() => setLocation('/privacy')} className="text-xs text-muted-foreground hover:text-foreground cursor-pointer bg-transparent border-0 p-0">
                 Privacy
-              </Link>
+              </button>
               <span className="text-xs text-muted-foreground">|</span>
-              <Link to="/terms" className="text-xs text-muted-foreground hover:text-foreground cursor-pointer">
+              <button onClick={() => setLocation('/terms')} className="text-xs text-muted-foreground hover:text-foreground cursor-pointer bg-transparent border-0 p-0">
                 Terms
-              </Link>
+              </button>
             </div>
             <Button asChild variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground">
               <Link to="/projects/archived" className="flex items-center gap-1">
