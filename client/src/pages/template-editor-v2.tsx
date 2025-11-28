@@ -750,12 +750,15 @@ export default function TemplateEditorV2() {
                       {section.fields.map((field) => (
                         <div
                           key={field.id}
-                          className="flex items-center justify-between p-3 border rounded-lg"
+                          className="border rounded-lg overflow-hidden"
                           data-testid={`field-${field.id}`}
                         >
-                          <div className="flex items-center gap-3">
-                            <GripVertical className="h-4 w-4 text-muted-foreground" />
-                            <div>
+                          <div
+                            className="flex items-center gap-3 p-3 cursor-pointer hover:bg-muted transition-colors"
+                            onClick={() => handleEditField(field)}
+                          >
+                            <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                            <div className="flex-1">
                               <div className="font-medium">
                                 {field.label}
                                 {field.required && <span className="text-destructive ml-1">*</span>}
@@ -768,22 +771,16 @@ export default function TemplateEditorV2() {
                               )}
                             </div>
                           </div>
-                          <div className="flex gap-1">
+                          <div className="flex justify-start px-3 py-2 bg-muted border-t">
                             <Button
                               variant="ghost"
-                              size="icon"
-                              onClick={() => handleEditField(field)}
-                              data-testid={`button-edit-field-${field.id}`}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
+                              size="sm"
                               onClick={() => handleDeleteField(field)}
                               data-testid={`button-delete-field-${field.id}`}
+                              className="text-destructive hover:text-destructive"
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              Delete
                             </Button>
                           </div>
                         </div>
