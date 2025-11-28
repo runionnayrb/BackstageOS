@@ -13,6 +13,7 @@ import { useLocation, useParams } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Clock, Settings, Star, Users, FileText, ArrowLeft } from "lucide-react";
+import { RichTextEditor } from "@/components/rich-text-editor";
 import ReportNotesManager from "@/components/report-notes-manager";
 
 const reportSchema = z.object({
@@ -344,16 +345,14 @@ export default function ReportBuilder() {
                           <p className="text-sm text-muted-foreground">{field.helperText}</p>
                         )}
                         {field.type === "richtext" && (
-                          <Textarea
-                            value={currentContent[field.label] || field.defaultValue || ""}
-                            onChange={(e) => {
+                          <RichTextEditor
+                            content={currentContent[field.label] || field.defaultValue || ""}
+                            onChange={(value) => {
                               const newContent = {...currentContent};
-                              newContent[field.label] = e.target.value;
+                              newContent[field.label] = value;
                               form.setValue("content", newContent);
                             }}
                             placeholder={field.placeholder || ""}
-                            rows={4}
-                            className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
                           />
                         )}
                         {field.type === "text" && (
