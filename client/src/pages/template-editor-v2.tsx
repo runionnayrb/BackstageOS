@@ -1227,41 +1227,43 @@ export default function TemplateEditorV2() {
                             )}
                             {field.type === "text" && (
                               <Input
+                                value={field.defaultValue || ""}
                                 placeholder={field.placeholder || ""}
                                 disabled
-                                className="bg-muted"
+                                className="border-0 bg-transparent"
                               />
                             )}
                             {field.type === "richtext" && (
-                              <div className="border border-muted-foreground rounded-md p-3 bg-muted min-h-24 text-sm text-muted-foreground italic">
-                                Rich text editor
-                              </div>
+                              <div className="text-sm min-h-24 whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: field.defaultValue || field.placeholder || "" }} />
                             )}
                             {field.type === "number" && (
                               <Input
                                 type="number"
+                                value={field.defaultValue || ""}
                                 placeholder={field.placeholder || ""}
                                 disabled
-                                className="bg-muted"
+                                className="border-0 bg-transparent"
                               />
                             )}
                             {field.type === "date" && (
                               <Input
                                 type="date"
+                                value={field.defaultValue || ""}
                                 disabled
-                                className="bg-muted"
+                                className="border-0 bg-transparent"
                               />
                             )}
                             {field.type === "time" && (
                               <Input
                                 type="time"
+                                value={field.defaultValue || ""}
                                 disabled
-                                className="bg-muted"
+                                className="border-0 bg-transparent"
                               />
                             )}
                             {field.type === "checkbox" && (
                               <div className="flex items-center space-x-2">
-                                <Checkbox disabled />
+                                <Checkbox disabled checked={field.defaultValue === "true"} />
                                 <label className="text-sm text-muted-foreground">
                                   {field.placeholder || "Check this option"}
                                 </label>
@@ -1269,18 +1271,9 @@ export default function TemplateEditorV2() {
                             )}
                             {field.type === "select" && (
                               <div className="space-y-2">
-                                <Select disabled>
-                                  <SelectTrigger className="bg-muted">
-                                    <SelectValue placeholder={field.placeholder || "Select an option"} />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {field.options?.values?.map((option: string, idx: number) => (
-                                      <SelectItem key={idx} value={option}>
-                                        {option}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
+                                <div className="text-sm text-muted-foreground">
+                                  {field.defaultValue || field.placeholder || "Select an option"}
+                                </div>
                                 {field.options?.values && field.options.values.length > 0 && (
                                   <p className="text-xs text-muted-foreground">
                                     Options: {field.options.values.join(", ")}
