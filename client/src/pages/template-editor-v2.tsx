@@ -757,11 +757,11 @@ export default function TemplateEditorV2() {
                       {section.fields.map((field) => (
                         <div
                           key={field.id}
-                          className="border rounded-lg overflow-hidden"
+                          className="overflow-hidden"
                           data-testid={`field-${field.id}`}
                         >
                           <div
-                            className="flex items-center gap-3 p-3 cursor-pointer hover:bg-muted transition-colors"
+                            className="flex items-center gap-3 cursor-pointer hover:bg-muted transition-colors"
                             onClick={() => handleEditField(field)}
                           >
                             <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
