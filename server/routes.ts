@@ -7129,6 +7129,34 @@ Best regards,
         groupNameMap[g.name.toLowerCase()] = g.id;
       });
 
+      // Check if any contact specifies a group that doesn't exist
+      const csvGroupsSpecified = new Set<string>();
+      const groupsNotFound = new Set<string>();
+      
+      for (const contactData of contacts) {
+        if (contactData.group) {
+          csvGroupsSpecified.add(contactData.group);
+          if (!groupNameMap[contactData.group.toLowerCase()]) {
+            groupsNotFound.add(contactData.group);
+          }
+        }
+      }
+
+      // If groups are specified in CSV but not found, and no default group is selected, return error
+      if (groupsNotFound.size > 0 && !groupId) {
+        const missingGroups = Array.from(groupsNotFound).join(", ");
+        return res.status(400).json({ 
+          message: `The following groups were not found: ${missingGroups}. Please create these groups or select a default group in the import modal.` 
+        });
+      }
+
+      // If no groups in CSV and no default group selected, return error
+      if (csvGroupsSpecified.size === 0 && !groupId) {
+        return res.status(400).json({ 
+          message: "No group specified. Please either add a Group column to your CSV or select a default group." 
+        });
+      }
+
       const userId = req.user.id.toString();
       const createdContacts = [];
 
@@ -7142,18 +7170,18 @@ Best regards,
             const groupIdFromName = groupNameMap[contactData.group.toLowerCase()];
             if (groupIdFromName) {
               finalGroupId = groupIdFromName;
+            } else if (finalGroupId) {
+              // Use default group if CSV group not found
+              finalGroupId = parseInt(groupId);
             } else {
-              // If group name not found in database, try to use default groupId
-              if (!finalGroupId) {
-                console.warn(`Group "${contactData.group}" not found for contact ${contactData.firstName} ${contactData.lastName}`);
-                continue; // Skip this contact if no default group
-              }
+              // No default group and CSV group not found, skip
+              continue;
             }
           }
 
           if (!finalGroupId) {
-            console.warn(`No group specified for contact ${contactData.firstName} ${contactData.lastName}`);
-            continue; // Skip if no group can be determined
+            // This shouldn't happen given our checks above, but keep for safety
+            continue;
           }
 
           const rawData = {
