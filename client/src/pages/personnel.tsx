@@ -408,18 +408,43 @@ export default function Personnel() {
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-3xl font-bold text-gray-900">Contacts</h1>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
+            {/* Upload / Import Button */}
             <button 
               onClick={() => setShowImportModal(true)}
-              className="p-1 text-gray-600 hover:text-blue-600 transition-colors"
+              className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-blue-600 transition-colors"
               title="Import contacts"
             >
               <Upload className="h-5 w-5" />
+              <span className="text-sm">Import</span>
             </button>
+
+            {/* Download Button */}
+            {allContacts.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-blue-600 transition-colors">
+                    <FileText className="h-5 w-5" />
+                    <span className="text-sm">Download</span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={handleDownloadContactSheet}>
+                    Download Contact Sheet (PDF)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleDownloadFacesheet}>
+                    Download Face Sheet (PDF)
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+
+            {/* Groups Button */}
             <Dialog open={groupsModalOpen} onOpenChange={setGroupsModalOpen}>
               <DialogTrigger asChild>
-                <button className="p-1 text-gray-600 hover:text-blue-600 transition-colors">
+                <button className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-blue-600 transition-colors">
                   <Users className="h-5 w-5" />
+                  <span className="text-sm">Groups</span>
                 </button>
               </DialogTrigger>
               <DialogContent className="max-w-md">
@@ -540,29 +565,15 @@ export default function Personnel() {
                 </div>
               </DialogContent>
             </Dialog>
+
+            {/* Add Button */}
             <button 
               onClick={handleNewContactClick}
-              className="p-1 text-gray-600 hover:text-blue-600 transition-colors"
+              className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-blue-600 transition-colors"
             >
               <Plus className="w-5 h-5" />
+              <span className="text-sm">Add</span>
             </button>
-            {allContacts.length > 0 && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="p-1 text-gray-600 hover:text-blue-600 transition-colors">
-                    <FileText className="h-5 w-5" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={handleDownloadContactSheet}>
-                    Download Contact Sheet (PDF)
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleDownloadFacesheet}>
-                    Download Face Sheet (PDF)
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
           </div>
         </div>
       </div>
