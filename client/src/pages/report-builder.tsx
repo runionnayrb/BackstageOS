@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -40,6 +40,7 @@ export default function ReportBuilder() {
   const [selectedTemplate, setSelectedTemplate] = useState<string>("");
   const [customTemplate, setCustomTemplate] = useState<any>(null);
   const [focusedRichtextField, setFocusedRichtextField] = useState<string | null>(null);
+  const focusedEditorRef = useRef<HTMLDivElement | null>(null);
   
   // Extract template ID from query params
   const searchParams = new URLSearchParams(window.location.search);
@@ -315,31 +316,34 @@ export default function ReportBuilder() {
   const applyFormatting = (e: React.MouseEvent, command: string) => {
     e.preventDefault();
     
-    if (!focusedRichtextField) return;
-    
-    // Focus the editor and apply command
-    const editor = document.querySelector(`[data-field-name="${focusedRichtextField}"]`) as HTMLDivElement;
+    const editor = focusedEditorRef.current;
     if (!editor) return;
     
+    // Ensure the editor is focused
     editor.focus();
     
-    // Use native browser commands for rich text
-    switch(command) {
-      case "bold":
-        document.execCommand("bold", false);
-        break;
-      case "italic":
-        document.execCommand("italic", false);
-        break;
-      case "underline":
-        document.execCommand("underline", false);
-        break;
-      case "ul":
-        document.execCommand("insertUnorderedList", false);
-        break;
-      case "ol":
-        document.execCommand("insertOrderedList", false);
-        break;
+    // Apply command
+    try {
+      switch(command) {
+        case "bold":
+          document.execCommand("bold", false);
+          break;
+        case "italic":
+          document.execCommand("italic", false);
+          break;
+        case "underline":
+          document.execCommand("underline", false);
+          break;
+        case "ul":
+          document.execCommand("insertUnorderedList", false);
+          break;
+        case "ol":
+          document.execCommand("insertOrderedList", false);
+          break;
+      }
+      editor.focus();
+    } catch (error) {
+      console.error("Formatting error:", error);
     }
   };
 
@@ -431,12 +435,20 @@ export default function ReportBuilder() {
                         )}
                         {field.type === "richtext" && (
                           <div
-                            data-field-name={field.label}
+                            ref={(el) => {
+                              if (el && focusedRichtextField === field.label) {
+                                focusedEditorRef.current = el;
+                              }
+                            }}
                             contentEditable
                             suppressContentEditableWarning
-                            onFocus={() => setFocusedRichtextField(field.label)}
+                            onFocus={(e) => {
+                              setFocusedRichtextField(field.label);
+                              focusedEditorRef.current = e.currentTarget;
+                            }}
                             onBlur={(e) => {
                               setFocusedRichtextField(null);
+                              focusedEditorRef.current = null;
                               const newContent = {...currentContent};
                               newContent[field.label] = e.currentTarget.innerHTML;
                               form.setValue("content", newContent);
@@ -447,7 +459,7 @@ export default function ReportBuilder() {
                               form.setValue("content", newContent);
                             }}
                             dangerouslySetInnerHTML={{__html: currentContent[field.label] || field.defaultValue || ""}}
-                            className="border border-input rounded px-3 py-2 text-sm min-h-32 whitespace-pre-wrap focus:outline-none focus:ring-1 focus:ring-ring"
+                            className="text-sm whitespace-pre-wrap outline-none"
                           />
                         )}
                         {field.type === "text" && (

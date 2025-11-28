@@ -315,13 +315,13 @@ function renderReportContent(report: any, template: any, isEditing: boolean, for
                           form.setValue("content", newContent);
                         }}
                         dangerouslySetInnerHTML={{__html: content[field.label] || field.defaultValue || ""}}
-                        className="border border-input rounded px-3 py-2 text-sm min-h-32 whitespace-pre-wrap focus:outline-none focus:ring-1 focus:ring-ring"
+                        className="text-sm whitespace-pre-wrap outline-none"
                       />
                     )}
                     {field.type === "richtext" && !isEditing && (
                       <div 
                         dangerouslySetInnerHTML={{__html: content[field.label] || field.defaultValue || ""}}
-                        className="text-sm whitespace-pre-wrap px-3 py-2"
+                        className="text-sm whitespace-pre-wrap"
                       />
                     )}
                     {field.type === "text" && (
