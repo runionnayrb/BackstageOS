@@ -8,7 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -59,6 +61,13 @@ export default function ReportViewer() {
   const { data: projectSettings } = useQuery<any>({
     queryKey: [`/api/projects/${projectId}/settings`],
   });
+
+  const { data: templatesV2 = [] } = useQuery<any>({
+    queryKey: [`/api/projects/${projectId}/templates-v2`],
+  });
+
+  // Get the V2 template for this report
+  const template = templatesV2.find((t: any) => t.id === report?.templateId);
 
   const form = useForm<z.infer<typeof reportSchema>>({
     resolver: zodResolver(reportSchema),
@@ -214,39 +223,18 @@ export default function ReportViewer() {
               fontFamily: "Arial, sans-serif"
             }}>
               {/* Header */}
-              {report?.template?.headerFormatting ? (
-                <div 
-                  className="mb-6 pb-4 border-b"
-                  style={{
-                    textAlign: report.template.headerFormatting.textAlign || 'center',
-                    color: report.template.headerFormatting.color || '#000000',
-                    fontSize: report.template.headerFormatting.fontSize || '18px',
-                    fontFamily: report.template.headerFormatting.fontFamily || 'Arial, sans-serif',
-                    fontWeight: report.template.headerFormatting.fontWeight || '400',
-                    fontStyle: report.template.headerFormatting.fontStyle || 'normal',
-                    textDecoration: report.template.headerFormatting.textDecoration || 'none',
-                    backgroundColor: report.template.headerFormatting.backgroundColor || 'transparent',
-                    padding: '8px 0'
-                  }}
-                >
-                  <div>{report.title}</div>
-                  <div style={{ marginTop: '8px' }}>{project.name}</div>
-                  <div style={{ marginTop: '4px' }}>{new Date(report.date).toLocaleDateString()}</div>
+              <div className="text-center mb-6 pb-4 border-b">
+                <div className="text-lg font-semibold">
+                  {report.title}
                 </div>
-              ) : (
-                <div className="text-center mb-6 pb-4 border-b">
-                  <div className="text-lg font-semibold">
-                    {report.title}
-                  </div>
-                  <div className="text-sm text-gray-600 mt-2">
-                    {project.name} - {new Date(report.date).toLocaleDateString()}
-                  </div>
+                <div className="text-sm text-gray-600 mt-2">
+                  {project.name} - {new Date(report.date).toLocaleDateString()}
                 </div>
-              )}
+              </div>
 
               {/* Report Content */}
               <form onSubmit={form.handleSubmit(handleSave)} className="space-y-6">
-                {renderReportContent(report, true, form, projectSettings)}
+                {renderReportContent(report, template, true, form)}
               </form>
             </div>
           </CardContent>
@@ -281,99 +269,140 @@ export default function ReportViewer() {
   );
 }
 
-function renderReportContent(report: any, isEditing: boolean, form: any, projectSettings: any) {
+function renderReportContent(report: any, template: any, isEditing: boolean, form: any) {
   const content = form.watch("content") || {};
-  const projectId = report.projectId;
-  const reportId = report.id;
-  const reportType = report.type;
 
-  // Use ONLY custom template from report.template.layoutConfiguration (included from template by backend)
-  if (!report?.template?.layoutConfiguration) {
-    return <div>Loading template...</div>;
+  if (!template?.sections) {
+    return <div className="text-center py-8 text-muted-foreground">Template not found</div>;
   }
 
-  const { layoutConfiguration, fieldHeaderFormatting, departmentNames } = report.template;
-
   return (
-    <>
-      {layoutConfiguration.items
-        .filter((item: any) => item.type === 'grouped-section')
-        .map((section: any) => {
-          const isField = !!section.content?.fieldId;
-          const isDepartment = !!section.content?.department;
-          
-          if (isField) {
-            const fieldId = section.content.fieldId;
-            const label = section.content.label || fieldId;
-            const placeholder = section.children?.find((c: any) => c.type === 'notes')?.content?.placeholder || `Enter ${label.toLowerCase()}...`;
-            
-            return (
-              <div key={section.id} className="mb-6">
-                <div 
-                  className="text-sm font-bold px-2 py-1 mb-2"
-                  style={{
-                    backgroundColor: fieldHeaderFormatting?.backgroundColor || '#000000',
-                    color: fieldHeaderFormatting?.color || '#ffffff',
-                    fontFamily: fieldHeaderFormatting?.fontFamily || 'Arial',
-                    fontSize: fieldHeaderFormatting?.fontSize || '14px'
-                  }}
-                >
-                  {label}
-                </div>
-                {isEditing ? (
-                  <div 
-                    contentEditable
-                    suppressContentEditableWarning
-                    data-placeholder={placeholder}
-                    onBlur={(e) => {
-                      form.setValue(`content.${fieldId}`, e.currentTarget.textContent || "");
-                    }}
-                    onInput={(e) => {
-                      form.setValue(`content.${fieldId}`, e.currentTarget.textContent || "");
-                    }}
-                    className={`text-sm whitespace-pre-wrap px-4 py-2 outline-none ${(!content[fieldId] || (typeof content[fieldId] === 'string' && content[fieldId].trim() === '')) ? 'empty-field' : ''}`}
-                  >
-                    {content[fieldId] || ''}
+    <div className="space-y-6">
+      {template.sections.map((section: any) => (
+        <div key={section.id} className="space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold">{section.title}</h3>
+            {section.departmentKey && (
+              <p className="text-sm text-muted-foreground">{section.departmentKey}</p>
+            )}
+          </div>
+
+          {section.fields && section.fields.length > 0 ? (
+            <div className="space-y-4 pl-4">
+              {section.fields.map((field: any) => (
+                <div key={field.id} className="space-y-2">
+                  <Label className="font-bold">
+                    {field.label}
+                    {field.required && <span className="text-destructive ml-1">*</span>}
+                  </Label>
+                  <div className="pl-4">
+                    {field.helperText && (
+                      <p className="text-sm text-muted-foreground">{field.helperText}</p>
+                    )}
+                    
+                    {field.type === "richtext" && (
+                      <Textarea
+                        value={content[field.label] || field.defaultValue || ""}
+                        onChange={(e) => {
+                          const newContent = {...content};
+                          newContent[field.label] = e.target.value;
+                          form.setValue("content", newContent);
+                        }}
+                        disabled={!isEditing}
+                        placeholder={field.placeholder || ""}
+                        rows={4}
+                        className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
+                      />
+                    )}
+                    {field.type === "text" && (
+                      <Input
+                        value={content[field.label] || field.defaultValue || ""}
+                        onChange={(e) => {
+                          const newContent = {...content};
+                          newContent[field.label] = e.target.value;
+                          form.setValue("content", newContent);
+                        }}
+                        disabled={!isEditing}
+                        placeholder={field.placeholder || ""}
+                        className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
+                      />
+                    )}
+                    {field.type === "number" && (
+                      <Input
+                        type="number"
+                        value={content[field.label] || field.defaultValue || ""}
+                        onChange={(e) => {
+                          const newContent = {...content};
+                          newContent[field.label] = e.target.value;
+                          form.setValue("content", newContent);
+                        }}
+                        disabled={!isEditing}
+                        placeholder={field.placeholder || ""}
+                        className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
+                      />
+                    )}
+                    {field.type === "date" && (
+                      <Input
+                        type="date"
+                        value={content[field.label] || field.defaultValue || ""}
+                        onChange={(e) => {
+                          const newContent = {...content};
+                          newContent[field.label] = e.target.value;
+                          form.setValue("content", newContent);
+                        }}
+                        disabled={!isEditing}
+                        className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
+                      />
+                    )}
+                    {field.type === "checkbox" && (
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={content[field.label] === "true" || field.defaultValue === "true"}
+                          onCheckedChange={(checked) => {
+                            const newContent = {...content};
+                            newContent[field.label] = checked ? "true" : "false";
+                            form.setValue("content", newContent);
+                          }}
+                          disabled={!isEditing}
+                        />
+                        <label className="text-sm text-muted-foreground">
+                          {field.placeholder || "Check this option"}
+                        </label>
+                      </div>
+                    )}
+                    {field.type === "select" && (
+                      <Select 
+                        value={content[field.label] || field.defaultValue || ""} 
+                        onValueChange={(value) => {
+                          const newContent = {...content};
+                          newContent[field.label] = value;
+                          form.setValue("content", newContent);
+                        }}
+                        disabled={!isEditing}
+                      >
+                        <SelectTrigger className="border-0 bg-transparent p-0 focus:ring-0">
+                          <SelectValue placeholder={field.placeholder || "Select an option"} />
+                        </SelectTrigger>
+                        {isEditing && (
+                          <SelectContent>
+                            {field.options?.values && field.options.values.map((option: string) => (
+                              <SelectItem key={option} value={option}>
+                                {option}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        )}
+                      </Select>
+                    )}
                   </div>
-                ) : (
-                  <div className="text-sm whitespace-pre-wrap px-4 py-2" style={{ color: '#000000' }}>
-                    {content[fieldId] || placeholder}
-                  </div>
-                )}
-              </div>
-            );
-          }
-          
-          if (isDepartment) {
-            const department = section.content.department;
-            const displayName = departmentNames?.[department] || section.content.displayName || department;
-            
-            return (
-              <div key={section.id} className="mb-6">
-                <div 
-                  className="text-sm font-bold px-2 py-1 mb-2"
-                  style={{
-                    backgroundColor: fieldHeaderFormatting?.backgroundColor || '#000000',
-                    color: fieldHeaderFormatting?.color || '#ffffff',
-                    fontFamily: fieldHeaderFormatting?.fontFamily || 'Arial',
-                    fontSize: fieldHeaderFormatting?.fontSize || '14px'
-                  }}
-                >
-                  {displayName}
                 </div>
-                <ReportNotesManager 
-                  reportId={reportId} 
-                  projectId={projectId}
-                  reportType={reportType}
-                  department={department}
-                  isEditing={isEditing}
-                />
-              </div>
-            );
-          }
-          
-          return null;
-        })}
-    </>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground italic pl-4">No fields in this section</p>
+          )}
+        </div>
+      ))}
+    </div>
   );
 }
