@@ -1132,11 +1132,12 @@ export default function TemplateEditorV2() {
                 </div>
               )}
             </div>
-            <DialogFooter className="flex justify-between">
+            <DialogFooter className="flex items-center">
               <Button
                 variant="destructive"
                 onClick={() => handleDeleteField(selectedField)}
                 data-testid="button-delete-field-modal"
+                className="mr-auto"
               >
                 <Trash2 className="h-4 w-4 mr-1" />
                 Delete
