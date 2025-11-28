@@ -162,6 +162,32 @@ export default function Personnel() {
   // Contact group mutations
   const createGroupMutation = useMutation({
     mutationFn: (name: string) => apiRequest('POST', `/api/projects/${projectId}/contact-groups`, { name }),
+    onMutate: (name: string) => {
+      // Optimistic update - add group immediately
+      const previousGroups = queryClient.getQueryData<ContactGroup[]>([`/api/projects/${projectId}/contact-groups`]);
+      if (previousGroups) {
+        const newGroup: ContactGroup = {
+          id: Math.random(), // Temporary ID
+          projectId: parseInt(projectId),
+          name,
+          sortOrder: previousGroups.length + 1,
+        };
+        const updatedGroups = [...previousGroups, newGroup];
+        queryClient.setQueryData([`/api/projects/${projectId}/contact-groups`], updatedGroups);
+      }
+      return previousGroups;
+    },
+    onError: (error, variables, context) => {
+      // Revert to previous data on error
+      if (context) {
+        queryClient.setQueryData([`/api/projects/${projectId}/contact-groups`], context);
+      }
+      toast({
+        title: "Error",
+        description: "Failed to create group",
+        variant: "destructive",
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contact-groups`] });
       setNewGroupName('');
