@@ -163,12 +163,9 @@ export function ImportContactsModal({
 
     setIsLoading(true);
     try {
-      await apiRequest(`/api/projects/${projectId}/contacts/bulk-import`, {
-        method: "POST",
-        body: JSON.stringify({
-          contacts: previewData,
-          groupId: selectedGroupId ? parseInt(selectedGroupId) : null,
-        }),
+      await apiRequest("POST", `/api/projects/${projectId}/contacts/bulk-import`, {
+        contacts: previewData,
+        groupId: selectedGroupId ? parseInt(selectedGroupId) : null,
       });
 
       toast({
