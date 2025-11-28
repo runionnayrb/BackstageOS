@@ -5927,12 +5927,17 @@ Best regards,
     try {
       const templateId = parseInt(req.params.templateId);
       
-      const validationResult = insertTemplateSectionSchema.safeParse({
+      const dataToValidate = {
         ...req.body,
         templateId,
-      });
+      };
+      
+      console.log("Creating section with data:", dataToValidate);
+      
+      const validationResult = insertTemplateSectionSchema.safeParse(dataToValidate);
 
       if (!validationResult.success) {
+        console.error("Validation failed:", validationResult.error.errors);
         return res.status(400).json({ 
           message: "Invalid section data", 
           errors: validationResult.error.errors 
