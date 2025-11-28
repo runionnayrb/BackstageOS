@@ -96,6 +96,26 @@ const ALL_APP_PAGES: Page[] = [
         updatedAt: '2025-06-30T00:00:00Z',
         children: [
           {
+            id: 'reports-list',
+            name: 'Reports List',
+            slug: '/shows/:id/reports/:type',
+            description: 'View reports by type',
+            isSystem: true,
+            parent: 'show-reports',
+            createdAt: '2025-06-30T00:00:00Z',
+            updatedAt: '2025-06-30T00:00:00Z'
+          },
+          {
+            id: 'reports-builder',
+            name: 'Report Builder',
+            slug: '/shows/:id/reports/:type/builder',
+            description: 'Build custom report templates',
+            isSystem: true,
+            parent: 'show-reports',
+            createdAt: '2025-06-30T00:00:00Z',
+            updatedAt: '2025-06-30T00:00:00Z'
+          },
+          {
             id: 'new-report',
             name: 'New Report',
             slug: '/shows/:id/reports/:type/new',
@@ -330,6 +350,26 @@ const ALL_APP_PAGES: Page[] = [
         updatedAt: '2025-06-30T00:00:00Z'
       },
       {
+        id: 'show-schedule-mapping',
+        name: 'Schedule Mapping',
+        slug: '/shows/:id/schedule-mapping',
+        description: 'Schedule relationship mapping',
+        isSystem: true,
+        parent: 'shows',
+        createdAt: '2025-06-30T00:00:00Z',
+        updatedAt: '2025-06-30T00:00:00Z'
+      },
+      {
+        id: 'show-theater-email',
+        name: 'Theater Email',
+        slug: '/shows/:showId/theater-email',
+        description: 'Theater email management',
+        isSystem: true,
+        parent: 'shows',
+        createdAt: '2025-06-30T00:00:00Z',
+        updatedAt: '2025-06-30T00:00:00Z'
+      },
+      {
         id: 'show-templates',
         name: 'Templates',
         slug: '/shows/:id/templates',
@@ -360,6 +400,38 @@ const ALL_APP_PAGES: Page[] = [
             updatedAt: '2025-06-30T00:00:00Z'
           }
         ]
+      },
+      {
+        id: 'show-templates-v2',
+        name: 'Templates V2',
+        slug: '/shows/:id/templates-v2',
+        description: 'Next-gen template editor',
+        isSystem: true,
+        parent: 'shows',
+        createdAt: '2025-06-30T00:00:00Z',
+        updatedAt: '2025-06-30T00:00:00Z',
+        children: [
+          {
+            id: 'edit-template-v2',
+            name: 'Edit Template V2',
+            slug: '/shows/:id/templates-v2/:templateId/edit',
+            description: 'Edit template using v2 editor',
+            isSystem: true,
+            parent: 'show-templates-v2',
+            createdAt: '2025-06-30T00:00:00Z',
+            updatedAt: '2025-06-30T00:00:00Z'
+          }
+        ]
+      },
+      {
+        id: 'show-global-templates',
+        name: 'Global Template Settings',
+        slug: '/shows/:id/global-template-settings',
+        description: 'Global template configuration',
+        isSystem: true,
+        parent: 'shows',
+        createdAt: '2025-06-30T00:00:00Z',
+        updatedAt: '2025-06-30T00:00:00Z'
       },
       {
         id: 'show-settings',
@@ -421,7 +493,7 @@ const ALL_APP_PAGES: Page[] = [
     updatedAt: '2025-06-30T00:00:00Z'
   },
 
-  // Authentication & Landing
+  // Authentication & Access
   {
     id: 'auth',
     name: 'Authentication',
@@ -436,6 +508,24 @@ const ALL_APP_PAGES: Page[] = [
     name: 'Login',
     slug: '/login',
     description: 'Alternative login route',
+    isSystem: true,
+    createdAt: '2025-06-30T00:00:00Z',
+    updatedAt: '2025-06-30T00:00:00Z'
+  },
+  {
+    id: 'password-recovery',
+    name: 'Password Recovery',
+    slug: '/forgot-password',
+    description: 'Password reset request',
+    isSystem: true,
+    createdAt: '2025-06-30T00:00:00Z',
+    updatedAt: '2025-06-30T00:00:00Z'
+  },
+  {
+    id: 'reset-password',
+    name: 'Reset Password',
+    slug: '/reset-password',
+    description: 'Password reset form',
     isSystem: true,
     createdAt: '2025-06-30T00:00:00Z',
     updatedAt: '2025-06-30T00:00:00Z'
@@ -504,7 +594,7 @@ const ALL_APP_PAGES: Page[] = [
     ]
   },
 
-  // Communication & Tools
+  // Email & Communication
   {
     id: 'email-tools',
     name: 'Email Tools',
@@ -533,9 +623,43 @@ const ALL_APP_PAGES: Page[] = [
         parent: 'email-tools',
         createdAt: '2025-06-30T00:00:00Z',
         updatedAt: '2025-06-30T00:00:00Z'
+      },
+      {
+        id: 'email-setup',
+        name: 'Email Setup',
+        slug: '/email-setup',
+        description: 'Email setup and configuration',
+        isSystem: true,
+        parent: 'email-tools',
+        createdAt: '2025-06-30T00:00:00Z',
+        updatedAt: '2025-06-30T00:00:00Z',
+        children: [
+          {
+            id: 'apple-mail-setup',
+            name: 'Apple Mail Setup',
+            slug: '/email-setup/apple-mail',
+            description: 'Setup instructions for Apple Mail',
+            isSystem: true,
+            parent: 'email-setup',
+            createdAt: '2025-06-30T00:00:00Z',
+            updatedAt: '2025-06-30T00:00:00Z'
+          },
+          {
+            id: 'email-forwarding-setup',
+            name: 'Email Forwarding Setup',
+            slug: '/email-setup/forwarding',
+            description: 'Setup email forwarding',
+            isSystem: true,
+            parent: 'email-setup',
+            createdAt: '2025-06-30T00:00:00Z',
+            updatedAt: '2025-06-30T00:00:00Z'
+          }
+        ]
       }
     ]
   },
+
+  // Tools & Utilities
   {
     id: 'tools',
     name: 'Tools',
@@ -608,6 +732,49 @@ const ALL_APP_PAGES: Page[] = [
     ]
   },
 
+  // Policy Pages
+  {
+    id: 'policies',
+    name: 'Policy Pages',
+    slug: '/policy',
+    description: 'Legal and policy pages',
+    isSystem: true,
+    createdAt: '2025-06-30T00:00:00Z',
+    updatedAt: '2025-06-30T00:00:00Z',
+    children: [
+      {
+        id: 'security',
+        name: 'Security Policy',
+        slug: '/security',
+        description: 'Security and privacy policy',
+        isSystem: true,
+        parent: 'policies',
+        createdAt: '2025-06-30T00:00:00Z',
+        updatedAt: '2025-06-30T00:00:00Z'
+      },
+      {
+        id: 'privacy',
+        name: 'Privacy Policy',
+        slug: '/privacy',
+        description: 'Privacy policy page',
+        isSystem: true,
+        parent: 'policies',
+        createdAt: '2025-06-30T00:00:00Z',
+        updatedAt: '2025-06-30T00:00:00Z'
+      },
+      {
+        id: 'terms',
+        name: 'Terms of Service',
+        slug: '/terms',
+        description: 'Terms of service',
+        isSystem: true,
+        parent: 'policies',
+        createdAt: '2025-06-30T00:00:00Z',
+        updatedAt: '2025-06-30T00:00:00Z'
+      }
+    ]
+  },
+
   // Test & Development Pages
   {
     id: 'development-tools',
@@ -643,6 +810,16 @@ const ALL_APP_PAGES: Page[] = [
         name: 'Navigation Demo',
         slug: '/navigation-demo',
         description: 'Navigation component demonstration',
+        isSystem: true,
+        parent: 'development-tools',
+        createdAt: '2025-06-30T00:00:00Z',
+        updatedAt: '2025-06-30T00:00:00Z'
+      },
+      {
+        id: 'seo-test',
+        name: 'SEO Test',
+        slug: '/seo-test',
+        description: 'SEO testing utilities',
         isSystem: true,
         parent: 'development-tools',
         createdAt: '2025-06-30T00:00:00Z',
