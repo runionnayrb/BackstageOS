@@ -57,8 +57,13 @@ export default function ShowReports() {
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
-  const { data: templates = [] } = useQuery({
-    queryKey: [`/api/projects/${projectId}/templates`],
+  const { data: reportTypesData = [] } = useQuery({
+    queryKey: [`/api/projects/${projectId}/report-types`],
+    enabled: !!projectId && isAuthenticated,
+  });
+
+  const { data: templatesV2 = [] } = useQuery({
+    queryKey: [`/api/projects/${projectId}/templates-v2`],
     enabled: !!projectId && isAuthenticated,
   });
 
@@ -70,9 +75,9 @@ export default function ShowReports() {
     ? reportTypes.find((rt: any) => rt.slug === reportType)
     : null;
   
-  // Get template for this report type to use its custom name
-  const currentTemplate = Array.isArray(templates)
-    ? templates.find((t: any) => t.phase === reportType || t.type === reportType)
+  // Get v2 template that matches this report type
+  const currentTemplate = Array.isArray(templatesV2) && currentReportType
+    ? templatesV2.find((t: any) => t.reportTypeId === currentReportType.id)
     : null;
   
   // Filter reports by the canonical report type slug
@@ -98,7 +103,12 @@ export default function ShowReports() {
               showName={project?.name}
             />
             
-            <Button onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}/builder`)}>
+            <Button onClick={() => {
+              const url = currentTemplate 
+                ? `/shows/${projectId}/reports/${reportType}/builder?template=${currentTemplate.id}`
+                : `/shows/${projectId}/reports/${reportType}/builder`;
+              setLocation(url);
+            }}>
               <Plus className="h-4 w-4 mr-2" />
               New Report
             </Button>
@@ -114,7 +124,12 @@ export default function ShowReports() {
               showName={project?.name}
             />
             
-            <Button onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}/builder`)}>
+            <Button onClick={() => {
+              const url = currentTemplate 
+                ? `/shows/${projectId}/reports/${reportType}/builder?template=${currentTemplate.id}`
+                : `/shows/${projectId}/reports/${reportType}/builder`;
+              setLocation(url);
+            }}>
               <Plus className="h-4 w-4 mr-2" />
               New Report
             </Button>

@@ -40,6 +40,10 @@ export default function ReportBuilder() {
   const [selectedTemplate, setSelectedTemplate] = useState<string>("");
   const [customTemplate, setCustomTemplate] = useState<any>(null);
   
+  // Extract template ID from query params
+  const searchParams = new URLSearchParams(window.location.search);
+  const templateQueryParam = searchParams.get('template');
+  
   // Guard against missing parameters
   if (!params.id || !params.type) {
     return (
@@ -77,8 +81,8 @@ export default function ReportBuilder() {
     enabled: isEditMode && !!reportId && !isNaN(reportId as number),
   });
 
-  const { data: templateData, isLoading: templatesLoading } = useQuery({
-    queryKey: [`/api/projects/${projectId}/templates`],
+  const { data: templatesV2 = [], isLoading: templatesLoading } = useQuery({
+    queryKey: [`/api/projects/${projectId}/templates-v2`],
     enabled: !!projectId,
   });
 
@@ -93,14 +97,26 @@ export default function ReportBuilder() {
     enabled: !!projectId,
   });
 
-  // Filter templates to only show the one matching the current report type
-  const customTemplates = Array.isArray(templateData) ? templateData : [];
+  // Find the template matching the query param or report type
+  let matchingTemplate = null;
   
-  // Find the custom template that matches the report type
-  // Templates use 'phase' field which corresponds to report type
-  const matchingTemplate = customTemplates.find((template: any) => 
-    template.type === reportType || template.phase === reportType
-  );
+  // If template ID is provided in query params, use it
+  if (templateQueryParam && Array.isArray(templatesV2)) {
+    matchingTemplate = templatesV2.find((t: any) => t.id === parseInt(templateQueryParam));
+  }
+  
+  // Otherwise find by report type
+  if (!matchingTemplate && Array.isArray(templatesV2)) {
+    const currentReportTypeObj = Array.isArray(reportTypes) 
+      ? reportTypes.find((rt: any) => rt.slug === reportType)
+      : null;
+    if (currentReportTypeObj) {
+      matchingTemplate = templatesV2.find((t: any) => t.reportTypeId === currentReportTypeObj.id);
+    }
+  }
+  
+  // Fallback to filter for backward compatibility (old v1 templates)
+  const customTemplates = Array.isArray(templatesV2) ? templatesV2 : [];
 
   // Find the report type to get its current name
   const currentReportType = Array.isArray(reportTypes) 
