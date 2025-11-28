@@ -7144,11 +7144,13 @@ Best regards,
 
       // Auto-create missing groups from CSV
       let updatedGroupNameMap = { ...groupNameMap };
+      const userId = req.user.id;
       for (const groupName of groupsNotFound) {
         try {
           const newGroup = await storage.createContactGroup({
             projectId,
             name: groupName,
+            createdBy: userId,
           });
           updatedGroupNameMap[groupName.toLowerCase()] = newGroup.id;
           console.log(`Created group ${groupName} with ID ${newGroup.id}`);
@@ -7167,7 +7169,7 @@ Best regards,
         });
       }
 
-      const userId = req.user.id.toString();
+      const userIdString = req.user.id.toString();
       const createdContacts = [];
 
       for (const contactData of contacts) {
@@ -7200,7 +7202,7 @@ Best regards,
             preferredName: contactData.preferredName || null,
             projectId,
             groupId: finalGroupId,
-            createdBy: parseInt(userId),
+            createdBy: parseInt(userIdString),
             category: 'cast', // Default to cast, can be updated later
             role: contactData.role || null,
             email: contactData.email || null,

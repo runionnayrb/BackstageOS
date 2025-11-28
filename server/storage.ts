@@ -2747,7 +2747,7 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
-  async createContactGroup(group: InsertContactGroup): Promise<ContactGroup> {
+  async createContactGroup(group: InsertContactGroup & { createdBy?: number }): Promise<ContactGroup> {
     const maxOrder = await db.select({ maxOrder: max(contactGroups.sortOrder) })
       .from(contactGroups)
       .where(eq(contactGroups.projectId, group.projectId));
@@ -2756,7 +2756,8 @@ export class DatabaseStorage implements IStorage {
     
     const result = await db.insert(contactGroups).values({
       ...group,
-      sortOrder: nextOrder
+      sortOrder: nextOrder,
+      createdBy: group.createdBy || undefined
     }).returning();
     return result[0];
   }
