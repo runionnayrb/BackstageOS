@@ -357,13 +357,10 @@ export default function ReportBuilder() {
       customTemplateKeys: customTemplate ? Object.keys(customTemplate) : []
     });
     
-    // Use custom template's layoutConfiguration if available, otherwise use project settings
-    const layoutConfig = customTemplate?.layoutConfiguration || projectSettings?.layoutConfiguration;
-    
-    // ALWAYS render custom layout template with v2 template data
-    if (customTemplate && layoutConfig) {
-      console.log('✅ RENDERING CUSTOM LAYOUT TEMPLATE with config');
-      return renderLayoutBasedTemplate({...customTemplate, layoutConfiguration: layoutConfig});
+    // V2 templates have their own layoutConfiguration
+    if (customTemplate?.layoutConfiguration) {
+      console.log('✅ RENDERING V2 TEMPLATE with custom layout');
+      return renderLayoutBasedTemplate(customTemplate);
     }
 
     // If no custom template, show error message

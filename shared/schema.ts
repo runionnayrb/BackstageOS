@@ -185,6 +185,7 @@ export const reportTemplatesV2 = pgTable("report_templates_v2", {
   reportTypeId: integer("report_type_id").references(() => reportTypes.id, { onDelete: "set null" }),
   name: varchar("name").notNull(),
   description: text("description"),
+  layoutConfiguration: jsonb("layout_configuration"), // Custom layout for this template
   isDefault: boolean("is_default").default(false),
   displayOrder: integer("display_order").notNull().default(0),
   createdBy: integer("created_by").notNull().references(() => users.id),
