@@ -226,17 +226,15 @@ function Router() {
     return null;
   }
 
-  // Policy pages - must be rendered outside Switch but inside Layout
-  if (location === '/security' || location === '/privacy' || location === '/terms') {
-    let PageComponent = SecurityPage;
-    if (location === '/privacy') PageComponent = PrivacyPage;
-    if (location === '/terms') PageComponent = TermsPage;
-    
-    return (
-      <Layout>
-        <PageComponent />
-      </Layout>
-    );
+  // Policy pages - public access, standalone rendering
+  if (location === '/security') {
+    return <SecurityPage />;
+  }
+  if (location === '/privacy') {
+    return <PrivacyPage />;
+  }
+  if (location === '/terms') {
+    return <TermsPage />;
   }
 
   return (
