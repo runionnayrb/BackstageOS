@@ -83,7 +83,7 @@ export default function Templates() {
   const handleEditClick = (template: any) => {
     setEditingTemplate(template);
     setEditName(template.name);
-    setEditReportTypeId(template.reportTypeId ? template.reportTypeId.toString() : "");
+    setEditReportTypeId(template.reportTypeId ? template.reportTypeId.toString() : "none");
     setIsEditModalOpen(true);
   };
 
@@ -99,7 +99,7 @@ export default function Templates() {
     updateTemplateMutation.mutate({
       id: editingTemplate.id,
       name: editName,
-      reportTypeId: editReportTypeId || null,
+      reportTypeId: editReportTypeId && editReportTypeId !== "none" ? editReportTypeId : null,
     });
   };
 
@@ -287,7 +287,7 @@ export default function Templates() {
                   <SelectValue placeholder="Select a report type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {reportTypes.map((type: any) => (
                     <SelectItem key={type.id} value={type.id.toString()}>
                       {type.name}

@@ -232,7 +232,7 @@ export default function TemplateSettingsV2() {
     setSelectedTemplate(template);
     setEditTemplateName(template.name);
     setEditTemplateDescription(template.description || "");
-    setEditTemplateReportTypeId(template.reportTypeId ? template.reportTypeId.toString() : "");
+    setEditTemplateReportTypeId(template.reportTypeId ? template.reportTypeId.toString() : "none");
     setIsEditDialogOpen(true);
   };
 
@@ -251,7 +251,7 @@ export default function TemplateSettingsV2() {
       data: {
         name: editTemplateName,
         description: editTemplateDescription,
-        reportTypeId: editTemplateReportTypeId ? parseInt(editTemplateReportTypeId) : null,
+        reportTypeId: editTemplateReportTypeId && editTemplateReportTypeId !== "none" ? parseInt(editTemplateReportTypeId) : null,
       },
     });
   };
@@ -441,7 +441,7 @@ export default function TemplateSettingsV2() {
                     <SelectValue placeholder="Select a report type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {reportTypes.map((type) => (
                       <SelectItem key={type.id} value={type.id.toString()}>
                         {type.name}
