@@ -115,6 +115,8 @@ export default function Personnel() {
         title: g.name,
       }));
       setCategories(groupMap);
+    } else {
+      setCategories([]);
     }
   }, [contactGroups]);
 
