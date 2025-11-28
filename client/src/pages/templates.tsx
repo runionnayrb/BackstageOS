@@ -1,9 +1,29 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { 
   Plus, 
   Edit3, 
@@ -17,14 +37,71 @@ import {
 
 export default function Templates() {
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<any>(null);
+  const [editName, setEditName] = useState("");
+  const [editReportTypeId, setEditReportTypeId] = useState<string>("");
 
   const { data: templateData, isLoading } = useQuery({
     queryKey: ["/api/templates"],
   });
 
+  const { data: reportTypes = [] } = useQuery({
+    queryKey: ["/api/report-types"],
+  });
+
   const userTemplates = templateData?.userTemplates || [];
   const publicTemplates = templateData?.publicTemplates || [];
   const defaultTemplates = templateData?.defaultTemplates || [];
+
+  const updateTemplateMutation = useMutation({
+    mutationFn: async (data: { id: number; name: string; reportTypeId: string | null }) => {
+      return apiRequest("PATCH", `/api/templates/${data.id}`, {
+        name: data.name,
+        reportTypeId: data.reportTypeId ? parseInt(data.reportTypeId) : null,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/templates"] });
+      toast({
+        title: "Success",
+        description: "Template updated successfully",
+      });
+      setIsEditModalOpen(false);
+      setEditingTemplate(null);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update template",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEditClick = (template: any) => {
+    setEditingTemplate(template);
+    setEditName(template.name);
+    setEditReportTypeId(template.reportTypeId ? template.reportTypeId.toString() : "");
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveEdit = () => {
+    if (!editName.trim()) {
+      toast({
+        title: "Error",
+        description: "Template name is required",
+        variant: "destructive",
+      });
+      return;
+    }
+    updateTemplateMutation.mutate({
+      id: editingTemplate.id,
+      name: editName,
+      reportTypeId: editReportTypeId || null,
+    });
+  };
 
   const getTemplateIcon = (type: string) => {
     switch (type) {
@@ -94,7 +171,11 @@ export default function Templates() {
                 <Button variant="ghost" size="sm">
                   <Copy className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="sm">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => handleEditClick(template)}
+                >
                   <Edit3 className="w-4 h-4" />
                 </Button>
                 <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
@@ -107,21 +188,6 @@ export default function Templates() {
       </CardContent>
     </Card>
   );
-
-  if (isLoading) {
-    return (
-      <div className="p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-64 bg-gray-200 rounded-lg"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="p-6">
@@ -195,6 +261,58 @@ export default function Templates() {
           )}
         </TabsContent>
       </Tabs>
+
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Template</DialogTitle>
+            <DialogDescription>
+              Update template details
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="template-name">Template Name</Label>
+              <Input
+                id="template-name"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                placeholder="e.g., Tech Rehearsal Report"
+              />
+            </div>
+            <div>
+              <Label htmlFor="report-type">Report Type</Label>
+              <Select value={editReportTypeId} onValueChange={setEditReportTypeId}>
+                <SelectTrigger id="report-type">
+                  <SelectValue placeholder="Select a report type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {reportTypes.map((type: any) => (
+                    <SelectItem key={type.id} value={type.id.toString()}>
+                      {type.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsEditModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveEdit}
+              disabled={updateTemplateMutation.isPending}
+            >
+              {updateTemplateMutation.isPending ? "Saving..." : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
