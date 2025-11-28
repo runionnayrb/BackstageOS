@@ -14,7 +14,7 @@ interface ImportContactsModalProps {
   onOpenChange: (open: boolean) => void;
   projectId: string;
   contactGroups: ContactGroup[];
-  onImportSuccess: () => void;
+  onImportSuccess: (importedData: { contacts: any[]; groups: string[] }) => void;
 }
 
 export function ImportContactsModal({
@@ -168,6 +168,9 @@ export function ImportContactsModal({
         groupId: selectedGroupId ? parseInt(selectedGroupId) : null,
       });
 
+      // Extract unique groups from imported data
+      const importedGroups = [...new Set(previewData.map(c => c.group).filter(Boolean))];
+
       toast({
         title: "Import successful",
         description: `Successfully imported ${previewData.length} contacts`,
@@ -177,7 +180,7 @@ export function ImportContactsModal({
       setPreviewData([]);
       setSelectedGroupId("");
       onOpenChange(false);
-      onImportSuccess();
+      onImportSuccess({ contacts: previewData, groups: importedGroups });
     } catch (error: any) {
       console.error("Error importing contacts:", error);
       const errorMessage = error?.response?.data?.message || error?.message || "There was an error importing the contacts";

@@ -872,7 +872,35 @@ export default function Personnel() {
         onOpenChange={setShowImportModal}
         projectId={projectId}
         contactGroups={contactGroups}
-        onImportSuccess={() => queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contacts`] })}
+        onImportSuccess={(importedData) => {
+          // Find group IDs for imported groups
+          const groupNameToId: Record<string, number> = {};
+          importedData.groups.forEach(groupName => {
+            const found = contactGroups.find(g => g.name === groupName);
+            if (found) groupNameToId[groupName] = found.id;
+          });
+          
+          // Optimistically add imported contacts
+          const existingContacts = queryClient.getQueryData<Contact[]>([`/api/projects/${projectId}/contacts`]) || [];
+          const newContacts = importedData.contacts.map((contact: any) => ({
+            id: Math.random(),
+            projectId: parseInt(projectId),
+            firstName: contact.firstName || "Unknown",
+            lastName: contact.lastName || "",
+            preferredName: contact.preferredName || undefined,
+            email: contact.email || undefined,
+            phone: contact.phone || undefined,
+            whatsapp: contact.whatsapp || undefined,
+            category: 'cast',
+            groupId: contact.group ? groupNameToId[contact.group] : undefined,
+            role: contact.role || undefined,
+          }));
+          queryClient.setQueryData([`/api/projects/${projectId}/contacts`], [...existingContacts, ...newContacts]);
+          
+          // Refetch to get real data with actual IDs
+          queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contacts`] });
+          queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contact-groups`] });
+        }}
       />
 
       {isMobile && (
