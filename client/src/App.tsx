@@ -199,6 +199,19 @@ function Router() {
     return <ResetPassword />;
   }
 
+  // Handle policy pages - accessible to authenticated users
+  if (location === '/security') {
+    return <SecurityPage />;
+  }
+
+  if (location === '/privacy') {
+    return <PrivacyPage />;
+  }
+
+  if (location === '/terms') {
+    return <TermsPage />;
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -227,9 +240,6 @@ function Router() {
     <ErrorBoundary>
       <Layout>
         <Switch>
-        <Route path="/security" component={() => <div>TEST SECURITY ROUTE</div>} />
-        <Route path="/privacy" component={() => <div>TEST PRIVACY ROUTE</div>} />
-        <Route path="/terms" component={() => <div>TEST TERMS ROUTE</div>} />
         <Route path="/" component={Projects} />
         <Route path="/projects" component={Projects} />
         <Route path="/projects/archived" component={ArchivedShows} />
