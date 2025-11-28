@@ -30,6 +30,18 @@ export function ImportContactsModal({
   const [isLoading, setIsLoading] = useState(false);
   const [previewData, setPreviewData] = useState<any[]>([]);
 
+  // Default categories that are always available
+  const defaultCategories = [
+    { id: 0, name: "Cast" },
+    { id: 1, name: "Creative Team" },
+    { id: 2, name: "Stage Management" },
+    { id: 3, name: "Crew" },
+    { id: 4, name: "Theater Staff" },
+  ];
+
+  // Use real groups if they exist, otherwise use default categories
+  const availableGroups = contactGroups.length > 0 ? contactGroups : defaultCategories;
+
   const downloadTemplate = () => {
     const headers = ["First Name", "Last Name", "Preferred Name", "Group", "Role", "Email", "Mobile", "WhatsApp"];
     const exampleRow = ["John", "Doe", "Johnny", "Cast", "Lead Actor", "john@example.com", "555-1234", "555-1234"];
@@ -246,8 +258,8 @@ export function ImportContactsModal({
                   <SelectValue placeholder="Leave empty to use CSV groups..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {contactGroups.map((group) => (
-                    <SelectItem key={group.id} value={group.id.toString()}>
+                  {availableGroups.map((group) => (
+                    <SelectItem key={group.id} value={group.name}>
                       {group.name}
                     </SelectItem>
                   ))}
@@ -276,7 +288,7 @@ export function ImportContactsModal({
                       <div className="truncate">{contact.firstName || "-"}</div>
                       <div className="truncate">{contact.lastName || "-"}</div>
                       <div className="truncate">{contact.email || "-"}</div>
-                      <div className="truncate text-blue-600">{contact.group || (selectedGroupId ? contactGroups.find(g => g.id.toString() === selectedGroupId)?.name : "-")}</div>
+                      <div className="truncate text-blue-600">{contact.group || (selectedGroupId ? selectedGroupId : "-")}</div>
                       <div className="truncate">{contact.role || "-"}</div>
                     </div>
                   ))}
