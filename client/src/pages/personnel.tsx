@@ -520,7 +520,32 @@ export default function Personnel() {
         </div>
       </div>
 
+      {/* Empty State */}
+      {!isLoading && categories.length === 0 && (
+        <div className="flex items-center justify-center min-h-96">
+          <div className="text-center max-w-md">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No contact groups yet</h3>
+            <p className="text-gray-600 mb-4">Get started by creating your first contact group or importing contacts from a CSV file.</p>
+            <ul className="text-left text-sm text-gray-600 space-y-2 bg-gray-50 p-4 rounded-lg">
+              <li className="flex gap-2">
+                <span className="text-gray-400">•</span>
+                <span>Create a group in the "Manage groups" dialog</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-gray-400">•</span>
+                <span>Import contacts from CSV using the import button</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-gray-400">•</span>
+                <span>Add individual contacts one at a time</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      )}
+
       {/* Mobile Contact List */}
+      {categories.length > 0 && (
       <div className="md:hidden px-4 pt-4 pb-4">
         <div className="space-y-6">
           {categories.map((category) => {
@@ -614,8 +639,10 @@ export default function Personnel() {
           })}
         </div>
       </div>
+      )}
 
       {/* Desktop Contact List */}
+      {categories.length > 0 && (
       <div className="hidden md:block px-4 sm:px-6 lg:px-8">
         <div className="space-y-8">
           {categories.map((category) => {
@@ -707,6 +734,7 @@ export default function Personnel() {
           })}
         </div>
       </div>
+      )}
 
       {/* Contact Detail Modal */}
       {selectedContact && (
