@@ -1222,10 +1222,11 @@ export default function TemplateEditorV2() {
                               {field.label}
                               {field.required && <span className="text-destructive ml-1">*</span>}
                             </Label>
-                            {field.helperText && (
-                              <p className="text-sm text-muted-foreground">{field.helperText}</p>
-                            )}
-                            {field.type === "text" && (
+                            <div className="pl-4">
+                              {field.helperText && (
+                                <p className="text-sm text-muted-foreground">{field.helperText}</p>
+                              )}
+                              {field.type === "text" && (
                               <Input
                                 value={field.defaultValue || ""}
                                 placeholder={field.placeholder || ""}
@@ -1281,6 +1282,7 @@ export default function TemplateEditorV2() {
                                 )}
                               </div>
                             )}
+                            </div>
                           </div>
                         ))}
                       </div>
