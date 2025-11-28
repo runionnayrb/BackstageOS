@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useParams } from "wouter";
-import { ArrowLeft, FileText, ChevronDown, Mail, Phone, GripVertical, Calendar, Plus, Settings, X, Users, Edit, Save } from "lucide-react";
+import { ArrowLeft, FileText, ChevronDown, Mail, Phone, GripVertical, Calendar, Plus, Settings, X, Users, Edit, Save, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ContactDetailModal } from "@/components/contact-detail-modal";
 import { WeeklyAvailabilityEditor } from "@/components/weekly-availability-editor";
 import { ContactForm } from "@/components/contact-form";
+import { ImportContactsModal } from "@/components/import-contacts-modal";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { setPageHeaderIcons, clearPageHeaderIcons } from "@/hooks/useHeaderIcons";
 import { FloatingActionButton } from "@/components/navigation/floating-action-button";
@@ -80,6 +81,7 @@ export default function Personnel() {
   const [availabilityContact, setAvailabilityContact] = useState<Contact | null>(null);
   const [showAvailabilityModal, setShowAvailabilityModal] = useState(false);
   const [showNewContactModal, setShowNewContactModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   
   // Contact groups management
   const [groupsModalOpen, setGroupsModalOpen] = useState(false);
@@ -409,6 +411,13 @@ export default function Personnel() {
           <h1 className="text-3xl font-bold text-gray-900">Contacts</h1>
           
           <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setShowImportModal(true)}
+              className="p-1 text-gray-600 hover:text-blue-600 transition-colors"
+              title="Import contacts"
+            >
+              <Upload className="h-5 w-5" />
+            </button>
             <Dialog open={groupsModalOpen} onOpenChange={setGroupsModalOpen}>
               <DialogTrigger asChild>
                 <button className="p-1 text-gray-600 hover:text-blue-600 transition-colors">
@@ -813,6 +822,16 @@ export default function Personnel() {
           />
         </DialogContent>
       </Dialog>
+
+      {/* Import Contacts Modal */}
+      <ImportContactsModal
+        open={showImportModal}
+        onOpenChange={setShowImportModal}
+        projectId={projectId}
+        contactGroups={contactGroups}
+        onImportSuccess={() => queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contacts`] })}
+      />
+
       {isMobile && (
         <FloatingActionButton
           onClick={() => handleNewContactClick()}

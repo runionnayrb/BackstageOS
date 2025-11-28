@@ -7102,6 +7102,68 @@ Best regards,
     }
   });
 
+  // Bulk import contacts from CSV
+  app.post('/api/projects/:id/contacts/bulk-import', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const { contacts, groupId } = req.body;
+
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      if (!Array.isArray(contacts) || contacts.length === 0) {
+        return res.status(400).json({ message: "No contacts provided" });
+      }
+
+      if (!groupId) {
+        return res.status(400).json({ message: "Group ID is required" });
+      }
+
+      const userId = req.user.id.toString();
+      const createdContacts = [];
+
+      for (const contactData of contacts) {
+        try {
+          const rawData = {
+            ...contactData,
+            projectId,
+            groupId: parseInt(groupId),
+            createdBy: parseInt(userId),
+            category: 'cast', // Default to cast, can be updated later
+          };
+
+          // Handle optional fields
+          if (!rawData.firstName) rawData.firstName = "Unknown";
+          if (!rawData.lastName) rawData.lastName = "";
+          if (!rawData.email) rawData.email = null;
+          if (!rawData.phone) rawData.phone = null;
+          if (!rawData.whatsapp) rawData.whatsapp = null;
+          if (!rawData.role) rawData.role = null;
+          rawData.equityStatus = null; // Non-cast doesn't need it
+
+          const contactRecord = insertContactSchema.parse(rawData);
+          const created = await storage.createContact(contactRecord);
+          createdContacts.push(created);
+        } catch (error) {
+          console.error("Error creating individual contact:", error);
+          // Continue with next contact on error
+        }
+      }
+
+      res.json({ message: `Successfully imported ${createdContacts.length} contacts`, count: createdContacts.length });
+    } catch (error) {
+      console.error("Error bulk importing contacts:", error);
+      res.status(500).json({ message: "Failed to import contacts" });
+    }
+  });
+
   app.put('/api/projects/:id/contacts/:contactId', isAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);
