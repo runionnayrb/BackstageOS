@@ -169,8 +169,27 @@ export default function Personnel() {
 
   const deleteGroupMutation = useMutation({
     mutationFn: (groupId: number) => apiRequest('DELETE', `/api/contact-groups/${groupId}`),
+    onMutate: (groupId: number) => {
+      // Optimistic update - remove group immediately
+      const previousGroups = queryClient.getQueryData<ContactGroup[]>([`/api/projects/${projectId}/contact-groups`]);
+      if (previousGroups) {
+        const updatedGroups = previousGroups.filter(g => g.id !== groupId);
+        queryClient.setQueryData([`/api/projects/${projectId}/contact-groups`], updatedGroups);
+      }
+      return previousGroups;
+    },
+    onError: (error, variables, context) => {
+      // Revert to previous data on error
+      if (context) {
+        queryClient.setQueryData([`/api/projects/${projectId}/contact-groups`], context);
+      }
+      toast({
+        title: "Error",
+        description: "Failed to delete group",
+        variant: "destructive",
+      });
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contact-groups`] });
       toast({ title: "Group deleted successfully" });
     },
   });
