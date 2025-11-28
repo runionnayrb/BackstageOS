@@ -31,8 +31,9 @@ export function ImportContactsModal({
   const [previewData, setPreviewData] = useState<any[]>([]);
 
   const downloadTemplate = () => {
-    const headers = ["First Name", "Last Name", "Preferred Name", "Role", "Email", "Mobile", "WhatsApp"];
-    const csv = [headers.join(",")].join("\n");
+    const headers = ["First Name", "Last Name", "Preferred Name", "Group", "Role", "Email", "Mobile", "WhatsApp"];
+    const exampleRow = ["John", "Doe", "Johnny", "Cast", "Lead Actor", "john@example.com", "555-1234", "555-1234"];
+    const csv = [headers.join(","), exampleRow.join(",")].join("\n");
     
     const blob = new Blob([csv], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
