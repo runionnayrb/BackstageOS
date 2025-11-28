@@ -1,16 +1,9 @@
-import { ArrowLeft } from "lucide-react";
-import { Link } from "wouter";
-
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950">
       {/* Header */}
       <div className="bg-gradient-to-br from-blue-900 to-blue-700 text-white py-12 px-4">
         <div className="max-w-4xl mx-auto">
-          <Link to="/projects" className="inline-flex items-center space-x-2 mb-6 hover:opacity-80 cursor-pointer">
-            <ArrowLeft className="h-5 w-5" />
-            <span>Back</span>
-          </Link>
           <h1 className="text-4xl font-bold mb-4">Terms of Service</h1>
           <p className="text-xl opacity-90">The rules and conditions for using BackstageOS</p>
         </div>

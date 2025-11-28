@@ -226,15 +226,15 @@ export default function VersionFooter() {
                 </DialogContent>
               </Dialog>
               <span className="text-xs text-muted-foreground">|</span>
-              <a href="/security" className="text-xs text-muted-foreground hover:text-foreground cursor-pointer">
+              <a href="/security" target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-foreground cursor-pointer">
                 Security
               </a>
               <span className="text-xs text-muted-foreground">|</span>
-              <a href="/privacy" className="text-xs text-muted-foreground hover:text-foreground cursor-pointer">
+              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-foreground cursor-pointer">
                 Privacy
               </a>
               <span className="text-xs text-muted-foreground">|</span>
-              <a href="/terms" className="text-xs text-muted-foreground hover:text-foreground cursor-pointer">
+              <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-foreground cursor-pointer">
                 Terms
               </a>
             </div>
