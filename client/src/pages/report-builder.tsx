@@ -311,6 +311,61 @@ export default function ReportBuilder() {
 
 
 
+  const generateLayoutFromSections = (template: any) => {
+    if (!template.sections || template.sections.length === 0) {
+      return null;
+    }
+
+    let yPosition = 0;
+    const items: any[] = [];
+
+    template.sections.forEach((section: any) => {
+      if (!section.fields || section.fields.length === 0) {
+        return;
+      }
+
+      section.fields.forEach((field: any, fieldIndex: number) => {
+        items.push({
+          h: 4,
+          w: 12,
+          x: 0,
+          y: yPosition,
+          id: `field-section-${field.id}`,
+          type: 'grouped-section',
+          content: { fieldId: field.id.toString(), label: field.label },
+          children: [
+            {
+              h: 1,
+              w: 12,
+              x: 0,
+              y: 0,
+              id: `field-header-${field.id}`,
+              type: 'field-header',
+              content: { label: field.label, fieldId: field.id.toString() }
+            },
+            {
+              h: 3,
+              w: 12,
+              x: 0,
+              y: 1,
+              id: `field-notes-${field.id}`,
+              type: 'notes',
+              content: { fieldId: field.id.toString(), placeholder: field.placeholder || `Enter ${field.label}...` }
+            }
+          ]
+        });
+        yPosition += 4;
+      });
+    });
+
+    return {
+      items,
+      gridGap: 8,
+      gridCols: 12,
+      gridRows: yPosition
+    };
+  };
+
   const renderTemplateFields = () => {
     if (!selectedTemplate) return null;
 
@@ -319,21 +374,30 @@ export default function ReportBuilder() {
     console.log('🖼️ RENDER CHECK:', {
       hasCustomTemplate: !!customTemplate,
       hasLayoutConfig: !!customTemplate?.layoutConfiguration,
+      hasSections: !!customTemplate?.sections && customTemplate.sections.length > 0,
       selectedTemplate,
-      customTemplateKeys: customTemplate ? Object.keys(customTemplate) : []
     });
     
-    // V2 templates have their own layoutConfiguration
+    // V2 templates with custom layoutConfiguration
     if (customTemplate?.layoutConfiguration) {
       console.log('✅ RENDERING V2 TEMPLATE with custom layout');
       return renderLayoutBasedTemplate(customTemplate);
     }
 
-    // If no custom template, show error message
+    // V2 templates without custom layout - auto-generate from sections/fields
+    if (customTemplate?.sections && customTemplate.sections.length > 0) {
+      console.log('✅ AUTO-GENERATING LAYOUT from sections/fields');
+      const autoLayout = generateLayoutFromSections(customTemplate);
+      if (autoLayout) {
+        return renderLayoutBasedTemplate({...customTemplate, layoutConfiguration: autoLayout});
+      }
+    }
+
+    // If no custom template or sections, show error message
     return (
       <div className="border rounded-lg p-6 bg-yellow-50">
         <div className="text-sm text-gray-600">
-          No custom template configuration found. Please set up your template in Template Settings.
+          No sections and fields defined in this template. Please set up your template in Template Settings.
         </div>
       </div>
     );
