@@ -202,6 +202,17 @@ function Router() {
     return <ResetPassword />;
   }
 
+  // Policy pages - public access, render immediately without waiting for auth
+  if (location === '/security') {
+    return <SecurityPage />;
+  }
+  if (location === '/privacy') {
+    return <PrivacyPage />;
+  }
+  if (location === '/terms') {
+    return <TermsPage />;
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -213,17 +224,6 @@ function Router() {
   // Beta domain or other subdomains - require authentication (but not for dev environment with authenticated users)
   if (!user && (isBetaDomain || (!isMainDomain && !isJoinDomain && !isDevEnvironment))) {
     return <AuthPage />;
-  }
-
-  // Policy pages - public access, standalone rendering (must be checked before profile/payment checks)
-  if (location === '/security') {
-    return <SecurityPage />;
-  }
-  if (location === '/privacy') {
-    return <PrivacyPage />;
-  }
-  if (location === '/terms') {
-    return <TermsPage />;
   }
 
   // If authenticated but no profile type selected
