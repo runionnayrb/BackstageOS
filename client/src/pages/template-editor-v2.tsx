@@ -708,8 +708,8 @@ export default function TemplateEditorV2() {
         ) : (
           <div className="space-y-4">
             {template.sections.map((section) => (
-              <Card key={section.id} data-testid={`card-section-${section.id}`}>
-                <CardHeader>
+              <Card key={section.id} data-testid={`card-section-${section.id}`} className="border-0 p-0">
+                <CardHeader className="p-0 pb-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <GripVertical className="h-5 w-5 text-muted-foreground" />
@@ -749,7 +749,7 @@ export default function TemplateEditorV2() {
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-0">
                   {section.fields.length === 0 ? (
                     <p className="text-sm text-muted-foreground">No fields yet. Add your first field to get started.</p>
                   ) : (
