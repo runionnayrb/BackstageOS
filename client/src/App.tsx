@@ -277,6 +277,7 @@ function Router() {
           return <ScheduleRelationshipMapping projectId={parseInt(params.id || '1')} />;
         }} />
         <Route path="/notes" component={Notes} />
+        <Route path="/templates" component={Templates} />
         <Route path="/shows/:id/templates/new" component={TemplateBuilder} />
         <Route path="/shows/:id/templates/:templateId/edit" component={TemplateBuilder} />
         <Route path="/shows/:id/templates" component={TemplateSettings} />
