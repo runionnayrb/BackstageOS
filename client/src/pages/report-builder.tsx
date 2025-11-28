@@ -350,7 +350,6 @@ export default function ReportBuilder() {
 
     const currentContent = form.watch("content") || {};
 
-    // Check for custom layout template FIRST before checking built-in templates
     console.log('🖼️ RENDER CHECK:', {
       hasCustomTemplate: !!customTemplate,
       hasLayoutConfig: !!customTemplate?.layoutConfiguration,
@@ -358,10 +357,13 @@ export default function ReportBuilder() {
       customTemplateKeys: customTemplate ? Object.keys(customTemplate) : []
     });
     
-    // ALWAYS render custom layout template
-    if (customTemplate && customTemplate.layoutConfiguration) {
-      console.log('✅ RENDERING CUSTOM LAYOUT TEMPLATE');
-      return renderLayoutBasedTemplate(customTemplate);
+    // Use custom template's layoutConfiguration if available, otherwise use project settings
+    const layoutConfig = customTemplate?.layoutConfiguration || projectSettings?.layoutConfiguration;
+    
+    // ALWAYS render custom layout template with v2 template data
+    if (customTemplate && layoutConfig) {
+      console.log('✅ RENDERING CUSTOM LAYOUT TEMPLATE with config');
+      return renderLayoutBasedTemplate({...customTemplate, layoutConfiguration: layoutConfig});
     }
 
     // If no custom template, show error message
