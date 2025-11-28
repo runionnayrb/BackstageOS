@@ -200,8 +200,9 @@ export default function ReportBuilder() {
         const reportTitle = matchingTemplate?.name || currentReportType?.name || generateReportTitle(reportType);
         form.setValue("title", reportTitle);
         
-        // ALWAYS use custom template from matchingTemplate (not projectSettings)
-        if (matchingTemplate?.layoutConfiguration) {
+        // ALWAYS use custom template from matchingTemplate when available
+        if (matchingTemplate) {
+          console.log('⚙️ Setting customTemplate from matchingTemplate:', matchingTemplate);
           setSelectedTemplate('custom-layout');
           
           // Parse layoutConfiguration if it's a string
@@ -219,6 +220,7 @@ export default function ReportBuilder() {
             layoutConfiguration: parsedLayout,
           };
           
+          console.log('⚙️ Parsed template:', newTemplate);
           setCustomTemplate(newTemplate);
         }
       }
