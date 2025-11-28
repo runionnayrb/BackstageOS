@@ -311,93 +311,63 @@ export default function ReportBuilder() {
 
 
 
-  const generateLayoutFromSections = (template: any) => {
-    if (!template.sections || template.sections.length === 0) {
-      return null;
-    }
-
-    let yPosition = 0;
-    const items: any[] = [];
-
-    template.sections.forEach((section: any) => {
-      if (!section.fields || section.fields.length === 0) {
-        return;
-      }
-
-      section.fields.forEach((field: any, fieldIndex: number) => {
-        items.push({
-          h: 4,
-          w: 12,
-          x: 0,
-          y: yPosition,
-          id: `field-section-${field.id}`,
-          type: 'grouped-section',
-          content: { fieldId: field.id.toString(), label: field.label },
-          children: [
-            {
-              h: 1,
-              w: 12,
-              x: 0,
-              y: 0,
-              id: `field-header-${field.id}`,
-              type: 'field-header',
-              content: { label: field.label, fieldId: field.id.toString() }
-            },
-            {
-              h: 3,
-              w: 12,
-              x: 0,
-              y: 1,
-              id: `field-notes-${field.id}`,
-              type: 'notes',
-              content: { fieldId: field.id.toString(), placeholder: field.placeholder || `Enter ${field.label}...` }
-            }
-          ]
-        });
-        yPosition += 4;
-      });
-    });
-
-    return {
-      items,
-      gridGap: 8,
-      gridCols: 12,
-      gridRows: yPosition
-    };
-  };
-
   const renderTemplateFields = () => {
-    if (!selectedTemplate) return null;
+    if (!selectedTemplate || !customTemplate) return null;
 
     const currentContent = form.watch("content") || {};
 
-    console.log('🖼️ RENDER CHECK:', {
-      hasCustomTemplate: !!customTemplate,
-      hasLayoutConfig: !!customTemplate?.layoutConfiguration,
+    console.log('🖼️ RENDERING TEMPLATE FIELDS:', {
       hasSections: !!customTemplate?.sections && customTemplate.sections.length > 0,
-      selectedTemplate,
     });
     
-    // V2 templates with custom layoutConfiguration
-    if (customTemplate?.layoutConfiguration) {
-      console.log('✅ RENDERING V2 TEMPLATE with custom layout');
-      return renderLayoutBasedTemplate(customTemplate);
-    }
-
-    // V2 templates without custom layout - auto-generate from sections/fields
+    // Render template sections/fields directly
     if (customTemplate?.sections && customTemplate.sections.length > 0) {
-      console.log('✅ AUTO-GENERATING LAYOUT from sections/fields');
-      const autoLayout = generateLayoutFromSections(customTemplate);
-      if (autoLayout) {
-        return renderLayoutBasedTemplate({...customTemplate, layoutConfiguration: autoLayout});
-      }
+      return (
+        <div className="space-y-6">
+          {customTemplate.sections.map((section: any) => (
+            <div key={section.id} className="space-y-4">
+              <div className="border-b pb-2">
+                <h3 className="text-lg font-semibold">{section.title}</h3>
+              </div>
+              
+              {section.fields && section.fields.length > 0 ? (
+                <div className="space-y-4 pl-4">
+                  {section.fields.map((field: any) => (
+                    <div key={field.id} className="space-y-2">
+                      <Label>
+                        {field.label}
+                        {field.required && <span className="text-destructive ml-1">*</span>}
+                      </Label>
+                      {field.helperText && (
+                        <p className="text-sm text-muted-foreground">{field.helperText}</p>
+                      )}
+                      <Textarea
+                        value={currentContent[field.label] || ""}
+                        onChange={(e) => {
+                          const newContent = {...currentContent};
+                          newContent[field.label] = e.target.value;
+                          form.setValue("content", newContent);
+                        }}
+                        placeholder={field.placeholder || `Enter ${field.label}...`}
+                        rows={4}
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground italic pl-4">No fields in this section</p>
+              )}
+            </div>
+          ))}
+        </div>
+      );
     }
 
-    // If no custom template or sections, show error message
+    // Only show error if no template or no sections
     return (
       <div className="border rounded-lg p-6 bg-yellow-50">
         <div className="text-sm text-gray-600">
-          No sections and fields defined in this template. Please set up your template in Template Settings.
+          Template has no sections and fields defined. Please set up your template in Template Settings.
         </div>
       </div>
     );
