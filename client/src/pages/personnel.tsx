@@ -66,16 +66,8 @@ export default function Personnel() {
     );
   }
 
-  // Order categories as requested: creative team, stage management, cast, crew, theatre staff
-  const defaultCategories = [
-    { id: "creative_team", title: "Creative Team" },
-    { id: "stage_management", title: "Stage Management" },
-    { id: "cast", title: "Cast" },
-    { id: "crew", title: "Crew" },
-    { id: "theater_staff", title: "Theater Staff" },
-  ];
-
-  const [categories, setCategories] = useState(defaultCategories);
+  // Categories are loaded from database contact groups only
+  const [categories, setCategories] = useState<{ id: string; title: string }[]>([]);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
   const [availabilityContact, setAvailabilityContact] = useState<Contact | null>(null);
@@ -91,7 +83,6 @@ export default function Personnel() {
   const [editingGroupName, setEditingGroupName] = useState('');
   const [deletingGroupId, setDeletingGroupId] = useState<number | null>(null);
   const [deletingGroupName, setDeletingGroupName] = useState('');
-  const migrationAttemptedRef = useRef(false);
 
   const { data: project } = useQuery({
     queryKey: [`/api/projects/${projectId}`],
@@ -115,31 +106,6 @@ export default function Personnel() {
     enabled: !!projectId,
   });
 
-  // Migrate default groups to database if none exist
-  const migrateDefaultGroupsMutation = useMutation({
-    mutationFn: async () => {
-      const groupsToCreate = defaultCategories.map(cat => ({
-        name: cat.title
-      }));
-      for (const group of groupsToCreate) {
-        await apiRequest(`/api/projects/${projectId}/contact-groups`, {
-          method: 'POST',
-          body: JSON.stringify(group),
-        });
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contact-groups`] });
-    },
-  });
-
-  // Auto-migrate on first load if no groups exist - triggers when query completes
-  useEffect(() => {
-    if (!migrationAttemptedRef.current && contactGroups.length === 0 && defaultCategories.length > 0) {
-      migrationAttemptedRef.current = true;
-      migrateDefaultGroupsMutation.mutate();
-    }
-  }, [contactGroups, projectId]);
 
   // Load groups from API on mount
   useEffect(() => {
@@ -152,21 +118,6 @@ export default function Personnel() {
     }
   }, [contactGroups]);
 
-  // Apply saved category order when project settings load
-  useEffect(() => {
-    if (projectSettings && typeof projectSettings === 'object' && 'contactCategoriesOrder' in projectSettings && projectSettings.contactCategoriesOrder) {
-      const savedOrder = projectSettings.contactCategoriesOrder as string[];
-      const reorderedCategories = savedOrder.map((id: string) => 
-        defaultCategories.find(cat => cat.id === id)
-      ).filter((cat): cat is typeof defaultCategories[0] => cat !== undefined);
-      
-      // Add any new categories that weren't in the saved order
-      const savedIds = new Set(savedOrder);
-      const newCategories = defaultCategories.filter(cat => !savedIds.has(cat.id));
-      
-      setCategories([...reorderedCategories, ...newCategories]);
-    }
-  }, [projectSettings]);
 
   // Set header icons for mobile header 
   useEffect(() => {

@@ -30,18 +30,6 @@ export function ImportContactsModal({
   const [isLoading, setIsLoading] = useState(false);
   const [previewData, setPreviewData] = useState<any[]>([]);
 
-  // Default categories that are always available
-  const defaultCategories = [
-    { id: 0, name: "Cast" },
-    { id: 1, name: "Creative Team" },
-    { id: 2, name: "Stage Management" },
-    { id: 3, name: "Crew" },
-    { id: 4, name: "Theater Staff" },
-  ];
-
-  // Use real groups if they exist, otherwise use default categories
-  const availableGroups = contactGroups.length > 0 ? contactGroups : defaultCategories;
-
   const downloadTemplate = () => {
     const headers = ["First Name", "Last Name", "Preferred Name", "Group", "Role", "Email", "Mobile", "WhatsApp"];
     const exampleRow = ["John", "Doe", "Johnny", "Cast", "Lead Actor", "john@example.com", "555-1234", "555-1234"];
@@ -253,18 +241,28 @@ export function ImportContactsModal({
               <Label htmlFor="group-select" className="text-sm font-medium">
                 Default Group <span className="text-gray-500 text-xs">(optional - can specify per contact in CSV)</span>
               </Label>
-              <Select value={selectedGroupId} onValueChange={setSelectedGroupId}>
-                <SelectTrigger id="group-select" className="mt-2">
-                  <SelectValue placeholder="Leave empty to use CSV groups..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableGroups.map((group) => (
-                    <SelectItem key={group.id} value={group.name}>
-                      {group.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {contactGroups.length === 0 ? (
+                <div className="text-sm text-gray-600 p-3 bg-gray-50 rounded border border-gray-200">
+                  No groups created yet. You can either:
+                  <ul className="list-disc list-inside mt-2 space-y-1">
+                    <li>Specify groups in your CSV file</li>
+                    <li>Create a group in the Contacts page first</li>
+                  </ul>
+                </div>
+              ) : (
+                <Select value={selectedGroupId} onValueChange={setSelectedGroupId}>
+                  <SelectTrigger id="group-select" className="mt-2">
+                    <SelectValue placeholder="Leave empty to use CSV groups..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {contactGroups.map((group) => (
+                      <SelectItem key={group.id} value={group.id.toString()}>
+                        {group.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           )}
 
@@ -288,7 +286,7 @@ export function ImportContactsModal({
                       <div className="truncate">{contact.firstName || "-"}</div>
                       <div className="truncate">{contact.lastName || "-"}</div>
                       <div className="truncate">{contact.email || "-"}</div>
-                      <div className="truncate text-blue-600">{contact.group || (selectedGroupId ? selectedGroupId : "-")}</div>
+                      <div className="truncate text-blue-600">{contact.group || (selectedGroupId ? contactGroups.find(g => g.id.toString() === selectedGroupId)?.name : "-")}</div>
                       <div className="truncate">{contact.role || "-"}</div>
                     </div>
                   ))}

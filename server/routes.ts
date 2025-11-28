@@ -7129,14 +7129,25 @@ Best regards,
         groupNameMap[g.name.toLowerCase()] = g.id;
       });
 
-      // If no groups exist, we'll need to create them or use defaults
       // Check if any contact specifies a group that doesn't exist
       const csvGroupsSpecified = new Set<string>();
+      const groupsNotFound = new Set<string>();
       
       for (const contactData of contacts) {
         if (contactData.group) {
           csvGroupsSpecified.add(contactData.group);
+          if (!groupNameMap[contactData.group.toLowerCase()]) {
+            groupsNotFound.add(contactData.group);
+          }
         }
+      }
+
+      // If groups are specified in CSV but not found, and no default group is selected, return error
+      if (groupsNotFound.size > 0 && !groupId) {
+        const missingGroups = Array.from(groupsNotFound).join(", ");
+        return res.status(400).json({ 
+          message: `The following groups were not found: ${missingGroups}. Please create these groups first or select a default group in the import modal.` 
+        });
       }
 
       // If no groups in CSV and no default group selected, return error
@@ -7144,22 +7155,6 @@ Best regards,
         return res.status(400).json({ 
           message: "No group specified. Please either add a Group column to your CSV or select a default group." 
         });
-      }
-
-      // Create missing groups from CSV (if they're standard categories)
-      const standardCategories = ["Cast", "Creative Team", "Stage Management", "Crew", "Theater Staff"];
-      for (const groupName of csvGroupsSpecified) {
-        if (!groupNameMap[groupName.toLowerCase()]) {
-          // Check if it's a standard category, if so create it
-          if (standardCategories.includes(groupName)) {
-            const newGroup = await storage.createContactGroup({
-              projectId,
-              name: groupName,
-              sortOrder: Object.keys(groupNameMap).length,
-            });
-            groupNameMap[groupName.toLowerCase()] = newGroup.id;
-          }
-        }
       }
 
       const userId = req.user.id.toString();
