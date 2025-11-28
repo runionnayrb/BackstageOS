@@ -181,11 +181,12 @@ export function ImportContactsModal({
       setSelectedGroupId("");
       onOpenChange(false);
       onImportSuccess();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error importing contacts:", error);
+      const errorMessage = error?.response?.data?.message || error?.message || "There was an error importing the contacts";
       toast({
         title: "Import failed",
-        description: "There was an error importing the contacts",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

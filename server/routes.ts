@@ -7149,11 +7149,14 @@ Best regards,
           const newGroup = await storage.createContactGroup({
             projectId,
             name: groupName,
-            sortOrder: Object.keys(updatedGroupNameMap).length + 1,
           });
           updatedGroupNameMap[groupName.toLowerCase()] = newGroup.id;
+          console.log(`Created group ${groupName} with ID ${newGroup.id}`);
         } catch (error) {
           console.error(`Failed to create group ${groupName}:`, error);
+          return res.status(400).json({ 
+            message: `Failed to create group "${groupName}". Please create it manually first.` 
+          });
         }
       }
 
