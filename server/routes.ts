@@ -7122,31 +7122,54 @@ Best regards,
         return res.status(400).json({ message: "No contacts provided" });
       }
 
-      if (!groupId) {
-        return res.status(400).json({ message: "Group ID is required" });
-      }
+      // Get all contact groups for this project to map group names to IDs
+      const contactGroups = await storage.getContactGroupsByProjectId(projectId);
+      const groupNameMap: Record<string, number> = {};
+      contactGroups.forEach(g => {
+        groupNameMap[g.name.toLowerCase()] = g.id;
+      });
 
       const userId = req.user.id.toString();
       const createdContacts = [];
 
       for (const contactData of contacts) {
         try {
+          // Determine the group ID: use CSV group if provided, otherwise use default groupId
+          let finalGroupId = groupId ? parseInt(groupId) : null;
+          
+          if (contactData.group) {
+            // Try to find group by name
+            const groupIdFromName = groupNameMap[contactData.group.toLowerCase()];
+            if (groupIdFromName) {
+              finalGroupId = groupIdFromName;
+            } else {
+              // If group name not found in database, try to use default groupId
+              if (!finalGroupId) {
+                console.warn(`Group "${contactData.group}" not found for contact ${contactData.firstName} ${contactData.lastName}`);
+                continue; // Skip this contact if no default group
+              }
+            }
+          }
+
+          if (!finalGroupId) {
+            console.warn(`No group specified for contact ${contactData.firstName} ${contactData.lastName}`);
+            continue; // Skip if no group can be determined
+          }
+
           const rawData = {
-            ...contactData,
+            firstName: contactData.firstName || "Unknown",
+            lastName: contactData.lastName || "",
+            preferredName: contactData.preferredName || null,
             projectId,
-            groupId: parseInt(groupId),
+            groupId: finalGroupId,
             createdBy: parseInt(userId),
             category: 'cast', // Default to cast, can be updated later
+            role: contactData.role || null,
+            email: contactData.email || null,
+            phone: contactData.phone || null,
+            whatsapp: contactData.whatsapp || null,
+            equityStatus: null,
           };
-
-          // Handle optional fields
-          if (!rawData.firstName) rawData.firstName = "Unknown";
-          if (!rawData.lastName) rawData.lastName = "";
-          if (!rawData.email) rawData.email = null;
-          if (!rawData.phone) rawData.phone = null;
-          if (!rawData.whatsapp) rawData.whatsapp = null;
-          if (!rawData.role) rawData.role = null;
-          rawData.equityStatus = null; // Non-cast doesn't need it
 
           const contactRecord = insertContactSchema.parse(rawData);
           const created = await storage.createContact(contactRecord);
