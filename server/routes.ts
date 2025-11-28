@@ -7142,12 +7142,19 @@ Best regards,
         }
       }
 
-      // If groups are specified in CSV but not found, and no default group is selected, return error
-      if (groupsNotFound.size > 0 && !groupId) {
-        const missingGroups = Array.from(groupsNotFound).join(", ");
-        return res.status(400).json({ 
-          message: `The following groups were not found: ${missingGroups}. Please create these groups first or select a default group in the import modal.` 
-        });
+      // Auto-create missing groups from CSV
+      let updatedGroupNameMap = { ...groupNameMap };
+      for (const groupName of groupsNotFound) {
+        try {
+          const newGroup = await storage.createContactGroup({
+            projectId,
+            name: groupName,
+            sortOrder: Object.keys(updatedGroupNameMap).length + 1,
+          });
+          updatedGroupNameMap[groupName.toLowerCase()] = newGroup.id;
+        } catch (error) {
+          console.error(`Failed to create group ${groupName}:`, error);
+        }
       }
 
       // If no groups in CSV and no default group selected, return error
@@ -7166,8 +7173,8 @@ Best regards,
           let finalGroupId = groupId ? parseInt(groupId) : null;
           
           if (contactData.group) {
-            // Try to find group by name
-            const groupIdFromName = groupNameMap[contactData.group.toLowerCase()];
+            // Try to find group by name (including auto-created groups)
+            const groupIdFromName = updatedGroupNameMap[contactData.group.toLowerCase()];
             if (groupIdFromName) {
               finalGroupId = groupIdFromName;
             } else if (finalGroupId) {
