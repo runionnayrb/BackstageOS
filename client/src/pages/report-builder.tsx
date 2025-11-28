@@ -316,18 +316,19 @@ export default function ReportBuilder() {
 
     const currentContent = form.watch("content") || {};
 
-    console.log('🖼️ RENDERING TEMPLATE FIELDS:', {
-      hasSections: !!customTemplate?.sections && customTemplate.sections.length > 0,
-    });
-    
     // Render template sections/fields directly
     if (customTemplate?.sections && customTemplate.sections.length > 0) {
       return (
         <div className="space-y-6">
           {customTemplate.sections.map((section: any) => (
             <div key={section.id} className="space-y-4">
-              <div className="border-b pb-2">
+              <div>
                 <h3 className="text-lg font-semibold">{section.title}</h3>
+                {section.departmentKey && (
+                  <p className="text-sm text-muted-foreground">
+                    {section.departmentKey}
+                  </p>
+                )}
               </div>
               
               {section.fields && section.fields.length > 0 ? (
@@ -338,19 +339,106 @@ export default function ReportBuilder() {
                         {field.label}
                         {field.required && <span className="text-destructive ml-1">*</span>}
                       </Label>
-                      {field.helperText && (
-                        <p className="text-sm text-muted-foreground">{field.helperText}</p>
-                      )}
-                      <Textarea
-                        value={currentContent[field.label] || ""}
-                        onChange={(e) => {
-                          const newContent = {...currentContent};
-                          newContent[field.label] = e.target.value;
-                          form.setValue("content", newContent);
-                        }}
-                        placeholder={field.placeholder || `Enter ${field.label}...`}
-                        rows={4}
-                      />
+                      <div className="pl-4">
+                        {field.helperText && (
+                          <p className="text-sm text-muted-foreground">{field.helperText}</p>
+                        )}
+                        {field.type === "richtext" && (
+                          <Textarea
+                            value={currentContent[field.label] || ""}
+                            onChange={(e) => {
+                              const newContent = {...currentContent};
+                              newContent[field.label] = e.target.value;
+                              form.setValue("content", newContent);
+                            }}
+                            placeholder={field.placeholder || ""}
+                            rows={4}
+                            className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
+                          />
+                        )}
+                        {field.type === "text" && (
+                          <Input
+                            value={currentContent[field.label] || ""}
+                            onChange={(e) => {
+                              const newContent = {...currentContent};
+                              newContent[field.label] = e.target.value;
+                              form.setValue("content", newContent);
+                            }}
+                            placeholder={field.placeholder || ""}
+                            className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
+                          />
+                        )}
+                        {field.type === "number" && (
+                          <Input
+                            type="number"
+                            value={currentContent[field.label] || ""}
+                            onChange={(e) => {
+                              const newContent = {...currentContent};
+                              newContent[field.label] = e.target.value;
+                              form.setValue("content", newContent);
+                            }}
+                            placeholder={field.placeholder || ""}
+                            className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
+                          />
+                        )}
+                        {field.type === "date" && (
+                          <Input
+                            type="date"
+                            value={currentContent[field.label] || ""}
+                            onChange={(e) => {
+                              const newContent = {...currentContent};
+                              newContent[field.label] = e.target.value;
+                              form.setValue("content", newContent);
+                            }}
+                            className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
+                          />
+                        )}
+                        {field.type === "time" && (
+                          <Input
+                            type="time"
+                            value={currentContent[field.label] || ""}
+                            onChange={(e) => {
+                              const newContent = {...currentContent};
+                              newContent[field.label] = e.target.value;
+                              form.setValue("content", newContent);
+                            }}
+                            className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
+                          />
+                        )}
+                        {field.type === "checkbox" && (
+                          <div className="flex items-center space-x-2">
+                            <Checkbox 
+                              checked={currentContent[field.label] === "true"}
+                              onCheckedChange={(checked) => {
+                                const newContent = {...currentContent};
+                                newContent[field.label] = checked ? "true" : "false";
+                                form.setValue("content", newContent);
+                              }}
+                            />
+                            <label className="text-sm text-muted-foreground">
+                              {field.placeholder || "Check this option"}
+                            </label>
+                          </div>
+                        )}
+                        {field.type === "select" && (
+                          <Select value={currentContent[field.label] || ""} onValueChange={(value) => {
+                            const newContent = {...currentContent};
+                            newContent[field.label] = value;
+                            form.setValue("content", newContent);
+                          }}>
+                            <SelectTrigger className="border-0 bg-transparent p-0 focus:ring-0">
+                              <SelectValue placeholder={field.placeholder || "Select an option"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {field.options?.values && field.options.values.map((option: string) => (
+                                <SelectItem key={option} value={option}>
+                                  {option}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -363,14 +451,7 @@ export default function ReportBuilder() {
       );
     }
 
-    // Only show error if no template or no sections
-    return (
-      <div className="border rounded-lg p-6 bg-yellow-50">
-        <div className="text-sm text-gray-600">
-          Template has no sections and fields defined. Please set up your template in Template Settings.
-        </div>
-      </div>
-    );
+    return null;
   };
 
   const renderLayoutBasedTemplate = (template: any) => {
@@ -623,7 +704,7 @@ export default function ReportBuilder() {
   };
 
   return (
-    <div className="p-6">
+    <div>
       <div className="max-w-4xl">
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">{generatePageTitle(reportType || "", isEditMode)}</h2>
@@ -632,10 +713,10 @@ export default function ReportBuilder() {
         {/* Template Selection - Hidden since template is auto-selected based on report type */}
 
         {/* Report Form - Document Style */}
-        <Card className="min-h-[600px]">
-          <CardContent className="p-8">
+        <div>
+          <div>
             {/* Print-style Document Preview */}
-            <div className="bg-white min-h-[500px] shadow-lg border border-gray-200" style={{ 
+            <div className="bg-white min-h-[500px]" style={{ 
               width: "8.5in", 
               margin: "0 auto",
               padding: "1in",
@@ -710,8 +791,8 @@ export default function ReportBuilder() {
                 </div>
               </form>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
