@@ -754,14 +754,14 @@ export default function TemplateEditorV2() {
                     <p className="text-sm text-muted-foreground">No fields yet. Add your first field to get started.</p>
                   ) : (
                     <div className="space-y-3">
-                      {section.fields.map((field) => (
+                      {section.fields.map((field, index) => (
                         <div
                           key={field.id}
-                          className="overflow-hidden"
+                          className={`overflow-hidden ${index < section.fields.length - 1 ? 'border-b' : ''}`}
                           data-testid={`field-${field.id}`}
                         >
                           <div
-                            className="flex items-center gap-3 cursor-pointer hover:bg-muted transition-colors"
+                            className="flex items-center gap-3 py-3 cursor-pointer hover:bg-muted transition-colors"
                             onClick={() => handleEditField(field)}
                           >
                             <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
