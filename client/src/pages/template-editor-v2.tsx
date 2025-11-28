@@ -136,12 +136,9 @@ export default function TemplateEditorV2() {
   // Create section mutation
   const createSectionMutation = useMutation({
     mutationFn: async (data: { title: string; departmentKey: string | null }) => {
-      return apiRequest(`/api/templates-v2/${templateId}/sections`, {
-        method: "POST",
-        body: JSON.stringify({
-          ...data,
-          displayOrder: template?.sections.length || 0,
-        }),
+      return apiRequest("POST", `/api/templates-v2/${templateId}/sections`, {
+        ...data,
+        displayOrder: template?.sections.length || 0,
       });
     },
     onMutate: async (newSection) => {
@@ -205,10 +202,7 @@ export default function TemplateEditorV2() {
   // Update section mutation
   const updateSectionMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: { title?: string; departmentKey?: string | null } }) => {
-      return apiRequest(`/api/templates-v2/sections/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify(data),
-      });
+      return apiRequest("PATCH", `/api/templates-v2/sections/${id}`, data);
     },
     onMutate: async ({ id, data }) => {
       await queryClient.cancelQueries({
@@ -258,9 +252,7 @@ export default function TemplateEditorV2() {
   // Delete section mutation
   const deleteSectionMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/templates-v2/sections/${id}`, {
-        method: "DELETE",
-      });
+      return apiRequest("DELETE", `/api/templates-v2/sections/${id}`);
     },
     onMutate: async (id) => {
       await queryClient.cancelQueries({
@@ -318,12 +310,9 @@ export default function TemplateEditorV2() {
       defaultValue?: string;
     }) => {
       const section = template?.sections.find(s => s.id === data.sectionId);
-      return apiRequest(`/api/templates-v2/sections/${data.sectionId}/fields`, {
-        method: "POST",
-        body: JSON.stringify({
-          ...data,
-          displayOrder: section?.fields.length || 0,
-        }),
+      return apiRequest("POST", `/api/templates-v2/sections/${data.sectionId}/fields`, {
+        ...data,
+        displayOrder: section?.fields.length || 0,
       });
     },
     onMutate: async (newField) => {
@@ -393,10 +382,7 @@ export default function TemplateEditorV2() {
   // Update field mutation
   const updateFieldMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
-      return apiRequest(`/api/templates-v2/fields/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify(data),
-      });
+      return apiRequest("PATCH", `/api/templates-v2/fields/${id}`, data);
     },
     onMutate: async ({ id, data }) => {
       await queryClient.cancelQueries({
@@ -449,9 +435,7 @@ export default function TemplateEditorV2() {
   // Delete field mutation
   const deleteFieldMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/templates-v2/fields/${id}`, {
-        method: "DELETE",
-      });
+      return apiRequest("DELETE", `/api/templates-v2/fields/${id}`);
     },
     onMutate: async (id) => {
       await queryClient.cancelQueries({
