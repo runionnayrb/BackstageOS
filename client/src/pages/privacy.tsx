@@ -1,30 +1,34 @@
 import { ArrowLeft } from "lucide-react";
+import { Link } from "wouter";
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-slate-950">
       {/* Header */}
       <div className="bg-gradient-to-br from-blue-900 to-blue-700 text-white py-12 px-4">
         <div className="max-w-4xl mx-auto">
-          <a href="/landing" className="inline-flex items-center space-x-2 mb-6 hover:opacity-80">
+          <Link to="/projects" className="inline-flex items-center space-x-2 mb-6 hover:opacity-80 cursor-pointer">
             <ArrowLeft className="h-5 w-5" />
             <span>Back</span>
-          </a>
+          </Link>
           <h1 className="text-4xl font-bold mb-4">Privacy Policy</h1>
           <p className="text-xl opacity-90">How we collect, use, and protect your information</p>
         </div>
       </div>
 
       {/* Content */}
-      <div className="max-w-4xl mx-auto py-12 px-4">
-        <div className="prose prose-lg max-w-none">
-          <h2>Introduction</h2>
+      <div className="max-w-4xl mx-auto py-12 px-4 text-slate-900 dark:text-slate-50">
+        <div className="space-y-8">
+          <div>
+            <h2 className="text-2xl font-semibold mb-3 text-slate-900 dark:text-white">Introduction</h2>
           <p>
             BackstageOS ("we," "us," "our," or "Company") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our application.
           </p>
+          </div>
 
-          <h2>Information We Collect</h2>
-          <h3>User-Provided Information</h3>
+          <div>
+            <h2 className="text-2xl font-semibold mb-3 text-slate-900 dark:text-white">Information We Collect</h2>
+            <h3 className="text-lg font-semibold mt-4 mb-2 text-slate-900 dark:text-white">User-Provided Information</h3>
           <p>
             When you create an account or use BackstageOS, you may provide:
           </p>
@@ -35,7 +39,7 @@ export default function PrivacyPage() {
             <li>Communication preferences and notifications settings</li>
           </ul>
 
-          <h3>Automatically Collected Information</h3>
+            <h3 className="text-lg font-semibold mt-4 mb-2 text-slate-900 dark:text-white">Automatically Collected Information</h3>
           <p>
             We automatically collect certain information about your device and usage:
           </p>
@@ -45,8 +49,10 @@ export default function PrivacyPage() {
             <li>Location data (if permitted by your device settings)</li>
             <li>Cookies and similar tracking technologies</li>
           </ul>
+          </div>
 
-          <h2>How We Use Your Information</h2>
+          <div>
+            <h2 className="text-2xl font-semibold mb-3 text-slate-900 dark:text-white">How We Use Your Information</h2>
           <p>
             We use the information we collect for the following purposes:
           </p>
@@ -59,8 +65,10 @@ export default function PrivacyPage() {
             <li>Detecting and preventing fraud or security issues</li>
             <li>Complying with legal obligations</li>
           </ul>
+          </div>
 
-          <h2>Data Sharing & Disclosure</h2>
+          <div>
+            <h2 className="text-2xl font-semibold mb-3 text-slate-900 dark:text-white">Data Sharing & Disclosure</h2>
           <p>
             We do not sell, trade, or rent your personal information to third parties. We may share information:
           </p>
@@ -70,13 +78,17 @@ export default function PrivacyPage() {
             <li>When required by law or to protect our legal rights</li>
             <li>With your explicit consent</li>
           </ul>
+          </div>
 
-          <h2>Data Retention</h2>
+          <div>
+            <h2 className="text-2xl font-semibold mb-3 text-slate-900 dark:text-white">Data Retention</h2>
           <p>
             We retain your data as long as your account is active. If you delete your account, we will remove your data within 30 days, except where we are required by law to retain it. Backups may contain your data for an additional 90 days.
           </p>
+          </div>
 
-          <h2>Your Privacy Rights</h2>
+          <div>
+            <h2 className="text-2xl font-semibold mb-3 text-slate-900 dark:text-white">Your Privacy Rights</h2>
           <p>
             Depending on your location, you may have the following rights:
           </p>
@@ -87,33 +99,45 @@ export default function PrivacyPage() {
             <li><strong>Portability:</strong> Request your data in a portable format</li>
             <li><strong>Opt-out:</strong> Opt out of marketing communications</li>
           </ul>
+          </div>
 
-          <h2>International Data Transfers</h2>
+          <div>
+            <h2 className="text-2xl font-semibold mb-3 text-slate-900 dark:text-white">International Data Transfers</h2>
           <p>
             Your information may be transferred to, stored in, and processed in countries other than your country of residence. These countries may have data protection laws that differ from your home country. By using BackstageOS, you consent to the transfer of your information as described in this policy.
           </p>
+          </div>
 
-          <h2>Children's Privacy</h2>
+          <div>
+            <h2 className="text-2xl font-semibold mb-3 text-slate-900 dark:text-white">Children's Privacy</h2>
           <p>
             BackstageOS is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13. If we become aware that we have collected information from a child under 13, we will take steps to delete such information promptly.
           </p>
+          </div>
 
-          <h2>Third-Party Links</h2>
+          <div>
+            <h2 className="text-2xl font-semibold mb-3 text-slate-900 dark:text-white">Third-Party Links</h2>
           <p>
             BackstageOS may contain links to third-party websites. We are not responsible for the privacy practices of these external sites. We encourage you to review their privacy policies before providing any information.
           </p>
+          </div>
 
-          <h2>California Privacy Rights (CCPA)</h2>
+          <div>
+            <h2 className="text-2xl font-semibold mb-3 text-slate-900 dark:text-white">California Privacy Rights (CCPA)</h2>
           <p>
             If you are a California resident, you have specific rights under the California Consumer Privacy Act (CCPA). You can request to know, delete, or opt-out of the sale of your personal information. Contact us at privacy@backstageos.com to exercise these rights.
           </p>
+          </div>
 
-          <h2>European Privacy Rights (GDPR)</h2>
+          <div>
+            <h2 className="text-2xl font-semibold mb-3 text-slate-900 dark:text-white">European Privacy Rights (GDPR)</h2>
           <p>
             If you are in the European Union, you have rights under the General Data Protection Regulation (GDPR). We process your data based on your consent and our legitimate business interests. You have the right to access, correct, delete, or port your data.
           </p>
+          </div>
 
-          <h2>Contact Us</h2>
+          <div>
+            <h2 className="text-2xl font-semibold mb-3 text-slate-900 dark:text-white">Contact Us</h2>
           <p>
             If you have questions about this Privacy Policy or our privacy practices, please contact us at:
           </p>
@@ -121,13 +145,18 @@ export default function PrivacyPage() {
             <strong>BackstageOS Privacy Team</strong><br />
             Email: privacy@backstageos.com
           </p>
+          </div>
 
-          <h2>Policy Changes</h2>
+          <div>
+            <h2 className="text-2xl font-semibold mb-3 text-slate-900 dark:text-white">Policy Changes</h2>
           <p>
             We may update this Privacy Policy from time to time. We will notify you of any material changes by posting the new policy on this page and updating the "Last updated" date below.
           </p>
+          </div>
+        </div>
 
-          <p className="text-sm text-gray-600 mt-12">
+        <div className="pt-8 border-t border-slate-200 dark:border-slate-800 mt-8">
+          <p className="text-sm text-slate-600 dark:text-slate-400">
             Last updated: November 2025
           </p>
         </div>
