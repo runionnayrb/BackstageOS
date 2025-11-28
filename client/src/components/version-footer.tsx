@@ -227,25 +227,25 @@ export default function VersionFooter() {
               </Dialog>
               <span className="text-xs text-muted-foreground">|</span>
               <Button asChild variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground p-0 h-auto">
-                <Link href="/security">
+                <Link to="/security">
                   Security
                 </Link>
               </Button>
               <span className="text-xs text-muted-foreground">|</span>
               <Button asChild variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground p-0 h-auto">
-                <Link href="/privacy">
+                <Link to="/privacy">
                   Privacy
                 </Link>
               </Button>
               <span className="text-xs text-muted-foreground">|</span>
               <Button asChild variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground p-0 h-auto">
-                <Link href="/terms">
+                <Link to="/terms">
                   Terms
                 </Link>
               </Button>
             </div>
             <Button asChild variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground">
-              <Link href="/projects/archived" className="flex items-center gap-1">
+              <Link to="/projects/archived" className="flex items-center gap-1">
                 <Archive className="h-3 w-3" />
                 Archived Shows
               </Link>

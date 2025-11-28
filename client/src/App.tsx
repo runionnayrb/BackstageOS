@@ -177,19 +177,6 @@ function Router() {
     return <MainLanding />;
   }
 
-  // Handle policy pages - public access, bypass Layout wrapper
-  if (location === '/security') {
-    return <SecurityPage />;
-  }
-
-  if (location === '/privacy') {
-    return <PrivacyPage />;
-  }
-
-  if (location === '/terms') {
-    return <TermsPage />;
-  }
-
   // Main domain (backstageos.com) - ALWAYS show waitlist, never require authentication
   // This includes both root path and /landing path for backstageos.com
   if (isMainDomain) {
@@ -240,6 +227,9 @@ function Router() {
     <ErrorBoundary>
       <Layout>
         <Switch>
+        <Route path="/security" component={SecurityPage} />
+        <Route path="/privacy" component={PrivacyPage} />
+        <Route path="/terms" component={TermsPage} />
         <Route path="/" component={Projects} />
         <Route path="/projects" component={Projects} />
         <Route path="/projects/archived" component={ArchivedShows} />
