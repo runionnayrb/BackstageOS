@@ -523,23 +523,40 @@ export default function Personnel() {
       {/* Empty State */}
       {!isLoading && categories.length === 0 && (
         <div className="flex items-center justify-center min-h-96">
-          <div className="text-center max-w-md">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No contact groups yet</h3>
-            <p className="text-gray-600 mb-4">Get started by creating your first contact group or importing contacts from a CSV file.</p>
-            <ul className="text-left text-sm text-gray-600 space-y-2 bg-gray-50 p-4 rounded-lg">
-              <li className="flex gap-2">
-                <span className="text-gray-400">•</span>
-                <span>Create a group in the "Manage groups" dialog</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="text-gray-400">•</span>
-                <span>Import contacts from CSV using the import button</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="text-gray-400">•</span>
-                <span>Add individual contacts one at a time</span>
-              </li>
-            </ul>
+          <div className="text-center max-w-2xl">
+            <h3 className="text-xl font-semibold text-gray-900 mb-6">No contacts yet.</h3>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Create Group Section */}
+              <div className="text-left bg-gray-50 p-6 rounded-lg">
+                <h4 className="font-semibold text-gray-900 mb-3">Create Group</h4>
+                <ul className="text-sm text-gray-600 space-y-2">
+                  <li className="flex gap-2">
+                    <span className="text-gray-400">•</span>
+                    <span>Use "Manage groups" to create new groups</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-gray-400">•</span>
+                    <span>Groups are required before adding contacts</span>
+                  </li>
+                </ul>
+              </div>
+              
+              {/* Create Contact Section */}
+              <div className="text-left bg-gray-50 p-6 rounded-lg">
+                <h4 className="font-semibold text-gray-900 mb-3">Create Contact</h4>
+                <ul className="text-sm text-gray-600 space-y-2">
+                  <li className="flex gap-2">
+                    <span className="text-gray-400">•</span>
+                    <span>Import contacts from CSV using the import button</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-gray-400">•</span>
+                    <span>Add individual contacts manually</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
       )}
