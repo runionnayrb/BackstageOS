@@ -270,41 +270,7 @@ export default function ReportBuilder() {
     },
   });
 
-  const builtInTemplates = [
-    {
-      id: "rehearsal",
-      name: "Rehearsal Report",
-      description: "Daily rehearsal notes and updates",
-      icon: Clock,
-      color: "bg-blue-100",
-      iconColor: "text-blue-600",
-    },
-    {
-      id: "tech",
-      name: "Tech Report",
-      description: "Technical rehearsal progress",
-      icon: Settings,
-      color: "bg-green-100",
-      iconColor: "text-green-600",
-    },
-    {
-      id: "performance",
-      name: "Performance Report",
-      description: "Show performance notes",
-      icon: Star,
-      color: "bg-purple-100",
-      iconColor: "text-purple-600",
-    },
-    {
-      id: "meeting",
-      name: "Production Meeting",
-      description: "Meeting minutes and action items",
-      icon: Users,
-      color: "bg-orange-100",
-      iconColor: "text-orange-600",
-    },
-  ];
-
+  // Only use V2 templates - no built-in fallbacks
   const allCustomTemplates = matchingTemplate ? [{
     id: `custom-${matchingTemplate.id}`,
     name: matchingTemplate.name,
@@ -316,8 +282,8 @@ export default function ReportBuilder() {
     template: matchingTemplate,
   }] : [];
 
-  // Use custom template if available, otherwise fall back to built-in
-  const templates = allCustomTemplates.length > 0 ? allCustomTemplates : builtInTemplates.filter(t => t.id === reportType);
+  // ONLY use v2 templates
+  const templates = allCustomTemplates;
 
   const handleTemplateSelect = (templateId: string) => {
     setSelectedTemplate(templateId);
