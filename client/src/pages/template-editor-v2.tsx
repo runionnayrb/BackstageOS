@@ -75,7 +75,7 @@ interface TemplateWithData {
 
 const FIELD_TYPES = [
   { value: "text", label: "Short Text" },
-  { value: "textarea", label: "Long Text" },
+  { value: "richtext", label: "Rich Text" },
   { value: "number", label: "Number" },
   { value: "date", label: "Date" },
   { value: "time", label: "Time" },
@@ -1213,13 +1213,10 @@ export default function TemplateEditorV2() {
                                 className="bg-muted"
                               />
                             )}
-                            {field.type === "textarea" && (
-                              <Textarea
-                                placeholder={field.placeholder || ""}
-                                disabled
-                                className="bg-muted"
-                                rows={3}
-                              />
+                            {field.type === "richtext" && (
+                              <div className="border border-muted-foreground rounded-md p-3 bg-muted min-h-24 text-sm text-muted-foreground italic">
+                                Rich text editor
+                              </div>
                             )}
                             {field.type === "number" && (
                               <Input
