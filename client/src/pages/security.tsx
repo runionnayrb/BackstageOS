@@ -5,7 +5,7 @@ export default function SecurityPage() {
       <div className="bg-gradient-to-br from-blue-900 to-blue-700 text-white py-12 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="mb-4">
-            <p className="text-sm font-semibold opacity-75 tracking-wide">BACKSTAGEOS</p>
+            <p className="text-sm opacity-75 tracking-wide">Backstage<span className="font-semibold">OS</span></p>
           </div>
           <h1 className="text-4xl font-bold mb-4">Security</h1>
           <p className="text-xl opacity-90">How we protect your production data</p>
