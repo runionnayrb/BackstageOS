@@ -136,16 +136,20 @@ function SeoManagerContent() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: Partial<FormData> }) => {
+      console.log('🌐 Making PUT request to /api/seo-settings/' + id);
       const res = await apiRequest('PUT', `/api/seo-settings/${id}`, data);
+      console.log('✅ PUT response received:', res.status);
       return await res.json();
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
+      console.log('✅ Update successful:', result);
       queryClient.invalidateQueries({ queryKey: ['/api/seo-settings'] });
       toast({ title: "SEO settings updated successfully" });
       setIsDialogOpen(false);
       setSelectedSettings(null);
     },
     onError: (error: any) => {
+      console.error('❌ Update error:', error);
       toast({ 
         title: "Error", 
         description: error.message || "Failed to update SEO settings",
@@ -263,9 +267,12 @@ function SeoManagerContent() {
   };
 
   const onSubmit = (data: FormData) => {
+    console.log('🔍 Form submitted with data:', { selectedSettings: selectedSettings?.id, data });
     if (selectedSettings) {
+      console.log('📤 Calling update mutation with ID:', selectedSettings.id);
       updateMutation.mutate({ id: selectedSettings.id, data });
     } else {
+      console.log('📤 Calling create mutation');
       createMutation.mutate(data);
     }
   };
@@ -327,6 +334,7 @@ function SeoManagerContent() {
 
   const handleEdit = (settings: SeoSettings) => {
     setSelectedSettings(settings);
+    setIsDialogOpen(true);
     form.reset({
       domain: settings.domain || "",
       siteTitle: settings.siteTitle || "",
