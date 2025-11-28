@@ -771,18 +771,6 @@ export default function TemplateEditorV2() {
                               )}
                             </div>
                           </div>
-                          <div className="flex justify-start px-3 py-2 bg-muted border-t">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteField(field)}
-                              data-testid={`button-delete-field-${field.id}`}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4 mr-1" />
-                              Delete
-                            </Button>
-                          </div>
                         </div>
                       ))}
                     </div>
@@ -1121,21 +1109,31 @@ export default function TemplateEditorV2() {
                 </div>
               )}
             </div>
-            <DialogFooter>
+            <DialogFooter className="flex justify-between">
               <Button
-                variant="outline"
-                onClick={() => setIsEditFieldDialogOpen(false)}
-                data-testid="button-cancel-edit-field"
+                variant="destructive"
+                onClick={() => handleDeleteField(selectedField)}
+                data-testid="button-delete-field-modal"
               >
-                Cancel
+                <Trash2 className="h-4 w-4 mr-1" />
+                Delete
               </Button>
-              <Button
-                onClick={handleUpdateField}
-                disabled={updateFieldMutation.isPending}
-                data-testid="button-confirm-edit-field"
-              >
-                {updateFieldMutation.isPending ? "Updating..." : "Update Field"}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsEditFieldDialogOpen(false)}
+                  data-testid="button-cancel-edit-field"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleUpdateField}
+                  disabled={updateFieldMutation.isPending}
+                  data-testid="button-confirm-edit-field"
+                >
+                  {updateFieldMutation.isPending ? "Updating..." : "Update Field"}
+                </Button>
+              </div>
             </DialogFooter>
           </DialogContent>
         </Dialog>
