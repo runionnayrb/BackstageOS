@@ -39,7 +39,6 @@ export default function ReportBuilder() {
   const queryClient = useQueryClient();
   const [selectedTemplate, setSelectedTemplate] = useState<string>("");
   const [customTemplate, setCustomTemplate] = useState<any>(null);
-  const [focusedRichtextField, setFocusedRichtextField] = useState<string | null>(null);
   const focusedEditorRef = useRef<HTMLDivElement | null>(null);
   
   // Extract template ID from query params
@@ -435,20 +434,13 @@ export default function ReportBuilder() {
                         )}
                         {field.type === "richtext" && (
                           <div
-                            ref={(el) => {
-                              if (el && focusedRichtextField === field.label) {
-                                focusedEditorRef.current = el;
-                              }
-                            }}
+                            ref={focusedEditorRef}
                             contentEditable
                             suppressContentEditableWarning
                             onFocus={(e) => {
-                              setFocusedRichtextField(field.label);
                               focusedEditorRef.current = e.currentTarget;
                             }}
                             onBlur={(e) => {
-                              setFocusedRichtextField(null);
-                              focusedEditorRef.current = null;
                               const newContent = {...currentContent};
                               newContent[field.label] = e.currentTarget.innerHTML;
                               form.setValue("content", newContent);
