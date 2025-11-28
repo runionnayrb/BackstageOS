@@ -19,30 +19,8 @@ import { apiRequest } from "@/lib/queryClient";
 import { z } from "zod";
 import AdminGuard from "@/components/admin-guard";
 
-// Create a form-friendly schema that transforms null values to empty strings
-const formSchema = insertSeoSettingsSchema.transform((data) => ({
-  ...data,
-  keywords: data.keywords ?? "",
-  faviconUrl: data.faviconUrl ?? "",
-  appleTouchIconUrl: data.appleTouchIconUrl ?? "",
-  shareImageUrl: data.shareImageUrl ?? "",
-  shareImageAlt: data.shareImageAlt ?? "",
-  twitterHandle: data.twitterHandle ?? "",
-  author: data.author ?? "",
-  aiDescription: data.aiDescription ?? "",
-  semanticKeywords: data.semanticKeywords ?? "",
-  contentCategories: data.contentCategories ?? "",
-  targetAudience: data.targetAudience ?? "",
-  industryVertical: data.industryVertical ?? "",
-  functionalityTags: data.functionalityTags ?? "",
-  canonicalUrl: data.canonicalUrl ?? "",
-  geoTargeting: data.geoTargeting ?? "",
-  bimiLogoUrl: data.bimiLogoUrl ?? "",
-  bimiLogoAlt: data.bimiLogoAlt ?? "",
-  bimiVmcUrl: data.bimiVmcUrl ?? "",
-  bimiSelector: data.bimiSelector ?? "default",
-  bimiEnabled: data.bimiEnabled ?? false,
-}));
+// Create a form-friendly schema - use partial() to allow any subset of fields
+const formSchema = insertSeoSettingsSchema.partial();
 
 type FormData = z.infer<typeof formSchema>;
 
@@ -1166,6 +1144,12 @@ ${JSON.stringify(settings.structuredData, null, 2)}
                         <Button 
                           type="submit" 
                           disabled={createMutation.isPending || updateMutation.isPending}
+                          onClick={() => {
+                            const errors = form.formState.errors;
+                            if (Object.keys(errors).length > 0) {
+                              console.error('❌ Form validation errors:', errors);
+                            }
+                          }}
                         >
                           {createMutation.isPending || updateMutation.isPending 
                             ? "Saving..." 
