@@ -12,8 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useLocation, useParams } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Clock, Settings, Star, Users, FileText, ArrowLeft } from "lucide-react";
-import { RichTextEditor } from "@/components/rich-text-editor";
+import { Clock, Settings, Star, Users, FileText, ArrowLeft, Bold, Italic, Underline, List, ListOrdered } from "lucide-react";
 import ReportNotesManager from "@/components/report-notes-manager";
 
 const reportSchema = z.object({
@@ -40,6 +39,7 @@ export default function ReportBuilder() {
   const queryClient = useQueryClient();
   const [selectedTemplate, setSelectedTemplate] = useState<string>("");
   const [customTemplate, setCustomTemplate] = useState<any>(null);
+  const [focusedRichtextField, setFocusedRichtextField] = useState<string | null>(null);
   
   // Extract template ID from query params
   const searchParams = new URLSearchParams(window.location.search);
@@ -312,15 +312,94 @@ export default function ReportBuilder() {
 
 
 
+  const applyFormatting = (command: string) => {
+    if (!focusedRichtextField) return;
+    
+    const currentContent = form.watch("content") || {};
+    let value = currentContent[focusedRichtextField] || "";
+    
+    // Simple formatting - wrap with HTML tags
+    switch(command) {
+      case "bold":
+        value = `<strong>${value}</strong>`;
+        break;
+      case "italic":
+        value = `<em>${value}</em>`;
+        break;
+      case "underline":
+        value = `<u>${value}</u>`;
+        break;
+      case "ul":
+        value = `<ul><li>${value}</li></ul>`;
+        break;
+      case "ol":
+        value = `<ol><li>${value}</li></ol>`;
+        break;
+    }
+    
+    const newContent = {...currentContent};
+    newContent[focusedRichtextField] = value;
+    form.setValue("content", newContent);
+  };
+
   const renderTemplateFields = () => {
     if (!selectedTemplate || !customTemplate) return null;
 
     const currentContent = form.watch("content") || {};
+    const hasRichtextFields = customTemplate?.sections?.some((s: any) => 
+      s.fields?.some((f: any) => f.type === "richtext")
+    );
 
     // Render template sections/fields directly
     if (customTemplate?.sections && customTemplate.sections.length > 0) {
       return (
         <div className="space-y-6">
+          {/* Formatting toolbar for richtext fields */}
+          {hasRichtextFields && focusedRichtextField && (
+            <div className="flex gap-1 p-2 border rounded bg-gray-50">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => applyFormatting("bold")}
+                title="Bold"
+              >
+                <Bold className="h-4 w-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => applyFormatting("italic")}
+                title="Italic"
+              >
+                <Italic className="h-4 w-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => applyFormatting("underline")}
+                title="Underline"
+              >
+                <Underline className="h-4 w-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => applyFormatting("ul")}
+                title="Bullet list"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => applyFormatting("ol")}
+                title="Numbered list"
+              >
+                <ListOrdered className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+
           {customTemplate.sections.map((section: any) => (
             <div key={section.id} className="space-y-4">
               <div>
@@ -345,14 +424,18 @@ export default function ReportBuilder() {
                           <p className="text-sm text-muted-foreground">{field.helperText}</p>
                         )}
                         {field.type === "richtext" && (
-                          <RichTextEditor
-                            content={currentContent[field.label] || field.defaultValue || ""}
-                            onChange={(value) => {
+                          <Textarea
+                            value={currentContent[field.label] || field.defaultValue || ""}
+                            onChange={(e) => {
                               const newContent = {...currentContent};
-                              newContent[field.label] = value;
+                              newContent[field.label] = e.target.value;
                               form.setValue("content", newContent);
                             }}
+                            onFocus={() => setFocusedRichtextField(field.label)}
+                            onBlur={() => setFocusedRichtextField(null)}
                             placeholder={field.placeholder || ""}
+                            rows={4}
+                            className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
                           />
                         )}
                         {field.type === "text" && (
