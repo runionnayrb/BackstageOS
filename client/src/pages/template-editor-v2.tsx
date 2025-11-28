@@ -484,7 +484,7 @@ export default function TemplateEditorV2() {
   });
 
   const resetFieldForm = () => {
-    setNewFieldType("text");
+    setNewFieldType("richtext");
     setNewFieldLabel("");
     setNewFieldHelperText("");
     setNewFieldPlaceholder("");
