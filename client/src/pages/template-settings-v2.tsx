@@ -426,15 +426,6 @@ export default function TemplateSettingsV2() {
                 />
               </div>
               <div>
-                <Label htmlFor="edit-template-description">Description (Optional)</Label>
-                <Input
-                  id="edit-template-description"
-                  value={editTemplateDescription}
-                  onChange={(e) => setEditTemplateDescription(e.target.value)}
-                  data-testid="input-edit-template-description"
-                />
-              </div>
-              <div>
                 <Label htmlFor="edit-report-type">Report Type</Label>
                 <Select value={editTemplateReportTypeId} onValueChange={setEditTemplateReportTypeId}>
                   <SelectTrigger id="edit-report-type">
@@ -449,6 +440,15 @@ export default function TemplateSettingsV2() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div>
+                <Label htmlFor="edit-template-description">Description (Optional)</Label>
+                <Input
+                  id="edit-template-description"
+                  value={editTemplateDescription}
+                  onChange={(e) => setEditTemplateDescription(e.target.value)}
+                  data-testid="input-edit-template-description"
+                />
               </div>
               <div>
                 <Button
