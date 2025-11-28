@@ -300,18 +300,28 @@ function renderReportContent(report: any, template: any, isEditing: boolean, for
                       <p className="text-sm text-muted-foreground">{field.helperText}</p>
                     )}
                     
-                    {field.type === "richtext" && (
-                      <Textarea
-                        value={content[field.label] || field.defaultValue || ""}
-                        onChange={(e) => {
+                    {field.type === "richtext" && isEditing && (
+                      <div
+                        contentEditable
+                        suppressContentEditableWarning
+                        onBlur={(e) => {
                           const newContent = {...content};
-                          newContent[field.label] = e.target.value;
+                          newContent[field.label] = e.currentTarget.innerHTML;
                           form.setValue("content", newContent);
                         }}
-                        disabled={!isEditing}
-                        placeholder={field.placeholder || ""}
-                        rows={4}
-                        className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
+                        onInput={(e) => {
+                          const newContent = {...content};
+                          newContent[field.label] = e.currentTarget.innerHTML;
+                          form.setValue("content", newContent);
+                        }}
+                        dangerouslySetInnerHTML={{__html: content[field.label] || field.defaultValue || ""}}
+                        className="border border-input rounded px-3 py-2 text-sm min-h-32 whitespace-pre-wrap focus:outline-none focus:ring-1 focus:ring-ring"
+                      />
+                    )}
+                    {field.type === "richtext" && !isEditing && (
+                      <div 
+                        dangerouslySetInnerHTML={{__html: content[field.label] || field.defaultValue || ""}}
+                        className="text-sm whitespace-pre-wrap px-3 py-2"
                       />
                     )}
                     {field.type === "text" && (

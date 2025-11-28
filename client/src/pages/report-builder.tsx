@@ -314,35 +314,33 @@ export default function ReportBuilder() {
 
   const applyFormatting = (e: React.MouseEvent, command: string) => {
     e.preventDefault();
-    e.stopPropagation();
     
     if (!focusedRichtextField) return;
     
-    const currentContent = form.watch("content") || {};
-    let value = currentContent[focusedRichtextField] || "";
+    // Focus the editor and apply command
+    const editor = document.querySelector(`[data-field-name="${focusedRichtextField}"]`) as HTMLDivElement;
+    if (!editor) return;
     
-    // Simple formatting - wrap with HTML tags
+    editor.focus();
+    
+    // Use native browser commands for rich text
     switch(command) {
       case "bold":
-        value = `<strong>${value}</strong>`;
+        document.execCommand("bold", false);
         break;
       case "italic":
-        value = `<em>${value}</em>`;
+        document.execCommand("italic", false);
         break;
       case "underline":
-        value = `<u>${value}</u>`;
+        document.execCommand("underline", false);
         break;
       case "ul":
-        value = `<ul><li>${value}</li></ul>`;
+        document.execCommand("insertUnorderedList", false);
         break;
       case "ol":
-        value = `<ol><li>${value}</li></ol>`;
+        document.execCommand("insertOrderedList", false);
         break;
     }
-    
-    const newContent = {...currentContent};
-    newContent[focusedRichtextField] = value;
-    form.setValue("content", newContent);
   };
 
   const renderTemplateFields = () => {
@@ -432,18 +430,24 @@ export default function ReportBuilder() {
                           <p className="text-sm text-muted-foreground">{field.helperText}</p>
                         )}
                         {field.type === "richtext" && (
-                          <Textarea
-                            value={currentContent[field.label] || field.defaultValue || ""}
-                            onChange={(e) => {
+                          <div
+                            data-field-name={field.label}
+                            contentEditable
+                            suppressContentEditableWarning
+                            onFocus={() => setFocusedRichtextField(field.label)}
+                            onBlur={(e) => {
+                              setFocusedRichtextField(null);
                               const newContent = {...currentContent};
-                              newContent[field.label] = e.target.value;
+                              newContent[field.label] = e.currentTarget.innerHTML;
                               form.setValue("content", newContent);
                             }}
-                            onFocus={() => setFocusedRichtextField(field.label)}
-                            onBlur={() => setFocusedRichtextField(null)}
-                            placeholder={field.placeholder || ""}
-                            rows={4}
-                            className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
+                            onInput={(e) => {
+                              const newContent = {...currentContent};
+                              newContent[field.label] = e.currentTarget.innerHTML;
+                              form.setValue("content", newContent);
+                            }}
+                            dangerouslySetInnerHTML={{__html: currentContent[field.label] || field.defaultValue || ""}}
+                            className="border border-input rounded px-3 py-2 text-sm min-h-32 whitespace-pre-wrap focus:outline-none focus:ring-1 focus:ring-ring"
                           />
                         )}
                         {field.type === "text" && (
