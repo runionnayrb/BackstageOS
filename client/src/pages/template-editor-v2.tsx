@@ -105,7 +105,7 @@ export default function TemplateEditorV2() {
   const [editSectionTitle, setEditSectionTitle] = useState("");
   const [editSectionDepartmentKey, setEditSectionDepartmentKey] = useState("none");
 
-  const [newFieldType, setNewFieldType] = useState("text");
+  const [newFieldType, setNewFieldType] = useState("richtext");
   const [newFieldLabel, setNewFieldLabel] = useState("");
   const [newFieldHelperText, setNewFieldHelperText] = useState("");
   const [newFieldPlaceholder, setNewFieldPlaceholder] = useState("");
@@ -113,7 +113,7 @@ export default function TemplateEditorV2() {
   const [newFieldOptions, setNewFieldOptions] = useState("");
   const [newFieldDefaultValue, setNewFieldDefaultValue] = useState("");
 
-  const [editFieldType, setEditFieldType] = useState("text");
+  const [editFieldType, setEditFieldType] = useState("richtext");
   const [editFieldLabel, setEditFieldLabel] = useState("");
   const [editFieldHelperText, setEditFieldHelperText] = useState("");
   const [editFieldPlaceholder, setEditFieldPlaceholder] = useState("");
