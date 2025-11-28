@@ -374,11 +374,6 @@ class ErrorLogger {
       return;
     }
 
-    // Don't log errors in development environment
-    if (import.meta.env.DEV || window.location.hostname.includes('replit.dev')) {
-      return;
-    }
-
     try {
       // Use stored user ID, don't fetch during error logging to avoid circular issues
       const finalErrorData = {
@@ -393,16 +388,20 @@ class ErrorLogger {
       };
 
       // Use a separate API endpoint for error logging to avoid circular errors
-      await fetch('/api/errors/log', {
+      const response = await fetch('/api/errors/log', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(finalErrorData),
       });
+      
+      if (!response.ok) {
+        console.debug('Error logging response:', response.status);
+      }
     } catch (error) {
       // Silently fail - don't create recursive error logging
-      console.warn('Failed to log error:', error);
+      console.debug('Failed to log error:', error);
     }
   }
 }
