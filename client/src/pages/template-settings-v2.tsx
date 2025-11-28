@@ -74,6 +74,7 @@ export default function TemplateSettingsV2() {
   const [newTemplateReportTypeId, setNewTemplateReportTypeId] = useState<string | undefined>(undefined);
   const [editTemplateName, setEditTemplateName] = useState("");
   const [editTemplateDescription, setEditTemplateDescription] = useState("");
+  const [editTemplateReportTypeId, setEditTemplateReportTypeId] = useState<string>("");
 
   // Fetch report types
   const { data: reportTypes = [] } = useQuery<ReportType[]>({
@@ -136,7 +137,7 @@ export default function TemplateSettingsV2() {
 
   // Update template mutation
   const updateTemplateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: { name?: string; description?: string } }) => {
+    mutationFn: async ({ id, data }: { id: number; data: { name?: string; description?: string; reportTypeId?: number | null } }) => {
       // Optimistic update
       queryClient.setQueryData<ReportTemplateV2[]>(
         ["/api/projects", parseInt(projectId!), "templates-v2"],
@@ -231,6 +232,7 @@ export default function TemplateSettingsV2() {
     setSelectedTemplate(template);
     setEditTemplateName(template.name);
     setEditTemplateDescription(template.description || "");
+    setEditTemplateReportTypeId(template.reportTypeId ? template.reportTypeId.toString() : "");
     setIsEditDialogOpen(true);
   };
 
@@ -249,7 +251,19 @@ export default function TemplateSettingsV2() {
       data: {
         name: editTemplateName,
         description: editTemplateDescription,
+        reportTypeId: editTemplateReportTypeId ? parseInt(editTemplateReportTypeId) : null,
       },
+    });
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
     });
   };
 
@@ -379,12 +393,9 @@ export default function TemplateSettingsV2() {
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <CardTitle className="text-base">{template.name}</CardTitle>
-                      {template.description && (
-                        <CardDescription className="mt-1 text-sm">{template.description}</CardDescription>
-                      )}
-                      <div className="mt-1">
+                      <div className="mt-2">
                         <span className="text-xs text-muted-foreground">
-                          {getReportTypeName(template.reportTypeId)}
+                          Updated: {formatDate(template.updatedAt)}
                         </span>
                       </div>
                     </div>
@@ -422,6 +433,22 @@ export default function TemplateSettingsV2() {
                   onChange={(e) => setEditTemplateDescription(e.target.value)}
                   data-testid="input-edit-template-description"
                 />
+              </div>
+              <div>
+                <Label htmlFor="edit-report-type">Report Type</Label>
+                <Select value={editTemplateReportTypeId} onValueChange={setEditTemplateReportTypeId}>
+                  <SelectTrigger id="edit-report-type">
+                    <SelectValue placeholder="Select a report type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">None</SelectItem>
+                    {reportTypes.map((type) => (
+                      <SelectItem key={type.id} value={type.id.toString()}>
+                        {type.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Button
