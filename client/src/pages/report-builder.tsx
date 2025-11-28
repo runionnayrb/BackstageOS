@@ -335,7 +335,7 @@ export default function ReportBuilder() {
                 <div className="space-y-4 pl-4">
                   {section.fields.map((field: any) => (
                     <div key={field.id} className="space-y-2">
-                      <Label>
+                      <Label className="font-bold">
                         {field.label}
                         {field.required && <span className="text-destructive ml-1">*</span>}
                       </Label>
@@ -345,7 +345,7 @@ export default function ReportBuilder() {
                         )}
                         {field.type === "richtext" && (
                           <Textarea
-                            value={currentContent[field.label] || ""}
+                            value={currentContent[field.label] || field.defaultValue || ""}
                             onChange={(e) => {
                               const newContent = {...currentContent};
                               newContent[field.label] = e.target.value;
@@ -358,7 +358,7 @@ export default function ReportBuilder() {
                         )}
                         {field.type === "text" && (
                           <Input
-                            value={currentContent[field.label] || ""}
+                            value={currentContent[field.label] || field.defaultValue || ""}
                             onChange={(e) => {
                               const newContent = {...currentContent};
                               newContent[field.label] = e.target.value;
@@ -371,7 +371,7 @@ export default function ReportBuilder() {
                         {field.type === "number" && (
                           <Input
                             type="number"
-                            value={currentContent[field.label] || ""}
+                            value={currentContent[field.label] || field.defaultValue || ""}
                             onChange={(e) => {
                               const newContent = {...currentContent};
                               newContent[field.label] = e.target.value;
@@ -384,7 +384,7 @@ export default function ReportBuilder() {
                         {field.type === "date" && (
                           <Input
                             type="date"
-                            value={currentContent[field.label] || ""}
+                            value={currentContent[field.label] || field.defaultValue || ""}
                             onChange={(e) => {
                               const newContent = {...currentContent};
                               newContent[field.label] = e.target.value;
@@ -396,7 +396,7 @@ export default function ReportBuilder() {
                         {field.type === "time" && (
                           <Input
                             type="time"
-                            value={currentContent[field.label] || ""}
+                            value={currentContent[field.label] || field.defaultValue || ""}
                             onChange={(e) => {
                               const newContent = {...currentContent};
                               newContent[field.label] = e.target.value;
@@ -408,7 +408,7 @@ export default function ReportBuilder() {
                         {field.type === "checkbox" && (
                           <div className="flex items-center space-x-2">
                             <Checkbox 
-                              checked={currentContent[field.label] === "true"}
+                              checked={currentContent[field.label] === "true" || field.defaultValue === "true"}
                               onCheckedChange={(checked) => {
                                 const newContent = {...currentContent};
                                 newContent[field.label] = checked ? "true" : "false";
@@ -421,7 +421,7 @@ export default function ReportBuilder() {
                           </div>
                         )}
                         {field.type === "select" && (
-                          <Select value={currentContent[field.label] || ""} onValueChange={(value) => {
+                          <Select value={currentContent[field.label] || field.defaultValue || ""} onValueChange={(value) => {
                             const newContent = {...currentContent};
                             newContent[field.label] = value;
                             form.setValue("content", newContent);
