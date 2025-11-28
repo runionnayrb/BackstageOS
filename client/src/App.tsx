@@ -323,6 +323,20 @@ function Router() {
 }
 
 function App() {
+  // Check for public policy pages BEFORE mounting AuthProvider
+  // This prevents the 20-30 second auth delay on full page refreshes
+  const currentPath = window.location.pathname;
+  
+  if (currentPath === '/security') {
+    return <SecurityPage />;
+  }
+  if (currentPath === '/privacy') {
+    return <PrivacyPage />;
+  }
+  if (currentPath === '/terms') {
+    return <TermsPage />;
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
