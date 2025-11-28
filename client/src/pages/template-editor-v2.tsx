@@ -101,9 +101,9 @@ export default function TemplateEditorV2() {
   const [selectedField, setSelectedField] = useState<TemplateField | null>(null);
   const [isPreviewDialogOpen, setIsPreviewDialogOpen] = useState(false);
   const [newSectionTitle, setNewSectionTitle] = useState("");
-  const [newSectionDepartmentKey, setNewSectionDepartmentKey] = useState("");
+  const [newSectionDepartmentKey, setNewSectionDepartmentKey] = useState("none");
   const [editSectionTitle, setEditSectionTitle] = useState("");
-  const [editSectionDepartmentKey, setEditSectionDepartmentKey] = useState("");
+  const [editSectionDepartmentKey, setEditSectionDepartmentKey] = useState("none");
 
   const [newFieldType, setNewFieldType] = useState("text");
   const [newFieldLabel, setNewFieldLabel] = useState("");
@@ -184,7 +184,7 @@ export default function TemplateEditorV2() {
       });
       setIsAddSectionDialogOpen(false);
       setNewSectionTitle("");
-      setNewSectionDepartmentKey("");
+      setNewSectionDepartmentKey("none");
     },
     onError: (error, variables, context) => {
       // Revert on error
