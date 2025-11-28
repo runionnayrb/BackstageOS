@@ -770,9 +770,6 @@ export default function TemplateEditorV2() {
                                 {field.label}
                                 {field.required && <span className="text-destructive ml-1">*</span>}
                               </div>
-                              <div className="text-sm text-muted-foreground">
-                                Type: {FIELD_TYPES.find(t => t.value === field.type)?.label || field.type}
-                              </div>
                               {field.helperText && (
                                 <div className="text-sm text-muted-foreground">{field.helperText}</div>
                               )}
