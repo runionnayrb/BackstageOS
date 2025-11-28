@@ -97,6 +97,8 @@ function Router() {
   const { user, isLoading } = useAuth();
   const [location] = useLocation();
   
+  console.log('🚀 Router rendering with location:', location);
+  
   // Initialize SEO for dynamic meta tags based on domain
   useSEO();
   
@@ -146,6 +148,7 @@ function Router() {
 
   // Policy pages - render with Layout
   if (location === '/security' || location === '/privacy' || location === '/terms') {
+    console.log('✅ MATCHED POLICY PAGE:', location);
     let PolicyComponent = NotFound;
     if (location === '/security') PolicyComponent = SecurityPage;
     if (location === '/privacy') PolicyComponent = PrivacyPage;
@@ -159,6 +162,7 @@ function Router() {
       </ErrorBoundary>
     );
   }
+  console.log('❌ NOT MATCHED:', location);
 
   // Personal schedule viewer route - public access with token
   if (location.startsWith('/personal-schedule/')) {
