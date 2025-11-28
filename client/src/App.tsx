@@ -144,6 +144,22 @@ function Router() {
     return <SEOTest />;
   }
 
+  // Policy pages - render with Layout
+  if (location === '/security' || location === '/privacy' || location === '/terms') {
+    let PolicyComponent = NotFound;
+    if (location === '/security') PolicyComponent = SecurityPage;
+    if (location === '/privacy') PolicyComponent = PrivacyPage;
+    if (location === '/terms') PolicyComponent = TermsPage;
+    
+    return (
+      <ErrorBoundary>
+        <Layout>
+          <PolicyComponent />
+        </Layout>
+      </ErrorBoundary>
+    );
+  }
+
   // Personal schedule viewer route - public access with token
   if (location.startsWith('/personal-schedule/')) {
     const token = location.split('/personal-schedule/')[1];
@@ -227,9 +243,6 @@ function Router() {
     <ErrorBoundary>
       <Layout>
         <Switch>
-        <Route path="/security" component={SecurityPage} />
-        <Route path="/privacy" component={PrivacyPage} />
-        <Route path="/terms" component={TermsPage} />
         <Route path="/" component={Projects} />
         <Route path="/projects" component={Projects} />
         <Route path="/projects/archived" component={ArchivedShows} />
