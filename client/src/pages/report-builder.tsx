@@ -704,7 +704,7 @@ export default function ReportBuilder() {
   };
 
   return (
-    <div>
+    <div className="p-6">
       <div className="max-w-4xl">
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">{generatePageTitle(reportType || "", isEditMode)}</h2>
