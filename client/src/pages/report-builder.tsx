@@ -102,20 +102,30 @@ export default function ReportBuilder() {
   
   // If template ID is provided in query params, use it
   if (templateQueryParam && Array.isArray(templatesV2)) {
-    matchingTemplate = templatesV2.find((t: any) => t.id === parseInt(templateQueryParam));
-  }
-  
-  // Otherwise find by report type
-  if (!matchingTemplate && Array.isArray(templatesV2)) {
-    const currentReportTypeObj = Array.isArray(reportTypes) 
-      ? reportTypes.find((rt: any) => rt.slug === reportType)
-      : null;
-    if (currentReportTypeObj) {
-      matchingTemplate = templatesV2.find((t: any) => t.reportTypeId === currentReportTypeObj.id);
+    const templateId = parseInt(templateQueryParam);
+    matchingTemplate = templatesV2.find((t: any) => t.id === templateId);
+    if (matchingTemplate) {
+      console.log('✅ Loaded template from query param:', templateId, matchingTemplate);
+    } else {
+      console.warn('⚠️ Template ID from query param not found:', templateId);
     }
   }
   
-  // Fallback to filter for backward compatibility (old v1 templates)
+  // Otherwise find by report type
+  if (!matchingTemplate && Array.isArray(templatesV2) && Array.isArray(reportTypes)) {
+    const currentReportTypeObj = reportTypes.find((rt: any) => rt.slug === reportType);
+    if (currentReportTypeObj) {
+      matchingTemplate = templatesV2.find((t: any) => t.reportTypeId === currentReportTypeObj.id);
+      if (matchingTemplate) {
+        console.log('✅ Loaded template by report type:', reportType, matchingTemplate);
+      }
+    }
+  }
+  
+  if (!matchingTemplate && Array.isArray(templatesV2) && templatesV2.length > 0) {
+    console.warn('⚠️ No matching template found for report type:', reportType);
+  }
+  
   const customTemplates = Array.isArray(templatesV2) ? templatesV2 : [];
 
   // Find the report type to get its current name
