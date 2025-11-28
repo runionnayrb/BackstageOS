@@ -355,11 +355,11 @@ export default function ReportBuilder() {
       return (
         <div className="space-y-6">
           {/* Formatting toolbar for richtext fields */}
-          {hasRichtextFields && focusedRichtextField && (
-            <div className="flex gap-1 p-2 border rounded bg-gray-50">
+          {hasRichtextFields && (
+            <div className="flex gap-2">
               <Button
                 size="sm"
-                variant="outline"
+                variant="ghost"
                 onClick={() => applyFormatting("bold")}
                 title="Bold"
               >
@@ -367,7 +367,7 @@ export default function ReportBuilder() {
               </Button>
               <Button
                 size="sm"
-                variant="outline"
+                variant="ghost"
                 onClick={() => applyFormatting("italic")}
                 title="Italic"
               >
@@ -375,7 +375,7 @@ export default function ReportBuilder() {
               </Button>
               <Button
                 size="sm"
-                variant="outline"
+                variant="ghost"
                 onClick={() => applyFormatting("underline")}
                 title="Underline"
               >
@@ -383,7 +383,7 @@ export default function ReportBuilder() {
               </Button>
               <Button
                 size="sm"
-                variant="outline"
+                variant="ghost"
                 onClick={() => applyFormatting("ul")}
                 title="Bullet list"
               >
@@ -391,7 +391,7 @@ export default function ReportBuilder() {
               </Button>
               <Button
                 size="sm"
-                variant="outline"
+                variant="ghost"
                 onClick={() => applyFormatting("ol")}
                 title="Numbered list"
               >
