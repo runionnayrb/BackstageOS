@@ -47,7 +47,14 @@ export default function Templates() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
   };
 
   const TemplateCard = ({ template, showActions = true }: { template: any, showActions?: boolean }) => (
@@ -67,16 +74,10 @@ export default function Templates() {
           </div>
         </div>
         
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">{template.name}</h3>
-        <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-          {template.description || "No description provided"}
-        </p>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">{template.name}</h3>
         
-        <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-          <span>
-            {Array.isArray(template.fields) ? template.fields.length : 0} fields
-          </span>
-          <span>Created {formatDate(template.createdAt)}</span>
+        <div className="text-sm text-gray-500 mb-4">
+          <span>Updated: {formatDate(template.updatedAt || template.createdAt)}</span>
         </div>
         
         {showActions && (
