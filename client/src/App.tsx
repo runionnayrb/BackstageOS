@@ -144,19 +144,6 @@ function Router() {
     return <SEOTest />;
   }
 
-  // Policy pages - no authentication required
-  if (location === '/security') {
-    return <SecurityPage />;
-  }
-
-  if (location === '/privacy') {
-    return <PrivacyPage />;
-  }
-
-  if (location === '/terms') {
-    return <TermsPage />;
-  }
-  
   // Personal schedule viewer route - public access with token
   if (location.startsWith('/personal-schedule/')) {
     const token = location.split('/personal-schedule/')[1];
@@ -240,6 +227,9 @@ function Router() {
     <ErrorBoundary>
       <Layout>
         <Switch>
+        <Route path="/security" component={SecurityPage} />
+        <Route path="/privacy" component={PrivacyPage} />
+        <Route path="/terms" component={TermsPage} />
         <Route path="/" component={Projects} />
         <Route path="/projects" component={Projects} />
         <Route path="/projects/archived" component={ArchivedShows} />

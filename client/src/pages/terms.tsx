@@ -1,11 +1,9 @@
 import { ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
-import Layout from "@/components/layout/layout";
 
 export default function TermsPage() {
   return (
-    <Layout>
-      <div className="min-h-screen bg-white dark:bg-slate-950">
+    <div className="min-h-screen bg-white dark:bg-slate-950">
       {/* Header */}
       <div className="bg-gradient-to-br from-blue-900 to-blue-700 text-white py-12 px-4">
         <div className="max-w-4xl mx-auto">
@@ -198,6 +196,5 @@ export default function TermsPage() {
         </div>
       </div>
     </div>
-    </Layout>
   );
 }
