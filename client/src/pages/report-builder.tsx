@@ -312,7 +312,10 @@ export default function ReportBuilder() {
 
 
 
-  const applyFormatting = (command: string) => {
+  const applyFormatting = (e: React.MouseEvent, command: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     if (!focusedRichtextField) return;
     
     const currentContent = form.watch("content") || {};
@@ -358,41 +361,46 @@ export default function ReportBuilder() {
           {hasRichtextFields && (
             <div className="flex gap-2">
               <Button
+                type="button"
                 size="sm"
                 variant="ghost"
-                onClick={() => applyFormatting("bold")}
+                onClick={(e) => applyFormatting(e, "bold")}
                 title="Bold"
               >
                 <Bold className="h-4 w-4" />
               </Button>
               <Button
+                type="button"
                 size="sm"
                 variant="ghost"
-                onClick={() => applyFormatting("italic")}
+                onClick={(e) => applyFormatting(e, "italic")}
                 title="Italic"
               >
                 <Italic className="h-4 w-4" />
               </Button>
               <Button
+                type="button"
                 size="sm"
                 variant="ghost"
-                onClick={() => applyFormatting("underline")}
+                onClick={(e) => applyFormatting(e, "underline")}
                 title="Underline"
               >
                 <Underline className="h-4 w-4" />
               </Button>
               <Button
+                type="button"
                 size="sm"
                 variant="ghost"
-                onClick={() => applyFormatting("ul")}
+                onClick={(e) => applyFormatting(e, "ul")}
                 title="Bullet list"
               >
                 <List className="h-4 w-4" />
               </Button>
               <Button
+                type="button"
                 size="sm"
                 variant="ghost"
-                onClick={() => applyFormatting("ol")}
+                onClick={(e) => applyFormatting(e, "ol")}
                 title="Numbered list"
               >
                 <ListOrdered className="h-4 w-4" />
