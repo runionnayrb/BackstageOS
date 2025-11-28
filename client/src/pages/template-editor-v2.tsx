@@ -941,6 +941,16 @@ export default function TemplateEditorV2() {
             </DialogHeader>
             <div className="space-y-4 max-h-[60vh] overflow-y-auto">
               <div>
+                <Label htmlFor="field-label">Field Label</Label>
+                <Input
+                  id="field-label"
+                  value={newFieldLabel}
+                  onChange={(e) => setNewFieldLabel(e.target.value)}
+                  placeholder="e.g., Location"
+                  data-testid="input-field-label"
+                />
+              </div>
+              <div>
                 <Label htmlFor="field-type">Field Type</Label>
                 <Select value={newFieldType} onValueChange={setNewFieldType}>
                   <SelectTrigger data-testid="select-field-type">
@@ -956,23 +966,13 @@ export default function TemplateEditorV2() {
                 </Select>
               </div>
               <div>
-                <Label htmlFor="field-label">Field Label</Label>
+                <Label htmlFor="field-default">Default Value (Optional)</Label>
                 <Input
-                  id="field-label"
-                  value={newFieldLabel}
-                  onChange={(e) => setNewFieldLabel(e.target.value)}
-                  placeholder="e.g., Location"
-                  data-testid="input-field-label"
-                />
-              </div>
-              <div>
-                <Label htmlFor="field-helper">Helper Text (Optional)</Label>
-                <Input
-                  id="field-helper"
-                  value={newFieldHelperText}
-                  onChange={(e) => setNewFieldHelperText(e.target.value)}
-                  placeholder="Additional information about this field"
-                  data-testid="input-field-helper"
+                  id="field-default"
+                  value={newFieldDefaultValue}
+                  onChange={(e) => setNewFieldDefaultValue(e.target.value)}
+                  placeholder="Default value"
+                  data-testid="input-field-default"
                 />
               </div>
               <div>
@@ -983,6 +983,16 @@ export default function TemplateEditorV2() {
                   onChange={(e) => setNewFieldPlaceholder(e.target.value)}
                   placeholder="Placeholder text"
                   data-testid="input-field-placeholder"
+                />
+              </div>
+              <div>
+                <Label htmlFor="field-helper">Helper Text (Optional)</Label>
+                <Input
+                  id="field-helper"
+                  value={newFieldHelperText}
+                  onChange={(e) => setNewFieldHelperText(e.target.value)}
+                  placeholder="Additional information about this field"
+                  data-testid="input-field-helper"
                 />
               </div>
               <div className="flex items-center space-x-2">
@@ -1009,16 +1019,6 @@ export default function TemplateEditorV2() {
                   />
                 </div>
               )}
-              <div>
-                <Label htmlFor="field-default">Default Value (Optional)</Label>
-                <Input
-                  id="field-default"
-                  value={newFieldDefaultValue}
-                  onChange={(e) => setNewFieldDefaultValue(e.target.value)}
-                  placeholder="Default value"
-                  data-testid="input-field-default"
-                />
-              </div>
             </div>
             <DialogFooter>
               <Button
@@ -1050,6 +1050,15 @@ export default function TemplateEditorV2() {
             </DialogHeader>
             <div className="space-y-4 max-h-[60vh] overflow-y-auto">
               <div>
+                <Label htmlFor="edit-field-label">Field Label</Label>
+                <Input
+                  id="edit-field-label"
+                  value={editFieldLabel}
+                  onChange={(e) => setEditFieldLabel(e.target.value)}
+                  data-testid="input-edit-field-label"
+                />
+              </div>
+              <div>
                 <Label htmlFor="edit-field-type">Field Type</Label>
                 <Select value={editFieldType} onValueChange={setEditFieldType}>
                   <SelectTrigger data-testid="select-edit-field-type">
@@ -1065,21 +1074,12 @@ export default function TemplateEditorV2() {
                 </Select>
               </div>
               <div>
-                <Label htmlFor="edit-field-label">Field Label</Label>
+                <Label htmlFor="edit-field-default">Default Value (Optional)</Label>
                 <Input
-                  id="edit-field-label"
-                  value={editFieldLabel}
-                  onChange={(e) => setEditFieldLabel(e.target.value)}
-                  data-testid="input-edit-field-label"
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-field-helper">Helper Text (Optional)</Label>
-                <Input
-                  id="edit-field-helper"
-                  value={editFieldHelperText}
-                  onChange={(e) => setEditFieldHelperText(e.target.value)}
-                  data-testid="input-edit-field-helper"
+                  id="edit-field-default"
+                  value={editFieldDefaultValue}
+                  onChange={(e) => setEditFieldDefaultValue(e.target.value)}
+                  data-testid="input-edit-field-default"
                 />
               </div>
               <div>
@@ -1089,6 +1089,15 @@ export default function TemplateEditorV2() {
                   value={editFieldPlaceholder}
                   onChange={(e) => setEditFieldPlaceholder(e.target.value)}
                   data-testid="input-edit-field-placeholder"
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-field-helper">Helper Text (Optional)</Label>
+                <Input
+                  id="edit-field-helper"
+                  value={editFieldHelperText}
+                  onChange={(e) => setEditFieldHelperText(e.target.value)}
+                  data-testid="input-edit-field-helper"
                 />
               </div>
               <div className="flex items-center space-x-2">
@@ -1114,15 +1123,6 @@ export default function TemplateEditorV2() {
                   />
                 </div>
               )}
-              <div>
-                <Label htmlFor="edit-field-default">Default Value (Optional)</Label>
-                <Input
-                  id="edit-field-default"
-                  value={editFieldDefaultValue}
-                  onChange={(e) => setEditFieldDefaultValue(e.target.value)}
-                  data-testid="input-edit-field-default"
-                />
-              </div>
             </div>
             <DialogFooter>
               <Button
