@@ -1,0 +1,36 @@
+useBetaFeatures.ts:72 🔍 Beta Access Check for email-integration: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: false, …}
+useBetaFeatures.ts:92 🔍 Admin access check: {userIsAdmin: true, isOriginalAdmin: true, isViewingAsAdmin: false, isAdmin: true, featureEnabled: true}
+useBetaFeatures.ts:108 ✅ Admin has access to enabled feature email-integration
+useBetaFeatures.ts:72 🔍 Beta Access Check for task-boards: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: false, …}
+useBetaFeatures.ts:92 🔍 Admin access check: {userIsAdmin: true, isOriginalAdmin: true, isViewingAsAdmin: false, isAdmin: true, featureEnabled: false}
+useBetaFeatures.ts:102 ❌ Feature task-boards disabled in beta configuration
+useBetaFeatures.ts:72 🔍 Beta Access Check for advanced-notes: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: false, …}
+useBetaFeatures.ts:92 🔍 Admin access check: {userIsAdmin: true, isOriginalAdmin: true, isViewingAsAdmin: false, isAdmin: true, featureEnabled: false}
+useBetaFeatures.ts:102 ❌ Feature advanced-notes disabled in beta configuration
+useBetaFeatures.ts:72 🔍 Beta Access Check for email-integration: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: false, …}
+useBetaFeatures.ts:92 🔍 Admin access check: {userIsAdmin: true, isOriginalAdmin: true, isViewingAsAdmin: false, isAdmin: true, featureEnabled: true}
+useBetaFeatures.ts:108 ✅ Admin has access to enabled feature email-integration
+useBetaFeatures.ts:72 🔍 Beta Access Check for task-boards: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: false, …}
+useBetaFeatures.ts:92 🔍 Admin access check: {userIsAdmin: true, isOriginalAdmin: true, isViewingAsAdmin: false, isAdmin: true, featureEnabled: false}
+useBetaFeatures.ts:102 ❌ Feature task-boards disabled in beta configuration
+useBetaFeatures.ts:72 🔍 Beta Access Check for advanced-notes: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: false, …}
+useBetaFeatures.ts:92 🔍 Admin access check: {userIsAdmin: true, isOriginalAdmin: true, isViewingAsAdmin: false, isAdmin: true, featureEnabled: false}
+useBetaFeatures.ts:102 ❌ Feature advanced-notes disabled in beta configuration
+useBetaFeatures.ts:72 🔍 Beta Access Check for email-integration: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: false, …}
+useBetaFeatures.ts:92 🔍 Admin access check: {userIsAdmin: true, isOriginalAdmin: true, isViewingAsAdmin: false, isAdmin: true, featureEnabled: true}
+useBetaFeatures.ts:108 ✅ Admin has access to enabled feature email-integration
+useBetaFeatures.ts:72 🔍 Beta Access Check for task-boards: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: false, …}
+useBetaFeatures.ts:92 🔍 Admin access check: {userIsAdmin: true, isOriginalAdmin: true, isViewingAsAdmin: false, isAdmin: true, featureEnabled: false}
+useBetaFeatures.ts:102 ❌ Feature task-boards disabled in beta configuration
+useBetaFeatures.ts:72 🔍 Beta Access Check for advanced-notes: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: false, …}
+useBetaFeatures.ts:92 🔍 Admin access check: {userIsAdmin: true, isOriginalAdmin: true, isViewingAsAdmin: false, isAdmin: true, featureEnabled: false}
+useBetaFeatures.ts:102 ❌ Feature advanced-notes disabled in beta configuration
+useBetaFeatures.ts:72 🔍 Beta Access Check for email-integration: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: false, …}
+useBetaFeatures.ts:92 🔍 Admin access check: {userIsAdmin: true, isOriginalAdmin: true, isViewingAsAdmin: false, isAdmin: true, featureEnabled: true}
+useBetaFeatures.ts:108 ✅ Admin has access to enabled feature email-integration
+useBetaFeatures.ts:72 🔍 Beta Access Check for task-boards: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: false, …}
+useBetaFeatures.ts:92 🔍 Admin access check: {userIsAdmin: true, isOriginalAdmin: true, isViewingAsAdmin: false, isAdmin: true, featureEnabled: false}
+useBetaFeatures.ts:102 ❌ Feature task-boards disabled in beta configuration
+useBetaFeatures.ts:72 🔍 Beta Access Check for advanced-notes: {originalUserId: 2, originalUserIsAdmin: true, effectiveUserId: 2, effectiveUserIsAdmin: true, isViewingAs: false, …}
+useBetaFeatures.ts:92 🔍 Admin access check: {userIsAdmin: true, isOriginalAdmin: true, isViewingAsAdmin: false, isAdmin: true, featureEnabled: false}
+useBetaFeatures.ts:102 ❌ Feature advanced-notes disabled in beta configuration

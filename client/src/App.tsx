@@ -146,23 +146,6 @@ function Router() {
     return <SEOTest />;
   }
 
-  // Policy pages - render with Layout
-  if (location === '/security' || location === '/privacy' || location === '/terms') {
-    console.log('✅ MATCHED POLICY PAGE:', location);
-    let PolicyComponent = NotFound;
-    if (location === '/security') PolicyComponent = SecurityPage;
-    if (location === '/privacy') PolicyComponent = PrivacyPage;
-    if (location === '/terms') PolicyComponent = TermsPage;
-    
-    return (
-      <ErrorBoundary>
-        <Layout>
-          <PolicyComponent />
-        </Layout>
-      </ErrorBoundary>
-    );
-  }
-  console.log('❌ NOT MATCHED:', location);
 
   // Personal schedule viewer route - public access with token
   if (location.startsWith('/personal-schedule/')) {
@@ -241,6 +224,19 @@ function Router() {
   if (user && (user as any).needsPayment && location !== '/subscribe' && location !== '/checkout') {
     window.location.href = '/subscribe';
     return null;
+  }
+
+  // Policy pages - must be rendered outside Switch but inside Layout
+  if (location === '/security' || location === '/privacy' || location === '/terms') {
+    let PageComponent = SecurityPage;
+    if (location === '/privacy') PageComponent = PrivacyPage;
+    if (location === '/terms') PageComponent = TermsPage;
+    
+    return (
+      <Layout>
+        <PageComponent />
+      </Layout>
+    );
   }
 
   return (
