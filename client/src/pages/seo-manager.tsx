@@ -94,8 +94,8 @@ function SeoManagerContent() {
 
   const createMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      const res = await apiRequest('POST', '/api/seo-settings', data);
-      return await res.json();
+      const result = await apiRequest('POST', '/api/seo-settings', data);
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/seo-settings'] });
@@ -115,9 +115,9 @@ function SeoManagerContent() {
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: Partial<FormData> }) => {
       console.log('🌐 Making PUT request to /api/seo-settings/' + id);
-      const res = await apiRequest('PUT', `/api/seo-settings/${id}`, data);
-      console.log('✅ PUT response received:', res.status);
-      return await res.json();
+      const result = await apiRequest('PUT', `/api/seo-settings/${id}`, data);
+      console.log('✅ PUT response received:', result);
+      return result;
     },
     onSuccess: (result) => {
       console.log('✅ Update successful:', result);
@@ -138,8 +138,8 @@ function SeoManagerContent() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      const res = await apiRequest('DELETE', `/api/seo-settings/${id}`);
-      return await res.json();
+      const result = await apiRequest('DELETE', `/api/seo-settings/${id}`);
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/seo-settings'] });
@@ -225,8 +225,7 @@ function SeoManagerContent() {
 
   const handleBimiVerify = async (settingsId: number) => {
     try {
-      const res = await apiRequest('POST', `/api/seo-settings/${settingsId}/bimi/verify`);
-      const result = await res.json();
+      const result = await apiRequest('POST', `/api/seo-settings/${settingsId}/bimi/verify`);
       
       const status = result.bimiCompliant ? "✅ BIMI Setup Complete" : "⚠️ BIMI Issues Found";
       const details = result.recommendations.join(', ');
