@@ -521,14 +521,14 @@ export default function TemplateEditorV2() {
 
     createSectionMutation.mutate({
       title: newSectionTitle,
-      departmentKey: newSectionDepartmentKey || null,
+      departmentKey: newSectionDepartmentKey === "none" ? null : newSectionDepartmentKey || null,
     });
   };
 
   const handleEditSection = (section: TemplateSection) => {
     setSelectedSection(section);
     setEditSectionTitle(section.title);
-    setEditSectionDepartmentKey(section.departmentKey || "");
+    setEditSectionDepartmentKey(section.departmentKey || "none");
     setIsEditSectionDialogOpen(true);
   };
 
@@ -546,7 +546,7 @@ export default function TemplateEditorV2() {
       id: selectedSection.id,
       data: {
         title: editSectionTitle,
-        departmentKey: editSectionDepartmentKey || null,
+        departmentKey: editSectionDepartmentKey === "none" ? null : editSectionDepartmentKey || null,
       },
     });
   };
@@ -839,7 +839,7 @@ export default function TemplateEditorV2() {
                     <SelectValue placeholder="Select a department" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No department</SelectItem>
+                    <SelectItem value="none">No department</SelectItem>
                     {Object.entries(departments).map(([key, name]) => (
                       <SelectItem key={key} value={key}>
                         {name as string}
@@ -894,7 +894,7 @@ export default function TemplateEditorV2() {
                     <SelectValue placeholder="Select a department" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No department</SelectItem>
+                    <SelectItem value="none">No department</SelectItem>
                     {Object.entries(departments).map(([key, name]) => (
                       <SelectItem key={key} value={key}>
                         {name as string}
