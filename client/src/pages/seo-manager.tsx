@@ -311,7 +311,6 @@ function SeoManagerContent() {
 
   const handleEdit = (settings: SeoSettings) => {
     setSelectedSettings(settings);
-    setIsDialogOpen(true);
     form.reset({
       domain: settings.domain || "",
       siteTitle: settings.siteTitle || "",
@@ -339,6 +338,11 @@ function SeoManagerContent() {
       canonicalUrl: settings.canonicalUrl || "",
       languageCode: settings.languageCode || "en-US",
       geoTargeting: settings.geoTargeting || "",
+      bimiLogoUrl: settings.bimiLogoUrl || "",
+      bimiLogoAlt: settings.bimiLogoAlt || "",
+      bimiVmcUrl: settings.bimiVmcUrl || "",
+      bimiSelector: settings.bimiSelector || "default",
+      bimiEnabled: settings.bimiEnabled || false,
       isActive: settings.isActive
     });
     setIsDialogOpen(true);
