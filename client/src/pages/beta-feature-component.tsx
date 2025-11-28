@@ -107,7 +107,7 @@ export default function BetaFeatureComponent() {
         title: "Settings saved",
         description: "Beta feature settings have been updated successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/beta-settings'] });
+      queryClient.refetchQueries({ queryKey: ['/api/admin/beta-settings'] });
     },
     onError: (error: any) => {
       toast({
