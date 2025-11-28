@@ -227,9 +227,9 @@ function Router() {
     <ErrorBoundary>
       <Layout>
         <Switch>
-        <Route path="/security" component={SecurityPage} />
-        <Route path="/privacy" component={PrivacyPage} />
-        <Route path="/terms" component={TermsPage} />
+        <Route path="/security" component={() => <div>TEST SECURITY ROUTE</div>} />
+        <Route path="/privacy" component={() => <div>TEST PRIVACY ROUTE</div>} />
+        <Route path="/terms" component={() => <div>TEST TERMS ROUTE</div>} />
         <Route path="/" component={Projects} />
         <Route path="/projects" component={Projects} />
         <Route path="/projects/archived" component={ArchivedShows} />
