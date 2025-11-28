@@ -374,6 +374,11 @@ class ErrorLogger {
       return;
     }
 
+    // Don't log errors in development environment
+    if (import.meta.env.DEV || window.location.hostname.includes('replit.dev')) {
+      return;
+    }
+
     try {
       // Use stored user ID, don't fetch during error logging to avoid circular issues
       const finalErrorData = {
