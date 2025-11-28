@@ -4,6 +4,9 @@ export default function TermsPage() {
       {/* Header */}
       <div className="bg-gradient-to-br from-blue-900 to-blue-700 text-white py-12 px-4">
         <div className="max-w-4xl mx-auto">
+          <div className="mb-4">
+            <p className="text-sm font-semibold opacity-75 tracking-wide">BACKSTAGEOS</p>
+          </div>
           <h1 className="text-4xl font-bold mb-4">Terms of Service</h1>
           <p className="text-xl opacity-90">The rules and conditions for using BackstageOS</p>
         </div>
