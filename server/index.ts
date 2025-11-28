@@ -148,6 +148,151 @@ async function initializeDefaultAccountTypes() {
     throw err;
   });
 
+  // SEO injection middleware - inject domain-specific SEO settings into HTML
+  app.use((req, res, next) => {
+    // Store original send function
+    const originalSend = res.send;
+    
+    res.send = async function(data: any) {
+      // Only process HTML responses
+      if (typeof data === 'string' && data.includes('<html') && data.includes('</html>')) {
+        try {
+          const { storage } = await import('./storage.js');
+          
+          // Extract domain from request headers
+          const hostname = req.get('x-forwarded-host') || req.get('host') || req.hostname;
+          const cleanDomain = hostname ? hostname.split(':')[0] : null;
+          
+          if (cleanDomain) {
+            // Fetch SEO settings for this domain
+            const seoSettings = await storage.getSeoSettings(cleanDomain);
+            
+            if (seoSettings) {
+              // Generate SEO meta tags
+              const seoMeta = generateSeoMetaTags(seoSettings);
+              
+              // Replace the meta tag section in HTML
+              const headRegex = /<head[^>]*>([\s\S]*?)<\/head>/i;
+              const match = data.match(headRegex);
+              
+              if (match) {
+                // Find where to insert SEO tags (after charset and viewport, before default SEO)
+                const headContent = match[1];
+                // Replace existing SEO section or insert new one
+                const newHeadContent = headContent
+                  .replace(/<!-- Default SEO Meta Tags -->[\s\S]*?<!-- PWA Manifest -->/, seoMeta + '\n    \n    <!-- PWA Manifest -->')
+                  .replace(/<!-- Favicon -->[\s\S]*?<!-- PWA Manifest -->/, seoMeta.match(/<!-- Favicon -->[\s\S]*?<!-- PWA Manifest -->/)?.[0] || '');
+                
+                data = data.replace(match[0], `<head${match[0].match(/^<head([^>]*)>/i)?.[1] || ''}>${newHeadContent}</head>`);
+              }
+            }
+          }
+        } catch (error) {
+          console.error('SEO injection error:', error);
+          // Continue without SEO injection if there's an error
+        }
+      }
+      
+      return originalSend.call(this, data);
+    };
+    
+    next();
+  });
+
+  function generateSeoMetaTags(settings: any): string {
+    const escapeHtml = (text: string) => {
+      if (!text) return '';
+      const map: Record<string, string> = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      };
+      return String(text).replace(/[&<>"']/g, (char) => map[char]);
+    };
+
+    const title = escapeHtml(settings.siteTitle || 'BackstageOS');
+    const description = escapeHtml(settings.siteDescription || '');
+    const keywords = escapeHtml(settings.keywords || '');
+    const author = escapeHtml(settings.author || 'BackstageOS');
+    const robots = escapeHtml(settings.robotsDirectives || 'index, follow');
+    const themeColor = escapeHtml(settings.themeColor || '#1a1a1a');
+    const canonical = escapeHtml(settings.canonicalUrl || '');
+    const language = escapeHtml(settings.languageCode || 'en-US');
+
+    const ogTitle = escapeHtml(settings.siteTitle || 'BackstageOS');
+    const ogDescription = escapeHtml(settings.siteDescription || '');
+    const ogType = escapeHtml(settings.openGraphType || 'website');
+    const ogImage = escapeHtml(settings.shareImageUrl || '');
+    const ogImageAlt = escapeHtml(settings.shareImageAlt || '');
+
+    const twitterCard = escapeHtml(settings.twitterCard || 'summary_large_image');
+    const twitterTitle = escapeHtml(settings.siteTitle || 'BackstageOS');
+    const twitterDescription = escapeHtml(settings.siteDescription || '');
+    const twitterImage = escapeHtml(settings.shareImageUrl || '');
+    const twitterImageAlt = escapeHtml(settings.shareImageAlt || '');
+
+    const favicon = escapeHtml(settings.faviconUrl || '/uploads/favicon.png');
+    const appleTouchIcon = escapeHtml(settings.appleTouchIconUrl || favicon);
+
+    let tags = `    <!-- Default SEO Meta Tags -->
+    <title>${title}</title>
+    <meta name="description" content="${description}" />
+    <meta name="keywords" content="${keywords}" />
+    <meta name="author" content="${author}" />
+    <meta name="robots" content="${robots}" />
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="${ogTitle}" />
+    <meta property="og:description" content="${ogDescription}" />
+    <meta property="og:type" content="${ogType}" />
+    <meta property="og:site_name" content="BackstageOS" />`;
+
+    if (ogImage) {
+      tags += `\n    <meta property="og:image" content="${ogImage}" />
+    <meta property="og:image:alt" content="${ogImageAlt}" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />`;
+    }
+
+    tags += `
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="${twitterCard}" />
+    <meta name="twitter:title" content="${twitterTitle}" />
+    <meta name="twitter:description" content="${twitterDescription}" />`;
+
+    if (twitterImage) {
+      tags += `\n    <meta name="twitter:image" content="${twitterImage}" />
+    <meta name="twitter:image:alt" content="${twitterImageAlt}" />`;
+    }
+
+    tags += `
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="${themeColor}" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="BackstageOS" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="msapplication-TileColor" content="${themeColor}" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    
+    <!-- Additional Meta Tags -->
+    ${canonical ? `<link rel="canonical" href="${canonical}" />` : ''}
+    <link rel="icon" href="${favicon}" />
+    <link rel="apple-touch-icon" href="${appleTouchIcon}" />
+    <link rel="apple-touch-icon" sizes="152x152" href="${appleTouchIcon}" />
+    <link rel="apple-touch-icon" sizes="180x180" href="${appleTouchIcon}" />
+    <link rel="apple-touch-icon" sizes="167x167" href="${appleTouchIcon}" />
+    
+    <!-- PWA Manifest -->`;
+
+    return tags;
+  }
+
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
