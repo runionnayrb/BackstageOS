@@ -240,11 +240,12 @@ export function ImportContactsModal({
               <Label htmlFor="group-select" className="text-sm font-medium">
                 Default Group <span className="text-gray-500 text-xs">(optional - can specify per contact in CSV)</span>
               </Label>
-              <Select value={selectedGroupId} onValueChange={setSelectedGroupId}>
+              <Select value={selectedGroupId || ""} onValueChange={setSelectedGroupId}>
                 <SelectTrigger id="group-select" className="mt-2">
                   <SelectValue placeholder="Leave empty to use CSV groups..." />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="">-- No default group --</SelectItem>
                   {contactGroups.map((group) => (
                     <SelectItem key={group.id} value={group.id.toString()}>
                       {group.name}
@@ -296,7 +297,7 @@ export function ImportContactsModal({
             </Button>
             <Button
               onClick={handleImport}
-              disabled={isLoading || previewData.length === 0 || !selectedGroupId}
+              disabled={isLoading || previewData.length === 0}
               className="gap-2"
             >
               <Upload className="h-4 w-4" />
