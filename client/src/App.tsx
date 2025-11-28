@@ -215,6 +215,17 @@ function Router() {
     return <AuthPage />;
   }
 
+  // Policy pages - public access, standalone rendering (must be checked before profile/payment checks)
+  if (location === '/security') {
+    return <SecurityPage />;
+  }
+  if (location === '/privacy') {
+    return <PrivacyPage />;
+  }
+  if (location === '/terms') {
+    return <TermsPage />;
+  }
+
   // If authenticated but no profile type selected
   if (user && !user?.profileType) {
     return <ProfileSelection />;
@@ -224,17 +235,6 @@ function Router() {
   if (user && (user as any).needsPayment && location !== '/subscribe' && location !== '/checkout') {
     window.location.href = '/subscribe';
     return null;
-  }
-
-  // Policy pages - public access, standalone rendering
-  if (location === '/security') {
-    return <SecurityPage />;
-  }
-  if (location === '/privacy') {
-    return <PrivacyPage />;
-  }
-  if (location === '/terms') {
-    return <TermsPage />;
   }
 
   return (
