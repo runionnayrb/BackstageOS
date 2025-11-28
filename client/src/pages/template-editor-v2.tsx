@@ -35,6 +35,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Plus, Trash2, GripVertical, Edit, Eye } from "lucide-react";
+import { ChangeSummaryEditor } from "@/components/ChangeSummaryEditor";
 
 interface TemplateEditorV2Params {
   id: string;
@@ -112,6 +113,7 @@ export default function TemplateEditorV2() {
   const [newFieldRequired, setNewFieldRequired] = useState(false);
   const [newFieldOptions, setNewFieldOptions] = useState("");
   const [newFieldDefaultValue, setNewFieldDefaultValue] = useState("");
+  const [newFieldDefaultValueRichText, setNewFieldDefaultValueRichText] = useState("");
 
   const [editFieldType, setEditFieldType] = useState("richtext");
   const [editFieldLabel, setEditFieldLabel] = useState("");
@@ -120,6 +122,7 @@ export default function TemplateEditorV2() {
   const [editFieldRequired, setEditFieldRequired] = useState(false);
   const [editFieldOptions, setEditFieldOptions] = useState("");
   const [editFieldDefaultValue, setEditFieldDefaultValue] = useState("");
+  const [editFieldDefaultValueRichText, setEditFieldDefaultValueRichText] = useState("");
 
   // Fetch template with full data
   const { data: template, isLoading } = useQuery<TemplateWithData>({
@@ -491,6 +494,7 @@ export default function TemplateEditorV2() {
     setNewFieldRequired(false);
     setNewFieldOptions("");
     setNewFieldDefaultValue("");
+    setNewFieldDefaultValueRichText("");
   };
 
   const handleAddSection = () => {
@@ -567,6 +571,7 @@ export default function TemplateEditorV2() {
       options = { values: newFieldOptions.split("\n").filter(o => o.trim()) };
     }
 
+    const defaultValue = newFieldType === "richtext" ? newFieldDefaultValueRichText : newFieldDefaultValue;
     createFieldMutation.mutate({
       sectionId: selectedSection.id,
       type: newFieldType,
@@ -575,7 +580,7 @@ export default function TemplateEditorV2() {
       placeholder: newFieldPlaceholder || undefined,
       required: newFieldRequired,
       options,
-      defaultValue: newFieldDefaultValue || undefined,
+      defaultValue: defaultValue || undefined,
     });
   };
 
@@ -587,7 +592,8 @@ export default function TemplateEditorV2() {
     setEditFieldPlaceholder(field.placeholder || "");
     setEditFieldRequired(field.required);
     setEditFieldOptions(field.options?.values?.join("\n") || "");
-    setEditFieldDefaultValue(field.defaultValue || "");
+    setEditFieldDefaultValue(field.type === "richtext" ? "" : (field.defaultValue || ""));
+    setEditFieldDefaultValueRichText(field.type === "richtext" ? (field.defaultValue || "") : "");
     setIsEditFieldDialogOpen(true);
   };
 
@@ -606,6 +612,7 @@ export default function TemplateEditorV2() {
       options = { values: editFieldOptions.split("\n").filter(o => o.trim()) };
     }
 
+    const defaultValue = editFieldType === "richtext" ? editFieldDefaultValueRichText : editFieldDefaultValue;
     updateFieldMutation.mutate({
       id: selectedField.id,
       data: {
@@ -615,7 +622,7 @@ export default function TemplateEditorV2() {
         placeholder: editFieldPlaceholder || null,
         required: editFieldRequired,
         options,
-        defaultValue: editFieldDefaultValue || null,
+        defaultValue: defaultValue || null,
       },
     });
   };
@@ -952,13 +959,21 @@ export default function TemplateEditorV2() {
               </div>
               <div>
                 <Label htmlFor="field-default">Default Value (Optional)</Label>
-                <Input
-                  id="field-default"
-                  value={newFieldDefaultValue}
-                  onChange={(e) => setNewFieldDefaultValue(e.target.value)}
-                  placeholder="Default value"
-                  data-testid="input-field-default"
-                />
+                {newFieldType === "richtext" ? (
+                  <ChangeSummaryEditor
+                    content={newFieldDefaultValueRichText}
+                    onChange={setNewFieldDefaultValueRichText}
+                    placeholder="Default value with formatting"
+                  />
+                ) : (
+                  <Input
+                    id="field-default"
+                    value={newFieldDefaultValue}
+                    onChange={(e) => setNewFieldDefaultValue(e.target.value)}
+                    placeholder="Default value"
+                    data-testid="input-field-default"
+                  />
+                )}
               </div>
               <div>
                 <Label htmlFor="field-placeholder">Placeholder (Optional)</Label>
@@ -1060,12 +1075,20 @@ export default function TemplateEditorV2() {
               </div>
               <div>
                 <Label htmlFor="edit-field-default">Default Value (Optional)</Label>
-                <Input
-                  id="edit-field-default"
-                  value={editFieldDefaultValue}
-                  onChange={(e) => setEditFieldDefaultValue(e.target.value)}
-                  data-testid="input-edit-field-default"
-                />
+                {editFieldType === "richtext" ? (
+                  <ChangeSummaryEditor
+                    content={editFieldDefaultValueRichText}
+                    onChange={setEditFieldDefaultValueRichText}
+                    placeholder="Default value with formatting"
+                  />
+                ) : (
+                  <Input
+                    id="edit-field-default"
+                    value={editFieldDefaultValue}
+                    onChange={(e) => setEditFieldDefaultValue(e.target.value)}
+                    data-testid="input-edit-field-default"
+                  />
+                )}
               </div>
               <div>
                 <Label htmlFor="edit-field-placeholder">Placeholder (Optional)</Label>
