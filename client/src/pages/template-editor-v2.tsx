@@ -1234,7 +1234,7 @@ export default function TemplateEditorV2() {
                               />
                             )}
                             {field.type === "richtext" && (
-                              <div className="text-sm min-h-24 whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: field.defaultValue || field.placeholder || "" }} />
+                              <div className="text-sm whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: field.defaultValue || field.placeholder || "" }} />
                             )}
                             {field.type === "number" && (
                               <Input
