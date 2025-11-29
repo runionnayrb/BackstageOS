@@ -560,7 +560,7 @@ export default function ReportBuilder() {
                                 newContent[field.label] = e.currentTarget.innerHTML;
                                 form.setValue("content", newContent);
                               }}
-                              className="text-sm whitespace-pre-wrap outline-none"
+                              className="text-sm outline-none whitespace-normal [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:ml-0"
                             />
                             {field.departmentKey && isEditMode && reportId && departmentFieldRefs.current[field.id] && (
                               <NoteStatusPopup
