@@ -3895,7 +3895,7 @@ Best regards,
       // Auto-sync field notes if template has department-assigned fields
       if (report.templateId) {
         try {
-          const template = await storage.getReportTemplateV2ById(report.templateId);
+          const template = await storage.getReportTemplateById(report.templateId);
           if (template) {
             const content = report.content as Record<string, any>;
             for (const section of (template as any).sections || []) {
@@ -4039,7 +4039,7 @@ Best regards,
       // Uses content-matching to preserve status/priority/assignee
       if ((report as any).templateId) {
         try {
-          const template = await storage.getReportTemplateV2ById((report as any).templateId);
+          const template = await storage.getReportTemplateById((report as any).templateId);
           if (template) {
             const content = updateData.content as Record<string, any>;
             for (const section of (template as any).sections || []) {
@@ -4199,7 +4199,7 @@ Best regards,
         return res.json({ message: "No template associated with this report", synced: 0 });
       }
 
-      const template = await storage.getReportTemplateV2ById(templateId);
+      const template = await storage.getReportTemplateById(templateId);
       if (!template) {
         return res.json({ message: "Template not found", synced: 0 });
       }
@@ -4220,7 +4220,8 @@ Best regards,
             
             // Sync notes: create new ones, update existing ones
             for (let i = 0; i < parsedNotes.length; i++) {
-              const noteContent = parsedNotes[i];
+              const noteData = parsedNotes[i];
+              const noteContent = noteData.text;
               const existingNote = existingByField[i];
               
               if (existingNote) {
