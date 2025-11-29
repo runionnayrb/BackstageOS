@@ -508,7 +508,9 @@ export default function ReportBuilder() {
                                   initializedFieldsRef.current.add(field.id);
                                   const defaultValue = field.defaultValue || "";
                                   defaultValuesRef.current[field.id] = defaultValue;
-                                  el.innerHTML = currentContent[field.label] || defaultValue;
+                                  // Use content if it exists and is not empty, otherwise use default
+                                  const content = currentContent[field.label];
+                                  el.innerHTML = (content && content.trim()) ? content : defaultValue;
                                 }
                               }}
                               contentEditable
