@@ -41,6 +41,7 @@ export default function ReportBuilder() {
   const [selectedTemplate, setSelectedTemplate] = useState<string>("");
   const [customTemplate, setCustomTemplate] = useState<any>(null);
   const focusedEditorRef = useRef<HTMLDivElement | null>(null);
+  const focusedFieldLabelRef = useRef<string | null>(null);
   const initializedFieldsRef = useRef<Set<number>>(new Set());
   
   // Extract template ID from query params
@@ -343,10 +344,7 @@ export default function ReportBuilder() {
     const editor = focusedEditorRef.current;
     if (!editor) return;
     
-    // Ensure the editor is focused
-    editor.focus();
-    
-    // Apply command
+    // Apply command using document.execCommand
     try {
       switch(command) {
         case "bold":
@@ -365,9 +363,19 @@ export default function ReportBuilder() {
           document.execCommand("insertOrderedList", false);
           break;
       }
+      
+      // Focus back on editor
       editor.focus();
+      
+      // Update form with new content using the tracked field label
+      if (focusedFieldLabelRef.current) {
+        const newContent = {...(form.getValues("content") || {})};
+        newContent[focusedFieldLabelRef.current] = editor.innerHTML;
+        form.setValue("content", newContent);
+      }
     } catch (error) {
       console.error("Formatting error:", error);
+      editor.focus();
     }
   };
 
@@ -489,6 +497,7 @@ export default function ReportBuilder() {
                               suppressContentEditableWarning
                               onFocus={(e) => {
                                 focusedEditorRef.current = e.currentTarget;
+                                focusedFieldLabelRef.current = field.label;
                               }}
                               onBlur={(e) => {
                                 const newContent = {...currentContent};
