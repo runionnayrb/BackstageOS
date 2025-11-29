@@ -216,8 +216,43 @@ export default function ReportBuilder() {
         form.setValue("title", existingReport.title);
         form.setValue("date", existingReport.date ? new Date(existingReport.date).toISOString().split('T')[0] : form.getValues("date"));
         const content = existingReport.content || {};
-        form.setValue("content", content);
-        contentRef.current = { ...content };
+        
+        // Hydrate content with template rich-text formatting
+        // If stored content is plain text that matches an untouched default, use template's rich-text version
+        if (matchingTemplate?.sections) {
+          const hydratedContent = { ...content };
+          
+          for (const section of matchingTemplate.sections) {
+            if (section.fields) {
+              for (const field of section.fields) {
+                const storedValue = hydratedContent[field.label];
+                const templateDefault = field.defaultValue || "";
+                
+                // Extract plain text from template default (strip HTML tags)
+                const plainTemplateDefault = templateDefault.replace(/<[^>]*>/g, '').trim();
+                
+                // Check if stored value is plain text that matches the template default
+                // or if it's empty/undefined - in these cases, use the template's rich-text version
+                if (storedValue !== undefined && storedValue !== null) {
+                  const storedPlainText = String(storedValue).replace(/<[^>]*>/g, '').trim();
+                  
+                  // If stored plain text matches template default but lacks HTML formatting, use template version
+                  if (storedPlainText === plainTemplateDefault && !String(storedValue).includes('<ol') && !String(storedValue).includes('<ul')) {
+                    console.log(`🔄 Hydrating field "${field.label}" with template rich-text formatting`);
+                    hydratedContent[field.label] = templateDefault;
+                  }
+                }
+              }
+            }
+          }
+          
+          form.setValue("content", hydratedContent);
+          contentRef.current = hydratedContent;
+        } else {
+          form.setValue("content", content);
+          contentRef.current = { ...content };
+        }
+        
         setSelectedTemplate('custom-layout');
         
         // Load the template so fields have access to defaultValues
