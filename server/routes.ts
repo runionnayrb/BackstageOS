@@ -3891,6 +3891,42 @@ Best regards,
         title: report.title,
         type: report.type
       });
+
+      // Auto-sync field notes if template has department-assigned fields
+      if (report.templateId) {
+        try {
+          const template = await storage.getReportTemplateV2ById(report.templateId);
+          if (template) {
+            const content = report.content as Record<string, any>;
+            for (const section of (template as any).sections || []) {
+              for (const field of section.fields || []) {
+                if (field.departmentKey && content[field.label]) {
+                  const fieldContent = content[field.label];
+                  const parsedNotes = parseNotesFromHtml(fieldContent);
+                  
+                  for (let i = 0; i < parsedNotes.length; i++) {
+                    const noteData = parsedNotes[i];
+                    await storage.createReportNote({
+                      reportId: report.id,
+                      projectId: projectId,
+                      content: noteData.text,
+                      noteOrder: i + 1,
+                      department: field.departmentKey,
+                      templateFieldId: field.id,
+                      createdBy: parseInt(req.user.id),
+                    });
+                  }
+                }
+              }
+            }
+            console.log('📋 Notes synced for new report:', report.id);
+          }
+        } catch (syncError) {
+          console.warn('⚠️ Note sync failed for new report (non-blocking):', syncError);
+          // Don't fail report creation if sync fails
+        }
+      }
+
       res.json(report);
     } catch (error) {
       if (error instanceof z.ZodError) {
