@@ -480,11 +480,6 @@ export default function ReportBuilder() {
                           {field.label}
                           {field.required && <span className="text-destructive ml-1">*</span>}
                         </Label>
-                        {field.departmentKey && (
-                          <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full" title="Notes in this field are tracked">
-                            Tracked
-                          </span>
-                        )}
                       </div>
                       <div className="pl-4">
                         {field.helperText && (
