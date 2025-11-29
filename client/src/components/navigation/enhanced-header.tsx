@@ -354,19 +354,13 @@ export default function EnhancedHeader() {
                           Contacts
                         </DropdownMenuItem>
                       )}
-                      {canAccessFeature('performance-tracker') && (
-                        <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/performance-tracker`)}>
-                          <TrendingUp className="h-4 w-4 mr-2" strokeWidth={1.5} />
-                          Performance Tracker
-                        </DropdownMenuItem>
-                      )}
-                      {canAccessFeature('task-boards') && (
+                      {canAccessFeature('task-boards') && isFeatureEnabled('tasks') && (
                         <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/tasks`)}>
                           <CheckSquare className="h-4 w-4 mr-2" strokeWidth={1.5} />
                           Show Tasks
                         </DropdownMenuItem>
                       )}
-                      {canAccessFeature('advanced-notes') && (
+                      {canAccessFeature('advanced-notes') && isFeatureEnabled('notes') && (
                         <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/notes`)}>
                           <FileText className="h-4 w-4 mr-2" strokeWidth={1.5} />
                           Show Notes
