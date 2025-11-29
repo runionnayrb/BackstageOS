@@ -109,11 +109,21 @@ export default function ReportBuilder() {
   // Refs for department fields (for note status popup)
   const departmentFieldRefs = useRef<Record<string, React.RefObject<HTMLDivElement>>>({});
 
-  // Find the template matching the query param or report type
+  // Find the template matching the query param, report's templateId, or report type
   let matchingTemplate = null;
   
+  // If editing an existing report, use its templateId first
+  if (isEditMode && existingReport?.templateId && Array.isArray(templatesV2)) {
+    matchingTemplate = templatesV2.find((t: any) => t.id === existingReport.templateId);
+    if (matchingTemplate) {
+      console.log('✅ Loaded template from existing report:', existingReport.templateId, matchingTemplate);
+    } else {
+      console.warn('⚠️ Template ID from report not found:', existingReport.templateId);
+    }
+  }
+  
   // If template ID is provided in query params, use it
-  if (templateQueryParam && Array.isArray(templatesV2)) {
+  if (!matchingTemplate && templateQueryParam && Array.isArray(templatesV2)) {
     const templateId = parseInt(templateQueryParam);
     matchingTemplate = templatesV2.find((t: any) => t.id === templateId);
     if (matchingTemplate) {
