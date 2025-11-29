@@ -41,6 +41,7 @@ export default function ReportBuilder() {
   const [selectedTemplate, setSelectedTemplate] = useState<string>("");
   const [customTemplate, setCustomTemplate] = useState<any>(null);
   const focusedEditorRef = useRef<HTMLDivElement | null>(null);
+  const initializedFieldsRef = useRef<Set<number>>(new Set());
   
   // Extract template ID from query params
   const searchParams = new URLSearchParams(window.location.search);
@@ -226,6 +227,9 @@ export default function ReportBuilder() {
         if (matchingTemplate) {
           console.log('⚙️ Setting customTemplate from matchingTemplate:', matchingTemplate);
           setSelectedTemplate('custom-layout');
+          
+          // Reset initialized fields when template changes
+          initializedFieldsRef.current.clear();
           
           // Parse layoutConfiguration if it's a string
           let parsedLayout = matchingTemplate.layoutConfiguration;
@@ -470,9 +474,15 @@ export default function ReportBuilder() {
                             })()}
                             <div
                               ref={(el) => {
+                                if (!el) return;
                                 focusedEditorRef.current = el;
                                 if (field.departmentKey && departmentFieldRefs.current[field.id]) {
                                   (departmentFieldRefs.current[field.id] as any).current = el;
+                                }
+                                // Initialize only once with default value or existing content
+                                if (!initializedFieldsRef.current.has(field.id)) {
+                                  initializedFieldsRef.current.add(field.id);
+                                  el.innerHTML = currentContent[field.label] || field.defaultValue || "";
                                 }
                               }}
                               contentEditable
@@ -490,7 +500,6 @@ export default function ReportBuilder() {
                                 newContent[field.label] = e.currentTarget.innerHTML;
                                 form.setValue("content", newContent);
                               }}
-                              dangerouslySetInnerHTML={{__html: currentContent[field.label] || field.defaultValue || ""}}
                               className="text-sm whitespace-pre-wrap outline-none"
                             />
                             {field.departmentKey && isEditMode && reportId && departmentFieldRefs.current[field.id] && (
