@@ -947,6 +947,25 @@ export default function TemplateEditorV2() {
                 />
               </div>
               <div>
+                <Label htmlFor="field-department">Department (for Notes Tracking)</Label>
+                <Select value={newFieldDepartmentKey} onValueChange={setNewFieldDepartmentKey}>
+                  <SelectTrigger data-testid="select-field-department">
+                    <SelectValue placeholder="No department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No department</SelectItem>
+                    {Object.entries(departments).map(([key, name]) => (
+                      <SelectItem key={key} value={key}>
+                        {name as string}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Notes in this field will be tracked in the report notes system
+                </p>
+              </div>
+              <div>
                 <Label htmlFor="field-type">Field Type</Label>
                 <Select value={newFieldType} onValueChange={setNewFieldType}>
                   <SelectTrigger data-testid="select-field-type">
@@ -1010,25 +1029,6 @@ export default function TemplateEditorV2() {
                   Required field
                 </Label>
               </div>
-              <div>
-                <Label htmlFor="field-department">Department (for Notes Tracking)</Label>
-                <Select value={newFieldDepartmentKey} onValueChange={setNewFieldDepartmentKey}>
-                  <SelectTrigger data-testid="select-field-department">
-                    <SelectValue placeholder="No department" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No department</SelectItem>
-                    {Object.entries(departments).map(([key, name]) => (
-                      <SelectItem key={key} value={key}>
-                        {name as string}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Notes in this field will be tracked in the report notes system
-                </p>
-              </div>
               {newFieldType === "select" && (
                 <div>
                   <Label htmlFor="field-options">Options (one per line)</Label>
@@ -1080,6 +1080,25 @@ export default function TemplateEditorV2() {
                   onChange={(e) => setEditFieldLabel(e.target.value)}
                   data-testid="input-edit-field-label"
                 />
+              </div>
+              <div>
+                <Label htmlFor="edit-field-department">Department (for Notes Tracking)</Label>
+                <Select value={editFieldDepartmentKey} onValueChange={setEditFieldDepartmentKey}>
+                  <SelectTrigger data-testid="select-edit-field-department">
+                    <SelectValue placeholder="No department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No department</SelectItem>
+                    {Object.entries(departments).map(([key, name]) => (
+                      <SelectItem key={key} value={key}>
+                        {name as string}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Notes in this field will be tracked in the report notes system
+                </p>
               </div>
               <div>
                 <Label htmlFor="edit-field-type">Field Type</Label>
@@ -1141,25 +1160,6 @@ export default function TemplateEditorV2() {
                 <Label htmlFor="edit-field-required" className="cursor-pointer">
                   Required field
                 </Label>
-              </div>
-              <div>
-                <Label htmlFor="edit-field-department">Department (for Notes Tracking)</Label>
-                <Select value={editFieldDepartmentKey} onValueChange={setEditFieldDepartmentKey}>
-                  <SelectTrigger data-testid="select-edit-field-department">
-                    <SelectValue placeholder="No department" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No department</SelectItem>
-                    {Object.entries(departments).map(([key, name]) => (
-                      <SelectItem key={key} value={key}>
-                        {name as string}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Notes in this field will be tracked in the report notes system
-                </p>
               </div>
               {editFieldType === "select" && (
                 <div>
