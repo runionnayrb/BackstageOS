@@ -329,7 +329,7 @@ const ALL_APP_PAGES: Page[] = [
         children: [
           {
             id: 'show-notes-tracking',
-            name: 'Notes Tracking',
+            name: 'Report Notes',
             slug: '/shows/:id/notes-tracking',
             description: 'Advanced notes tracking',
             isSystem: true,
