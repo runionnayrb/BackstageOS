@@ -526,6 +526,7 @@ export default function ReportBuilder() {
                             <div
                               ref={(el) => {
                                 if (!el) return;
+                                console.log('🔄 Ref callback for field:', field.label, 'already initialized:', initializedFieldsRef.current.has(field.id));
                                 // Only update departmentFieldRefs, not focusedEditorRef
                                 // focusedEditorRef should only be updated in onFocus
                                 if (field.departmentKey && departmentFieldRefs.current[field.id]) {
@@ -533,6 +534,7 @@ export default function ReportBuilder() {
                                 }
                                 // Initialize only once with default value or existing content
                                 if (!initializedFieldsRef.current.has(field.id)) {
+                                  console.log('📝 Initializing field:', field.label);
                                   initializedFieldsRef.current.add(field.id);
                                   let defaultValue = field.defaultValue || "";
                                   
@@ -702,7 +704,7 @@ export default function ReportBuilder() {
   };
 
   const renderLayoutBasedTemplate = (template: any) => {
-    const currentContent = form.watch("content") || {};
+    const currentContent = contentRef.current;
     const { layoutConfiguration, fieldHeaderFormatting } = template;
     
     if (!layoutConfiguration || !layoutConfiguration.items) {
@@ -741,7 +743,9 @@ export default function ReportBuilder() {
                     rows={3}
                     placeholder={placeholder}
                     value={currentContent[fieldId] || ""}
-                    onChange={(e) => form.setValue(`content.${fieldId}`, e.target.value)}
+                    onChange={(e) => {
+                      contentRef.current[fieldId] = e.target.value;
+                    }}
                     className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
                   />
                 </div>
@@ -790,7 +794,7 @@ export default function ReportBuilder() {
   };
 
   const renderCustomFields = (fields: any[]) => {
-    const currentContent = form.watch("content") || {};
+    const currentContent = contentRef.current;
     
     return fields.map((field: any) => {
       const fieldId = `custom-${field.id}`;
@@ -808,7 +812,9 @@ export default function ReportBuilder() {
                 placeholder={field.placeholder || ''}
                 required={field.required}
                 value={currentContent[field.id] || ""}
-                onChange={(e) => form.setValue(`content.${field.id}`, e.target.value)}
+                onChange={(e) => {
+                  contentRef.current[field.id] = e.target.value;
+                }}
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
                 readOnly={field.id === 'day'}
                 style={field.id === 'day' ? { backgroundColor: '#f9fafb', color: '#6b7280', cursor: 'not-allowed' } : {}}
@@ -829,7 +835,9 @@ export default function ReportBuilder() {
                 rows={4}
                 required={field.required}
                 value={currentContent[field.id] || ""}
-                onChange={(e) => form.setValue(`content.${field.id}`, e.target.value)}
+                onChange={(e) => {
+                  contentRef.current[field.id] = e.target.value;
+                }}
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
               />
             </div>
@@ -848,7 +856,9 @@ export default function ReportBuilder() {
                 placeholder={field.placeholder || '0'}
                 required={field.required}
                 value={currentContent[field.id] || ""}
-                onChange={(e) => form.setValue(`content.${field.id}`, parseInt(e.target.value))}
+                onChange={(e) => {
+                  contentRef.current[field.id] = parseInt(e.target.value);
+                }}
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
               />
             </div>
@@ -857,7 +867,7 @@ export default function ReportBuilder() {
         case 'date':
           const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
             const selectedDate = e.target.value;
-            form.setValue(`content.${field.id}`, selectedDate);
+            contentRef.current[field.id] = selectedDate;
             
             // Auto-populate day field if it exists
             if (selectedDate && customTemplate?.fields) {
@@ -866,7 +876,7 @@ export default function ReportBuilder() {
                 const date = new Date(selectedDate);
                 const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
                 const dayName = dayNames[date.getDay()];
-                form.setValue(`content.day`, dayName);
+                contentRef.current['day'] = dayName;
               }
             }
           };
@@ -900,7 +910,9 @@ export default function ReportBuilder() {
                 type="datetime-local"
                 required={field.required}
                 value={currentContent[field.id] || ""}
-                onChange={(e) => form.setValue(`content.${field.id}`, e.target.value)}
+                onChange={(e) => {
+                  contentRef.current[field.id] = e.target.value;
+                }}
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
               />
             </div>
@@ -913,7 +925,9 @@ export default function ReportBuilder() {
                 {field.label}
                 
               </div>
-              <Select value={currentContent[field.id] || ""} onValueChange={(value) => form.setValue(`content.${field.id}`, value)}>
+              <Select value={currentContent[field.id] || ""} onValueChange={(value) => {
+                contentRef.current[field.id] = value;
+              }}>
                 <SelectTrigger className="border-0 bg-transparent p-0 focus:ring-0">
                   <SelectValue placeholder={field.placeholder || 'Select an option'} />
                 </SelectTrigger>
@@ -935,7 +949,9 @@ export default function ReportBuilder() {
                 id={fieldId}
                 type="checkbox"
                 className="rounded border-gray-300"
-                onChange={(e) => form.setValue(`content.${field.id}`, e.target.checked)}
+                onChange={(e) => {
+                  contentRef.current[field.id] = e.target.checked;
+                }}
               />
               <div className="text-sm font-semibold text-gray-700">
                 {field.label}
