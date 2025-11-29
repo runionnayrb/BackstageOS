@@ -342,6 +342,7 @@ export interface IStorage {
   // V2 Template System operations
   getTemplatesV2WithFullData(projectId: number): Promise<any[]>;
   getTemplateV2ById(id: number): Promise<ReportTemplateV2 | undefined>;
+  getTemplateV2WithFullDataById(id: number): Promise<any | undefined>;
   createTemplateV2(template: InsertReportTemplateV2): Promise<ReportTemplateV2>;
   updateTemplateV2(id: number, template: Partial<InsertReportTemplateV2>): Promise<ReportTemplateV2>;
   deleteTemplateV2(id: number): Promise<void>;
@@ -1103,6 +1104,44 @@ export class DatabaseStorage implements IStorage {
   async getTemplateV2ById(id: number): Promise<ReportTemplateV2 | undefined> {
     const result = await db.select().from(reportTemplatesV2).where(eq(reportTemplatesV2.id, id));
     return result[0];
+  }
+
+  async getTemplateV2WithFullDataById(id: number): Promise<any | undefined> {
+    const templateData = await db
+      .select()
+      .from(reportTemplatesV2)
+      .where(eq(reportTemplatesV2.id, id));
+    
+    if (templateData.length === 0) return undefined;
+    
+    const template = templateData[0];
+    
+    const sectionsData = await db
+      .select()
+      .from(templateSections)
+      .where(eq(templateSections.templateId, id))
+      .orderBy(templateSections.displayOrder);
+    
+    const sectionIds = sectionsData.map(s => s.id);
+    const fieldsData = sectionIds.length > 0
+      ? await db
+          .select()
+          .from(templateFields)
+          .where(inArray(templateFields.sectionId, sectionIds))
+          .orderBy(templateFields.displayOrder)
+      : [];
+    
+    return {
+      ...template,
+      sections: sectionsData
+        .sort((a, b) => a.displayOrder - b.displayOrder)
+        .map(section => ({
+          ...section,
+          fields: fieldsData
+            .filter(f => f.sectionId === section.id)
+            .sort((a, b) => a.displayOrder - b.displayOrder)
+        }))
+    };
   }
 
   async createTemplateV2(template: InsertReportTemplateV2): Promise<ReportTemplateV2> {

@@ -3895,12 +3895,16 @@ Best regards,
       // Auto-sync field notes if template has department-assigned fields
       if (report.templateId) {
         try {
-          const template = await storage.getReportTemplateById(report.templateId);
-          if (template) {
+          const template = await storage.getTemplateV2WithFullDataById(report.templateId);
+          if (template && template.sections) {
             const content = report.content as Record<string, any>;
-            console.log('📋 Template structure:', JSON.stringify({ 
-              hasSections: !!(template as any).sections,
-              sections: ((template as any).sections || []).map((s: any) => ({
+            console.log('📋 Template V2 structure:', JSON.stringify({ 
+              id: template.id,
+              name: template.name,
+              sectionCount: template.sections.length,
+              sections: template.sections.map((s: any) => ({
+                title: s.title,
+                fieldCount: (s.fields || []).length,
                 fields: (s.fields || []).map((f: any) => ({ 
                   id: f.id, 
                   label: f.label,
@@ -3908,14 +3912,14 @@ Best regards,
                 }))
               }))
             }));
-            console.log('📋 Report content keys:', Object.keys(content));
+            console.log('📋 Report content keys:', Object.keys(content || {}));
             
-            for (const section of (template as any).sections || []) {
+            for (const section of template.sections || []) {
               for (const field of section.fields || []) {
                 const departmentKey = field.departmentKey;
                 const fieldLabel = field.label;
                 
-                if (departmentKey && fieldLabel && content[fieldLabel]) {
+                if (departmentKey && fieldLabel && content && content[fieldLabel]) {
                   const fieldContent = content[fieldLabel];
                   const parsedNotes = parseNotesFromHtml(fieldContent);
                   console.log(`📋 Syncing field "${fieldLabel}" (dept: ${departmentKey}): found ${parsedNotes.length} notes`);
@@ -3936,10 +3940,11 @@ Best regards,
               }
             }
             console.log('📋 Notes synced for new report:', report.id);
+          } else {
+            console.log('📋 No V2 template found for templateId:', report.templateId);
           }
         } catch (syncError) {
           console.error('⚠️ Note sync failed for new report (non-blocking):', syncError);
-          // Don't fail report creation if sync fails
         }
       }
 
@@ -4055,10 +4060,17 @@ Best regards,
       // Uses content-matching to preserve status/priority/assignee
       if ((report as any).templateId) {
         try {
-          const template = await storage.getReportTemplateById((report as any).templateId);
-          if (template) {
+          const template = await storage.getTemplateV2WithFullDataById((report as any).templateId);
+          if (template && template.sections) {
             const content = updateData.content as Record<string, any>;
-            for (const section of (template as any).sections || []) {
+            console.log('📋 UPDATE: Template V2 structure:', JSON.stringify({ 
+              id: template.id,
+              name: template.name,
+              sectionCount: template.sections.length
+            }));
+            console.log('📋 UPDATE: Report content keys:', Object.keys(content || {}));
+            
+            for (const section of template.sections || []) {
               for (const field of section.fields || []) {
                 if (field.departmentKey && content && content[field.label]) {
                   const fieldContent = content[field.label];
