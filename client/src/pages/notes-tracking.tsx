@@ -260,7 +260,7 @@ const NotesTracking: React.FC = () => {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Notes Tracking</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Report Notes</h2>
           <p className="text-gray-600">
             Track and follow up on all notes from {project?.name || 'this project'}
           </p>
@@ -277,7 +277,6 @@ const NotesTracking: React.FC = () => {
           </span>
         </div>
       </div>
-
       {/* Filters */}
       <Card>
         <CardContent className="p-4">
@@ -343,7 +342,6 @@ const NotesTracking: React.FC = () => {
           </div>
         </CardContent>
       </Card>
-
       {/* Notes Display */}
       <Tabs defaultValue="pending" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
