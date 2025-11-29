@@ -955,11 +955,13 @@ export default function TemplateEditorV2() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">No department</SelectItem>
-                    {Object.entries(departments).map(([key, name]) => (
-                      <SelectItem key={key} value={key}>
-                        {name as string}
-                      </SelectItem>
-                    ))}
+                    {Object.entries(departments)
+                      .sort(([, a], [, b]) => (a as string).localeCompare(b as string))
+                      .map(([key, name]) => (
+                        <SelectItem key={key} value={key}>
+                          {name as string}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -1010,11 +1012,13 @@ export default function TemplateEditorV2() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">No department</SelectItem>
-                    {Object.entries(departments).map(([key, name]) => (
-                      <SelectItem key={key} value={key}>
-                        {name as string}
-                      </SelectItem>
-                    ))}
+                    {Object.entries(departments)
+                      .sort(([, a], [, b]) => (a as string).localeCompare(b as string))
+                      .map(([key, name]) => (
+                        <SelectItem key={key} value={key}>
+                          {name as string}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -1089,11 +1093,13 @@ export default function TemplateEditorV2() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">No department</SelectItem>
-                    {Object.entries(departments).map(([key, name]) => (
-                      <SelectItem key={key} value={key}>
-                        {name as string}
-                      </SelectItem>
-                    ))}
+                    {Object.entries(departments)
+                      .sort(([, a], [, b]) => (a as string).localeCompare(b as string))
+                      .map(([key, name]) => (
+                        <SelectItem key={key} value={key}>
+                          {name as string}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -1224,11 +1230,13 @@ export default function TemplateEditorV2() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">No department</SelectItem>
-                    {Object.entries(departments).map(([key, name]) => (
-                      <SelectItem key={key} value={key}>
-                        {name as string}
-                      </SelectItem>
-                    ))}
+                    {Object.entries(departments)
+                      .sort(([, a], [, b]) => (a as string).localeCompare(b as string))
+                      .map(([key, name]) => (
+                        <SelectItem key={key} value={key}>
+                          {name as string}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground mt-1">
