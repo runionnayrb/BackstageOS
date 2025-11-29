@@ -312,7 +312,7 @@ export default function EnhancedHeader() {
                       <div className="px-3 py-2 text-sm font-semibold text-gray-900">
                         {showData.name}
                       </div>
-                      {canAccessFeature('report-builder') && isFeatureEnabled('reports') && (
+                      {isFeatureEnabled('reports') && (
                         <>
                           <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/reports`)}>
                             <FileText className="h-4 w-4 mr-2" strokeWidth={1.5} />
@@ -324,43 +324,43 @@ export default function EnhancedHeader() {
                           </DropdownMenuItem>
                         </>
                       )}
-                      {canAccessFeature('calendar-management') && isFeatureEnabled('calendar') && (
+                      {isFeatureEnabled('calendar') && (
                         <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/calendar`)}>
                           <Calendar className="h-4 w-4 mr-2" strokeWidth={1.5} />
                           Calendar
                         </DropdownMenuItem>
                       )}
-                      {canAccessFeature('script-editor') && isFeatureEnabled('script') && (
+                      {isFeatureEnabled('script') && (
                         <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/script`)}>
                           <FileText className="h-4 w-4 mr-2" strokeWidth={1.5} />
                           Script
                         </DropdownMenuItem>
                       )}
-                      {canAccessFeature('props-tracker') && isFeatureEnabled('props') && (
+                      {isFeatureEnabled('props') && (
                         <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/props`)}>
                           <FolderOpen className="h-4 w-4 mr-2" strokeWidth={1.5} />
                           Props
                         </DropdownMenuItem>
                       )}
-                      {canAccessFeature('costume-tracker') && isFeatureEnabled('costumes') && (
+                      {isFeatureEnabled('costumes') && (
                         <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/costumes`)}>
                           <Shirt className="h-4 w-4 mr-2" strokeWidth={1.5} />
                           Costumes
                         </DropdownMenuItem>
                       )}
-                      {canAccessFeature('contact-management') && isFeatureEnabled('contacts') && (
+                      {isFeatureEnabled('contacts') && (
                         <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/contacts`)}>
                           <Users className="h-4 w-4 mr-2" strokeWidth={1.5} />
                           Contacts
                         </DropdownMenuItem>
                       )}
-                      {canAccessFeature('task-boards') && isFeatureEnabled('tasks') && (
+                      {isFeatureEnabled('tasks') && (
                         <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/tasks`)}>
                           <CheckSquare className="h-4 w-4 mr-2" strokeWidth={1.5} />
                           Show Tasks
                         </DropdownMenuItem>
                       )}
-                      {canAccessFeature('advanced-notes') && isFeatureEnabled('notes') && (
+                      {isFeatureEnabled('notes') && (
                         <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/notes`)}>
                           <FileText className="h-4 w-4 mr-2" strokeWidth={1.5} />
                           Show Notes
