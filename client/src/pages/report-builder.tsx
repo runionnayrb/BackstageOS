@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, createRef } from "react";
+import { useState, useEffect, useRef, createRef, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -427,7 +427,7 @@ export default function ReportBuilder() {
     }
   };
 
-  const renderTemplateFields = () => {
+  const renderedFields = useMemo(() => {
     if (!selectedTemplate || !customTemplate) return null;
 
     const currentContent = contentRef.current;
@@ -701,7 +701,7 @@ export default function ReportBuilder() {
     }
 
     return null;
-  };
+  }, [selectedTemplate, customTemplate, isEditMode, reportId, projectId, reportType, teamMembers]);
 
   const renderLayoutBasedTemplate = (template: any) => {
     const currentContent = contentRef.current;
@@ -1004,16 +1004,16 @@ export default function ReportBuilder() {
                         padding: '8px 0'
                       }}
                     >
-                      <div>{form.watch("title") || matchingTemplate?.name || currentReportType?.name || generateReportTitle(reportType)}</div>
+                      <div>{form.getValues("title") || matchingTemplate?.name || currentReportType?.name || generateReportTitle(reportType)}</div>
                       <div style={{ marginTop: '8px' }}>{project?.name || 'Show Name'}</div>
-                      <div style={{ marginTop: '4px' }}>{new Date(form.watch("date") || new Date()).toLocaleDateString()}</div>
+                      <div style={{ marginTop: '4px' }}>{new Date(form.getValues("date") || new Date()).toLocaleDateString()}</div>
                     </div>
                   );
                 })()}
 
                 {/* Document Fields */}
                 <div className="space-y-4">
-                  {renderTemplateFields()}
+                  {renderedFields}
                 </div>
 
                 {/* Footer from Global Template Settings */}
