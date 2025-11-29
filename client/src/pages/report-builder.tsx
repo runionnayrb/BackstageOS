@@ -427,7 +427,7 @@ export default function ReportBuilder() {
     }
   };
 
-  const renderedFields = useMemo(() => {
+  const renderTemplateFields = () => {
     if (!selectedTemplate || !customTemplate) return null;
 
     const currentContent = contentRef.current;
@@ -701,7 +701,7 @@ export default function ReportBuilder() {
     }
 
     return null;
-  }, [selectedTemplate, customTemplate, isEditMode, reportId, projectId, reportType, teamMembers]);
+  };
 
   const renderLayoutBasedTemplate = (template: any) => {
     const currentContent = contentRef.current;
@@ -1013,7 +1013,7 @@ export default function ReportBuilder() {
 
                 {/* Document Fields */}
                 <div className="space-y-4">
-                  {renderedFields}
+                  {renderTemplateFields()}
                 </div>
 
                 {/* Footer from Global Template Settings */}
