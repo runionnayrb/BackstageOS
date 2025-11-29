@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useLocation, useParams } from "wouter";
@@ -49,24 +50,9 @@ export default function ReportBuilder() {
   const searchParams = new URLSearchParams(window.location.search);
   const templateQueryParam = searchParams.get('template');
   
-  // Guard against missing parameters
-  if (!params.id || !params.type) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-semibold text-foreground mb-2">Report Builder Not Found</h1>
-          <p className="text-muted-foreground mb-4">The report builder you're looking for doesn't exist or the URL is invalid.</p>
-          <Button onClick={() => setLocation('/shows')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Shows
-          </Button>
-        </div>
-      </div>
-    );
-  }
-  
-  const projectId = parseInt(params.id);
-  const reportType = params.type;
+  // Parse params early (use 0 as fallback for hooks, will guard later)
+  const projectId = params.id ? parseInt(params.id) : 0;
+  const reportType = params.type || "";
   
   // Determine if we're in edit mode by checking the URL path
   // If URL contains "/builder", we're creating a new report (not editing)
@@ -297,6 +283,22 @@ export default function ReportBuilder() {
       });
     },
   });
+
+  // Guard against missing parameters (AFTER all hooks to respect React rules)
+  if (!params.id || !params.type) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-semibold text-foreground mb-2">Report Builder Not Found</h1>
+          <p className="text-muted-foreground mb-4">The report builder you're looking for doesn't exist or the URL is invalid.</p>
+          <Button onClick={() => setLocation('/shows')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Shows
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   // Only use V2 templates - no built-in fallbacks
   const allCustomTemplates = matchingTemplate ? [{
