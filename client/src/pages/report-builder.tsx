@@ -417,11 +417,9 @@ export default function ReportBuilder() {
       // Ensure editor stays focused after command
       editor.focus();
       
-      // Update form with new content
+      // Update contentRef with new content
       if (focusedFieldLabelRef.current) {
-        const newContent = {...(form.getValues("content") || {})};
-        newContent[focusedFieldLabelRef.current] = editor.innerHTML;
-        form.setValue("content", newContent);
+        contentRef.current[focusedFieldLabelRef.current] = editor.innerHTML;
       }
     } catch (error) {
       console.error("Formatting error:", error);
@@ -550,7 +548,7 @@ export default function ReportBuilder() {
                                   
                                   defaultValuesRef.current[field.id] = defaultValue;
                                   // Use content if it exists and is not empty, otherwise use default
-                                  const content = currentContent[field.label];
+                                  const content = contentRef.current[field.label];
                                   el.innerHTML = (content && content.trim()) ? content : defaultValue;
                                 }
                               }}
