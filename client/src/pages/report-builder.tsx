@@ -496,7 +496,8 @@ export default function ReportBuilder() {
                             <div
                               ref={(el) => {
                                 if (!el) return;
-                                focusedEditorRef.current = el;
+                                // Only update departmentFieldRefs, not focusedEditorRef
+                                // focusedEditorRef should only be updated in onFocus
                                 if (field.departmentKey && departmentFieldRefs.current[field.id]) {
                                   (departmentFieldRefs.current[field.id] as any).current = el;
                                 }
