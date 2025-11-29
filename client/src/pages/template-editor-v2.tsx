@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Plus, Trash2, GripVertical, Edit, Eye } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, GripVertical, Edit, Eye, Settings } from "lucide-react";
 import { ChangeSummaryEditor } from "@/components/ChangeSummaryEditor";
 
 interface TemplateEditorV2Params {
@@ -73,6 +73,13 @@ interface TemplateWithData {
   description: string | null;
   displayOrder: number;
   sections: TemplateSection[];
+}
+
+interface ReportType {
+  id: number;
+  name: string;
+  description: string | null;
+  color: string | null;
 }
 
 const FIELD_TYPES = [
@@ -127,6 +134,13 @@ export default function TemplateEditorV2() {
   const [editFieldDefaultValueRichText, setEditFieldDefaultValueRichText] = useState("");
   const [editFieldDepartmentKey, setEditFieldDepartmentKey] = useState("none");
 
+  // Template metadata editing
+  const [isEditTemplateDialogOpen, setIsEditTemplateDialogOpen] = useState(false);
+  const [isDeleteTemplateDialogOpen, setIsDeleteTemplateDialogOpen] = useState(false);
+  const [editTemplateName, setEditTemplateName] = useState("");
+  const [editTemplateDescription, setEditTemplateDescription] = useState("");
+  const [editTemplateReportTypeId, setEditTemplateReportTypeId] = useState<string>("");
+
   // Fetch template with full data
   const { data: template, isLoading } = useQuery<TemplateWithData>({
     queryKey: ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
@@ -135,6 +149,11 @@ export default function TemplateEditorV2() {
   // Fetch show settings for departments
   const { data: showSettings } = useQuery({
     queryKey: ["/api/projects", parseInt(projectId!), "settings"],
+  });
+
+  // Fetch report types
+  const { data: reportTypes = [] } = useQuery<ReportType[]>({
+    queryKey: ["/api/projects", parseInt(projectId!), "report-types"],
   });
 
   const departments = showSettings?.departmentNames || {};
@@ -489,6 +508,63 @@ export default function TemplateEditorV2() {
     },
   });
 
+  // Update template mutation
+  const updateTemplateMutation = useMutation({
+    mutationFn: async (data: { name?: string; description?: string; reportTypeId?: number | null }) => {
+      // Optimistic update
+      queryClient.setQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)], (old: any) => {
+        if (!old) return old;
+        return { ...old, ...data };
+      });
+
+      return apiRequest("PATCH", `/api/projects/${projectId}/templates-v2/${templateId}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2"],
+      });
+      toast({
+        title: "Template updated",
+        description: "Your template has been updated successfully.",
+      });
+      setIsEditTemplateDialogOpen(false);
+    },
+    onError: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+      });
+      toast({
+        title: "Error",
+        description: "Failed to update template. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete template mutation
+  const deleteTemplateMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest("DELETE", `/api/projects/${projectId}/templates-v2/${templateId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2"],
+      });
+      toast({
+        title: "Template deleted",
+        description: "Your template has been deleted successfully.",
+      });
+      setLocation(`/shows/${projectId}/templates-v2`);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete template. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const resetFieldForm = () => {
     setNewFieldType("richtext");
     setNewFieldLabel("");
@@ -499,6 +575,32 @@ export default function TemplateEditorV2() {
     setNewFieldDefaultValue("");
     setNewFieldDefaultValueRichText("");
     setNewFieldDepartmentKey("none");
+  };
+
+  const handleEditTemplateClick = () => {
+    if (template) {
+      setEditTemplateName(template.name);
+      setEditTemplateDescription(template.description || "");
+      setEditTemplateReportTypeId(template.reportTypeId ? template.reportTypeId.toString() : "none");
+      setIsEditTemplateDialogOpen(true);
+    }
+  };
+
+  const handleUpdateTemplate = () => {
+    if (!editTemplateName.trim()) {
+      toast({
+        title: "Name required",
+        description: "Please enter a template name.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    updateTemplateMutation.mutate({
+      name: editTemplateName,
+      description: editTemplateDescription,
+      reportTypeId: editTemplateReportTypeId && editTemplateReportTypeId !== "none" ? parseInt(editTemplateReportTypeId) : null,
+    });
   };
 
   const handleAddSection = () => {
@@ -683,6 +785,14 @@ export default function TemplateEditorV2() {
             </div>
           </div>
           <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleEditTemplateClick}
+              data-testid="button-template-settings"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
             <Button
               variant="outline"
               onClick={() => setIsPreviewDialogOpen(true)}
@@ -1335,6 +1445,98 @@ export default function TemplateEditorV2() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Edit Template Dialog */}
+        <Dialog open={isEditTemplateDialogOpen} onOpenChange={setIsEditTemplateDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Template Settings</DialogTitle>
+              <DialogDescription>
+                Update the template name, type, and description.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="edit-template-name">Template Name</Label>
+                <Input
+                  id="edit-template-name"
+                  value={editTemplateName}
+                  onChange={(e) => setEditTemplateName(e.target.value)}
+                  data-testid="input-edit-template-name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-report-type">Report Type</Label>
+                <Select value={editTemplateReportTypeId} onValueChange={setEditTemplateReportTypeId}>
+                  <SelectTrigger id="edit-report-type" data-testid="select-edit-report-type">
+                    <SelectValue placeholder="Select a report type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    {reportTypes.map((type) => (
+                      <SelectItem key={type.id} value={type.id.toString()}>
+                        {type.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="edit-template-description">Description (Optional)</Label>
+                <Input
+                  id="edit-template-description"
+                  value={editTemplateDescription}
+                  onChange={(e) => setEditTemplateDescription(e.target.value)}
+                  data-testid="input-edit-template-description"
+                />
+              </div>
+            </div>
+            <DialogFooter className="flex flex-row justify-between items-center sm:justify-between">
+              <Button
+                variant="ghost"
+                className="text-destructive hover:text-destructive"
+                onClick={() => {
+                  setIsEditTemplateDialogOpen(false);
+                  setIsDeleteTemplateDialogOpen(true);
+                }}
+                data-testid="button-delete-template"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </Button>
+              <Button
+                onClick={handleUpdateTemplate}
+                disabled={updateTemplateMutation.isPending}
+                data-testid="button-update-template"
+              >
+                {updateTemplateMutation.isPending ? "Updating..." : "Update"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Template Confirmation */}
+        <AlertDialog open={isDeleteTemplateDialogOpen} onOpenChange={setIsDeleteTemplateDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Template</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete "{template.name}"? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel data-testid="button-cancel-delete-template">Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => deleteTemplateMutation.mutate()}
+                disabled={deleteTemplateMutation.isPending}
+                data-testid="button-confirm-delete-template"
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {deleteTemplateMutation.isPending ? "Deleting..." : "Delete"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
