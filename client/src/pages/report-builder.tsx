@@ -209,6 +209,26 @@ export default function ReportBuilder() {
         form.setValue("content", content);
         contentRef.current = { ...content };
         setSelectedTemplate('custom-layout');
+        
+        // Load the template so fields have access to defaultValues
+        if (matchingTemplate) {
+          let parsedLayout = matchingTemplate.layoutConfiguration;
+          if (typeof parsedLayout === 'string') {
+            try {
+              parsedLayout = JSON.parse(parsedLayout);
+            } catch (e) {
+              console.error('Failed to parse layoutConfiguration:', e);
+            }
+          }
+          
+          const newTemplate = {
+            ...matchingTemplate,
+            layoutConfiguration: parsedLayout,
+          };
+          
+          initializedFieldsRef.current.clear();
+          setCustomTemplate(newTemplate);
+        }
       } else {
         // Auto-generate title based on template name (most up-to-date source)
         const reportTitle = matchingTemplate?.name || currentReportType?.name || generateReportTitle(reportType);
@@ -538,19 +558,14 @@ export default function ReportBuilder() {
                                   initializedFieldsRef.current.add(field.id);
                                   let defaultValue = field.defaultValue || "";
                                   
-                                  // Wrap plain text in numbered list if it doesn't have list tags
-                                  if (defaultValue && !defaultValue.includes("<ol") && !defaultValue.includes("<ul")) {
-                                    defaultValue = `<ol style="list-style-type: decimal; padding-left: 20px; margin-left: 0;"><li style="margin-left: 0;">${defaultValue}</li></ol>`;
-                                  } else {
-                                    // Ensure existing list HTML has inline styles to display numbers/bullets
-                                    if (defaultValue.includes("<ol")) {
-                                      defaultValue = defaultValue.replace(/<ol/g, '<ol style="list-style-type: decimal; padding-left: 20px; margin-left: 0;"');
-                                      defaultValue = defaultValue.replace(/<li/g, '<li style="margin-left: 0;"');
-                                    }
-                                    if (defaultValue.includes("<ul")) {
-                                      defaultValue = defaultValue.replace(/<ul/g, '<ul style="list-style-type: disc; padding-left: 20px; margin-left: 0;"');
-                                      defaultValue = defaultValue.replace(/<li/g, '<li style="margin-left: 0;"');
-                                    }
+                                  // Ensure list HTML has inline styles to display numbers/bullets
+                                  if (defaultValue.includes("<ol")) {
+                                    defaultValue = defaultValue.replace(/<ol/g, '<ol style="list-style-type: decimal; padding-left: 20px; margin-left: 0;"');
+                                    defaultValue = defaultValue.replace(/<li/g, '<li style="margin-left: 0;"');
+                                  }
+                                  if (defaultValue.includes("<ul")) {
+                                    defaultValue = defaultValue.replace(/<ul/g, '<ul style="list-style-type: disc; padding-left: 20px; margin-left: 0;"');
+                                    defaultValue = defaultValue.replace(/<li/g, '<li style="margin-left: 0;"');
                                   }
                                   
                                   defaultValuesRef.current[field.id] = defaultValue;
@@ -559,17 +574,13 @@ export default function ReportBuilder() {
                                   
                                   // Apply list styles to existing content too
                                   if (content && content.trim()) {
-                                    if (!content.includes("<ol") && !content.includes("<ul")) {
-                                      content = `<ol style="list-style-type: decimal; padding-left: 20px; margin-left: 0;"><li style="margin-left: 0;">${content}</li></ol>`;
-                                    } else {
-                                      if (content.includes("<ol")) {
-                                        content = content.replace(/<ol/g, '<ol style="list-style-type: decimal; padding-left: 20px; margin-left: 0;"');
-                                        content = content.replace(/<li/g, '<li style="margin-left: 0;"');
-                                      }
-                                      if (content.includes("<ul")) {
-                                        content = content.replace(/<ul/g, '<ul style="list-style-type: disc; padding-left: 20px; margin-left: 0;"');
-                                        content = content.replace(/<li/g, '<li style="margin-left: 0;"');
-                                      }
+                                    if (content.includes("<ol")) {
+                                      content = content.replace(/<ol/g, '<ol style="list-style-type: decimal; padding-left: 20px; margin-left: 0;"');
+                                      content = content.replace(/<li/g, '<li style="margin-left: 0;"');
+                                    }
+                                    if (content.includes("<ul")) {
+                                      content = content.replace(/<ul/g, '<ul style="list-style-type: disc; padding-left: 20px; margin-left: 0;"');
+                                      content = content.replace(/<li/g, '<li style="margin-left: 0;"');
                                     }
                                   }
                                   
