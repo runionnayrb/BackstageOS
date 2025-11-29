@@ -511,17 +511,32 @@ export default function TemplateEditorV2() {
   // Update template mutation
   const updateTemplateMutation = useMutation({
     mutationFn: async (data: { name?: string; description?: string; reportTypeId?: number | null }) => {
+      return apiRequest("PATCH", `/api/projects/${projectId}/templates-v2/${templateId}`, data);
+    },
+    onMutate: async (data) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({
+        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+      });
+
+      // Snapshot previous value
+      const previousTemplate = queryClient.getQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)]);
+
       // Optimistic update
       queryClient.setQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)], (old: any) => {
         if (!old) return old;
         return { ...old, ...data };
       });
 
-      return apiRequest("PATCH", `/api/projects/${projectId}/templates-v2/${templateId}`, data);
+      return { previousTemplate };
     },
     onSuccess: () => {
+      // Invalidate both list and detail queries
       queryClient.invalidateQueries({
         queryKey: ["/api/projects", parseInt(projectId!), "templates-v2"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
       });
       toast({
         title: "Template updated",
@@ -529,10 +544,14 @@ export default function TemplateEditorV2() {
       });
       setIsEditTemplateDialogOpen(false);
     },
-    onError: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
-      });
+    onError: (error, variables, context) => {
+      // Revert optimistic update
+      if (context?.previousTemplate) {
+        queryClient.setQueryData(
+          ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+          context.previousTemplate
+        );
+      }
       toast({
         title: "Error",
         description: "Failed to update template. Please try again.",
@@ -547,6 +566,11 @@ export default function TemplateEditorV2() {
       return apiRequest("DELETE", `/api/projects/${projectId}/templates-v2/${templateId}`);
     },
     onSuccess: () => {
+      // Remove the detail cache entry for the deleted template
+      queryClient.removeQueries({
+        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+      });
+      // Invalidate the templates list
       queryClient.invalidateQueries({
         queryKey: ["/api/projects", parseInt(projectId!), "templates-v2"],
       });
@@ -554,6 +578,7 @@ export default function TemplateEditorV2() {
         title: "Template deleted",
         description: "Your template has been deleted successfully.",
       });
+      // Navigate after cache cleanup
       setLocation(`/shows/${projectId}/templates-v2`);
     },
     onError: () => {
