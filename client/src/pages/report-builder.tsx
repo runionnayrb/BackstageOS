@@ -265,6 +265,7 @@ export default function ReportBuilder() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/reports`] });
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/reports/${reportId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/notes/all`] });
       toast({
         title: isEditMode ? "Report Updated" : "Report Created",
         description: isEditMode ? "Your report has been updated successfully!" : "Your report has been created successfully!",
