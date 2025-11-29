@@ -386,7 +386,7 @@ export default function TemplateSettingsV2() {
               <Card
                 key={template.id}
                 className="cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => handleEditTemplate(template)}
+                onClick={() => setLocation(`/shows/${projectId}/templates-v2/${template.id}/edit`)}
                 data-testid={`card-template-${template.id}`}
               >
                 <CardHeader className="p-4">
