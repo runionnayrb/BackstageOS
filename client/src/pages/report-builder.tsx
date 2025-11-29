@@ -601,11 +601,6 @@ export default function ReportBuilder() {
                                   form.setValue("content", newContent);
                                 }
                               }}
-                              onInput={(e) => {
-                                const newContent = {...currentContent};
-                                newContent[field.label] = e.currentTarget.innerHTML;
-                                form.setValue("content", newContent);
-                              }}
                               className="text-sm outline-none whitespace-normal [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:ml-0"
                             />
                             {field.departmentKey && isEditMode && reportId && departmentFieldRefs.current[field.id] && (
