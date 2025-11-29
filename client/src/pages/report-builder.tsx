@@ -529,7 +529,18 @@ export default function ReportBuilder() {
                                 // Initialize only once with default value or existing content
                                 if (!initializedFieldsRef.current.has(field.id)) {
                                   initializedFieldsRef.current.add(field.id);
-                                  const defaultValue = field.defaultValue || "";
+                                  let defaultValue = field.defaultValue || "";
+                                  
+                                  // Ensure list HTML has inline styles to display numbers/bullets
+                                  if (defaultValue.includes("<ol")) {
+                                    defaultValue = defaultValue.replace(/<ol/g, '<ol style="list-style-type: decimal; padding-left: 20px; margin-left: 0;"');
+                                    defaultValue = defaultValue.replace(/<li/g, '<li style="margin-left: 0;"');
+                                  }
+                                  if (defaultValue.includes("<ul")) {
+                                    defaultValue = defaultValue.replace(/<ul/g, '<ul style="list-style-type: disc; padding-left: 20px; margin-left: 0;"');
+                                    defaultValue = defaultValue.replace(/<li/g, '<li style="margin-left: 0;"');
+                                  }
+                                  
                                   defaultValuesRef.current[field.id] = defaultValue;
                                   // Use content if it exists and is not empty, otherwise use default
                                   const content = currentContent[field.label];
