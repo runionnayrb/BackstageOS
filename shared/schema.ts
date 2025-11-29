@@ -505,8 +505,10 @@ export const globalTemplateSettings = pgTable("global_template_settings", {
 });
 
 // Beta feature settings (admin-only global configuration)
+// Environment-scoped to ensure dev and production settings are separate
 export const betaSettings = pgTable("beta_settings", {
   id: serial("id").primaryKey(),
+  environment: varchar("environment").notNull().default("development"), // "development" or "production"
   features: jsonb("features").notNull(), // Array of feature configurations
   updatedBy: integer("updated_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),

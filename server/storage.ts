@@ -1555,8 +1555,8 @@ export class DatabaseStorage implements IStorage {
     await db.delete(feedback).where(eq(feedback.id, id));
   }
 
-  async getBetaSettings(): Promise<BetaSettings | undefined> {
-    const result = await db.select().from(betaSettings);
+  async getBetaSettings(environment: string = "development"): Promise<BetaSettings | undefined> {
+    const result = await db.select().from(betaSettings).where(eq(betaSettings.environment, environment));
     const settings = result[0];
     
     if (!settings) return undefined;
@@ -1573,7 +1573,7 @@ export class DatabaseStorage implements IStorage {
     return settings;
   }
 
-  async upsertBetaSettings(settings: InsertBetaSettings): Promise<BetaSettings> {
+  async upsertBetaSettings(settings: InsertBetaSettings, environment: string = "development"): Promise<BetaSettings> {
     // 🔧 Normalize all feature.enabled values to strict booleans before saving
     if (settings.features) {
       settings.features = settings.features.map(feature => ({
@@ -1582,15 +1582,15 @@ export class DatabaseStorage implements IStorage {
       }));
     }
     
-    const existingSettings = await this.getBetaSettings();
+    const existingSettings = await this.getBetaSettings(environment);
     if (existingSettings) {
       const result = await db.update(betaSettings)
-        .set(settings)
+        .set({ ...settings, environment })
         .where(eq(betaSettings.id, existingSettings.id))
         .returning();
       return result[0];
     } else {
-      const result = await db.insert(betaSettings).values(settings).returning();
+      const result = await db.insert(betaSettings).values({ ...settings, environment }).returning();
       return result[0];
     }
   }

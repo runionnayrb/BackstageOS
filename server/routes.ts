@@ -6722,21 +6722,26 @@ Best regards,
   });
 
   // Beta feature settings API (read: all authenticated users, write: admin only)
+  // CRITICAL: Settings are environment-scoped - dev and production are completely separate
   app.get('/api/admin/beta-settings', isAuthenticated, async (req: any, res) => {
     try {
       // All authenticated users can read beta settings to know which features are available
       // Only admins can UPDATE beta settings (handled in PUT endpoint)
+      
+      // Determine environment from NODE_ENV
+      const environment = process.env.NODE_ENV === 'production' ? 'production' : 'development';
+      console.log(`🔍 Fetching beta settings for environment: ${environment}`);
 
       // Get settings from database, fallback to default if not found
-      let settings = await storage.getBetaSettings();
+      let settings = await storage.getBetaSettings(environment);
       if (!settings) {
         // Import default settings from store
         const { betaSettingsStore } = await import('./betaSettingsStore.ts');
         const defaultSettings = betaSettingsStore.getBetaSettings();
         settings = defaultSettings;
-        console.log(`🔍 No database settings found, using defaults`);
+        console.log(`🔍 No database settings found for ${environment}, using defaults`);
       } else {
-        console.log(`🔍 Found database settings with ${settings.features.length} features`);
+        console.log(`🔍 Found database settings for ${environment} with ${settings.features.length} features`);
       }
       
       // Beta settings successfully loaded from database
@@ -6753,6 +6758,10 @@ Best regards,
       if (!isAdmin(userId)) {
         return res.status(403).json({ message: "Admin access required" });
       }
+
+      // Determine environment from NODE_ENV - CRITICAL for data isolation
+      const environment = process.env.NODE_ENV === 'production' ? 'production' : 'development';
+      console.log(`🔧 Updating beta settings for environment: ${environment}`);
 
       // Clean the features data to ensure boolean values
       const cleanedFeatures = req.body.features.map((feature: any) => {
@@ -6772,35 +6781,46 @@ Best regards,
         };
       });
       
-      console.log(`🔧 All feature data cleaned:`, cleanedFeatures.map(f => ({ id: f.id, enabled: f.enabled })));
-      console.log(`🔧 Full cleaned features data:`, JSON.stringify(cleanedFeatures, null, 2));
+      console.log(`🔧 All feature data cleaned for ${environment}:`, cleanedFeatures.map(f => ({ id: f.id, enabled: f.enabled })));
       
-      // Save to database instead of in-memory store
+      // Save to database with environment scoping
       const settingsData = {
         features: cleanedFeatures,
         updatedBy: parseInt(userId),
       };
       
-      console.log(`🔧 About to save settings data:`, JSON.stringify(settingsData, null, 2));
-      
-      // Use raw SQL to bypass potential ORM/Drizzle issues
+      // Use raw SQL with proper environment scoping
       try {
         const { neon } = await import('@neondatabase/serverless');
         const sql = neon(process.env.DATABASE_URL!);
         
-        console.log(`🔧 Using raw SQL to update beta settings`);
+        console.log(`🔧 Using raw SQL to update beta settings for environment: ${environment}`);
         
-        // Update the existing record (we know ID=1 exists from earlier query)
-        const result = await sql`
-          UPDATE beta_settings 
-          SET features = ${JSON.stringify(settingsData.features)}, 
-              updated_by = ${settingsData.updatedBy}, 
-              updated_at = NOW() 
-          WHERE id = 1
-          RETURNING id
+        // First check if a record exists for this environment
+        const existing = await sql`
+          SELECT id FROM beta_settings WHERE environment = ${environment}
         `;
         
-        console.log(`🔧 Raw SQL update successful:`, result);
+        if (existing.length > 0) {
+          // Update existing record for this environment
+          const result = await sql`
+            UPDATE beta_settings 
+            SET features = ${JSON.stringify(settingsData.features)}, 
+                updated_by = ${settingsData.updatedBy}, 
+                updated_at = NOW() 
+            WHERE environment = ${environment}
+            RETURNING id
+          `;
+          console.log(`🔧 Raw SQL update successful for ${environment}:`, result);
+        } else {
+          // Insert new record for this environment
+          const result = await sql`
+            INSERT INTO beta_settings (environment, features, updated_by, created_at, updated_at)
+            VALUES (${environment}, ${JSON.stringify(settingsData.features)}, ${settingsData.updatedBy}, NOW(), NOW())
+            RETURNING id
+          `;
+          console.log(`🔧 Raw SQL insert successful for ${environment}:`, result);
+        }
       } catch (rawSqlError) {
         console.error(`🔧 Raw SQL failed:`, rawSqlError);
         throw rawSqlError;
@@ -6822,12 +6842,12 @@ Best regards,
         throw userUpdateError;
       }
       
-      console.log(`🔧 Beta settings saved to database: ${enabledFeatures.length} features enabled for all beta users`);
+      console.log(`🔧 Beta settings saved to database for ${environment}: ${enabledFeatures.length} features enabled for all beta users`);
       console.log(`🔧 Enabled features:`, enabledFeatures);
-      console.log(`🔧 Script editor enabled:`, enabledFeatures.includes('script-editor'));
       
       res.json({ 
         message: "Beta settings updated successfully",
+        environment: environment,
         timestamp: new Date().toISOString(),
         cacheKey: '/api/admin/beta-settings' // Signal frontend to invalidate cache
       });
