@@ -54,7 +54,7 @@ BackstageOS is built with a show-centric design, ensuring complete data isolatio
 - **Contact Management**: Flexible, user-configurable contact groups with extended contact information fields, project-scoped.
 - **Email Integration**: Per-user OAuth 2.0 integration for Gmail and Outlook. Users connect their personal email accounts via popup-based OAuth flow. Tokens are encrypted with AES-256-GCM and stored per-user. Automatic token refresh ensures seamless email sending from users' own addresses.
 - **Advanced Tools**: Script editor, props/costume trackers, notes system, drag-and-drop availability management.
-- **Admin & Beta Features**: Admin dashboard, user perspective switching, and a three-tier beta access control.
+- **Admin & Beta Features**: Admin dashboard, user perspective switching, and a three-tier beta access control. Beta settings are environment-scoped (development vs production) to ensure complete data isolation - toggling features in dev mode never affects production and vice versa.
 - **PWA Implementation**: Foundation for offline capabilities, background sync, and native app appearance.
 - **Layout Persistence**: Robust global save system for template settings to ensure user customizations persist reliably, preventing data corruption by batching changes into a single transaction.
 - **Error Handling**: Comprehensive logging, real-time notifications, and advanced analytics.
