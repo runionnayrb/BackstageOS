@@ -248,7 +248,6 @@ export function EmailComposer({
     setAutoSaveStatus('');
     setLastSaved(null);
     setDraftId(null);
-    setSheetPosition(0);
     
     if (autoSaveTimerRef.current) {
       clearTimeout(autoSaveTimerRef.current);
@@ -575,7 +574,7 @@ export function EmailComposer({
                     <Label className="text-sm font-medium text-gray-700">Send to Group</Label>
                     <Select value={selectedRecipientGroup} onValueChange={(value) => {
                       setSelectedRecipientGroup(value);
-                      const groupEmails = {
+                      const groupEmails: { [key: string]: string } = {
                         'all': 'cast@show.com, crew@show.com, creative@show.com',
                         'cast': 'actor1@show.com, actor2@show.com, actor3@show.com',
                         'crew': 'technician1@show.com, technician2@show.com',
@@ -626,7 +625,7 @@ export function EmailComposer({
                     <Label className="text-sm font-medium text-gray-700">Use Template</Label>
                     <Select value={selectedTemplate} onValueChange={(value) => {
                       setSelectedTemplate(value);
-                      const template = templates.find(t => t.id.toString() === value);
+                      const template = templates.find((t: any) => t.id.toString() === value);
                       if (template) {
                         setSubject(template.subject);
                         setContent(template.content);
@@ -636,7 +635,7 @@ export function EmailComposer({
                         <SelectValue placeholder="Choose email template" />
                       </SelectTrigger>
                       <SelectContent>
-                        {templates.map((template) => (
+                        {templates.map((template: any) => (
                           <SelectItem key={template.id} value={template.id.toString()}>
                             <div className="flex items-center">
                               <FileText className="h-4 w-4 mr-2" />
@@ -659,7 +658,7 @@ export function EmailComposer({
                       </Badge>
                       {selectedTemplate && (
                         <Badge variant="outline" className="text-green-700 border-green-200">
-                          Using {templates.find(t => t.id.toString() === selectedTemplate)?.name} template
+                          Using {templates.find((t: any) => t.id.toString() === selectedTemplate)?.name} template
                         </Badge>
                       )}
                     </div>
@@ -763,7 +762,7 @@ export function EmailComposer({
                   
                   <div className="space-y-2">
                     {/* Template list with edit/delete options */}
-                    {templates.map((template) => (
+                    {templates.map((template: any) => (
                       <Card key={template.id} className="p-3">
                         <div className="flex items-center justify-between">
                           <div>
