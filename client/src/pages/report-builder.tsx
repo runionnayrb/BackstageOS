@@ -515,31 +515,31 @@ export default function ReportBuilder() {
                                 focusedEditorRef.current = e.currentTarget;
                                 focusedFieldLabelRef.current = field.label;
                                 
-                                // If content is the default value, replace with just "1. " so user can start typing
+                                // For HTML lists (proper numbered/bullet lists), just move cursor to end
+                                // Don't strip away the list structure
                                 const currentHTML = e.currentTarget.innerHTML;
-                                const defaultValue = defaultValuesRef.current[field.id] || "";
-                                if (currentHTML === defaultValue && defaultValue) {
-                                  // Extract just the number prefix (e.g., "1. " from "1. No notes. Thank you.")
-                                  const match = defaultValue.match(/^(\d+\.\s*)/);
-                                  if (match) {
-                                    e.currentTarget.innerHTML = match[1];
-                                    // Move cursor to end
-                                    const range = document.createRange();
-                                    const sel = window.getSelection();
-                                    range.selectNodeContents(e.currentTarget);
-                                    range.collapse(false);
-                                    sel?.removeAllRanges();
-                                    sel?.addRange(range);
-                                  }
+                                if (currentHTML.includes("<ol") || currentHTML.includes("<ul")) {
+                                  // Move cursor to end of list
+                                  const range = document.createRange();
+                                  const sel = window.getSelection();
+                                  range.selectNodeContents(e.currentTarget);
+                                  range.collapse(false);
+                                  sel?.removeAllRanges();
+                                  sel?.addRange(range);
                                 }
                               }}
                               onBlur={(e) => {
                                 const content = e.currentTarget.innerHTML.trim();
                                 const defaultValue = defaultValuesRef.current[field.id] || "";
-                                const defaultNumPrefix = defaultValue.match(/^(\d+\.\s*)/)?.[1] || "";
                                 
-                                // If field is empty or just the number prefix, restore default
-                                if (!content || content === defaultNumPrefix.trim()) {
+                                // Check if content is empty or just the default value
+                                const isDefaultListStructure = content === defaultValue || 
+                                  (content.includes("<li></li>") || 
+                                   content.match(/<ol>\s*<li>\s*<\/li>\s*<\/ol>/) ||
+                                   content.match(/<ul>\s*<li>\s*<\/li>\s*<\/ul>/));
+                                
+                                // If field is empty or matches default, restore default
+                                if (!content || isDefaultListStructure) {
                                   e.currentTarget.innerHTML = defaultValue;
                                   const newContent = {...currentContent};
                                   newContent[field.label] = defaultValue;
