@@ -85,6 +85,11 @@ const NotesTracking: React.FC = () => {
     }
   });
 
+  // Helper function to get report by ID - defined before use
+  const getReport = (reportId: number) => {
+    return reports.find((r: any) => r.id === reportId);
+  };
+
   // Filter notes based on search and filters
   const filteredNotes = allNotes.filter(note => {
     const report = getReport(note.reportId);
@@ -125,10 +130,6 @@ const NotesTracking: React.FC = () => {
       noteId: note.id,
       data: { priority: newPriority }
     });
-  };
-
-  const getReport = (reportId: number) => {
-    return reports.find((r: any) => r.id === reportId);
   };
 
   const getPriorityColor = (priority: string) => {

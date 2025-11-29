@@ -1,0 +1,32 @@
+Cannot access 'getReport' before initialization
+
+ReferenceError: Cannot access 'getReport' before initialization
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/pages/notes-tracking.tsx:85:20
+    at Array.filter (<anonymous>)
+    at NotesTracking (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/pages/notes-tracking.tsx:84:34)
+    at renderWithHooks (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-276SZO74.js?v=718cf45b:11548:26)
+    at updateFunctionComponent (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-276SZO74.js?v=718cf45b:14582:28)
+    at beginWork (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-276SZO74.js?v=718cf45b:15924:22)
+    at beginWork$1 (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-276SZO74.js?v=718cf45b:19753:22)
+    at performUnitOfWork (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-276SZO74.js?v=718cf45b:19198:20)
+    at workLoopSync (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-276SZO74.js?v=718cf45b:19137:13)
+    at renderRootSync (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-276SZO74.js?v=718cf45b:19116:15)
+
+Component Stack:
+    at NotesTracking (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/pages/notes-tracking.tsx:38:29)
+    at Route (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=718cf45b:191:16)
+    at Switch (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=718cf45b:247:17)
+    at PageTransition (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/transitions/page-transition.tsx:21:42)
+    at main
+    at div
+    at Layout (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/layout/layout.tsx:21:34)
+    at ErrorBoundary (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/error-boundary.tsx:10:5)
+    at Router (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/App.tsx?v=q_Lholgcyosk1uHtIoWuS:108:31)
+    at PWAManager (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/pwa-manager.tsx:22:30)
+    at Provider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-3RXG37ZK.js?v=718cf45b:38:15)
+    at TooltipProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=718cf45b:66:5)
+    at SearchProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/search/SearchContext.tsx:22:34)
+    at AdminViewProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/contexts/AdminViewContext.tsx:20:37)
+    at AuthProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/hooks/useAuth.tsx:26:32)
+    at QueryClientProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=718cf45b:2805:3)
+    at App
