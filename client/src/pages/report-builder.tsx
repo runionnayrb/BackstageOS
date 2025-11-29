@@ -348,40 +348,63 @@ export default function ReportBuilder() {
     if (!editor) return;
     
     try {
-      // Ensure editor is focused and has proper selection
       editor.focus();
+      const selection = window.getSelection();
+      if (!selection) return;
       
-      // For list commands, ensure there's a valid selection/cursor
+      // For list commands, manually create the list structure
       if (command === "ul" || command === "ol") {
-        // If no selection exists, select the current line or create a text node
-        const selection = window.getSelection();
-        if (!selection || selection.rangeCount === 0) {
-          // Position cursor at the end of the editor
+        const listTag = command === "ul" ? "ul" : "ol";
+        
+        // Get current selection or position
+        if (selection.rangeCount === 0) {
+          // No selection, insert at end
           const range = document.createRange();
           range.selectNodeContents(editor);
           range.collapse(false);
-          selection?.removeAllRanges();
-          selection?.addRange(range);
+          selection.removeAllRanges();
+          selection.addRange(range);
         }
-      }
-      
-      // Apply the formatting command
-      switch(command) {
-        case "bold":
-          document.execCommand("bold", false);
-          break;
-        case "italic":
-          document.execCommand("italic", false);
-          break;
-        case "underline":
-          document.execCommand("underline", false);
-          break;
-        case "ul":
-          document.execCommand("insertUnorderedList", false);
-          break;
-        case "ol":
-          document.execCommand("insertOrderedList", false);
-          break;
+        
+        const range = selection.getRangeAt(0);
+        const selectedText = selection.toString() || "Item";
+        
+        // Create list element
+        const listEl = document.createElement(listTag);
+        listEl.style.listStyleType = command === "ul" ? "disc" : "decimal";
+        listEl.style.paddingLeft = "20px";
+        listEl.style.marginLeft = "0";
+        
+        // Create list item
+        const itemEl = document.createElement("li");
+        itemEl.textContent = selectedText;
+        itemEl.style.marginLeft = "0";
+        
+        listEl.appendChild(itemEl);
+        
+        // Insert the list
+        range.deleteContents();
+        range.insertNode(listEl);
+        
+        // Position cursor after the list
+        const newRange = document.createRange();
+        newRange.setStartAfter(listEl);
+        newRange.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+      } else {
+        // For other formatting commands
+        switch(command) {
+          case "bold":
+            document.execCommand("bold", false);
+            break;
+          case "italic":
+            document.execCommand("italic", false);
+            break;
+          case "underline":
+            document.execCommand("underline", false);
+            break;
+        }
       }
       
       // Ensure editor stays focused after command
