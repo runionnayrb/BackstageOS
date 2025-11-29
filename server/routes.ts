@@ -3898,11 +3898,27 @@ Best regards,
           const template = await storage.getReportTemplateById(report.templateId);
           if (template) {
             const content = report.content as Record<string, any>;
+            console.log('📋 Template structure:', JSON.stringify({ 
+              hasSections: !!(template as any).sections,
+              sections: ((template as any).sections || []).map((s: any) => ({
+                fields: (s.fields || []).map((f: any) => ({ 
+                  id: f.id, 
+                  label: f.label,
+                  departmentKey: f.departmentKey
+                }))
+              }))
+            }));
+            console.log('📋 Report content keys:', Object.keys(content));
+            
             for (const section of (template as any).sections || []) {
               for (const field of section.fields || []) {
-                if (field.departmentKey && content[field.label]) {
-                  const fieldContent = content[field.label];
+                const departmentKey = field.departmentKey;
+                const fieldLabel = field.label;
+                
+                if (departmentKey && fieldLabel && content[fieldLabel]) {
+                  const fieldContent = content[fieldLabel];
                   const parsedNotes = parseNotesFromHtml(fieldContent);
+                  console.log(`📋 Syncing field "${fieldLabel}" (dept: ${departmentKey}): found ${parsedNotes.length} notes`);
                   
                   for (let i = 0; i < parsedNotes.length; i++) {
                     const noteData = parsedNotes[i];
@@ -3911,7 +3927,7 @@ Best regards,
                       projectId: projectId,
                       content: noteData.text,
                       noteOrder: i + 1,
-                      department: field.departmentKey,
+                      department: departmentKey,
                       templateFieldId: field.id,
                       createdBy: parseInt(req.user.id),
                     });
@@ -3922,7 +3938,7 @@ Best regards,
             console.log('📋 Notes synced for new report:', report.id);
           }
         } catch (syncError) {
-          console.warn('⚠️ Note sync failed for new report (non-blocking):', syncError);
+          console.error('⚠️ Note sync failed for new report (non-blocking):', syncError);
           // Don't fail report creation if sync fails
         }
       }
