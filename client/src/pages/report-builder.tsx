@@ -550,7 +550,20 @@ export default function ReportBuilder() {
                                   
                                   defaultValuesRef.current[field.id] = defaultValue;
                                   // Use content if it exists and is not empty, otherwise use default
-                                  const content = contentRef.current[field.label];
+                                  let content = contentRef.current[field.label];
+                                  
+                                  // Apply list styles to existing content too
+                                  if (content && content.trim()) {
+                                    if (content.includes("<ol")) {
+                                      content = content.replace(/<ol/g, '<ol style="list-style-type: decimal; padding-left: 20px; margin-left: 0;"');
+                                      content = content.replace(/<li/g, '<li style="margin-left: 0;"');
+                                    }
+                                    if (content.includes("<ul")) {
+                                      content = content.replace(/<ul/g, '<ul style="list-style-type: disc; padding-left: 20px; margin-left: 0;"');
+                                      content = content.replace(/<li/g, '<li style="margin-left: 0;"');
+                                    }
+                                  }
+                                  
                                   el.innerHTML = (content && content.trim()) ? content : defaultValue;
                                 }
                               }}
