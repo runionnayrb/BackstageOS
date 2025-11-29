@@ -451,6 +451,9 @@ export default function ReportBuilder() {
     if (!selectedTemplate || !customTemplate) return null;
 
     const currentContent = contentRef.current;
+    console.log('🎯 renderTemplateFields called with customTemplate:', customTemplate);
+    console.log('🎯 customTemplate.sections:', customTemplate?.sections);
+    
     const hasRichtextFields = customTemplate?.sections?.some((s: any) => 
       s.fields?.some((f: any) => f.type === "richtext")
     );
@@ -554,33 +557,42 @@ export default function ReportBuilder() {
                                 }
                                 // Initialize only once with default value or existing content
                                 if (!initializedFieldsRef.current.has(field.id)) {
-                                  console.log('📝 Initializing field:', field.label);
+                                  console.log('📝 Initializing field:', field.label, 'defaultValue:', field.defaultValue);
                                   initializedFieldsRef.current.add(field.id);
                                   let defaultValue = field.defaultValue || "";
                                   
-                                  // Ensure list HTML has inline styles to display numbers/bullets
-                                  if (defaultValue.includes("<ol")) {
-                                    defaultValue = defaultValue.replace(/<ol/g, '<ol style="list-style-type: decimal; padding-left: 20px; margin-left: 0;"');
-                                    defaultValue = defaultValue.replace(/<li/g, '<li style="margin-left: 0;"');
-                                  }
-                                  if (defaultValue.includes("<ul")) {
-                                    defaultValue = defaultValue.replace(/<ul/g, '<ul style="list-style-type: disc; padding-left: 20px; margin-left: 0;"');
-                                    defaultValue = defaultValue.replace(/<li/g, '<li style="margin-left: 0;"');
+                                  // Wrap in list if not already a list structure
+                                  if (defaultValue && !defaultValue.includes("<ol") && !defaultValue.includes("<ul")) {
+                                    defaultValue = `<ol style="list-style-type: decimal; padding-left: 20px; margin-left: 0;"><li style="margin-left: 0;">${defaultValue}</li></ol>`;
+                                  } else {
+                                    // Ensure existing list HTML has inline styles to display numbers/bullets
+                                    if (defaultValue.includes("<ol")) {
+                                      defaultValue = defaultValue.replace(/<ol/g, '<ol style="list-style-type: decimal; padding-left: 20px; margin-left: 0;"');
+                                      defaultValue = defaultValue.replace(/<li/g, '<li style="margin-left: 0;"');
+                                    }
+                                    if (defaultValue.includes("<ul")) {
+                                      defaultValue = defaultValue.replace(/<ul/g, '<ul style="list-style-type: disc; padding-left: 20px; margin-left: 0;"');
+                                      defaultValue = defaultValue.replace(/<li/g, '<li style="margin-left: 0;"');
+                                    }
                                   }
                                   
                                   defaultValuesRef.current[field.id] = defaultValue;
                                   // Use content if it exists and is not empty, otherwise use default
                                   let content = contentRef.current[field.label];
                                   
-                                  // Apply list styles to existing content too
+                                  // Apply list structure to content too
                                   if (content && content.trim()) {
-                                    if (content.includes("<ol")) {
-                                      content = content.replace(/<ol/g, '<ol style="list-style-type: decimal; padding-left: 20px; margin-left: 0;"');
-                                      content = content.replace(/<li/g, '<li style="margin-left: 0;"');
-                                    }
-                                    if (content.includes("<ul")) {
-                                      content = content.replace(/<ul/g, '<ul style="list-style-type: disc; padding-left: 20px; margin-left: 0;"');
-                                      content = content.replace(/<li/g, '<li style="margin-left: 0;"');
+                                    if (!content.includes("<ol") && !content.includes("<ul")) {
+                                      content = `<ol style="list-style-type: decimal; padding-left: 20px; margin-left: 0;"><li style="margin-left: 0;">${content}</li></ol>`;
+                                    } else {
+                                      if (content.includes("<ol")) {
+                                        content = content.replace(/<ol/g, '<ol style="list-style-type: decimal; padding-left: 20px; margin-left: 0;"');
+                                        content = content.replace(/<li/g, '<li style="margin-left: 0;"');
+                                      }
+                                      if (content.includes("<ul")) {
+                                        content = content.replace(/<ul/g, '<ul style="list-style-type: disc; padding-left: 20px; margin-left: 0;"');
+                                        content = content.replace(/<li/g, '<li style="margin-left: 0;"');
+                                      }
                                     }
                                   }
                                   
