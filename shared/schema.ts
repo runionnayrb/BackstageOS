@@ -219,6 +219,7 @@ export const templateFields = pgTable("template_fields", {
   required: boolean("required").default(false),
   options: jsonb("options"), // For select/radio fields: {values: string[]}
   defaultValue: text("default_value"),
+  departmentKey: varchar("department_key"), // Field-level department for notes tracking
   displayOrder: integer("display_order").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -250,6 +251,7 @@ export const reportNotes = pgTable("report_notes", {
   id: serial("id").primaryKey(),
   reportId: integer("report_id").notNull().references(() => reports.id, { onDelete: "cascade" }),
   projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  templateFieldId: integer("template_field_id"), // Links to the template field this note came from
   content: text("content").notNull(),
   noteOrder: integer("note_order").notNull(), // Order within the report for numbered list display
   isCompleted: boolean("is_completed").default(false),

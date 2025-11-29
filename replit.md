@@ -44,7 +44,13 @@ BackstageOS is built with a show-centric design, ensuring complete data isolatio
 **Core Architectural Decisions & Features:**
 - **Authentication System**: Secure login, user profiles, and role-based permissions.
 - **Project Management**: Show-centric organization, multi-stage project lifecycle, team management, and secure sharing.
-- **Report System**: Four report types with custom templates, rich text editing, and document-style interface. Features a V2 Report Template System with a complete form-based approach and a normalized data model.
+- **Report System**: Four report types with custom templates, rich text editing, and document-style interface. Features a V2 Report Template System with:
+  - Hierarchical structure: Template > Section > Field
+  - Field-level department assignment for note tracking
+  - Auto-sync: When reports are saved, notes in department-assigned fields are automatically parsed and synced to the report_notes system
+  - Content-based matching preserves note status/priority/assignee when notes are edited
+  - NoteStatusPopup: Inline popup for setting note status/priority/assignment when text is highlighted in tracked fields
+  - Notes are scoped by templateFieldId to prevent interleaving between fields sharing the same department
 - **Contact Management**: Flexible, user-configurable contact groups with extended contact information fields, project-scoped.
 - **Email Integration**: Per-user OAuth 2.0 integration for Gmail and Outlook. Users connect their personal email accounts via popup-based OAuth flow. Tokens are encrypted with AES-256-GCM and stored per-user. Automatic token refresh ensures seamless email sending from users' own addresses.
 - **Advanced Tools**: Script editor, props/costume trackers, notes system, drag-and-drop availability management.

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, createRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,6 +14,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Clock, Settings, Star, Users, FileText, ArrowLeft, Bold, Italic, Underline, List, ListOrdered } from "lucide-react";
 import ReportNotesManager from "@/components/report-notes-manager";
+import { NoteStatusPopup } from "@/components/note-status-popup";
 
 const reportSchema = z.object({
   projectId: z.number(),
@@ -97,6 +98,26 @@ export default function ReportBuilder() {
     queryKey: [`/api/projects/${projectId}/report-types`],
     enabled: !!projectId,
   });
+
+  // Fetch team members for note assignment
+  const { data: teamMembers = [] } = useQuery({
+    queryKey: ['/api/projects', projectId, 'team'],
+    queryFn: async () => {
+      const response = await fetch(`/api/projects/${projectId}/team`);
+      if (!response.ok) return [];
+      const members = await response.json();
+      return members.map((member: any) => ({
+        id: member.user.id,
+        email: member.user.email,
+        firstName: member.user.firstName,
+        lastName: member.user.lastName
+      }));
+    },
+    enabled: !!projectId,
+  });
+
+  // Refs for department fields (for note status popup)
+  const departmentFieldRefs = useRef<Record<string, React.RefObject<HTMLDivElement>>>({});
 
   // Find the template matching the query param or report type
   let matchingTemplate = null;
@@ -424,35 +445,65 @@ export default function ReportBuilder() {
                 <div className="space-y-4 pl-4">
                   {section.fields.map((field: any) => (
                     <div key={field.id} className="space-y-2">
-                      <Label className="font-bold">
-                        {field.label}
-                        {field.required && <span className="text-destructive ml-1">*</span>}
-                      </Label>
+                      <div className="flex items-center gap-2">
+                        <Label className="font-bold">
+                          {field.label}
+                          {field.required && <span className="text-destructive ml-1">*</span>}
+                        </Label>
+                        {field.departmentKey && (
+                          <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full" title="Notes in this field are tracked">
+                            Tracked
+                          </span>
+                        )}
+                      </div>
                       <div className="pl-4">
                         {field.helperText && (
                           <p className="text-sm text-muted-foreground">{field.helperText}</p>
                         )}
                         {field.type === "richtext" && (
-                          <div
-                            ref={focusedEditorRef}
-                            contentEditable
-                            suppressContentEditableWarning
-                            onFocus={(e) => {
-                              focusedEditorRef.current = e.currentTarget;
-                            }}
-                            onBlur={(e) => {
-                              const newContent = {...currentContent};
-                              newContent[field.label] = e.currentTarget.innerHTML;
-                              form.setValue("content", newContent);
-                            }}
-                            onInput={(e) => {
-                              const newContent = {...currentContent};
-                              newContent[field.label] = e.currentTarget.innerHTML;
-                              form.setValue("content", newContent);
-                            }}
-                            dangerouslySetInnerHTML={{__html: currentContent[field.label] || field.defaultValue || ""}}
-                            className="text-sm whitespace-pre-wrap outline-none"
-                          />
+                          <div className="relative">
+                            {(() => {
+                              if (!departmentFieldRefs.current[field.id]) {
+                                departmentFieldRefs.current[field.id] = createRef();
+                              }
+                              return null;
+                            })()}
+                            <div
+                              ref={(el) => {
+                                focusedEditorRef.current = el;
+                                if (field.departmentKey && departmentFieldRefs.current[field.id]) {
+                                  (departmentFieldRefs.current[field.id] as any).current = el;
+                                }
+                              }}
+                              contentEditable
+                              suppressContentEditableWarning
+                              onFocus={(e) => {
+                                focusedEditorRef.current = e.currentTarget;
+                              }}
+                              onBlur={(e) => {
+                                const newContent = {...currentContent};
+                                newContent[field.label] = e.currentTarget.innerHTML;
+                                form.setValue("content", newContent);
+                              }}
+                              onInput={(e) => {
+                                const newContent = {...currentContent};
+                                newContent[field.label] = e.currentTarget.innerHTML;
+                                form.setValue("content", newContent);
+                              }}
+                              dangerouslySetInnerHTML={{__html: currentContent[field.label] || field.defaultValue || ""}}
+                              className="text-sm whitespace-pre-wrap outline-none"
+                            />
+                            {field.departmentKey && isEditMode && reportId && departmentFieldRefs.current[field.id] && (
+                              <NoteStatusPopup
+                                reportId={reportId}
+                                projectId={projectId}
+                                fieldId={field.id}
+                                departmentKey={field.departmentKey}
+                                containerRef={departmentFieldRefs.current[field.id]}
+                                teamMembers={teamMembers}
+                              />
+                            )}
+                          </div>
                         )}
                         {field.type === "text" && (
                           <Input

@@ -61,6 +61,7 @@ interface TemplateField {
   required: boolean;
   options: any;
   defaultValue: string | null;
+  departmentKey: string | null;
   displayOrder: number;
 }
 
@@ -114,6 +115,7 @@ export default function TemplateEditorV2() {
   const [newFieldOptions, setNewFieldOptions] = useState("");
   const [newFieldDefaultValue, setNewFieldDefaultValue] = useState("");
   const [newFieldDefaultValueRichText, setNewFieldDefaultValueRichText] = useState("");
+  const [newFieldDepartmentKey, setNewFieldDepartmentKey] = useState("none");
 
   const [editFieldType, setEditFieldType] = useState("richtext");
   const [editFieldLabel, setEditFieldLabel] = useState("");
@@ -123,6 +125,7 @@ export default function TemplateEditorV2() {
   const [editFieldOptions, setEditFieldOptions] = useState("");
   const [editFieldDefaultValue, setEditFieldDefaultValue] = useState("");
   const [editFieldDefaultValueRichText, setEditFieldDefaultValueRichText] = useState("");
+  const [editFieldDepartmentKey, setEditFieldDepartmentKey] = useState("none");
 
   // Fetch template with full data
   const { data: template, isLoading } = useQuery<TemplateWithData>({
@@ -495,6 +498,7 @@ export default function TemplateEditorV2() {
     setNewFieldOptions("");
     setNewFieldDefaultValue("");
     setNewFieldDefaultValueRichText("");
+    setNewFieldDepartmentKey("none");
   };
 
   const handleAddSection = () => {
@@ -581,6 +585,7 @@ export default function TemplateEditorV2() {
       required: newFieldRequired,
       options,
       defaultValue: defaultValue || undefined,
+      departmentKey: newFieldDepartmentKey === "none" ? null : newFieldDepartmentKey,
     });
   };
 
@@ -594,6 +599,7 @@ export default function TemplateEditorV2() {
     setEditFieldOptions(field.options?.values?.join("\n") || "");
     setEditFieldDefaultValue(field.type === "richtext" ? "" : (field.defaultValue || ""));
     setEditFieldDefaultValueRichText(field.type === "richtext" ? (field.defaultValue || "") : "");
+    setEditFieldDepartmentKey(field.departmentKey || "none");
     setIsEditFieldDialogOpen(true);
   };
 
@@ -623,6 +629,7 @@ export default function TemplateEditorV2() {
         required: editFieldRequired,
         options,
         defaultValue: defaultValue || null,
+        departmentKey: editFieldDepartmentKey === "none" ? null : editFieldDepartmentKey,
       },
     });
   };
@@ -1003,6 +1010,25 @@ export default function TemplateEditorV2() {
                   Required field
                 </Label>
               </div>
+              <div>
+                <Label htmlFor="field-department">Department (for Notes Tracking)</Label>
+                <Select value={newFieldDepartmentKey} onValueChange={setNewFieldDepartmentKey}>
+                  <SelectTrigger data-testid="select-field-department">
+                    <SelectValue placeholder="No department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No department</SelectItem>
+                    {Object.entries(departments).map(([key, name]) => (
+                      <SelectItem key={key} value={key}>
+                        {name as string}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Notes in this field will be tracked in the report notes system
+                </p>
+              </div>
               {newFieldType === "select" && (
                 <div>
                   <Label htmlFor="field-options">Options (one per line)</Label>
@@ -1115,6 +1141,25 @@ export default function TemplateEditorV2() {
                 <Label htmlFor="edit-field-required" className="cursor-pointer">
                   Required field
                 </Label>
+              </div>
+              <div>
+                <Label htmlFor="edit-field-department">Department (for Notes Tracking)</Label>
+                <Select value={editFieldDepartmentKey} onValueChange={setEditFieldDepartmentKey}>
+                  <SelectTrigger data-testid="select-edit-field-department">
+                    <SelectValue placeholder="No department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No department</SelectItem>
+                    {Object.entries(departments).map(([key, name]) => (
+                      <SelectItem key={key} value={key}>
+                        {name as string}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Notes in this field will be tracked in the report notes system
+                </p>
               </div>
               {editFieldType === "select" && (
                 <div>

@@ -3902,6 +3902,74 @@ Best regards,
     }
   });
 
+  // Helper function to parse HTML content into individual note lines (used by auto-sync)
+  // Returns array of {text, hash} for stable identification
+  function parseNotesFromHtml(html: string): { text: string; hash: string }[] {
+    if (!html || typeof html !== 'string') return [];
+    
+    const notes: { text: string; hash: string }[] = [];
+    const seen = new Set<string>();
+    
+    const addNote = (text: string, index: number) => {
+      const trimmed = text.trim();
+      if (!trimmed) return;
+      // Create a hash combining content and position for uniqueness
+      const hash = `${trimmed.toLowerCase()}_${index}`;
+      if (!seen.has(hash)) {
+        seen.add(hash);
+        notes.push({ text: trimmed, hash });
+      }
+    };
+    
+    let noteIndex = 0;
+    
+    // Extract list items (both <ol> and <ul>)
+    const listItemRegex = /<li[^>]*>([\s\S]*?)<\/li>/gi;
+    let listMatch;
+    while ((listMatch = listItemRegex.exec(html)) !== null) {
+      const text = listMatch[1].replace(/<[^>]+>/g, '').trim();
+      if (text) {
+        addNote(text, noteIndex++);
+      }
+    }
+    
+    // If we found list items, that's our main content
+    if (notes.length > 0) return notes;
+    
+    // Otherwise check for paragraphs
+    const pRegex = /<p[^>]*>([\s\S]*?)<\/p>/gi;
+    let pMatch;
+    while ((pMatch = pRegex.exec(html)) !== null) {
+      const text = pMatch[1].replace(/<[^>]+>/g, '').trim();
+      if (text) {
+        addNote(text, noteIndex++);
+      }
+    }
+    
+    if (notes.length > 0) return notes;
+    
+    // Finally, try div blocks
+    const divRegex = /<div[^>]*>([\s\S]*?)<\/div>/gi;
+    let divMatch;
+    while ((divMatch = divRegex.exec(html)) !== null) {
+      const text = divMatch[1].replace(/<[^>]+>/g, '').trim();
+      if (text) {
+        addNote(text, noteIndex++);
+      }
+    }
+    
+    if (notes.length > 0) return notes;
+    
+    // Last resort: split by line breaks
+    const lines = html.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '').split('\n');
+    lines.forEach((line, i) => {
+      const text = line.trim();
+      if (text) addNote(text, i);
+    });
+    
+    return notes;
+  }
+
   app.put('/api/projects/:projectId/reports/:reportId', isAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.projectId);
@@ -3930,6 +3998,88 @@ Best regards,
       };
 
       const updatedReport = await storage.updateReport(reportId, updateData);
+      
+      // Auto-sync notes from department fields if template has them
+      // Uses content-matching to preserve status/priority/assignee
+      if ((report as any).templateId) {
+        try {
+          const template = await storage.getReportTemplateV2ById((report as any).templateId);
+          if (template) {
+            const content = updateData.content as Record<string, any>;
+            for (const section of (template as any).sections || []) {
+              for (const field of section.fields || []) {
+                if (field.departmentKey && content && content[field.label]) {
+                  const fieldContent = content[field.label];
+                  const parsedNotes = parseNotesFromHtml(fieldContent);
+                  
+                  // Get ALL notes for this report and department, then filter by field
+                  const allNotes = await storage.getReportNotesByReportId(reportId, field.departmentKey);
+                  const existingByField = allNotes.filter(n => (n as any).templateFieldId === field.id);
+                  
+                  // Guard: if parser returns no notes but field has content, skip sync
+                  // to avoid accidental deletions from parsing errors
+                  const hasVisibleContent = fieldContent.replace(/<[^>]+>/g, '').trim().length > 0;
+                  if (parsedNotes.length === 0 && hasVisibleContent && existingByField.length > 0) {
+                    console.warn(`Skipping sync for field ${field.id} - parser returned 0 notes but content exists`);
+                    continue;
+                  }
+                  
+                  // Build map of existing notes by normalized content
+                  const existingByContent = new Map<string, typeof existingByField[0]>();
+                  for (const note of existingByField) {
+                    const key = note.content.trim().toLowerCase();
+                    if (!existingByContent.has(key)) {
+                      existingByContent.set(key, note);
+                    }
+                  }
+                  
+                  const processedNoteIds = new Set<number>();
+                  
+                  for (let i = 0; i < parsedNotes.length; i++) {
+                    const { text: noteContent } = parsedNotes[i];
+                    const normalizedContent = noteContent.trim().toLowerCase();
+                    const existingNote = existingByContent.get(normalizedContent);
+                    
+                    if (existingNote) {
+                      // Content matches - just update order, preserve status/priority/assignee
+                      if (existingNote.noteOrder !== i + 1) {
+                        await storage.updateReportNote(existingNote.id, { noteOrder: i + 1 });
+                      }
+                      processedNoteIds.add(existingNote.id);
+                      existingByContent.delete(normalizedContent); // Remove so duplicates get new entries
+                    } else {
+                      // New content - create new note
+                      const newNote = await storage.createReportNote({
+                        reportId,
+                        projectId,
+                        content: noteContent,
+                        noteOrder: i + 1,
+                        department: field.departmentKey,
+                        templateFieldId: field.id,
+                        createdBy: parseInt(req.user.id),
+                      });
+                      processedNoteIds.add(newNote.id);
+                    }
+                  }
+                  
+                  // Delete notes that are no longer in the content
+                  // But only if we successfully parsed some notes (safety guard)
+                  if (parsedNotes.length > 0) {
+                    for (const note of existingByField) {
+                      if (!processedNoteIds.has(note.id)) {
+                        await storage.deleteReportNote(note.id);
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        } catch (syncError) {
+          console.error("Error auto-syncing notes:", syncError);
+        }
+      }
+      
       res.json(updatedReport);
     } catch (error) {
       console.error("Error updating report:", error);
@@ -3984,6 +4134,91 @@ Best regards,
     } catch (error) {
       console.error("Error updating report:", error);
       res.status(500).json({ message: "Failed to update report" });
+    }
+  });
+
+  // Sync notes from template fields to report_notes table
+  app.post('/api/projects/:projectId/reports/:reportId/sync-field-notes', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const reportId = parseInt(req.params.reportId);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const report = await storage.getReportById(reportId);
+      if (!report || report.projectId !== projectId) {
+        return res.status(404).json({ message: "Report not found" });
+      }
+
+      // Get the template for this report
+      const templateId = (report as any).templateId;
+      if (!templateId) {
+        return res.json({ message: "No template associated with this report", synced: 0 });
+      }
+
+      const template = await storage.getReportTemplateV2ById(templateId);
+      if (!template) {
+        return res.json({ message: "Template not found", synced: 0 });
+      }
+
+      // Get all fields with departmentKey
+      const content = report.content as Record<string, any>;
+      const syncedNotes: any[] = [];
+      
+      for (const section of (template as any).sections || []) {
+        for (const field of section.fields || []) {
+          if (field.departmentKey && content[field.label]) {
+            const fieldContent = content[field.label];
+            const parsedNotes = parseNotesFromHtml(fieldContent);
+            
+            // Get existing notes for this field
+            const existingNotes = await storage.getReportNotesByReportId(reportId, field.departmentKey);
+            const existingByField = existingNotes.filter(n => (n as any).templateFieldId === field.id);
+            
+            // Sync notes: create new ones, update existing ones
+            for (let i = 0; i < parsedNotes.length; i++) {
+              const noteContent = parsedNotes[i];
+              const existingNote = existingByField[i];
+              
+              if (existingNote) {
+                // Update if content changed
+                if (existingNote.content !== noteContent) {
+                  await storage.updateReportNote(existingNote.id, { content: noteContent });
+                }
+              } else {
+                // Create new note
+                const newNote = await storage.createReportNote({
+                  reportId,
+                  projectId,
+                  content: noteContent,
+                  noteOrder: i + 1,
+                  department: field.departmentKey,
+                  templateFieldId: field.id,
+                  createdBy: parseInt(req.user.id),
+                });
+                syncedNotes.push(newNote);
+              }
+            }
+            
+            // Delete extra notes that no longer exist in content
+            for (let i = parsedNotes.length; i < existingByField.length; i++) {
+              await storage.deleteReportNote(existingByField[i].id);
+            }
+          }
+        }
+      }
+
+      res.json({ message: "Notes synced successfully", synced: syncedNotes.length });
+    } catch (error) {
+      console.error("Error syncing field notes:", error);
+      res.status(500).json({ message: "Failed to sync field notes" });
     }
   });
 
