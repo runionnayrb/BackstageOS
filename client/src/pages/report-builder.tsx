@@ -553,17 +553,28 @@ export default function ReportBuilder() {
                                 focusedEditorRef.current = e.currentTarget;
                                 focusedFieldLabelRef.current = field.label;
                                 
-                                // For HTML lists (proper numbered/bullet lists), just move cursor to end
-                                // Don't strip away the list structure
+                                // For HTML lists (proper numbered/bullet lists)
                                 const currentHTML = e.currentTarget.innerHTML;
                                 if (currentHTML.includes("<ol") || currentHTML.includes("<ul")) {
-                                  // Move cursor to end of list
-                                  const range = document.createRange();
-                                  const sel = window.getSelection();
-                                  range.selectNodeContents(e.currentTarget);
-                                  range.collapse(false);
-                                  sel?.removeAllRanges();
-                                  sel?.addRange(range);
+                                  // Check if this is the default "Nothing today." text
+                                  const defaultValue = defaultValuesRef.current[field.id] || "";
+                                  if (currentHTML === defaultValue && defaultValue.includes("Nothing today")) {
+                                    // Clear the default text but keep the list structure
+                                    const listType = currentHTML.includes("<ol") ? "ol" : "ul";
+                                    const newHTML = currentHTML.replace(/Nothing today\.?/g, "");
+                                    e.currentTarget.innerHTML = newHTML;
+                                  }
+                                  
+                                  // Move cursor to end of first list item for editing
+                                  const firstLi = e.currentTarget.querySelector("li");
+                                  if (firstLi) {
+                                    const range = document.createRange();
+                                    const sel = window.getSelection();
+                                    range.setStart(firstLi, firstLi.childNodes.length);
+                                    range.collapse(true);
+                                    sel?.removeAllRanges();
+                                    sel?.addRange(range);
+                                  }
                                 }
                               }}
                               onBlur={(e) => {
