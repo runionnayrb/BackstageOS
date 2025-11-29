@@ -43,6 +43,7 @@ export default function ReportBuilder() {
   const focusedEditorRef = useRef<HTMLDivElement | null>(null);
   const focusedFieldLabelRef = useRef<string | null>(null);
   const initializedFieldsRef = useRef<Set<number>>(new Set());
+  const defaultValuesRef = useRef<Record<number, string>>({}); // Track default values per field
   
   // Extract template ID from query params
   const searchParams = new URLSearchParams(window.location.search);
@@ -490,7 +491,9 @@ export default function ReportBuilder() {
                                 // Initialize only once with default value or existing content
                                 if (!initializedFieldsRef.current.has(field.id)) {
                                   initializedFieldsRef.current.add(field.id);
-                                  el.innerHTML = currentContent[field.label] || field.defaultValue || "";
+                                  const defaultValue = field.defaultValue || "";
+                                  defaultValuesRef.current[field.id] = defaultValue;
+                                  el.innerHTML = currentContent[field.label] || defaultValue;
                                 }
                               }}
                               contentEditable
@@ -498,11 +501,42 @@ export default function ReportBuilder() {
                               onFocus={(e) => {
                                 focusedEditorRef.current = e.currentTarget;
                                 focusedFieldLabelRef.current = field.label;
+                                
+                                // If content is the default value, replace with just "1. " so user can start typing
+                                const currentHTML = e.currentTarget.innerHTML;
+                                const defaultValue = defaultValuesRef.current[field.id] || "";
+                                if (currentHTML === defaultValue && defaultValue) {
+                                  // Extract just the number prefix (e.g., "1. " from "1. No notes. Thank you.")
+                                  const match = defaultValue.match(/^(\d+\.\s*)/);
+                                  if (match) {
+                                    e.currentTarget.innerHTML = match[1];
+                                    // Move cursor to end
+                                    const range = document.createRange();
+                                    const sel = window.getSelection();
+                                    range.selectNodeContents(e.currentTarget);
+                                    range.collapse(false);
+                                    sel?.removeAllRanges();
+                                    sel?.addRange(range);
+                                  }
+                                }
                               }}
                               onBlur={(e) => {
-                                const newContent = {...currentContent};
-                                newContent[field.label] = e.currentTarget.innerHTML;
-                                form.setValue("content", newContent);
+                                const content = e.currentTarget.innerHTML.trim();
+                                const defaultValue = defaultValuesRef.current[field.id] || "";
+                                const defaultNumPrefix = defaultValue.match(/^(\d+\.\s*)/)?.[1] || "";
+                                
+                                // If field is empty or just the number prefix, restore default
+                                if (!content || content === defaultNumPrefix.trim()) {
+                                  e.currentTarget.innerHTML = defaultValue;
+                                  const newContent = {...currentContent};
+                                  newContent[field.label] = defaultValue;
+                                  form.setValue("content", newContent);
+                                } else {
+                                  // User has entered content, track it
+                                  const newContent = {...currentContent};
+                                  newContent[field.label] = e.currentTarget.innerHTML;
+                                  form.setValue("content", newContent);
+                                }
                               }}
                               onInput={(e) => {
                                 const newContent = {...currentContent};
