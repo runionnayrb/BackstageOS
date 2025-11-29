@@ -59,7 +59,7 @@ const NotesTracking: React.FC = () => {
     queryKey: [`/api/projects/${projectId}/reports`],
   });
 
-  // Update note status mutation
+  // Update note status mutation with optimistic updates
   const updateNoteMutation = useMutation({
     mutationFn: async ({ noteId, data }: { noteId: number; data: Partial<ReportNote> }) => {
       const response = await fetch(`/api/projects/${projectId}/notes/${noteId}`, {
@@ -70,18 +70,46 @@ const NotesTracking: React.FC = () => {
       if (!response.ok) throw new Error('Failed to update note');
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
+    onMutate: async ({ noteId, data }) => {
+      // Cancel outgoing refetches to prevent them from overwriting optimistic update
+      await queryClient.cancelQueries({
         queryKey: ['/api/projects', projectId, 'notes-tracking']
       });
-      toast({ title: 'Note updated successfully' });
+
+      // Snapshot the previous value
+      const previousNotes = queryClient.getQueryData<ReportNote[]>(['/api/projects', projectId, 'notes-tracking']);
+
+      // Optimistically update the cache
+      if (previousNotes) {
+        queryClient.setQueryData<ReportNote[]>(
+          ['/api/projects', projectId, 'notes-tracking'],
+          previousNotes.map(note =>
+            note.id === noteId
+              ? { ...note, ...data }
+              : note
+          )
+        );
+      }
+
+      // Return previous state for rollback
+      return { previousNotes };
     },
-    onError: () => {
+    onError: (err, variables, context) => {
+      // Rollback on error
+      if (context?.previousNotes) {
+        queryClient.setQueryData(
+          ['/api/projects', projectId, 'notes-tracking'],
+          context.previousNotes
+        );
+      }
       toast({ 
         title: 'Error updating note', 
         description: 'Please try again',
         variant: 'destructive' 
       });
+    },
+    onSuccess: () => {
+      // Silent success - UI already updated optimistically
     }
   });
 
