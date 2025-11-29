@@ -45,6 +45,7 @@ export default function ReportBuilder() {
   const focusedFieldLabelRef = useRef<string | null>(null);
   const initializedFieldsRef = useRef<Set<number>>(new Set());
   const defaultValuesRef = useRef<Record<number, string>>({}); // Track default values per field
+  const contentRef = useRef<Record<string, any>>({}); // Track content without re-rendering
   
   // Extract template ID from query params
   const searchParams = new URLSearchParams(window.location.search);
@@ -204,7 +205,9 @@ export default function ReportBuilder() {
         // Populate form with existing report data
         form.setValue("title", existingReport.title);
         form.setValue("date", existingReport.date ? new Date(existingReport.date).toISOString().split('T')[0] : form.getValues("date"));
-        form.setValue("content", existingReport.content || {});
+        const content = existingReport.content || {};
+        form.setValue("content", content);
+        contentRef.current = { ...content };
         setSelectedTemplate('custom-layout');
       } else {
         // Auto-generate title based on template name (most up-to-date source)
@@ -243,6 +246,9 @@ export default function ReportBuilder() {
 
   const mutation = useMutation({
     mutationFn: async (data: ReportFormData) => {
+      // Sync contentRef to data before sending
+      data.content = { ...contentRef.current };
+      
       if (isEditMode && reportId) {
         await apiRequest("PUT", `/api/projects/${projectId}/reports/${reportId}`, {
           ...data,
@@ -426,7 +432,7 @@ export default function ReportBuilder() {
   const renderTemplateFields = () => {
     if (!selectedTemplate || !customTemplate) return null;
 
-    const currentContent = form.watch("content") || {};
+    const currentContent = contentRef.current;
     const hasRichtextFields = customTemplate?.sections?.some((s: any) => 
       s.fields?.some((f: any) => f.type === "richtext")
     );
@@ -591,14 +597,10 @@ export default function ReportBuilder() {
                                 // If field is empty or matches default, restore default
                                 if (!content || isDefaultListStructure) {
                                   e.currentTarget.innerHTML = defaultValue;
-                                  const newContent = {...currentContent};
-                                  newContent[field.label] = defaultValue;
-                                  form.setValue("content", newContent);
+                                  contentRef.current[field.label] = defaultValue;
                                 } else {
                                   // User has entered content, track it
-                                  const newContent = {...currentContent};
-                                  newContent[field.label] = e.currentTarget.innerHTML;
-                                  form.setValue("content", newContent);
+                                  contentRef.current[field.label] = e.currentTarget.innerHTML;
                                 }
                               }}
                               className="text-sm outline-none whitespace-normal [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:ml-0"
@@ -619,9 +621,7 @@ export default function ReportBuilder() {
                           <Input
                             value={currentContent[field.label] || field.defaultValue || ""}
                             onChange={(e) => {
-                              const newContent = {...currentContent};
-                              newContent[field.label] = e.target.value;
-                              form.setValue("content", newContent);
+                              contentRef.current[field.label] = e.target.value;
                             }}
                             placeholder={field.placeholder || ""}
                             className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
@@ -632,9 +632,7 @@ export default function ReportBuilder() {
                             type="number"
                             value={currentContent[field.label] || field.defaultValue || ""}
                             onChange={(e) => {
-                              const newContent = {...currentContent};
-                              newContent[field.label] = e.target.value;
-                              form.setValue("content", newContent);
+                              contentRef.current[field.label] = e.target.value;
                             }}
                             placeholder={field.placeholder || ""}
                             className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
@@ -645,9 +643,7 @@ export default function ReportBuilder() {
                             type="date"
                             value={currentContent[field.label] || field.defaultValue || ""}
                             onChange={(e) => {
-                              const newContent = {...currentContent};
-                              newContent[field.label] = e.target.value;
-                              form.setValue("content", newContent);
+                              contentRef.current[field.label] = e.target.value;
                             }}
                             className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
                           />
@@ -657,9 +653,7 @@ export default function ReportBuilder() {
                             type="time"
                             value={currentContent[field.label] || field.defaultValue || ""}
                             onChange={(e) => {
-                              const newContent = {...currentContent};
-                              newContent[field.label] = e.target.value;
-                              form.setValue("content", newContent);
+                              contentRef.current[field.label] = e.target.value;
                             }}
                             className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
                           />
@@ -669,9 +663,7 @@ export default function ReportBuilder() {
                             <Checkbox 
                               checked={currentContent[field.label] === "true" || field.defaultValue === "true"}
                               onCheckedChange={(checked) => {
-                                const newContent = {...currentContent};
-                                newContent[field.label] = checked ? "true" : "false";
-                                form.setValue("content", newContent);
+                                contentRef.current[field.label] = checked ? "true" : "false";
                               }}
                             />
                             <label className="text-sm text-muted-foreground">
@@ -681,9 +673,7 @@ export default function ReportBuilder() {
                         )}
                         {field.type === "select" && (
                           <Select value={currentContent[field.label] || field.defaultValue || ""} onValueChange={(value) => {
-                            const newContent = {...currentContent};
-                            newContent[field.label] = value;
-                            form.setValue("content", newContent);
+                            contentRef.current[field.label] = value;
                           }}>
                             <SelectTrigger className="border-0 bg-transparent p-0 focus:ring-0">
                               <SelectValue placeholder={field.placeholder || "Select an option"} />
