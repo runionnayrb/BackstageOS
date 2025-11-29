@@ -345,8 +345,25 @@ export default function ReportBuilder() {
     const editor = focusedEditorRef.current;
     if (!editor) return;
     
-    // Apply command using document.execCommand
     try {
+      // Ensure editor is focused and has proper selection
+      editor.focus();
+      
+      // For list commands, ensure there's a valid selection/cursor
+      if (command === "ul" || command === "ol") {
+        // If no selection exists, select the current line or create a text node
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0) {
+          // Position cursor at the end of the editor
+          const range = document.createRange();
+          range.selectNodeContents(editor);
+          range.collapse(false);
+          selection?.removeAllRanges();
+          selection?.addRange(range);
+        }
+      }
+      
+      // Apply the formatting command
       switch(command) {
         case "bold":
           document.execCommand("bold", false);
@@ -365,10 +382,10 @@ export default function ReportBuilder() {
           break;
       }
       
-      // Focus back on editor
+      // Ensure editor stays focused after command
       editor.focus();
       
-      // Update form with new content using the tracked field label
+      // Update form with new content
       if (focusedFieldLabelRef.current) {
         const newContent = {...(form.getValues("content") || {})};
         newContent[focusedFieldLabelRef.current] = editor.innerHTML;
