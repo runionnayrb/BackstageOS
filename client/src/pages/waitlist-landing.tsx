@@ -148,7 +148,7 @@ export default function WaitlistLanding() {
       icon: Settings,
       title: "Script & Cue Management",
       description: "Built from the ground up for theatrical scripts with call script building, cue tracking, and collaborative editing designed specifically for stage managers.",
-      comingSoon: false
+      comingSoon: true
     },
     {
       icon: Shield,
