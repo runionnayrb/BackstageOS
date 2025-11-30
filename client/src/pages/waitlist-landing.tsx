@@ -123,25 +123,25 @@ export default function WaitlistLanding() {
     {
       icon: Clapperboard,
       title: "Show-Centric Organization",
-      description: "Every production is completely isolated with its own data, team, and workflow.",
+      description: "Everything revolves around your show. Each production gets its own isolated workspace with dedicated settings, team permissions, and complete workflow separation.",
       comingSoon: false
     },
     {
       icon: FileText,
-      title: "Professional Reports & Templates",
-      description: "Rehearsal, tech, performance, and meeting reports with custom templates.",
+      title: "Custom Reports & Automatic Note Tracking",
+      description: "Create custom reports for any phase of production. Automatically consolidate all rehearsal notes in one searchable location so you never have to hunt through reports to find that one critical note.",
       comingSoon: false
     },
     {
       icon: Users,
-      title: "Team & Cast Management",
-      description: "Manage contacts and team collaboration in one place. Character breakdowns and cast tracking coming soon.",
-      comingSoon: true
+      title: "Complete Contact Management",
+      description: "Import contacts, create downloadable contact sheets and face sheets, add emergency information, equity status, and allergies. Organize with custom groups and drag-and-drop reordering.",
+      comingSoon: false
     },
     {
       icon: Calendar,
-      title: "Advanced Scheduling",
-      description: "Drag-and-drop calendar with automated call sheet generation, scheduling fittings, and managing availability and conflicts.",
+      title: "Visual Drag-and-Drop Calendar",
+      description: "Monthly, weekly, and daily views with personalized schedules for each team member. Publish major and minor versions, manage timezones, customize event types with color coding, and use schedule templates for quick setup.",
       comingSoon: false
     },
     {
@@ -152,27 +152,27 @@ export default function WaitlistLanding() {
     },
     {
       icon: Shield,
-      title: "Secure Collaboration",
-      description: "Professional-grade security with role-based permissions, sharing controls, and integrated team chat for real-time communication.",
+      title: "Seamless Team Collaboration",
+      description: "Invite your entire stage management team to collaborate. Add unlimited viewers who can access everything without cluttering permissions. Integrate with Gmail or Outlook so all messages appear to come from your email.",
       comingSoon: false
     },
     {
       icon: FileText,
-      title: "Technical Paperwork",
-      description: "Comprehensive tracking for props, costumes, scene shift plots, line set schedules, and mic assignments with detailed status monitoring.",
+      title: "Props & Costume Management",
+      description: "Maintain comprehensive props lists, costume lists, and quick-change information. Track status across scenes and characters with professional organization.",
       comingSoon: false
     },
     {
-      icon: Clock,
-      title: "Prep & Organization",
-      description: "Pre-production tools including character scene breakdowns, French scene analysis, production meeting reports, and cast on-boarding workflows.",
-      comingSoon: true
+      icon: Zap,
+      title: "Seamless Workflow Integration",
+      description: "BackstageOS integrates so smoothly into your process that your team might not even realize you switched systems. Everything works the way stage managers already think.",
+      comingSoon: false
     },
     {
       icon: BarChart3,
-      title: "Advanced Notes System",
-      description: "Rich collaborative notes with attachments, inline comments, and version history for seamless team communication.",
-      comingSoon: true
+      title: "Universal Search",
+      description: "Find anything instantly across your entire production. Search notes, contacts, reports, schedules, and scripts to locate information fast.",
+      comingSoon: false
     }
   ];
 
@@ -212,23 +212,23 @@ export default function WaitlistLanding() {
   const technologies = [
     {
       icon: Zap,
-      title: "Redefining Real-Time Collaboration",
-      description: "Industry-first real-time script editing with live presence indicators, instant comments, and collaborative version control designed specifically for theater professionals."
+      title: "Designed by Stage Managers, For Stage Managers",
+      description: "Built with years of real stage management experience embedded into every feature. BackstageOS works the way you already think, not the other way around."
     },
     {
       icon: Globe,
       title: "Cloud-Native Architecture",
-      description: "Built from the ground up for modern theater companies with automatic backups, universal access, and enterprise-grade reliability."
+      description: "Automatic backups, universal access from anywhere, and enterprise-grade reliability. Your production data is always safe and accessible when you need it."
     },
     {
       icon: Smartphone,
-      title: "Mobile-First Design",
-      description: "Access your production data anywhere - from rehearsal rooms to backstage areas - with our responsive design optimized for theater workflows."
+      title: "Access Anywhere",
+      description: "Work from the rehearsal studio, backstage, or the office. Responsive design means full functionality on any device or screen size."
     },
     {
       icon: Lock,
-      title: "Professional Security",
-      description: "Bank-level encryption, secure sharing links, and role-based permissions ensure your production data stays protected and private."
+      title: "Professional Security & Email Integration",
+      description: "Bank-level encryption and secure sharing. Integrate with Gmail or Outlook so communications feel native to your workflow, not like another tool."
     }
   ];
 
