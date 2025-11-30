@@ -15,11 +15,16 @@ interface BetaSettings {
   features: FeatureConfig[];
 }
 
+interface SwitchStatus {
+  isViewingAs: boolean;
+  viewingUser?: any;
+}
+
 export function useBetaFeatures() {
   const { user } = useAuth();
   
   // Get switch status to determine effective user
-  const { data: switchStatus } = useQuery({
+  const { data: switchStatus } = useQuery<SwitchStatus>({
     queryKey: ['/api/admin/switch-status'],
     enabled: !!user,
     staleTime: 5 * 60 * 1000,
@@ -28,11 +33,11 @@ export function useBetaFeatures() {
   // Use effective user (viewing user if switched, otherwise original user)
   const effectiveUser = switchStatus?.isViewingAs ? switchStatus.viewingUser : user;
 
-  const { data: betaSettings, isLoading } = useQuery({
+  const { data: betaSettings, isLoading } = useQuery<BetaSettings>({
     queryKey: ['/api/admin/beta-settings'],
     enabled: !!user,
-    staleTime: 0, // Always refetch for immediate feature toggle updates
-    gcTime: 60 * 1000, // Keep in cache for 1 minute
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes for better performance
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
     retry: false,
   });
 
@@ -60,59 +65,24 @@ export function useBetaFeatures() {
   };
 
   const canAccessFeature = (featureId: string): boolean => {
-    // Debug logging
-    const betaFeaturesArray = effectiveUser?.betaFeatures ? (() => {
-      try {
-        return JSON.parse(effectiveUser.betaFeatures as string);
-      } catch {
-        return [];
-      }
-    })() : [];
-    
-    console.log(`🔍 Beta Access Check for ${featureId}:`, {
-      originalUserId: user?.id,
-      originalUserIsAdmin: user?.isAdmin,
-      effectiveUserId: effectiveUser?.id,
-      effectiveUserIsAdmin: effectiveUser?.isAdmin,
-      isViewingAs: switchStatus?.isViewingAs,
-      viewingUserId: switchStatus?.viewingUser?.id,
-      featureEnabled: isFeatureEnabled(featureId),
-      userAccess: hasUserAccess(featureId),
-      betaAccess: effectiveUser?.betaAccess,
-      betaFeatures: betaFeaturesArray,
-      rawBetaFeatures: effectiveUser?.betaFeatures
-    });
-    
     // Admin bypass: Only bypass user access restrictions, NOT beta configuration
     // This allows admins to test disabled features as they would appear to users
     const isViewingAsAdmin = switchStatus?.isViewingAs && switchStatus?.viewingUser?.id === user?.id;
     const isOriginalAdmin = user?.isAdmin && !switchStatus?.isViewingAs;
     const isAdmin = user?.isAdmin && (isOriginalAdmin || isViewingAsAdmin);
     
-    console.log(`🔍 Admin access check:`, {
-      userIsAdmin: user?.isAdmin,
-      isOriginalAdmin,
-      isViewingAsAdmin,
-      isAdmin,
-      featureEnabled: isFeatureEnabled(featureId)
-    });
-    
     // Feature must be enabled in beta configuration first
     if (!isFeatureEnabled(featureId)) {
-      console.log(`❌ Feature ${featureId} disabled in beta configuration`);
       return false;
     }
     
     // If admin and feature is enabled, bypass user access check
     if (isAdmin) {
-      console.log(`✅ Admin has access to enabled feature ${featureId}`);
       return true;
     }
     
     // For non-admin users, check both beta settings and user access
-    const result = hasUserAccess(featureId);
-    console.log(`${result ? '✅' : '❌'} User access result for ${featureId}:`, result);
-    return result;
+    return hasUserAccess(featureId);
   };
 
   const getFeatureStatus = (featureId: string): 'enabled' | 'disabled' | 'no-access' | 'loading' => {

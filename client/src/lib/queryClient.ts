@@ -87,8 +87,6 @@ export const getQueryFn: <T>(options: {
       url = queryKey[0] as string;
     }
     
-    console.log(`🎯 Query URL constructed:`, url, `from queryKey:`, queryKey);
-    
     const res = await fetch(url, {
       credentials: "include",
     });

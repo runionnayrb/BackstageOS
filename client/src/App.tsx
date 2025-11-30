@@ -95,8 +95,6 @@ function Router() {
   const { user, isLoading } = useAuth();
   const [location] = useLocation();
   
-  console.log('🚀 Router rendering with location:', location);
-  
   // Initialize SEO for dynamic meta tags based on domain
   useSEO();
   

@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
     queryFn: getQueryFn({ on401: "returnNull" }),
     retry: false,
     refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes to keep session alive
-    refetchIntervalInBackground: true,
+    refetchIntervalInBackground: false, // Don't refetch while in background
     enabled: !isMainDomain, // Skip authentication queries on main domain
   });
 
@@ -59,7 +59,6 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
       
       // Clear ALL cached data BEFORE login to prevent showing previous user's data
       queryClient.clear();
-      console.log("[Auth] Queries canceled and cache cleared before login");
       
       const res = await apiRequest("POST", "/api/login", credentials);
       return res;
@@ -67,7 +66,6 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
     onSuccess: (user: User) => {
       // Set the new user data immediately
       queryClient.setQueryData(["/api/user"], user);
-      console.log("[Auth] Login success, user set:", user.id);
       
       // Force refetch to ensure we have latest session state
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
@@ -88,7 +86,6 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
       
       // Clear ALL cached data BEFORE registration to prevent showing previous user's data
       queryClient.clear();
-      console.log("[Auth] Queries canceled and cache cleared before registration");
       
       const res = await apiRequest("POST", "/api/register", credentials);
       return res;
@@ -96,7 +93,6 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
     onSuccess: (user: User) => {
       // Set the new user data immediately
       queryClient.setQueryData(["/api/user"], user);
-      console.log("[Auth] Registration success, user set:", user.id);
       
       // Force refetch to ensure we have latest session state
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
@@ -118,7 +114,6 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
       // Clear ALL cached data when logging out to prevent other users from seeing previous user's data
       queryClient.clear();
       queryClient.setQueryData(["/api/user"], null);
-      console.log("[Auth] Cache cleared on logout");
     },
     onError: (error: Error) => {
       toast({
