@@ -26,7 +26,8 @@ import {
   BarChart3,
   Lock,
   ArrowRight,
-  Star
+  Star,
+  Sparkles
 } from "lucide-react";
 
 export default function WaitlistLanding() {
@@ -122,47 +123,56 @@ export default function WaitlistLanding() {
     {
       icon: Clapperboard,
       title: "Show-Centric Organization",
-      description: "Every production is completely isolated with its own data, team, and workflow."
+      description: "Every production is completely isolated with its own data, team, and workflow.",
+      comingSoon: false
     },
     {
       icon: FileText,
       title: "Professional Reports & Templates",
-      description: "Rehearsal, tech, performance, and meeting reports with custom templates."
+      description: "Rehearsal, tech, performance, and meeting reports with custom templates.",
+      comingSoon: false
     },
     {
       icon: Users,
       title: "Team & Cast Management",
-      description: "Manage contacts, cast assignments, and team collaboration in one place."
+      description: "Manage contacts and team collaboration in one place. Character breakdowns and cast tracking coming soon.",
+      comingSoon: true
     },
     {
       icon: Calendar,
       title: "Advanced Scheduling",
-      description: "Drag-and-drop calendar with automated call sheet generation, scheduling fittings, and managing availability and conflicts."
+      description: "Drag-and-drop calendar with automated call sheet generation, scheduling fittings, and managing availability and conflicts.",
+      comingSoon: false
     },
     {
       icon: Settings,
       title: "Script & Cue Management",
-      description: "Built from the ground up for theatrical scripts with call script building, cue tracking, and collaborative editing designed specifically for stage managers."
+      description: "Built from the ground up for theatrical scripts with call script building, cue tracking, and collaborative editing designed specifically for stage managers.",
+      comingSoon: false
     },
     {
       icon: Shield,
       title: "Secure Collaboration",
-      description: "Professional-grade security with role-based permissions, sharing controls, and integrated team chat for real-time communication."
+      description: "Professional-grade security with role-based permissions, sharing controls, and integrated team chat for real-time communication.",
+      comingSoon: false
     },
     {
       icon: FileText,
       title: "Technical Paperwork",
-      description: "Comprehensive tracking for props, costumes, scene shift plots, line set schedules, and mic assignments with detailed status monitoring."
+      description: "Comprehensive tracking for props, costumes, scene shift plots, line set schedules, and mic assignments with detailed status monitoring.",
+      comingSoon: false
     },
     {
       icon: Clock,
-      title: "Prep",
-      description: "Complete pre-production tools including task management, character scene breakdowns, French scene analysis, production meeting reports, and cast on-boarding workflows."
+      title: "Prep & Organization",
+      description: "Pre-production tools including character scene breakdowns, French scene analysis, production meeting reports, and cast on-boarding workflows.",
+      comingSoon: true
     },
     {
       icon: BarChart3,
-      title: "Document & Version Control",
-      description: "Professional document versioning with change tracking, collaborative commenting, PDF exports, and automated backup systems to preserve your production history."
+      title: "Advanced Notes System",
+      description: "Rich collaborative notes with attachments, inline comments, and version history for seamless team communication.",
+      comingSoon: true
     }
   ];
 
@@ -292,10 +302,18 @@ export default function WaitlistLanding() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="border-0 shadow-lg">
+              <Card key={index} className={`border-0 shadow-lg ${feature.comingSoon ? 'opacity-75' : ''}`}>
                 <CardContent className="p-8">
-                  <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                    <feature.icon className="h-6 w-6 text-primary" />
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                      <feature.icon className="h-6 w-6 text-primary" />
+                    </div>
+                    {feature.comingSoon && (
+                      <div className="flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-semibold">
+                        <Sparkles className="h-3 w-3" />
+                        Coming Soon
+                      </div>
+                    )}
                   </div>
                   <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
                   <p className="text-gray-600">{feature.description}</p>
