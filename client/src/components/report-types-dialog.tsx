@@ -60,6 +60,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 export default function ReportTypesDialog({ projectId, trigger }: ReportTypesDialogProps) {
   const [open, setOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingType, setEditingType] = useState<ReportType | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [typeToDelete, setTypeToDelete] = useState<ReportType | null>(null);
@@ -196,6 +197,7 @@ export default function ReportTypesDialog({ projectId, trigger }: ReportTypesDia
   const handleSubmit = (values: FormValues) => {
     if (editingType) {
       updateMutation.mutate({ id: editingType.id, data: values });
+      setIsEditModalOpen(false);
     } else {
       createMutation.mutate(values);
     }
@@ -208,18 +210,13 @@ export default function ReportTypesDialog({ projectId, trigger }: ReportTypesDia
       slug: type.slug,
       description: type.description || "",
     });
-    // Scroll the form into view
-    setTimeout(() => {
-      const formElement = document.querySelector('[data-form-section="edit-form"]');
-      if (formElement) {
-        formElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
-    }, 100);
+    setIsEditModalOpen(true);
   };
 
   const handleCancel = () => {
     form.reset();
     setEditingType(null);
+    setIsEditModalOpen(false);
   };
 
   const handleDeleteClick = (type: ReportType) => {
@@ -321,13 +318,108 @@ export default function ReportTypesDialog({ projectId, trigger }: ReportTypesDia
               </div>
             </div>
 
-            {/* Add/Edit Form */}
+            {/* Add New Form */}
+            {!editingType && (
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 border-t pt-4">
+                  <h3 className="text-sm font-medium">Add New Report Type</h3>
+                  
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Name</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="e.g., Performance Reports"
+                            onChange={(e) => {
+                              field.onChange(e);
+                              const slug = e.target.value
+                                .toLowerCase()
+                                .replace(/[^a-z0-9]+/g, "-")
+                                .replace(/(^-|-$)/g, "");
+                              form.setValue("slug", slug, { shouldDirty: false });
+                            }}
+                            data-testid="input-report-type-name"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="slug"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Slug</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="e.g., performance"
+                            data-testid="input-report-type-slug"
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          URL-friendly identifier (lowercase, no spaces)
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            {...field}
+                            placeholder="Optional description"
+                            rows={2}
+                            data-testid="input-report-type-description"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="flex gap-2 justify-end">
+                    <Button 
+                      type="submit" 
+                      disabled={createMutation.isPending}
+                      data-testid="button-save-report-type"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Report Type
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Report Type</DialogTitle>
+            <DialogDescription>
+              Update the report type details
+            </DialogDescription>
+          </DialogHeader>
+          
+          {editingType && (
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 border-t pt-4" data-form-section="edit-form">
-                <h3 className="text-sm font-medium">
-                  {editingType ? "Edit Report Type" : "Add New Report Type"}
-                </h3>
-                
+              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
                 <FormField
                   control={form.control}
                   name="name"
@@ -338,19 +430,7 @@ export default function ReportTypesDialog({ projectId, trigger }: ReportTypesDia
                         <Input
                           {...field}
                           placeholder="e.g., Performance Reports"
-                          onChange={(e) => {
-                            // Call the RHF onChange to update form state and trigger validation
-                            field.onChange(e);
-                            // Auto-generate slug only when creating new (not editing)
-                            if (!editingType) {
-                              const slug = e.target.value
-                                .toLowerCase()
-                                .replace(/[^a-z0-9]+/g, "-")
-                                .replace(/(^-|-$)/g, "");
-                              form.setValue("slug", slug, { shouldDirty: false });
-                            }
-                          }}
-                          data-testid="input-report-type-name"
+                          data-testid="input-edit-report-type-name"
                         />
                       </FormControl>
                       <FormMessage />
@@ -368,7 +448,7 @@ export default function ReportTypesDialog({ projectId, trigger }: ReportTypesDia
                         <Input
                           {...field}
                           placeholder="e.g., performance"
-                          data-testid="input-report-type-slug"
+                          data-testid="input-edit-report-type-slug"
                         />
                       </FormControl>
                       <FormDescription>
@@ -390,7 +470,7 @@ export default function ReportTypesDialog({ projectId, trigger }: ReportTypesDia
                           {...field}
                           placeholder="Optional description"
                           rows={2}
-                          data-testid="input-report-type-description"
+                          data-testid="input-edit-report-type-description"
                         />
                       </FormControl>
                       <FormMessage />
@@ -398,38 +478,42 @@ export default function ReportTypesDialog({ projectId, trigger }: ReportTypesDia
                   )}
                 />
 
-                <div className="flex gap-2 justify-between">
-                  {editingType && (
+                <div className="flex gap-2 justify-between pt-4">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="text-destructive hover:text-destructive"
+                    onClick={() => {
+                      setIsEditModalOpen(false);
+                      if (editingType) {
+                        handleDeleteClick(editingType);
+                      }
+                    }}
+                    data-testid="button-delete-from-modal"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete
+                  </Button>
+                  <div className="flex gap-2">
                     <Button
                       type="button"
-                      variant="ghost"
-                      className="text-destructive hover:text-destructive"
-                      onClick={() => handleDeleteClick(editingType)}
-                      data-testid={`button-delete-${editingType.id}`}
+                      variant="outline"
+                      onClick={handleCancel}
                     >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
+                      Cancel
                     </Button>
-                  )}
-                  <div className="flex gap-2">
-                    {editingType && (
-                      <Button type="button" variant="outline" onClick={handleCancel}>
-                        Cancel
-                      </Button>
-                    )}
                     <Button 
                       type="submit" 
-                      disabled={createMutation.isPending || updateMutation.isPending}
-                      data-testid="button-save-report-type"
+                      disabled={updateMutation.isPending}
+                      data-testid="button-update-report-type"
                     >
-                      <Plus className="h-4 w-4 mr-2" />
-                      {editingType ? "Update" : "Add"} Report Type
+                      Update
                     </Button>
                   </div>
                 </div>
               </form>
             </Form>
-          </div>
+          )}
         </DialogContent>
       </Dialog>
 
