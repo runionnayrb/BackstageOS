@@ -499,7 +499,7 @@ const NotesTracking: React.FC = () => {
                       setSortOpen(false);
                     }}
                   >
-                    <span className="text-sm">{option.label}</span>
+                    <span className="text-sm text-gray-900 dark:text-gray-100">{option.label}</span>
                   </div>
                 ))}
               </div>
