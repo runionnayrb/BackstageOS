@@ -35,7 +35,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { GripVertical, Plus, Edit3, Trash2, List } from "lucide-react";
+import { GripVertical, Plus, Trash2, List } from "lucide-react";
 import { insertReportTypeSchema, type ReportType } from "@shared/schema";
 
 interface ReportTypesDialogProps {
@@ -299,7 +299,8 @@ export default function ReportTypesDialog({ projectId, trigger }: ReportTypesDia
                     onDragStart={() => handleDragStart(type)}
                     onDragOver={handleDragOver}
                     onDrop={() => handleDrop(type)}
-                    className="flex items-center gap-2 p-3 border rounded-lg bg-card hover:bg-accent/50 cursor-move"
+                    onClick={() => handleEdit(type)}
+                    className="flex items-center gap-2 p-3 border rounded-lg bg-card hover:bg-accent/50 cursor-pointer"
                     data-testid={`report-type-item-${type.id}`}
                   >
                     <GripVertical className="h-4 w-4 text-muted-foreground" />
@@ -314,24 +315,6 @@ export default function ReportTypesDialog({ projectId, trigger }: ReportTypesDia
                       <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
                         Default
                       </span>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleEdit(type)}
-                      data-testid={`button-edit-${type.id}`}
-                    >
-                      <Edit3 className="h-4 w-4" />
-                    </Button>
-                    {!type.isDefault && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeleteClick(type)}
-                        data-testid={`button-delete-${type.id}`}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
                     )}
                   </div>
                 ))}
@@ -415,20 +398,34 @@ export default function ReportTypesDialog({ projectId, trigger }: ReportTypesDia
                   )}
                 />
 
-                <div className="flex gap-2 justify-end">
+                <div className="flex gap-2 justify-between">
                   {editingType && (
-                    <Button type="button" variant="outline" onClick={handleCancel}>
-                      Cancel
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => handleDeleteClick(editingType)}
+                      data-testid={`button-delete-${editingType.id}`}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete
                     </Button>
                   )}
-                  <Button 
-                    type="submit" 
-                    disabled={createMutation.isPending || updateMutation.isPending}
-                    data-testid="button-save-report-type"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    {editingType ? "Update" : "Add"} Report Type
-                  </Button>
+                  <div className="flex gap-2">
+                    {editingType && (
+                      <Button type="button" variant="outline" onClick={handleCancel}>
+                        Cancel
+                      </Button>
+                    )}
+                    <Button 
+                      type="submit" 
+                      disabled={createMutation.isPending || updateMutation.isPending}
+                      data-testid="button-save-report-type"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      {editingType ? "Update" : "Add"} Report Type
+                    </Button>
+                  </div>
                 </div>
               </form>
             </Form>
