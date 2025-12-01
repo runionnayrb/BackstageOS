@@ -130,6 +130,8 @@ export default function EnhancedHeader() {
           sectionName = 'Show Settings';
         } else if (pathParts[3] === 'templates') {
           sectionName = 'Report Templates';
+        } else if (pathParts[3] === 'notes-tracking') {
+          sectionName = 'Report Notes';
         }
         breadcrumbs.push({
           label: sectionName,
