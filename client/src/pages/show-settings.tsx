@@ -3291,12 +3291,28 @@ The Production Team`
                                   variant="outline"
                                   size="sm"
                                   className="h-8 w-8 p-0"
-                                  data-testid={`button-version-export-${version.id}`}
+                                  data-testid={`button-toggle-version-menu-${version.id}`}
                                 >
-                                  <Upload className="h-4 w-4" />
+                                  <div className="relative flex items-center">
+                                    <ChevronsLeft className={`h-4 w-4 transition-transform ${expandedVersionIds.has(version.id) ? 'rotate-180' : ''}`} />
+                                    <Upload className="h-3 w-3 absolute -top-1 -right-1 text-muted-foreground" />
+                                  </div>
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => {
+                                  const newSet = new Set(expandedVersionIds);
+                                  if (newSet.has(version.id)) {
+                                    newSet.delete(version.id);
+                                  } else {
+                                    newSet.add(version.id);
+                                  }
+                                  setExpandedVersionIds(newSet);
+                                }} data-testid={`menu-item-expand-collapse-${version.id}`}>
+                                  <ChevronsLeft className="h-4 w-4 mr-2" />
+                                  {expandedVersionIds.has(version.id) ? 'Hide' : 'Show'}
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
                                 <DropdownMenuItem onClick={() => {
                                   const runningOrderHTML = generateRunningOrderHTML();
                                   const today = new Date();
@@ -3317,23 +3333,6 @@ The Production Team`
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                              onClick={() => {
-                                const newSet = new Set(expandedVersionIds);
-                                if (newSet.has(version.id)) {
-                                  newSet.delete(version.id);
-                                } else {
-                                  newSet.add(version.id);
-                                }
-                                setExpandedVersionIds(newSet);
-                              }}
-                              data-testid={`button-toggle-version-menu-${version.id}`}
-                            >
-                              <ChevronsLeft className={`h-4 w-4 transition-transform ${expandedVersionIds.has(version.id) ? 'rotate-180' : ''}`} />
-                            </Button>
                             {version.status === 'draft' && (
                               <Button
                                 variant="outline"
