@@ -1329,11 +1329,11 @@ The Production Team`
       if (groupName !== 'Ungrouped') {
         html += `<h2>${groupName}</h2>`;
       }
-      html += '<ul>';
+      html += '<ul style="color: inherit; list-style-color: inherit;">';
       grouped[groupName]
         .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
         .forEach((item: any) => {
-          html += `<li>${item.name}</li>`;
+          html += `<li style="color: inherit;">${item.name}</li>`;
         });
       html += '</ul>';
     });
@@ -2378,8 +2378,11 @@ The Production Team`
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => {
                         const runningOrderHTML = generateRunningOrderHTML();
+                        const today = new Date();
+                        const dateStr = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                        const subject = `${project?.name || 'Project'} Running Order - ${dateStr}`;
                         setIsEmailModalOpen(true);
-                        setEmailForm({ to: '', cc: '', bcc: '', subject: 'Running Order - ' + (project?.name || 'Project'), body: runningOrderHTML });
+                        setEmailForm({ to: '', cc: '', bcc: '', subject, body: runningOrderHTML });
                         if (emailEditor) {
                           emailEditor.commands.setContent(runningOrderHTML);
                         }
