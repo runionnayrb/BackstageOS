@@ -3,7 +3,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -254,48 +253,41 @@ export default function NewReport() {
           </div>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Report Details</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div>
-                <Label htmlFor="title">Report Title</Label>
-                <Input
-                  id="title"
-                  {...form.register("title")}
-                  placeholder="Enter report title..."
-                />
-                {form.formState.errors.title && (
-                  <p className="text-sm text-red-600 mt-1">
-                    {form.formState.errors.title.message}
-                  </p>
-                )}
-              </div>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <div>
+            <Label htmlFor="title">Report Title</Label>
+            <Input
+              id="title"
+              {...form.register("title")}
+              placeholder="Enter report title..."
+            />
+            {form.formState.errors.title && (
+              <p className="text-sm text-red-600 mt-1">
+                {form.formState.errors.title.message}
+              </p>
+            )}
+          </div>
 
-              {renderReportFields()}
+          {renderReportFields()}
 
-              <div className="flex justify-end space-x-4 pt-6">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}`)}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={mutation.isPending}
-                  className="flex items-center gap-2"
-                >
-                  <Save className="h-4 w-4" />
-                  {mutation.isPending ? "Creating..." : "Create Report"}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+          <div className="flex justify-end space-x-4 pt-6">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}`)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="submit" 
+              disabled={mutation.isPending}
+              className="flex items-center gap-2"
+            >
+              <Save className="h-4 w-4" />
+              {mutation.isPending ? "Creating..." : "Create Report"}
+            </Button>
+          </div>
+        </form>
       </div>
     </div>
   );
