@@ -2408,7 +2408,19 @@ The Production Team`
                         grouped[group].push(item);
                       });
                       
-                      const sortedGroups = Object.keys(grouped).sort();
+                      const structureGroupsMap = new Map(
+                        getStructureGroups()
+                          .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
+                          .map((g: any) => [g.name, g.order ?? 0])
+                      );
+                      
+                      const sortedGroups = Object.keys(grouped).sort((a, b) => {
+                        if (a === 'Ungrouped') return 1;
+                        if (b === 'Ungrouped') return -1;
+                        const orderA = structureGroupsMap.get(a) ?? 999;
+                        const orderB = structureGroupsMap.get(b) ?? 999;
+                        return orderA - orderB;
+                      });
                       
                       return inShowItems.length > 0 ? (
                         <div className="space-y-4">
@@ -2457,7 +2469,19 @@ The Production Team`
                         grouped[group].push(item);
                       });
                       
-                      const sortedGroups = Object.keys(grouped).sort();
+                      const structureGroupsMap = new Map(
+                        getStructureGroups()
+                          .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
+                          .map((g: any) => [g.name, g.order ?? 0])
+                      );
+                      
+                      const sortedGroups = Object.keys(grouped).sort((a, b) => {
+                        if (a === 'Ungrouped') return 1;
+                        if (b === 'Ungrouped') return -1;
+                        const orderA = structureGroupsMap.get(a) ?? 999;
+                        const orderB = structureGroupsMap.get(b) ?? 999;
+                        return orderA - orderB;
+                      });
                       
                       return outOfShowItems.length > 0 ? (
                         <div className="space-y-4">
