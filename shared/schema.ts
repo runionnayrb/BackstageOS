@@ -456,7 +456,6 @@ export const showSettings = pgTable("show_settings", {
   layoutConfiguration: jsonb("layout_configuration"), // Drag-and-drop layout positioning for headers and notes
   globalPageMargins: jsonb("global_page_margins"), // Global page margins that apply to all templates
   featureSettings: jsonb("feature_settings").notNull().default('{"email":{"team":true},"chat":true,"reports":true,"calendar":true,"script":true,"props":true,"contacts":true}'), // Toggle settings for app features
-  runningOrder: jsonb("running_order"), // Array of running order items with grouping
   createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

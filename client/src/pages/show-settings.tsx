@@ -1031,7 +1031,7 @@ The Production Team`
     setDeletingDepartmentKey(null);
   };
 
-  // Running order CRUD handlers
+  // Running order CRUD handlers - stored in scheduleSettings
   const handleAddRunningOrderItem = () => {
     if (!runningOrderForm.name.trim()) {
       toast({
@@ -1042,8 +1042,12 @@ The Production Team`
       return;
     }
 
+    const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+      ? safeJsonParse((settings as any).scheduleSettings, {}) 
+      : ((settings as any)?.scheduleSettings || {});
+    
     const id = `ro-${Date.now()}`;
-    const currentRunningOrder = (settings as any)?.runningOrder || [];
+    const currentRunningOrder = scheduleSettings.runningOrder || [];
     
     const newItem = {
       id,
@@ -1052,7 +1056,7 @@ The Production Team`
     };
 
     const updatedRunningOrder = [...currentRunningOrder, newItem];
-    handleSettingsUpdate("runningOrder", updatedRunningOrder);
+    handleSettingsUpdate("scheduleSettings", { ...scheduleSettings, runningOrder: updatedRunningOrder });
 
     setIsRunningOrderDialogOpen(false);
     setRunningOrderForm({ name: '' });
@@ -1068,14 +1072,18 @@ The Production Team`
       return;
     }
 
-    const currentRunningOrder = (settings as any)?.runningOrder || [];
+    const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+      ? safeJsonParse((settings as any).scheduleSettings, {}) 
+      : ((settings as any)?.scheduleSettings || {});
+    
+    const currentRunningOrder = scheduleSettings.runningOrder || [];
     const updatedRunningOrder = currentRunningOrder.map((item: any) =>
       item.id === editingRunningOrderItem.id
         ? { ...item, name: runningOrderForm.name }
         : item
     );
 
-    handleSettingsUpdate("runningOrder", updatedRunningOrder);
+    handleSettingsUpdate("scheduleSettings", { ...scheduleSettings, runningOrder: updatedRunningOrder });
 
     setIsRunningOrderDialogOpen(false);
     setEditingRunningOrderItem(null);
@@ -1083,20 +1091,16 @@ The Production Team`
   };
 
   const handleDeleteRunningOrderItem = (id: string) => {
-    const currentRunningOrder = (settings as any)?.runningOrder || [];
+    const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+      ? safeJsonParse((settings as any).scheduleSettings, {}) 
+      : ((settings as any)?.scheduleSettings || {});
+    
+    const currentRunningOrder = scheduleSettings.runningOrder || [];
     const updatedRunningOrder = currentRunningOrder.filter((item: any) => item.id !== id);
 
-    handleSettingsUpdate("runningOrder", updatedRunningOrder);
+    handleSettingsUpdate("scheduleSettings", { ...scheduleSettings, runningOrder: updatedRunningOrder });
 
     setDeletingRunningOrderId(null);
-  };
-
-  const handleReorderRunningOrder = (items: any[]) => {
-    const reorderedItems = items.map((item, index) => ({
-      ...item,
-      order: index,
-    }));
-    handleSettingsUpdate("runningOrder", reorderedItems);
   };
 
   const copyShareLink = async () => {
@@ -2946,52 +2950,59 @@ The Production Team`}
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {settings?.runningOrder && (settings.runningOrder as any[]).length > 0 ? (
-                <div className="space-y-3">
-                  {(settings.runningOrder as any[])
-                    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-                    .map((item) => (
-                      <Card 
-                        key={item.id} 
-                        className="cursor-pointer hover:shadow-md transition-shadow select-none" 
-                        data-testid={`card-running-order-${item.id}`}
-                        onClick={() => {
-                          setEditingRunningOrderItem(item);
-                          setRunningOrderForm({ name: item.name });
-                          setIsRunningOrderDialogOpen(true);
-                        }}
-                      >
-                        <CardHeader className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <GripVertical className="h-4 w-4 text-muted-foreground" />
-                              <CardTitle className="text-base select-none">{item.name}</CardTitle>
+              {(() => {
+                const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                  ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                  : ((settings as any)?.scheduleSettings || {});
+                const runningOrder = scheduleSettings.runningOrder || [];
+                
+                return runningOrder.length > 0 ? (
+                  <div className="space-y-3">
+                    {(runningOrder as any[])
+                      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+                      .map((item) => (
+                        <Card 
+                          key={item.id} 
+                          className="cursor-pointer hover:shadow-md transition-shadow select-none" 
+                          data-testid={`card-running-order-${item.id}`}
+                          onClick={() => {
+                            setEditingRunningOrderItem(item);
+                            setRunningOrderForm({ name: item.name });
+                            setIsRunningOrderDialogOpen(true);
+                          }}
+                        >
+                          <CardHeader className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <GripVertical className="h-4 w-4 text-muted-foreground" />
+                                <CardTitle className="text-base select-none">{item.name}</CardTitle>
+                              </div>
                             </div>
-                          </div>
-                        </CardHeader>
-                      </Card>
-                    ))}
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <Theater className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold mb-2">No running order items yet</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Create your first running order item to organize your show.
-                  </p>
-                  <Button 
-                    onClick={() => {
-                      setEditingRunningOrderItem(null);
-                      setRunningOrderForm({ name: '' });
-                      setIsRunningOrderDialogOpen(true);
-                    }}
-                    data-testid="button-add-first-running-order-item"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add First Item
-                  </Button>
-                </div>
-              )}
+                          </CardHeader>
+                        </Card>
+                      ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <Theater className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                    <h3 className="text-lg font-semibold mb-2">No running order items yet</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Create your first running order item to organize your show.
+                    </p>
+                    <Button 
+                      onClick={() => {
+                        setEditingRunningOrderItem(null);
+                        setRunningOrderForm({ name: '' });
+                        setIsRunningOrderDialogOpen(true);
+                      }}
+                      data-testid="button-add-first-running-order-item"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add First Item
+                    </Button>
+                  </div>
+                );
+              })()}
             </CardContent>
           </Card>
         </TabsContent>
