@@ -267,121 +267,119 @@ const NotesTracking: React.FC = () => {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-start">
         <div>
-          <div className="flex items-center gap-3 mb-2">
-            <h2 className="text-2xl font-bold text-gray-900">Report Notes</h2>
-            <Popover open={filterOpen} onOpenChange={setFilterOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={`h-8 w-8 ${
-                    hasActiveFilters
-                      ? "text-blue-600 hover:text-blue-700"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  <Filter className="h-4 w-4" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80 p-0" align="start">
-                <div className="p-4 border-b">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-semibold flex items-center gap-2">
-                      <Filter className="h-4 w-4" />
-                      Filters
-                    </h4>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setFilterOpen(false)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-                <div className="p-4 space-y-4">
-                  <div>
-                    <label className="text-sm font-medium block mb-2">Report Type</label>
-                    <Select value={selectedReportType} onValueChange={setSelectedReportType}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="All report types" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All report types</SelectItem>
-                        {reportTypes.map(type => (
-                          <SelectItem key={type} value={type}>
-                            {type.charAt(0).toUpperCase() + type.slice(1)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <label className="text-sm font-medium block mb-2">Department</label>
-                    <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="All departments" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All departments</SelectItem>
-                        {departments.map(dept => (
-                          <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <label className="text-sm font-medium block mb-2">Status</label>
-                    <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="All statuses" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All statuses</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <label className="text-sm font-medium block mb-2">Priority</label>
-                    <Select value={selectedPriority} onValueChange={setSelectedPriority}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="All priorities" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All priorities</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="low">Low</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
-          </div>
-          <p className="text-gray-600">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Report Notes</h2>
+          <p className="text-gray-600 mb-3">
             Track and follow up on all notes from {project?.name || 'this project'}
           </p>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <AlertCircle className="w-4 h-4 text-yellow-600" />
+              {pendingNotes.length} pending
+            </span>
+            <span className="flex items-center gap-1">
+              <CheckCircle2 className="w-4 h-4 text-green-600" />
+              {completedNotes.length} completed
+            </span>
+          </div>
         </div>
         
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <AlertCircle className="w-4 h-4 text-yellow-600" />
-            {pendingNotes.length} pending
-          </span>
-          <span className="flex items-center gap-1">
-            <CheckCircle2 className="w-4 h-4 text-green-600" />
-            {completedNotes.length} completed
-          </span>
-        </div>
+        <Popover open={filterOpen} onOpenChange={setFilterOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`h-8 w-8 ${
+                hasActiveFilters
+                  ? "text-blue-600 hover:text-blue-700"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              <Filter className="h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-80 p-0" align="end">
+            <div className="p-4 border-b">
+              <div className="flex items-center justify-between">
+                <h4 className="font-semibold flex items-center gap-2">
+                  <Filter className="h-4 w-4" />
+                  Filters
+                </h4>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setFilterOpen(false)}
+                  className="h-8 w-8 p-0"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            <div className="p-4 space-y-4">
+              <div>
+                <label className="text-sm font-medium block mb-2">Report Type</label>
+                <Select value={selectedReportType} onValueChange={setSelectedReportType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All report types" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All report types</SelectItem>
+                    {reportTypes.map(type => (
+                      <SelectItem key={type} value={type}>
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium block mb-2">Department</label>
+                <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All departments" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All departments</SelectItem>
+                    {departments.map(dept => (
+                      <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium block mb-2">Status</label>
+                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All statuses" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All statuses</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium block mb-2">Priority</label>
+                <Select value={selectedPriority} onValueChange={setSelectedPriority}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All priorities" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All priorities</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="low">Low</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
       {/* Search bar */}
       <div className="relative">
