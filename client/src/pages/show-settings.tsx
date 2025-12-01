@@ -1993,7 +1993,7 @@ The Production Team`
                       data-testid="button-add-running-order-item"
                       onClick={() => {
                         setEditingRunningOrderItem(null);
-                        setRunningOrderForm({ name: '' });
+                        setRunningOrderForm({ name: '', group: '' });
                         setIsRunningOrderDialogOpen(true);
                       }}
                     >
@@ -2042,14 +2042,14 @@ The Production Team`
                       <div>
                         <Label htmlFor="ro-group">Group</Label>
                         <Select
-                          value={runningOrderForm.group}
-                          onValueChange={(value) => setRunningOrderForm({ ...runningOrderForm, group: value })}
+                          value={runningOrderForm.group || 'ungrouped'}
+                          onValueChange={(value) => setRunningOrderForm({ ...runningOrderForm, group: value === 'ungrouped' ? '' : value })}
                         >
                           <SelectTrigger id="ro-group" data-testid="select-running-order-group">
                             <SelectValue placeholder="Select a group or leave blank for Ungrouped" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">Ungrouped</SelectItem>
+                            <SelectItem value="ungrouped">Ungrouped</SelectItem>
                             {getStructureGroups()
                               .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
                               .map((group: any) => (
