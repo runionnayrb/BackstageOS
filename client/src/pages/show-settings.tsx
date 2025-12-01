@@ -2841,7 +2841,7 @@ The Production Team`
                         Cancel
                       </Button>
                       <Button
-                        onClick={() => {
+                        onClick={async () => {
                           if (!emailForm.to.trim()) {
                             toast({
                               title: "Missing recipient",
@@ -2850,17 +2850,60 @@ The Production Team`
                             });
                             return;
                           }
-                          // For now, just download the PDF - email sending would require backend implementation
-                          downloadRunningOrderPDF();
-                          toast({
-                            title: "Running Order PDF Generated",
-                            description: "The PDF has been downloaded. You can attach it to your email manually or set up email integration.",
-                          });
-                          setIsEmailModalOpen(false);
+                          if (!emailForm.subject.trim()) {
+                            toast({
+                              title: "Missing subject",
+                              description: "Please enter a subject for the email.",
+                              variant: "destructive",
+                            });
+                            return;
+                          }
+                          if (!emailForm.body.trim()) {
+                            toast({
+                              title: "Missing message",
+                              description: "Please add a message to the email.",
+                              variant: "destructive",
+                            });
+                            return;
+                          }
+                          
+                          // Parse email addresses (handle comma-separated values)
+                          const parseEmails = (str: string) => str.split(',').map(e => e.trim()).filter(e => e);
+                          
+                          try {
+                            const response = await apiRequest('/api/user/email-provider/send', {
+                              method: 'POST',
+                              body: JSON.stringify({
+                                to: parseEmails(emailForm.to),
+                                cc: emailForm.cc ? parseEmails(emailForm.cc) : [],
+                                bcc: emailForm.bcc ? parseEmails(emailForm.bcc) : [],
+                                subject: emailForm.subject,
+                                body: emailForm.body,
+                                isHtml: true,
+                              }),
+                            });
+                            
+                            if (response.success || response.messageId) {
+                              toast({
+                                title: "Email sent successfully!",
+                                description: "Your running order has been sent.",
+                              });
+                              setIsEmailModalOpen(false);
+                              setEmailForm({ to: '', cc: '', bcc: '', subject: '', body: '' });
+                            } else {
+                              throw new Error(response.message || "Failed to send email");
+                            }
+                          } catch (error: any) {
+                            toast({
+                              title: "Failed to send email",
+                              description: error.message || "Please make sure you have connected an email account.",
+                              variant: "destructive",
+                            });
+                          }
                         }}
                         data-testid="button-email-send"
                       >
-                        Download PDF & Prepare Email
+                        Send Email
                       </Button>
                     </DialogFooter>
                   </DialogContent>
