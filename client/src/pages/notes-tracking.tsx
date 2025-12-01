@@ -129,6 +129,27 @@ const NotesTracking: React.FC = () => {
     return reports.find((r: any) => r.id === reportId);
   };
 
+  // Helper function to sort notes - defined before use
+  const sortNotes = (notes: ReportNote[]) => {
+    const sorted = [...notes];
+    switch (sortBy) {
+      case 'date-asc':
+        return sorted.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      case 'date-desc':
+        return sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      case 'priority-high':
+        const priorityOrder = { high: 0, medium: 1, low: 2 };
+        return sorted.sort((a, b) => (priorityOrder[a.priority as keyof typeof priorityOrder] || 3) - (priorityOrder[b.priority as keyof typeof priorityOrder] || 3));
+      case 'priority-low':
+        const priorityOrderReverse = { low: 0, medium: 1, high: 2 };
+        return sorted.sort((a, b) => (priorityOrderReverse[a.priority as keyof typeof priorityOrderReverse] || 3) - (priorityOrderReverse[b.priority as keyof typeof priorityOrderReverse] || 3));
+      case 'status':
+        return sorted.sort((a, b) => (a.isCompleted ? 1 : 0) - (b.isCompleted ? 1 : 0));
+      default:
+        return sorted;
+    }
+  };
+
   // Filter notes based on search and filters
   const filteredNotes = allNotes.filter(note => {
     const report = getReport(note.reportId);
@@ -213,26 +234,6 @@ const NotesTracking: React.FC = () => {
 
   const handleResetSort = () => {
     setSortBy('date-desc');
-  };
-
-  const sortNotes = (notes: ReportNote[]) => {
-    const sorted = [...notes];
-    switch (sortBy) {
-      case 'date-asc':
-        return sorted.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-      case 'date-desc':
-        return sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-      case 'priority-high':
-        const priorityOrder = { high: 0, medium: 1, low: 2 };
-        return sorted.sort((a, b) => (priorityOrder[a.priority as keyof typeof priorityOrder] || 3) - (priorityOrder[b.priority as keyof typeof priorityOrder] || 3));
-      case 'priority-low':
-        const priorityOrderReverse = { low: 0, medium: 1, high: 2 };
-        return sorted.sort((a, b) => (priorityOrderReverse[a.priority as keyof typeof priorityOrderReverse] || 3) - (priorityOrderReverse[b.priority as keyof typeof priorityOrderReverse] || 3));
-      case 'status':
-        return sorted.sort((a, b) => (a.isCompleted ? 1 : 0) - (b.isCompleted ? 1 : 0));
-      default:
-        return sorted;
-    }
   };
 
   const getPriorityColor = (priority: string) => {
