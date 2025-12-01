@@ -71,8 +71,13 @@ import {
   Theater,
   ChevronUp,
   ChevronDown,
-  Layers
+  Layers,
+  History,
+  RotateCcw,
+  Check,
+  FileCheck
 } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 // Helper function to safely parse JSON with error handling
 const safeJsonParse = (jsonString: string, fallback: any = {}) => {
@@ -206,6 +211,15 @@ export default function ShowSettings() {
   const [deletingStructureGroupId, setDeletingStructureGroupId] = useState<string | null>(null);
   const [draggedGroupId, setDraggedGroupId] = useState<string | null>(null);
   const [dragOverGroupId, setDragOverGroupId] = useState<string | null>(null);
+  
+  // Running order versioning state
+  const [isVersionsDialogOpen, setIsVersionsDialogOpen] = useState(false);
+  const [isSaveVersionDialogOpen, setIsSaveVersionDialogOpen] = useState(false);
+  const [isCompareDialogOpen, setIsCompareDialogOpen] = useState(false);
+  const [versionForm, setVersionForm] = useState({ label: '', notes: '' });
+  const [selectedVersionForRevert, setSelectedVersionForRevert] = useState<any>(null);
+  const [selectedVersionsToCompare, setSelectedVersionsToCompare] = useState<number[]>([]);
+  const [viewingVersion, setViewingVersion] = useState<any>(null);
 
   // Use admin view context to override profile type for testing
   const { selectedProfileType } = useAdminView();
@@ -283,6 +297,110 @@ export default function ShowSettings() {
     queryKey: [`/api/email/accounts`],
     enabled: !!user,
   });
+
+  // Query for running order versions
+  const { data: runningOrderVersions = [], refetch: refetchVersions } = useQuery({
+    queryKey: [`/api/projects/${params.id}/running-order-versions`],
+    enabled: !!params.id && activeTab === 'running-order',
+  });
+
+  // Mutation for creating a new version
+  const createVersionMutation = useMutation({
+    mutationFn: async (data: { label: string; notes: string; status: 'draft' | 'published' }) => {
+      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+        ? safeJsonParse((settings as any).scheduleSettings, {}) 
+        : ((settings as any)?.scheduleSettings || {});
+      const runningOrder = scheduleSettings.runningOrder || [];
+      const structureGroups = scheduleSettings.structureGroups || [];
+      
+      return await apiRequest("POST", `/api/projects/${params.id}/running-order-versions`, {
+        ...data,
+        runningOrder,
+        structureGroups,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/running-order-versions`] });
+      setIsSaveVersionDialogOpen(false);
+      setVersionForm({ label: '', notes: '' });
+      toast({
+        title: "Version Saved",
+        description: "Your running order has been saved as a new version.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to save version. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation for updating a version
+  const updateVersionMutation = useMutation({
+    mutationFn: async ({ id, ...data }: { id: number; label?: string; notes?: string; status?: string }) => {
+      return await apiRequest("PATCH", `/api/projects/${params.id}/running-order-versions/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/running-order-versions`] });
+      toast({
+        title: "Version Updated",
+        description: "Version has been updated successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update version. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation for deleting a version
+  const deleteVersionMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return await apiRequest("DELETE", `/api/projects/${params.id}/running-order-versions/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/running-order-versions`] });
+      toast({
+        title: "Version Deleted",
+        description: "Version has been deleted successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete version. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Revert to a previous version
+  const revertToVersion = async (version: any) => {
+    const currentScheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+      ? safeJsonParse((settings as any).scheduleSettings, {}) 
+      : ((settings as any)?.scheduleSettings || {});
+    
+    const updatedScheduleSettings = {
+      ...currentScheduleSettings,
+      runningOrder: version.runningOrder,
+      structureGroups: version.structureGroups || [],
+    };
+
+    await updateSettingsMutation.mutateAsync({
+      scheduleSettings: JSON.stringify(updatedScheduleSettings),
+    } as any);
+
+    setSelectedVersionForRevert(null);
+    toast({
+      title: "Version Restored",
+      description: `Running order has been reverted to version ${version.versionNumber}.`,
+    });
+  };
 
   const updateSettingsMutation = useMutation({
     mutationFn: async (data: Partial<ShowSettings>) => {
@@ -2004,6 +2122,14 @@ The Production Team`
                 <div className="hidden md:flex gap-2">
                   <Button
                     variant="outline"
+                    data-testid="button-versions"
+                    onClick={() => setIsVersionsDialogOpen(true)}
+                  >
+                    <History className="h-4 w-4 mr-2" />
+                    Versions
+                  </Button>
+                  <Button
+                    variant="outline"
                     data-testid="button-manage-structure"
                     onClick={() => setIsStructureDialogOpen(true)}
                   >
@@ -2313,6 +2439,251 @@ The Production Team`
               })()}
             </CardContent>
           </Card>
+
+          {/* Versions Dialog */}
+          <Dialog open={isVersionsDialogOpen} onOpenChange={setIsVersionsDialogOpen}>
+            <DialogContent className="max-w-2xl max-h-[80vh]">
+              <DialogHeader>
+                <DialogTitle>Running Order Versions</DialogTitle>
+                <DialogDescription>
+                  View and manage saved versions of your running order. Revert to previous versions or compare changes.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex justify-end mb-4">
+                <Button onClick={() => setIsSaveVersionDialogOpen(true)} data-testid="button-save-new-version">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Save Current as New Version
+                </Button>
+              </div>
+              <ScrollArea className="h-[400px]">
+                {(runningOrderVersions as any[]).length > 0 ? (
+                  <div className="space-y-3">
+                    {(runningOrderVersions as any[]).map((version: any) => (
+                      <div 
+                        key={version.id}
+                        className="border rounded-lg p-4 hover:bg-muted/50 transition-colors"
+                        data-testid={`version-card-${version.id}`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold">v{version.versionNumber}</span>
+                              {version.label && (
+                                <Badge variant="outline">{version.label}</Badge>
+                              )}
+                              <Badge variant={version.status === 'published' ? 'default' : 'secondary'}>
+                                {version.status === 'published' ? (
+                                  <><FileCheck className="h-3 w-3 mr-1" /> Published</>
+                                ) : (
+                                  'Draft'
+                                )}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {new Date(version.createdAt).toLocaleDateString()} at {new Date(version.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                            {version.notes && (
+                              <p className="text-sm mt-2 text-muted-foreground">{version.notes}</p>
+                            )}
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {(version.runningOrder as any[])?.length || 0} items
+                            </p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => setViewingVersion(version)}
+                              data-testid={`button-view-version-${version.id}`}
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              View
+                            </Button>
+                            {version.status === 'draft' && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => updateVersionMutation.mutate({ id: version.id, status: 'published' })}
+                                data-testid={`button-publish-version-${version.id}`}
+                              >
+                                <Check className="h-4 w-4 mr-1" />
+                                Publish
+                              </Button>
+                            )}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setSelectedVersionForRevert(version)}
+                              data-testid={`button-revert-version-${version.id}`}
+                            >
+                              <RotateCcw className="h-4 w-4 mr-1" />
+                              Revert
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <History className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                    <h3 className="text-lg font-semibold mb-2">No versions saved yet</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Save your current running order as a version to track changes over time.
+                    </p>
+                    <Button onClick={() => setIsSaveVersionDialogOpen(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Save First Version
+                    </Button>
+                  </div>
+                )}
+              </ScrollArea>
+            </DialogContent>
+          </Dialog>
+
+          {/* Save Version Dialog */}
+          <Dialog open={isSaveVersionDialogOpen} onOpenChange={setIsSaveVersionDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Save as New Version</DialogTitle>
+                <DialogDescription>
+                  Create a snapshot of the current running order that you can revert to later.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="version-label">Version Label (optional)</Label>
+                  <Input
+                    id="version-label"
+                    placeholder="e.g., Opening Night, Week 2, After Changes"
+                    value={versionForm.label}
+                    onChange={(e) => setVersionForm({ ...versionForm, label: e.target.value })}
+                    data-testid="input-version-label"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="version-notes">Notes (optional)</Label>
+                  <Textarea
+                    id="version-notes"
+                    placeholder="Add any notes about this version..."
+                    value={versionForm.notes}
+                    onChange={(e) => setVersionForm({ ...versionForm, notes: e.target.value })}
+                    data-testid="input-version-notes"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsSaveVersionDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={() => createVersionMutation.mutate({ 
+                    label: versionForm.label, 
+                    notes: versionForm.notes, 
+                    status: 'draft' 
+                  })}
+                  disabled={createVersionMutation.isPending}
+                  data-testid="button-confirm-save-version"
+                >
+                  {createVersionMutation.isPending ? 'Saving...' : 'Save Version'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* View Version Dialog */}
+          <Dialog open={!!viewingVersion} onOpenChange={() => setViewingVersion(null)}>
+            <DialogContent className="max-w-2xl max-h-[80vh]">
+              <DialogHeader>
+                <DialogTitle>
+                  Version {viewingVersion?.versionNumber}
+                  {viewingVersion?.label && ` - ${viewingVersion.label}`}
+                </DialogTitle>
+                <DialogDescription>
+                  Saved on {viewingVersion && new Date(viewingVersion.createdAt).toLocaleDateString()}
+                  {viewingVersion?.notes && ` • ${viewingVersion.notes}`}
+                </DialogDescription>
+              </DialogHeader>
+              <ScrollArea className="h-[400px]">
+                {viewingVersion && (
+                  <div className="space-y-4">
+                    {(() => {
+                      const runningOrder = viewingVersion.runningOrder || [];
+                      const structureGroups = viewingVersion.structureGroups || [];
+                      const grouped: Record<string, any[]> = {};
+                      
+                      runningOrder.forEach((item: any) => {
+                        const group = item.group || 'Ungrouped';
+                        if (!grouped[group]) grouped[group] = [];
+                        grouped[group].push(item);
+                      });
+                      
+                      const sortedGroups = Object.keys(grouped).sort((a, b) => {
+                        if (a === 'Ungrouped') return 1;
+                        if (b === 'Ungrouped') return -1;
+                        const groupA = structureGroups.find((g: any) => g.name === a);
+                        const groupB = structureGroups.find((g: any) => g.name === b);
+                        return (groupA?.order ?? 0) - (groupB?.order ?? 0);
+                      });
+                      
+                      return sortedGroups.map((groupName) => (
+                        <div key={groupName} className="space-y-2">
+                          <h4 className="text-sm font-semibold text-muted-foreground">{groupName}</h4>
+                          <div className="space-y-1 pl-4">
+                            {grouped[groupName]
+                              .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+                              .map((item, index) => (
+                                <div key={item.id || index} className="text-sm py-1">
+                                  {item.name}
+                                </div>
+                              ))}
+                          </div>
+                        </div>
+                      ));
+                    })()}
+                  </div>
+                )}
+              </ScrollArea>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setViewingVersion(null)}>
+                  Close
+                </Button>
+                <Button 
+                  variant="default"
+                  onClick={() => {
+                    setSelectedVersionForRevert(viewingVersion);
+                    setViewingVersion(null);
+                  }}
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Revert to This Version
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Revert Confirmation Dialog */}
+          <AlertDialog open={!!selectedVersionForRevert} onOpenChange={() => setSelectedVersionForRevert(null)}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Revert to Version {selectedVersionForRevert?.versionNumber}?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will replace your current running order with the version from{' '}
+                  {selectedVersionForRevert && new Date(selectedVersionForRevert.createdAt).toLocaleDateString()}.
+                  {selectedVersionForRevert?.label && ` (${selectedVersionForRevert.label})`}
+                  <br /><br />
+                  Your current running order will be replaced. Consider saving it as a version first if you haven't already.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={() => selectedVersionForRevert && revertToVersion(selectedVersionForRevert)}>
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Revert
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </TabsContent>
 
         <TabsContent value="departments" className="mt-6">
