@@ -80,7 +80,7 @@ import {
   Check,
   FileCheck,
   ChevronsLeft,
-  FileUp
+  Upload
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -2269,7 +2269,7 @@ The Production Team`
                         className="h-8 w-8 p-0 hover:bg-transparent"
                         data-testid="button-export-running-order"
                       >
-                        <FileUp className="h-4 w-4 text-foreground hover:text-blue-500 transition-colors" />
+                        <Upload className="h-4 w-4 text-foreground hover:text-blue-500 transition-colors" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
