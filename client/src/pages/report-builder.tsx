@@ -1099,96 +1099,82 @@ export default function ReportBuilder() {
   };
 
   return (
-    <div className="p-6">
-      <div className="max-w-4xl">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">{generatePageTitle(reportType || "", isEditMode)}</h2>
-        </div>
-
-        {/* Template Selection - Hidden since template is auto-selected based on report type */}
-
-        {/* Report Form - Document Style */}
-        <div>
-          <div>
-            {/* Print-style Document Preview */}
-            <div className="bg-white min-h-[500px]" style={{ 
-              width: "8.5in", 
-              margin: "0 auto",
-              padding: "1in",
-              fontFamily: "Arial, sans-serif"
-            }}>
-              <form onSubmit={form.handleSubmit(onSubmit)}>
-                {/* Header from Global Template Settings */}
-                {customTemplate?.headerFormatting && (() => {
-                  console.log('🎨 HEADER FORMATTING BEING APPLIED:', customTemplate.headerFormatting);
-                  return (
-                    <div 
-                      className="mb-6 pb-4 border-b"
-                      style={{
-                        textAlign: customTemplate.headerFormatting.textAlign || 'center',
-                        color: customTemplate.headerFormatting.color || '#000000',
-                        fontSize: customTemplate.headerFormatting.fontSize || '18px',
-                        fontFamily: customTemplate.headerFormatting.fontFamily || 'Arial, sans-serif',
-                        fontWeight: customTemplate.headerFormatting.fontWeight || '400',
-                        fontStyle: customTemplate.headerFormatting.fontStyle || 'normal',
-                        textDecoration: customTemplate.headerFormatting.textDecoration || 'none',
-                        backgroundColor: customTemplate.headerFormatting.backgroundColor || 'transparent',
-                        padding: '8px 0'
-                      }}
-                    >
-                      <div>{form.getValues("title") || matchingTemplate?.name || currentReportType?.name || generateReportTitle(reportType)}</div>
-                      <div style={{ marginTop: '8px' }}>{project?.name || 'Show Name'}</div>
-                      <div style={{ marginTop: '4px' }}>{new Date(form.getValues("date") || new Date()).toLocaleDateString()}</div>
-                    </div>
-                  );
-                })()}
-
-                {/* Document Fields */}
-                <div className="space-y-4">
-                  {renderTemplateFields()}
-                </div>
-
-                {/* Footer from Global Template Settings */}
-                {customTemplate?.footerFormatting && (
-                  <div 
-                    className="mt-6 pt-4 border-t"
-                    style={{
-                      textAlign: customTemplate.footerFormatting.textAlign || 'center',
-                      color: customTemplate.footerFormatting.color || '#6b7280',
-                      fontSize: customTemplate.footerFormatting.fontSize || '14px',
-                      fontFamily: customTemplate.footerFormatting.fontFamily || 'Arial, sans-serif',
-                      fontWeight: customTemplate.footerFormatting.fontWeight || '400',
-                      fontStyle: customTemplate.footerFormatting.fontStyle || 'normal',
-                      textDecoration: customTemplate.footerFormatting.textDecoration || 'none',
-                      backgroundColor: customTemplate.footerFormatting.backgroundColor || 'transparent',
-                      padding: '8px 0'
-                    }}
-                  >
-                    Page 1
-                  </div>
-                )}
-
-                {/* Action Buttons - Fixed at bottom */}
-                <div className="fixed bottom-6 right-6 flex space-x-2 bg-white shadow-lg rounded-lg p-4 border">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}`)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    type="submit" 
-                    disabled={mutation.isPending || (!selectedTemplate && !isEditMode)}
-                  >
-                    {mutation.isPending ? (isEditMode ? "Updating..." : "Creating...") : (isEditMode ? "Update Report" : "Save Report")}
-                  </Button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
+    <div>
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">{generatePageTitle(reportType || "", isEditMode)}</h2>
       </div>
+
+      {/* Template Selection - Hidden since template is auto-selected based on report type */}
+
+      {/* Report Form */}
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        {/* Header from Global Template Settings */}
+        {customTemplate?.headerFormatting && (() => {
+          console.log('🎨 HEADER FORMATTING BEING APPLIED:', customTemplate.headerFormatting);
+          return (
+            <div 
+              className="mb-6 pb-4 border-b"
+              style={{
+                textAlign: customTemplate.headerFormatting.textAlign || 'center',
+                color: customTemplate.headerFormatting.color || '#000000',
+                fontSize: customTemplate.headerFormatting.fontSize || '18px',
+                fontFamily: customTemplate.headerFormatting.fontFamily || 'Arial, sans-serif',
+                fontWeight: customTemplate.headerFormatting.fontWeight || '400',
+                fontStyle: customTemplate.headerFormatting.fontStyle || 'normal',
+                textDecoration: customTemplate.headerFormatting.textDecoration || 'none',
+                backgroundColor: customTemplate.headerFormatting.backgroundColor || 'transparent',
+                padding: '8px 0'
+              }}
+            >
+              <div>{form.getValues("title") || matchingTemplate?.name || currentReportType?.name || generateReportTitle(reportType)}</div>
+              <div style={{ marginTop: '8px' }}>{project?.name || 'Show Name'}</div>
+              <div style={{ marginTop: '4px' }}>{new Date(form.getValues("date") || new Date()).toLocaleDateString()}</div>
+            </div>
+          );
+        })()}
+
+        {/* Document Fields */}
+        <div className="space-y-4">
+          {renderTemplateFields()}
+        </div>
+
+        {/* Footer from Global Template Settings */}
+        {customTemplate?.footerFormatting && (
+          <div 
+            className="mt-6 pt-4 border-t"
+            style={{
+              textAlign: customTemplate.footerFormatting.textAlign || 'center',
+              color: customTemplate.footerFormatting.color || '#6b7280',
+              fontSize: customTemplate.footerFormatting.fontSize || '14px',
+              fontFamily: customTemplate.footerFormatting.fontFamily || 'Arial, sans-serif',
+              fontWeight: customTemplate.footerFormatting.fontWeight || '400',
+              fontStyle: customTemplate.footerFormatting.fontStyle || 'normal',
+              textDecoration: customTemplate.footerFormatting.textDecoration || 'none',
+              backgroundColor: customTemplate.footerFormatting.backgroundColor || 'transparent',
+              padding: '8px 0'
+            }}
+          >
+            Page 1
+          </div>
+        )}
+
+        {/* Action Buttons - Fixed at bottom */}
+        <div className="fixed bottom-6 right-6 flex space-x-2 bg-white shadow-lg rounded-lg p-4 border">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}`)}
+          >
+            Cancel
+          </Button>
+          <Button 
+            type="submit" 
+            disabled={mutation.isPending || (!selectedTemplate && !isEditMode)}
+          >
+            {mutation.isPending ? (isEditMode ? "Updating..." : "Creating...") : (isEditMode ? "Update Report" : "Save Report")}
+          </Button>
+        </div>
+      </form>
     </div>
   );
 }
