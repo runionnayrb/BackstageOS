@@ -275,6 +275,13 @@ export default function ShowSettings() {
     },
   });
 
+  // Sync editor content with form body instantly
+  useEffect(() => {
+    if (emailEditor && isEmailModalOpen && emailForm.body) {
+      emailEditor.commands.setContent(emailForm.body);
+    }
+  }, [isEmailModalOpen, emailEditor, emailForm.body]);
+
   // Use admin view context to override profile type for testing
   const { selectedProfileType } = useAdminView();
   const effectiveProfileType = user ? (selectedProfileType === 'all' ? user.profileType : selectedProfileType) : 'freelance';
