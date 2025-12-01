@@ -22,7 +22,8 @@ import {
   FileText,
   AlertCircle,
   CheckCircle2,
-  X
+  X,
+  Layers
 } from 'lucide-react';
 import type { ReportNote } from '@shared/schema';
 
@@ -42,6 +43,8 @@ const NotesTracking: React.FC = () => {
   const [selectedPriority, setSelectedPriority] = useState<string>('all');
   const [selectedReportType, setSelectedReportType] = useState<string>('all');
   const [filterOpen, setFilterOpen] = useState(false);
+  const [groupBy, setGroupBy] = useState<string>('none');
+  const [groupOpen, setGroupOpen] = useState(false);
 
   // Fetch all notes for the project
   const { data: allNotes = [], isLoading } = useQuery<ReportNote[]>({
@@ -135,6 +138,29 @@ const NotesTracking: React.FC = () => {
     
     return matchesSearch && matchesDepartment && matchesStatus && matchesPriority && matchesReportType;
   });
+
+  // Group notes by selected grouping or by status
+  const getGroupKey = (note: ReportNote) => {
+    switch (groupBy) {
+      case 'date':
+        return new Date(note.createdAt).toLocaleDateString();
+      case 'reportType':
+        return getReport(note.reportId)?.phase || 'Unknown';
+      case 'department':
+        return note.department ? (note.department.charAt(0).toUpperCase() + note.department.slice(1).toLowerCase()) : 'No Department';
+      case 'priority':
+        return note.priority?.charAt(0).toUpperCase() + note.priority?.slice(1) || 'Medium';
+      default:
+        return note.isCompleted ? 'Completed' : 'Pending';
+    }
+  };
+
+  const groupedNotes = filteredNotes.reduce((acc, note) => {
+    const key = getGroupKey(note);
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(note);
+    return acc;
+  }, {} as Record<string, ReportNote[]>);
 
   // Group notes by status
   const pendingNotes = filteredNotes.filter(note => !note.isCompleted);
@@ -306,6 +332,62 @@ const NotesTracking: React.FC = () => {
             <Search className="h-4 w-4" />
           </Button>
 
+          {/* Group Icon */}
+          <Popover open={groupOpen} onOpenChange={setGroupOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`h-8 w-8 ${
+                  groupBy !== 'none'
+                    ? "text-blue-600 hover:text-blue-700"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                <Layers className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80 p-0" align="end">
+              <div className="p-4 border-b">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold flex items-center gap-2">
+                    <Layers className="h-4 w-4" />
+                    Group By
+                  </h4>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setGroupOpen(false)}
+                    className="h-8 w-8 p-0"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              <div className="p-4 space-y-3">
+                {['none', 'date', 'reportType', 'department', 'priority'].map((option) => (
+                  <div
+                    key={option}
+                    className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer"
+                    onClick={() => {
+                      setGroupBy(option);
+                      setGroupOpen(false);
+                    }}
+                  >
+                    <Checkbox
+                      checked={groupBy === option}
+                      onChange={() => setGroupBy(option)}
+                      className="pointer-events-none"
+                    />
+                    <span className="text-sm capitalize">
+                      {option === 'none' ? 'No Grouping' : option === 'reportType' ? 'Report Type' : option}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+
           {/* Filter Icon */}
           <Popover open={filterOpen} onOpenChange={setFilterOpen}>
             <PopoverTrigger asChild>
@@ -405,50 +487,65 @@ const NotesTracking: React.FC = () => {
         </div>
       </div>
       {/* Notes Display */}
-      <Tabs defaultValue="pending" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="pending" className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4" />
-            Pending ({pendingNotes.length})
-          </TabsTrigger>
-          <TabsTrigger value="completed" className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4" />
-            Completed ({completedNotes.length})
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="pending" className="space-y-3">
-          {pendingNotes.length === 0 ? (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">All caught up!</h3>
-                <p className="text-gray-500">No pending notes to follow up on.</p>
-              </CardContent>
-            </Card>
-          ) : (
-            pendingNotes.map(note => (
-              <NoteCard key={note.id} note={note} />
-            ))
-          )}
-        </TabsContent>
-        
-        <TabsContent value="completed" className="space-y-3">
-          {completedNotes.length === 0 ? (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No completed notes</h3>
-                <p className="text-gray-500">Completed notes will appear here.</p>
-              </CardContent>
-            </Card>
-          ) : (
-            completedNotes.map(note => (
-              <NoteCard key={note.id} note={note} />
-            ))
-          )}
-        </TabsContent>
-      </Tabs>
+      {groupBy === 'none' ? (
+        <Tabs defaultValue="pending" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="pending" className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4" />
+              Pending ({pendingNotes.length})
+            </TabsTrigger>
+            <TabsTrigger value="completed" className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4" />
+              Completed ({completedNotes.length})
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="pending" className="space-y-3">
+            {pendingNotes.length === 0 ? (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">All caught up!</h3>
+                  <p className="text-gray-500">No pending notes to follow up on.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              pendingNotes.map(note => (
+                <NoteCard key={note.id} note={note} />
+              ))
+            )}
+          </TabsContent>
+          
+          <TabsContent value="completed" className="space-y-3">
+            {completedNotes.length === 0 ? (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No completed notes</h3>
+                  <p className="text-gray-500">Completed notes will appear here.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              completedNotes.map(note => (
+                <NoteCard key={note.id} note={note} />
+              ))
+            )}
+          </TabsContent>
+        </Tabs>
+      ) : (
+        <div className="space-y-4">
+          {Object.entries(groupedNotes).map(([group, notes]) => (
+            <div key={group}>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3 px-1">{group}</h3>
+              <div className="space-y-3">
+                {notes.map(note => (
+                  <NoteCard key={note.id} note={note} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
