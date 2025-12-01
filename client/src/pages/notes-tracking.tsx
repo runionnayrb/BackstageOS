@@ -198,6 +198,10 @@ const NotesTracking: React.FC = () => {
     setSelectedReportType('all');
   };
 
+  const handleResetGrouping = () => {
+    setGroupBy('none');
+  };
+
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'high': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
@@ -362,33 +366,39 @@ const NotesTracking: React.FC = () => {
                     <Layers className="h-4 w-4" />
                     Group By
                   </h4>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setGroupOpen(false)}
-                    className="h-8 w-8 p-0"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleResetGrouping}
+                      className="h-8 w-8 p-0"
+                      title="Reset grouping"
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setGroupOpen(false)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
-              <div className="p-4 space-y-3">
-                {['none', 'date', 'reportType', 'department', 'priority'].map((option) => (
+              <div className="p-4 space-y-2">
+                {['date', 'reportType', 'department', 'priority'].map((option) => (
                   <div
                     key={option}
-                    className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer"
+                    className="p-3 rounded hover:bg-blue-50 cursor-pointer transition-colors"
                     onClick={() => {
                       setGroupBy(option);
                       setGroupOpen(false);
                     }}
                   >
-                    <Checkbox
-                      checked={groupBy === option}
-                      onChange={() => setGroupBy(option)}
-                      className="pointer-events-none"
-                    />
                     <span className="text-sm capitalize">
-                      {option === 'none' ? 'No Grouping' : option === 'reportType' ? 'Report Type' : option}
+                      {option === 'reportType' ? 'Report Type' : option}
                     </span>
                   </div>
                 ))}
