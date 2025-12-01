@@ -2680,8 +2680,6 @@ export type ScheduleEventParticipant = typeof scheduleEventParticipants.$inferSe
 export type InsertScheduleEventParticipant = z.infer<typeof insertScheduleEventParticipantSchema>;
 export type ReportNote = typeof reportNotes.$inferSelect;
 export type InsertReportNote = z.infer<typeof insertReportNoteSchema>;
-export type ProjectMember = typeof projectMembers.$inferSelect;
-export type InsertProjectMember = z.infer<typeof insertProjectMemberSchema>;
 
 export const insertContactSheetVersionSchema = createInsertSchema(contactSheetVersions).omit({
   id: true,
@@ -2906,8 +2904,6 @@ export type AccountType = typeof accountTypes.$inferSelect;
 export type InsertAccountType = z.infer<typeof insertAccountTypeSchema>;
 export type Project = typeof projects.$inferSelect;
 export type InsertProject = z.infer<typeof insertProjectSchema>;
-export type ProjectMember = typeof projectMembers.$inferSelect;
-export type InsertProjectMember = z.infer<typeof insertProjectMemberSchema>;
 export type Report = typeof reports.$inferSelect;
 export type InsertReport = z.infer<typeof insertReportSchema>;
 export type ReportTemplate = typeof reportTemplates.$inferSelect;

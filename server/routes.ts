@@ -698,11 +698,6 @@ function analyzeAndFixError(errorLog: any) {
 
 // Admin middleware
 async function requireAdmin(req: any, res: any, next: any) {
-  console.log(`🔐 requireAdmin check: ${req.url}`, {
-    isAuthenticated: req.isAuthenticated(),
-    userAgent: req.headers['user-agent']?.substring(0, 50)
-  });
-  
   // SECURITY: No bypass - admin users must be properly authenticated
   if (!req.isAuthenticated()) {
     return res.status(401).json({ message: "Authentication required" });
@@ -718,22 +713,12 @@ async function requireAdmin(req: any, res: any, next: any) {
 
 // Authentication middleware
 async function isAuthenticated(req: any, res: any, next: any) {
-  console.log("Auth check:", {
-    isAuthenticated: req.isAuthenticated(),
-    hasUser: !!req.user,
-    hasSession: !!req.session,
-    sessionId: req.session?.id,
-    userAgent: req.get('User-Agent')?.substring(0, 50),
-    userId: req.user?.id
-  });
-  
   // SECURITY: No bypass - users must be properly authenticated
   // Each user must only see their own data
   
   if (req.isAuthenticated()) {
     // Check if user account is active
     if (req.user && req.user.isActive === false) {
-      console.log(`Access denied: User ${req.user.email} has inactive account`);
       return res.status(403).json({ 
         message: "Account is inactive. Please contact support.",
         reason: "account_inactive"
@@ -757,7 +742,6 @@ async function isAuthenticated(req: any, res: any, next: any) {
                                  req.url === '/api/logout';
 
         if (needsPayment && !isPaymentEndpoint) {
-          console.log(`Payment required: User ${req.user.email} has subscription status: ${user.subscriptionStatus}`);
           return res.status(402).json({ 
             message: "Payment required to access this feature.",
             subscriptionStatus: user.subscriptionStatus,
@@ -767,7 +751,6 @@ async function isAuthenticated(req: any, res: any, next: any) {
         }
       }
     } catch (error) {
-      console.error("Subscription status check error:", error);
       // Continue on error to avoid blocking legitimate users
     }
 
@@ -797,15 +780,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 
 // Log Stripe configuration on startup
 const stripeMode = process.env.STRIPE_SECRET_KEY.startsWith('sk_test_') ? 'TEST MODE' : 'LIVE MODE';
-console.log(`\n🔑 Stripe initialized in: ${stripeMode}`);
-console.log(`📋 Loaded Price IDs:`);
-console.log(`   - Freelance Monthly: ${process.env.STRIPE_FREELANCE_MONTHLY_PRICE_ID}`);
-console.log(`   - Freelance Annual: ${process.env.STRIPE_FREELANCE_ANNUAL_PRICE_ID}`);
-console.log(`   - Full-time Monthly: ${process.env.STRIPE_FULLTIME_MONTHLY_PRICE_ID}`);
-console.log(`   - Full-time Annual: ${process.env.STRIPE_FULLTIME_ANNUAL_PRICE_ID}`);
-console.log(`   - Team Monthly: ${process.env.STRIPE_TEAM_MONTHLY_PRICE_ID}`);
-console.log(`   - Team Annual: ${process.env.STRIPE_TEAM_ANNUAL_PRICE_ID}`);
-console.log(`   - Lifetime: ${process.env.STRIPE_LIFETIME_PRICE_ID}\n`);
 
 // Price IDs will be validated when actually used during checkout
 
@@ -814,7 +788,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/email-webhook', async (req: any, res) => {
     try {
       const emailData = req.body;
-      console.log('📧 PRIORITY webhook received:', JSON.stringify(emailData, null, 2));
       
       const { StandaloneEmailService } = await import('./services/standaloneEmailService.js');
       const standaloneEmailService = new StandaloneEmailService();
@@ -828,15 +801,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const { emailForwardingService } = await import('./services/emailForwardingService.js');
           await emailForwardingService.forwardIncomingEmail(messageId);
         } catch (forwardingError) {
-          console.error('❌ Error forwarding email:', forwardingError);
           // Don't fail the main webhook - forwarding is optional
         }
       }
       
-      console.log('✅ PRIORITY webhook processed successfully');
       res.status(200).json({ success: true, message: "Email processed successfully" });
     } catch (error) {
-      console.error("❌ Error processing PRIORITY webhook:", error);
       res.status(500).json({ success: false, message: "Failed to process incoming email", error: error.message });
     }
   });
@@ -1003,7 +973,6 @@ Respond with valid JSON only.`;
       };
       
     } catch (error) {
-      console.error("OpenAI analysis failed:", error);
       
       // Fallback to basic analysis if OpenAI fails
       return analyzeAndFixError(errorLog);
@@ -1056,7 +1025,6 @@ Respond with valid JSON only.`;
       res.status(201).json({ success: true, id: errorLog.id });
     } catch (error) {
       // Silently fail to prevent recursive error logging
-      console.error("Failed to log error:", error);
       res.status(500).json({ success: false });
     }
   });
@@ -1073,7 +1041,6 @@ Respond with valid JSON only.`;
       const errorLogs = await storage.getErrorLogs();
       res.json(errorLogs);
     } catch (error) {
-      console.error("Error fetching error logs:", error);
       res.status(500).json({ message: "Failed to fetch error logs" });
     }
   });
@@ -1106,7 +1073,6 @@ Respond with valid JSON only.`;
         requiresVerification: true
       });
     } catch (error) {
-      console.error("Error analyzing fix:", error);
       res.status(500).json({ message: "Failed to analyze error" });
     }
   });
@@ -1138,7 +1104,6 @@ Respond with valid JSON only.`;
         message: "Error marked as fixed after verification"
       });
     } catch (error) {
-      console.error("Error marking as fixed:", error);
       res.status(500).json({ message: "Failed to mark error as fixed" });
     }
   });
@@ -1161,17 +1126,12 @@ Respond with valid JSON only.`;
       let appliedChanges = [];
       let failedChanges = [];
 
-      console.log(`Auto-fix attempt: Processing ${codeChanges.length} code changes`);
       
       // Apply each code change
       for (const change of codeChanges) {
         try {
           const { file, description, before, after } = change;
           
-          console.log(`Processing change for file: ${file}`);
-          console.log(`Description: ${description}`);
-          console.log(`Before code (${before?.length || 0} chars): ${before?.substring(0, 100)}${before?.length > 100 ? '...' : ''}`);
-          console.log(`After code (${after?.length || 0} chars): ${after?.substring(0, 100)}${after?.length > 100 ? '...' : ''}`);
           
           
           // Basic validation
@@ -1203,13 +1163,11 @@ Respond with valid JSON only.`;
                 actualFilePath = variation;
                 safePath = testPath;
                 found = true;
-                console.log(`Found file at alternate path: ${variation}`);
                 break;
               }
             }
             
             if (!found) {
-              console.log(`File not found: ${file}, tried variations: ${variations.join(', ')}`);
               failedChanges.push({ ...change, reason: `File does not exist: ${file}` });
               continue;
             }
@@ -1250,11 +1208,6 @@ Respond with valid JSON only.`;
                 }
                 
                 if (!foundMatch) {
-                  console.log(`Auto-fix debug - Could not find code in ${file}:`);
-                  console.log(`Looking for exact match: "${before}"`);
-                  console.log(`Looking for normalized: "${normalizedBefore}"`);
-                  console.log(`File starts with: "${currentContent.substring(0, 300)}..."`);
-                  console.log(`File ends with: "...${currentContent.substring(currentContent.length - 300)}"`);
                   failedChanges.push({ 
                     ...change, 
                     reason: `Original code not found. Looking for: "${before.substring(0, 100)}${before.length > 100 ? '...' : ''}"`
@@ -1309,7 +1262,6 @@ Respond with valid JSON only.`;
           });
 
         } catch (error) {
-          console.error(`Failed to apply change to ${change.file}:`, error);
           failedChanges.push({ 
             ...change, 
             reason: error instanceof Error ? error.message : "Unknown error" 
@@ -1318,7 +1270,6 @@ Respond with valid JSON only.`;
       }
 
       // Log the auto-fix attempt
-      console.log(`Auto-fix attempt for error ${errorId}:`, {
         type: 'auto-fix-attempt',
         appliedChanges: appliedChanges.length,
         failedChanges: failedChanges.length,
@@ -1343,7 +1294,6 @@ Respond with valid JSON only.`;
 
       res.json(response);
     } catch (error) {
-      console.error("Error auto-applying fix:", error);
       res.status(500).json({ message: "Failed to auto-apply fix" });
     }
   });
@@ -1358,7 +1308,6 @@ Respond with valid JSON only.`;
       
       res.json({ success: true, message: "Error marked as resolved" });
     } catch (error) {
-      console.error("Error marking error as resolved:", error);
       res.status(500).json({ message: "Failed to mark error as resolved" });
     }
   });
@@ -1381,7 +1330,6 @@ Respond with valid JSON only.`;
         resolvedCount 
       });
     } catch (error) {
-      console.error("Error bulk resolving errors:", error);
       res.status(500).json({ message: "Failed to bulk resolve errors" });
     }
   });
@@ -1480,7 +1428,6 @@ Respond with valid JSON only.`;
 
       res.json(response);
     } catch (error) {
-      console.error('Image upload error:', error);
       
       // Clean up uploaded file on error
       if (req.file?.path && fs.existsSync(req.file.path)) {
@@ -1515,7 +1462,6 @@ Respond with valid JSON only.`;
         filename: fileName 
       });
     } catch (error) {
-      console.error('Rich text image upload error:', error);
       
       // Clean up uploaded file on error
       if (req.file?.path && fs.existsSync(req.file.path)) {
@@ -1584,7 +1530,6 @@ Respond with valid JSON only.`;
         size: '300x300'
       });
     } catch (error) {
-      console.error('Contact photo upload error:', error);
       
       // Clean up uploaded file on error
       if (req.file?.path && fs.existsSync(req.file.path)) {
@@ -1623,7 +1568,6 @@ Respond with valid JSON only.`;
         contact: updatedContact
       });
     } catch (error) {
-      console.error('Contact photo delete error:', error);
       res.status(500).json({ error: 'Photo deletion failed' });
     }
   });
@@ -1708,12 +1652,9 @@ Respond with valid JSON only.`;
           };
           
           await sgMail.send(msg);
-          console.log(`✅ Welcome email sent to ${waitlistEntry.email} using sender: ${fromEmail}`);
-          console.log(`🎨 BIMI headers included: BIMI-Selector=default, Authentication-Results present`);
         }
       } catch (emailError) {
         // Don't fail the waitlist signup if email fails
-        console.error("Error sending welcome email:", emailError);
       }
       
       res.status(201).json({ 
@@ -1722,7 +1663,6 @@ Respond with valid JSON only.`;
         message: "Successfully added to waitlist!" 
       });
     } catch (error) {
-      console.error("Error adding to waitlist:", error);
       res.status(500).json({ message: "Failed to join waitlist" });
     }
   });
@@ -1739,7 +1679,6 @@ Respond with valid JSON only.`;
       const waitlistEntries = await storage.getWaitlistEntries();
       res.json(waitlistEntries);
     } catch (error) {
-      console.error("Error fetching waitlist:", error);
       res.status(500).json({ message: "Failed to fetch waitlist" });
     }
   });
@@ -1759,7 +1698,6 @@ Respond with valid JSON only.`;
       const updatedEntry = await storage.updateWaitlistEntry(entryId, updateData);
       res.json(updatedEntry);
     } catch (error) {
-      console.error("Error updating waitlist entry:", error);
       res.status(500).json({ message: "Failed to update waitlist entry" });
     }
   });
@@ -1777,7 +1715,6 @@ Respond with valid JSON only.`;
       await storage.deleteWaitlistEntry(entryId);
       res.json({ success: true, message: "Waitlist entry deleted successfully" });
     } catch (error) {
-      console.error("Error deleting waitlist entry:", error);
       res.status(500).json({ message: "Failed to delete waitlist entry" });
     }
   });
@@ -1794,7 +1731,6 @@ Respond with valid JSON only.`;
       const stats = await storage.getWaitlistStats();
       res.json(stats);
     } catch (error) {
-      console.error("Error fetching waitlist stats:", error);
       res.status(500).json({ message: "Failed to fetch waitlist stats" });
     }
   });
@@ -1814,7 +1750,6 @@ Respond with valid JSON only.`;
 
       res.json(updatedUser);
     } catch (error) {
-      console.error("Error updating profile type:", error);
       res.status(500).json({ message: "Failed to update profile type" });
     }
   });
@@ -1849,7 +1784,6 @@ Respond with valid JSON only.`;
         originalAdmin: adminUserId
       });
     } catch (error) {
-      console.error("Error switching account:", error);
       res.status(500).json({ message: "Failed to switch account" });
     }
   });
@@ -1868,7 +1802,6 @@ Respond with valid JSON only.`;
       
       res.json({ message: "Switched back to admin account" });
     } catch (error) {
-      console.error("Error switching back:", error);
       res.status(500).json({ message: "Failed to switch back" });
     }
   });
@@ -1899,7 +1832,6 @@ Respond with valid JSON only.`;
         });
       }
     } catch (error) {
-      console.error("Error getting switch status:", error);
       res.status(500).json({ message: "Failed to get switch status" });
     }
   });
@@ -1916,7 +1848,6 @@ Respond with valid JSON only.`;
       const betaUsers = await storage.getBetaUsers();
       res.json(betaUsers);
     } catch (error) {
-      console.error("Error fetching beta users:", error);
       res.status(500).json({ message: "Failed to fetch beta users" });
     }
   });
@@ -1938,7 +1869,6 @@ Respond with valid JSON only.`;
       const updatedUser = await storage.updateUserBetaAccess(targetUserId, betaAccess);
       res.json(updatedUser);
     } catch (error) {
-      console.error("Error updating beta access:", error);
       res.status(500).json({ message: "Failed to update beta access" });
     }
   });
@@ -1969,7 +1899,6 @@ Respond with valid JSON only.`;
       
       res.json(users);
     } catch (error) {
-      console.error("Error fetching all users:", error);
       res.status(500).json({ message: "Failed to fetch users" });
     }
   });
@@ -1985,7 +1914,6 @@ Respond with valid JSON only.`;
       }
       
       const { role } = req.params;
-      console.log(`🎯 Fetching users by role: ${role}`);
       
       const validRoles = ['admin', 'user', 'editor', 'viewer'];
       
@@ -1994,10 +1922,8 @@ Respond with valid JSON only.`;
       }
 
       const users = await storage.getUsersByRole(role);
-      console.log(`📋 Found ${users.length} users with role: ${role}`);
       res.json(users);
     } catch (error) {
-      console.error(`Error fetching ${req.params.role} users:`, error);
       res.status(500).json({ message: `Failed to fetch ${req.params.role} users` });
     }
   });
@@ -2008,7 +1934,6 @@ Respond with valid JSON only.`;
       const usersWithEditors = await storage.getUsersWithInvitedEditors();
       res.json(usersWithEditors);
     } catch (error) {
-      console.error('Error fetching users with invited editors:', error);
       res.status(500).json({ message: 'Failed to fetch users with invited editors' });
     }
   });
@@ -2024,7 +1949,6 @@ Respond with valid JSON only.`;
       const editors = await storage.getAllEditorsWithProjects();
       res.json(editors);
     } catch (error) {
-      console.error("Error fetching editors with projects:", error);
       res.status(500).json({ message: "Failed to fetch editors with projects" });
     }
   });
@@ -2049,7 +1973,6 @@ Respond with valid JSON only.`;
       
       res.json(updatedUser);
     } catch (error) {
-      console.error("Error updating user role:", error);
       res.status(500).json({ message: "Failed to update user role" });
     }
   });
@@ -2068,7 +1991,6 @@ Respond with valid JSON only.`;
       const editors = await storage.getAllEditorsForAdmin();
       res.json(editors);
     } catch (error) {
-      console.error("Error fetching all editors:", error);
       res.status(500).json({ message: "Failed to fetch editors" });
     }
   });
@@ -2085,7 +2007,6 @@ Respond with valid JSON only.`;
       const editorAnalytics = await storage.getEditorAnalytics();
       res.json(editorAnalytics);
     } catch (error) {
-      console.error("Error fetching editor analytics:", error);
       res.status(500).json({ message: "Failed to fetch editor analytics" });
     }
   });
@@ -2103,7 +2024,6 @@ Respond with valid JSON only.`;
       const invitedEditors = await storage.getUserInvitedTeamMembers(targetUserId);
       res.json(invitedEditors);
     } catch (error) {
-      console.error("Error fetching user invited editors:", error);
       res.status(500).json({ message: "Failed to fetch invited editors" });
     }
   });
@@ -2129,7 +2049,6 @@ Respond with valid JSON only.`;
         duplicateCheck
       });
     } catch (error) {
-      console.error("Error checking editor limits:", error);
       res.status(500).json({ message: "Failed to check editor limits" });
     }
   });
@@ -2140,7 +2059,6 @@ Respond with valid JSON only.`;
       const analytics = await storage.getNonEditorUserAnalytics();
       res.json(analytics);
     } catch (error) {
-      console.error("Error fetching user analytics:", error);
       res.status(500).json({ message: "Failed to fetch user analytics" });
     }
   });
@@ -2151,7 +2069,6 @@ Respond with valid JSON only.`;
       const analytics = await storage.getUserAnalytics();
       res.json(analytics);
     } catch (error) {
-      console.error("Error fetching all user analytics:", error);
       res.status(500).json({ message: "Failed to fetch all user analytics" });
     }
   });
@@ -2167,7 +2084,6 @@ Respond with valid JSON only.`;
       const stats = await storage.getNonEditorAnalyticsStats();
       res.json(stats);
     } catch (error) {
-      console.error("Error fetching analytics stats:", error);
       res.status(500).json({ message: "Failed to fetch analytics stats" });
     }
   });
@@ -2177,7 +2093,6 @@ Respond with valid JSON only.`;
       const stats = await storage.getEditorAnalyticsStats();
       res.json(stats);
     } catch (error) {
-      console.error("Error fetching editor analytics stats:", error);
       res.status(500).json({ message: "Failed to fetch editor analytics stats" });
     }
   });
@@ -2194,7 +2109,6 @@ Respond with valid JSON only.`;
       await storage.updateAllUserStatuses();
       res.json({ message: "User statuses updated successfully" });
     } catch (error) {
-      console.error("Error updating user statuses:", error);
       res.status(500).json({ message: "Failed to update user statuses" });
     }
   });
@@ -2211,7 +2125,6 @@ Respond with valid JSON only.`;
       await storage.calculateEngagementScores();
       res.json({ message: "Engagement scores calculated successfully" });
     } catch (error) {
-      console.error("Error calculating engagement scores:", error);
       res.status(500).json({ message: "Failed to calculate engagement scores" });
     }
   });
@@ -2227,7 +2140,6 @@ Respond with valid JSON only.`;
       const analytics = await storage.getEngagementAnalytics();
       res.json(analytics);
     } catch (error) {
-      console.error("Error fetching engagement analytics:", error);
       res.status(500).json({ message: "Failed to fetch engagement analytics" });
     }
   });
@@ -2243,7 +2155,6 @@ Respond with valid JSON only.`;
       const recommendations = await storage.getCostOptimizationRecommendations();
       res.json(recommendations);
     } catch (error) {
-      console.error("Error fetching cost optimization recommendations:", error);
       res.status(500).json({ message: "Failed to fetch cost optimization recommendations" });
     }
   });
@@ -2259,7 +2170,6 @@ Respond with valid JSON only.`;
       const insights = await storage.getUserBehaviorInsights();
       res.json(insights);
     } catch (error) {
-      console.error("Error fetching user behavior insights:", error);
       res.status(500).json({ message: "Failed to fetch user behavior insights" });
     }
   });
@@ -2276,7 +2186,6 @@ Respond with valid JSON only.`;
       const plans = await storage.getSubscriptionPlans();
       res.json(plans);
     } catch (error) {
-      console.error("Error fetching subscription plans:", error);
       res.status(500).json({ message: "Failed to fetch subscription plans" });
     }
   });
@@ -2293,7 +2202,6 @@ Respond with valid JSON only.`;
       const subscription = await storage.getUserSubscription(targetUserId);
       res.json(subscription);
     } catch (error) {
-      console.error("Error fetching user subscription:", error);
       res.status(500).json({ message: "Failed to fetch user subscription" });
     }
   });
@@ -2313,7 +2221,6 @@ Respond with valid JSON only.`;
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid activity data", errors: error.errors });
       }
-      console.error("Error creating user activity:", error);
       res.status(500).json({ message: "Failed to create user activity" });
     }
   });
@@ -2332,7 +2239,6 @@ Respond with valid JSON only.`;
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid cost data", errors: error.errors });
       }
-      console.error("Error creating API cost:", error);
       res.status(500).json({ message: "Failed to create API cost" });
     }
   });
@@ -2351,7 +2257,6 @@ Respond with valid JSON only.`;
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid session data", errors: error.errors });
       }
-      console.error("Error creating user session:", error);
       res.status(500).json({ message: "Failed to create user session" });
     }
   });
@@ -2370,7 +2275,6 @@ Respond with valid JSON only.`;
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid usage data", errors: error.errors });
       }
-      console.error("Error creating feature usage:", error);
       res.status(500).json({ message: "Failed to create feature usage" });
     }
   });
@@ -2414,7 +2318,6 @@ Respond with valid JSON only.`;
       
       res.json(updatedUser);
     } catch (error) {
-      console.error("Error updating user:", error);
       res.status(500).json({ message: "Failed to update user" });
     }
   });
@@ -2437,7 +2340,6 @@ Respond with valid JSON only.`;
       await storage.deleteUser(targetUserId);
       res.json({ message: "User deleted successfully" });
     } catch (error) {
-      console.error("Error deleting user:", error);
       res.status(500).json({ message: "Failed to delete user" });
     }
   });
@@ -2491,7 +2393,6 @@ Respond with valid JSON only.`;
       const { password, ...userResponse } = updatedUser;
       res.json(userResponse);
     } catch (error) {
-      console.error("Error updating profile:", error);
       res.status(500).json({ message: "Failed to update profile" });
     }
   });
@@ -2513,7 +2414,6 @@ Respond with valid JSON only.`;
         connectedAt: user.emailProviderConnectedAt || null,
       });
     } catch (error) {
-      console.error("Error fetching email provider:", error);
       res.status(500).json({ message: "Failed to fetch email provider" });
     }
   });
@@ -2528,10 +2428,8 @@ Respond with valid JSON only.`;
       
       const userId = req.user.id.toString();
       const authUrl = googleOAuthService.getAuthUrl(userId);
-      console.log('Generated Google OAuth URL with scopes');
       res.json({ authUrl });
     } catch (error: any) {
-      console.error("Error initiating Google OAuth:", error);
       res.status(500).json({ message: error.message || "Failed to initiate Google OAuth" });
     }
   });
@@ -2596,10 +2494,8 @@ Respond with valid JSON only.`;
         emailProviderConnectedAt: new Date(),
       });
 
-      console.log(`✅ Gmail connected successfully for user ${userId}: ${emailAddress}`);
       sendResultPage('Your Gmail account has been connected:', emailAddress);
     } catch (error: any) {
-      console.error("Error in Google OAuth callback:", error);
       const errorMsg = (error.message || 'OAuth failed').replace(/'/g, "\\'");
       sendResultPage(errorMsg, null, true);
     }
@@ -2612,7 +2508,6 @@ Respond with valid JSON only.`;
       const authUrl = microsoftOAuthService.getAuthUrl(userId);
       res.json({ authUrl });
     } catch (error: any) {
-      console.error("Error initiating Microsoft OAuth:", error);
       res.status(500).json({ message: error.message || "Failed to initiate Microsoft OAuth" });
     }
   });
@@ -2677,10 +2572,8 @@ Respond with valid JSON only.`;
         emailProviderConnectedAt: new Date(),
       });
 
-      console.log(`✅ Outlook connected successfully for user ${userId}: ${emailAddress}`);
       sendResultPage('Successfully connected', emailAddress, false);
     } catch (error: any) {
-      console.error("Error in Microsoft OAuth callback:", error);
       sendResultPage(error.message || 'Failed to connect Outlook', null, true);
     }
   });
@@ -2707,7 +2600,6 @@ Respond with valid JSON only.`;
       const { password, ...userResponse } = updatedUser;
       res.json(userResponse);
     } catch (error) {
-      console.error("Error disconnecting email provider:", error);
       res.status(500).json({ message: "Failed to disconnect email provider" });
     }
   });
@@ -2775,7 +2667,6 @@ Respond with valid JSON only.`;
         res.status(500).json({ success: false, error: result.error });
       }
     } catch (error: any) {
-      console.error("Error sending email via provider:", error);
       res.status(500).json({ message: error.message || "Failed to send email" });
     }
   });
@@ -2832,13 +2723,11 @@ Respond with valid JSON only.`;
       }
 
       if (result.success) {
-        console.log(`✅ Test email sent successfully to ${user.connectedEmailAddress}`);
         res.json({ success: true, messageId: result.messageId, sentTo: user.connectedEmailAddress });
       } else {
         res.status(500).json({ success: false, error: result.error });
       }
     } catch (error: any) {
-      console.error("Error sending test email:", error);
       res.status(500).json({ message: error.message || "Failed to send test email" });
     }
   });
@@ -2886,7 +2775,6 @@ Respond with valid JSON only.`;
           };
         });
         
-        console.log('📤 Returning decoded drafts:', formattedDrafts.map(d => ({ id: d.id, to: d.toAddresses, subject: d.subject })));
         res.json({
           messages: formattedDrafts,
           pageToken: null,
@@ -2909,7 +2797,6 @@ Respond with valid JSON only.`;
 
       res.json(result);
     } catch (error: any) {
-      console.error("Error fetching emails:", error);
       res.status(500).json({ message: error.message || "Failed to fetch emails" });
     }
   });
@@ -2938,7 +2825,6 @@ Respond with valid JSON only.`;
 
       res.json(message);
     } catch (error: any) {
-      console.error("Error fetching email:", error);
       res.status(500).json({ message: error.message || "Failed to fetch email" });
     }
   });
@@ -2963,7 +2849,6 @@ Respond with valid JSON only.`;
 
       res.json({ success: true });
     } catch (error: any) {
-      console.error("Error marking email as read:", error);
       res.status(500).json({ message: error.message || "Failed to mark email as read" });
     }
   });
@@ -2988,7 +2873,6 @@ Respond with valid JSON only.`;
 
       res.json({ success: true });
     } catch (error: any) {
-      console.error("Error marking email as unread:", error);
       res.status(500).json({ message: error.message || "Failed to mark email as unread" });
     }
   });
@@ -3010,7 +2894,6 @@ Respond with valid JSON only.`;
       // Try to delete from local database (for drafts)
       const localDeleteSuccess = await standaloneEmailService.deleteMessage(messageIdNum, -1);
       if (localDeleteSuccess) {
-        console.log(`✅ Deleted local draft ID ${messageId} from database`);
         res.json({ success: true });
         return;
       }
@@ -3026,7 +2909,6 @@ Respond with valid JSON only.`;
 
       res.json({ success: true });
     } catch (error: any) {
-      console.error("Error moving email to trash:", error);
       res.status(500).json({ message: error.message || "Failed to move email to trash" });
     }
   });
@@ -3051,7 +2933,6 @@ Respond with valid JSON only.`;
 
       res.json({ success: true });
     } catch (error: any) {
-      console.error("Error archiving email:", error);
       res.status(500).json({ message: error.message || "Failed to archive email" });
     }
   });
@@ -3063,7 +2944,6 @@ Respond with valid JSON only.`;
       const projects = await storage.getProjectsByUserId(userId);
       res.json(projects);
     } catch (error) {
-      console.error("Error fetching projects:", error);
       res.status(500).json({ message: "Failed to fetch projects" });
     }
   });
@@ -3075,7 +2955,6 @@ Respond with valid JSON only.`;
       const archivedProjects = await storage.getArchivedProjectsByUserId(userId);
       res.json(archivedProjects);
     } catch (error) {
-      console.error("Error fetching archived projects:", error);
       res.status(500).json({ message: "Failed to fetch archived projects" });
     }
   });
@@ -3096,7 +2975,6 @@ Respond with valid JSON only.`;
 
       res.json(project);
     } catch (error) {
-      console.error("Error fetching project:", error);
       res.status(500).json({ message: "Failed to fetch project" });
     }
   });
@@ -3150,7 +3028,6 @@ Respond with valid JSON only.`;
         ownerId: z.number(),
       });
 
-      console.log("Received project data:", req.body);
 
       // Helper function to generate a slug from the project name
       const generateSlug = (name: string) => {
@@ -3242,7 +3119,6 @@ Best regards,
             createdBy: parseInt(userId)
           });
         } catch (error) {
-          console.log(`Error creating event type ${eventType.name} for project ${project.id}:`, error);
         }
       }
 
@@ -3269,7 +3145,6 @@ Best regards,
             createdBy: parseInt(userId)
           });
         } catch (error) {
-          console.log(`Error creating report type ${reportType.name} for project ${project.id}:`, error);
         }
       }
 
@@ -3291,10 +3166,8 @@ Best regards,
       res.json(project);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        console.error("Project validation errors:", error.errors);
         return res.status(400).json({ message: "Invalid project data", errors: error.errors });
       }
-      console.error("Error creating project:", error);
       res.status(500).json({ message: "Failed to create project" });
     }
   });
@@ -3432,7 +3305,6 @@ Best regards,
 
       res.json(updatedProject);
     } catch (error) {
-      console.error("Error updating project:", error);
       res.status(500).json({ message: "Failed to update project" });
     }
   });
@@ -3454,7 +3326,6 @@ Best regards,
       await storage.deleteProject(projectId);
       res.json({ message: "Project deleted successfully" });
     } catch (error) {
-      console.error("Error deleting project:", error);
       res.status(500).json({ message: "Failed to delete project" });
     }
   });
@@ -3478,7 +3349,6 @@ Best regards,
       const archivedProject = await storage.archiveProject(projectId);
       res.json(archivedProject);
     } catch (error) {
-      console.error("Error archiving project:", error);
       res.status(500).json({ message: "Failed to archive project" });
     }
   });
@@ -3500,7 +3370,6 @@ Best regards,
       const unarchivedProject = await storage.unarchiveProject(projectId);
       res.json(unarchivedProject);
     } catch (error) {
-      console.error("Error unarchiving project:", error);
       res.status(500).json({ message: "Failed to unarchive project" });
     }
   });
@@ -3530,7 +3399,6 @@ Best regards,
 
       res.json({ message: "Important dates synced successfully" });
     } catch (error) {
-      console.error("Error syncing important dates:", error);
       res.status(500).json({ message: "Failed to sync important dates" });
     }
   });
@@ -3543,7 +3411,6 @@ Best regards,
       const seasons = await storage.getSeasonsByUserId(userId);
       res.json(seasons);
     } catch (error) {
-      console.error("Error fetching seasons:", error);
       res.status(500).json({ message: "Failed to fetch seasons" });
     }
   });
@@ -3560,10 +3427,8 @@ Best regards,
       res.json(season);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        console.error("Season validation errors:", error.errors);
         return res.status(400).json({ message: "Invalid season data", errors: error.errors });
       }
-      console.error("Error creating season:", error);
       res.status(500).json({ message: "Failed to create season" });
     }
   });
@@ -3585,7 +3450,6 @@ Best regards,
       const updatedSeason = await storage.updateSeason(seasonId, req.body);
       res.json(updatedSeason);
     } catch (error) {
-      console.error("Error updating season:", error);
       res.status(500).json({ message: "Failed to update season" });
     }
   });
@@ -3607,7 +3471,6 @@ Best regards,
       await storage.deleteSeason(seasonId);
       res.json({ message: "Season deleted successfully" });
     } catch (error) {
-      console.error("Error deleting season:", error);
       res.status(500).json({ message: "Failed to delete season" });
     }
   });
@@ -3620,7 +3483,6 @@ Best regards,
       const venues = await storage.getVenuesByUserId(userId);
       res.json(venues);
     } catch (error) {
-      console.error("Error fetching venues:", error);
       res.status(500).json({ message: "Failed to fetch venues" });
     }
   });
@@ -3637,10 +3499,8 @@ Best regards,
       res.json(venue);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        console.error("Venue validation errors:", error.errors);
         return res.status(400).json({ message: "Invalid venue data", errors: error.errors });
       }
-      console.error("Error creating venue:", error);
       res.status(500).json({ message: "Failed to create venue" });
     }
   });
@@ -3662,7 +3522,6 @@ Best regards,
       const updatedVenue = await storage.updateVenue(venueId, req.body);
       res.json(updatedVenue);
     } catch (error) {
-      console.error("Error updating venue:", error);
       res.status(500).json({ message: "Failed to update venue" });
     }
   });
@@ -3684,7 +3543,6 @@ Best regards,
       await storage.deleteVenue(venueId);
       res.json({ message: "Venue deleted successfully" });
     } catch (error) {
-      console.error("Error deleting venue:", error);
       res.status(500).json({ message: "Failed to delete venue" });
     }
   });
@@ -3707,7 +3565,6 @@ Best regards,
       const teamMembers = await storage.getTeamMembersByProjectId(projectId);
       res.json(teamMembers);
     } catch (error) {
-      console.error("Error fetching team members:", error);
       res.status(500).json({ message: "Failed to fetch team members" });
     }
   });
@@ -3737,7 +3594,6 @@ Best regards,
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid team member data", errors: error.errors });
       }
-      console.error("Error inviting team member:", error);
       res.status(500).json({ message: "Failed to invite team member" });
     }
   });
@@ -3750,7 +3606,6 @@ Best regards,
       const reports = await storage.getReportsByUserId(userId);
       res.json(reports);
     } catch (error) {
-      console.error("Error fetching reports:", error);
       res.status(500).json({ message: "Failed to fetch reports" });
     }
   });
@@ -3775,7 +3630,6 @@ Best regards,
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid report data", errors: error.errors });
       }
-      console.error("Error creating report:", error);
       res.status(500).json({ message: "Failed to create report" });
     }
   });
@@ -3798,7 +3652,6 @@ Best regards,
       const reports = await storage.getReportsByProjectId(projectId);
       res.json(reports);
     } catch (error) {
-      console.error("Error fetching project reports:", error);
       res.status(500).json({ message: "Failed to fetch reports" });
     }
   });
@@ -3827,7 +3680,6 @@ Best regards,
       if (report.templateId) {
         const template = await storage.getReportTemplateById(report.templateId);
         if (template && template.layoutConfiguration) {
-          console.log('📋 Including template layoutConfiguration for report:', {
             reportId: report.id,
             templateId: template.id,
             hasLayout: !!template.layoutConfiguration
@@ -3846,7 +3698,6 @@ Best regards,
 
       res.json(report);
     } catch (error) {
-      console.error("Error fetching report:", error);
       res.status(500).json({ message: "Failed to fetch report" });
     }
   });
@@ -3866,7 +3717,6 @@ Best regards,
       }
 
       // Log incoming data for debugging
-      console.log('📋 Creating report - Incoming data:', {
         body: req.body,
         projectId,
         userId: req.user.id,
@@ -3882,10 +3732,8 @@ Best regards,
         templateId: req.body.templateId ? parseInt(req.body.templateId) : undefined,
       });
       
-      console.log('📋 Validated report data:', reportData);
 
       const report = await storage.createReport(reportData);
-      console.log('📋 Report created:', {
         id: report.id,
         templateId: report.templateId,
         title: report.title,
@@ -3898,7 +3746,6 @@ Best regards,
           const template = await storage.getTemplateV2WithFullDataById(report.templateId);
           if (template && template.sections) {
             const content = report.content as Record<string, any>;
-            console.log('📋 Template V2 structure:', JSON.stringify({ 
               id: template.id,
               name: template.name,
               sectionCount: template.sections.length,
@@ -3912,7 +3759,6 @@ Best regards,
                 }))
               }))
             }));
-            console.log('📋 Report content keys:', Object.keys(content || {}));
             
             for (const section of template.sections || []) {
               for (const field of section.fields || []) {
@@ -3922,7 +3768,6 @@ Best regards,
                 if (departmentKey && fieldLabel && content && content[fieldLabel]) {
                   const fieldContent = content[fieldLabel];
                   const parsedNotes = parseNotesFromHtml(fieldContent);
-                  console.log(`📋 Syncing field "${fieldLabel}" (dept: ${departmentKey}): found ${parsedNotes.length} notes`);
                   
                   for (let i = 0; i < parsedNotes.length; i++) {
                     const noteData = parsedNotes[i];
@@ -3939,22 +3784,17 @@ Best regards,
                 }
               }
             }
-            console.log('📋 Notes synced for new report:', report.id);
           } else {
-            console.log('📋 No V2 template found for templateId:', report.templateId);
           }
         } catch (syncError) {
-          console.error('⚠️ Note sync failed for new report (non-blocking):', syncError);
         }
       }
 
       res.json(report);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        console.error("Report validation errors:", error.errors);
         return res.status(400).json({ message: "Invalid report data", errors: error.errors });
       }
-      console.error("Error creating project report:", error);
       res.status(500).json({ message: "Failed to create report" });
     }
   });
@@ -4063,12 +3903,10 @@ Best regards,
           const template = await storage.getTemplateV2WithFullDataById((report as any).templateId);
           if (template && template.sections) {
             const content = updateData.content as Record<string, any>;
-            console.log('📋 UPDATE: Template V2 structure:', JSON.stringify({ 
               id: template.id,
               name: template.name,
               sectionCount: template.sections.length
             }));
-            console.log('📋 UPDATE: Report content keys:', Object.keys(content || {}));
             
             for (const section of template.sections || []) {
               for (const field of section.fields || []) {
@@ -4084,7 +3922,6 @@ Best regards,
                   // to avoid accidental deletions from parsing errors
                   const hasVisibleContent = fieldContent.replace(/<[^>]+>/g, '').trim().length > 0;
                   if (parsedNotes.length === 0 && hasVisibleContent && existingByField.length > 0) {
-                    console.warn(`Skipping sync for field ${field.id} - parser returned 0 notes but content exists`);
                     continue;
                   }
                   
@@ -4140,13 +3977,11 @@ Best regards,
             }
           }
         } catch (syncError) {
-          console.error("Error auto-syncing notes:", syncError);
         }
       }
       
       res.json(updatedReport);
     } catch (error) {
-      console.error("Error updating report:", error);
       res.status(500).json({ message: "Failed to update report" });
     }
   });
@@ -4174,7 +4009,6 @@ Best regards,
       await storage.deleteReport(reportId);
       res.json({ message: "Report deleted successfully" });
     } catch (error) {
-      console.error("Error deleting report:", error);
       res.status(500).json({ message: "Failed to delete report" });
     }
   });
@@ -4196,7 +4030,6 @@ Best regards,
       const updatedReport = await storage.updateReport(reportId, req.body);
       res.json(updatedReport);
     } catch (error) {
-      console.error("Error updating report:", error);
       res.status(500).json({ message: "Failed to update report" });
     }
   });
@@ -4282,7 +4115,6 @@ Best regards,
 
       res.json({ message: "Notes synced successfully", synced: syncedNotes.length });
     } catch (error) {
-      console.error("Error syncing field notes:", error);
       res.status(500).json({ message: "Failed to sync field notes" });
     }
   });
@@ -4312,7 +4144,6 @@ Best regards,
       const notes = await storage.getReportNotesByReportId(reportId, department);
       res.json(notes);
     } catch (error) {
-      console.error("Error fetching report notes:", error);
       res.status(500).json({ message: "Failed to fetch report notes" });
     }
   });
@@ -4352,7 +4183,6 @@ Best regards,
       const note = await storage.createReportNote(noteData);
       res.json(note);
     } catch (error) {
-      console.error("Error creating report note:", error);
       res.status(500).json({ message: "Failed to create report note" });
     }
   });
@@ -4381,7 +4211,6 @@ Best regards,
       const updatedNote = await storage.updateReportNote(noteId, req.body);
       res.json(updatedNote);
     } catch (error) {
-      console.error("Error updating report note:", error);
       res.status(500).json({ message: "Failed to update report note" });
     }
   });
@@ -4410,7 +4239,6 @@ Best regards,
       await storage.deleteReportNote(noteId);
       res.json({ message: "Note deleted successfully" });
     } catch (error) {
-      console.error("Error deleting report note:", error);
       res.status(500).json({ message: "Failed to delete report note" });
     }
   });
@@ -4435,11 +4263,9 @@ Best regards,
         return res.status(404).json({ message: "Report not found" });
       }
 
-      console.log('🔄 Reorder request received:', JSON.stringify(req.body.notes, null, 2));
       await storage.reorderReportNotes(req.body.notes);
       res.json({ message: "Notes reordered successfully" });
     } catch (error) {
-      console.error("Error reordering report notes:", error);
       res.status(500).json({ message: "Failed to reorder report notes" });
     }
   });
@@ -4469,7 +4295,6 @@ Best regards,
       await storage.deleteReportNotesByDepartment(reportId, department);
       res.json({ message: "Department notes deleted successfully" });
     } catch (error) {
-      console.error("Error deleting department notes:", error);
       res.status(500).json({ message: "Failed to delete department notes" });
     }
   });
@@ -4492,7 +4317,6 @@ Best regards,
       const notes = await storage.getAllReportNotesByProjectId(projectId);
       res.json(notes);
     } catch (error) {
-      console.error("Error fetching all project notes:", error);
       res.status(500).json({ message: "Failed to fetch project notes" });
     }
   });
@@ -4516,7 +4340,6 @@ Best regards,
       const updatedNote = await storage.updateReportNote(noteId, req.body);
       res.json(updatedNote);
     } catch (error) {
-      console.error("Error updating note:", error);
       res.status(500).json({ message: "Failed to update note" });
     }
   });
@@ -4541,7 +4364,6 @@ Best regards,
 
       res.json(template);
     } catch (error) {
-      console.error("Error fetching template:", error);
       res.status(500).json({ message: "Failed to fetch template" });
     }
   });
@@ -4560,7 +4382,6 @@ Best regards,
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid template data", errors: error.errors });
       }
-      console.error("Error creating template:", error);
       res.status(500).json({ message: "Failed to create template" });
     }
   });
@@ -4582,7 +4403,6 @@ Best regards,
       const updatedTemplate = await storage.updateReportTemplate(templateId, req.body);
       res.json(updatedTemplate);
     } catch (error) {
-      console.error("Error updating template:", error);
       res.status(500).json({ message: "Failed to update template" });
     }
   });
@@ -4609,7 +4429,6 @@ Best regards,
       await storage.deleteReportTemplate(templateId);
       res.json({ message: "Template deleted successfully" });
     } catch (error) {
-      console.error("Error deleting template:", error);
       res.status(500).json({ message: "Failed to delete template" });
     }
   });
@@ -4618,7 +4437,6 @@ Best regards,
   app.get("/api/projects/:id/settings", isAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);
-      console.log(`🎨 GET /api/projects/${projectId}/settings - Backend endpoint hit`);
       
       const project = await storage.getProjectById(projectId);
       
@@ -4632,29 +4450,23 @@ Best regards,
       }
 
       let settings = await storage.getShowSettingsByProjectId(projectId);
-      console.log(`🎨 Retrieved settings from database:`, settings);
       
       if (!settings) {
         // Create default settings if none exist
-        console.log(`🎨 Creating default settings for project ${projectId}`);
         settings = await storage.upsertShowSettings({
           projectId,
           createdBy: req.user.id.toString(),
         });
       }
       
-      console.log(`🎨 Returning settings:`, settings);
       
       // CRITICAL DEBUG: Show EXACT layout data being returned
       if (settings.layoutConfiguration) {
-        console.log('🔍 EXACT LAYOUT DATA RETURNED:', JSON.stringify(settings.layoutConfiguration, null, 2));
       } else {
-        console.log('🚨 NO LAYOUT CONFIGURATION FOUND IN RETURNED SETTINGS');
       }
       
       res.json(settings);
     } catch (error) {
-      console.error("Error fetching show settings:", error);
       res.status(500).json({ message: "Failed to fetch settings" });
     }
   });
@@ -4677,7 +4489,6 @@ Best regards,
       const settings = await storage.updateShowSettings(projectId, settingsData);
       res.json(settings);
     } catch (error) {
-      console.error("Error updating show settings:", error);
       res.status(500).json({ message: "Failed to update settings" });
     }
   });
@@ -4700,7 +4511,6 @@ Best regards,
       const settings = await storage.updateShowSettings(projectId, settingsData);
       res.json(settings);
     } catch (error) {
-      console.error("Error updating show settings:", error);
       res.status(500).json({ message: "Failed to update settings" });
     }
   });
@@ -4741,7 +4551,6 @@ Best regards,
         departmentNames: updatedSettings.departmentNames
       });
     } catch (error) {
-      console.error("Error updating department name:", error);
       res.status(500).json({ message: "Failed to update department name" });
     }
   });
@@ -4795,7 +4604,6 @@ Best regards,
         departmentFormatting: updatedSettings.departmentFormatting
       });
     } catch (error) {
-      console.error("Error updating department formatting:", error);
       res.status(500).json({ message: "Failed to update department formatting" });
     }
   });
@@ -4836,7 +4644,6 @@ Best regards,
         fieldHeaderFormatting: updatedSettings.fieldHeaderFormatting
       });
     } catch (error) {
-      console.error("Error updating field header formatting:", error);
       res.status(500).json({ message: "Failed to update field header formatting" });
     }
   });
@@ -4877,7 +4684,6 @@ Best regards,
         departmentNames: updatedSettings.departmentNames
       });
     } catch (error) {
-      console.error("Error updating department names bulk:", error);
       res.status(500).json({ message: "Failed to update department names" });
     }
   });
@@ -4918,7 +4724,6 @@ Best regards,
         departmentFormatting: updatedSettings.departmentFormatting
       });
     } catch (error) {
-      console.error("Error updating department formatting bulk:", error);
       res.status(500).json({ message: "Failed to update department formatting" });
     }
   });
@@ -4949,7 +4754,6 @@ Best regards,
         headerFormatting: updatedSettings.headerFormatting
       });
     } catch (error) {
-      console.error("Error updating header formatting:", error);
       res.status(500).json({ message: "Failed to update header formatting" });
     }
   });
@@ -4980,7 +4784,6 @@ Best regards,
         footerFormatting: updatedSettings.footerFormatting
       });
     } catch (error) {
-      console.error("Error updating footer formatting:", error);
       res.status(500).json({ message: "Failed to update footer formatting" });
     }
   });
@@ -5009,7 +4812,6 @@ Best regards,
       // Return the complete updated settings object for cache consistency
       res.json(updatedSettings);
     } catch (error) {
-      console.error("Error updating department order:", error);
       res.status(500).json({ message: "Failed to update department order" });
     }
   });
@@ -5020,8 +4822,6 @@ Best regards,
       const projectId = parseInt(req.params.id);
       const { layoutConfiguration, templateType } = req.body;
       
-      console.log('💾 BACKEND SAVE: Layout configuration save request received');
-      console.log('🔍 Layout items being saved:', layoutConfiguration?.items?.map((item: any) => ({ 
         id: item.id, 
         type: item.type, 
         x: item.x, 
@@ -5044,8 +4844,6 @@ Best regards,
         layoutConfiguration: layoutConfiguration
       });
 
-      console.log(`✅ BACKEND SAVE: Layout configuration saved to database for ${templateType || 'tech'} template`);
-      console.log('🔍 Saved layout items in DB:', updatedSettings.layoutConfiguration?.items?.map((item: any) => ({ 
         id: item.id, 
         type: item.type, 
         x: item.x, 
@@ -5055,12 +4853,10 @@ Best regards,
       })));
       
       // CRITICAL DEBUG: Let's see the EXACT data being saved
-      console.log('🔍 EXACT LAYOUT DATA SAVED:', JSON.stringify(updatedSettings.layoutConfiguration, null, 2));
 
       // Return the complete updated settings object for cache consistency
       res.json(updatedSettings);
     } catch (error) {
-      console.error("Error updating template layout configuration:", error);
       res.status(500).json({ message: "Failed to update template layout configuration" });
     }
   });
@@ -5082,7 +4878,6 @@ Best regards,
       const shareLink = await storage.generateShareLink(projectId);
       res.json({ shareableLink: shareLink });
     } catch (error) {
-      console.error("Error generating share link:", error);
       res.status(500).json({ message: "Failed to generate share link" });
     }
   });
@@ -5109,7 +4904,6 @@ Best regards,
       const settings = await storage.getContactSheetSettings(projectId);
       res.json(settings || {});
     } catch (error) {
-      console.error("Error fetching contact sheet settings:", error);
       res.status(500).json({ message: "Failed to fetch settings" });
     }
   });
@@ -5132,7 +4926,6 @@ Best regards,
       const settings = await storage.saveContactSheetSettings(projectId, settingsData);
       res.json(settings);
     } catch (error) {
-      console.error("Error saving contact sheet settings:", error);
       res.status(500).json({ message: "Failed to save settings" });
     }
   });
@@ -5162,7 +4955,6 @@ Best regards,
       
       res.json(version);
     } catch (error) {
-      console.error("Error publishing contact sheet version:", error);
       res.status(500).json({ message: "Failed to publish version" });
     }
   });
@@ -5188,7 +4980,6 @@ Best regards,
       const versions = await storage.getContactSheetVersions(projectId);
       res.json(versions);
     } catch (error) {
-      console.error("Error fetching contact sheet versions:", error);
       res.status(500).json({ message: "Failed to fetch versions" });
     }
   });
@@ -5214,7 +5005,6 @@ Best regards,
       const currentVersion = await storage.getCurrentContactSheetVersion(projectId);
       res.json({ version: currentVersion });
     } catch (error) {
-      console.error("Error fetching current contact sheet version:", error);
       res.status(500).json({ message: "Failed to fetch current version" });
     }
   });
@@ -5241,7 +5031,6 @@ Best regards,
       const settings = await storage.getCompanyListSettings(projectId);
       res.json(settings || {});
     } catch (error) {
-      console.error("Error fetching company list settings:", error);
       res.status(500).json({ message: "Failed to fetch settings" });
     }
   });
@@ -5264,7 +5053,6 @@ Best regards,
       const settings = await storage.saveCompanyListSettings(projectId, settingsData);
       res.json(settings);
     } catch (error) {
-      console.error("Error saving company list settings:", error);
       res.status(500).json({ message: "Failed to save settings" });
     }
   });
@@ -5292,7 +5080,6 @@ Best regards,
       const availability = await storage.getContactAvailability(contactId, projectId);
       res.json(availability);
     } catch (error) {
-      console.error("Error fetching contact availability:", error);
       res.status(500).json({ message: "Failed to fetch availability" });
     }
   });
@@ -5322,7 +5109,6 @@ Best regards,
       const availability = await storage.createContactAvailability(availabilityData);
       res.status(201).json(availability);
     } catch (error) {
-      console.error("Error creating contact availability:", error);
       res.status(500).json({ message: "Failed to create availability" });
     }
   });
@@ -5346,7 +5132,6 @@ Best regards,
       const availability = await storage.updateContactAvailability(availabilityId, availabilityData);
       res.json(availability);
     } catch (error) {
-      console.error("Error updating contact availability:", error);
       res.status(500).json({ message: "Failed to update availability" });
     }
   });
@@ -5369,7 +5154,6 @@ Best regards,
       await storage.deleteContactAvailability(availabilityId);
       res.status(204).send();
     } catch (error) {
-      console.error("Error deleting contact availability:", error);
       res.status(500).json({ message: "Failed to delete availability" });
     }
   });
@@ -5396,7 +5180,6 @@ Best regards,
       const availability = await storage.getAllProjectAvailability(projectId);
       res.json(availability);
     } catch (error) {
-      console.error("Error fetching project availability:", error);
       res.status(500).json({ message: "Failed to fetch availability" });
     }
   });
@@ -5428,7 +5211,6 @@ Best regards,
       }));
       res.json(transformedAvailability);
     } catch (error) {
-      console.error("Error fetching location availability:", error);
       res.status(500).json({ message: "Failed to fetch location availability" });
     }
   });
@@ -5459,7 +5241,6 @@ Best regards,
       const availability = await storage.createLocationAvailability(availabilityData);
       res.json(availability);
     } catch (error) {
-      console.error("Error creating location availability:", error);
       res.status(500).json({ message: "Failed to create location availability" });
     }
   });
@@ -5487,7 +5268,6 @@ Best regards,
       const availability = await storage.updateLocationAvailability(availabilityId, availabilityData);
       res.json(availability);
     } catch (error) {
-      console.error("Error updating location availability:", error);
       res.status(500).json({ message: "Failed to update location availability" });
     }
   });
@@ -5511,12 +5291,9 @@ Best regards,
         }
       }
 
-      console.log("Attempting to delete location availability ID:", availabilityId);
       await storage.deleteLocationAvailability(availabilityId);
-      console.log("Successfully deleted location availability ID:", availabilityId);
       res.json({ success: true });
     } catch (error) {
-      console.error("Error deleting location availability:", error);
       res.status(500).json({ message: "Failed to delete location availability" });
     }
   });
@@ -5540,12 +5317,9 @@ Best regards,
         }
       }
 
-      console.log("Backend: Attempting bulk delete of IDs:", ids);
       await storage.bulkDeleteLocationAvailability(ids);
-      console.log("Backend: Successfully bulk deleted", ids.length, "items");
       res.json({ success: true, deletedCount: ids.length });
     } catch (error) {
-      console.error("Error bulk deleting location availability:", error);
       res.status(500).json({ message: "Failed to delete location availability" });
     }
   });
@@ -5570,7 +5344,6 @@ Best regards,
         }
       }
 
-      console.log("Received request body:", req.body);
       const availabilityData = {
         ...req.body,
         type: req.body.availabilityType || req.body.type, // Handle both field names
@@ -5579,10 +5352,8 @@ Best regards,
         createdBy: req.user.id
       };
       delete availabilityData.availabilityType; // Remove the old field
-      console.log("Processing availability data:", availabilityData);
 
       const availability = await storage.createLocationAvailability(availabilityData);
-      console.log("Created location availability:", availability);
       // Transform data to match frontend expectations (type -> availabilityType)
       const transformedAvailability = {
         ...availability,
@@ -5590,7 +5361,6 @@ Best regards,
       };
       res.json(transformedAvailability);
     } catch (error) {
-      console.error("Error creating location availability:", error);
       res.status(500).json({ message: "Failed to create location availability" });
     }
   });
@@ -5629,7 +5399,6 @@ Best regards,
       };
       res.json(transformedAvailability);
     } catch (error) {
-      console.error("Error updating location availability:", error);
       res.status(500).json({ message: "Failed to update location availability" });
     }
   });
@@ -5656,7 +5425,6 @@ Best regards,
       const props = await storage.getPropsByProjectId(projectId);
       res.json(props);
     } catch (error) {
-      console.error("Error fetching props:", error);
       res.status(500).json({ message: "Failed to fetch props" });
     }
   });
@@ -5688,7 +5456,6 @@ Best regards,
       const prop = await storage.createProp(propData);
       res.status(201).json(prop);
     } catch (error) {
-      console.error("Error creating prop:", error);
       res.status(500).json({ message: "Failed to create prop" });
     }
   });
@@ -5716,7 +5483,6 @@ Best regards,
       const prop = await storage.updateProp(propId, propData);
       res.json(prop);
     } catch (error) {
-      console.error("Error updating prop:", error);
       res.status(500).json({ message: "Failed to update prop" });
     }
   });
@@ -5743,7 +5509,6 @@ Best regards,
       await storage.deleteProp(propId);
       res.json({ success: true });
     } catch (error) {
-      console.error("Error deleting prop:", error);
       res.status(500).json({ message: "Failed to delete prop" });
     }
   });
@@ -5770,7 +5535,6 @@ Best regards,
       const costumes = await storage.getCostumesByProjectId(projectId);
       res.json(costumes);
     } catch (error) {
-      console.error("Error fetching costumes:", error);
       res.status(500).json({ message: "Failed to fetch costumes" });
     }
   });
@@ -5802,7 +5566,6 @@ Best regards,
       const costume = await storage.createCostume(costumeData);
       res.json(costume);
     } catch (error) {
-      console.error("Error creating costume:", error);
       res.status(500).json({ message: "Failed to create costume" });
     }
   });
@@ -5830,7 +5593,6 @@ Best regards,
       const costume = await storage.updateCostume(costumeId, costumeData);
       res.json(costume);
     } catch (error) {
-      console.error("Error updating costume:", error);
       res.status(500).json({ message: "Failed to update costume" });
     }
   });
@@ -5857,7 +5619,6 @@ Best regards,
       await storage.deleteCostume(costumeId);
       res.json({ success: true });
     } catch (error) {
-      console.error("Error deleting costume:", error);
       res.status(500).json({ message: "Failed to delete costume" });
     }
   });
@@ -5887,7 +5648,6 @@ Best regards,
       
       res.json(version);
     } catch (error) {
-      console.error("Error publishing company list version:", error);
       res.status(500).json({ message: "Failed to publish version" });
     }
   });
@@ -5913,7 +5673,6 @@ Best regards,
       const versions = await storage.getCompanyListVersions(projectId);
       res.json(versions);
     } catch (error) {
-      console.error("Error fetching company list versions:", error);
       res.status(500).json({ message: "Failed to fetch versions" });
     }
   });
@@ -5939,7 +5698,6 @@ Best regards,
       const currentVersion = await storage.getCurrentCompanyListVersion(projectId);
       res.json({ version: currentVersion });
     } catch (error) {
-      console.error("Error fetching current company list version:", error);
       res.status(500).json({ message: "Failed to fetch current version" });
     }
   });
@@ -5961,10 +5719,7 @@ Best regards,
 
       const templates = await storage.getReportTemplatesByProjectId(projectId);
       
-      console.log('📋 GET /api/projects/:id/templates - Fetching templates for project:', projectId);
-      console.log('📋 Templates found:', templates.length);
       if (templates.length > 0) {
-        console.log('📋 First template:', {
           id: templates[0].id,
           name: templates[0].name,
           type: templates[0].type,
@@ -5977,7 +5732,6 @@ Best regards,
       // DEBUG: Log rehearsal template specifically
       const rehearsalTemplate = templates.find(t => t.phase === 'rehearsal');
       if (rehearsalTemplate) {
-        console.log('🎭 REHEARSAL TEMPLATE BEING RETURNED:', {
           id: rehearsalTemplate.id,
           name: rehearsalTemplate.name,
           phase: rehearsalTemplate.phase,
@@ -5987,7 +5741,6 @@ Best regards,
       
       res.json(templates);
     } catch (error) {
-      console.error("Error fetching report templates:", error);
       res.status(500).json({ message: "Failed to fetch templates" });
     }
   });
@@ -6015,7 +5768,6 @@ Best regards,
       const template = await storage.createReportTemplate(templateData);
       res.json(template);
     } catch (error) {
-      console.error("Error creating report template:", error);
       res.status(500).json({ message: "Failed to create template" });
     }
   });
@@ -6038,7 +5790,6 @@ Best regards,
       const template = await storage.updateReportTemplate(templateId, req.body);
       res.json(template);
     } catch (error) {
-      console.error("Error updating report template:", error);
       res.status(500).json({ message: "Failed to update template" });
     }
   });
@@ -6066,7 +5817,6 @@ Best regards,
       const templates = await storage.getTemplatesV2WithFullData(projectId);
       res.json(templates);
     } catch (error) {
-      console.error("Error fetching V2 templates:", error);
       res.status(500).json({ message: "Failed to fetch templates" });
     }
   });
@@ -6101,7 +5851,6 @@ Best regards,
 
       res.json(template);
     } catch (error) {
-      console.error("Error fetching template:", error);
       res.status(500).json({ message: "Failed to fetch template" });
     }
   });
@@ -6137,7 +5886,6 @@ Best regards,
       const template = await storage.createTemplateV2(validationResult.data);
       res.json(template);
     } catch (error) {
-      console.error("Error creating V2 template:", error);
       res.status(500).json({ message: "Failed to create template" });
     }
   });
@@ -6170,7 +5918,6 @@ Best regards,
       const template = await storage.updateTemplateV2(templateId, validationResult.data);
       res.json(template);
     } catch (error) {
-      console.error("Error updating V2 template:", error);
       res.status(500).json({ message: "Failed to update template" });
     }
   });
@@ -6194,7 +5941,6 @@ Best regards,
       await storage.deleteTemplateV2(templateId);
       res.json({ message: "Template deleted successfully" });
     } catch (error) {
-      console.error("Error deleting V2 template:", error);
       res.status(500).json({ message: "Failed to delete template" });
     }
   });
@@ -6217,7 +5963,6 @@ Best regards,
       await storage.reorderTemplatesV2(req.body.templates);
       res.json({ message: "Templates reordered successfully" });
     } catch (error) {
-      console.error("Error reordering V2 templates:", error);
       res.status(500).json({ message: "Failed to reorder templates" });
     }
   });
@@ -6232,12 +5977,10 @@ Best regards,
         templateId,
       };
       
-      console.log("Creating section with data:", dataToValidate);
       
       const validationResult = insertTemplateSectionSchema.safeParse(dataToValidate);
 
       if (!validationResult.success) {
-        console.error("Validation failed:", validationResult.error.errors);
         return res.status(400).json({ 
           message: "Invalid section data", 
           errors: validationResult.error.errors 
@@ -6247,7 +5990,6 @@ Best regards,
       const section = await storage.createTemplateSection(validationResult.data);
       res.json(section);
     } catch (error) {
-      console.error("Error creating section:", error);
       res.status(500).json({ message: "Failed to create section" });
     }
   });
@@ -6268,7 +6010,6 @@ Best regards,
       const section = await storage.updateTemplateSection(sectionId, validationResult.data);
       res.json(section);
     } catch (error) {
-      console.error("Error updating section:", error);
       res.status(500).json({ message: "Failed to update section" });
     }
   });
@@ -6279,7 +6020,6 @@ Best regards,
       await storage.deleteTemplateSection(sectionId);
       res.json({ message: "Section deleted successfully" });
     } catch (error) {
-      console.error("Error deleting section:", error);
       res.status(500).json({ message: "Failed to delete section" });
     }
   });
@@ -6289,7 +6029,6 @@ Best regards,
       await storage.reorderTemplateSections(req.body.sections);
       res.json({ message: "Sections reordered successfully" });
     } catch (error) {
-      console.error("Error reordering sections:", error);
       res.status(500).json({ message: "Failed to reorder sections" });
     }
   });
@@ -6314,7 +6053,6 @@ Best regards,
       const field = await storage.createTemplateField(validationResult.data);
       res.json(field);
     } catch (error) {
-      console.error("Error creating field:", error);
       res.status(500).json({ message: "Failed to create field" });
     }
   });
@@ -6335,7 +6073,6 @@ Best regards,
       const field = await storage.updateTemplateField(fieldId, validationResult.data);
       res.json(field);
     } catch (error) {
-      console.error("Error updating field:", error);
       res.status(500).json({ message: "Failed to update field" });
     }
   });
@@ -6346,7 +6083,6 @@ Best regards,
       await storage.deleteTemplateField(fieldId);
       res.json({ message: "Field deleted successfully" });
     } catch (error) {
-      console.error("Error deleting field:", error);
       res.status(500).json({ message: "Failed to delete field" });
     }
   });
@@ -6356,7 +6092,6 @@ Best regards,
       await storage.reorderTemplateFields(req.body.fields);
       res.json({ message: "Fields reordered successfully" });
     } catch (error) {
-      console.error("Error reordering fields:", error);
       res.status(500).json({ message: "Failed to reorder fields" });
     }
   });
@@ -6383,7 +6118,6 @@ Best regards,
       const reportTypes = await storage.getReportTypesByProjectId(projectId);
       res.json(reportTypes);
     } catch (error) {
-      console.error("Error fetching report types:", error);
       res.status(500).json({ message: "Failed to fetch report types" });
     }
   });
@@ -6423,7 +6157,6 @@ Best regards,
       const reportType = await storage.createReportType(validationResult.data);
       res.json(reportType);
     } catch (error) {
-      console.error("Error creating report type:", error);
       res.status(500).json({ message: "Failed to create report type" });
     }
   });
@@ -6466,7 +6199,6 @@ Best regards,
       const reportType = await storage.updateReportType(reportTypeId, validationResult.data);
       res.json(reportType);
     } catch (error) {
-      console.error("Error updating report type:", error);
       res.status(500).json({ message: "Failed to update report type" });
     }
   });
@@ -6499,7 +6231,6 @@ Best regards,
       await storage.deleteReportType(reportTypeId);
       res.json({ message: "Report type deleted successfully" });
     } catch (error) {
-      console.error("Error deleting report type:", error);
       res.status(500).json({ message: "Failed to delete report type" });
     }
   });
@@ -6560,7 +6291,6 @@ Best regards,
 
       res.json({ message: "Report types reordered successfully" });
     } catch (error) {
-      console.error("Error reordering report types:", error);
       const errorMessage = error instanceof Error ? error.message : "Failed to reorder report types";
       res.status(500).json({ message: errorMessage });
     }
@@ -6584,7 +6314,6 @@ Best regards,
       const settings = await storage.getGlobalTemplateSettingsByProjectId(projectId);
       res.json(settings);
     } catch (error) {
-      console.error("Error fetching global template settings:", error);
       res.status(500).json({ message: "Failed to fetch global template settings" });
     }
   });
@@ -6604,17 +6333,13 @@ Best regards,
       }
 
       const userId = req.user.id;
-      console.log("DEBUG POST: userId from req.user:", userId, "type:", typeof userId);
       const createdByValue = parseInt(userId.toString());
-      console.log("DEBUG POST: createdBy after parseInt:", createdByValue, "type:", typeof createdByValue);
       
       const requestData = {
         ...req.body,
         projectId,
         createdBy: createdByValue,
       };
-      console.log("DEBUG POST: requestData.createdBy:", requestData.createdBy, "type:", typeof requestData.createdBy);
-      console.log("DEBUG POST: Full request data:", JSON.stringify(requestData, null, 2));
       
       const settingsData = insertGlobalTemplateSettingsSchema.parse(requestData);
 
@@ -6622,10 +6347,8 @@ Best regards,
       res.json(settings);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        console.error("Validation errors:", error.errors);
         return res.status(400).json({ message: "Invalid input", errors: error.errors });
       }
-      console.error("Error saving global template settings:", error);
       res.status(500).json({ message: "Failed to save global template settings" });
     }
   });
@@ -6655,10 +6378,8 @@ Best regards,
       res.json(settings);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        console.error("Validation errors:", error.errors);
         return res.status(400).json({ message: "Invalid input", errors: error.errors });
       }
-      console.error("Error updating global template settings:", error);
       res.status(500).json({ message: "Failed to update global template settings" });
     }
   });
@@ -6716,7 +6437,6 @@ Best regards,
 
       res.json({ success: true, pageMargins });
     } catch (error) {
-      console.error("Error updating global margins:", error);
       res.status(500).json({ message: "Failed to update global margins" });
     }
   });
@@ -6730,7 +6450,6 @@ Best regards,
       
       // Determine environment from NODE_ENV
       const environment = process.env.NODE_ENV === 'production' ? 'production' : 'development';
-      console.log(`🔍 Fetching beta settings for environment: ${environment}`);
 
       // Get settings from database, fallback to default if not found
       let settings = await storage.getBetaSettings(environment);
@@ -6739,15 +6458,12 @@ Best regards,
         const { betaSettingsStore } = await import('./betaSettingsStore.ts');
         const defaultSettings = betaSettingsStore.getBetaSettings();
         settings = defaultSettings;
-        console.log(`🔍 No database settings found for ${environment}, using defaults`);
       } else {
-        console.log(`🔍 Found database settings for ${environment} with ${settings.features.length} features`);
       }
       
       // Beta settings successfully loaded from database
       res.json(settings);
     } catch (error) {
-      console.error("Error fetching beta settings:", error);
       res.status(500).json({ message: "Failed to fetch beta settings" });
     }
   });
@@ -6761,7 +6477,6 @@ Best regards,
 
       // Determine environment from NODE_ENV - CRITICAL for data isolation
       const environment = process.env.NODE_ENV === 'production' ? 'production' : 'development';
-      console.log(`🔧 Updating beta settings for environment: ${environment}`);
 
       // Clean the features data to ensure boolean values
       const cleanedFeatures = req.body.features.map((feature: any) => {
@@ -6781,7 +6496,6 @@ Best regards,
         };
       });
       
-      console.log(`🔧 All feature data cleaned for ${environment}:`, cleanedFeatures.map(f => ({ id: f.id, enabled: f.enabled })));
       
       // Save to database with environment scoping
       const settingsData = {
@@ -6794,7 +6508,6 @@ Best regards,
         const { neon } = await import('@neondatabase/serverless');
         const sql = neon(process.env.DATABASE_URL!);
         
-        console.log(`🔧 Using raw SQL to update beta settings for environment: ${environment}`);
         
         // First check if a record exists for this environment
         const existing = await sql`
@@ -6811,7 +6524,6 @@ Best regards,
             WHERE environment = ${environment}
             RETURNING id
           `;
-          console.log(`🔧 Raw SQL update successful for ${environment}:`, result);
         } else {
           // Insert new record for this environment
           const result = await sql`
@@ -6819,10 +6531,8 @@ Best regards,
             VALUES (${environment}, ${JSON.stringify(settingsData.features)}, ${settingsData.updatedBy}, NOW(), NOW())
             RETURNING id
           `;
-          console.log(`🔧 Raw SQL insert successful for ${environment}:`, result);
         }
       } catch (rawSqlError) {
-        console.error(`🔧 Raw SQL failed:`, rawSqlError);
         throw rawSqlError;
       }
       
@@ -6831,19 +6541,14 @@ Best regards,
         .filter((feature: any) => feature.enabled === true)
         .map((feature: any) => feature.id);
       
-      console.log(`🔧 About to update users' beta features with:`, enabledFeatures);
       
       // Update all users who have beta access with the enabled features
       try {
         await storage.updateAllUsersBetaFeatures(enabledFeatures);
-        console.log(`🔧 Successfully updated user beta features`);
       } catch (userUpdateError) {
-        console.error(`🔧 Failed to update user beta features:`, userUpdateError);
         throw userUpdateError;
       }
       
-      console.log(`🔧 Beta settings saved to database for ${environment}: ${enabledFeatures.length} features enabled for all beta users`);
-      console.log(`🔧 Enabled features:`, enabledFeatures);
       
       res.json({ 
         message: "Beta settings updated successfully",
@@ -6852,7 +6557,6 @@ Best regards,
         cacheKey: '/api/admin/beta-settings' // Signal frontend to invalidate cache
       });
     } catch (error) {
-      console.error("Error updating beta settings:", error);
       res.status(500).json({ message: "Failed to update beta settings" });
     }
   });
@@ -6871,7 +6575,6 @@ Best regards,
         res.json(userFeedback);
       }
     } catch (error) {
-      console.error("Error fetching feedback:", error);
       res.status(500).json({ message: "Failed to fetch feedback" });
     }
   });
@@ -6890,7 +6593,6 @@ Best regards,
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid feedback data", errors: error.errors });
       }
-      console.error("Error creating feedback:", error);
       res.status(500).json({ message: "Failed to create feedback" });
     }
   });
@@ -6912,7 +6614,6 @@ Best regards,
 
       res.json(feedback);
     } catch (error) {
-      console.error("Error fetching feedback:", error);
       res.status(500).json({ message: "Failed to fetch feedback" });
     }
   });
@@ -6943,7 +6644,6 @@ Best regards,
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid feedback data", errors: error.errors });
       }
-      console.error("Error updating feedback:", error);
       res.status(500).json({ message: "Failed to update feedback" });
     }
   });
@@ -6966,7 +6666,6 @@ Best regards,
       await storage.deleteFeedback(feedbackId);
       res.json({ message: "Feedback deleted successfully" });
     } catch (error) {
-      console.error("Error deleting feedback:", error);
       res.status(500).json({ message: "Failed to delete feedback" });
     }
   });
@@ -6975,7 +6674,6 @@ Best regards,
   app.get("/api/projects/:id/script", isAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);
-      console.log(`GET script request for project ${projectId} by user ${req.user.id}`);
       
       const project = await storage.getProjectById(projectId);
       if (!project) {
@@ -6989,9 +6687,7 @@ Best regards,
 
       // Get script document
       const documents = await storage.getShowDocumentsByProjectId(projectId);
-      console.log(`Found ${documents.length} documents for project ${projectId}`);
       const script = documents.find(doc => doc.type === 'script');
-      console.log(`Script document found:`, script ? { id: script.id, name: script.name, contentType: typeof script.content, hasContent: !!script.content } : 'null');
       
       if (!script) {
         // Return default script data if none exists
@@ -7025,7 +6721,6 @@ Best regards,
         type: "script"
       };
 
-      console.log('Returning script data:', { 
         name: scriptData.name, 
         contentLength: content.length,
         contentPreview: content.substring(0, 50),
@@ -7042,7 +6737,6 @@ Best regards,
 
       res.json(scriptData);
     } catch (error) {
-      console.error("Error fetching script:", error);
       res.status(500).json({ message: "Failed to fetch script" });
     }
   });
@@ -7053,7 +6747,6 @@ Best regards,
       const projectId = parseInt(req.params.id);
       const { title, content } = req.body;
       
-      console.log(`Saving script for project ${projectId}:`, {
         title: title || "No title",
         contentLength: content ? content.length : 0,
         contentPreview: content ? content.substring(0, 100) : "No content"
@@ -7075,7 +6768,6 @@ Best regards,
       
       if (!script) {
         // Create new script
-        console.log("Creating new script document");
         script = await storage.createShowDocument({
           projectId,
           name: title || "Untitled Script",
@@ -7086,17 +6778,14 @@ Best regards,
         });
       } else {
         // Update existing script
-        console.log("Updating existing script, current content length:", script.content ? JSON.stringify(script.content).length : 0);
         script = await storage.updateShowDocument(script.id, {
           name: title || script.name,
           content: content || script.content
         });
       }
 
-      console.log("Script saved successfully, final content length:", script.content ? JSON.stringify(script.content).length : 0);
       res.json(script);
     } catch (error) {
-      console.error("Error saving script:", error);
       res.status(500).json({ message: "Failed to save script" });
     }
   });
@@ -7163,7 +6852,6 @@ Best regards,
         script: updatedScript
       });
     } catch (error) {
-      console.error("Error publishing script version:", error);
       res.status(500).json({ message: "Failed to publish script version" });
     }
   });
@@ -7233,7 +6921,6 @@ Best regards,
 
           res.json({ text, pages: numPages });
         } catch (parseError) {
-          console.error('PDF parsing error:', parseError);
           res.status(500).json({ 
             error: 'PDF parsing failed', 
             message: 'Could not process this PDF. Please try copying the text directly or converting to a text file first.' 
@@ -7241,7 +6928,6 @@ Best regards,
         }
       });
     } catch (error) {
-      console.error('PDF extraction error:', error);
       res.status(500).json({ error: 'PDF processing failed' });
     }
   });
@@ -7306,7 +6992,6 @@ Best regards,
 
           res.json({ text });
         } catch (parseError) {
-          console.error('Word parsing error:', parseError);
           res.status(500).json({ 
             error: 'Word document parsing failed', 
             message: 'Could not extract text from this Word document. It may be corrupted or in an unsupported format.' 
@@ -7314,7 +6999,6 @@ Best regards,
         }
       });
     } catch (error) {
-      console.error('Word extraction error:', error);
       res.status(500).json({ error: 'Word document processing failed' });
     }
   });
@@ -7328,7 +7012,6 @@ Best regards,
         message: 'Word document text extraction is not yet implemented. Please convert your document to PDF or plain text for now.' 
       });
     } catch (error) {
-      console.error('Word extraction error:', error);
       res.status(500).json({ error: 'Word document processing failed' });
     }
   });
@@ -7347,7 +7030,6 @@ Best regards,
       
       res.json(allContacts);
     } catch (error) {
-      console.error("Error fetching global contacts:", error);
       res.status(500).json({ message: "Failed to fetch contacts" });
     }
   });
@@ -7370,7 +7052,6 @@ Best regards,
       const contacts = await storage.getContactsByProjectId(projectId);
       res.json(contacts);
     } catch (error) {
-      console.error("Error fetching contacts:", error);
       res.status(500).json({ message: "Failed to fetch contacts" });
     }
   });
@@ -7399,7 +7080,6 @@ Best regards,
       };
 
       // Debug logging to help identify validation issues
-      console.log("Contact creation data:", JSON.stringify(rawData, null, 2));
 
       // Handle equity status validation properly
       if (rawData.category !== 'cast') {
@@ -7412,7 +7092,6 @@ Best regards,
         }
       }
 
-      console.log("Contact data after equity status processing:", JSON.stringify(rawData, null, 2));
 
       const contactData = insertContactSchema.parse(rawData);
 
@@ -7422,7 +7101,6 @@ Best regards,
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid contact data", errors: error.errors });
       }
-      console.error("Error creating contact:", error);
       res.status(500).json({ message: "Failed to create contact" });
     }
   });
@@ -7478,9 +7156,7 @@ Best regards,
             createdBy: userId,
           });
           updatedGroupNameMap[groupName.toLowerCase()] = newGroup.id;
-          console.log(`Created group ${groupName} with ID ${newGroup.id}`);
         } catch (error) {
-          console.error(`Failed to create group ${groupName}:`, error);
           return res.status(400).json({ 
             message: `Failed to create group "${groupName}". Please create it manually first.` 
           });
@@ -7540,14 +7216,12 @@ Best regards,
           const created = await storage.createContact(contactRecord);
           createdContacts.push(created);
         } catch (error) {
-          console.error("Error creating individual contact:", error);
           // Continue with next contact on error
         }
       }
 
       res.json({ message: `Successfully imported ${createdContacts.length} contacts`, count: createdContacts.length });
     } catch (error) {
-      console.error("Error bulk importing contacts:", error);
       res.status(500).json({ message: "Failed to import contacts" });
     }
   });
@@ -7609,10 +7283,8 @@ Best regards,
       res.json(updatedContact);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        console.error("Contact update validation errors:", error.errors);
         return res.status(400).json({ message: "Invalid contact data", errors: error.errors });
       }
-      console.error("Error updating contact:", error);
       res.status(500).json({ message: "Failed to update contact" });
     }
   });
@@ -7634,7 +7306,6 @@ Best regards,
 
       res.json(contact);
     } catch (error) {
-      console.error("Error fetching contact:", error);
       res.status(500).json({ message: "Failed to fetch contact" });
     }
   });
@@ -7667,7 +7338,6 @@ Best regards,
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid contact data", errors: error.errors });
       }
-      console.error("Error updating contact:", error);
       res.status(500).json({ message: "Failed to update contact" });
     }
   });
@@ -7690,7 +7360,6 @@ Best regards,
       await storage.deleteContact(contactId);
       res.json({ message: "Contact deleted successfully" });
     } catch (error) {
-      console.error("Error deleting contact:", error);
       res.status(500).json({ message: "Failed to delete contact" });
     }
   });
@@ -7704,7 +7373,6 @@ Best regards,
       const emailContacts = await storage.getEmailContactsByUserIdAndProject(userId, projectId);
       res.json(emailContacts);
     } catch (error) {
-      console.error("Error fetching email contacts:", error);
       res.status(500).json({ message: "Failed to fetch email contacts" });
     }
   });
@@ -7726,7 +7394,6 @@ Best regards,
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid email contact data", errors: error.errors });
       }
-      console.error("Error creating email contact:", error);
       res.status(500).json({ message: "Failed to create email contact" });
     }
   });
@@ -7753,7 +7420,6 @@ Best regards,
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid email contact data", errors: error.errors });
       }
-      console.error("Error updating email contact:", error);
       res.status(500).json({ message: "Failed to update email contact" });
     }
   });
@@ -7772,7 +7438,6 @@ Best regards,
       await storage.deleteEmailContact(emailContactId);
       res.json({ message: "Email contact deleted successfully" });
     } catch (error) {
-      console.error("Error deleting email contact:", error);
       res.status(500).json({ message: "Failed to delete email contact" });
     }
   });
@@ -7795,7 +7460,6 @@ Best regards,
       await storage.syncShowContactsToEmailContacts(userId, projectId);
       res.json({ message: "Show contacts synced to email contacts successfully" });
     } catch (error) {
-      console.error("Error syncing contacts to email:", error);
       res.status(500).json({ message: "Failed to sync contacts to email" });
     }
   });
@@ -7807,7 +7471,6 @@ Best regards,
       await storage.syncAllContactsToEmailContacts(userId);
       res.json({ message: "All contacts synced to email contacts successfully" });
     } catch (error) {
-      console.error("Error syncing all contacts to email:", error);
       res.status(500).json({ message: "Failed to sync all contacts to email" });
     }
   });
@@ -7821,7 +7484,6 @@ Best regards,
       const distributionLists = await storage.getDistributionListsByUserIdAndProject(userId, projectId);
       res.json(distributionLists);
     } catch (error) {
-      console.error("Error fetching distribution lists:", error);
       res.status(500).json({ message: "Failed to fetch distribution lists" });
     }
   });
@@ -7839,7 +7501,6 @@ Best regards,
       const distributionList = await storage.createDistributionList(distributionListData);
       res.json(distributionList);
     } catch (error) {
-      console.error("Error creating distribution list:", error);
       res.status(500).json({ message: "Failed to create distribution list" });
     }
   });
@@ -7859,7 +7520,6 @@ Best regards,
       const distributionList = await storage.updateDistributionList(listId, updateData);
       res.json(distributionList);
     } catch (error) {
-      console.error("Error updating distribution list:", error);
       res.status(500).json({ message: "Failed to update distribution list" });
     }
   });
@@ -7878,7 +7538,6 @@ Best regards,
       await storage.deleteDistributionList(listId);
       res.json({ message: "Distribution list deleted successfully" });
     } catch (error) {
-      console.error("Error deleting distribution list:", error);
       res.status(500).json({ message: "Failed to delete distribution list" });
     }
   });
@@ -7898,7 +7557,6 @@ Best regards,
       const members = await storage.getDistributionListMembers(listId);
       res.json(members);
     } catch (error) {
-      console.error("Error fetching distribution list members:", error);
       res.status(500).json({ message: "Failed to fetch distribution list members" });
     }
   });
@@ -7922,7 +7580,6 @@ Best regards,
       const member = await storage.createDistributionListMember(memberData);
       res.json(member);
     } catch (error) {
-      console.error("Error adding distribution list member:", error);
       res.status(500).json({ message: "Failed to add distribution list member" });
     }
   });
@@ -7942,7 +7599,6 @@ Best regards,
       await storage.deleteDistributionListMember(memberId);
       res.json({ message: "Distribution list member removed successfully" });
     } catch (error) {
-      console.error("Error removing distribution list member:", error);
       res.status(500).json({ message: "Failed to remove distribution list member" });
     }
   });
@@ -7973,14 +7629,12 @@ Best regards,
       const events = await storage.getScheduleEventsByProjectId(projectId, startDate, endDate);
       res.json(events);
     } catch (error) {
-      console.error("Error fetching schedule events:", error);
       res.status(500).json({ message: "Failed to fetch schedule events" });
     }
   });
 
   // PATCH route for project-specific schedule events (used by monthly view)
   app.patch('/api/projects/:projectId/schedule-events/:eventId', isAuthenticated, async (req: any, res) => {
-    console.log('🚨 PROJECT-SPECIFIC PATCH ROUTE HIT!', req.params);
     try {
       const projectId = parseInt(req.params.projectId);
       const eventId = parseInt(req.params.eventId);
@@ -8009,12 +7663,6 @@ Best regards,
       
       const validatedData = updateEventSchema.parse(req.body);
       
-      console.log('📝 PATCH /api/projects/:projectId/schedule-events/:eventId - Debug logging:');
-      console.log('🔍 Project ID:', projectId, 'Event ID:', eventId);
-      console.log('📦 Raw request body:', JSON.stringify(req.body, null, 2));
-      console.log('✅ Validated data:', JSON.stringify(validatedData, null, 2));
-      console.log('🏗️ Current event isProductionLevel:', event.isProductionLevel);
-      console.log('🆕 New isProductionLevel:', validatedData.isProductionLevel);
       
       // Validate for conflicts if participants are provided or if time/date/location is being updated
       if ((req.body.participants && Array.isArray(req.body.participants) && req.body.participants.length > 0) || validatedData.location) {
@@ -8043,7 +7691,6 @@ Best regards,
       
       const updatedEvent = await storage.updateScheduleEvent(eventId, validatedData, req.user.id);
       
-      console.log('💾 Database update result:', JSON.stringify(updatedEvent, null, 2));
       
       // Sync important date changes back to project
       await syncImportantDateEventToProject(event, validatedData);
@@ -8063,13 +7710,11 @@ Best regards,
       }
 
       const eventWithParticipants = await storage.getScheduleEventById(eventId);
-      console.log('🎭 Final event returned:', JSON.stringify(eventWithParticipants, null, 2));
       res.json(eventWithParticipants);
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid event data", errors: error.errors });
       }
-      console.error("Error updating schedule event:", error);
       res.status(500).json({ message: "Failed to update schedule event" });
     }
   });
@@ -8088,7 +7733,6 @@ Best regards,
         return res.status(403).json({ message: "Access denied" });
       }
 
-      console.log("Event creation request body:", req.body);
       const eventData = insertScheduleEventSchema.parse({
         ...req.body,
         projectId,
@@ -8135,7 +7779,6 @@ Best regards,
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid event data", errors: error.errors });
       }
-      console.error("Error creating schedule event:", error);
       res.status(500).json({ message: "Failed to create schedule event" });
     }
   });
@@ -8161,14 +7804,12 @@ Best regards,
 
       res.json(event);
     } catch (error) {
-      console.error("Error fetching schedule event:", error);
       res.status(500).json({ message: "Failed to fetch schedule event" });
     }
   });
 
   // Helper function to sync important date event changes back to project
   async function syncImportantDateEventToProject(event: any, updatedData: any) {
-    console.log('🔄 syncImportantDateEventToProject called with:', {
       eventTitle: event.title,
       eventType: event.type,
       updatedDate: updatedData.date
@@ -8187,11 +7828,9 @@ Best regards,
 
     const projectField = importantDateMapping[event.title];
     if (!projectField) {
-      console.log('🚫 Not an Important Date event, skipping sync for:', event.title);
       return; // Not a recognized important date
     }
 
-    console.log('✅ Important Date event detected, syncing:', event.title, '→', projectField);
 
     const newDate = updatedData.date;
     if (newDate) {
@@ -8199,20 +7838,15 @@ Best regards,
       const updateData: any = {};
       updateData[projectField] = new Date(newDate);
       
-      console.log('💾 Updating project', event.projectId, 'with Important Date change:', updateData);
       
       // Use direct SQL update to avoid Drizzle ORM field name issues
       try {
         const sqlQuery = sql.raw(`UPDATE projects SET ${projectField} = '${newDate}', updated_at = NOW() WHERE id = ${event.projectId}`);
-        console.log('🔍 Executing SQL:', sqlQuery.queryChunks.join(''));
         await db.execute(sqlQuery);
-        console.log('✅ Important Date synced successfully to Show Settings via direct SQL');
       } catch (sqlError) {
-        console.error('❌ Direct SQL update failed:', sqlError);
         throw sqlError;
       }
     } else {
-      console.log('⚠️ No date provided in updatedData');
     }
   }
 
@@ -8239,12 +7873,6 @@ Best regards,
       
       const validatedData = updateEventSchema.parse(req.body);
       
-      console.log('📝 PUT /api/schedule-events/:id - Debug logging:');
-      console.log('🔍 Event ID:', eventId);
-      console.log('📦 Raw request body:', JSON.stringify(req.body, null, 2));
-      console.log('✅ Validated data:', JSON.stringify(validatedData, null, 2));
-      console.log('🏗️ Current event isProductionLevel:', event.isProductionLevel);
-      console.log('🆕 New isProductionLevel:', validatedData.isProductionLevel);
       
       // Validate for conflicts if participants are provided or if time/date/location is being updated
       if ((req.body.participants && Array.isArray(req.body.participants) && req.body.participants.length > 0) || validatedData.location) {
@@ -8273,7 +7901,6 @@ Best regards,
       
       const updatedEvent = await storage.updateScheduleEvent(eventId, validatedData, req.user.id);
       
-      console.log('💾 Database update result:', JSON.stringify(updatedEvent, null, 2));
       
       // Sync important date changes back to project
       await syncImportantDateEventToProject(event, validatedData);
@@ -8296,19 +7923,16 @@ Best regards,
 
       // Return updated event with participants
       const eventWithParticipants = await storage.getScheduleEventById(eventId);
-      console.log('🎭 Final event returned:', JSON.stringify(eventWithParticipants, null, 2));
       res.json(eventWithParticipants);
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid event data", errors: error.errors });
       }
-      console.error("Error updating schedule event:", error);
       res.status(500).json({ message: "Failed to update schedule event" });
     }
   });
 
   app.patch('/api/schedule-events/:id', isAuthenticated, async (req: any, res) => {
-    console.log('🚨 GENERIC PATCH ROUTE HIT!', req.params, req.url);
     try {
       const eventId = parseInt(req.params.id);
       const event = await storage.getScheduleEventById(eventId);
@@ -8330,12 +7954,6 @@ Best regards,
       
       const validatedData = updateEventSchema.parse(req.body);
       
-      console.log('📝 PATCH /api/schedule-events/:id - Debug logging:');
-      console.log('🔍 Event ID:', eventId);
-      console.log('📦 Raw request body:', JSON.stringify(req.body, null, 2));
-      console.log('✅ Validated data:', JSON.stringify(validatedData, null, 2));
-      console.log('🏗️ Current event isProductionLevel:', event.isProductionLevel);
-      console.log('🆕 New isProductionLevel:', validatedData.isProductionLevel);
       
       // Validate for conflicts if participants are provided or if time/date/location is being updated
       if ((req.body.participants && Array.isArray(req.body.participants) && req.body.participants.length > 0) || validatedData.location) {
@@ -8390,7 +8008,6 @@ Best regards,
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid event data", errors: error.errors });
       }
-      console.error("Error updating schedule event:", error);
       res.status(500).json({ message: "Failed to update schedule event" });
     }
   });
@@ -8433,7 +8050,6 @@ Best regards,
       await storage.deleteScheduleEvent(eventId);
       res.json({ message: "Event deleted successfully" });
     } catch (error) {
-      console.error("Error deleting schedule event:", error);
       res.status(500).json({ message: "Failed to delete schedule event" });
     }
   });
@@ -8471,7 +8087,6 @@ Best regards,
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid participant data", errors: error.errors });
       }
-      console.error("Error updating event participant:", error);
       res.status(500).json({ message: "Failed to update participant" });
     }
   });
@@ -8494,7 +8109,6 @@ Best regards,
       const changesSummary = await scheduleChangeDetectionService.generateChangesSummary(projectId);
       res.json({ changesSummary });
     } catch (error) {
-      console.error("Error generating schedule changes summary:", error);
       res.status(500).json({ message: "Failed to generate changes summary" });
     }
   });
@@ -8517,7 +8131,6 @@ Best regards,
       const structuredChanges = await scheduleChangeDetectionService.generateStructuredChanges(projectId);
       res.json(structuredChanges);
     } catch (error) {
-      console.error("Error generating structured schedule changes:", error);
       res.status(500).json({ message: "Failed to generate structured changes" });
     }
   });
@@ -8611,7 +8224,6 @@ Best regards,
 
       res.json(dailyCallsList);
     } catch (error) {
-      console.error("Error fetching daily calls list:", error);
       res.status(500).json({ message: "Failed to fetch daily calls list" });
     }
   });
@@ -8638,7 +8250,6 @@ Best regards,
       const dailyCalls = await storage.getDailyCalls(projectId);
       res.json(dailyCalls);
     } catch (error) {
-      console.error("Error fetching daily calls:", error);
       res.status(500).json({ message: "Failed to fetch daily calls" });
     }
   });
@@ -8670,7 +8281,6 @@ Best regards,
 
       res.json(dailyCall);
     } catch (error) {
-      console.error("Error fetching daily call:", error);
       res.status(500).json({ message: "Failed to fetch daily call" });
     }
   });
@@ -8739,7 +8349,6 @@ Best regards,
                     await storage.updateScheduleEvent(event.id, scheduleEventUpdates, parseInt(req.user.id.toString()));
                   }
                 } catch (eventError) {
-                  console.warn(`Failed to sync event ${event.id} to schedule:`, eventError);
                   // Continue processing other events even if one fails
                 }
               }
@@ -8754,7 +8363,6 @@ Best regards,
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid daily call data", errors: error.errors });
       }
-      console.error("Error creating daily call:", error);
       res.status(500).json({ message: "Failed to create daily call" });
     }
   });
@@ -8826,7 +8434,6 @@ Best regards,
                     await storage.updateScheduleEvent(event.id, scheduleEventUpdates, parseInt(req.user.id.toString()));
                   }
                 } catch (eventError) {
-                  console.warn(`Failed to sync event ${event.id} to schedule:`, eventError);
                   // Continue processing other events even if one fails
                 }
               }
@@ -8841,7 +8448,6 @@ Best regards,
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid daily call data", errors: error.errors });
       }
-      console.error("Error updating daily call:", error);
       res.status(500).json({ message: "Failed to update daily call" });
     }
   });
@@ -8870,7 +8476,6 @@ Best regards,
       await storage.deleteDailyCall(callId);
       res.json({ message: "Daily call deleted successfully" });
     } catch (error) {
-      console.error("Error deleting daily call:", error);
       res.status(500).json({ message: "Failed to delete daily call" });
     }
   });
@@ -8927,7 +8532,6 @@ Best regards,
       res.send(pdf);
       
     } catch (error) {
-      console.error("Error generating PDF:", error);
       res.status(500).json({ message: "Failed to generate PDF" });
     }
   });
@@ -8950,7 +8554,6 @@ Best regards,
       const locations = await storage.getEventLocationsByProjectId(projectId);
       res.json(locations);
     } catch (error) {
-      console.error("Error fetching event locations:", error);
       res.status(500).json({ message: "Failed to fetch event locations" });
     }
   });
@@ -8969,7 +8572,6 @@ Best regards,
         }
       }
 
-      console.log("Location creation request body:", req.body);
       const locationData = insertEventLocationSchema.parse({
         ...req.body,
         projectId,
@@ -8982,7 +8584,6 @@ Best regards,
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid location data", errors: error.errors });
       }
-      console.error("Error creating event location:", error);
       res.status(500).json({ message: "Failed to create event location" });
     }
   });
@@ -9003,7 +8604,6 @@ Best regards,
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid location data", errors: error.errors });
       }
-      console.error("Error updating event location:", error);
       res.status(500).json({ message: "Failed to update event location" });
     }
   });
@@ -9014,7 +8614,6 @@ Best regards,
       await storage.deleteEventLocation(locationId);
       res.json({ message: "Location deleted successfully" });
     } catch (error) {
-      console.error("Error deleting event location:", error);
       res.status(500).json({ message: "Failed to delete event location" });
     }
   });
@@ -9041,7 +8640,6 @@ Best regards,
       await storage.reorderEventLocations(projectId, locationIds);
       res.json({ message: "Event locations reordered successfully" });
     } catch (error) {
-      console.error("Error reordering event locations:", error);
       res.status(500).json({ message: "Failed to reorder event locations" });
     }
   });
@@ -9064,7 +8662,6 @@ Best regards,
       const groups = await storage.getContactGroupsByProjectId(projectId);
       res.json(groups);
     } catch (error) {
-      console.error("Error fetching contact groups:", error);
       res.status(500).json({ message: "Failed to fetch contact groups" });
     }
   });
@@ -9095,7 +8692,6 @@ Best regards,
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid group data", errors: error.errors });
       }
-      console.error("Error creating contact group:", error);
       res.status(500).json({ message: "Failed to create contact group" });
     }
   });
@@ -9109,7 +8705,6 @@ Best regards,
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid group data", errors: error.errors });
       }
-      console.error("Error updating contact group:", error);
       res.status(500).json({ message: "Failed to update contact group" });
     }
   });
@@ -9119,7 +8714,6 @@ Best regards,
       await storage.deleteContactGroup(parseInt(req.params.id));
       res.json({ message: "Contact group deleted successfully" });
     } catch (error) {
-      console.error("Error deleting contact group:", error);
       res.status(500).json({ message: "Failed to delete contact group" });
     }
   });
@@ -9146,7 +8740,6 @@ Best regards,
       await storage.reorderContactGroups(projectId, groupIds);
       res.json({ message: "Contact groups reordered successfully" });
     } catch (error) {
-      console.error("Error reordering contact groups:", error);
       res.status(500).json({ message: "Failed to reorder contact groups" });
     }
   });
@@ -9169,7 +8762,6 @@ Best regards,
       const eventTypes = await storage.getEventTypesByProjectId(projectId);
       res.json(eventTypes);
     } catch (error) {
-      console.error("Error fetching event types:", error);
       res.status(500).json({ message: "Failed to fetch event types" });
     }
   });
@@ -9200,7 +8792,6 @@ Best regards,
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid event type data", errors: error.errors });
       }
-      console.error("Error creating event type:", error);
       res.status(500).json({ message: "Failed to create event type" });
     }
   });
@@ -9225,7 +8816,6 @@ Best regards,
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid event type data", errors: error.errors });
       }
-      console.error("Error updating event type:", error);
       res.status(500).json({ message: "Failed to update event type" });
     }
   });
@@ -9239,7 +8829,6 @@ Best regards,
       await storage.deleteEventType(eventTypeId, projectId, userId);
       res.json({ message: "Event type deleted successfully" });
     } catch (error) {
-      console.error("Error deleting event type:", error);
       res.status(500).json({ message: "Failed to delete event type" });
     }
   });
@@ -9253,7 +8842,6 @@ Best regards,
       const clusters = await storage.getErrorClusters(timeRange, severity);
       res.json(clusters);
     } catch (error) {
-      console.error("Error fetching error clusters:", error);
       res.status(500).json({ message: "Failed to fetch error clusters" });
     }
   });
@@ -9265,7 +8853,6 @@ Best regards,
       const trends = await errorClusteringService.getErrorTrends(timeRange);
       res.json(trends);
     } catch (error) {
-      console.error("Error fetching error trends:", error);
       res.status(500).json({ message: "Failed to fetch error trends" });
     }
   });
@@ -9277,7 +8864,6 @@ Best regards,
       await storage.resolveErrorCluster(parseInt(clusterId));
       res.json({ message: "Error cluster marked as resolved" });
     } catch (error) {
-      console.error("Error resolving cluster:", error);
       res.status(500).json({ message: "Failed to resolve error cluster" });
     }
   });
@@ -9289,7 +8875,6 @@ Best regards,
       const clusterDetails = await storage.getErrorClusterDetails(parseInt(clusterId));
       res.json(clusterDetails);
     } catch (error) {
-      console.error("Error fetching cluster details:", error);
       res.status(500).json({ message: "Failed to fetch cluster details" });
     }
   });
@@ -9304,7 +8889,6 @@ Best regards,
       }
       res.json({ message: "Error clustering analysis initiated" });
     } catch (error) {
-      console.error("Error initiating cluster analysis:", error);
       res.status(500).json({ message: "Failed to initiate clustering analysis" });
     }
   });
@@ -9321,7 +8905,6 @@ Best regards,
       const records = await cloudflareService.getDNSRecords();
       res.json(records);
     } catch (error: any) {
-      console.error("Error fetching DNS records:", error);
       res.status(500).json({ message: error.message || "Failed to fetch DNS records" });
     }
   });
@@ -9336,7 +8919,6 @@ Best regards,
       const zoneInfo = await cloudflareService.getZoneInfo();
       res.json(zoneInfo);
     } catch (error: any) {
-      console.error("Error fetching zone info:", error);
       res.status(500).json({ message: error.message || "Failed to fetch zone information" });
     }
   });
@@ -9354,7 +8936,6 @@ Best regards,
         return res.status(400).json({ message: "Type, name, and content are required" });
       }
 
-      console.log("DNS Record Creation Request:", { type, name, content, ttl, proxied });
 
       const record = await cloudflareService.createDNSRecord({
         type,
@@ -9364,10 +8945,8 @@ Best regards,
         proxied: proxied || false
       });
       
-      console.log("Cloudflare response:", record);
       res.json(record);
     } catch (error: any) {
-      console.error("Error creating DNS record:", error);
       res.status(500).json({ message: error.message || "Failed to create DNS record" });
     }
   });
@@ -9382,13 +8961,10 @@ Best regards,
       const recordId = req.params.id;
       const updates = req.body;
       
-      console.log("DNS Record Update Request:", updates);
       
       const record = await cloudflareService.updateDNSRecord(recordId, updates);
-      console.log("Cloudflare response:", record);
       res.json(record);
     } catch (error: any) {
-      console.error("Error updating DNS record:", error);
       res.status(500).json({ message: error.message || "Failed to update DNS record" });
     }
   });
@@ -9404,7 +8980,6 @@ Best regards,
       await cloudflareService.deleteDNSRecord(recordId);
       res.json({ message: "DNS record deleted successfully" });
     } catch (error: any) {
-      console.error("Error deleting DNS record:", error);
       res.status(500).json({ message: error.message || "Failed to delete DNS record" });
     }
   });
@@ -9425,7 +9000,6 @@ Best regards,
       const record = await cloudflareService.createSubdomain(subdomain, target);
       res.json({ record, pageRoute, description });
     } catch (error: any) {
-      console.error("Error creating subdomain:", error);
       res.status(500).json({ message: error.message || "Failed to create subdomain" });
     }
   });
@@ -9440,7 +9014,6 @@ Best regards,
       const rules = await cloudflareService.getEmailRules();
       res.json(rules);
     } catch (error: any) {
-      console.error("Error fetching email rules:", error);
       res.status(500).json({ message: error.message || "Failed to fetch email rules" });
     }
   });
@@ -9476,7 +9049,6 @@ Best regards,
       const record = await cloudflareService.createEmailForward(alias, destination);
       res.json({ record, description });
     } catch (error: any) {
-      console.error("Error creating email alias:", error);
       res.status(500).json({ message: error.message || "Failed to create email alias" });
     }
   });
@@ -9517,7 +9089,6 @@ Best regards,
       const updatedRule = await cloudflareService.updateEmailRule(ruleId, alias, destination, description);
       res.json({ rule: updatedRule, description });
     } catch (error: any) {
-      console.error("Error updating email alias:", error);
       res.status(500).json({ message: error.message || "Failed to update email alias" });
     }
   });
@@ -9538,7 +9109,6 @@ Best regards,
       await cloudflareService.deleteEmailRule(ruleId);
       res.json({ success: true });
     } catch (error: any) {
-      console.error("Error deleting email alias:", error);
       res.status(500).json({ message: error.message || "Failed to delete email alias" });
     }
   });
@@ -9549,7 +9119,6 @@ Best regards,
       const routes = await storage.getDomainRoutes();
       res.json(routes);
     } catch (error) {
-      console.error("Error fetching domain routes:", error);
       res.status(500).json({ message: "Failed to fetch domain routes" });
     }
   });
@@ -9567,7 +9136,6 @@ Best regards,
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid route data", errors: error.errors });
       }
-      console.error("Error creating domain route:", error);
       res.status(500).json({ message: "Failed to create domain route" });
     }
   });
@@ -9587,7 +9155,6 @@ Best regards,
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid route data", errors: error.errors });
       }
-      console.error("Error updating domain route:", error);
       res.status(500).json({ message: "Failed to update domain route" });
     }
   });
@@ -9598,7 +9165,6 @@ Best regards,
       await storage.deleteDomainRoute(routeId);
       res.json({ success: true });
     } catch (error) {
-      console.error("Error deleting domain route:", error);
       res.status(500).json({ message: "Failed to delete domain route" });
     }
   });
@@ -9609,7 +9175,6 @@ Best regards,
       const settings = await storage.getAllSeoSettings();
       res.json(settings);
     } catch (error) {
-      console.error("Error fetching SEO settings:", error);
       res.status(500).json({ message: "Failed to fetch SEO settings" });
     }
   });
@@ -9625,7 +9190,6 @@ Best regards,
       
       res.json(settings);
     } catch (error) {
-      console.error("Error fetching SEO settings:", error);
       res.status(500).json({ message: "Failed to fetch SEO settings" });
     }
   });
@@ -9643,7 +9207,6 @@ Best regards,
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid SEO settings data", errors: error.errors });
       }
-      console.error("Error creating SEO settings:", error);
       res.status(500).json({ message: "Failed to create SEO settings" });
     }
   });
@@ -9663,7 +9226,6 @@ Best regards,
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid SEO settings data", errors: error.errors });
       }
-      console.error("Error updating SEO settings:", error);
       res.status(500).json({ message: "Failed to update SEO settings" });
     }
   });
@@ -9674,7 +9236,6 @@ Best regards,
       await storage.deleteSeoSettings(settingsId);
       res.json({ success: true });
     } catch (error) {
-      console.error("Error deleting SEO settings:", error);
       res.status(500).json({ message: "Failed to delete SEO settings" });
     }
   });
@@ -9682,15 +9243,10 @@ Best regards,
   // BIMI configuration endpoints
   app.post('/api/seo-settings/:id/bimi/upload-logo', requireAdmin, bimiUpload.single('logo'), async (req: any, res) => {
     try {
-      console.log('🔵 BIMI Upload endpoint hit');
-      console.log('📋 Settings ID:', req.params.id);
-      console.log('📁 File received:', req.file ? req.file.filename : 'No file');
-      console.log('👤 User ID:', req.user?.id);
       
       const settingsId = parseInt(req.params.id);
       
       if (!req.file) {
-        console.log('❌ No file provided');
         return res.status(400).json({ message: "No logo file provided" });
       }
 
@@ -9743,7 +9299,6 @@ Best regards,
       });
 
     } catch (error) {
-      console.error("Error uploading BIMI logo:", error);
       res.status(500).json({ message: "Failed to upload BIMI logo" });
     }
   });
@@ -9795,7 +9350,6 @@ Best regards,
       });
 
     } catch (error) {
-      console.error("Error creating BIMI DNS record:", error);
       res.status(500).json({ message: "Failed to create BIMI DNS record" });
     }
   });
@@ -9943,7 +9497,6 @@ Best regards,
       res.json(verificationResults);
 
     } catch (error) {
-      console.error("Error verifying BIMI setup:", error);
       res.status(500).json({ message: "Failed to verify BIMI setup" });
     }
   });
@@ -9971,7 +9524,6 @@ Best regards,
 
       res.json(domainEmails);
     } catch (error) {
-      console.error("Error fetching domain emails:", error);
       // Return empty array on error to prevent UI breaking
       res.json([]);
     }
@@ -9983,7 +9535,6 @@ Best regards,
       const settings = await storage.getWaitlistEmailSettings();
       res.json(settings);
     } catch (error) {
-      console.error("Error fetching waitlist email settings:", error);
       res.status(500).json({ message: "Failed to fetch email settings" });
     }
   });
@@ -9997,7 +9548,6 @@ Best regards,
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid email settings data", errors: error.errors });
       }
-      console.error("Error creating waitlist email settings:", error);
       res.status(500).json({ message: "Failed to create email settings" });
     }
   });
@@ -10017,7 +9567,6 @@ Best regards,
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid email settings data", errors: error.errors });
       }
-      console.error("Error updating waitlist email settings:", error);
       res.status(500).json({ message: "Failed to update email settings" });
     }
   });
@@ -10028,7 +9577,6 @@ Best regards,
       const settings = await storage.getApiSettings();
       res.json(settings);
     } catch (error) {
-      console.error("Error fetching API settings:", error);
       res.status(500).json({ message: "Failed to fetch API settings" });
     }
   });
@@ -10042,7 +9590,6 @@ Best regards,
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid API settings data", errors: error.errors });
       }
-      console.error("Error creating API settings:", error);
       res.status(500).json({ message: "Failed to create API settings" });
     }
   });
@@ -10062,7 +9609,6 @@ Best regards,
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid API settings data", errors: error.errors });
       }
-      console.error("Error updating API settings:", error);
       res.status(500).json({ message: "Failed to update API settings" });
     }
   });
@@ -10157,12 +9703,10 @@ Best regards,
                 invitedAt: new Date()
               });
             } catch (updateError: any) {
-              console.error(`Failed to update status for ${entry.email}:`, updateError);
             }
           }
           
         } catch (emailError: any) {
-          console.error(`Failed to send email to ${entry.email}:`, emailError);
           errors.push({
             email: entry.email,
             error: emailError.message
@@ -10170,10 +9714,8 @@ Best regards,
         }
       }
 
-      console.log(`Bulk email campaign completed: ${emailsSent} emails sent, ${errors.length} errors`);
       
       if (errors.length > 0) {
-        console.log("Email errors:", errors);
       }
 
       res.json({ 
@@ -10186,7 +9728,6 @@ Best regards,
       });
 
     } catch (error: any) {
-      console.error("Error sending bulk email:", error);
       
       // Handle specific SendGrid errors
       if (error.response && error.response.body && error.response.body.errors) {
@@ -10273,12 +9814,6 @@ Best regards,
 
       const response = await sgMail.send(msg);
       
-      console.log("SendGrid response:", JSON.stringify(response, null, 2));
-      console.log("✅ Test email sent successfully to:", testEmail);
-      console.log("From address:", `${fromName} <${fromEmail}>`);
-      console.log("🎨 BIMI headers included: BIMI-Selector=default, Authentication-Results present");
-      console.log("API Key length:", apiSettings.sendgridApiKey?.length);
-      console.log("API Key prefix:", apiSettings.sendgridApiKey?.substring(0, 10));
       
       // Check SendGrid account status and quotas
       try {
@@ -10292,14 +9827,8 @@ Best regards,
         
         if (statsResponse.ok) {
           const accountData = await statsResponse.json();
-          console.log("SendGrid account type:", accountData.type || "Unknown");
-          console.log("SendGrid account reputation:", accountData.reputation || "Unknown");
           
           if (accountData.type === 'free') {
-            console.log("🚨 DELIVERY ISSUE IDENTIFIED: Free SendGrid account");
-            console.log("💡 Free accounts have poor deliverability to Gmail/major providers");
-            console.log("💡 Consider upgrading to SendGrid paid plan for reliable email delivery");
-            console.log("💡 Alternative: Use a different email service (Mailgun, AWS SES, etc.)");
           }
         }
         
@@ -10315,10 +9844,8 @@ Best regards,
         if (suppressionResponse.ok) {
           const suppressionData = await suppressionResponse.json();
           const isBlocked = suppressionData.some((item: any) => item.email === testEmail);
-          console.log(`Email ${testEmail} suppression status:`, isBlocked ? "BLOCKED/BOUNCED" : "CLEAN");
         }
       } catch (accountError) {
-        console.log("Could not check SendGrid account status:", accountError);
       }
       
       // Check SendGrid sender verification status
@@ -10333,29 +9860,17 @@ Best regards,
         
         if (verificationResponse.ok) {
           const verificationData = await verificationResponse.json();
-          console.log("SendGrid verified senders:", JSON.stringify(verificationData, null, 2));
           
           const isVerified = verificationData.results?.some((sender: any) => 
             sender.from_email === fromEmail && sender.verified === true
           );
-          console.log(`Sender ${fromEmail} verification status:`, isVerified ? "VERIFIED" : "NOT VERIFIED");
           
           if (!isVerified) {
-            console.log("⚠️  EMAIL DELIVERY ISSUE: Sender email is not verified in SendGrid");
-            console.log("⚠️  You must verify this sender in your SendGrid dashboard for emails to be delivered");
           } else {
-            console.log("✅ Sender email is properly verified in SendGrid");
-            console.log("💡 If emails aren't being delivered, check:");
-            console.log("   - Spam/junk folder in Gmail");
-            console.log("   - Gmail might be filtering emails from new domains");
-            console.log("   - Allow 5-10 minutes for delivery delays");
-            console.log(`   - Message ID for tracking: ${response?.[0]?.headers?.['x-message-id']}`);
           }
         } else {
-          console.log("Could not check sender verification status:", verificationResponse.status);
         }
       } catch (verificationError) {
-        console.log("Error checking sender verification:", verificationError);
       }
       
       res.json({ 
@@ -10366,11 +9881,8 @@ Best regards,
         sendgridResponse: response?.[0]?.statusCode
       });
     } catch (error: any) {
-      console.error("Error sending test email:", error);
-      console.error("Full SendGrid error response:", JSON.stringify(error.response, null, 2));
       
       // Log the email message that failed for debugging
-      console.error("Failed email message details:", JSON.stringify({
         to: testEmail,
         from: fromEmail,
         fromName: fromName,
@@ -10383,7 +9895,6 @@ Best regards,
       // Handle specific SendGrid errors
       if (error.response && error.response.body && error.response.body.errors) {
         const sendgridErrors = error.response.body.errors;
-        console.error("SendGrid validation errors:", JSON.stringify(sendgridErrors, null, 2));
         
         return res.status(400).json({ 
           message: `SendGrid Error: ${sendgridErrors[0].message}`,
@@ -10419,7 +9930,6 @@ Best regards,
       const stats = await storage.getResolutionStats(days);
       res.json(stats);
     } catch (error) {
-      console.error('Error fetching resolution stats:', error);
       res.status(500).json({ message: "Failed to fetch resolution stats" });
     }
   });
@@ -10443,7 +9953,6 @@ Best regards,
       const trends = await storage.getErrorTrends(days);
       res.json(trends);
     } catch (error) {
-      console.error('Error fetching error trends:', error);
       res.status(500).json({ message: "Failed to fetch error trends" });
     }
   });
@@ -10460,7 +9969,6 @@ Best regards,
       const report = await advancedAnalyticsService.generateAnalyticsReport(timeFrame);
       res.json(report);
     } catch (error) {
-      console.error('Error generating advanced analytics:', error);
       res.status(500).json({ message: 'Failed to generate analytics report' });
     }
   });
@@ -10476,7 +9984,6 @@ Best regards,
       const metrics = await advancedAnalyticsService.calculateUserSatisfactionMetrics(timeFrame);
       res.json(metrics);
     } catch (error) {
-      console.error('Error fetching user satisfaction metrics:', error);
       res.status(500).json({ message: 'Failed to fetch user satisfaction metrics' });
     }
   });
@@ -10491,7 +9998,6 @@ Best regards,
       const metrics = await advancedAnalyticsService.analyzeFeatureStability();
       res.json(metrics);
     } catch (error) {
-      console.error('Error analyzing feature stability:', error);
       res.status(500).json({ message: 'Failed to analyze feature stability' });
     }
   });
@@ -10506,7 +10012,6 @@ Best regards,
       const healthScore = await advancedAnalyticsService.calculateSystemHealthScore();
       res.json(healthScore);
     } catch (error) {
-      console.error('Error calculating system health:', error);
       res.status(500).json({ message: 'Failed to calculate system health' });
     }
   });
@@ -10521,7 +10026,6 @@ Best regards,
       const patterns = await advancedAnalyticsService.identifyCriticalPatterns();
       res.json(patterns);
     } catch (error) {
-      console.error('Error identifying critical patterns:', error);
       res.status(500).json({ message: 'Failed to identify critical patterns' });
     }
   });
@@ -10537,7 +10041,6 @@ Best regards,
       const recommendations = await advancedAnalyticsService.generateRecommendations(timeFrame);
       res.json(recommendations);
     } catch (error) {
-      console.error('Error generating recommendations:', error);
       res.status(500).json({ message: 'Failed to generate recommendations' });
     }
   });
@@ -10553,7 +10056,6 @@ Best regards,
       const analysis = await advancedAnalyticsService.analyzeBusinessImpact(clusterId);
       res.json(analysis);
     } catch (error) {
-      console.error('Error analyzing business impact:', error);
       res.status(500).json({ message: 'Failed to analyze business impact' });
     }
   });
@@ -10582,7 +10084,6 @@ Best regards,
       const productionEvents = await storage.getProductionLevelEvents(projectId);
       res.json(productionEvents);
     } catch (error) {
-      console.error("Error fetching production events:", error);
       res.status(500).json({ message: "Failed to fetch production events" });
     }
   });
@@ -10610,7 +10111,6 @@ Best regards,
       const dailyEvents = await storage.getDailyEventsForParent(parentEventId);
       res.json(dailyEvents);
     } catch (error) {
-      console.error("Error fetching daily events:", error);
       res.status(500).json({ message: "Failed to fetch daily events" });
     }
   });
@@ -10659,7 +10159,6 @@ Best regards,
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid event data", errors: error.errors });
       }
-      console.error("Error creating daily event:", error);
       res.status(500).json({ message: "Failed to create daily event" });
     }
   });
@@ -10699,7 +10198,6 @@ Best regards,
       const updatedEvent = await storage.getScheduleEventById(dailyEventId);
       res.json(updatedEvent);
     } catch (error) {
-      console.error("Error linking daily event:", error);
       res.status(500).json({ message: "Failed to link daily event" });
     }
   });
@@ -10726,7 +10224,6 @@ Best regards,
       const updatedEvent = await storage.getScheduleEventById(dailyEventId);
       res.json(updatedEvent);
     } catch (error) {
-      console.error("Error unlinking daily event:", error);
       res.status(500).json({ message: "Failed to unlink daily event" });
     }
   });
@@ -10753,7 +10250,6 @@ Best regards,
 
       res.json(eventWithChildren);
     } catch (error) {
-      console.error("Error fetching event with children:", error);
       res.status(500).json({ message: "Failed to fetch event with children" });
     }
   });
@@ -10776,7 +10272,6 @@ Best regards,
       const isSetup = result.rows[0].count > 0;
       res.json({ isSetup });
     } catch (error) {
-      console.error('Error checking email setup status:', error);
       res.json({ isSetup: false });
     }
   });
@@ -10848,7 +10343,6 @@ Best regards,
 
       res.json({ message: "Email system tables created successfully" });
     } catch (error) {
-      console.error("Error setting up email system:", error);
       res.status(500).json({ message: "Failed to setup email system" });
     }
   });
@@ -10862,7 +10356,6 @@ Best regards,
       const accounts = await emailService.getUserEmailAccounts(req.user.id);
       res.json(accounts);
     } catch (error) {
-      console.error("Error fetching email accounts:", error);
       res.status(500).json({ message: "Failed to fetch email accounts" });
     }
   });
@@ -10876,7 +10369,6 @@ Best regards,
       const hasPersonal = await emailService.hasPersonalEmailAccount(req.user.id);
       res.json({ hasPersonal });
     } catch (error) {
-      console.error("Error checking personal email account:", error);
       res.status(500).json({ message: "Failed to check personal email account" });
     }
   });
@@ -10895,7 +10387,6 @@ Best regards,
       const account = await emailService.createEmailAccount(accountData);
       res.status(201).json(account);
     } catch (error) {
-      console.error("Error creating email account:", error);
       res.status(500).json({ message: "Failed to create email account" });
     }
   });
@@ -10912,7 +10403,6 @@ Best regards,
       const updatedAccount = await emailService.updateEmailAccount(accountId, { displayName });
       res.json(updatedAccount);
     } catch (error) {
-      console.error("Error updating email account:", error);
       res.status(500).json({ message: "Failed to update email account" });
     }
   });
@@ -10939,7 +10429,6 @@ Best regards,
       const account = await emailService.getEmailAccountById(accountId);
       res.json({ signature: account?.signature || '' });
     } catch (error) {
-      console.error("Error fetching email account signature:", error);
       res.status(500).json({ message: "Failed to fetch email account signature" });
     }
   });
@@ -10977,7 +10466,6 @@ Best regards,
       const updatedAccount = await emailService.updateEmailAccount(accountId, { signature });
       res.json(updatedAccount);
     } catch (error) {
-      console.error("Error updating email account signature:", error);
       res.status(500).json({ message: "Failed to update email account signature" });
     }
   });
@@ -11010,7 +10498,6 @@ Best regards,
             message: `Created webhook routing rule`
           });
           
-          console.log(`✅ Fixed routing rule for: ${account.emailAddress}`);
         } catch (error) {
           results.push({
             emailAddress: account.emailAddress,
@@ -11018,7 +10505,6 @@ Best regards,
             message: error.message || 'Failed to create routing rule'
           });
           
-          console.error(`❌ Failed to fix routing rule for ${account.emailAddress}:`, error);
         }
       }
       
@@ -11030,7 +10516,6 @@ Best regards,
         errorCount: results.filter(r => r.status === 'error').length
       });
     } catch (error) {
-      console.error("Error fixing routing rules:", error);
       res.status(500).json({ message: "Failed to fix routing rules" });
     }
   });
@@ -11056,7 +10541,6 @@ Best regards,
       const accounts = await emailService.getProjectEmailAccounts(projectId);
       res.json(accounts);
     } catch (error) {
-      console.error("Error fetching project email accounts:", error);
       res.status(500).json({ message: "Failed to fetch project email accounts" });
     }
   });
@@ -11069,7 +10553,6 @@ Best regards,
       const groups = await storage.getEmailGroups(req.user.id);
       res.json(groups);
     } catch (error) {
-      console.error("Error fetching email groups:", error);
       res.status(500).json({ message: "Failed to fetch email groups" });
     }
   });
@@ -11086,7 +10569,6 @@ Best regards,
       const group = await storage.createEmailGroup(groupData);
       res.status(201).json(group);
     } catch (error) {
-      console.error("Error creating email group:", error);
       res.status(500).json({ message: "Failed to create email group" });
     }
   });
@@ -11106,7 +10588,6 @@ Best regards,
       }
       res.json(group);
     } catch (error) {
-      console.error("Error updating email group:", error);
       res.status(500).json({ message: "Failed to update email group" });
     }
   });
@@ -11121,7 +10602,6 @@ Best regards,
       }
       res.json({ success: true });
     } catch (error) {
-      console.error("Error deleting email group:", error);
       res.status(500).json({ message: "Failed to delete email group" });
     }
   });
@@ -11136,7 +10616,6 @@ Best regards,
       }
       res.json(group);
     } catch (error) {
-      console.error("Error fetching email group:", error);
       res.status(500).json({ message: "Failed to fetch email group" });
     }
   });
@@ -11153,7 +10632,6 @@ Best regards,
       const threads = await emailService.getEmailThreads(accountId, folderId);
       res.json(threads);
     } catch (error) {
-      console.error("Error fetching email threads:", error);
       res.status(500).json({ message: "Failed to fetch email threads" });
     }
   });
@@ -11169,7 +10647,6 @@ Best regards,
       const folders = await emailService.getAccountFolders(accountId);
       res.json(folders);
     } catch (error) {
-      console.error("Error fetching email folders:", error);
       res.status(500).json({ message: "Failed to fetch email folders" });
     }
   });
@@ -11185,7 +10662,6 @@ Best regards,
       const stats = await emailService.getEmailStats(accountId);
       res.json(stats);
     } catch (error) {
-      console.error("Error fetching email statistics:", error);
       res.status(500).json({ message: "Failed to fetch email statistics" });
     }
   });
@@ -11197,7 +10673,6 @@ Best regards,
       const totalUnread = await standaloneEmailService.getTotalUnreadCount(req.user.id);
       res.json({ totalUnread });
     } catch (error) {
-      console.error("Error fetching total unread count:", error);
       res.status(500).json({ message: "Failed to fetch unread count" });
     }
   });
@@ -11223,7 +10698,6 @@ Best regards,
       
       res.json({ message: "IMAP settings configured successfully" });
     } catch (error) {
-      console.error("Error configuring IMAP settings:", error);
       res.status(500).json({ message: "Failed to configure IMAP settings" });
     }
   });
@@ -11247,7 +10721,6 @@ Best regards,
       
       res.json({ message: "SMTP settings configured successfully" });
     } catch (error) {
-      console.error("Error configuring SMTP settings:", error);
       res.status(500).json({ message: "Failed to configure SMTP settings" });
     }
   });
@@ -11263,7 +10736,6 @@ Best regards,
       const isConnected = await emailService.testImapConnection(accountId);
       res.json({ connected: isConnected });
     } catch (error) {
-      console.error("Error testing IMAP connection:", error);
       res.status(500).json({ message: "Failed to test IMAP connection", connected: false });
     }
   });
@@ -11279,7 +10751,6 @@ Best regards,
       const isConnected = await emailService.testSmtpConnection(accountId);
       res.json({ connected: isConnected });
     } catch (error) {
-      console.error("Error testing SMTP connection:", error);
       res.status(500).json({ message: "Failed to test SMTP connection", connected: false });
     }
   });
@@ -11296,7 +10767,6 @@ Best regards,
       const result = await emailService.syncEmailsFromImap(accountId, folderName, isFullSync);
       res.json(result);
     } catch (error) {
-      console.error("Error syncing emails:", error);
       res.status(500).json({ message: "Failed to sync emails" });
     }
   });
@@ -11312,7 +10782,6 @@ Best regards,
       const folders = await emailService.getImapFolders(accountId);
       res.json(folders);
     } catch (error) {
-      console.error("Error fetching IMAP folders:", error);
       res.status(500).json({ message: "Failed to fetch IMAP folders" });
     }
   });
@@ -11329,7 +10798,6 @@ Best regards,
       const result = await emailService.sendEmail(accountId, emailData);
       res.json(result);
     } catch (error) {
-      console.error("Error sending email:", error);
       res.status(500).json({ message: "Failed to send email" });
     }
   });
@@ -11352,7 +10820,6 @@ Best regards,
       
       res.json({ queueId });
     } catch (error) {
-      console.error("Error queueing email:", error);
       res.status(500).json({ message: "Failed to queue email" });
     }
   });
@@ -11368,7 +10835,6 @@ Best regards,
       const processed = await emailService.processEmailQueue(accountId);
       res.json({ processed });
     } catch (error) {
-      console.error("Error processing email queue:", error);
       res.status(500).json({ message: "Failed to process email queue" });
     }
   });
@@ -11384,7 +10850,6 @@ Best regards,
       const stats = await emailService.getQueueStats(accountId);
       res.json(stats);
     } catch (error) {
-      console.error("Error fetching queue stats:", error);
       res.status(500).json({ message: "Failed to fetch queue stats" });
     }
   });
@@ -11401,7 +10866,6 @@ Best regards,
       const inboxes = await sharedInboxService.getProjectSharedInboxes(projectId);
       res.json(inboxes);
     } catch (error) {
-      console.error("Error fetching shared inboxes:", error);
       res.status(500).json({ message: "Failed to fetch shared inboxes" });
     }
   });
@@ -11422,7 +10886,6 @@ Best regards,
       const inbox = await sharedInboxService.createSharedInbox(inboxData);
       res.json(inbox);
     } catch (error) {
-      console.error("Error creating shared inbox:", error);
       const message = error instanceof Error ? error.message : "Failed to create shared inbox";
       res.status(400).json({ message });
     }
@@ -11438,7 +10901,6 @@ Best regards,
       const exists = await sharedInboxService.checkEmailAddressExists(emailAddress);
       res.json({ available: !exists, exists });
     } catch (error) {
-      console.error("Error checking email address:", error);
       res.status(500).json({ message: "Failed to check email address" });
     }
   });
@@ -11452,7 +10914,6 @@ Best regards,
       const inboxes = await sharedInboxService.getAllSharedInboxes();
       res.json(inboxes);
     } catch (error) {
-      console.error("Error fetching shared inboxes:", error);
       res.status(500).json({ message: "Failed to fetch shared inboxes" });
     }
   });
@@ -11467,7 +10928,6 @@ Best regards,
       const inbox = await sharedInboxService.getSharedInboxById(inboxId);
       res.json(inbox);
     } catch (error) {
-      console.error("Error fetching shared inbox:", error);
       res.status(500).json({ message: "Failed to fetch shared inbox" });
     }
   });
@@ -11482,7 +10942,6 @@ Best regards,
       const updatedInbox = await sharedInboxService.updateSharedInbox(inboxId, req.body);
       res.json(updatedInbox);
     } catch (error) {
-      console.error("Error updating shared inbox:", error);
       res.status(500).json({ message: "Failed to update shared inbox" });
     }
   });
@@ -11497,7 +10956,6 @@ Best regards,
       await sharedInboxService.deleteSharedInbox(inboxId);
       res.json({ message: "Shared inbox deleted successfully" });
     } catch (error) {
-      console.error("Error deleting shared inbox:", error);
       res.status(500).json({ message: "Failed to delete shared inbox" });
     }
   });
@@ -11512,7 +10970,6 @@ Best regards,
       const members = await sharedInboxService.getSharedInboxMembers(inboxId);
       res.json(members);
     } catch (error) {
-      console.error("Error fetching shared inbox members:", error);
       res.status(500).json({ message: "Failed to fetch shared inbox members" });
     }
   });
@@ -11532,7 +10989,6 @@ Best regards,
       const member = await sharedInboxService.addSharedInboxMember(memberData);
       res.json(member);
     } catch (error) {
-      console.error("Error adding shared inbox member:", error);
       res.status(500).json({ message: "Failed to add shared inbox member" });
     }
   });
@@ -11547,7 +11003,6 @@ Best regards,
       const updatedMember = await sharedInboxService.updateSharedInboxMember(memberId, req.body);
       res.json(updatedMember);
     } catch (error) {
-      console.error("Error updating shared inbox member:", error);
       res.status(500).json({ message: "Failed to update shared inbox member" });
     }
   });
@@ -11562,7 +11017,6 @@ Best regards,
       await sharedInboxService.removeSharedInboxMember(memberId);
       res.json({ message: "Member removed from shared inbox successfully" });
     } catch (error) {
-      console.error("Error removing shared inbox member:", error);
       res.status(500).json({ message: "Failed to remove shared inbox member" });
     }
   });
@@ -11583,7 +11037,6 @@ Best regards,
       const assignment = await sharedInboxService.assignEmail(assignmentData);
       res.json(assignment);
     } catch (error) {
-      console.error("Error assigning email:", error);
       res.status(500).json({ message: "Failed to assign email" });
     }
   });
@@ -11598,7 +11051,6 @@ Best regards,
       const updatedAssignment = await sharedInboxService.updateEmailAssignment(assignmentId, req.body);
       res.json(updatedAssignment);
     } catch (error) {
-      console.error("Error updating email assignment:", error);
       res.status(500).json({ message: "Failed to update email assignment" });
     }
   });
@@ -11613,7 +11065,6 @@ Best regards,
       const assignments = await sharedInboxService.getUserEmailAssignments(userId);
       res.json(assignments);
     } catch (error) {
-      console.error("Error fetching email assignments:", error);
       res.status(500).json({ message: "Failed to fetch email assignments" });
     }
   });
@@ -11633,7 +11084,6 @@ Best regards,
       const collaboration = await sharedInboxService.addThreadCollaborator(collaborationData);
       res.json(collaboration);
     } catch (error) {
-      console.error("Error adding thread collaborator:", error);
       res.status(500).json({ message: "Failed to add thread collaborator" });
     }
   });
@@ -11648,7 +11098,6 @@ Best regards,
       const collaborators = await sharedInboxService.getThreadCollaborators(threadId);
       res.json(collaborators);
     } catch (error) {
-      console.error("Error fetching thread collaborators:", error);
       res.status(500).json({ message: "Failed to fetch thread collaborators" });
     }
   });
@@ -11669,7 +11118,6 @@ Best regards,
       const rule = await sharedInboxService.createArchiveRule(ruleData);
       res.json(rule);
     } catch (error) {
-      console.error("Error creating archive rule:", error);
       res.status(500).json({ message: "Failed to create archive rule" });
     }
   });
@@ -11684,7 +11132,6 @@ Best regards,
       const rules = await sharedInboxService.getProjectArchiveRules(projectId);
       res.json(rules);
     } catch (error) {
-      console.error("Error fetching archive rules:", error);
       res.status(500).json({ message: "Failed to fetch archive rules" });
     }
   });
@@ -11699,7 +11146,6 @@ Best regards,
       const result = await sharedInboxService.executeArchiveRule(ruleId);
       res.json(result);
     } catch (error) {
-      console.error("Error executing archive rule:", error);
       res.status(500).json({ message: "Failed to execute archive rule" });
     }
   });
@@ -11716,7 +11162,6 @@ Best regards,
       const draftId = await emailService.createDraft(accountId, draftData);
       res.json({ draftId });
     } catch (error) {
-      console.error("Error creating draft:", error);
       res.status(500).json({ message: "Failed to create draft" });
     }
   });
@@ -11733,7 +11178,6 @@ Best regards,
       const queueId = await emailService.sendDraft(messageId, priority);
       res.json({ queueId });
     } catch (error) {
-      console.error("Error sending draft:", error);
       res.status(500).json({ message: "Failed to send draft" });
     }
   });
@@ -11775,7 +11219,6 @@ Best regards,
         // Process attachments if present
         let attachments: Array<{ filename: string; content: string; encoding: string }> = [];
         if (req.files && req.files.length > 0) {
-          console.log('📎 Processing attachments for OAuth email:', req.files.length, 'files');
           attachments = req.files.map((file: any) => {
             const fileContent = fs.readFileSync(file.path);
             const base64Content = fileContent.toString('base64');
@@ -11826,10 +11269,8 @@ Best regards,
             }
             return res.json({ success: true, messageId: result.messageId });
           } else {
-            console.error('Native email provider failed, falling back to internal system:', result.error);
           }
         } catch (providerError) {
-          console.error('Native email provider error, falling back to internal system:', providerError);
         }
       }
 
@@ -11847,8 +11288,6 @@ Best regards,
           threadId
         } = req.body;
 
-        console.log('📎 Attachment email detected:', req.files.length, 'files');
-        console.log('📎 Files:', req.files.map((f: any) => ({ name: f.originalname, size: f.size })));
 
         // Prepare attachment data
         const attachments = req.files.map((file: any) => ({
@@ -11882,7 +11321,6 @@ Best regards,
         if (result.success) {
           res.json({ success: true, messageId: result.messageId });
         } else {
-          console.error('Email sending failed (attachment endpoint):', result.error);
           res.status(400).json({ success: false, error: result.error });
         }
         return;
@@ -11900,9 +11338,6 @@ Best regards,
         replyToMessageId
       } = req.body;
 
-      console.log('🔍 DEBUG - Raw request body:', JSON.stringify(req.body, null, 2));
-      console.log('🔍 DEBUG - toAddresses raw:', toAddresses, 'type:', typeof toAddresses);
-      console.log('🔍 DEBUG - toAddresses length:', toAddresses?.length);
 
       const { standaloneEmailService } = await import('./services/standaloneEmailService.js');
       
@@ -11923,7 +11358,6 @@ Best regards,
         res.status(400).json({ success: false, error: result.error });
       }
     } catch (error) {
-      console.error("Error sending internal email:", error);
       
       // Clean up any uploaded files on error
       if (req.files) {
@@ -11952,9 +11386,6 @@ Best regards,
         replyToMessageId
       } = req.body;
 
-      console.log('🔍 DEBUG - Raw request body:', JSON.stringify(req.body, null, 2));
-      console.log('🔍 DEBUG - toAddresses raw:', toAddresses, 'type:', typeof toAddresses);
-      console.log('🔍 DEBUG - toAddresses length:', toAddresses?.length);
 
       const { standaloneEmailService } = await import('./services/standaloneEmailService.js');
       
@@ -11972,11 +11403,9 @@ Best regards,
       if (result.success) {
         res.json({ success: true, messageId: result.messageId });
       } else {
-        console.error('Email sending failed (json-only endpoint):', result.error);
         res.status(400).json({ success: false, error: result.error });
       }
     } catch (error) {
-      console.error("Error sending internal email:", error);
       res.status(500).json({ message: "Failed to send email" });
     }
   });
@@ -11993,7 +11422,6 @@ Best regards,
 
       res.json(messages);
     } catch (error) {
-      console.error("Error fetching inbox messages:", error);
       res.status(500).json({ message: "Failed to fetch inbox messages" });
     }
   });
@@ -12010,7 +11438,6 @@ Best regards,
 
       res.json(messages);
     } catch (error) {
-      console.error("Error fetching sent messages:", error);
       res.status(500).json({ message: "Failed to fetch sent messages" });
     }
   });
@@ -12025,7 +11452,6 @@ Best regards,
 
       res.json(messages);
     } catch (error) {
-      console.error("Error fetching draft messages:", error);
       res.status(500).json({ message: "Failed to fetch draft messages" });
     }
   });
@@ -12042,7 +11468,6 @@ Best regards,
 
       res.json(messages);
     } catch (error) {
-      console.error("Error fetching archived messages:", error);
       res.status(500).json({ message: "Failed to fetch archived messages" });
     }
   });
@@ -12059,7 +11484,6 @@ Best regards,
 
       res.json(messages);
     } catch (error) {
-      console.error("Error fetching trash messages:", error);
       res.status(500).json({ message: "Failed to fetch trash messages" });
     }
   });
@@ -12075,7 +11499,6 @@ Best regards,
 
       res.json({ success });
     } catch (error) {
-      console.error("Error marking message as read:", error);
       res.status(500).json({ message: "Failed to mark message as read" });
     }
   });
@@ -12091,7 +11514,6 @@ Best regards,
 
       res.json({ success });
     } catch (error) {
-      console.error("Error deleting message:", error);
       res.status(500).json({ message: "Failed to delete message" });
     }
   });
@@ -12125,7 +11547,6 @@ Best regards,
 
       res.json(result);
     } catch (error) {
-      console.error("Error saving draft:", error);
       res.status(500).json({ message: "Failed to save draft" });
     }
   });
@@ -12167,7 +11588,6 @@ Best regards,
 
       res.json({ success: true, result });
     } catch (error) {
-      console.error("Error performing bulk action:", error);
       res.status(500).json({ message: "Failed to perform bulk action" });
     }
   });
@@ -12185,7 +11605,6 @@ Best regards,
       const result = await emailCleanupService.cleanupOldTrashEmails();
       res.json({ success: true, result });
     } catch (error) {
-      console.error("Error running email cleanup:", error);
       res.status(500).json({ message: "Failed to run email cleanup" });
     }
   });
@@ -12196,7 +11615,6 @@ Best regards,
       const stats = await emailCleanupService.getTrashStatistics();
       res.json(stats);
     } catch (error) {
-      console.error("Error getting cleanup stats:", error);
       res.status(500).json({ message: "Failed to get cleanup stats" });
     }
   });
@@ -12212,7 +11630,6 @@ Best regards,
 
       res.json(messages);
     } catch (error) {
-      console.error("Error fetching thread messages:", error);
       res.status(500).json({ message: "Failed to fetch thread messages" });
     }
   });
@@ -12222,7 +11639,6 @@ Best regards,
   // Send email with queue integration
   app.post('/api/email/send-with-queue', isAuthenticated, async (req: any, res) => {
     try {
-      console.log("📧 Email send-with-queue request received:", {
         accountId: req.body.accountId,
         to: req.body.to,
         subject: req.body.subject,
@@ -12233,26 +11649,21 @@ Best regards,
 
       // Validate required fields
       if (!accountId) {
-        console.error("❌ Missing accountId");
         return res.status(400).json({ message: "Missing accountId" });
       }
       if (!to || !Array.isArray(to) || to.length === 0) {
-        console.error("❌ Missing or invalid 'to' addresses");
         return res.status(400).json({ message: "Missing or invalid 'to' addresses" });
       }
       if (!subject) {
-        console.error("❌ Missing subject");
         return res.status(400).json({ message: "Missing subject" });
       }
       if (!message) {
-        console.error("❌ Missing message");
         return res.status(400).json({ message: "Missing message" });
       }
 
       const { EmailService } = await import('./services/emailService.js');
       const emailService = new EmailService();
       
-      console.log("📧 Calling emailService.sendEmailWithQueue...");
       const result = await emailService.sendEmailWithQueue(accountId, {
         to,
         cc,
@@ -12265,11 +11676,8 @@ Best regards,
         scheduledAt: scheduledAt ? new Date(scheduledAt) : undefined,
       });
 
-      console.log("✅ Email sent successfully:", result);
       res.json(result);
     } catch (error) {
-      console.error("❌ Error sending email with queue:", error);
-      console.error("❌ Error stack:", error instanceof Error ? error.stack : 'No stack trace');
       res.status(500).json({ 
         message: "Failed to send email",
         error: error instanceof Error ? error.message : "Unknown error"
@@ -12323,7 +11731,6 @@ Best regards,
         threadId: threadId || null
       }).returning();
 
-      console.log('📅 Email scheduled:', scheduledEmail.id, 'for', scheduledDate);
 
       res.json({ 
         success: true, 
@@ -12331,7 +11738,6 @@ Best regards,
         scheduledFor: scheduledEmail.scheduledFor
       });
     } catch (error) {
-      console.error("Error scheduling email:", error);
       res.status(500).json({ message: "Failed to schedule email" });
     }
   });
@@ -12351,7 +11757,6 @@ Best regards,
 
       res.json(emails);
     } catch (error) {
-      console.error("Error fetching scheduled emails:", error);
       res.status(500).json({ message: "Failed to fetch scheduled emails" });
     }
   });
@@ -12370,7 +11775,6 @@ Best regards,
 
       res.json({ count: result[0]?.count || 0 });
     } catch (error) {
-      console.error("Error fetching scheduled emails count:", error);
       res.status(500).json({ message: "Failed to fetch scheduled emails count" });
     }
   });
@@ -12400,11 +11804,9 @@ Best regards,
         .set({ status: 'cancelled' })
         .where(eq(scheduledEmails.id, emailId));
 
-      console.log('🚫 Scheduled email cancelled:', emailId);
 
       res.json({ success: true });
     } catch (error) {
-      console.error("Error cancelling scheduled email:", error);
       res.status(500).json({ message: "Failed to cancel scheduled email" });
     }
   });
@@ -12440,11 +11842,9 @@ Best regards,
         .set({ scheduledFor: newScheduledDate })
         .where(eq(scheduledEmails.id, emailId));
 
-      console.log('📅 Email rescheduled:', emailId, 'to', newScheduledDate);
 
       res.json({ success: true, scheduledFor: newScheduledDate });
     } catch (error) {
-      console.error("Error rescheduling email:", error);
       res.status(500).json({ message: "Failed to reschedule email" });
     }
   });
@@ -12527,18 +11927,15 @@ Best regards,
           .set({ status: 'sent', sentAt: new Date() })
           .where(eq(scheduledEmails.id, emailId));
         
-        console.log('✅ Scheduled email sent immediately:', emailId);
         res.json({ success: true });
       } else {
         await db.update(scheduledEmails)
           .set({ status: 'failed', error: error || 'Failed to send email' })
           .where(eq(scheduledEmails.id, emailId));
         
-        console.error('❌ Failed to send scheduled email:', emailId, error);
         res.status(500).json({ message: error || "Failed to send email" });
       }
     } catch (error) {
-      console.error("Error sending scheduled email now:", error);
       res.status(500).json({ message: "Failed to send scheduled email" });
     }
   });
@@ -12555,7 +11952,6 @@ Best regards,
       await emailService.moveEmailToFolder(messageId, folderId);
       res.json({ success: true });
     } catch (error) {
-      console.error("Error moving email to folder:", error);
       res.status(500).json({ message: "Failed to move email" });
     }
   });
@@ -12571,7 +11967,6 @@ Best regards,
       await emailService.archiveEmail(messageId);
       res.json({ success: true });
     } catch (error) {
-      console.error("Error archiving email:", error);
       res.status(500).json({ message: "Failed to archive email" });
     }
   });
@@ -12587,7 +11982,6 @@ Best regards,
       await emailService.deleteEmail(messageId);
       res.json({ success: true });
     } catch (error) {
-      console.error("Error deleting email:", error);
       res.status(500).json({ message: "Failed to delete email" });
     }
   });
@@ -12612,7 +12006,6 @@ Best regards,
       
       res.json(messages);
     } catch (error) {
-      console.error("Error fetching show emails:", error);
       res.status(500).json({ message: "Failed to fetch show emails" });
     }
   });
@@ -12629,7 +12022,6 @@ Best regards,
       await theaterEmailService.categorizeEmail(messageId, showId);
       res.json({ success: true });
     } catch (error) {
-      console.error("Error categorizing email:", error);
       res.status(500).json({ message: "Failed to categorize email" });
     }
   });
@@ -12649,7 +12041,6 @@ Best regards,
       
       res.json(templates);
     } catch (error) {
-      console.error("Error fetching email templates:", error);
       res.status(500).json({ message: "Failed to fetch email templates" });
     }
   });
@@ -12668,7 +12059,6 @@ Best regards,
       const template = await theaterEmailService.createEmailTemplate(templateData);
       res.status(201).json(template);
     } catch (error) {
-      console.error("Error creating email template:", error);
       res.status(500).json({ message: "Failed to create email template" });
     }
   });
@@ -12696,7 +12086,6 @@ Best regards,
       
       res.json(result);
     } catch (error) {
-      console.error("Error sending bulk email:", error);
       res.status(500).json({ message: "Failed to send bulk email" });
     }
   });
@@ -12716,7 +12105,6 @@ Best regards,
       
       res.json(rules);
     } catch (error) {
-      console.error("Error fetching email rules:", error);
       res.status(500).json({ message: "Failed to fetch email rules" });
     }
   });
@@ -12735,7 +12123,6 @@ Best regards,
       const rule = await theaterEmailService.createEmailRule(ruleData);
       res.status(201).json(rule);
     } catch (error) {
-      console.error("Error creating email rule:", error);
       res.status(500).json({ message: "Failed to create email rule" });
     }
   });
@@ -12751,7 +12138,6 @@ Best regards,
       const applied = await theaterEmailService.applyEmailRules(messageId);
       res.json({ applied });
     } catch (error) {
-      console.error("Error applying email rules:", error);
       res.status(500).json({ message: "Failed to apply email rules" });
     }
   });
@@ -12775,7 +12161,6 @@ Best regards,
       
       res.json(stats);
     } catch (error) {
-      console.error("Error fetching detailed delivery stats:", error);
       res.status(500).json({ message: "Failed to fetch detailed delivery stats" });
     }
   });
@@ -12798,7 +12183,6 @@ Best regards,
       
       res.json(bounces);
     } catch (error) {
-      console.error("Error fetching bounce reports:", error);
       res.status(500).json({ message: "Failed to fetch bounce reports" });
     }
   });
@@ -12824,7 +12208,6 @@ Best regards,
       res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.send(pixel);
     } catch (error) {
-      console.error("Error tracking email open:", error);
       res.status(500).send('Error');
     }
   });
@@ -12843,7 +12226,6 @@ Best regards,
       // Redirect to original URL
       res.redirect(url as string);
     } catch (error) {
-      console.error("Error tracking email click:", error);
       res.status(500).json({ message: "Failed to track click" });
     }
   });
@@ -12865,7 +12247,6 @@ Best regards,
         processed: events.length 
       });
     } catch (error) {
-      console.error("Error processing enhanced delivery webhook:", error);
       res.status(500).json({ message: "Failed to process delivery webhook" });
     }
   });
@@ -12887,7 +12268,6 @@ Best regards,
       
       res.json({ success: true });
     } catch (error) {
-      console.error("Error syncing message status:", error);
       res.status(500).json({ message: "Failed to sync message status" });
     }
   });
@@ -12904,7 +12284,6 @@ Best regards,
       await emailService.markEmailAsRead(messageId, isRead);
       res.json({ success: true });
     } catch (error) {
-      console.error("Error marking email as read:", error);
       res.status(500).json({ message: "Failed to update read status" });
     }
   });
@@ -12920,7 +12299,6 @@ Best regards,
       const stats = await emailService.getDeliveryStats(accountId);
       res.json(stats);
     } catch (error) {
-      console.error("Error fetching delivery stats:", error);
       res.status(500).json({ message: "Failed to fetch delivery statistics" });
     }
   });
@@ -12934,7 +12312,6 @@ Best regards,
       const stats = await emailService.getEnhancedQueueStats();
       res.json(stats);
     } catch (error) {
-      console.error("Error fetching queue stats:", error);
       res.status(500).json({ message: "Failed to fetch queue statistics" });
     }
   });
@@ -12948,7 +12325,6 @@ Best regards,
       const retriedCount = await emailService.retryFailedEmails();
       res.json({ retriedCount });
     } catch (error) {
-      console.error("Error retrying failed emails:", error);
       res.status(500).json({ message: "Failed to retry failed emails" });
     }
   });
@@ -12976,13 +12352,11 @@ Best regards,
 
           // Find message by SendGrid message ID and update status
           // Note: This would require a database query to find the message
-          console.log(`📬 Delivery webhook received: ${eventType} for ${sg_message_id}`);
         }
       }
 
       res.status(200).json({ success: true });
     } catch (error) {
-      console.error("Error processing delivery webhook:", error);
       res.status(500).json({ message: "Failed to process delivery webhook" });
     }
   });
@@ -13017,7 +12391,6 @@ Best regards,
         });
       }
 
-      console.log('🚀 Setting up automated catch-all email routing...');
       const result = await cloudflareService.ensureCatchAllWebhookRule(webhookUrl);
       
       res.json({
@@ -13031,7 +12404,6 @@ Best regards,
         }
       });
     } catch (error: any) {
-      console.error("Error setting up catch-all routing:", error);
       res.status(500).json({ 
         success: false,
         message: "Failed to setup catch-all routing", 
@@ -13045,17 +12417,14 @@ Best regards,
   app.post('/email-webhook', async (req: any, res) => {
     try {
       const emailData = req.body;
-      console.log('📧 Production webhook received:', JSON.stringify(emailData, null, 2));
       
       const { standaloneEmailService } = await import('./services/standaloneEmailService.js');
       
       // Process incoming email and store in BackstageOS
       await standaloneEmailService.processIncomingEmail(emailData);
       
-      console.log('✅ Production webhook processed successfully');
       res.status(200).json({ success: true, message: "Email processed successfully" });
     } catch (error) {
-      console.error("❌ Error processing production webhook:", error);
       res.status(500).json({ success: false, message: "Failed to process incoming email", error: error.message });
     }
   });
@@ -13064,20 +12433,14 @@ Best regards,
   app.post('/api/email/receive-webhook', async (req: any, res) => {
     try {
       const emailData = req.body;
-      console.log('📧 Incoming email webhook received:', JSON.stringify(emailData, null, 2));
-      console.log('📧 Request headers:', JSON.stringify(req.headers, null, 2));
-      console.log('📧 Request method:', req.method);
-      console.log('📧 Request URL:', req.url);
       
       const { standaloneEmailService } = await import('./services/standaloneEmailService.js');
       
       // Process incoming email and store in BackstageOS
       await standaloneEmailService.processIncomingEmail(emailData);
       
-      console.log('✅ Email webhook processed successfully');
       res.status(200).json({ success: true, message: "Email processed successfully" });
     } catch (error) {
-      console.error("❌ Error processing incoming email webhook:", error);
       res.status(500).json({ success: false, message: "Failed to process incoming email", error: error.message });
     }
   });
@@ -13103,10 +12466,8 @@ Best regards,
       // Create webhook-based email routing rule
       const result = await cloudflareService.createWebhookEmailRoute(alias, webhookUrl);
       
-      console.log('✅ Email webhook routing created:', result);
       res.json({ success: true, result });
     } catch (error) {
-      console.error("Error setting up webhook routing:", error);
       res.status(500).json({ message: "Failed to setup webhook routing" });
     }
   });
@@ -13126,7 +12487,6 @@ Best regards,
 
       res.json(messages);
     } catch (error) {
-      console.error("Error searching messages:", error);
       res.status(500).json({ message: "Failed to search messages" });
     }
   });
@@ -13149,7 +12509,6 @@ Best regards,
       const teamMembers = await storage.getTeamMembersByProjectId(projectId);
       res.json(teamMembers);
     } catch (error) {
-      console.error("Error fetching team members:", error);
       res.status(500).json({ message: "Failed to fetch team members" });
     }
   });
@@ -13204,7 +12563,6 @@ Best regards,
         res.status(201).json(teamMember);
       }
     } catch (error) {
-      console.error("Error inviting team member:", error);
       res.status(500).json({ message: "Failed to invite team member" });
     }
   });
@@ -13223,7 +12581,6 @@ Best regards,
 
       res.json(teamMember);
     } catch (error) {
-      console.error("Error updating team member:", error);
       res.status(500).json({ message: "Failed to update team member" });
     }
   });
@@ -13236,7 +12593,6 @@ Best regards,
       await storage.deleteTeamMember(memberId);
       res.json({ message: "Team member removed successfully" });
     } catch (error) {
-      console.error("Error removing team member:", error);
       res.status(500).json({ message: "Failed to remove team member" });
     }
   });
@@ -13249,7 +12605,6 @@ Best regards,
       
       res.json({ accessLevel });
     } catch (error) {
-      console.error("Error fetching user access level:", error);
       res.status(500).json({ message: "Failed to fetch access level" });
     }
   });
@@ -13293,7 +12648,6 @@ Best regards,
 
       res.json(templates);
     } catch (error) {
-      console.error("Error fetching email templates:", error);
       res.status(500).json({ message: "Failed to fetch email templates" });
     }
   });
@@ -13315,7 +12669,6 @@ Best regards,
 
       res.status(201).json(newTemplate);
     } catch (error) {
-      console.error("Error creating email template:", error);
       res.status(500).json({ message: "Failed to create email template" });
     }
   });
@@ -13355,7 +12708,6 @@ Best regards,
 
       res.json(rules);
     } catch (error) {
-      console.error("Error fetching email rules:", error);
       res.status(500).json({ message: "Failed to fetch email rules" });
     }
   });
@@ -13389,7 +12741,6 @@ Best regards,
 
       res.json(showEmails);
     } catch (error) {
-      console.error("Error fetching show emails:", error);
       res.status(500).json({ message: "Failed to fetch show emails" });
     }
   });
@@ -13414,9 +12765,6 @@ Best regards,
       const sent = recipients.length;
       const failed = 0; // Mock success
 
-      console.log(`📧 Bulk email sent to ${recipientType} (${sent} recipients) for show ${showId}`);
-      console.log(`Subject: ${subject}`);
-      console.log(`Recipients: ${recipients.join(', ')}`);
 
       res.json({
         success: true,
@@ -13425,7 +12773,6 @@ Best regards,
         recipients: recipients.length
       });
     } catch (error) {
-      console.error("Error sending bulk email:", error);
       res.status(500).json({ message: "Failed to send bulk email" });
     }
   });
@@ -13452,7 +12799,6 @@ Best regards,
       
       res.json(stats);
     } catch (error) {
-      console.error("Error fetching detailed delivery stats:", error);
       res.status(500).json({ message: "Failed to fetch delivery stats" });
     }
   });
@@ -13474,7 +12820,6 @@ Best regards,
       );
       res.json(reports);
     } catch (error) {
-      console.error("Error fetching bounce reports:", error);
       res.status(500).json({ message: "Failed to fetch bounce reports" });
     }
   });
@@ -13500,7 +12845,6 @@ Best regards,
       });
       res.end(pixel);
     } catch (error) {
-      console.error("Error tracking email open:", error);
       res.status(500).end();
     }
   });
@@ -13526,7 +12870,6 @@ Best regards,
       const settings = await storage.getShowContractSettings(projectId);
       res.json(settings);
     } catch (error) {
-      console.error("Error fetching show contract settings:", error);
       res.status(500).json({ message: "Failed to fetch show contract settings" });
     }
   });
@@ -13555,7 +12898,6 @@ Best regards,
       const settings = await storage.createShowContractSettings(settingsData);
       res.json(settings);
     } catch (error) {
-      console.error("Error creating show contract settings:", error);
       res.status(500).json({ message: "Failed to create show contract settings" });
     }
   });
@@ -13581,7 +12923,6 @@ Best regards,
       const settings = await storage.updateShowContractSettings(settingsId, settingsData);
       res.json(settings);
     } catch (error) {
-      console.error("Error updating show contract settings:", error);
       res.status(500).json({ message: "Failed to update show contract settings" });
     }
   });
@@ -13606,7 +12947,6 @@ Best regards,
       const performances = await storage.getPerformanceTracker(projectId);
       res.json(performances);
     } catch (error) {
-      console.error("Error fetching performance tracker:", error);
       res.status(500).json({ message: "Failed to fetch performance tracker" });
     }
   });
@@ -13635,7 +12975,6 @@ Best regards,
       const performance = await storage.createPerformanceEntry(performanceData);
       res.json(performance);
     } catch (error) {
-      console.error("Error creating performance entry:", error);
       res.status(500).json({ message: "Failed to create performance entry" });
     }
   });
@@ -13661,7 +13000,6 @@ Best regards,
       const performance = await storage.updatePerformanceEntry(performanceId, performanceData);
       res.json(performance);
     } catch (error) {
-      console.error("Error updating performance entry:", error);
       res.status(500).json({ message: "Failed to update performance entry" });
     }
   });
@@ -13686,7 +13024,6 @@ Best regards,
       await storage.deletePerformanceEntry(performanceId);
       res.json({ success: true });
     } catch (error) {
-      console.error("Error deleting performance entry:", error);
       res.status(500).json({ message: "Failed to delete performance entry" });
     }
   });
@@ -13711,7 +13048,6 @@ Best regards,
       const rehearsals = await storage.getRehearsalTracker(projectId);
       res.json(rehearsals);
     } catch (error) {
-      console.error("Error fetching rehearsal tracker:", error);
       res.status(500).json({ message: "Failed to fetch rehearsal tracker" });
     }
   });
@@ -13740,7 +13076,6 @@ Best regards,
       const rehearsal = await storage.createRehearsalEntry(rehearsalData);
       res.json(rehearsal);
     } catch (error) {
-      console.error("Error creating rehearsal entry:", error);
       res.status(500).json({ message: "Failed to create rehearsal entry" });
     }
   });
@@ -13766,7 +13101,6 @@ Best regards,
       const rehearsal = await storage.updateRehearsalEntry(rehearsalId, rehearsalData);
       res.json(rehearsal);
     } catch (error) {
-      console.error("Error updating rehearsal entry:", error);
       res.status(500).json({ message: "Failed to update rehearsal entry" });
     }
   });
@@ -13791,7 +13125,6 @@ Best regards,
       await storage.deleteRehearsalEntry(rehearsalId);
       res.json({ success: true });
     } catch (error) {
-      console.error("Error deleting rehearsal entry:", error);
       res.status(500).json({ message: "Failed to delete rehearsal entry" });
     }
   });
@@ -13816,7 +13149,6 @@ Best regards,
       const equityMembers = await storage.getEquityCastMembers(projectId);
       res.json(equityMembers);
     } catch (error) {
-      console.error("Error fetching equity cast members:", error);
       res.status(500).json({ message: "Failed to fetch equity cast members" });
     }
   });
@@ -13840,7 +13172,6 @@ Best regards,
       const hasEquityMembers = await storage.hasEquityCastMembers(projectId);
       res.json({ hasEquityMembers });
     } catch (error) {
-      console.error("Error checking equity cast members:", error);
       res.status(500).json({ message: "Failed to check equity cast members" });
     }
   });
@@ -13857,7 +13188,6 @@ Best regards,
       );
       res.json(databases);
     } catch (error) {
-      console.error("Error fetching task databases:", error);
       res.status(500).json({ message: "Failed to fetch task databases" });
     }
   });
@@ -13871,31 +13201,23 @@ Best regards,
       }
       res.json(database);
     } catch (error) {
-      console.error("Error fetching task database:", error);
       res.status(500).json({ message: "Failed to fetch task database" });
     }
   });
 
   app.post("/api/task-databases", isAuthenticated, async (req: any, res) => {
     try {
-      console.log("Raw request body:", req.body);
-      console.log("User from request:", req.user);
       
       const databaseData = insertTaskDatabaseSchema.parse({
         ...req.body,
         createdBy: req.user.id
       });
       
-      console.log("Parsed database data:", databaseData);
       
       const database = await storage.createTaskDatabase(databaseData);
-      console.log("Created database:", database);
       
       res.json(database);
     } catch (error) {
-      console.error("Error creating task database:", error);
-      console.error("Error stack:", error.stack);
-      console.error("Error details:", JSON.stringify(error, null, 2));
       res.status(500).json({ message: "Failed to create task database", error: error.message });
     }
   });
@@ -13907,7 +13229,6 @@ Best regards,
       const database = await storage.updateTaskDatabase(id, databaseData);
       res.json(database);
     } catch (error) {
-      console.error("Error updating task database:", error);
       res.status(500).json({ message: "Failed to update task database" });
     }
   });
@@ -13918,7 +13239,6 @@ Best regards,
       await storage.deleteTaskDatabase(id);
       res.json({ message: "Task database deleted successfully" });
     } catch (error) {
-      console.error("Error deleting task database:", error);
       res.status(500).json({ message: "Failed to delete task database" });
     }
   });
@@ -13930,7 +13250,6 @@ Best regards,
       const properties = await storage.getTaskProperties(databaseId);
       res.json(properties);
     } catch (error) {
-      console.error("Error fetching task properties:", error);
       res.status(500).json({ message: "Failed to fetch task properties" });
     }
   });
@@ -13945,7 +13264,6 @@ Best regards,
       const property = await storage.createTaskProperty(propertyData);
       res.json(property);
     } catch (error) {
-      console.error("Error creating task property:", error);
       res.status(500).json({ message: "Failed to create task property" });
     }
   });
@@ -13957,7 +13275,6 @@ Best regards,
       const property = await storage.updateTaskProperty(id, propertyData);
       res.json(property);
     } catch (error) {
-      console.error("Error updating task property:", error);
       res.status(500).json({ message: "Failed to update task property" });
     }
   });
@@ -13968,7 +13285,6 @@ Best regards,
       await storage.deleteTaskProperty(id);
       res.json({ message: "Task property deleted successfully" });
     } catch (error) {
-      console.error("Error deleting task property:", error);
       res.status(500).json({ message: "Failed to delete task property" });
     }
   });
@@ -13980,7 +13296,6 @@ Best regards,
       await storage.reorderTaskProperties(databaseId, propertyOrders);
       res.json({ message: "Task properties reordered successfully" });
     } catch (error) {
-      console.error("Error reordering task properties:", error);
       res.status(500).json({ message: "Failed to reorder task properties" });
     }
   });
@@ -13992,7 +13307,6 @@ Best regards,
       const tasks = await storage.getTasks(databaseId);
       res.json(tasks);
     } catch (error) {
-      console.error("Error fetching tasks:", error);
       res.status(500).json({ message: "Failed to fetch tasks" });
     }
   });
@@ -14006,7 +13320,6 @@ Best regards,
       }
       res.json(task);
     } catch (error) {
-      console.error("Error fetching task:", error);
       res.status(500).json({ message: "Failed to fetch task" });
     }
   });
@@ -14022,7 +13335,6 @@ Best regards,
       const task = await storage.createTask(taskData);
       res.json(task);
     } catch (error) {
-      console.error("Error creating task:", error);
       res.status(500).json({ message: "Failed to create task" });
     }
   });
@@ -14034,7 +13346,6 @@ Best regards,
       const task = await storage.updateTask(id, taskData);
       res.json(task);
     } catch (error) {
-      console.error("Error updating task:", error);
       res.status(500).json({ message: "Failed to update task" });
     }
   });
@@ -14045,7 +13356,6 @@ Best regards,
       await storage.deleteTask(id);
       res.json({ message: "Task deleted successfully" });
     } catch (error) {
-      console.error("Error deleting task:", error);
       res.status(500).json({ message: "Failed to delete task" });
     }
   });
@@ -14057,7 +13367,6 @@ Best regards,
       await storage.reorderTasks(databaseId, taskOrders);
       res.json({ message: "Tasks reordered successfully" });
     } catch (error) {
-      console.error("Error reordering tasks:", error);
       res.status(500).json({ message: "Failed to reorder tasks" });
     }
   });
@@ -14069,7 +13378,6 @@ Best regards,
       const assignments = await storage.getTaskAssignments(taskId);
       res.json(assignments);
     } catch (error) {
-      console.error("Error fetching task assignments:", error);
       res.status(500).json({ message: "Failed to fetch task assignments" });
     }
   });
@@ -14085,7 +13393,6 @@ Best regards,
       const assignment = await storage.createTaskAssignment(assignmentData);
       res.json(assignment);
     } catch (error) {
-      console.error("Error creating task assignment:", error);
       res.status(500).json({ message: "Failed to create task assignment" });
     }
   });
@@ -14096,7 +13403,6 @@ Best regards,
       await storage.deleteTaskAssignment(id);
       res.json({ message: "Task assignment deleted successfully" });
     } catch (error) {
-      console.error("Error deleting task assignment:", error);
       res.status(500).json({ message: "Failed to delete task assignment" });
     }
   });
@@ -14108,7 +13414,6 @@ Best regards,
       const comments = await storage.getTaskComments(taskId);
       res.json(comments);
     } catch (error) {
-      console.error("Error fetching task comments:", error);
       res.status(500).json({ message: "Failed to fetch task comments" });
     }
   });
@@ -14124,7 +13429,6 @@ Best regards,
       const comment = await storage.createTaskComment(commentData);
       res.json(comment);
     } catch (error) {
-      console.error("Error creating task comment:", error);
       res.status(500).json({ message: "Failed to create task comment" });
     }
   });
@@ -14136,7 +13440,6 @@ Best regards,
       const comment = await storage.updateTaskComment(id, commentData);
       res.json(comment);
     } catch (error) {
-      console.error("Error updating task comment:", error);
       res.status(500).json({ message: "Failed to update task comment" });
     }
   });
@@ -14147,7 +13450,6 @@ Best regards,
       await storage.deleteTaskComment(id);
       res.json({ message: "Task comment deleted successfully" });
     } catch (error) {
-      console.error("Error deleting task comment:", error);
       res.status(500).json({ message: "Failed to delete task comment" });
     }
   });
@@ -14159,7 +13461,6 @@ Best regards,
       const attachments = await storage.getTaskAttachments(taskId);
       res.json(attachments);
     } catch (error) {
-      console.error("Error fetching task attachments:", error);
       res.status(500).json({ message: "Failed to fetch task attachments" });
     }
   });
@@ -14183,7 +13484,6 @@ Best regards,
       const attachment = await storage.createTaskAttachment(attachmentData);
       res.json(attachment);
     } catch (error) {
-      console.error("Error creating task attachment:", error);
       res.status(500).json({ message: "Failed to create task attachment" });
     }
   });
@@ -14194,7 +13494,6 @@ Best regards,
       await storage.deleteTaskAttachment(id);
       res.json({ message: "Task attachment deleted successfully" });
     } catch (error) {
-      console.error("Error deleting task attachment:", error);
       res.status(500).json({ message: "Failed to delete task attachment" });
     }
   });
@@ -14206,7 +13505,6 @@ Best regards,
       const views = await storage.getTaskViews(databaseId);
       res.json(views);
     } catch (error) {
-      console.error("Error fetching task views:", error);
       res.status(500).json({ message: "Failed to fetch task views" });
     }
   });
@@ -14220,7 +13518,6 @@ Best regards,
       }
       res.json(view);
     } catch (error) {
-      console.error("Error fetching task view:", error);
       res.status(500).json({ message: "Failed to fetch task view" });
     }
   });
@@ -14236,7 +13533,6 @@ Best regards,
       const view = await storage.createTaskView(viewData);
       res.json(view);
     } catch (error) {
-      console.error("Error creating task view:", error);
       res.status(500).json({ message: "Failed to create task view" });
     }
   });
@@ -14248,7 +13544,6 @@ Best regards,
       const view = await storage.updateTaskView(id, viewData);
       res.json(view);
     } catch (error) {
-      console.error("Error updating task view:", error);
       res.status(500).json({ message: "Failed to update task view" });
     }
   });
@@ -14259,7 +13554,6 @@ Best regards,
       await storage.deleteTaskView(id);
       res.json({ message: "Task view deleted successfully" });
     } catch (error) {
-      console.error("Error deleting task view:", error);
       res.status(500).json({ message: "Failed to delete task view" });
     }
   });
@@ -14276,7 +13570,6 @@ Best regards,
       );
       res.json(folders);
     } catch (error) {
-      console.error("Error fetching note folders:", error);
       res.status(500).json({ message: "Failed to fetch note folders" });
     }
   });
@@ -14290,7 +13583,6 @@ Best regards,
       }
       res.json(folder);
     } catch (error) {
-      console.error("Error fetching note folder:", error);
       res.status(500).json({ message: "Failed to fetch note folder" });
     }
   });
@@ -14304,7 +13596,6 @@ Best regards,
       const folder = await storage.createNoteFolder(folderData);
       res.json(folder);
     } catch (error) {
-      console.error("Error creating note folder:", error);
       res.status(500).json({ message: "Failed to create note folder" });
     }
   });
@@ -14316,7 +13607,6 @@ Best regards,
       const folder = await storage.updateNoteFolder(id, folderData);
       res.json(folder);
     } catch (error) {
-      console.error("Error updating note folder:", error);
       res.status(500).json({ message: "Failed to update note folder" });
     }
   });
@@ -14327,7 +13617,6 @@ Best regards,
       await storage.deleteNoteFolder(id);
       res.json({ message: "Note folder deleted successfully" });
     } catch (error) {
-      console.error("Error deleting note folder:", error);
       res.status(500).json({ message: "Failed to delete note folder" });
     }
   });
@@ -14343,7 +13632,6 @@ Best regards,
       );
       res.json(notes);
     } catch (error) {
-      console.error("Error fetching notes:", error);
       res.status(500).json({ message: "Failed to fetch notes" });
     }
   });
@@ -14360,7 +13648,6 @@ Best regards,
       );
       res.json(notes);
     } catch (error) {
-      console.error("Error searching notes:", error);
       res.status(500).json({ message: "Failed to search notes" });
     }
   });
@@ -14374,7 +13661,6 @@ Best regards,
       }
       res.json(note);
     } catch (error) {
-      console.error("Error fetching note:", error);
       res.status(500).json({ message: "Failed to fetch note" });
     }
   });
@@ -14389,7 +13675,6 @@ Best regards,
       const note = await storage.createNote(noteData);
       res.json(note);
     } catch (error) {
-      console.error("Error creating note:", error);
       res.status(500).json({ message: "Failed to create note" });
     }
   });
@@ -14404,7 +13689,6 @@ Best regards,
       const note = await storage.updateNote(id, noteData);
       res.json(note);
     } catch (error) {
-      console.error("Error updating note:", error);
       res.status(500).json({ message: "Failed to update note" });
     }
   });
@@ -14415,7 +13699,6 @@ Best regards,
       await storage.deleteNote(id);
       res.json({ message: "Note deleted successfully" });
     } catch (error) {
-      console.error("Error deleting note:", error);
       res.status(500).json({ message: "Failed to delete note" });
     }
   });
@@ -14427,7 +13710,6 @@ Best regards,
       const collaborators = await storage.getNoteCollaborators(noteId);
       res.json(collaborators);
     } catch (error) {
-      console.error("Error fetching note collaborators:", error);
       res.status(500).json({ message: "Failed to fetch note collaborators" });
     }
   });
@@ -14443,7 +13725,6 @@ Best regards,
       const collaborator = await storage.createNoteCollaborator(collaboratorData);
       res.json(collaborator);
     } catch (error) {
-      console.error("Error creating note collaborator:", error);
       res.status(500).json({ message: "Failed to create note collaborator" });
     }
   });
@@ -14455,7 +13736,6 @@ Best regards,
       const collaborator = await storage.updateNoteCollaborator(id, collaboratorData);
       res.json(collaborator);
     } catch (error) {
-      console.error("Error updating note collaborator:", error);
       res.status(500).json({ message: "Failed to update note collaborator" });
     }
   });
@@ -14466,7 +13746,6 @@ Best regards,
       await storage.deleteNoteCollaborator(id);
       res.json({ message: "Note collaborator removed successfully" });
     } catch (error) {
-      console.error("Error removing note collaborator:", error);
       res.status(500).json({ message: "Failed to remove note collaborator" });
     }
   });
@@ -14478,7 +13757,6 @@ Best regards,
       const comments = await storage.getNoteComments(noteId);
       res.json(comments);
     } catch (error) {
-      console.error("Error fetching note comments:", error);
       res.status(500).json({ message: "Failed to fetch note comments" });
     }
   });
@@ -14494,7 +13772,6 @@ Best regards,
       const comment = await storage.createNoteComment(commentData);
       res.json(comment);
     } catch (error) {
-      console.error("Error creating note comment:", error);
       res.status(500).json({ message: "Failed to create note comment" });
     }
   });
@@ -14506,7 +13783,6 @@ Best regards,
       const comment = await storage.updateNoteComment(id, commentData);
       res.json(comment);
     } catch (error) {
-      console.error("Error updating note comment:", error);
       res.status(500).json({ message: "Failed to update note comment" });
     }
   });
@@ -14517,7 +13793,6 @@ Best regards,
       await storage.deleteNoteComment(id);
       res.json({ message: "Note comment deleted successfully" });
     } catch (error) {
-      console.error("Error deleting note comment:", error);
       res.status(500).json({ message: "Failed to delete note comment" });
     }
   });
@@ -14529,7 +13804,6 @@ Best regards,
       const attachments = await storage.getNoteAttachments(noteId);
       res.json(attachments);
     } catch (error) {
-      console.error("Error fetching note attachments:", error);
       res.status(500).json({ message: "Failed to fetch note attachments" });
     }
   });
@@ -14555,7 +13829,6 @@ Best regards,
       const attachment = await storage.createNoteAttachment(attachmentData);
       res.json(attachment);
     } catch (error) {
-      console.error("Error creating note attachment:", error);
       res.status(500).json({ message: "Failed to create note attachment" });
     }
   });
@@ -14571,7 +13844,6 @@ Best regards,
       await storage.deleteNoteAttachment(id);
       res.json({ message: "Note attachment deleted successfully" });
     } catch (error) {
-      console.error("Error deleting note attachment:", error);
       res.status(500).json({ message: "Failed to delete note attachment" });
     }
   });
@@ -14597,7 +13869,6 @@ Best regards,
       const versions = await storage.getScheduleVersionsByProjectId(projectId);
       res.json(versions);
     } catch (error) {
-      console.error("Error fetching schedule versions:", error);
       res.status(500).json({ message: "Failed to fetch schedule versions" });
     }
   });
@@ -14620,7 +13891,6 @@ Best regards,
       
       res.json(version);
     } catch (error) {
-      console.error("Error fetching schedule version:", error);
       res.status(500).json({ message: "Failed to fetch schedule version" });
     }
   });
@@ -14728,14 +13998,11 @@ Best regards,
             parseInt(req.user.id)
           );
         } catch (emailError) {
-          console.error('Email notification error (non-blocking):', emailError);
         }
       });
 
-      console.log(`✅ Schedule version ${newVersion.version} published for project ${projectId}. Email notifications queued.`);
       res.json(newVersion);
     } catch (error) {
-      console.error("Error creating schedule version:", error);
       res.status(500).json({ message: "Failed to create schedule version" });
     }
   });
@@ -14771,7 +14038,6 @@ Best regards,
             ? JSON.parse(settings.scheduleSettings) 
             : settings.scheduleSettings;
         } catch (e) {
-          console.warn('Failed to parse schedule settings:', e);
         }
       }
 
@@ -14849,7 +14115,6 @@ The Production Team`;
             day: 'numeric'
           });
         } catch (error) {
-          console.error('Error formatting week date:', error);
           // Fallback to basic formatting
           return date.toLocaleDateString('en-US', {
             weekday: 'short',
@@ -14873,7 +14138,6 @@ The Production Team`;
         const changeDetectionService = new (await import('./services/scheduleChangeDetectionService.js')).ScheduleChangeDetectionService(storage);
         structuredChanges = await changeDetectionService.generateStructuredChanges(projectId);
       } catch (error) {
-        console.error('Error fetching structured changes for test email:', error);
         // Use fallback test data
         structuredChanges = {
           addedEvents: 'Added Events:\n• New rehearsal on Monday 2:00 PM - 5:00 PM\n• Costume fitting on Tuesday 10:00 AM - 11:00 AM',
@@ -14917,7 +14181,6 @@ The Production Team`;
       // Get SendGrid API key from database (same as waitlist emails)
       const apiSettings = await storage.getApiSettings();
       if (!apiSettings?.sendgridApiKey) {
-        console.error('SendGrid API key not configured in database');
         return res.status(500).json({ message: "Email service not configured" });
       }
 
@@ -14960,7 +14223,6 @@ The Production Team`;
 
       await sgMail.send(msg);
       
-      console.log(`✅ Test email sent to ${recipientEmail} from "${senderName}" <${fromEmail}>`);
       res.json({ 
         message: "Test email sent successfully",
         sentTo: recipientEmail,
@@ -14968,7 +14230,6 @@ The Production Team`;
         subject: testSubject 
       });
     } catch (error: any) {
-      console.error("Error sending test email:", error);
       res.status(500).json({ 
         message: "Failed to send test email", 
         error: error.message || "Unknown error"
@@ -15073,11 +14334,9 @@ The Production Team`;
             contactIds // Pass specific contact IDs to limit recipients
           );
         } catch (emailError) {
-          console.error('Resend schedule email error (non-blocking):', emailError);
         }
       });
       
-      console.log(`✅ Schedule resent to ${contactIds.length} contacts for project ${projectId}.`);
       res.json({ 
         success: true, 
         message: `Schedule resent successfully`,
@@ -15086,7 +14345,6 @@ The Production Team`;
         version: currentVersion.version
       });
     } catch (error) {
-      console.error("Error resending schedule:", error);
       res.status(500).json({ message: "Failed to resend schedule" });
     }
   });
@@ -15121,7 +14379,6 @@ The Production Team`;
       
       res.json(schedulesWithContacts);
     } catch (error) {
-      console.error("Error fetching personal schedules:", error);
       res.status(500).json({ message: "Failed to fetch personal schedules" });
     }
   });
@@ -15178,7 +14435,6 @@ The Production Team`;
         res.json(newSchedule);
       }
     } catch (error) {
-      console.error("Error activating personal schedule:", error);
       res.status(500).json({ message: "Failed to activate personal schedule" });
     }
   });
@@ -15206,7 +14462,6 @@ The Production Team`;
       const updatedSchedule = await storage.getPersonalScheduleById(scheduleId);
       res.json(updatedSchedule);
     } catch (error) {
-      console.error("Error updating personal schedule:", error);
       res.status(500).json({ message: "Failed to update personal schedule" });
     }
   });
@@ -15229,7 +14484,6 @@ The Production Team`;
       const templates = await storage.getScheduleEmailTemplatesByProjectId(projectId);
       res.json(templates);
     } catch (error) {
-      console.error("Error fetching schedule email templates:", error);
       res.status(500).json({ message: "Failed to fetch schedule email templates" });
     }
   });
@@ -15258,7 +14512,6 @@ The Production Team`;
       const template = await storage.createScheduleEmailTemplate(templateData);
       res.json(template);
     } catch (error) {
-      console.error("Error creating schedule email template:", error);
       res.status(500).json({ message: "Failed to create schedule email template" });
     }
   });
@@ -15331,7 +14584,6 @@ The Production Team`;
         events: contactEvents
       });
     } catch (error) {
-      console.error("Error fetching personal schedule:", error);
       res.status(500).json({ message: "Failed to fetch personal schedule" });
     }
   });
@@ -15391,7 +14643,6 @@ The Production Team`;
       res.setHeader('X-Published-TTL', 'PT1H'); // Refresh every hour
       res.send(icsContent);
     } catch (error) {
-      console.error("Error generating personal schedule subscription ICS file:", error);
       res.status(500).send('Failed to generate calendar subscription');
     }
   });
@@ -15415,7 +14666,6 @@ The Production Team`;
       const shares = await storage.getPublicCalendarSharesByProjectId(projectId);
       res.json(shares);
     } catch (error) {
-      console.error("Error fetching public calendar shares:", error);
       res.status(500).json({ message: "Failed to fetch public calendar shares" });
     }
   });
@@ -15449,7 +14699,6 @@ The Production Team`;
       const share = await storage.createPublicCalendarShare(shareData);
       res.json(share);
     } catch (error) {
-      console.error("Error creating public calendar share:", error);
       res.status(500).json({ message: "Failed to create public calendar share" });
     }
   });
@@ -15473,7 +14722,6 @@ The Production Team`;
       const share = await storage.updatePublicCalendarShare(shareId, req.body);
       res.json(share);
     } catch (error) {
-      console.error("Error updating public calendar share:", error);
       res.status(500).json({ message: "Failed to update public calendar share" });
     }
   });
@@ -15497,7 +14745,6 @@ The Production Team`;
       await storage.deletePublicCalendarShare(shareId);
       res.json({ message: "Public calendar share deleted" });
     } catch (error) {
-      console.error("Error deleting public calendar share:", error);
       res.status(500).json({ message: "Failed to delete public calendar share" });
     }
   });
@@ -15558,7 +14805,6 @@ The Production Team`;
         events: contactEvents
       });
     } catch (error) {
-      console.error("Error fetching public calendar:", error);
       res.status(500).json({ message: "Failed to fetch calendar" });
     }
   });
@@ -15610,7 +14856,6 @@ The Production Team`;
       res.setHeader('Content-Disposition', `attachment; filename="${project.name}-${contact.firstName}_${contact.lastName}.ics"`);
       res.send(icsContent);
     } catch (error) {
-      console.error("Error generating ICS file:", error);
       res.status(500).json({ message: "Failed to generate calendar file" });
     }
   });
@@ -15665,7 +14910,6 @@ The Production Team`;
       res.setHeader('X-Published-TTL', 'PT1H'); // Refresh every hour
       res.send(icsContent);
     } catch (error) {
-      console.error("Error generating subscription ICS file:", error);
       res.status(500).send('Failed to generate calendar subscription');
     }
   });
@@ -15683,12 +14927,9 @@ The Production Team`;
       const googleCalendarService = new GoogleCalendarService(hostname);
       const authUrl = googleCalendarService.generateAuthUrl(projectId, userId);
       
-      console.log('Generated auth URL:', authUrl);
-      console.log('Hostname used:', hostname);
       
       res.json({ authUrl });
     } catch (error) {
-      console.error("Error generating Google Calendar auth URL:", error);
       res.status(500).json({ message: "Failed to generate authorization URL" });
     }
   });
@@ -15704,7 +14945,6 @@ The Production Team`;
       
       res.json(integration);
     } catch (error) {
-      console.error("Error handling Google Calendar OAuth callback:", error);
       res.status(500).json({ message: "Failed to complete Google Calendar setup" });
     }
   });
@@ -15716,7 +14956,6 @@ The Production Team`;
       
       res.json(integrations);
     } catch (error) {
-      console.error("Error fetching calendar integrations:", error);
       res.status(500).json({ message: "Failed to fetch calendar integrations" });
     }
   });
@@ -15733,7 +14972,6 @@ The Production Team`;
       
       res.json(integration);
     } catch (error) {
-      console.error("Error updating calendar integration:", error);
       res.status(500).json({ message: "Failed to update calendar integration" });
     }
   });
@@ -15745,7 +14983,6 @@ The Production Team`;
       
       res.json({ success: true });
     } catch (error) {
-      console.error("Error deleting calendar integration:", error);
       res.status(500).json({ message: "Failed to delete calendar integration" });
     }
   });
@@ -15758,7 +14995,6 @@ The Production Team`;
       
       res.json(preferences);
     } catch (error) {
-      console.error("Error fetching notification preferences:", error);
       res.status(500).json({ message: "Failed to fetch notification preferences" });
     }
   });
@@ -15784,7 +15020,6 @@ The Production Team`;
       
       res.json(preferences);
     } catch (error) {
-      console.error("Error fetching contact notification preferences:", error);
       res.status(500).json({ message: "Failed to fetch notification preferences" });
     }
   });
@@ -15808,7 +15043,6 @@ The Production Team`;
       
       res.json(preferences);
     } catch (error) {
-      console.error("Error updating notification preferences:", error);
       res.status(500).json({ message: "Failed to update notification preferences" });
     }
   });
@@ -15838,7 +15072,6 @@ The Production Team`;
       
       res.json(comparison);
     } catch (error) {
-      console.error("Error comparing schedule versions:", error);
       res.status(500).json({ message: "Failed to compare schedule versions" });
     }
   });
@@ -15850,7 +15083,6 @@ The Production Team`;
       
       res.json(comparisons);
     } catch (error) {
-      console.error("Error fetching schedule comparisons:", error);
       res.status(500).json({ message: "Failed to fetch schedule comparisons" });
     }
   });
@@ -15864,7 +15096,6 @@ The Production Team`;
       
       res.json(stats);
     } catch (error) {
-      console.error("Error fetching schedule change stats:", error);
       res.status(500).json({ message: "Failed to fetch schedule change statistics" });
     }
   });
@@ -15877,7 +15108,6 @@ The Production Team`;
       
       res.json(categories);
     } catch (error) {
-      console.error("Error fetching email template categories:", error);
       res.status(500).json({ message: "Failed to fetch email template categories" });
     }
   });
@@ -15893,7 +15123,6 @@ The Production Team`;
       const category = await storage.createEmailTemplateCategory(categoryData);
       res.json(category);
     } catch (error) {
-      console.error("Error creating email template category:", error);
       res.status(500).json({ message: "Failed to create email template category" });
     }
   });
@@ -15905,7 +15134,6 @@ The Production Team`;
       
       res.json(category);
     } catch (error) {
-      console.error("Error updating email template category:", error);
       res.status(500).json({ message: "Failed to update email template category" });
     }
   });
@@ -15917,7 +15145,6 @@ The Production Team`;
       
       res.json({ success: true });
     } catch (error) {
-      console.error("Error deleting email template category:", error);
       res.status(500).json({ message: "Failed to delete email template category" });
     }
   });
@@ -15928,7 +15155,6 @@ The Production Team`;
       const projectId = parseInt(req.params.projectId);
       const userId = req.user.id;
       
-      console.log('Creating mock Google Calendar integration for development testing');
       
       const mockIntegration = await storage.createGoogleCalendarIntegration({
         projectId,
@@ -15947,7 +15173,6 @@ The Production Team`;
       
       res.json(mockIntegration);
     } catch (error) {
-      console.error("Error creating mock Google Calendar integration:", error);
       res.status(500).json({ message: "Failed to create mock integration" });
     }
   });
@@ -15959,11 +15184,9 @@ The Production Team`;
       
       // Handle Google OAuth errors (like access_denied)
       if (error) {
-        console.log('Google OAuth error:', error);
         
         // For development: If access denied, create a temporary bypass
         if (error === 'access_denied') {
-          console.log('Access denied - creating temporary bypass for development');
           return res.send(`
             <html>
               <body>
@@ -16038,7 +15261,6 @@ The Production Team`;
         </html>
       `);
     } catch (error) {
-      console.error("Error in Google Calendar OAuth callback:", error);
       res.status(500).send(`
         <html>
           <body>
@@ -16062,7 +15284,6 @@ The Production Team`;
       const shares = await storage.getPublicCalendarSharesByProjectId(projectId);
       res.json(shares);
     } catch (error) {
-      console.error("Error fetching public calendar shares:", error);
       res.status(500).json({ message: "Failed to fetch public calendar shares" });
     }
   });
@@ -16082,7 +15303,6 @@ The Production Team`;
       const share = await storage.createPublicCalendarShare(shareData);
       res.json(share);
     } catch (error) {
-      console.error("Error creating public calendar share:", error);
       res.status(500).json({ message: "Failed to create public calendar share" });
     }
   });
@@ -16093,7 +15313,6 @@ The Production Team`;
       const share = await storage.updatePublicCalendarShare(shareId, req.body);
       res.json(share);
     } catch (error) {
-      console.error("Error updating public calendar share:", error);
       res.status(500).json({ message: "Failed to update public calendar share" });
     }
   });
@@ -16104,7 +15323,6 @@ The Production Team`;
       await storage.deletePublicCalendarShare(shareId);
       res.json({ success: true });
     } catch (error) {
-      console.error("Error deleting public calendar share:", error);
       res.status(500).json({ message: "Failed to delete public calendar share" });
     }
   });
@@ -16157,7 +15375,6 @@ The Production Team`;
         }
       });
     } catch (error) {
-      console.error("Error fetching public calendar:", error);
       res.status(500).json({ message: "Failed to fetch public calendar" });
     }
   });
@@ -16180,7 +15397,6 @@ The Production Team`;
       const shares = await storage.getEventTypeCalendarSharesByProjectId(projectId);
       res.json(shares);
     } catch (error) {
-      console.error("Error fetching event type calendar shares:", error);
       res.status(500).json({ message: "Failed to fetch event type calendar shares" });
     }
   });
@@ -16214,7 +15430,6 @@ The Production Team`;
       const share = await storage.createEventTypeCalendarShare(shareData);
       res.json(share);
     } catch (error) {
-      console.error("Error creating event type calendar share:", error);
       res.status(500).json({ message: "Failed to create event type calendar share" });
     }
   });
@@ -16237,7 +15452,6 @@ The Production Team`;
       await storage.deleteEventTypeCalendarShare(shareId);
       res.json({ message: "Event type calendar share deleted" });
     } catch (error) {
-      console.error("Error deleting event type calendar share:", error);
       res.status(500).json({ message: "Failed to delete event type calendar share" });
     }
   });
@@ -16299,7 +15513,6 @@ The Production Team`;
         events: filteredEvents
       });
     } catch (error) {
-      console.error("Error fetching public event type calendar:", error);
       res.status(500).json({ message: "Failed to fetch calendar" });
     }
   });
@@ -16358,7 +15571,6 @@ The Production Team`;
       res.setHeader('X-Published-TTL', 'PT1H'); // Refresh every hour
       res.send(icsContent);
     } catch (error) {
-      console.error("Error generating event type subscription ICS file:", error);
       res.status(500).send('Failed to generate calendar subscription');
     }
   });
@@ -16436,7 +15648,6 @@ The Production Team`;
       
       res.json(mockData);
     } catch (error) {
-      console.error("Error creating test personal schedule data:", error);
       res.status(500).json({ message: "Failed to create test data" });
     }
   });
@@ -16543,7 +15754,6 @@ The Production Team`;
       const plan = await billingSyncService.createPlanWithStripe(planData);
       res.status(201).json(plan);
     } catch (error: any) {
-      console.error("Failed to create billing plan with Stripe:", error);
       res.status(400).json({ message: "Failed to create billing plan", error: error.message });
     }
   });
@@ -16559,7 +15769,6 @@ The Production Team`;
       const plan = await billingSyncService.updatePlanWithStripe(parseInt(req.params.id), planDataWithId);
       res.json(plan);
     } catch (error: any) {
-      console.error("Failed to update billing plan with Stripe:", error);
       res.status(400).json({ message: "Failed to update billing plan", error: error.message });
     }
   });
@@ -16852,7 +16061,6 @@ The Production Team`;
       
       res.json({ clientSecret: paymentIntent.client_secret });
     } catch (error: any) {
-      console.error("Error creating payment intent:", error);
       res.status(500).json({ 
         message: "Error creating payment intent", 
         error: error.message 
@@ -16881,7 +16089,6 @@ The Production Team`;
             });
           }
         } catch (stripeError) {
-          console.log("Existing subscription not found or invalid, creating new one");
         }
       }
       
@@ -16895,7 +16102,6 @@ The Production Team`;
         try {
           customer = await stripe.customers.retrieve(user.stripeCustomerId);
         } catch (stripeError) {
-          console.log("Customer not found, creating new one");
           customer = null;
         }
       }
@@ -16922,7 +16128,6 @@ The Production Team`;
         const billingPlan = await storage.getBillingPlanByPlanId(planType);
         
         if (!billingPlan) {
-          console.error(`No billing plan found for planType: ${planType}`);
           return res.status(400).json({ 
             message: "Selected plan is not available. Please contact support.",
             requiresPriceConfiguration: true
@@ -16930,7 +16135,6 @@ The Production Team`;
         }
 
         if (!billingPlan.activeStripePriceId) {
-          console.error(`Billing plan ${planType} has no active Stripe Price ID`);
           return res.status(400).json({ 
             message: "Subscription pricing not configured. Please contact support.",
             requiresPriceConfiguration: true
@@ -16938,7 +16142,6 @@ The Production Team`;
         }
 
         selectedPriceId = billingPlan.activeStripePriceId;
-        console.log(`Using Stripe Price ID for ${planType}: ${selectedPriceId}`);
       }
 
       // Create subscription
@@ -16970,7 +16173,6 @@ The Production Team`;
         status: subscription.status,
       });
     } catch (error: any) {
-      console.error("Error creating subscription:", error);
       return res.status(400).json({ 
         message: "Error creating subscription", 
         error: error.message 
@@ -16990,10 +16192,8 @@ The Production Team`;
       } else {
         // In development, parse the event directly (less secure)
         event = JSON.parse(req.body.toString());
-        console.log('⚠️  Warning: Processing Stripe webhook without signature verification');
       }
     } catch (err: any) {
-      console.error('Webhook signature verification failed:', err.message);
       return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
@@ -17002,7 +16202,6 @@ The Production Team`;
       switch (event.type) {
         case 'payment_intent.succeeded':
           const paymentIntent = event.data.object;
-          console.log('💰 Payment succeeded:', paymentIntent.id);
           
           // Update payment method or billing history if needed
           if (paymentIntent.metadata?.userId) {
@@ -17019,7 +16218,6 @@ The Production Team`;
 
         case 'invoice.payment_succeeded':
           const invoice = event.data.object;
-          console.log('📋 Invoice payment succeeded:', invoice.id);
           
           if (invoice.subscription && invoice.metadata?.userId) {
             await storage.updateUserSubscription(parseInt(invoice.metadata.userId), {
@@ -17030,7 +16228,6 @@ The Production Team`;
 
         case 'invoice.payment_failed':
           const failedInvoice = event.data.object;
-          console.log('❌ Invoice payment failed:', failedInvoice.id);
           
           if (failedInvoice.subscription && failedInvoice.metadata?.userId) {
             await storage.updateUserSubscription(parseInt(failedInvoice.metadata.userId), {
@@ -17041,7 +16238,6 @@ The Production Team`;
 
         case 'customer.subscription.updated':
           const updatedSubscription = event.data.object;
-          console.log('🔄 Subscription updated:', updatedSubscription.id);
           
           if (updatedSubscription.metadata?.userId) {
             await storage.updateUserSubscription(parseInt(updatedSubscription.metadata.userId), {
@@ -17052,7 +16248,6 @@ The Production Team`;
 
         case 'customer.subscription.deleted':
           const deletedSubscription = event.data.object;
-          console.log('🗑️  Subscription deleted:', deletedSubscription.id);
           
           if (deletedSubscription.metadata?.userId) {
             await storage.updateUserSubscription(parseInt(deletedSubscription.metadata.userId), {
@@ -17063,12 +16258,10 @@ The Production Team`;
           break;
 
         default:
-          console.log(`Unhandled event type ${event.type}`);
       }
 
       res.json({received: true});
     } catch (error: any) {
-      console.error('Error processing webhook:', error);
       res.status(500).json({ error: 'Webhook processing failed' });
     }
   });
@@ -17097,13 +16290,11 @@ The Production Team`;
             cancelAtPeriodEnd: subscription.cancel_at_period_end,
           };
         } catch (stripeError) {
-          console.error('Error fetching subscription from Stripe:', stripeError);
         }
       }
 
       res.json(subscriptionData);
     } catch (error: any) {
-      console.error("Error fetching subscription status:", error);
       res.status(500).json({ 
         message: "Failed to fetch subscription status", 
         error: error.message 
@@ -17134,7 +16325,6 @@ The Production Team`;
         cancelAt: subscription.cancel_at,
       });
     } catch (error: any) {
-      console.error("Error canceling subscription:", error);
       res.status(500).json({ 
         message: "Failed to cancel subscription", 
         error: error.message 
@@ -17179,7 +16369,6 @@ The Production Team`;
 
       res.json(billingData);
     } catch (error: any) {
-      console.error('Billing status error:', error);
       res.status(500).json({ message: 'Failed to get billing status: ' + error.message });
     }
   });
@@ -17217,7 +16406,6 @@ The Production Team`;
 
       res.json({ message: 'Upgraded to annual billing successfully' });
     } catch (error: any) {
-      console.error('Switch to annual error:', error);
       res.status(500).json({ message: 'Failed to switch to annual: ' + error.message });
     }
   });
@@ -17238,7 +16426,6 @@ The Production Team`;
       const updatedUser = await storage.updateUserProfileType(req.user.id.toString(), profileType);
       res.json({ message: 'Profile type updated successfully', user: updatedUser });
     } catch (error: any) {
-      console.error('Update profile type error:', error);
       res.status(500).json({ message: 'Failed to update profile type: ' + error.message });
     }
   });
@@ -17257,7 +16444,6 @@ The Production Team`;
       }
 
       const keywords = query.toLowerCase().split(' ').filter(word => word.length > 0);
-      console.log('🔍 Search for userId:', userId, 'projectId:', projectId, 'keywords:', keywords);
       
       const results = [];
       
@@ -17273,10 +16459,8 @@ The Production Team`;
           projectsToSearch = await storage.getProjectsByUserId(userId.toString());
         }
 
-        console.log('🔍 Searching in', projectsToSearch.length, 'project(s)');
 
         // Search contacts in relevant projects
-        console.log('🔍 Searching contacts...');
         const contacts = await storage.getAllContactsByUserId(userId.toString());
         const matchingContacts = contacts.filter(contact => {
           const searchText = [
@@ -17335,7 +16519,6 @@ The Production Team`;
 
         // If not in a specific project, search all projects
         if (!projectId) {
-          console.log('🔍 Searching projects...');
           const matchingProjects = projectsToSearch.filter(project => {
             const searchText = [
               project.name,
@@ -17367,14 +16550,12 @@ The Production Team`;
         }
         
         // Search schedule events in relevant projects
-        console.log('🔍 Searching schedule events...');
         const allEvents = [];
         for (const project of projectsToSearch) {
           try {
             const events = await storage.getEventsByProjectId(project.id);
             allEvents.push(...events.map(event => ({ ...event, projectName: project.name, projectId: project.id })));
           } catch (error) {
-            console.log(`🔍 Could not get events for project ${project.id}:`, error.message);
           }
         }
         
@@ -17412,14 +16593,12 @@ The Production Team`;
         });
 
         // Search props in relevant projects
-        console.log('🔍 Searching props...');
         const allProps = [];
         for (const project of projectsToSearch) {
           try {
             const props = await storage.getPropsByProjectId(project.id);
             allProps.push(...props.map(prop => ({ ...prop, projectName: project.name, projectId: project.id })));
           } catch (error) {
-            console.log(`🔍 Could not get props for project ${project.id}`);
           }
         }
 
@@ -17455,14 +16634,12 @@ The Production Team`;
         });
 
         // Search costumes in relevant projects
-        console.log('🔍 Searching costumes...');
         const allCostumes = [];
         for (const project of projectsToSearch) {
           try {
             const costumes = await storage.getCostumesByProjectId(project.id);
             allCostumes.push(...costumes.map(costume => ({ ...costume, projectName: project.name, projectId: project.id })));
           } catch (error) {
-            console.log(`🔍 Could not get costumes for project ${project.id}`);
           }
         }
 
@@ -17498,14 +16675,12 @@ The Production Team`;
         });
 
         // Search tasks in relevant projects
-        console.log('🔍 Searching tasks...');
         const allTasks = [];
         for (const project of projectsToSearch) {
           try {
             const tasks = await storage.getTasksByProjectId(project.id);
             allTasks.push(...tasks.map(task => ({ ...task, projectName: project.name, projectId: project.id })));
           } catch (error) {
-            console.log(`🔍 Could not get tasks for project ${project.id}`);
           }
         }
 
@@ -17541,14 +16716,12 @@ The Production Team`;
         });
 
         // Search notes in relevant projects
-        console.log('🔍 Searching notes...');
         const allNotes = [];
         for (const project of projectsToSearch) {
           try {
             const notes = await storage.getNotesByProjectId(project.id);
             allNotes.push(...notes.map(note => ({ ...note, projectName: project.name, projectId: project.id })));
           } catch (error) {
-            console.log(`🔍 Could not get notes for project ${project.id}`);
           }
         }
 
@@ -17579,14 +16752,12 @@ The Production Team`;
         });
 
         // Search reports in relevant projects
-        console.log('🔍 Searching reports...');
         const allReports = [];
         for (const project of projectsToSearch) {
           try {
             const reports = await storage.getReportsByProjectId(project.id);
             allReports.push(...reports.map(report => ({ ...report, projectName: project.name, projectId: project.id })));
           } catch (error) {
-            console.log(`🔍 Could not get reports for project ${project.id}`);
           }
         }
 
@@ -17620,16 +16791,13 @@ The Production Team`;
         });
         
       } catch (searchError) {
-        console.error('Search error:', searchError);
       }
       
       // Sort by relevance score
       results.sort((a, b) => b.relevanceScore - a.relevanceScore);
       
-      console.log('🔍 Total search results:', results.length);
       res.json({ results: results.slice(0, 20) });
     } catch (error) {
-      console.error("Natural language search error:", error);
       res.status(500).json({ message: "Search failed" });
     }
   });
@@ -17650,7 +16818,6 @@ The Production Team`;
 
       res.json(result);
     } catch (error) {
-      console.error("Advanced search error:", error);
       res.status(500).json({ message: "Advanced search failed" });
     }
   });
@@ -17671,7 +16838,6 @@ The Production Team`;
 
       res.json(result);
     } catch (error) {
-      console.error("Search suggestions error:", error);
       res.status(500).json({ message: "Failed to get suggestions" });
     }
   });
@@ -17685,7 +16851,6 @@ The Production Team`;
       const searchHistory = await storage.getSearchHistoryByUserId(userId, limit);
       res.json({ history: searchHistory });
     } catch (error) {
-      console.error("Search history error:", error);
       res.status(500).json({ message: "Failed to get search history" });
     }
   });
@@ -17697,7 +16862,6 @@ The Production Team`;
       await storage.clearSearchHistoryByUserId(userId);
       res.json({ message: "Search history cleared" });
     } catch (error) {
-      console.error("Clear search history error:", error);
       res.status(500).json({ message: "Failed to clear search history" });
     }
   });
@@ -17708,9 +16872,7 @@ The Production Team`;
   try {
     const { emailCleanupService } = await import('./services/emailCleanupService.js');
     emailCleanupService.startCleanupScheduler();
-    console.log('✅ Email cleanup service started');
   } catch (error) {
-    console.error('❌ Failed to start email cleanup service:', error);
   }
   
   // IMAP Server Management API endpoints
@@ -17720,7 +16882,6 @@ The Production Team`;
       const status = imapServerManager.getStatus();
       res.json(status);
     } catch (error) {
-      console.error('Error getting IMAP server status:', error);
       res.status(500).json({ message: 'Failed to get IMAP server status' });
     }
   });
@@ -17732,7 +16893,6 @@ The Production Team`;
       await imapServerManager.initialize();
       res.json({ message: 'IMAP server restarted successfully' });
     } catch (error) {
-      console.error('Error restarting IMAP server:', error);
       res.status(500).json({ message: 'Failed to restart IMAP server' });
     }
   });
@@ -17782,7 +16942,6 @@ The Production Team`;
 
       res.json(instructions);
     } catch (error) {
-      console.error('Error getting IMAP setup instructions:', error);
       res.status(500).json({ message: 'Failed to get setup instructions' });
     }
   });
