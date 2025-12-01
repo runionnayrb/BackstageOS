@@ -1312,11 +1312,11 @@ The Production Team`
     return scheduleSettings.structureGroups || [];
   };
 
-  const generateRunningOrderHTML = () => {
+  const generateRunningOrderHTML = (runningOrderData?: any[]) => {
     const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
       ? safeJsonParse((settings as any).scheduleSettings, {}) 
       : ((settings as any)?.scheduleSettings || {});
-    const runningOrder = scheduleSettings.runningOrder || [];
+    const runningOrder = runningOrderData || scheduleSettings.runningOrder || [];
     const inShowItems = runningOrder.filter((item: any) => item.inShow !== false);
     
     // Group items by structure group
@@ -1359,11 +1359,11 @@ The Production Team`
     return html;
   };
 
-  const downloadRunningOrderPDF = () => {
+  const downloadRunningOrderPDF = (runningOrderData?: any[]) => {
     const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
       ? safeJsonParse((settings as any).scheduleSettings, {}) 
       : ((settings as any)?.scheduleSettings || {});
-    const runningOrder = scheduleSettings.runningOrder || [];
+    const runningOrder = runningOrderData || scheduleSettings.runningOrder || [];
     const inShowItems = runningOrder.filter((item: any) => item.inShow !== false);
     
     const doc = new jsPDF({
@@ -1466,11 +1466,11 @@ The Production Team`
     doc.save(`${project?.name || 'Running Order'} Running Order - ${dateStr}.pdf`);
   };
 
-  const generateRunningOrderPDFBlob = (): Blob => {
+  const generateRunningOrderPDFBlob = (runningOrderData?: any[]): Blob => {
     const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
       ? safeJsonParse((settings as any).scheduleSettings, {}) 
       : ((settings as any)?.scheduleSettings || {});
-    const runningOrder = scheduleSettings.runningOrder || [];
+    const runningOrder = runningOrderData || scheduleSettings.runningOrder || [];
     const inShowItems = runningOrder.filter((item: any) => item.inShow !== false);
     
     const doc = new jsPDF({
@@ -3297,7 +3297,8 @@ The Production Team`
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
                                     <DropdownMenuItem onClick={() => {
-                                      const runningOrderHTML = generateRunningOrderHTML();
+                                      const versionRunningOrder = (version.runningOrder as any[]) || [];
+                                      const runningOrderHTML = generateRunningOrderHTML(versionRunningOrder);
                                       const today = new Date();
                                       const dateStr = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
                                       const subject = `${project?.name || 'Project'} Running Order - ${dateStr}`;
@@ -3310,7 +3311,10 @@ The Production Team`
                                       <Mail className="h-4 w-4 mr-2" />
                                       Email
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={downloadRunningOrderPDF} data-testid={`menu-item-version-download-${version.id}`}>
+                                    <DropdownMenuItem onClick={() => {
+                                      const versionRunningOrder = (version.runningOrder as any[]) || [];
+                                      downloadRunningOrderPDF(versionRunningOrder);
+                                    }} data-testid={`menu-item-version-download-${version.id}`}>
                                       <Download className="h-4 w-4 mr-2" />
                                       Download PDF
                                     </DropdownMenuItem>
