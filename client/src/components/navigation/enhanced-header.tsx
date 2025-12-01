@@ -139,7 +139,8 @@ export default function EnhancedHeader() {
         });
       }
 
-      if (pathParts[4]) {
+      // Don't add breadcrumb items for templates-v2 editing pages (they show template name in header)
+      if (pathParts[4] && pathParts[3] !== 'templates-v2') {
         const label = pathParts[4]
           .split('-')
           .map(word => word.charAt(0).toUpperCase() + word.slice(1))
