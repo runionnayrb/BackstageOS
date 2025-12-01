@@ -84,8 +84,8 @@ export default function ReportNotesFilter({
       <PopoverTrigger asChild>
         <Button
           variant="ghost"
-          size="sm"
-          className={`h-8 w-8 p-0 bg-transparent hover:bg-transparent border-none ${
+          size="icon"
+          className={`h-8 w-8 ${
             hasActiveFilters
               ? "text-blue-600 hover:text-blue-700"
               : "text-gray-600 hover:text-gray-900"
