@@ -23,7 +23,8 @@ import {
   AlertCircle,
   CheckCircle2,
   X,
-  Layers
+  Layers,
+  RotateCcw
 } from 'lucide-react';
 import type { ReportNote } from '@shared/schema';
 
@@ -188,6 +189,13 @@ const NotesTracking: React.FC = () => {
       noteId: note.id,
       data: { priority: newPriority }
     });
+  };
+
+  const handleResetFilters = () => {
+    setSelectedDepartment('all');
+    setSelectedStatus('all');
+    setSelectedPriority('all');
+    setSelectedReportType('all');
   };
 
   const getPriorityColor = (priority: string) => {
@@ -410,14 +418,25 @@ const NotesTracking: React.FC = () => {
                   <Filter className="h-4 w-4" />
                   Filter By
                 </h4>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setFilterOpen(false)}
-                  className="h-8 w-8 p-0"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleResetFilters}
+                    className="h-8 w-8 p-0"
+                    title="Reset filters"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setFilterOpen(false)}
+                    className="h-8 w-8 p-0"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
             <div className="p-4 space-y-4">
