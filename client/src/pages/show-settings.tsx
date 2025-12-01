@@ -2250,12 +2250,13 @@ The Production Team`
                     <ChevronsLeft className={`h-4 w-4 transition-transform ${isRunningOrderMenuExpanded ? 'rotate-180' : ''}`} />
                   </Button>
                   <Button
-                    variant="outline"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 hover:bg-transparent"
                     data-testid="button-download-pdf"
                     onClick={downloadRunningOrderPDF}
                   >
-                    <Download className="h-4 w-4 mr-2" />
-                    Download PDF
+                    <Download className="h-4 w-4 text-foreground hover:text-blue-500" />
                   </Button>
                   <Button 
                     data-testid="button-add-running-order-item"
