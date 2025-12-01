@@ -2443,7 +2443,7 @@ The Production Team`
 
           {/* Versions Dialog */}
           <Dialog open={isVersionsDialogOpen} onOpenChange={setIsVersionsDialogOpen}>
-            <DialogContent className="max-w-2xl max-h-[80vh]">
+            <DialogContent className="max-w-4xl max-h-[80vh]">
               <DialogHeader>
                 <DialogTitle>Running Order Versions</DialogTitle>
                 <DialogDescription>
@@ -2600,7 +2600,7 @@ The Production Team`
 
           {/* View Version Dialog */}
           <Dialog open={!!viewingVersion} onOpenChange={() => setViewingVersion(null)}>
-            <DialogContent className="max-w-2xl max-h-[80vh]">
+            <DialogContent className="max-w-4xl max-h-[80vh]">
               <DialogHeader>
                 <DialogTitle>
                   Version {viewingVersion?.versionNumber}
