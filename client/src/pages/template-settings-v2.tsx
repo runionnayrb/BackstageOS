@@ -34,7 +34,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Plus, Trash2, FileText } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, FileText, List } from "lucide-react";
+import ReportTypesDialog from "@/components/report-types-dialog";
 
 interface TemplateSettingsV2Params {
   id: string;
@@ -283,7 +284,14 @@ export default function TemplateSettingsV2() {
               <h1 className="text-3xl font-bold">Report Templates</h1>
             </div>
           </div>
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <div className="flex gap-2">
+            <ReportTypesDialog projectId={projectId!} trigger={
+              <Button variant="outline" className="flex items-center gap-2">
+                <List className="h-4 w-4" />
+                Manage Report Types
+              </Button>
+            } />
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button data-testid="button-create-template">
                 <Plus className="h-4 w-4 mr-2" />
@@ -355,6 +363,7 @@ export default function TemplateSettingsV2() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
 
         {/* Templates List */}
