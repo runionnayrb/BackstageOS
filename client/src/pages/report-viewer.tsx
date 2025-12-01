@@ -21,7 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Upload, Trash2, Save } from "lucide-react";
+import { Upload, Trash2, Save, Mail, Download } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -271,9 +271,11 @@ export default function ReportViewer() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={handleEmail}>
+                  <Mail className="h-4 w-4 mr-2" />
                   Email
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleDownloadPDF}>
+                  <Download className="h-4 w-4 mr-2" />
                   Download PDF
                 </DropdownMenuItem>
               </DropdownMenuContent>
