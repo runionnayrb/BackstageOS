@@ -44,17 +44,10 @@ interface ReportTypesDialogProps {
 }
 
 // Form schema with extended validation
-const formSchema = insertReportTypeSchema
-  .omit({ projectId: true, createdBy: true, displayOrder: true, isDefault: true, icon: true, color: true })
-  .extend({
-    name: z.string().min(1, "Name is required").max(100, "Name too long"),
-    slug: z
-      .string()
-      .min(1, "Slug is required")
-      .max(50, "Slug too long")
-      .regex(/^[a-z0-9-]+$/, "Slug must be lowercase letters, numbers, and hyphens only"),
-    description: z.string().optional(),
-  });
+const formSchema = z.object({
+  name: z.string().min(1, "Name is required").max(100, "Name too long"),
+  description: z.string().optional(),
+});
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -71,7 +64,6 @@ export default function ReportTypesDialog({ projectId, trigger }: ReportTypesDia
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      slug: "",
       description: "",
     },
   });
@@ -195,11 +187,16 @@ export default function ReportTypesDialog({ projectId, trigger }: ReportTypesDia
   });
 
   const handleSubmit = (values: FormValues) => {
+    const slug = values.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
+    
     if (editingType) {
-      updateMutation.mutate({ id: editingType.id, data: values });
+      updateMutation.mutate({ id: editingType.id, data: { ...values, slug } });
       setIsEditModalOpen(false);
     } else {
-      createMutation.mutate(values);
+      createMutation.mutate({ ...values, slug });
     }
   };
 
@@ -306,7 +303,6 @@ export default function ReportTypesDialog({ projectId, trigger }: ReportTypesDia
                       {type.description && (
                         <div className="text-sm text-muted-foreground">{type.description}</div>
                       )}
-                      <div className="text-xs text-muted-foreground">Slug: {type.slug}</div>
                     </div>
                     {type.isDefault && (
                       <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
@@ -334,38 +330,9 @@ export default function ReportTypesDialog({ projectId, trigger }: ReportTypesDia
                           <Input
                             {...field}
                             placeholder="e.g., Performance Reports"
-                            onChange={(e) => {
-                              field.onChange(e);
-                              const slug = e.target.value
-                                .toLowerCase()
-                                .replace(/[^a-z0-9]+/g, "-")
-                                .replace(/(^-|-$)/g, "");
-                              form.setValue("slug", slug, { shouldDirty: false });
-                            }}
                             data-testid="input-report-type-name"
                           />
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="slug"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Slug</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="e.g., performance"
-                            data-testid="input-report-type-slug"
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          URL-friendly identifier (lowercase, no spaces)
-                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -433,27 +400,6 @@ export default function ReportTypesDialog({ projectId, trigger }: ReportTypesDia
                           data-testid="input-edit-report-type-name"
                         />
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="slug"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Slug</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          placeholder="e.g., performance"
-                          data-testid="input-edit-report-type-slug"
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        URL-friendly identifier (lowercase, no spaces)
-                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
