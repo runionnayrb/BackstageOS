@@ -79,9 +79,16 @@ import {
   RotateCcw,
   Check,
   FileCheck,
-  ChevronsLeft
+  ChevronsLeft,
+  FileUp
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // Helper function to safely parse JSON with error handling
 const safeJsonParse = (jsonString: string, fallback: any = {}) => {
@@ -2254,15 +2261,34 @@ The Production Team`
                   >
                     <ChevronsLeft className={`h-4 w-4 transition-transform ${isRunningOrderMenuExpanded ? 'rotate-180' : ''}`} />
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0 hover:bg-transparent"
-                    data-testid="button-download-pdf"
-                    onClick={downloadRunningOrderPDF}
-                  >
-                    <Download className="h-4 w-4 text-foreground hover:text-blue-500 transition-colors" />
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 hover:bg-transparent"
+                        data-testid="button-export-running-order"
+                      >
+                        <FileUp className="h-4 w-4 text-foreground hover:text-blue-500 transition-colors" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => {
+                        // Email functionality placeholder
+                        toast({
+                          title: "Email feature coming soon",
+                          description: "Email export will be available soon.",
+                        });
+                      }} data-testid="menu-item-email">
+                        <Mail className="h-4 w-4 mr-2" />
+                        Email
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={downloadRunningOrderPDF} data-testid="menu-item-download-pdf">
+                        <Download className="h-4 w-4 mr-2" />
+                        Download PDF
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   <Button 
                     variant="ghost"
                     size="sm"
