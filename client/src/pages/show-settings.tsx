@@ -2678,39 +2678,36 @@ The Production Team`
                       </div>
                       
                       <div className="space-y-2">
-                        <button
-                          className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-                          onClick={() => setShowCCField(!showCCField)}
-                          type="button"
-                        >
-                          {showCCField ? '▼' : '▶'} CC
-                        </button>
+                        <div className="flex gap-6">
+                          <button
+                            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                            onClick={() => setShowCCField(!showCCField)}
+                            type="button"
+                          >
+                            {showCCField ? '▼' : '▶'} CC
+                          </button>
+                          <button
+                            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                            onClick={() => setShowBCCField(!showBCCField)}
+                            type="button"
+                          >
+                            {showBCCField ? '▼' : '▶'} BCC
+                          </button>
+                        </div>
                         {showCCField && (
                           <Input
                             placeholder="cc@example.com"
                             value={emailForm.cc}
                             onChange={(e) => setEmailForm({ ...emailForm, cc: e.target.value })}
                             data-testid="input-email-cc"
-                            className="mt-2"
                           />
                         )}
-                      </div>
-
-                      <div className="space-y-2">
-                        <button
-                          className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-                          onClick={() => setShowBCCField(!showBCCField)}
-                          type="button"
-                        >
-                          {showBCCField ? '▼' : '▶'} BCC
-                        </button>
                         {showBCCField && (
                           <Input
                             placeholder="bcc@example.com"
                             value={emailForm.bcc}
                             onChange={(e) => setEmailForm({ ...emailForm, bcc: e.target.value })}
                             data-testid="input-email-bcc"
-                            className="mt-2"
                           />
                         )}
                       </div>
