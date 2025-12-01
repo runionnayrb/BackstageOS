@@ -2871,16 +2871,13 @@ The Production Team`
                           const parseEmails = (str: string) => str.split(',').map(e => e.trim()).filter(e => e);
                           
                           try {
-                            const response = await apiRequest('/api/user/email-provider/send', {
-                              method: 'POST',
-                              body: JSON.stringify({
-                                to: parseEmails(emailForm.to),
-                                cc: emailForm.cc ? parseEmails(emailForm.cc) : [],
-                                bcc: emailForm.bcc ? parseEmails(emailForm.bcc) : [],
-                                subject: emailForm.subject,
-                                body: emailForm.body,
-                                isHtml: true,
-                              }),
+                            const response = await apiRequest('POST', '/api/user/email-provider/send', {
+                              to: parseEmails(emailForm.to),
+                              cc: emailForm.cc ? parseEmails(emailForm.cc) : [],
+                              bcc: emailForm.bcc ? parseEmails(emailForm.bcc) : [],
+                              subject: emailForm.subject,
+                              body: emailForm.body,
+                              isHtml: true,
                             });
                             
                             if (response.success || response.messageId) {
