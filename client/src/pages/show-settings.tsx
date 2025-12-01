@@ -2295,7 +2295,7 @@ The Production Team`
                         />
                       </div>
                       <div>
-                        <Label htmlFor="ro-group">Group</Label>
+                        <Label htmlFor="ro-group">Structure Group</Label>
                         <Select
                           value={runningOrderForm.group || 'ungrouped'}
                           onValueChange={(value) => setRunningOrderForm({ ...runningOrderForm, group: value === 'ungrouped' ? '' : value })}
