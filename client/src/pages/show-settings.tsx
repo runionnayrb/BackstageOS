@@ -1267,6 +1267,9 @@ The Production Team`
       format: [8.5, 11]
     });
 
+    // Set default font to Helvetica to match web app styling
+    doc.setFont('Helvetica');
+
     const marginLeft = 1;
     const marginTop = 1;
     const marginRight = 1;
@@ -1278,12 +1281,12 @@ The Production Team`
 
     // Add header
     doc.setFontSize(20);
-    doc.setFont(undefined, 'bold');
+    doc.setFont('Helvetica', 'bold');
     doc.text((project?.name || 'Running Order'), pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 0.35;
 
     doc.setFontSize(18);
-    doc.setFont(undefined, 'normal');
+    doc.setFont('Helvetica', 'normal');
     doc.text('Running Order', pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 0.5;
 
@@ -1310,7 +1313,7 @@ The Production Team`
     });
 
     doc.setFontSize(11);
-    doc.setFont(undefined, 'normal');
+    doc.setFont('Helvetica', 'normal');
 
     sortedGroups.forEach((groupName) => {
       // Check if we need a new page
@@ -1320,12 +1323,12 @@ The Production Team`
       }
 
       // Group header
-      doc.setFont(undefined, 'bold');
+      doc.setFont('Helvetica', 'bold');
       doc.text(groupName, marginLeft, yPosition);
       yPosition += 0.25;
 
       // Group items
-      doc.setFont(undefined, 'normal');
+      doc.setFont('Helvetica', 'normal');
       grouped[groupName]
         .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
         .forEach((item) => {
