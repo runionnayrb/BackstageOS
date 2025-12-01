@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Search, 
@@ -20,7 +21,8 @@ import {
   ArrowRight,
   FileText,
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
+  X
 } from 'lucide-react';
 import type { ReportNote } from '@shared/schema';
 
@@ -38,6 +40,7 @@ const NotesTracking: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedPriority, setSelectedPriority] = useState<string>('all');
   const [selectedReportType, setSelectedReportType] = useState<string>('all');
+  const [filterOpen, setFilterOpen] = useState(false);
 
   // Fetch all notes for the project
   const { data: allNotes = [], isLoading } = useQuery<ReportNote[]>({
@@ -256,11 +259,114 @@ const NotesTracking: React.FC = () => {
     );
   }
 
+  const hasActiveFilters = 
+    selectedDepartment !== 'all' || 
+    selectedStatus !== 'all' || 
+    selectedPriority !== 'all' || 
+    selectedReportType !== 'all';
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Report Notes</h2>
+          <div className="flex items-center gap-3 mb-2">
+            <h2 className="text-2xl font-bold text-gray-900">Report Notes</h2>
+            <Popover open={filterOpen} onOpenChange={setFilterOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={`h-8 w-8 ${
+                    hasActiveFilters
+                      ? "text-blue-600 hover:text-blue-700"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  <Filter className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-0" align="start">
+                <div className="p-4 border-b">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold flex items-center gap-2">
+                      <Filter className="h-4 w-4" />
+                      Filters
+                    </h4>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setFilterOpen(false)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="p-4 space-y-4">
+                  <div>
+                    <label className="text-sm font-medium block mb-2">Report Type</label>
+                    <Select value={selectedReportType} onValueChange={setSelectedReportType}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All report types" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All report types</SelectItem>
+                        {reportTypes.map(type => (
+                          <SelectItem key={type} value={type}>
+                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium block mb-2">Department</label>
+                    <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All departments" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All departments</SelectItem>
+                        {departments.map(dept => (
+                          <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium block mb-2">Status</label>
+                    <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All statuses" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All statuses</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium block mb-2">Priority</label>
+                    <Select value={selectedPriority} onValueChange={setSelectedPriority}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All priorities" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All priorities</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="low">Low</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
           <p className="text-gray-600">
             Track and follow up on all notes from {project?.name || 'this project'}
           </p>
@@ -277,71 +383,16 @@ const NotesTracking: React.FC = () => {
           </span>
         </div>
       </div>
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search notes..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            
-            <Select value={selectedReportType} onValueChange={setSelectedReportType}>
-              <SelectTrigger>
-                <SelectValue placeholder="All report types" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All report types</SelectItem>
-                {reportTypes.map(type => (
-                  <SelectItem key={type} value={type}>
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-              <SelectTrigger>
-                <SelectValue placeholder="All departments" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All departments</SelectItem>
-                {departments.map(dept => (
-                  <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-              <SelectTrigger>
-                <SelectValue placeholder="All statuses" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Select value={selectedPriority} onValueChange={setSelectedPriority}>
-              <SelectTrigger>
-                <SelectValue placeholder="All priorities" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All priorities</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Search bar */}
+      <div className="relative">
+        <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+        <Input
+          placeholder="Search notes..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-9"
+        />
+      </div>
       {/* Notes Display */}
       <Tabs defaultValue="pending" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
