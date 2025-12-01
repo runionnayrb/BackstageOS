@@ -312,16 +312,6 @@ export default function ReportViewer() {
               padding: "1in",
               fontFamily: "Arial, sans-serif"
             }}>
-              {/* Header */}
-              <div className="text-center mb-6 pb-4 border-b">
-                <div className="text-lg font-semibold">
-                  {report.title}
-                </div>
-                <div className="text-sm text-gray-600 mt-2">
-                  {project.name} - {new Date(report.date).toLocaleDateString()}
-                </div>
-              </div>
-
               {/* Report Content */}
               <form onSubmit={form.handleSubmit(handleSave)} className="space-y-6">
                 {renderReportContent(report, template, true, form)}
