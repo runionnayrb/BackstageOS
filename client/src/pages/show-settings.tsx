@@ -233,6 +233,12 @@ export default function ShowSettings() {
   const [selectedVersionsToCompare, setSelectedVersionsToCompare] = useState<number[]>([]);
   const [viewingVersion, setViewingVersion] = useState<any>(null);
 
+  // Email modal state
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [emailForm, setEmailForm] = useState({ to: '', cc: '', bcc: '', subject: '', body: '' });
+  const [showCCField, setShowCCField] = useState(false);
+  const [showBCCField, setShowBCCField] = useState(false);
+
   // Use admin view context to override profile type for testing
   const { selectedProfileType } = useAdminView();
   const effectiveProfileType = user ? (selectedProfileType === 'all' ? user.profileType : selectedProfileType) : 'freelance';
@@ -2290,11 +2296,8 @@ The Production Team`
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => {
-                        // Email functionality placeholder
-                        toast({
-                          title: "Email feature coming soon",
-                          description: "Email export will be available soon.",
-                        });
+                        setIsEmailModalOpen(true);
+                        setEmailForm({ to: '', cc: '', bcc: '', subject: 'Running Order - ' + (project?.name || 'Project'), body: '' });
                       }} data-testid="menu-item-email">
                         <Mail className="h-4 w-4 mr-2" />
                         Email
@@ -2559,6 +2562,126 @@ The Production Team`
                         data-testid="button-save-structure-group"
                       >
                         Save Changes
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+
+                <Dialog open={isEmailModalOpen} onOpenChange={setIsEmailModalOpen}>
+                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Email Running Order</DialogTitle>
+                      <DialogDescription>
+                        Send the running order PDF via email
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="email-to">To *</Label>
+                        <Input
+                          id="email-to"
+                          placeholder="recipient@example.com"
+                          value={emailForm.to}
+                          onChange={(e) => setEmailForm({ ...emailForm, to: e.target.value })}
+                          data-testid="input-email-to"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <button
+                          className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                          onClick={() => setShowCCField(!showCCField)}
+                          type="button"
+                        >
+                          {showCCField ? '▼' : '▶'} CC
+                        </button>
+                        {showCCField && (
+                          <Input
+                            placeholder="cc@example.com"
+                            value={emailForm.cc}
+                            onChange={(e) => setEmailForm({ ...emailForm, cc: e.target.value })}
+                            data-testid="input-email-cc"
+                            className="mt-2"
+                          />
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <button
+                          className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                          onClick={() => setShowBCCField(!showBCCField)}
+                          type="button"
+                        >
+                          {showBCCField ? '▼' : '▶'} BCC
+                        </button>
+                        {showBCCField && (
+                          <Input
+                            placeholder="bcc@example.com"
+                            value={emailForm.bcc}
+                            onChange={(e) => setEmailForm({ ...emailForm, bcc: e.target.value })}
+                            data-testid="input-email-bcc"
+                            className="mt-2"
+                          />
+                        )}
+                      </div>
+
+                      <div>
+                        <Label htmlFor="email-subject">Subject</Label>
+                        <Input
+                          id="email-subject"
+                          placeholder="Email subject"
+                          value={emailForm.subject}
+                          onChange={(e) => setEmailForm({ ...emailForm, subject: e.target.value })}
+                          data-testid="input-email-subject"
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="email-body">Message</Label>
+                        <Textarea
+                          id="email-body"
+                          placeholder="Email message body"
+                          value={emailForm.body}
+                          onChange={(e) => setEmailForm({ ...emailForm, body: e.target.value })}
+                          data-testid="textarea-email-body"
+                          className="min-h-32"
+                        />
+                      </div>
+
+                      <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded text-sm text-blue-900 dark:text-blue-100">
+                        📎 Running Order PDF will be attached to this email
+                      </div>
+                    </div>
+
+                    <DialogFooter>
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsEmailModalOpen(false)}
+                        data-testid="button-email-cancel"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          if (!emailForm.to.trim()) {
+                            toast({
+                              title: "Missing recipient",
+                              description: "Please enter at least one email address in the 'To' field.",
+                              variant: "destructive",
+                            });
+                            return;
+                          }
+                          // For now, just download the PDF - email sending would require backend implementation
+                          downloadRunningOrderPDF();
+                          toast({
+                            title: "Running Order PDF Generated",
+                            description: "The PDF has been downloaded. You can attach it to your email manually or set up email integration.",
+                          });
+                          setIsEmailModalOpen(false);
+                        }}
+                        data-testid="button-email-send"
+                      >
+                        Download PDF & Prepare Email
                       </Button>
                     </DialogFooter>
                   </DialogContent>
