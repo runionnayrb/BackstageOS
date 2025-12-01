@@ -70,7 +70,8 @@ import {
   GitCompare,
   Theater,
   ChevronUp,
-  ChevronDown
+  ChevronDown,
+  Layers
 } from "lucide-react";
 
 // Helper function to safely parse JSON with error handling
@@ -1973,6 +1974,14 @@ The Production Team`
                   </div>
                 </div>
                 <div className="hidden md:flex gap-2">
+                  <Button
+                    variant="outline"
+                    data-testid="button-manage-structure"
+                    onClick={() => setIsStructureDialogOpen(true)}
+                  >
+                    <Layers className="h-4 w-4 mr-2" />
+                    Structure
+                  </Button>
                   <Button 
                     data-testid="button-add-running-order-item"
                     onClick={() => {
@@ -1983,14 +1992,6 @@ The Production Team`
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Item
-                  </Button>
-                  <Button
-                    variant="outline"
-                    data-testid="button-manage-structure"
-                    onClick={() => setIsStructureDialogOpen(true)}
-                  >
-                    <Settings className="h-4 w-4 mr-2" />
-                    Structure
                   </Button>
                 </div>
                 
