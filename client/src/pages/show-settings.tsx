@@ -203,7 +203,7 @@ export default function ShowSettings() {
   // Running order management state
   const [isRunningOrderDialogOpen, setIsRunningOrderDialogOpen] = useState(false);
   const [editingRunningOrderItem, setEditingRunningOrderItem] = useState<{ id: string; name: string; groupId?: string } | null>(null);
-  const [runningOrderForm, setRunningOrderForm] = useState({ name: '', group: '' });
+  const [runningOrderForm, setRunningOrderForm] = useState({ name: '', group: '', inShow: true });
   const [deletingRunningOrderId, setDeletingRunningOrderId] = useState<string | null>(null);
   const [isStructureDialogOpen, setIsStructureDialogOpen] = useState(false);
   const [isEditingStructureGroupModalOpen, setIsEditingStructureGroupModalOpen] = useState(false);
@@ -1183,13 +1183,14 @@ The Production Team`
       name: runningOrderForm.name,
       group: runningOrderForm.group || 'Ungrouped',
       order: currentRunningOrder.length,
+      inShow: runningOrderForm.inShow,
     };
 
     const updatedRunningOrder = [...currentRunningOrder, newItem];
     handleSettingsUpdate("scheduleSettings", { ...scheduleSettings, runningOrder: updatedRunningOrder });
 
     setIsRunningOrderDialogOpen(false);
-    setRunningOrderForm({ name: '', group: '' });
+    setRunningOrderForm({ name: '', group: '', inShow: true });
   };
 
   const handleEditRunningOrderItem = () => {
@@ -1209,7 +1210,7 @@ The Production Team`
     const currentRunningOrder = scheduleSettings.runningOrder || [];
     const updatedRunningOrder = currentRunningOrder.map((item: any) =>
       item.id === editingRunningOrderItem.id
-        ? { ...item, name: runningOrderForm.name, group: runningOrderForm.group || 'Ungrouped' }
+        ? { ...item, name: runningOrderForm.name, group: runningOrderForm.group || 'Ungrouped', inShow: runningOrderForm.inShow }
         : item
     );
 
@@ -1217,7 +1218,7 @@ The Production Team`
 
     setIsRunningOrderDialogOpen(false);
     setEditingRunningOrderItem(null);
-    setRunningOrderForm({ name: '', group: '' });
+    setRunningOrderForm({ name: '', group: '', inShow: true });
   };
 
   const handleDeleteRunningOrderItem = (id: string) => {
@@ -2112,7 +2113,7 @@ The Production Team`
                       data-testid="button-add-running-order-item"
                       onClick={() => {
                         setEditingRunningOrderItem(null);
-                        setRunningOrderForm({ name: '', group: '' });
+                        setRunningOrderForm({ name: '', group: '', inShow: true });
                         setIsRunningOrderDialogOpen(true);
                       }}
                     >
@@ -2141,7 +2142,7 @@ The Production Team`
                     data-testid="button-add-running-order-item"
                     onClick={() => {
                       setEditingRunningOrderItem(null);
-                      setRunningOrderForm({ name: '', group: '' });
+                      setRunningOrderForm({ name: '', group: '', inShow: true });
                       setIsRunningOrderDialogOpen(true);
                     }}
                   >
@@ -2187,6 +2188,15 @@ The Production Team`
                           </SelectContent>
                         </Select>
                       </div>
+                      <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/50">
+                        <Label htmlFor="in-show" className="cursor-pointer">In-Show</Label>
+                        <Switch
+                          id="in-show"
+                          checked={runningOrderForm.inShow}
+                          onCheckedChange={(checked) => setRunningOrderForm({ ...runningOrderForm, inShow: checked })}
+                          data-testid="switch-in-show"
+                        />
+                      </div>
                     </div>
                     <DialogFooter className="flex flex-row justify-between items-center sm:justify-between">
                       {editingRunningOrderItem ? (
@@ -2216,7 +2226,7 @@ The Production Team`
                                   handleDeleteRunningOrderItem(editingRunningOrderItem.id);
                                   setIsRunningOrderDialogOpen(false);
                                   setEditingRunningOrderItem(null);
-                                  setRunningOrderForm({ name: '', group: '' });
+                                  setRunningOrderForm({ name: '', group: '', inShow: true });
                                 }}
                                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                               >
@@ -2387,10 +2397,12 @@ The Production Team`
                 const runningOrder = scheduleSettings.runningOrder || [];
                 
                 return runningOrder.length > 0 ? (
-                  <div className="space-y-4">
+                  <div className="space-y-6">
+                    {/* In-Show Items */}
                     {(() => {
+                      const inShowItems = runningOrder.filter((item: any) => item.inShow !== false);
                       const grouped: Record<string, any[]> = {};
-                      runningOrder.forEach((item: any) => {
+                      inShowItems.forEach((item: any) => {
                         const group = item.group || 'Ungrouped';
                         if (!grouped[group]) grouped[group] = [];
                         grouped[group].push(item);
@@ -2398,34 +2410,90 @@ The Production Team`
                       
                       const sortedGroups = Object.keys(grouped).sort();
                       
-                      return sortedGroups.map((groupName) => (
-                        <div key={groupName} className="space-y-2">
-                          <h4 className="text-sm font-semibold text-muted-foreground px-2">{groupName}</h4>
-                          <div className="space-y-2">
-                            {grouped[groupName]
-                              .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-                              .map((item) => (
-                                <div
-                                  key={item.id} 
-                                  className="cursor-pointer hover:shadow-md transition-shadow select-none p-4 rounded-md bg-background" 
-                                  data-testid={`card-running-order-${item.id}`}
-                                  onClick={() => {
-                                    setEditingRunningOrderItem(item);
-                                    setRunningOrderForm({ name: item.name, group: item.group || '' });
-                                    setIsRunningOrderDialogOpen(true);
-                                  }}
-                                >
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                      <GripVertical className="h-4 w-4 text-muted-foreground" />
-                                      <span className="text-base select-none">{item.name}</span>
-                                    </div>
-                                  </div>
+                      return inShowItems.length > 0 ? (
+                        <div className="space-y-4">
+                          <h2 className="text-xl font-bold">In-Show</h2>
+                          <div className="space-y-4">
+                            {sortedGroups.map((groupName) => (
+                              <div key={groupName} className="space-y-2">
+                                <h4 className="text-sm font-semibold text-muted-foreground px-2">{groupName}</h4>
+                                <div className="space-y-2">
+                                  {grouped[groupName]
+                                    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+                                    .map((item) => (
+                                      <div
+                                        key={item.id} 
+                                        className="cursor-pointer hover:shadow-md transition-shadow select-none p-4 rounded-md bg-background" 
+                                        data-testid={`card-running-order-${item.id}`}
+                                        onClick={() => {
+                                          setEditingRunningOrderItem(item);
+                                          setRunningOrderForm({ name: item.name, group: item.group || '', inShow: item.inShow ?? true });
+                                          setIsRunningOrderDialogOpen(true);
+                                        }}
+                                      >
+                                        <div className="flex items-center justify-between">
+                                          <div className="flex items-center gap-2">
+                                            <GripVertical className="h-4 w-4 text-muted-foreground" />
+                                            <span className="text-base select-none">{item.name}</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
                                 </div>
-                              ))}
+                              </div>
+                            ))}
                           </div>
                         </div>
-                      ));
+                      ) : null;
+                    })()}
+                    
+                    {/* Out-of-Show Items */}
+                    {(() => {
+                      const outOfShowItems = runningOrder.filter((item: any) => item.inShow === false);
+                      const grouped: Record<string, any[]> = {};
+                      outOfShowItems.forEach((item: any) => {
+                        const group = item.group || 'Ungrouped';
+                        if (!grouped[group]) grouped[group] = [];
+                        grouped[group].push(item);
+                      });
+                      
+                      const sortedGroups = Object.keys(grouped).sort();
+                      
+                      return outOfShowItems.length > 0 ? (
+                        <div className="space-y-4">
+                          <h2 className="text-xl font-bold">Out-of-Show</h2>
+                          <div className="space-y-4">
+                            {sortedGroups.map((groupName) => (
+                              <div key={groupName} className="space-y-2">
+                                <h4 className="text-sm font-semibold text-muted-foreground px-2">{groupName}</h4>
+                                <div className="space-y-2">
+                                  {grouped[groupName]
+                                    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+                                    .map((item) => (
+                                      <div
+                                        key={item.id} 
+                                        className="cursor-pointer hover:shadow-md transition-shadow select-none p-4 rounded-md bg-background opacity-75" 
+                                        data-testid={`card-running-order-${item.id}`}
+                                        onClick={() => {
+                                          setEditingRunningOrderItem(item);
+                                          setRunningOrderForm({ name: item.name, group: item.group || '', inShow: item.inShow ?? true });
+                                          setIsRunningOrderDialogOpen(true);
+                                        }}
+                                      >
+                                        <div className="flex items-center justify-between">
+                                          <div className="flex items-center gap-2">
+                                            <GripVertical className="h-4 w-4 text-muted-foreground" />
+                                            <span className="text-base select-none">{item.name}</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null;
                     })()}
                   </div>
                 ) : (
