@@ -196,6 +196,10 @@ export default function ShowSettings() {
   const [editingRunningOrderItem, setEditingRunningOrderItem] = useState<{ id: string; name: string; groupId?: string } | null>(null);
   const [runningOrderForm, setRunningOrderForm] = useState({ name: '', group: '' });
   const [deletingRunningOrderId, setDeletingRunningOrderId] = useState<string | null>(null);
+  const [isStructureDialogOpen, setIsStructureDialogOpen] = useState(false);
+  const [editingStructureGroup, setEditingStructureGroup] = useState<{ id: string; name: string; order: number } | null>(null);
+  const [structureGroupForm, setStructureGroupForm] = useState({ name: '' });
+  const [deletingStructureGroupId, setDeletingStructureGroupId] = useState<string | null>(null);
 
   // Use admin view context to override profile type for testing
   const { selectedProfileType } = useAdminView();
@@ -1104,6 +1108,94 @@ The Production Team`
     setDeletingRunningOrderId(null);
   };
 
+  // Structure group handlers
+  const getStructureGroups = () => {
+    const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+      ? safeJsonParse((settings as any).scheduleSettings, {}) 
+      : ((settings as any)?.scheduleSettings || {});
+    return scheduleSettings.structureGroups || [];
+  };
+
+  const handleAddStructureGroup = () => {
+    if (!structureGroupForm.name.trim()) {
+      toast({
+        title: "Name required",
+        description: "Please enter a name for this group.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+      ? safeJsonParse((settings as any).scheduleSettings, {}) 
+      : ((settings as any)?.scheduleSettings || {});
+    
+    const currentGroups = scheduleSettings.structureGroups || [];
+    const newGroup = {
+      id: `sg-${Date.now()}`,
+      name: structureGroupForm.name,
+      order: currentGroups.length,
+    };
+
+    const updatedGroups = [...currentGroups, newGroup];
+    handleSettingsUpdate("scheduleSettings", { ...scheduleSettings, structureGroups: updatedGroups });
+
+    setStructureGroupForm({ name: '' });
+  };
+
+  const handleEditStructureGroup = () => {
+    if (!structureGroupForm.name.trim() || !editingStructureGroup) {
+      toast({
+        title: "Name required",
+        description: "Please enter a name for this group.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+      ? safeJsonParse((settings as any).scheduleSettings, {}) 
+      : ((settings as any)?.scheduleSettings || {});
+    
+    const currentGroups = scheduleSettings.structureGroups || [];
+    const updatedGroups = currentGroups.map((group: any) =>
+      group.id === editingStructureGroup.id
+        ? { ...group, name: structureGroupForm.name }
+        : group
+    );
+
+    handleSettingsUpdate("scheduleSettings", { ...scheduleSettings, structureGroups: updatedGroups });
+
+    setEditingStructureGroup(null);
+    setStructureGroupForm({ name: '' });
+  };
+
+  const handleDeleteStructureGroup = (id: string) => {
+    const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+      ? safeJsonParse((settings as any).scheduleSettings, {}) 
+      : ((settings as any)?.scheduleSettings || {});
+    
+    const currentGroups = scheduleSettings.structureGroups || [];
+    const updatedGroups = currentGroups.filter((group: any) => group.id !== id);
+
+    handleSettingsUpdate("scheduleSettings", { ...scheduleSettings, structureGroups: updatedGroups });
+
+    setDeletingStructureGroupId(null);
+  };
+
+  const handleReorderStructureGroups = (groups: any[]) => {
+    const reorderedGroups = groups.map((group, index) => ({
+      ...group,
+      order: index,
+    }));
+    
+    const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+      ? safeJsonParse((settings as any).scheduleSettings, {}) 
+      : ((settings as any)?.scheduleSettings || {});
+    
+    handleSettingsUpdate("scheduleSettings", { ...scheduleSettings, structureGroups: reorderedGroups });
+  };
+
   const copyShareLink = async () => {
     if ((settings as any)?.sharingSettings?.shareableLink) {
       try {
@@ -1863,17 +1955,25 @@ The Production Team`
                     </Button>
                   </div>
                 </div>
-                <div className="hidden md:block">
+                <div className="hidden md:flex gap-2">
                   <Button 
                     data-testid="button-add-running-order-item"
                     onClick={() => {
                       setEditingRunningOrderItem(null);
-                      setRunningOrderForm({ name: '' });
+                      setRunningOrderForm({ name: '', group: '' });
                       setIsRunningOrderDialogOpen(true);
                     }}
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Item
+                  </Button>
+                  <Button
+                    variant="outline"
+                    data-testid="button-manage-structure"
+                    onClick={() => setIsStructureDialogOpen(true)}
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    Structure
                   </Button>
                 </div>
                 
@@ -1895,13 +1995,24 @@ The Production Team`
                       </div>
                       <div>
                         <Label htmlFor="ro-group">Group</Label>
-                        <Input
-                          id="ro-group"
-                          placeholder="e.g., Act I, Scene 1, Main Show (leave blank for 'Ungrouped')"
+                        <Select
                           value={runningOrderForm.group}
-                          onChange={(e) => setRunningOrderForm({ ...runningOrderForm, group: e.target.value })}
-                          data-testid="input-running-order-group"
-                        />
+                          onValueChange={(value) => setRunningOrderForm({ ...runningOrderForm, group: value })}
+                        >
+                          <SelectTrigger id="ro-group" data-testid="select-running-order-group">
+                            <SelectValue placeholder="Select a group or leave blank for Ungrouped" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">Ungrouped</SelectItem>
+                            {getStructureGroups()
+                              .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
+                              .map((group: any) => (
+                                <SelectItem key={group.id} value={group.name}>
+                                  {group.name}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                     <DialogFooter className="flex flex-row justify-between items-center sm:justify-between">
@@ -1951,6 +2062,103 @@ The Production Team`
                         {editingRunningOrderItem ? 'Update' : 'Add'} Item
                       </Button>
                     </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+
+                <Dialog open={isStructureDialogOpen} onOpenChange={setIsStructureDialogOpen}>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Manage Structure Groups</DialogTitle>
+                      <DialogDescription>
+                        Create and organize your structure groups like Acts, Scenes, or custom categories.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="structure-name">Group Name</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            id="structure-name"
+                            placeholder="e.g., Act I, Scene 1"
+                            value={structureGroupForm.name}
+                            onChange={(e) => setStructureGroupForm({ name: e.target.value })}
+                            data-testid="input-structure-group-name"
+                          />
+                          <Button
+                            onClick={editingStructureGroup ? handleEditStructureGroup : handleAddStructureGroup}
+                            size="sm"
+                            data-testid="button-confirm-structure-group"
+                          >
+                            {editingStructureGroup ? 'Update' : 'Add'}
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="border rounded-lg p-3 max-h-48 overflow-y-auto space-y-2">
+                        {getStructureGroups().length === 0 ? (
+                          <p className="text-sm text-muted-foreground">No groups yet. Create one above.</p>
+                        ) : (
+                          getStructureGroups()
+                            .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
+                            .map((group: any) => (
+                              <div
+                                key={group.id}
+                                className="flex items-center justify-between p-2 bg-muted rounded hover:bg-muted/80"
+                              >
+                                <span className="text-sm font-medium">{group.name}</span>
+                                <div className="flex gap-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0"
+                                    onClick={() => {
+                                      setEditingStructureGroup(group);
+                                      setStructureGroupForm({ name: group.name });
+                                    }}
+                                    data-testid="button-edit-structure-group"
+                                  >
+                                    <Edit3 className="h-3 w-3" />
+                                  </Button>
+                                  <AlertDialog open={deletingStructureGroupId === group.id} onOpenChange={(open) => !open && setDeletingStructureGroupId(null)}>
+                                    <AlertDialogTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                                        onClick={() => setDeletingStructureGroupId(group.id)}
+                                        data-testid="button-delete-structure-group"
+                                      >
+                                        <Trash2 className="h-3 w-3" />
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Delete Group</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          Are you sure you want to delete "{group.name}"? This action cannot be undone.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction
+                                          onClick={() => {
+                                            handleDeleteStructureGroup(group.id);
+                                            setEditingStructureGroup(null);
+                                            setStructureGroupForm({ name: '' });
+                                          }}
+                                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                        >
+                                          Delete
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                </div>
+                              </div>
+                            ))
+                        )}
+                      </div>
+                    </div>
                   </DialogContent>
                 </Dialog>
               </div>
