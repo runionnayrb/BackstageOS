@@ -1984,20 +1984,9 @@ The Production Team`
                   <div className="text-center py-12">
                     <Theater className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                     <h3 className="text-lg font-semibold mb-2">No running order items yet</h3>
-                    <p className="text-muted-foreground mb-4">
+                    <p className="text-muted-foreground">
                       Create your first running order item to organize your show.
                     </p>
-                    <Button 
-                      onClick={() => {
-                        setEditingRunningOrderItem(null);
-                        setRunningOrderForm({ name: '' });
-                        setIsRunningOrderDialogOpen(true);
-                      }}
-                      data-testid="button-add-first-running-order-item"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add First Item
-                    </Button>
                   </div>
                 );
               })()}
