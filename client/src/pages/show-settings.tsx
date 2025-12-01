@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
+import jsPDF from "jspdf";
 import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
@@ -1245,6 +1246,95 @@ The Production Team`
     return scheduleSettings.structureGroups || [];
   };
 
+  const downloadRunningOrderPDF = () => {
+    const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+      ? safeJsonParse((settings as any).scheduleSettings, {}) 
+      : ((settings as any)?.scheduleSettings || {});
+    const runningOrder = scheduleSettings.runningOrder || [];
+    const inShowItems = runningOrder.filter((item: any) => item.inShow !== false);
+    
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'in',
+      format: [8.5, 11]
+    });
+
+    const marginLeft = 1;
+    const marginTop = 1;
+    const marginRight = 1;
+    const pageHeight = 11;
+    const pageWidth = 8.5;
+    const contentWidth = pageWidth - marginLeft - marginRight;
+
+    let yPosition = marginTop;
+
+    // Add header
+    doc.setFontSize(20);
+    doc.setFont(undefined, 'bold');
+    doc.text((project?.name || 'Running Order'), pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 0.35;
+
+    doc.setFontSize(18);
+    doc.setFont(undefined, 'normal');
+    doc.text('Running Order', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 0.5;
+
+    // Group items
+    const grouped: Record<string, any[]> = {};
+    inShowItems.forEach((item: any) => {
+      const group = item.group || 'Ungrouped';
+      if (!grouped[group]) grouped[group] = [];
+      grouped[group].push(item);
+    });
+
+    const structureGroupsMap = new Map(
+      getStructureGroups()
+        .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
+        .map((g: any) => [g.name, g.order ?? 0])
+    );
+
+    const sortedGroups = Object.keys(grouped).sort((a, b) => {
+      if (a === 'Ungrouped') return 1;
+      if (b === 'Ungrouped') return -1;
+      const orderA = structureGroupsMap.get(a) ?? 999;
+      const orderB = structureGroupsMap.get(b) ?? 999;
+      return orderA - orderB;
+    });
+
+    doc.setFontSize(11);
+    doc.setFont(undefined, 'normal');
+
+    sortedGroups.forEach((groupName) => {
+      // Check if we need a new page
+      if (yPosition > pageHeight - marginTop - 0.5) {
+        doc.addPage();
+        yPosition = marginTop;
+      }
+
+      // Group header
+      doc.setFont(undefined, 'bold');
+      doc.text(groupName, marginLeft, yPosition);
+      yPosition += 0.25;
+
+      // Group items
+      doc.setFont(undefined, 'normal');
+      grouped[groupName]
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+        .forEach((item) => {
+          if (yPosition > pageHeight - marginTop - 0.3) {
+            doc.addPage();
+            yPosition = marginTop;
+          }
+          doc.text(`  • ${item.name}`, marginLeft, yPosition);
+          yPosition += 0.2;
+        });
+
+      yPosition += 0.15;
+    });
+
+    doc.save(`${project?.name || 'Running Order'}.pdf`);
+  };
+
   const handleAddStructureGroup = () => {
     if (!structureGroupForm.name.trim()) {
       toast({
@@ -2158,6 +2248,14 @@ The Production Team`
                     data-testid="button-toggle-running-order-menu"
                   >
                     <ChevronsLeft className={`h-4 w-4 transition-transform ${isRunningOrderMenuExpanded ? 'rotate-180' : ''}`} />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    data-testid="button-download-pdf"
+                    onClick={downloadRunningOrderPDF}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download PDF
                   </Button>
                   <Button 
                     data-testid="button-add-running-order-item"
