@@ -25,7 +25,8 @@ import {
   X,
   Layers,
   RotateCcw,
-  ArrowUpDown
+  ArrowUpDown,
+  Check
 } from 'lucide-react';
 import type { ReportNote } from '@shared/schema';
 
@@ -425,7 +426,9 @@ const NotesTracking: React.FC = () => {
                 {['date', 'reportType', 'department', 'priority'].map((option) => (
                   <div
                     key={option}
-                    className="p-3 rounded hover:bg-blue-50 cursor-pointer transition-colors"
+                    className={`p-3 rounded cursor-pointer transition-colors flex items-center justify-between ${
+                      groupBy === option ? 'bg-blue-100 hover:bg-blue-150' : 'hover:bg-blue-50'
+                    }`}
                     onClick={() => {
                       setGroupBy(option);
                       setGroupOpen(false);
@@ -435,6 +438,7 @@ const NotesTracking: React.FC = () => {
                     <div className="text-sm capitalize" style={{ color: '#000000' }}>
                       {option === 'reportType' ? 'Report Type' : option}
                     </div>
+                    {groupBy === option && <Check className="w-4 h-4 text-blue-600" />}
                   </div>
                 ))}
               </div>
@@ -494,7 +498,9 @@ const NotesTracking: React.FC = () => {
                 ].map((option) => (
                   <div
                     key={option.value}
-                    className="p-3 rounded hover:bg-blue-50 cursor-pointer transition-colors"
+                    className={`p-3 rounded cursor-pointer transition-colors flex items-center justify-between ${
+                      sortBy === option.value ? 'bg-blue-100 hover:bg-blue-150' : 'hover:bg-blue-50'
+                    }`}
                     onClick={() => {
                       setSortBy(option.value);
                       setSortOpen(false);
@@ -502,6 +508,7 @@ const NotesTracking: React.FC = () => {
                     style={{ color: '#000000' }}
                   >
                     <div className="text-sm" style={{ color: '#000000' }}>{option.label}</div>
+                    {sortBy === option.value && <Check className="w-4 h-4 text-blue-600" />}
                   </div>
                 ))}
               </div>
