@@ -2686,21 +2686,32 @@ The Production Team`
                           >
                             {showCCField ? '▼' : '▶'} CC
                           </button>
-                          <button
-                            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-                            onClick={() => setShowBCCField(!showBCCField)}
-                            type="button"
-                          >
-                            {showBCCField ? '▼' : '▶'} BCC
-                          </button>
+                          {!showCCField && (
+                            <button
+                              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                              onClick={() => setShowBCCField(!showBCCField)}
+                              type="button"
+                            >
+                              {showBCCField ? '▼' : '▶'} BCC
+                            </button>
+                          )}
                         </div>
                         {showCCField && (
-                          <Input
-                            placeholder="cc@example.com"
-                            value={emailForm.cc}
-                            onChange={(e) => setEmailForm({ ...emailForm, cc: e.target.value })}
-                            data-testid="input-email-cc"
-                          />
+                          <>
+                            <Input
+                              placeholder="cc@example.com"
+                              value={emailForm.cc}
+                              onChange={(e) => setEmailForm({ ...emailForm, cc: e.target.value })}
+                              data-testid="input-email-cc"
+                            />
+                            <button
+                              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                              onClick={() => setShowBCCField(!showBCCField)}
+                              type="button"
+                            >
+                              {showBCCField ? '▼' : '▶'} BCC
+                            </button>
+                          </>
                         )}
                         {showBCCField && (
                           <Input
