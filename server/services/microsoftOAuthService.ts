@@ -147,6 +147,7 @@ export class MicrosoftOAuthService {
     subject: string;
     body: string;
     isHtml?: boolean;
+    attachments?: Array<{ filename: string; content: string; encoding: string; contentType: string }>;
   }): Promise<{ success: boolean; messageId?: string; error?: string }> {
     try {
       const client = Client.initWithMiddleware({
@@ -155,7 +156,7 @@ export class MicrosoftOAuthService {
         },
       });
 
-      const message = {
+      const message: any = {
         subject: params.subject,
         body: {
           contentType: params.isHtml ? 'HTML' : 'Text',
@@ -171,6 +172,16 @@ export class MicrosoftOAuthService {
           emailAddress: { address: email },
         })),
       };
+
+      // Add attachments if provided
+      if (params.attachments && params.attachments.length > 0) {
+        message.attachments = params.attachments.map(att => ({
+          '@odata.type': '#microsoft.graph.fileAttachment',
+          name: att.filename,
+          contentType: att.contentType,
+          contentBytes: att.content, // Base64 encoded content
+        }));
+      }
 
       await client
         .api('/me/sendMail')

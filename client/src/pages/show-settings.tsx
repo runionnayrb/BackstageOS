@@ -1464,6 +1464,106 @@ The Production Team`
     doc.save(`${project?.name || 'Running Order'} Running Order - ${dateStr}.pdf`);
   };
 
+  const generateRunningOrderPDFBlob = (): Blob => {
+    const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+      ? safeJsonParse((settings as any).scheduleSettings, {}) 
+      : ((settings as any)?.scheduleSettings || {});
+    const runningOrder = scheduleSettings.runningOrder || [];
+    const inShowItems = runningOrder.filter((item: any) => item.inShow !== false);
+    
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'in',
+      format: [8.5, 11]
+    });
+
+    doc.setFont('Helvetica');
+
+    const marginLeft = 1;
+    const marginTop = 1;
+    const marginRight = 1;
+    const pageHeight = 11;
+    const pageWidth = 8.5;
+    const contentWidth = pageWidth - marginLeft - marginRight;
+
+    let yPosition = marginTop;
+
+    doc.setFontSize(20);
+    doc.setFont('Helvetica', 'bold');
+    doc.text((project?.name || 'Running Order'), pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 0.35;
+
+    doc.setFontSize(18);
+    doc.setFont('Helvetica', 'normal');
+    doc.text('Running Order', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 0.5;
+
+    const grouped: Record<string, any[]> = {};
+    inShowItems.forEach((item: any) => {
+      const group = item.group || 'Ungrouped';
+      if (!grouped[group]) grouped[group] = [];
+      grouped[group].push(item);
+    });
+
+    const structureGroupsMap = new Map(
+      getStructureGroups()
+        .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
+        .map((g: any) => [g.name, g.order ?? 0])
+    );
+
+    const sortedGroups = Object.keys(grouped).sort((a, b) => {
+      if (a === 'Ungrouped') return 1;
+      if (b === 'Ungrouped') return -1;
+      const orderA = structureGroupsMap.get(a) ?? 999;
+      const orderB = structureGroupsMap.get(b) ?? 999;
+      return orderA - orderB;
+    });
+
+    doc.setFontSize(11);
+    doc.setFont('Helvetica', 'normal');
+
+    sortedGroups.forEach((groupName) => {
+      if (yPosition > pageHeight - marginTop - 0.5) {
+        doc.addPage();
+        yPosition = marginTop;
+      }
+
+      doc.setFont('Helvetica', 'bold');
+      doc.text(groupName, marginLeft, yPosition);
+      yPosition += 0.25;
+
+      doc.setFont('Helvetica', 'normal');
+      grouped[groupName]
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+        .forEach((item) => {
+          if (yPosition > pageHeight - marginTop - 0.3) {
+            doc.addPage();
+            yPosition = marginTop;
+          }
+          doc.text(`  • ${item.name}`, marginLeft, yPosition);
+          yPosition += 0.2;
+        });
+
+      yPosition += 0.15;
+    });
+
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+    const publishedText = `Published: ${dateStr} at ${timeStr}`;
+
+    doc.setFont('Helvetica', 'normal');
+    doc.setFontSize(9);
+    
+    const totalPages = doc.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      doc.text(publishedText, marginLeft, pageHeight - 0.4);
+    }
+
+    return doc.output('blob') as Blob;
+  };
+
   const handleAddStructureGroup = () => {
     if (!structureGroupForm.name.trim()) {
       toast({
@@ -2828,7 +2928,7 @@ The Production Team`
                       </div>
 
                       <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded text-sm text-blue-900 dark:text-blue-100">
-                        📨 Email will be sent from your connected account with the running order formatted in the message
+                        📎 Running Order PDF will be attached to this email
                       </div>
                     </div>
 
@@ -2874,6 +2974,22 @@ The Production Team`
                           const emailBodyContent = emailEditor ? emailEditor.getHTML() : emailForm.body;
                           
                           try {
+                            // Generate PDF attachment
+                            const pdfBlob = generateRunningOrderPDFBlob();
+                            const pdfBase64 = await new Promise<string>((resolve, reject) => {
+                              const reader = new FileReader();
+                              reader.onload = () => {
+                                const base64String = (reader.result as string).split(',')[1];
+                                resolve(base64String);
+                              };
+                              reader.onerror = reject;
+                              reader.readAsDataURL(pdfBlob);
+                            });
+
+                            const today = new Date();
+                            const dateStr = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                            const pdfFilename = `${project?.name || 'Project'}-Running-Order-${dateStr}.pdf`;
+
                             const response = await apiRequest('POST', '/api/user/email-provider/send', {
                               to: parseEmails(emailForm.to),
                               cc: emailForm.cc ? parseEmails(emailForm.cc) : [],
@@ -2881,12 +2997,18 @@ The Production Team`
                               subject: emailForm.subject,
                               body: emailBodyContent,
                               isHtml: true,
+                              attachments: [{
+                                filename: pdfFilename,
+                                content: pdfBase64,
+                                encoding: 'base64',
+                                contentType: 'application/pdf',
+                              }],
                             });
                             
                             if (response.success || response.messageId) {
                               toast({
                                 title: "Email sent successfully!",
-                                description: "Your running order has been sent.",
+                                description: "Your running order has been sent with PDF attachment.",
                               });
                               setIsEmailModalOpen(false);
                               setEmailForm({ to: '', cc: '', bcc: '', subject: '', body: '' });

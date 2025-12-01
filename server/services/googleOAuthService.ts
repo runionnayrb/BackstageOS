@@ -107,6 +107,7 @@ export class GoogleOAuthService {
     isHtml?: boolean;
     fromEmail?: string;
     fromName?: string;
+    attachments?: Array<{ filename: string; content: string; encoding: string; contentType: string }>;
   }): Promise<{ success: boolean; messageId?: string; error?: string }> {
     try {
       this.oauth2Client.setCredentials({
@@ -121,19 +122,47 @@ export class GoogleOAuthService {
           ? `From: ${params.fromEmail}`
           : '';
 
-      const messageParts = [
+      // Create unique boundary for multipart message
+      const boundary = `---${Date.now()}_boundary`;
+      
+      const headers = [
         fromHeader,
         `To: ${params.to.join(', ')}`,
         params.cc && params.cc.length > 0 ? `Cc: ${params.cc.join(', ')}` : '',
         params.bcc && params.bcc.length > 0 ? `Bcc: ${params.bcc.join(', ')}` : '',
         `Subject: ${params.subject}`,
-        params.isHtml ? 'Content-Type: text/html; charset=utf-8' : 'Content-Type: text/plain; charset=utf-8',
-        '',
-        params.body
+        'MIME-Version: 1.0',
       ].filter(Boolean);
 
-      const message = messageParts.join('\n');
-      const encodedMessage = Buffer.from(message)
+      let messageBody = '';
+      
+      // If there are attachments, use multipart
+      if (params.attachments && params.attachments.length > 0) {
+        headers.push(`Content-Type: multipart/mixed; boundary="${boundary}"`);
+        messageBody = headers.join('\n') + '\n\n';
+        
+        // Add text body
+        messageBody += `--${boundary}\n`;
+        messageBody += `Content-Type: ${params.isHtml ? 'text/html' : 'text/plain'}; charset=utf-8\n`;
+        messageBody += 'Content-Transfer-Encoding: 7bit\n\n';
+        messageBody += params.body + '\n\n';
+        
+        // Add attachments
+        for (const attachment of params.attachments) {
+          messageBody += `--${boundary}\n`;
+          messageBody += `Content-Type: ${attachment.contentType}; name="${attachment.filename}"\n`;
+          messageBody += `Content-Disposition: attachment; filename="${attachment.filename}"\n`;
+          messageBody += `Content-Transfer-Encoding: base64\n\n`;
+          messageBody += attachment.content + '\n\n';
+        }
+        
+        messageBody += `--${boundary}--`;
+      } else {
+        headers.push(params.isHtml ? 'Content-Type: text/html; charset=utf-8' : 'Content-Type: text/plain; charset=utf-8');
+        messageBody = headers.join('\n') + '\n\n' + params.body;
+      }
+
+      const encodedMessage = Buffer.from(messageBody)
         .toString('base64')
         .replace(/\+/g, '-')
         .replace(/\//g, '_')

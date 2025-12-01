@@ -2600,7 +2600,7 @@ Respond with valid JSON only.`;
     try {
       const user = req.user;
       const userId = user.id.toString();
-      const { to, cc, bcc, subject, body, isHtml } = req.body;
+      const { to, cc, bcc, subject, body, isHtml, attachments } = req.body;
 
       if (!user.connectedEmailProvider) {
         return res.status(400).json({ message: "No email provider connected" });
@@ -2634,6 +2634,7 @@ Respond with valid JSON only.`;
           isHtml: isHtml || false,
           fromEmail: user.connectedEmailAddress,
           fromName: user.emailDisplayName || `${user.firstName} ${user.lastName}`,
+          attachments,
         });
       } else if (user.connectedEmailProvider === 'outlook') {
         // Get valid access token (auto-refreshes if needed)
@@ -2648,6 +2649,7 @@ Respond with valid JSON only.`;
           subject,
           body,
           isHtml: isHtml || false,
+          attachments,
         });
       } else {
         return res.status(400).json({ message: "Invalid email provider" });
