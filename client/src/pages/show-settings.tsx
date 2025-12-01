@@ -1294,6 +1294,53 @@ The Production Team`
     return scheduleSettings.structureGroups || [];
   };
 
+  const generateRunningOrderHTML = () => {
+    const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+      ? safeJsonParse((settings as any).scheduleSettings, {}) 
+      : ((settings as any)?.scheduleSettings || {});
+    const runningOrder = scheduleSettings.runningOrder || [];
+    const inShowItems = runningOrder.filter((item: any) => item.inShow !== false);
+    
+    // Group items by structure group
+    const grouped: Record<string, any[]> = {};
+    inShowItems.forEach((item: any) => {
+      const group = item.group || 'Ungrouped';
+      if (!grouped[group]) grouped[group] = [];
+      grouped[group].push(item);
+    });
+
+    const structureGroupsMap = new Map(
+      getStructureGroups()
+        .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
+        .map((g: any) => [g.name, g.order ?? 0])
+    );
+
+    const sortedGroups = Object.keys(grouped).sort((a, b) => {
+      if (a === 'Ungrouped') return 1;
+      if (b === 'Ungrouped') return -1;
+      const orderA = structureGroupsMap.get(a) ?? 999;
+      const orderB = structureGroupsMap.get(b) ?? 999;
+      return orderA - orderB;
+    });
+
+    // Generate HTML
+    let html = '';
+    sortedGroups.forEach((groupName) => {
+      if (groupName !== 'Ungrouped') {
+        html += `<h2>${groupName}</h2>`;
+      }
+      html += '<ul>';
+      grouped[groupName]
+        .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
+        .forEach((item: any) => {
+          html += `<li>${item.name}</li>`;
+        });
+      html += '</ul>';
+    });
+
+    return html;
+  };
+
   const downloadRunningOrderPDF = () => {
     const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
       ? safeJsonParse((settings as any).scheduleSettings, {}) 
@@ -2330,8 +2377,12 @@ The Production Team`
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => {
+                        const runningOrderHTML = generateRunningOrderHTML();
                         setIsEmailModalOpen(true);
-                        setEmailForm({ to: '', cc: '', bcc: '', subject: 'Running Order - ' + (project?.name || 'Project'), body: '' });
+                        setEmailForm({ to: '', cc: '', bcc: '', subject: 'Running Order - ' + (project?.name || 'Project'), body: runningOrderHTML });
+                        if (emailEditor) {
+                          emailEditor.commands.setContent(runningOrderHTML);
+                        }
                       }} data-testid="menu-item-email">
                         <Mail className="h-4 w-4 mr-2" />
                         Email
