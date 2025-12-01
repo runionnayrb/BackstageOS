@@ -128,7 +128,7 @@ export default function EnhancedHeader() {
           .join(' ');
         if (pathParts[3] === 'settings') {
           sectionName = 'Show Settings';
-        } else if (pathParts[3] === 'templates') {
+        } else if (pathParts[3] === 'templates' || pathParts[3] === 'templates-v2') {
           sectionName = 'Report Templates';
         } else if (pathParts[3] === 'notes-tracking') {
           sectionName = 'Report Notes';
