@@ -854,12 +854,14 @@ export default function ReportBuilder() {
               return (
                 <div key={section.id} className="mb-6">
                   <div 
-                    className="flex items-center justify-between mb-2"
+                    className="flex items-center justify-between gap-2 mb-2"
+                    style={{
+                      backgroundColor: fieldHeaderFormatting?.backgroundColor || '#000000'
+                    }}
                   >
                     <div 
                       className="text-sm font-bold px-2 py-1 flex-1"
                       style={{
-                        backgroundColor: fieldHeaderFormatting?.backgroundColor || '#000000',
                         color: fieldHeaderFormatting?.color || '#ffffff',
                         fontFamily: fieldHeaderFormatting?.fontFamily || 'Arial',
                         fontSize: fieldHeaderFormatting?.fontSize || '14px'
@@ -868,30 +870,32 @@ export default function ReportBuilder() {
                       {displayName}
                     </div>
                     {reportId && (
-                      <ReportNotesFilter
-                        selectedPriorities={departmentFilters.priorities}
-                        onPriorityFilterChange={(priorities) => {
-                          setNoteFilters(prev => ({
-                            ...prev,
-                            [department]: { ...prev[department], priorities }
-                          }));
-                        }}
-                        selectedStatuses={departmentFilters.statuses}
-                        onStatusFilterChange={(statuses) => {
-                          setNoteFilters(prev => ({
-                            ...prev,
-                            [department]: { ...prev[department], statuses }
-                          }));
-                        }}
-                        selectedAssignees={departmentFilters.assignees}
-                        onAssigneeFilterChange={(assignees) => {
-                          setNoteFilters(prev => ({
-                            ...prev,
-                            [department]: { ...prev[department], assignees }
-                          }));
-                        }}
-                        teamMembers={teamMembers}
-                      />
+                      <div className="pr-2">
+                        <ReportNotesFilter
+                          selectedPriorities={departmentFilters.priorities}
+                          onPriorityFilterChange={(priorities) => {
+                            setNoteFilters(prev => ({
+                              ...prev,
+                              [department]: { ...prev[department], priorities }
+                            }));
+                          }}
+                          selectedStatuses={departmentFilters.statuses}
+                          onStatusFilterChange={(statuses) => {
+                            setNoteFilters(prev => ({
+                              ...prev,
+                              [department]: { ...prev[department], statuses }
+                            }));
+                          }}
+                          selectedAssignees={departmentFilters.assignees}
+                          onAssigneeFilterChange={(assignees) => {
+                            setNoteFilters(prev => ({
+                              ...prev,
+                              [department]: { ...prev[department], assignees }
+                            }));
+                          }}
+                          teamMembers={teamMembers}
+                        />
+                      </div>
                     )}
                   </div>
                   {reportId ? (
