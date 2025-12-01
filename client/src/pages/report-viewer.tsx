@@ -21,7 +21,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Download, Share, Trash2, Save } from "lucide-react";
+import { Share2, Trash2, Save } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import ReportNotesManager from "@/components/report-notes-manager";
@@ -138,6 +146,90 @@ export default function ReportViewer() {
     updateMutation.mutate(data);
   };
 
+  const handleDownloadPDF = async () => {
+    try {
+      const element = document.querySelector('[data-pdf-content]');
+      if (!element) {
+        toast({
+          title: "Error",
+          description: "Could not find report content to download",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Capture the HTML element as canvas
+      const canvas = await html2canvas(element as HTMLElement, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+      });
+
+      // Create PDF with letter size (8.5 x 11 inches)
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'in',
+        format: 'letter',
+      });
+
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      
+      // Available content area with 1 inch margins
+      const marginLeft = 1;
+      const marginTop = 1;
+      const contentWidth = pageWidth - 2; // 1 inch margins on each side
+      const contentHeight = pageHeight - 2; // 1 inch margins on top and bottom
+
+      // Calculate image dimensions to fit within margins
+      const imgWidth = contentWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      let yPosition = marginTop;
+      let remainingHeight = imgHeight;
+
+      // Add image to PDF, handling multiple pages if needed
+      const imgData = canvas.toDataURL('image/png');
+      
+      while (remainingHeight > 0) {
+        if (yPosition + remainingHeight > pageHeight - marginTop) {
+          // Need a new page
+          const heightThatFits = pageHeight - marginTop - yPosition;
+          pdf.addImage(imgData, 'PNG', marginLeft, yPosition, imgWidth, (heightThatFits * imgHeight) / remainingHeight);
+          remainingHeight -= heightThatFits;
+          yPosition = marginTop;
+          if (remainingHeight > 0) {
+            pdf.addPage();
+          }
+        } else {
+          pdf.addImage(imgData, 'PNG', marginLeft, yPosition, imgWidth, remainingHeight);
+          remainingHeight = 0;
+        }
+      }
+
+      // Download the PDF
+      const fileName = `${report.title || 'Report'}-${new Date().toLocaleDateString()}.pdf`;
+      pdf.save(fileName);
+
+      toast({
+        title: "Success",
+        description: "Report downloaded as PDF",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEmail = () => {
+    toast({
+      title: "Coming Soon",
+      description: "Email functionality will be available soon",
+    });
+  };
+
   if (!project || !report) {
     return (
       <div className="min-h-screen bg-background">
@@ -171,14 +263,21 @@ export default function ReportViewer() {
           </div>
           
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
-              <Share className="h-4 w-4 mr-2" />
-              Share
-            </Button>
-            <Button variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Download PDF
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Share2 className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleEmail}>
+                  Email
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDownloadPDF}>
+                  Download PDF
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             
             <Button 
               variant="default"
@@ -205,7 +304,7 @@ export default function ReportViewer() {
         <Card className="min-h-[600px]">
           <CardContent className="p-8">
             {/* Print-style Document View */}
-            <div className="bg-white min-h-[500px] shadow-lg border border-gray-200" style={{ 
+            <div className="bg-white min-h-[500px] shadow-lg border border-gray-200" data-pdf-content style={{ 
               width: "8.5in", 
               margin: "0 auto",
               padding: "1in",
