@@ -2828,7 +2828,7 @@ The Production Team`
                       </div>
 
                       <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded text-sm text-blue-900 dark:text-blue-100">
-                        📎 Running Order PDF will be attached to this email
+                        📨 Email will be sent from your connected account with the running order formatted in the message
                       </div>
                     </div>
 
@@ -2870,13 +2870,8 @@ The Production Team`
                           // Parse email addresses (handle comma-separated values)
                           const parseEmails = (str: string) => str.split(',').map(e => e.trim()).filter(e => e);
                           
-                          // Generate and encode PDF
-                          const pdfDoc = new jsPDF();
-                          pdfDoc.setFontSize(14);
-                          pdfDoc.text(emailForm.subject, 10, 10);
-                          pdfDoc.setFontSize(11);
-                          pdfDoc.text('Running Order', 10, 20);
-                          const pdfBase64 = pdfDoc.output('dataurlstring').split(',')[1];
+                          // Use editor content or fallback to form body
+                          const emailBodyContent = emailEditor ? emailEditor.getHTML() : emailForm.body;
                           
                           try {
                             const response = await apiRequest('POST', '/api/user/email-provider/send', {
@@ -2884,14 +2879,8 @@ The Production Team`
                               cc: emailForm.cc ? parseEmails(emailForm.cc) : [],
                               bcc: emailForm.bcc ? parseEmails(emailForm.bcc) : [],
                               subject: emailForm.subject,
-                              body: emailForm.body,
+                              body: emailBodyContent,
                               isHtml: true,
-                              attachments: [{
-                                filename: 'Running Order.pdf',
-                                content: pdfBase64,
-                                encoding: 'base64',
-                                contentType: 'application/pdf'
-                              }]
                             });
                             
                             if (response.success || response.messageId) {
