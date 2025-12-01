@@ -194,7 +194,7 @@ export default function ShowSettings() {
   // Running order management state
   const [isRunningOrderDialogOpen, setIsRunningOrderDialogOpen] = useState(false);
   const [editingRunningOrderItem, setEditingRunningOrderItem] = useState<{ id: string; name: string; groupId?: string } | null>(null);
-  const [runningOrderForm, setRunningOrderForm] = useState({ name: '' });
+  const [runningOrderForm, setRunningOrderForm] = useState({ name: '', group: '' });
   const [deletingRunningOrderId, setDeletingRunningOrderId] = useState<string | null>(null);
 
   // Use admin view context to override profile type for testing
@@ -1052,6 +1052,7 @@ The Production Team`
     const newItem = {
       id,
       name: runningOrderForm.name,
+      group: runningOrderForm.group || 'Ungrouped',
       order: currentRunningOrder.length,
     };
 
@@ -1059,7 +1060,7 @@ The Production Team`
     handleSettingsUpdate("scheduleSettings", { ...scheduleSettings, runningOrder: updatedRunningOrder });
 
     setIsRunningOrderDialogOpen(false);
-    setRunningOrderForm({ name: '' });
+    setRunningOrderForm({ name: '', group: '' });
   };
 
   const handleEditRunningOrderItem = () => {
@@ -1079,7 +1080,7 @@ The Production Team`
     const currentRunningOrder = scheduleSettings.runningOrder || [];
     const updatedRunningOrder = currentRunningOrder.map((item: any) =>
       item.id === editingRunningOrderItem.id
-        ? { ...item, name: runningOrderForm.name }
+        ? { ...item, name: runningOrderForm.name, group: runningOrderForm.group || 'Ungrouped' }
         : item
     );
 
@@ -1087,7 +1088,7 @@ The Production Team`
 
     setIsRunningOrderDialogOpen(false);
     setEditingRunningOrderItem(null);
-    setRunningOrderForm({ name: '' });
+    setRunningOrderForm({ name: '', group: '' });
   };
 
   const handleDeleteRunningOrderItem = (id: string) => {
@@ -1888,8 +1889,18 @@ The Production Team`
                           id="ro-name"
                           placeholder="e.g., Act I, Scene 1, Circus Act A"
                           value={runningOrderForm.name}
-                          onChange={(e) => setRunningOrderForm({ name: e.target.value })}
+                          onChange={(e) => setRunningOrderForm({ ...runningOrderForm, name: e.target.value })}
                           data-testid="input-running-order-name"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="ro-group">Group</Label>
+                        <Input
+                          id="ro-group"
+                          placeholder="e.g., Act I, Scene 1, Main Show (leave blank for 'Ungrouped')"
+                          value={runningOrderForm.group}
+                          onChange={(e) => setRunningOrderForm({ ...runningOrderForm, group: e.target.value })}
+                          data-testid="input-running-order-group"
                         />
                       </div>
                     </div>
@@ -1921,7 +1932,7 @@ The Production Team`
                                   handleDeleteRunningOrderItem(editingRunningOrderItem.id);
                                   setIsRunningOrderDialogOpen(false);
                                   setEditingRunningOrderItem(null);
-                                  setRunningOrderForm({ name: '' });
+                                  setRunningOrderForm({ name: '', group: '' });
                                 }}
                                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                               >
@@ -1955,30 +1966,48 @@ The Production Team`
                 const runningOrder = scheduleSettings.runningOrder || [];
                 
                 return runningOrder.length > 0 ? (
-                  <div className="space-y-3">
-                    {(runningOrder as any[])
-                      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-                      .map((item) => (
-                        <Card 
-                          key={item.id} 
-                          className="cursor-pointer hover:shadow-md transition-shadow select-none" 
-                          data-testid={`card-running-order-${item.id}`}
-                          onClick={() => {
-                            setEditingRunningOrderItem(item);
-                            setRunningOrderForm({ name: item.name });
-                            setIsRunningOrderDialogOpen(true);
-                          }}
-                        >
-                          <CardHeader className="p-4">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <GripVertical className="h-4 w-4 text-muted-foreground" />
-                                <CardTitle className="text-base select-none">{item.name}</CardTitle>
-                              </div>
-                            </div>
-                          </CardHeader>
-                        </Card>
-                      ))}
+                  <div className="space-y-4">
+                    {(() => {
+                      const grouped: Record<string, any[]> = {};
+                      runningOrder.forEach((item: any) => {
+                        const group = item.group || 'Ungrouped';
+                        if (!grouped[group]) grouped[group] = [];
+                        grouped[group].push(item);
+                      });
+                      
+                      const sortedGroups = Object.keys(grouped).sort();
+                      
+                      return sortedGroups.map((groupName) => (
+                        <div key={groupName} className="space-y-2">
+                          <h4 className="text-sm font-semibold text-muted-foreground px-2">{groupName}</h4>
+                          <div className="space-y-2 pl-2 border-l-2 border-muted-foreground/30">
+                            {grouped[groupName]
+                              .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+                              .map((item) => (
+                                <Card 
+                                  key={item.id} 
+                                  className="cursor-pointer hover:shadow-md transition-shadow select-none" 
+                                  data-testid={`card-running-order-${item.id}`}
+                                  onClick={() => {
+                                    setEditingRunningOrderItem(item);
+                                    setRunningOrderForm({ name: item.name, group: item.group || '' });
+                                    setIsRunningOrderDialogOpen(true);
+                                  }}
+                                >
+                                  <CardHeader className="p-4">
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center gap-2">
+                                        <GripVertical className="h-4 w-4 text-muted-foreground" />
+                                        <CardTitle className="text-base select-none">{item.name}</CardTitle>
+                                      </div>
+                                    </div>
+                                  </CardHeader>
+                                </Card>
+                              ))}
+                          </div>
+                        </div>
+                      ));
+                    })()}
                   </div>
                 ) : (
                   <div className="text-center py-12">
