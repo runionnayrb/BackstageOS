@@ -1343,8 +1343,21 @@ The Production Team`
       yPosition += 0.15;
     });
 
-    const today = new Date();
-    const dateStr = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    // Add footer to all pages
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+    const publishedText = `Published: ${dateStr} at ${timeStr}`;
+
+    doc.setFont('Helvetica', 'normal');
+    doc.setFontSize(9);
+    
+    const totalPages = doc.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      doc.text(publishedText, marginLeft, pageHeight - 0.4);
+    }
+
     doc.save(`${project?.name || 'Running Order'} Running Order - ${dateStr}.pdf`);
   };
 
