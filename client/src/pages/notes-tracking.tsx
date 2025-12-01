@@ -425,13 +425,13 @@ const NotesTracking: React.FC = () => {
                 {['date', 'reportType', 'department', 'priority'].map((option) => (
                   <div
                     key={option}
-                    className="p-3 rounded hover:bg-blue-50 cursor-pointer transition-colors"
+                    className="p-3 rounded hover:bg-blue-50 cursor-pointer transition-colors text-gray-900 dark:text-gray-100"
                     onClick={() => {
                       setGroupBy(option);
                       setGroupOpen(false);
                     }}
                   >
-                    <span className="text-sm capitalize text-gray-900 dark:text-gray-100">
+                    <span className="text-sm capitalize">
                       {option === 'reportType' ? 'Report Type' : option}
                     </span>
                   </div>
@@ -493,13 +493,13 @@ const NotesTracking: React.FC = () => {
                 ].map((option) => (
                   <div
                     key={option.value}
-                    className="p-3 rounded hover:bg-blue-50 cursor-pointer transition-colors"
+                    className="p-3 rounded hover:bg-blue-50 cursor-pointer transition-colors text-gray-900 dark:text-gray-100"
                     onClick={() => {
                       setSortBy(option.value);
                       setSortOpen(false);
                     }}
                   >
-                    <span className="text-sm text-gray-900 dark:text-gray-100">{option.label}</span>
+                    <span className="text-sm">{option.label}</span>
                   </div>
                 ))}
               </div>
