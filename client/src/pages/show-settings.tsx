@@ -2226,20 +2226,20 @@ The Production Team`
                     <div className="flex gap-2">
                       <Button
                         variant="ghost"
-                        className="hover:bg-transparent group"
+                        className="hover:bg-transparent"
                         data-testid="button-versions"
                         onClick={() => setIsVersionsDialogOpen(true)}
                       >
-                        <History className="h-4 w-4 mr-2 text-foreground group-hover:text-blue-500 transition-colors" />
+                        <History className="h-4 w-4 mr-2 text-foreground hover:text-blue-500 transition-colors" />
                         Versions
                       </Button>
                       <Button
                         variant="ghost"
-                        className="hover:bg-transparent group"
+                        className="hover:bg-transparent"
                         data-testid="button-manage-structure"
                         onClick={() => setIsStructureDialogOpen(true)}
                       >
-                        <Layers className="h-4 w-4 mr-2 text-foreground group-hover:text-blue-500 transition-colors" />
+                        <Layers className="h-4 w-4 mr-2 text-foreground hover:text-blue-500 transition-colors" />
                         Structure
                       </Button>
                     </div>
@@ -2256,16 +2256,16 @@ The Production Team`
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0 hover:bg-transparent group"
+                    className="h-8 w-8 p-0 hover:bg-transparent"
                     data-testid="button-download-pdf"
                     onClick={downloadRunningOrderPDF}
                   >
-                    <Download className="h-4 w-4 text-foreground group-hover:text-blue-500 transition-colors" />
+                    <Download className="h-4 w-4 text-foreground hover:text-blue-500 transition-colors" />
                   </Button>
                   <Button 
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0 hover:bg-transparent group"
+                    className="h-8 w-8 p-0 hover:bg-transparent"
                     data-testid="button-add-running-order-item"
                     onClick={() => {
                       setEditingRunningOrderItem(null);
@@ -2273,7 +2273,7 @@ The Production Team`
                       setIsRunningOrderDialogOpen(true);
                     }}
                   >
-                    <Plus className="h-4 w-4 text-foreground group-hover:text-blue-500 transition-colors" />
+                    <Plus className="h-4 w-4 text-foreground hover:text-blue-500 transition-colors" />
                   </Button>
                 </div>
                 
