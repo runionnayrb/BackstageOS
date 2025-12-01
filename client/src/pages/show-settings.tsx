@@ -1332,7 +1332,9 @@ The Production Team`
       yPosition += 0.15;
     });
 
-    doc.save(`${project?.name || 'Running Order'}.pdf`);
+    const today = new Date();
+    const dateStr = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    doc.save(`${project?.name || 'Running Order'} Running Order - ${dateStr}.pdf`);
   };
 
   const handleAddStructureGroup = () => {
