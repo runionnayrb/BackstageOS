@@ -2580,11 +2580,9 @@ The Production Team`
                                           setIsRunningOrderDialogOpen(true);
                                         }}
                                       >
-                                        <div className="flex items-center justify-between">
-                                          <div className="flex items-center gap-2">
-                                            <GripVertical className="h-4 w-4 text-muted-foreground" />
-                                            <span className="text-base select-none">{item.name}</span>
-                                          </div>
+                                        <div className="flex items-center gap-2">
+                                          <GripVertical className="h-4 w-4 text-muted-foreground" />
+                                          <span className="text-base select-none flex-1">{item.name}</span>
                                           {item.duration && <span className="text-sm text-muted-foreground">Length: {item.duration}</span>}
                                         </div>
                                       </div>
@@ -2642,11 +2640,9 @@ The Production Team`
                                           setIsRunningOrderDialogOpen(true);
                                         }}
                                       >
-                                        <div className="flex items-center justify-between">
-                                          <div className="flex items-center gap-2">
-                                            <GripVertical className="h-4 w-4 text-muted-foreground" />
-                                            <span className="text-base select-none">{item.name}</span>
-                                          </div>
+                                        <div className="flex items-center gap-2">
+                                          <GripVertical className="h-4 w-4 text-muted-foreground" />
+                                          <span className="text-base select-none flex-1">{item.name}</span>
                                           {item.duration && <span className="text-sm text-muted-foreground">Length: {item.duration}</span>}
                                         </div>
                                       </div>
