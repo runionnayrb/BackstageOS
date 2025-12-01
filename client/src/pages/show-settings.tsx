@@ -251,7 +251,9 @@ export default function ShowSettings() {
   const emailEditor = useEditor({
     extensions: [
       StarterKit.configure({
-        heading: false,
+        heading: {
+          levels: [2, 3],
+        },
         code: false,
         codeBlock: false,
         blockquote: false,
@@ -268,7 +270,7 @@ export default function ShowSettings() {
     },
     editorProps: {
       attributes: {
-        class: 'prose prose-sm max-w-none focus:outline-none min-h-[120px] p-3',
+        class: 'prose prose-sm max-w-none focus:outline-none min-h-[120px] p-3 [&_ul]:text-inherit [&_li]:text-inherit [&_h2]:text-inherit',
       },
     },
   });
