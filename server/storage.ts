@@ -86,6 +86,7 @@ import {
   searchIndexes,
   searchSuggestions,
   searchAnalytics,
+  runningOrderVersions,
 
   type User,
   type UpsertUser,
@@ -249,6 +250,8 @@ import {
   type InsertSearchSuggestion,
   type SearchAnalytics,
   type InsertSearchAnalytics,
+  type RunningOrderVersion,
+  type InsertRunningOrderVersion,
 
 } from "@shared/schema";
 import { db } from "./db";
@@ -758,6 +761,14 @@ export interface IStorage {
   linkDailyEventToProduction(dailyEventId: number, parentEventId: number): Promise<void>;
   unlinkDailyEvent(dailyEventId: number): Promise<void>;
   getEventWithChildren(eventId: number): Promise<any>;
+
+  // Running Order Versions operations
+  getRunningOrderVersionsByProjectId(projectId: number): Promise<RunningOrderVersion[]>;
+  getRunningOrderVersionById(id: number): Promise<RunningOrderVersion | undefined>;
+  getNextVersionNumber(projectId: number): Promise<number>;
+  createRunningOrderVersion(version: InsertRunningOrderVersion): Promise<RunningOrderVersion>;
+  updateRunningOrderVersion(id: number, version: Partial<InsertRunningOrderVersion>): Promise<RunningOrderVersion>;
+  deleteRunningOrderVersion(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -6219,6 +6230,46 @@ export class DatabaseStorage implements IStorage {
     // Return empty array for now - this method was for legacy teamMembers expansion
     // In new architecture, invited team members are handled differently
     return [];
+  }
+
+  // Running Order Versions operations
+  async getRunningOrderVersionsByProjectId(projectId: number): Promise<RunningOrderVersion[]> {
+    const result = await db.select()
+      .from(runningOrderVersions)
+      .where(eq(runningOrderVersions.projectId, projectId))
+      .orderBy(desc(runningOrderVersions.versionNumber));
+    return result;
+  }
+
+  async getRunningOrderVersionById(id: number): Promise<RunningOrderVersion | undefined> {
+    const result = await db.select()
+      .from(runningOrderVersions)
+      .where(eq(runningOrderVersions.id, id));
+    return result[0];
+  }
+
+  async getNextVersionNumber(projectId: number): Promise<number> {
+    const result = await db.select({ maxVersion: max(runningOrderVersions.versionNumber) })
+      .from(runningOrderVersions)
+      .where(eq(runningOrderVersions.projectId, projectId));
+    return (result[0]?.maxVersion || 0) + 1;
+  }
+
+  async createRunningOrderVersion(version: InsertRunningOrderVersion): Promise<RunningOrderVersion> {
+    const result = await db.insert(runningOrderVersions).values(version).returning();
+    return result[0];
+  }
+
+  async updateRunningOrderVersion(id: number, version: Partial<InsertRunningOrderVersion>): Promise<RunningOrderVersion> {
+    const result = await db.update(runningOrderVersions)
+      .set(version)
+      .where(eq(runningOrderVersions.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteRunningOrderVersion(id: number): Promise<void> {
+    await db.delete(runningOrderVersions).where(eq(runningOrderVersions.id, id));
   }
 
 }

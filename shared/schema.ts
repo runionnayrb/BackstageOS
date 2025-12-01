@@ -461,6 +461,32 @@ export const showSettings = pgTable("show_settings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Running order versions for tracking show structure history
+export const runningOrderVersions = pgTable("running_order_versions", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  versionNumber: integer("version_number").notNull(),
+  status: varchar("status").notNull().default("draft"), // draft, published
+  label: varchar("label"), // User-friendly name like "Opening Night", "Week 2"
+  runningOrder: jsonb("running_order").notNull(), // Snapshot of running order items
+  structureGroups: jsonb("structure_groups"), // Snapshot of structure groups
+  notes: text("notes"), // Optional notes about this version
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  publishedAt: timestamp("published_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_running_order_versions_project").on(table.projectId),
+  index("idx_running_order_versions_project_number").on(table.projectId, table.versionNumber),
+]);
+
+export const insertRunningOrderVersionSchema = createInsertSchema(runningOrderVersions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertRunningOrderVersion = z.infer<typeof insertRunningOrderVersionSchema>;
+export type RunningOrderVersion = typeof runningOrderVersions.$inferSelect;
+
 // User feedback system
 export const feedback = pgTable("feedback", {
   id: serial("id").primaryKey(),

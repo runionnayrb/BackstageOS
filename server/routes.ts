@@ -5645,6 +5645,172 @@ Best regards,
     }
   });
 
+  // Running Order Version routes
+  app.get("/api/projects/:id/running-order-versions", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership or team membership
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const versions = await storage.getRunningOrderVersionsByProjectId(projectId);
+      res.json(versions);
+    } catch (error) {
+      console.error('Error fetching running order versions:', error);
+      res.status(500).json({ message: "Failed to fetch running order versions" });
+    }
+  });
+
+  app.get("/api/projects/:id/running-order-versions/:versionId", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const versionId = parseInt(req.params.versionId);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership or team membership
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const version = await storage.getRunningOrderVersionById(versionId);
+      if (!version || version.projectId !== projectId) {
+        return res.status(404).json({ message: "Version not found" });
+      }
+
+      res.json(version);
+    } catch (error) {
+      console.error('Error fetching running order version:', error);
+      res.status(500).json({ message: "Failed to fetch running order version" });
+    }
+  });
+
+  app.post("/api/projects/:id/running-order-versions", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const { label, notes, runningOrder, structureGroups, status } = req.body;
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership or team membership
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      // Get next version number
+      const versionNumber = await storage.getNextVersionNumber(projectId);
+
+      const version = await storage.createRunningOrderVersion({
+        projectId,
+        versionNumber,
+        status: status || 'draft',
+        label: label || null,
+        notes: notes || null,
+        runningOrder,
+        structureGroups: structureGroups || null,
+        createdBy: req.user.id,
+        publishedAt: status === 'published' ? new Date() : null,
+      });
+
+      res.json(version);
+    } catch (error) {
+      console.error('Error creating running order version:', error);
+      res.status(500).json({ message: "Failed to create running order version" });
+    }
+  });
+
+  app.patch("/api/projects/:id/running-order-versions/:versionId", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const versionId = parseInt(req.params.versionId);
+      const { label, notes, status } = req.body;
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const existingVersion = await storage.getRunningOrderVersionById(versionId);
+      if (!existingVersion || existingVersion.projectId !== projectId) {
+        return res.status(404).json({ message: "Version not found" });
+      }
+
+      const updates: any = {};
+      if (label !== undefined) updates.label = label;
+      if (notes !== undefined) updates.notes = notes;
+      if (status !== undefined) {
+        updates.status = status;
+        if (status === 'published' && !existingVersion.publishedAt) {
+          updates.publishedAt = new Date();
+        }
+      }
+
+      const version = await storage.updateRunningOrderVersion(versionId, updates);
+      res.json(version);
+    } catch (error) {
+      console.error('Error updating running order version:', error);
+      res.status(500).json({ message: "Failed to update running order version" });
+    }
+  });
+
+  app.delete("/api/projects/:id/running-order-versions/:versionId", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const versionId = parseInt(req.params.versionId);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const version = await storage.getRunningOrderVersionById(versionId);
+      if (!version || version.projectId !== projectId) {
+        return res.status(404).json({ message: "Version not found" });
+      }
+
+      await storage.deleteRunningOrderVersion(versionId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting running order version:', error);
+      res.status(500).json({ message: "Failed to delete running order version" });
+    }
+  });
+
   // Report template routes
   app.get("/api/projects/:id/templates", isAuthenticated, async (req: any, res) => {
     try {
