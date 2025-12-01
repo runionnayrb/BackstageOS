@@ -2891,6 +2891,7 @@ The Production Team`
                               throw new Error(response.message || "Failed to send email");
                             }
                           } catch (error: any) {
+                            console.error('Email send error:', error);
                             toast({
                               title: "Failed to send email",
                               description: error.message || "Please make sure you have connected an email account.",
