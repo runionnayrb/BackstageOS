@@ -68,7 +68,9 @@ import {
   Unlink,
   Mail,
   GitCompare,
-  Theater
+  Theater,
+  ChevronUp,
+  ChevronDown
 } from "lucide-react";
 
 // Helper function to safely parse JSON with error handling
@@ -197,6 +199,7 @@ export default function ShowSettings() {
   const [runningOrderForm, setRunningOrderForm] = useState({ name: '', group: '' });
   const [deletingRunningOrderId, setDeletingRunningOrderId] = useState<string | null>(null);
   const [isStructureDialogOpen, setIsStructureDialogOpen] = useState(false);
+  const [isEditingStructureGroupModalOpen, setIsEditingStructureGroupModalOpen] = useState(false);
   const [editingStructureGroup, setEditingStructureGroup] = useState<{ id: string; name: string; order: number } | null>(null);
   const [structureGroupForm, setStructureGroupForm] = useState({ name: '' });
   const [deletingStructureGroupId, setDeletingStructureGroupId] = useState<string | null>(null);
@@ -1196,6 +1199,20 @@ The Production Team`
     handleSettingsUpdate("scheduleSettings", { ...scheduleSettings, structureGroups: reorderedGroups });
   };
 
+  const handleMoveStructureGroup = (groupId: string, direction: 'up' | 'down') => {
+    const groups = getStructureGroups();
+    const index = groups.findIndex((g: any) => g.id === groupId);
+    if (index === -1) return;
+
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= groups.length) return;
+
+    const newGroups = [...groups];
+    [newGroups[index], newGroups[newIndex]] = [newGroups[newIndex], newGroups[index]];
+    
+    handleReorderStructureGroups(newGroups);
+  };
+
   const copyShareLink = async () => {
     if ((settings as any)?.sharingSettings?.shareableLink) {
       try {
@@ -2100,65 +2117,125 @@ The Production Team`
                         ) : (
                           getStructureGroups()
                             .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
-                            .map((group: any) => (
+                            .map((group: any, index: number) => (
                               <div
                                 key={group.id}
-                                className="flex items-center justify-between p-2 bg-muted rounded hover:bg-muted/80"
+                                className="flex items-center justify-between p-3 bg-muted rounded hover:bg-muted/80 cursor-pointer transition-colors"
+                                onClick={() => {
+                                  setEditingStructureGroup(group);
+                                  setStructureGroupForm({ name: group.name });
+                                  setIsEditingStructureGroupModalOpen(true);
+                                }}
+                                data-testid={`card-structure-group-${group.id}`}
                               >
-                                <span className="text-sm font-medium">{group.name}</span>
-                                <div className="flex gap-1">
+                                <div className="flex items-center gap-3 flex-1 min-w-0">
+                                  <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                  <span className="text-sm font-medium truncate">{group.name}</span>
+                                </div>
+                                <div className="flex gap-1 ml-2 flex-shrink-0">
                                   <Button
                                     variant="ghost"
                                     size="sm"
                                     className="h-6 w-6 p-0"
-                                    onClick={() => {
-                                      setEditingStructureGroup(group);
-                                      setStructureGroupForm({ name: group.name });
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleMoveStructureGroup(group.id, 'up');
                                     }}
-                                    data-testid="button-edit-structure-group"
+                                    disabled={index === 0}
+                                    data-testid="button-move-structure-group-up"
                                   >
-                                    <Edit3 className="h-3 w-3" />
+                                    <ChevronUp className="h-4 w-4" />
                                   </Button>
-                                  <AlertDialog open={deletingStructureGroupId === group.id} onOpenChange={(open) => !open && setDeletingStructureGroupId(null)}>
-                                    <AlertDialogTrigger asChild>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-6 w-6 p-0 text-destructive hover:text-destructive"
-                                        onClick={() => setDeletingStructureGroupId(group.id)}
-                                        data-testid="button-delete-structure-group"
-                                      >
-                                        <Trash2 className="h-3 w-3" />
-                                      </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                      <AlertDialogHeader>
-                                        <AlertDialogTitle>Delete Group</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                          Are you sure you want to delete "{group.name}"? This action cannot be undone.
-                                        </AlertDialogDescription>
-                                      </AlertDialogHeader>
-                                      <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction
-                                          onClick={() => {
-                                            handleDeleteStructureGroup(group.id);
-                                            setEditingStructureGroup(null);
-                                            setStructureGroupForm({ name: '' });
-                                          }}
-                                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                        >
-                                          Delete
-                                        </AlertDialogAction>
-                                      </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                  </AlertDialog>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleMoveStructureGroup(group.id, 'down');
+                                    }}
+                                    disabled={index === getStructureGroups().length - 1}
+                                    data-testid="button-move-structure-group-down"
+                                  >
+                                    <ChevronDown className="h-4 w-4" />
+                                  </Button>
                                 </div>
                               </div>
                             ))
                         )}
                       </div>
                     </div>
+                  </DialogContent>
+                </Dialog>
+
+                <Dialog open={isEditingStructureGroupModalOpen} onOpenChange={setIsEditingStructureGroupModalOpen}>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Edit Structure Group</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="edit-structure-name">Group Name</Label>
+                        <Input
+                          id="edit-structure-name"
+                          placeholder="e.g., Act I, Scene 1"
+                          value={structureGroupForm.name}
+                          onChange={(e) => setStructureGroupForm({ name: e.target.value })}
+                          data-testid="input-edit-structure-group-name"
+                        />
+                      </div>
+                    </div>
+                    <DialogFooter className="flex flex-row justify-between items-center sm:justify-between">
+                      <AlertDialog open={deletingStructureGroupId === editingStructureGroup?.id} onOpenChange={(open) => !open && setDeletingStructureGroupId(null)}>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => setDeletingStructureGroupId(editingStructureGroup?.id || null)}
+                            data-testid="button-delete-structure-group-modal"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Group</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete "{editingStructureGroup?.name}"? This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => {
+                                if (editingStructureGroup) {
+                                  handleDeleteStructureGroup(editingStructureGroup.id);
+                                }
+                                setIsEditingStructureGroupModalOpen(false);
+                                setEditingStructureGroup(null);
+                                setStructureGroupForm({ name: '' });
+                                setDeletingStructureGroupId(null);
+                              }}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                      <Button
+                        onClick={() => {
+                          handleEditStructureGroup();
+                          setIsEditingStructureGroupModalOpen(false);
+                          setEditingStructureGroup(null);
+                          setStructureGroupForm({ name: '' });
+                        }}
+                        data-testid="button-save-structure-group"
+                      >
+                        Save Changes
+                      </Button>
+                    </DialogFooter>
                   </DialogContent>
                 </Dialog>
               </div>
