@@ -1269,14 +1269,6 @@ Respond with valid JSON only.`;
         }
       }
 
-      // Log the auto-fix attempt
-        type: 'auto-fix-attempt',
-        appliedChanges: appliedChanges.length,
-        failedChanges: failedChanges.length,
-        timestamp: new Date(),
-        adminId: userId
-      });
-
       const response = {
         success: appliedChanges.length > 0,
         message: `Applied ${appliedChanges.length} of ${codeChanges.length} code changes`,
@@ -3680,10 +3672,6 @@ Best regards,
       if (report.templateId) {
         const template = await storage.getReportTemplateById(report.templateId);
         if (template && template.layoutConfiguration) {
-            reportId: report.id,
-            templateId: template.id,
-            hasLayout: !!template.layoutConfiguration
-          });
           res.json({
             ...report,
             template: {
@@ -3716,13 +3704,6 @@ Best regards,
         return res.status(403).json({ message: "Access denied" });
       }
 
-      // Log incoming data for debugging
-        body: req.body,
-        projectId,
-        userId: req.user.id,
-        dateProvided: req.body.date
-      });
-
       // Prepare report data with proper date conversion
       const reportData = insertReportSchema.parse({
         ...req.body,
@@ -3734,11 +3715,6 @@ Best regards,
       
 
       const report = await storage.createReport(reportData);
-        id: report.id,
-        templateId: report.templateId,
-        title: report.title,
-        type: report.type
-      });
 
       // Auto-sync field notes if template has department-assigned fields
       if (report.templateId) {
@@ -3746,19 +3722,6 @@ Best regards,
           const template = await storage.getTemplateV2WithFullDataById(report.templateId);
           if (template && template.sections) {
             const content = report.content as Record<string, any>;
-              id: template.id,
-              name: template.name,
-              sectionCount: template.sections.length,
-              sections: template.sections.map((s: any) => ({
-                title: s.title,
-                fieldCount: (s.fields || []).length,
-                fields: (s.fields || []).map((f: any) => ({ 
-                  id: f.id, 
-                  label: f.label,
-                  departmentKey: f.departmentKey
-                }))
-              }))
-            }));
             
             for (const section of template.sections || []) {
               for (const field of section.fields || []) {
@@ -3903,10 +3866,6 @@ Best regards,
           const template = await storage.getTemplateV2WithFullDataById((report as any).templateId);
           if (template && template.sections) {
             const content = updateData.content as Record<string, any>;
-              id: template.id,
-              name: template.name,
-              sectionCount: template.sections.length
-            }));
             
             for (const section of template.sections || []) {
               for (const field of section.fields || []) {
@@ -4822,12 +4781,6 @@ Best regards,
       const projectId = parseInt(req.params.id);
       const { layoutConfiguration, templateType } = req.body;
       
-        id: item.id, 
-        type: item.type, 
-        x: item.x, 
-        y: item.y 
-      })));
-      
       const project = await storage.getProjectById(projectId);
       if (!project) {
         return res.status(404).json({ message: "Project not found" });
@@ -4843,16 +4796,6 @@ Best regards,
       const updatedSettings = await storage.updateShowSettings(projectId, {
         layoutConfiguration: layoutConfiguration
       });
-
-        id: item.id, 
-        type: item.type, 
-        x: item.x, 
-        y: item.y,
-        w: item.w,
-        h: item.h
-      })));
-      
-      // CRITICAL DEBUG: Let's see the EXACT data being saved
 
       // Return the complete updated settings object for cache consistency
       res.json(updatedSettings);
@@ -5718,26 +5661,6 @@ Best regards,
       }
 
       const templates = await storage.getReportTemplatesByProjectId(projectId);
-      
-      if (templates.length > 0) {
-          id: templates[0].id,
-          name: templates[0].name,
-          type: templates[0].type,
-          phase: templates[0].phase,
-          hasLayoutConfiguration: !!templates[0].layoutConfiguration,
-          layoutConfigKeys: templates[0].layoutConfiguration ? Object.keys(templates[0].layoutConfiguration) : []
-        });
-      }
-      
-      // DEBUG: Log rehearsal template specifically
-      const rehearsalTemplate = templates.find(t => t.phase === 'rehearsal');
-      if (rehearsalTemplate) {
-          id: rehearsalTemplate.id,
-          name: rehearsalTemplate.name,
-          phase: rehearsalTemplate.phase,
-          type: rehearsalTemplate.type
-        });
-      }
       
       res.json(templates);
     } catch (error) {
@@ -6721,13 +6644,6 @@ Best regards,
         type: "script"
       };
 
-        name: scriptData.name, 
-        contentLength: content.length,
-        contentPreview: content.substring(0, 50),
-        rawContent: script.content,
-        contentType: typeof script.content
-      });
-
       // Disable caching to ensure fresh data
       res.set({
         'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -6746,11 +6662,6 @@ Best regards,
     try {
       const projectId = parseInt(req.params.id);
       const { title, content } = req.body;
-      
-        title: title || "No title",
-        contentLength: content ? content.length : 0,
-        contentPreview: content ? content.substring(0, 100) : "No content"
-      });
       
       const project = await storage.getProjectById(projectId);
       if (!project) {
@@ -7810,11 +7721,6 @@ Best regards,
 
   // Helper function to sync important date event changes back to project
   async function syncImportantDateEventToProject(event: any, updatedData: any) {
-      eventTitle: event.title,
-      eventType: event.type,
-      updatedDate: updatedData.date
-    });
-
     // Check if this is an Important Date event by its title (since we no longer use "important_date" type)
     const importantDateMapping: { [key: string]: string } = {
       'Prep Start': 'prep_start_date',
@@ -9881,17 +9787,6 @@ Best regards,
         sendgridResponse: response?.[0]?.statusCode
       });
     } catch (error: any) {
-      
-      // Log the email message that failed for debugging
-        to: testEmail,
-        from: fromEmail,
-        fromName: fromName,
-        subject: testSubject,
-        htmlLength: testBody?.length || 0,
-        textLength: plainTextBody?.length || 0,
-        bcc: 'bryan@backstageos.com'
-      }, null, 2));
-      
       // Handle specific SendGrid errors
       if (error.response && error.response.body && error.response.body.errors) {
         const sendgridErrors = error.response.body.errors;
@@ -11639,12 +11534,6 @@ Best regards,
   // Send email with queue integration
   app.post('/api/email/send-with-queue', isAuthenticated, async (req: any, res) => {
     try {
-        accountId: req.body.accountId,
-        to: req.body.to,
-        subject: req.body.subject,
-        userId: req.user?.id
-      });
-
       const { accountId, to, cc, bcc, subject, message, replyTo, threadId, priority, scheduledAt } = req.body;
 
       // Validate required fields
