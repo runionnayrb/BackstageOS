@@ -217,6 +217,11 @@ const NotesTracking: React.FC = () => {
               </div>
               
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  <Calendar className="w-3 h-3" />
+                  {new Date(note.createdAt).toLocaleDateString()}
+                </span>
+                
                 <Badge variant="outline" className="text-xs">
                   <FileText className="w-3 h-3 mr-1" />
                   {report?.title || 'Unknown Report'}
@@ -224,19 +229,9 @@ const NotesTracking: React.FC = () => {
                 
                 {note.department && (
                   <Badge variant="outline" className="text-xs">
-                    {note.department}
+                    {note.department.charAt(0).toUpperCase() + note.department.slice(1).toLowerCase()}
                   </Badge>
                 )}
-                
-                <Badge className={`text-xs ${getPriorityColor(note.priority)}`}>
-                  {getPriorityIcon(note.priority)}
-                  <span className="ml-1 capitalize">{note.priority}</span>
-                </Badge>
-                
-                <span className="text-xs">
-                  <Calendar className="w-3 h-3 inline mr-1" />
-                  {new Date(note.createdAt).toLocaleDateString()}
-                </span>
               </div>
             </div>
           </div>
