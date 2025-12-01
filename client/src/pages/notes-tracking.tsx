@@ -431,7 +431,7 @@ const NotesTracking: React.FC = () => {
                       setGroupOpen(false);
                     }}
                   >
-                    <span className="text-sm capitalize !text-black">
+                    <span className="text-sm capitalize" style={{ color: '#000' }}>
                       {option === 'reportType' ? 'Report Type' : option}
                     </span>
                   </div>
@@ -499,7 +499,7 @@ const NotesTracking: React.FC = () => {
                       setSortOpen(false);
                     }}
                   >
-                    <span className="text-sm !text-black">{option.label}</span>
+                    <span className="text-sm" style={{ color: '#000' }}>{option.label}</span>
                   </div>
                 ))}
               </div>
