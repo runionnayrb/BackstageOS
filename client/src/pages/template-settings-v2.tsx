@@ -279,14 +279,6 @@ export default function TemplateSettingsV2() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setLocation(`/shows/${projectId}`)}
-              data-testid="button-back"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
             <div>
               <h1 className="text-3xl font-bold">Report Templates</h1>
             </div>
