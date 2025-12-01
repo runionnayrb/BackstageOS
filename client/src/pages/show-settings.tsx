@@ -2539,13 +2539,9 @@ The Production Team`
                   <div className="text-center py-12">
                     <History className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                     <h3 className="text-lg font-semibold mb-2">No versions saved yet</h3>
-                    <p className="text-muted-foreground mb-4">
+                    <p className="text-muted-foreground">
                       Save your current running order as a version to track changes over time.
                     </p>
-                    <Button onClick={() => setIsSaveVersionDialogOpen(true)}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Save First Version
-                    </Button>
                   </div>
                 )}
               </ScrollArea>
