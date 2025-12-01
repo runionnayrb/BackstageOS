@@ -2267,7 +2267,7 @@ The Production Team`
                         </div>
                       </div>
 
-                      <div className="border rounded-lg p-3 max-h-48 overflow-y-auto space-y-2">
+                      <div className="max-h-48 overflow-y-auto space-y-2">
                         {getStructureGroups().length === 0 ? (
                           <p className="text-sm text-muted-foreground">No groups yet. Create one above.</p>
                         ) : (
@@ -2282,10 +2282,10 @@ The Production Team`
                                 onDragLeave={handleStructureGroupDragLeave}
                                 onDrop={(e) => handleStructureGroupDrop(e, group.id)}
                                 onDragEnd={handleStructureGroupDragEnd}
-                                className={`flex items-center gap-3 p-3 bg-muted rounded cursor-move transition-all select-none ${
+                                className={`flex items-center gap-3 cursor-move transition-all select-none ${
                                   draggedGroupId === group.id ? 'opacity-50' : ''
                                 } ${
-                                  dragOverGroupId === group.id ? 'bg-blue-100 dark:bg-blue-900/30 border-2 border-blue-300' : ''
+                                  dragOverGroupId === group.id ? 'bg-blue-100 dark:bg-blue-900/30' : ''
                                 }`}
                                 onClick={() => {
                                   setEditingStructureGroup(group);
