@@ -302,23 +302,12 @@ export default function ReportViewer() {
           </div>
         </div>
 
-        {/* Report Document */}
-        <Card className="min-h-[600px]">
-          <CardContent className="p-8">
-            {/* Print-style Document View */}
-            <div className="bg-white min-h-[500px] shadow-lg border border-gray-200" data-pdf-content style={{ 
-              width: "8.5in", 
-              margin: "0 auto",
-              padding: "1in",
-              fontFamily: "Arial, sans-serif"
-            }}>
-              {/* Report Content */}
-              <form onSubmit={form.handleSubmit(handleSave)} className="space-y-6">
-                {renderReportContent(report, template, true, form)}
-              </form>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Report Content */}
+        <div data-pdf-content>
+          <form onSubmit={form.handleSubmit(handleSave)} className="space-y-6">
+            {renderReportContent(report, template, true, form)}
+          </form>
+        </div>
 
         {/* Delete Confirmation Dialog */}
         <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
