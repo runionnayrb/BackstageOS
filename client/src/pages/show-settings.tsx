@@ -204,6 +204,8 @@ export default function ShowSettings() {
   const [editingStructureGroup, setEditingStructureGroup] = useState<{ id: string; name: string; order: number } | null>(null);
   const [structureGroupForm, setStructureGroupForm] = useState({ name: '' });
   const [deletingStructureGroupId, setDeletingStructureGroupId] = useState<string | null>(null);
+  const [draggedGroupId, setDraggedGroupId] = useState<string | null>(null);
+  const [dragOverGroupId, setDragOverGroupId] = useState<string | null>(null);
 
   // Use admin view context to override profile type for testing
   const { selectedProfileType } = useAdminView();
@@ -1200,18 +1202,44 @@ The Production Team`
     handleSettingsUpdate("scheduleSettings", { ...scheduleSettings, structureGroups: reorderedGroups });
   };
 
-  const handleMoveStructureGroup = (groupId: string, direction: 'up' | 'down') => {
-    const groups = getStructureGroups();
-    const index = groups.findIndex((g: any) => g.id === groupId);
-    if (index === -1) return;
+  const handleStructureGroupDragStart = (e: React.DragEvent<HTMLDivElement>, groupId: string) => {
+    setDraggedGroupId(groupId);
+    e.dataTransfer.effectAllowed = 'move';
+  };
 
-    const newIndex = direction === 'up' ? index - 1 : index + 1;
-    if (newIndex < 0 || newIndex >= groups.length) return;
+  const handleStructureGroupDragOver = (e: React.DragEvent<HTMLDivElement>, groupId: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverGroupId(groupId);
+  };
+
+  const handleStructureGroupDragLeave = () => {
+    setDragOverGroupId(null);
+  };
+
+  const handleStructureGroupDrop = (e: React.DragEvent<HTMLDivElement>, targetGroupId: string) => {
+    e.preventDefault();
+    if (draggedGroupId === targetGroupId || !draggedGroupId) return;
+
+    const groups = getStructureGroups();
+    const draggedIndex = groups.findIndex((g: any) => g.id === draggedGroupId);
+    const targetIndex = groups.findIndex((g: any) => g.id === targetGroupId);
+
+    if (draggedIndex === -1 || targetIndex === -1) return;
 
     const newGroups = [...groups];
-    [newGroups[index], newGroups[newIndex]] = [newGroups[newIndex], newGroups[index]];
-    
+    const draggedGroup = newGroups[draggedIndex];
+    newGroups.splice(draggedIndex, 1);
+    newGroups.splice(targetIndex, 0, draggedGroup);
+
     handleReorderStructureGroups(newGroups);
+    setDraggedGroupId(null);
+    setDragOverGroupId(null);
+  };
+
+  const handleStructureGroupDragEnd = () => {
+    setDraggedGroupId(null);
+    setDragOverGroupId(null);
   };
 
   const copyShareLink = async () => {
@@ -2118,10 +2146,20 @@ The Production Team`
                         ) : (
                           getStructureGroups()
                             .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
-                            .map((group: any, index: number) => (
+                            .map((group: any) => (
                               <div
                                 key={group.id}
-                                className="flex items-center justify-between p-3 bg-muted rounded hover:bg-muted/80 cursor-pointer transition-colors"
+                                draggable
+                                onDragStart={(e) => handleStructureGroupDragStart(e, group.id)}
+                                onDragOver={(e) => handleStructureGroupDragOver(e, group.id)}
+                                onDragLeave={handleStructureGroupDragLeave}
+                                onDrop={(e) => handleStructureGroupDrop(e, group.id)}
+                                onDragEnd={handleStructureGroupDragEnd}
+                                className={`flex items-center gap-3 p-3 bg-muted rounded cursor-move transition-all select-none ${
+                                  draggedGroupId === group.id ? 'opacity-50' : ''
+                                } ${
+                                  dragOverGroupId === group.id ? 'bg-blue-100 dark:bg-blue-900/30 border-2 border-blue-300' : ''
+                                }`}
                                 onClick={() => {
                                   setEditingStructureGroup(group);
                                   setStructureGroupForm({ name: group.name });
@@ -2129,38 +2167,8 @@ The Production Team`
                                 }}
                                 data-testid={`card-structure-group-${group.id}`}
                               >
-                                <div className="flex items-center gap-3 flex-1 min-w-0">
-                                  <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                  <span className="text-sm font-medium truncate">{group.name}</span>
-                                </div>
-                                <div className="flex gap-1 ml-2 flex-shrink-0">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 w-6 p-0"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleMoveStructureGroup(group.id, 'up');
-                                    }}
-                                    disabled={index === 0}
-                                    data-testid="button-move-structure-group-up"
-                                  >
-                                    <ChevronUp className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 w-6 p-0"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleMoveStructureGroup(group.id, 'down');
-                                    }}
-                                    disabled={index === getStructureGroups().length - 1}
-                                    data-testid="button-move-structure-group-down"
-                                  >
-                                    <ChevronDown className="h-4 w-4" />
-                                  </Button>
-                                </div>
+                                <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                <span className="text-sm font-medium truncate flex-1">{group.name}</span>
                               </div>
                             ))
                         )}
