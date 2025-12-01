@@ -87,7 +87,8 @@ import {
   Bold,
   Italic,
   List,
-  ListOrdered
+  ListOrdered,
+  Underline as UnderlineIcon
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
