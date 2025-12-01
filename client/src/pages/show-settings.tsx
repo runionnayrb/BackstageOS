@@ -206,7 +206,7 @@ export default function ShowSettings() {
   // Running order management state
   const [isRunningOrderDialogOpen, setIsRunningOrderDialogOpen] = useState(false);
   const [editingRunningOrderItem, setEditingRunningOrderItem] = useState<{ id: string; name: string; groupId?: string } | null>(null);
-  const [runningOrderForm, setRunningOrderForm] = useState({ name: '', group: '', inShow: true });
+  const [runningOrderForm, setRunningOrderForm] = useState({ name: '', group: '', inShow: true, duration: '' });
   const [deletingRunningOrderId, setDeletingRunningOrderId] = useState<string | null>(null);
   const [isRunningOrderMenuExpanded, setIsRunningOrderMenuExpanded] = useState(false);
   const [isStructureDialogOpen, setIsStructureDialogOpen] = useState(false);
@@ -1188,13 +1188,14 @@ The Production Team`
       group: runningOrderForm.group || 'Ungrouped',
       order: currentRunningOrder.length,
       inShow: runningOrderForm.inShow,
+      duration: runningOrderForm.duration || '',
     };
 
     const updatedRunningOrder = [...currentRunningOrder, newItem];
     handleSettingsUpdate("scheduleSettings", { ...scheduleSettings, runningOrder: updatedRunningOrder });
 
     setIsRunningOrderDialogOpen(false);
-    setRunningOrderForm({ name: '', group: '', inShow: true });
+    setRunningOrderForm({ name: '', group: '', inShow: true, duration: '' });
   };
 
   const handleEditRunningOrderItem = () => {
@@ -1214,7 +1215,7 @@ The Production Team`
     const currentRunningOrder = scheduleSettings.runningOrder || [];
     const updatedRunningOrder = currentRunningOrder.map((item: any) =>
       item.id === editingRunningOrderItem.id
-        ? { ...item, name: runningOrderForm.name, group: runningOrderForm.group || 'Ungrouped', inShow: runningOrderForm.inShow }
+        ? { ...item, name: runningOrderForm.name, group: runningOrderForm.group || 'Ungrouped', inShow: runningOrderForm.inShow, duration: runningOrderForm.duration || '' }
         : item
     );
 
@@ -1222,7 +1223,7 @@ The Production Team`
 
     setIsRunningOrderDialogOpen(false);
     setEditingRunningOrderItem(null);
-    setRunningOrderForm({ name: '', group: '', inShow: true });
+    setRunningOrderForm({ name: '', group: '', inShow: true, duration: '' });
   };
 
   const handleDeleteRunningOrderItem = (id: string) => {
@@ -2208,7 +2209,7 @@ The Production Team`
                       data-testid="button-add-running-order-item"
                       onClick={() => {
                         setEditingRunningOrderItem(null);
-                        setRunningOrderForm({ name: '', group: '', inShow: true });
+                        setRunningOrderForm({ name: '', group: '', inShow: true, duration: '' });
                         setIsRunningOrderDialogOpen(true);
                       }}
                     >
@@ -2269,7 +2270,7 @@ The Production Team`
                     data-testid="button-add-running-order-item"
                     onClick={() => {
                       setEditingRunningOrderItem(null);
-                      setRunningOrderForm({ name: '', group: '', inShow: true });
+                      setRunningOrderForm({ name: '', group: '', inShow: true, duration: '' });
                       setIsRunningOrderDialogOpen(true);
                     }}
                   >
@@ -2314,6 +2315,16 @@ The Production Team`
                           </SelectContent>
                         </Select>
                       </div>
+                      <div>
+                        <Label htmlFor="ro-duration">Duration</Label>
+                        <Input
+                          id="ro-duration"
+                          placeholder="e.g., 5 min, 2:30, 15 minutes"
+                          value={runningOrderForm.duration}
+                          onChange={(e) => setRunningOrderForm({ ...runningOrderForm, duration: e.target.value })}
+                          data-testid="input-running-order-duration"
+                        />
+                      </div>
                       <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/50">
                         <Label htmlFor="in-show" className="cursor-pointer">In-Show</Label>
                         <Switch
@@ -2352,7 +2363,7 @@ The Production Team`
                                   handleDeleteRunningOrderItem(editingRunningOrderItem.id);
                                   setIsRunningOrderDialogOpen(false);
                                   setEditingRunningOrderItem(null);
-                                  setRunningOrderForm({ name: '', group: '', inShow: true });
+                                  setRunningOrderForm({ name: '', group: '', inShow: true, duration: '' });
                                 }}
                                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                               >
@@ -2565,7 +2576,7 @@ The Production Team`
                                         data-testid={`card-running-order-${item.id}`}
                                         onClick={() => {
                                           setEditingRunningOrderItem(item);
-                                          setRunningOrderForm({ name: item.name, group: item.group || '', inShow: item.inShow ?? true });
+                                          setRunningOrderForm({ name: item.name, group: item.group || '', inShow: item.inShow ?? true, duration: item.duration || '' });
                                           setIsRunningOrderDialogOpen(true);
                                         }}
                                       >
@@ -2626,7 +2637,7 @@ The Production Team`
                                         data-testid={`card-running-order-${item.id}`}
                                         onClick={() => {
                                           setEditingRunningOrderItem(item);
-                                          setRunningOrderForm({ name: item.name, group: item.group || '', inShow: item.inShow ?? true });
+                                          setRunningOrderForm({ name: item.name, group: item.group || '', inShow: item.inShow ?? true, duration: item.duration || '' });
                                           setIsRunningOrderDialogOpen(true);
                                         }}
                                       >
