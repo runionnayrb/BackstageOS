@@ -21,7 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Share2, Trash2, Save } from "lucide-react";
+import { Upload, Trash2, Save } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -265,8 +265,8 @@ export default function ReportViewer() {
           <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <Share2 className="h-4 w-4" />
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-transparent">
+                  <Upload className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
