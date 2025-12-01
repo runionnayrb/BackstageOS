@@ -2585,6 +2585,7 @@ The Production Team`
                                             <GripVertical className="h-4 w-4 text-muted-foreground" />
                                             <span className="text-base select-none">{item.name}</span>
                                           </div>
+                                          {item.duration && <span className="text-sm text-muted-foreground">Length: {item.duration}</span>}
                                         </div>
                                       </div>
                                     ))}
@@ -2646,6 +2647,7 @@ The Production Team`
                                             <GripVertical className="h-4 w-4 text-muted-foreground" />
                                             <span className="text-base select-none">{item.name}</span>
                                           </div>
+                                          {item.duration && <span className="text-sm text-muted-foreground">Length: {item.duration}</span>}
                                         </div>
                                       </div>
                                     ))}
