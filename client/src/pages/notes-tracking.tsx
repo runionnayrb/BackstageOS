@@ -36,6 +36,7 @@ const NotesTracking: React.FC = () => {
   const queryClient = useQueryClient();
   
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedPriority, setSelectedPriority] = useState<string>('all');
@@ -285,21 +286,47 @@ const NotesTracking: React.FC = () => {
           </div>
         </div>
         
-        <Popover open={filterOpen} onOpenChange={setFilterOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={`h-8 w-8 ${
-                hasActiveFilters
-                  ? "text-blue-600 hover:text-blue-700"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              <Filter className="h-4 w-4" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-80 p-0" align="end">
+        <div className="flex items-center gap-2">
+          {/* Animated Search Bar */}
+          <div className={`flex items-center transition-all duration-300 overflow-hidden ${
+            searchOpen ? 'w-48' : 'w-0'
+          }`}>
+            <Input
+              placeholder="Search notes..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onBlur={() => setSearchOpen(false)}
+              autoFocus
+              className="h-8 text-sm"
+            />
+          </div>
+
+          {/* Search Icon */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setSearchOpen(!searchOpen)}
+            className="h-8 w-8 text-gray-600 hover:text-gray-900"
+          >
+            <Search className="h-4 w-4" />
+          </Button>
+
+          {/* Filter Icon */}
+          <Popover open={filterOpen} onOpenChange={setFilterOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`h-8 w-8 ${
+                  hasActiveFilters
+                    ? "text-blue-600 hover:text-blue-700"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                <Filter className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80 p-0" align="end">
             <div className="p-4 border-b">
               <div className="flex items-center justify-between">
                 <h4 className="font-semibold flex items-center gap-2">
@@ -378,18 +405,9 @@ const NotesTracking: React.FC = () => {
                 </Select>
               </div>
             </div>
-          </PopoverContent>
-        </Popover>
-      </div>
-      {/* Search bar */}
-      <div className="relative">
-        <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-        <Input
-          placeholder="Search notes..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-9"
-        />
+            </PopoverContent>
+          </Popover>
+        </div>
       </div>
       {/* Notes Display */}
       <Tabs defaultValue="pending" className="w-full">
