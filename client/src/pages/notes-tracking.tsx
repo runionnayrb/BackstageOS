@@ -421,7 +421,7 @@ const NotesTracking: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <div className="p-4 space-y-2">
+              <div className="p-4 space-y-2" style={{ color: '#000000' }}>
                 {['date', 'reportType', 'department', 'priority'].map((option) => (
                   <div
                     key={option}
@@ -430,10 +430,11 @@ const NotesTracking: React.FC = () => {
                       setGroupBy(option);
                       setGroupOpen(false);
                     }}
+                    style={{ color: '#000000' }}
                   >
-                    <span className="text-sm capitalize" style={{ color: '#000' }}>
+                    <div className="text-sm capitalize" style={{ color: '#000000' }}>
                       {option === 'reportType' ? 'Report Type' : option}
-                    </span>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -483,7 +484,7 @@ const NotesTracking: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <div className="p-4 space-y-2">
+              <div className="p-4 space-y-2" style={{ color: '#000000' }}>
                 {[
                   { value: 'date-desc', label: 'Date (Newest)' },
                   { value: 'date-asc', label: 'Date (Oldest)' },
@@ -498,8 +499,9 @@ const NotesTracking: React.FC = () => {
                       setSortBy(option.value);
                       setSortOpen(false);
                     }}
+                    style={{ color: '#000000' }}
                   >
-                    <span className="text-sm" style={{ color: '#000' }}>{option.label}</span>
+                    <div className="text-sm" style={{ color: '#000000' }}>{option.label}</div>
                   </div>
                 ))}
               </div>
