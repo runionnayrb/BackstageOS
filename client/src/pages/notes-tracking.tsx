@@ -430,7 +430,7 @@ const NotesTracking: React.FC = () => {
                       setGroupOpen(false);
                     }}
                   >
-                    <span className="text-sm capitalize">
+                    <span className="text-sm capitalize text-gray-900 dark:text-gray-100">
                       {option === 'reportType' ? 'Report Type' : option}
                     </span>
                   </div>
