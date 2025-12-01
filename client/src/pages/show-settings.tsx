@@ -234,6 +234,7 @@ export default function ShowSettings() {
   
   // Running order versioning state
   const [isVersionsDialogOpen, setIsVersionsDialogOpen] = useState(false);
+  const [isVersionsMenuExpanded, setIsVersionsMenuExpanded] = useState(false);
   const [isSaveVersionDialogOpen, setIsSaveVersionDialogOpen] = useState(false);
   const [isCompareDialogOpen, setIsCompareDialogOpen] = useState(false);
   const [versionForm, setVersionForm] = useState({ label: '', notes: '' });
@@ -3182,12 +3183,115 @@ The Production Team`
           <Dialog open={isVersionsDialogOpen} onOpenChange={setIsVersionsDialogOpen}>
             <DialogContent className="max-w-4xl max-h-[80vh]">
               <DialogHeader>
-                <DialogTitle>Running Order Versions</DialogTitle>
-                <DialogDescription>
-                  View and manage saved versions of your running order. Revert to previous versions or compare changes.
-                </DialogDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <DialogTitle>Running Order Versions</DialogTitle>
+                    <DialogDescription>
+                      View and manage saved versions of your running order. Revert to previous versions or compare changes.
+                    </DialogDescription>
+                  </div>
+                  <div className="hidden md:flex items-center gap-2">
+                    <motion.div
+                      initial={false}
+                      animate={{ width: isVersionsMenuExpanded ? 'auto' : 0 }}
+                      transition={{ duration: 0.3, ease: 'easeInOut' }}
+                      style={{ overflow: 'hidden' }}
+                    >
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 px-2"
+                          data-testid="button-versions-view-action"
+                          onClick={() => {
+                            // Show the first version or most recent
+                            if ((runningOrderVersions as any[]).length > 0) {
+                              setViewingVersion((runningOrderVersions as any[])[0]);
+                            }
+                          }}
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          View
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 px-2"
+                          data-testid="button-versions-revert-action"
+                          onClick={() => {
+                            // Show revert for first version or most recent
+                            if ((runningOrderVersions as any[]).length > 0) {
+                              setSelectedVersionForRevert((runningOrderVersions as any[])[0]);
+                            }
+                          }}
+                        >
+                          <RotateCcw className="h-4 w-4 mr-1" />
+                          Revert
+                        </Button>
+                      </div>
+                    </motion.div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 hover:bg-transparent"
+                          data-testid="button-versions-export"
+                        >
+                          <Upload className="h-4 w-4 text-foreground hover:text-blue-500 transition-colors" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => {
+                          const runningOrderHTML = generateRunningOrderHTML();
+                          const today = new Date();
+                          const dateStr = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                          const subject = `${project?.name || 'Project'} Running Order - ${dateStr}`;
+                          setIsEmailModalOpen(true);
+                          setEmailForm({ to: '', cc: '', bcc: '', subject, body: runningOrderHTML });
+                          if (emailEditor) {
+                            emailEditor.commands.setContent(runningOrderHTML);
+                          }
+                        }} data-testid="menu-item-versions-email">
+                          <Mail className="h-4 w-4 mr-2" />
+                          Email
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={downloadRunningOrderPDF} data-testid="menu-item-versions-download-pdf">
+                          <Download className="h-4 w-4 mr-2" />
+                          Download PDF
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={() => setIsVersionsMenuExpanded(!isVersionsMenuExpanded)}
+                      data-testid="button-toggle-versions-menu"
+                    >
+                      <ChevronsLeft className={`h-4 w-4 transition-transform ${isVersionsMenuExpanded ? 'rotate-180' : ''}`} />
+                    </Button>
+                  </div>
+                </div>
               </DialogHeader>
-              <div className="flex justify-end mb-4 gap-2">
+              <div className="flex justify-end mb-4 gap-2 md:hidden">
+                {(runningOrderVersions as any[]).length >= 2 && (
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsCompareDialogOpen(true)} 
+                    data-testid="button-compare-versions"
+                    size="sm"
+                  >
+                    <GitCompare className="h-4 w-4 mr-2" />
+                    Compare
+                  </Button>
+                )}
+                <Button onClick={() => setIsSaveVersionDialogOpen(true)} data-testid="button-save-new-version" size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Save
+                </Button>
+              </div>
+              <div className="hidden md:flex justify-end mb-4 gap-2">
                 {(runningOrderVersions as any[]).length >= 2 && (
                   <Button 
                     variant="outline" 
