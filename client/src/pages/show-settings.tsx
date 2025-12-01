@@ -67,7 +67,8 @@ import {
   Link,
   Unlink,
   Mail,
-  GitCompare
+  GitCompare,
+  Theater
 } from "lucide-react";
 
 // Helper function to safely parse JSON with error handling
@@ -189,6 +190,12 @@ export default function ShowSettings() {
   const [editingDepartment, setEditingDepartment] = useState<{ key: string; name: string } | null>(null);
   const [departmentForm, setDepartmentForm] = useState({ name: '' });
   const [deletingDepartmentKey, setDeletingDepartmentKey] = useState<string | null>(null);
+
+  // Running order management state
+  const [isRunningOrderDialogOpen, setIsRunningOrderDialogOpen] = useState(false);
+  const [editingRunningOrderItem, setEditingRunningOrderItem] = useState<{ id: string; name: string; groupId?: string } | null>(null);
+  const [runningOrderForm, setRunningOrderForm] = useState({ name: '' });
+  const [deletingRunningOrderId, setDeletingRunningOrderId] = useState<string | null>(null);
 
   // Use admin view context to override profile type for testing
   const { selectedProfileType } = useAdminView();
@@ -1024,6 +1031,74 @@ The Production Team`
     setDeletingDepartmentKey(null);
   };
 
+  // Running order CRUD handlers
+  const handleAddRunningOrderItem = () => {
+    if (!runningOrderForm.name.trim()) {
+      toast({
+        title: "Name required",
+        description: "Please enter a name for this item.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const id = `ro-${Date.now()}`;
+    const currentRunningOrder = (settings as any)?.runningOrder || [];
+    
+    const newItem = {
+      id,
+      name: runningOrderForm.name,
+      order: currentRunningOrder.length,
+    };
+
+    const updatedRunningOrder = [...currentRunningOrder, newItem];
+    handleSettingsUpdate("runningOrder", updatedRunningOrder);
+
+    setIsRunningOrderDialogOpen(false);
+    setRunningOrderForm({ name: '' });
+  };
+
+  const handleEditRunningOrderItem = () => {
+    if (!runningOrderForm.name.trim() || !editingRunningOrderItem) {
+      toast({
+        title: "Name required",
+        description: "Please enter a name for this item.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const currentRunningOrder = (settings as any)?.runningOrder || [];
+    const updatedRunningOrder = currentRunningOrder.map((item: any) =>
+      item.id === editingRunningOrderItem.id
+        ? { ...item, name: runningOrderForm.name }
+        : item
+    );
+
+    handleSettingsUpdate("runningOrder", updatedRunningOrder);
+
+    setIsRunningOrderDialogOpen(false);
+    setEditingRunningOrderItem(null);
+    setRunningOrderForm({ name: '' });
+  };
+
+  const handleDeleteRunningOrderItem = (id: string) => {
+    const currentRunningOrder = (settings as any)?.runningOrder || [];
+    const updatedRunningOrder = currentRunningOrder.filter((item: any) => item.id !== id);
+
+    handleSettingsUpdate("runningOrder", updatedRunningOrder);
+
+    setDeletingRunningOrderId(null);
+  };
+
+  const handleReorderRunningOrder = (items: any[]) => {
+    const reorderedItems = items.map((item, index) => ({
+      ...item,
+      order: index,
+    }));
+    handleSettingsUpdate("runningOrder", reorderedItems);
+  };
+
   const copyShareLink = async () => {
     if ((settings as any)?.sharingSettings?.shareableLink) {
       try {
@@ -1236,6 +1311,10 @@ The Production Team`
             <Calendar className="h-4 w-4" />
             Schedule
           </TabsTrigger>
+          <TabsTrigger value="running-order" className="flex items-center gap-2 flex-1">
+            <Theater className="h-4 w-4" />
+            Running Order
+          </TabsTrigger>
         </TabsList>
 
         {/* Mobile dropdown - shown only on mobile */}
@@ -1278,6 +1357,12 @@ The Production Team`
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
                   Schedule
+                </div>
+              </SelectItem>
+              <SelectItem value="running-order">
+                <div className="flex items-center gap-2">
+                  <Theater className="h-4 w-4" />
+                  Running Order
                 </div>
               </SelectItem>
             </SelectContent>
@@ -2749,6 +2834,164 @@ The Production Team`}
             </CardHeader>
             <CardContent>
               <PersonalScheduleShare projectId={parseInt(params.id)} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="running-order" className="mt-6">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between md:flex-row md:items-center md:justify-between">
+                <div className="flex items-center justify-between flex-1">
+                  <CardTitle>Running Order</CardTitle>
+                  <div className="md:hidden">
+                    <Button 
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      data-testid="button-add-running-order-item"
+                      onClick={() => {
+                        setEditingRunningOrderItem(null);
+                        setRunningOrderForm({ name: '' });
+                        setIsRunningOrderDialogOpen(true);
+                      }}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="hidden md:block">
+                  <Button 
+                    data-testid="button-add-running-order-item"
+                    onClick={() => {
+                      setEditingRunningOrderItem(null);
+                      setRunningOrderForm({ name: '' });
+                      setIsRunningOrderDialogOpen(true);
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Item
+                  </Button>
+                </div>
+                
+                <Dialog open={isRunningOrderDialogOpen} onOpenChange={setIsRunningOrderDialogOpen}>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>{editingRunningOrderItem ? 'Edit Running Order Item' : 'Add Running Order Item'}</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="ro-name">Item Name</Label>
+                        <Input
+                          id="ro-name"
+                          placeholder="e.g., Act I, Scene 1, Circus Act A"
+                          value={runningOrderForm.name}
+                          onChange={(e) => setRunningOrderForm({ name: e.target.value })}
+                          data-testid="input-running-order-name"
+                        />
+                      </div>
+                    </div>
+                    <DialogFooter className="flex flex-row justify-between items-center sm:justify-between">
+                      {editingRunningOrderItem ? (
+                        <AlertDialog open={deletingRunningOrderId === editingRunningOrderItem.id} onOpenChange={(open) => !open && setDeletingRunningOrderId(null)}>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => setDeletingRunningOrderId(editingRunningOrderItem.id)}
+                              data-testid="button-delete-running-order-item-modal"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Running Order Item</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete "{editingRunningOrderItem.name}"? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => {
+                                  handleDeleteRunningOrderItem(editingRunningOrderItem.id);
+                                  setIsRunningOrderDialogOpen(false);
+                                  setEditingRunningOrderItem(null);
+                                  setRunningOrderForm({ name: '' });
+                                }}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      ) : (
+                        <div />
+                      )}
+                      <Button 
+                        onClick={editingRunningOrderItem ? handleEditRunningOrderItem : handleAddRunningOrderItem}
+                        data-testid="button-confirm-running-order-item"
+                      >
+                        {editingRunningOrderItem ? 'Update' : 'Add'} Item
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+              <CardDescription>
+                Create and organize your show's structure with flexible grouping. Add items like Acts, Scenes, or any organizational unit that works for your production.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {settings?.runningOrder && (settings.runningOrder as any[]).length > 0 ? (
+                <div className="space-y-3">
+                  {(settings.runningOrder as any[])
+                    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+                    .map((item) => (
+                      <Card 
+                        key={item.id} 
+                        className="cursor-pointer hover:shadow-md transition-shadow select-none" 
+                        data-testid={`card-running-order-${item.id}`}
+                        onClick={() => {
+                          setEditingRunningOrderItem(item);
+                          setRunningOrderForm({ name: item.name });
+                          setIsRunningOrderDialogOpen(true);
+                        }}
+                      >
+                        <CardHeader className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <GripVertical className="h-4 w-4 text-muted-foreground" />
+                              <CardTitle className="text-base select-none">{item.name}</CardTitle>
+                            </div>
+                          </div>
+                        </CardHeader>
+                      </Card>
+                    ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <Theater className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold mb-2">No running order items yet</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Create your first running order item to organize your show.
+                  </p>
+                  <Button 
+                    onClick={() => {
+                      setEditingRunningOrderItem(null);
+                      setRunningOrderForm({ name: '' });
+                      setIsRunningOrderDialogOpen(true);
+                    }}
+                    data-testid="button-add-first-running-order-item"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add First Item
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
