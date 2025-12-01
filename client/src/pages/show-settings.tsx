@@ -2252,16 +2252,16 @@ The Production Team`
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0 hover:bg-transparent"
+                    className="h-8 w-8 p-0 hover:bg-transparent group"
                     data-testid="button-download-pdf"
                     onClick={downloadRunningOrderPDF}
                   >
-                    <Download className="h-4 w-4 text-foreground hover:text-blue-500" />
+                    <Download className="h-4 w-4 text-foreground group-hover:text-blue-500 transition-colors" />
                   </Button>
                   <Button 
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0 hover:bg-transparent"
+                    className="h-8 w-8 p-0 hover:bg-transparent group"
                     data-testid="button-add-running-order-item"
                     onClick={() => {
                       setEditingRunningOrderItem(null);
@@ -2269,7 +2269,7 @@ The Production Team`
                       setIsRunningOrderDialogOpen(true);
                     }}
                   >
-                    <Plus className="h-4 w-4 text-foreground hover:text-blue-500" />
+                    <Plus className="h-4 w-4 text-foreground group-hover:text-blue-500 transition-colors" />
                   </Button>
                 </div>
                 
