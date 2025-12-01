@@ -24,7 +24,8 @@ import {
   CheckCircle2,
   X,
   Layers,
-  RotateCcw
+  RotateCcw,
+  ArrowUpDown
 } from 'lucide-react';
 import type { ReportNote } from '@shared/schema';
 
@@ -46,6 +47,8 @@ const NotesTracking: React.FC = () => {
   const [filterOpen, setFilterOpen] = useState(false);
   const [groupBy, setGroupBy] = useState<string>('none');
   const [groupOpen, setGroupOpen] = useState(false);
+  const [sortBy, setSortBy] = useState<string>('date-desc');
+  const [sortOpen, setSortOpen] = useState(false);
 
   // Fetch all notes for the project
   const { data: allNotes = [], isLoading } = useQuery<ReportNote[]>({
@@ -163,9 +166,15 @@ const NotesTracking: React.FC = () => {
     return acc;
   }, {} as Record<string, ReportNote[]>);
 
+  // Apply sorting to grouped notes
+  const sortedGroupedNotes = Object.entries(groupedNotes).reduce((acc, [key, notes]) => {
+    acc[key] = sortNotes(notes);
+    return acc;
+  }, {} as Record<string, ReportNote[]>);
+
   // Group notes by status
-  const pendingNotes = filteredNotes.filter(note => !note.isCompleted);
-  const completedNotes = filteredNotes.filter(note => note.isCompleted);
+  const pendingNotes = sortNotes(filteredNotes.filter(note => !note.isCompleted));
+  const completedNotes = sortNotes(filteredNotes.filter(note => note.isCompleted));
 
   // Get unique departments
   const departments = Array.from(new Set(allNotes.map(note => note.department).filter(Boolean)));
@@ -200,6 +209,30 @@ const NotesTracking: React.FC = () => {
 
   const handleResetGrouping = () => {
     setGroupBy('none');
+  };
+
+  const handleResetSort = () => {
+    setSortBy('date-desc');
+  };
+
+  const sortNotes = (notes: ReportNote[]) => {
+    const sorted = [...notes];
+    switch (sortBy) {
+      case 'date-asc':
+        return sorted.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      case 'date-desc':
+        return sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      case 'priority-high':
+        const priorityOrder = { high: 0, medium: 1, low: 2 };
+        return sorted.sort((a, b) => (priorityOrder[a.priority as keyof typeof priorityOrder] || 3) - (priorityOrder[b.priority as keyof typeof priorityOrder] || 3));
+      case 'priority-low':
+        const priorityOrderReverse = { low: 0, medium: 1, high: 2 };
+        return sorted.sort((a, b) => (priorityOrderReverse[a.priority as keyof typeof priorityOrderReverse] || 3) - (priorityOrderReverse[b.priority as keyof typeof priorityOrderReverse] || 3));
+      case 'status':
+        return sorted.sort((a, b) => (a.isCompleted ? 1 : 0) - (b.isCompleted ? 1 : 0));
+      default:
+        return sorted;
+    }
   };
 
   const getPriorityColor = (priority: string) => {
@@ -406,6 +439,72 @@ const NotesTracking: React.FC = () => {
             </PopoverContent>
           </Popover>
 
+          {/* Sort Icon */}
+          <Popover open={sortOpen} onOpenChange={setSortOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`h-8 w-8 ${
+                  sortBy !== 'date-desc'
+                    ? "text-blue-600 hover:text-blue-700"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                <ArrowUpDown className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80 p-0" align="end">
+              <div className="p-4 border-b">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold flex items-center gap-2">
+                    <ArrowUpDown className="h-4 w-4" />
+                    Sort By
+                  </h4>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleResetSort}
+                      className="h-8 w-8 p-0"
+                      title="Reset sort"
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSortOpen(false)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              <div className="p-4 space-y-2">
+                {[
+                  { value: 'date-desc', label: 'Date (Newest)' },
+                  { value: 'date-asc', label: 'Date (Oldest)' },
+                  { value: 'priority-high', label: 'Priority (High)' },
+                  { value: 'priority-low', label: 'Priority (Low)' },
+                  { value: 'status', label: 'Status' }
+                ].map((option) => (
+                  <div
+                    key={option.value}
+                    className="p-3 rounded hover:bg-blue-50 cursor-pointer transition-colors"
+                    onClick={() => {
+                      setSortBy(option.value);
+                      setSortOpen(false);
+                    }}
+                  >
+                    <span className="text-sm">{option.label}</span>
+                  </div>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+
           {/* Filter Icon */}
           <Popover open={filterOpen} onOpenChange={setFilterOpen}>
             <PopoverTrigger asChild>
@@ -563,7 +662,7 @@ const NotesTracking: React.FC = () => {
         </Tabs>
       ) : (
         <div className="space-y-4">
-          {Object.entries(groupedNotes).map(([group, notes]) => (
+          {Object.entries(sortedGroupedNotes).map(([group, notes]) => (
             <div key={group}>
               <h3 className="text-sm font-semibold text-gray-700 mb-3 px-1">{group}</h3>
               <div className="space-y-3">
