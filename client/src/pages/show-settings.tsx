@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { motion } from "framer-motion";
 import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
@@ -76,7 +77,8 @@ import {
   History,
   RotateCcw,
   Check,
-  FileCheck
+  FileCheck,
+  ChevronsLeft
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -205,6 +207,7 @@ export default function ShowSettings() {
   const [editingRunningOrderItem, setEditingRunningOrderItem] = useState<{ id: string; name: string; groupId?: string } | null>(null);
   const [runningOrderForm, setRunningOrderForm] = useState({ name: '', group: '', inShow: true });
   const [deletingRunningOrderId, setDeletingRunningOrderId] = useState<string | null>(null);
+  const [isRunningOrderMenuExpanded, setIsRunningOrderMenuExpanded] = useState(false);
   const [isStructureDialogOpen, setIsStructureDialogOpen] = useState(false);
   const [isEditingStructureGroupModalOpen, setIsEditingStructureGroupModalOpen] = useState(false);
   const [editingStructureGroup, setEditingStructureGroup] = useState<{ id: string; name: string; order: number } | null>(null);
@@ -2121,22 +2124,40 @@ The Production Team`
                     </Button>
                   </div>
                 </div>
-                <div className="hidden md:flex gap-2">
-                  <Button
-                    variant="outline"
-                    data-testid="button-versions"
-                    onClick={() => setIsVersionsDialogOpen(true)}
+                <div className="hidden md:flex items-center gap-2">
+                  <motion.div
+                    initial={false}
+                    animate={{ width: isRunningOrderMenuExpanded ? 'auto' : 0 }}
+                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                    style={{ overflow: 'hidden' }}
                   >
-                    <History className="h-4 w-4 mr-2" />
-                    Versions
-                  </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        data-testid="button-versions"
+                        onClick={() => setIsVersionsDialogOpen(true)}
+                      >
+                        <History className="h-4 w-4 mr-2" />
+                        Versions
+                      </Button>
+                      <Button
+                        variant="outline"
+                        data-testid="button-manage-structure"
+                        onClick={() => setIsStructureDialogOpen(true)}
+                      >
+                        <Layers className="h-4 w-4 mr-2" />
+                        Structure
+                      </Button>
+                    </div>
+                  </motion.div>
                   <Button
-                    variant="outline"
-                    data-testid="button-manage-structure"
-                    onClick={() => setIsStructureDialogOpen(true)}
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={() => setIsRunningOrderMenuExpanded(!isRunningOrderMenuExpanded)}
+                    data-testid="button-toggle-running-order-menu"
                   >
-                    <Layers className="h-4 w-4 mr-2" />
-                    Structure
+                    <ChevronsLeft className={`h-4 w-4 transition-transform ${isRunningOrderMenuExpanded ? 'rotate-180' : ''}`} />
                   </Button>
                   <Button 
                     data-testid="button-add-running-order-item"
