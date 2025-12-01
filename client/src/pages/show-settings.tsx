@@ -2870,6 +2870,14 @@ The Production Team`
                           // Parse email addresses (handle comma-separated values)
                           const parseEmails = (str: string) => str.split(',').map(e => e.trim()).filter(e => e);
                           
+                          // Generate and encode PDF
+                          const pdfDoc = new jsPDF();
+                          pdfDoc.setFontSize(14);
+                          pdfDoc.text(emailForm.subject, 10, 10);
+                          pdfDoc.setFontSize(11);
+                          pdfDoc.text('Running Order', 10, 20);
+                          const pdfBase64 = pdfDoc.output('dataurlstring').split(',')[1];
+                          
                           try {
                             const response = await apiRequest('POST', '/api/user/email-provider/send', {
                               to: parseEmails(emailForm.to),
@@ -2878,6 +2886,12 @@ The Production Team`
                               subject: emailForm.subject,
                               body: emailForm.body,
                               isHtml: true,
+                              attachments: [{
+                                filename: 'Running Order.pdf',
+                                content: pdfBase64,
+                                encoding: 'base64',
+                                contentType: 'application/pdf'
+                              }]
                             });
                             
                             if (response.success || response.messageId) {
