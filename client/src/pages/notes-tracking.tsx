@@ -408,7 +408,7 @@ const NotesTracking: React.FC = () => {
               <div className="flex items-center justify-between">
                 <h4 className="font-semibold flex items-center gap-2">
                   <Filter className="h-4 w-4" />
-                  Filters
+                  Filter By
                 </h4>
                 <Button
                   variant="ghost"
