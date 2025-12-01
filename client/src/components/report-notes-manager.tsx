@@ -17,6 +17,9 @@ interface ReportNotesManagerProps {
   department?: string;
   isEditing?: boolean;
   placeholder?: string;
+  selectedPriorities?: string[];
+  selectedStatuses?: string[];
+  selectedAssignees?: number[];
 }
 
 interface User {
@@ -32,7 +35,10 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
   reportType,
   department,
   isEditing = true,
-  placeholder = "1. No notes. Thank you."
+  placeholder = "1. No notes. Thank you.",
+  selectedPriorities = [],
+  selectedStatuses = [],
+  selectedAssignees = []
 }) => {
   const [newNoteContent, setNewNoteContent] = useState('');
   const [editingNote, setEditingNote] = useState<number | null>(null);
@@ -305,6 +311,28 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
   // Sort notes by order
   const sortedNotes = [...notes].sort((a, b) => (a.noteOrder || 0) - (b.noteOrder || 0));
 
+  // Apply filters
+  const filteredNotes = sortedNotes.filter((note) => {
+    // Filter by priority
+    if (selectedPriorities.length > 0 && !selectedPriorities.includes(note.priority || 'medium')) {
+      return false;
+    }
+    // Filter by status
+    if (selectedStatuses.length > 0) {
+      const noteStatus = note.isCompleted ? 'completed' : 'incomplete';
+      if (!selectedStatuses.includes(noteStatus)) {
+        return false;
+      }
+    }
+    // Filter by assignee
+    if (selectedAssignees.length > 0) {
+      if (!note.assignedTo || !selectedAssignees.includes(note.assignedTo)) {
+        return false;
+      }
+    }
+    return true;
+  });
+
   if (isLoading) {
     return <div className="text-sm text-muted-foreground">Loading notes...</div>;
   }
@@ -313,7 +341,7 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
     <div>
       {/* Notes list */}
       <div>
-        {sortedNotes.map((note, index) => (
+        {filteredNotes.map((note, index) => (
             <div 
               key={note.id}
               className={`px-4 py-1 ${
@@ -323,7 +351,7 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
               <div className="flex items-start justify-between gap-2">
                 {/* Note content with inline number */}
                 <div className="flex-1 flex items-start gap-2">
-                  <span className="font-medium text-sm mt-[2px]">{index + 1}.</span>
+                  <span className="font-medium text-sm mt-[2px]">{sortedNotes.indexOf(note) + 1}.</span>
                   {editingNote === note.id ? (
                     <Textarea
                       data-note-id={note.id}

@@ -15,6 +15,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Clock, Settings, Star, Users, FileText, ArrowLeft, Bold, Italic, Underline, List, ListOrdered } from "lucide-react";
 import ReportNotesManager from "@/components/report-notes-manager";
+import ReportNotesFilter from "@/components/report-notes-filter";
 import { NoteStatusPopup } from "@/components/note-status-popup";
 
 const reportSchema = z.object({
@@ -108,6 +109,9 @@ export default function ReportBuilder() {
 
   // Refs for department fields (for note status popup)
   const departmentFieldRefs = useRef<Record<string, React.RefObject<HTMLDivElement>>>({});
+
+  // Report notes filter state
+  const [noteFilters, setNoteFilters] = useState<Record<string, { priorities: string[]; statuses: string[]; assignees: number[] }>>({});
 
   // Find the template matching the query param, report's templateId, or report type
   let matchingTemplate = null;
@@ -845,19 +849,50 @@ export default function ReportBuilder() {
             if (isDepartment) {
               const department = section.content.department;
               const displayName = template.departmentNames?.[department] || section.content.displayName || department;
+              const departmentFilters = noteFilters[department] || { priorities: [], statuses: [], assignees: [] };
               
               return (
                 <div key={section.id} className="mb-6">
                   <div 
-                    className="text-sm font-bold px-2 py-1 mb-2"
-                    style={{
-                      backgroundColor: fieldHeaderFormatting?.backgroundColor || '#000000',
-                      color: fieldHeaderFormatting?.color || '#ffffff',
-                      fontFamily: fieldHeaderFormatting?.fontFamily || 'Arial',
-                      fontSize: fieldHeaderFormatting?.fontSize || '14px'
-                    }}
+                    className="flex items-center justify-between mb-2"
                   >
-                    {displayName}
+                    <div 
+                      className="text-sm font-bold px-2 py-1 flex-1"
+                      style={{
+                        backgroundColor: fieldHeaderFormatting?.backgroundColor || '#000000',
+                        color: fieldHeaderFormatting?.color || '#ffffff',
+                        fontFamily: fieldHeaderFormatting?.fontFamily || 'Arial',
+                        fontSize: fieldHeaderFormatting?.fontSize || '14px'
+                      }}
+                    >
+                      {displayName}
+                    </div>
+                    {reportId && (
+                      <ReportNotesFilter
+                        selectedPriorities={departmentFilters.priorities}
+                        onPriorityFilterChange={(priorities) => {
+                          setNoteFilters(prev => ({
+                            ...prev,
+                            [department]: { ...prev[department], priorities }
+                          }));
+                        }}
+                        selectedStatuses={departmentFilters.statuses}
+                        onStatusFilterChange={(statuses) => {
+                          setNoteFilters(prev => ({
+                            ...prev,
+                            [department]: { ...prev[department], statuses }
+                          }));
+                        }}
+                        selectedAssignees={departmentFilters.assignees}
+                        onAssigneeFilterChange={(assignees) => {
+                          setNoteFilters(prev => ({
+                            ...prev,
+                            [department]: { ...prev[department], assignees }
+                          }));
+                        }}
+                        teamMembers={teamMembers}
+                      />
+                    )}
                   </div>
                   {reportId ? (
                     <ReportNotesManager 
@@ -865,6 +900,9 @@ export default function ReportBuilder() {
                       projectId={projectId}
                       reportType={reportType || ""}
                       department={department}
+                      selectedPriorities={departmentFilters.priorities}
+                      selectedStatuses={departmentFilters.statuses}
+                      selectedAssignees={departmentFilters.assignees}
                     />
                   ) : (
                     <div className="border rounded-lg p-4 bg-gray-50">
