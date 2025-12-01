@@ -6,6 +6,7 @@ import { useBetaFeatures } from "@/hooks/useBetaFeatures";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -2449,7 +2450,17 @@ The Production Team`
                   View and manage saved versions of your running order. Revert to previous versions or compare changes.
                 </DialogDescription>
               </DialogHeader>
-              <div className="flex justify-end mb-4">
+              <div className="flex justify-end mb-4 gap-2">
+                {(runningOrderVersions as any[]).length >= 2 && (
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsCompareDialogOpen(true)} 
+                    data-testid="button-compare-versions"
+                  >
+                    <GitCompare className="h-4 w-4 mr-2" />
+                    Compare Versions
+                  </Button>
+                )}
                 <Button onClick={() => setIsSaveVersionDialogOpen(true)} data-testid="button-save-new-version">
                   <Plus className="h-4 w-4 mr-2" />
                   Save Current as New Version
@@ -2684,6 +2695,236 @@ The Production Team`
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
+
+          {/* Version Comparison Dialog */}
+          <Dialog open={isCompareDialogOpen} onOpenChange={(open) => {
+            setIsCompareDialogOpen(open);
+            if (!open) setSelectedVersionsToCompare([]);
+          }}>
+            <DialogContent className="max-w-4xl max-h-[85vh]">
+              <DialogHeader>
+                <DialogTitle>Compare Versions</DialogTitle>
+                <DialogDescription>
+                  Select two versions to compare and see what changed between them.
+                </DialogDescription>
+              </DialogHeader>
+              
+              {selectedVersionsToCompare.length < 2 ? (
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Select {2 - selectedVersionsToCompare.length} more version{selectedVersionsToCompare.length === 1 ? '' : 's'} to compare:
+                  </p>
+                  <ScrollArea className="h-[400px]">
+                    <div className="space-y-2">
+                      {(runningOrderVersions as any[]).map((version: any) => (
+                        <div 
+                          key={version.id}
+                          className={`border rounded-lg p-3 cursor-pointer transition-colors ${
+                            selectedVersionsToCompare.includes(version.id) 
+                              ? 'border-primary bg-primary/5' 
+                              : 'hover:bg-muted/50'
+                          }`}
+                          onClick={() => {
+                            if (selectedVersionsToCompare.includes(version.id)) {
+                              setSelectedVersionsToCompare(selectedVersionsToCompare.filter(id => id !== version.id));
+                            } else if (selectedVersionsToCompare.length < 2) {
+                              setSelectedVersionsToCompare([...selectedVersionsToCompare, version.id]);
+                            }
+                          }}
+                          data-testid={`compare-select-version-${version.id}`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Checkbox 
+                                checked={selectedVersionsToCompare.includes(version.id)}
+                                className="pointer-events-none"
+                              />
+                              <span className="font-semibold">v{version.versionNumber}</span>
+                              {version.label && <Badge variant="outline">{version.label}</Badge>}
+                            </div>
+                            <span className="text-sm text-muted-foreground">
+                              {new Date(version.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </div>
+              ) : (
+                (() => {
+                  const versions = runningOrderVersions as any[];
+                  const version1 = versions.find(v => v.id === selectedVersionsToCompare[0]);
+                  const version2 = versions.find(v => v.id === selectedVersionsToCompare[1]);
+                  
+                  if (!version1 || !version2) return null;
+                  
+                  const older = version1.versionNumber < version2.versionNumber ? version1 : version2;
+                  const newer = version1.versionNumber < version2.versionNumber ? version2 : version1;
+                  
+                  const olderItems = (older.runningOrder || []) as any[];
+                  const newerItems = (newer.runningOrder || []) as any[];
+                  const olderGroups = (older.structureGroups || []) as any[];
+                  const newerGroups = (newer.structureGroups || []) as any[];
+                  
+                  const olderItemIds = new Set(olderItems.map(item => item.id));
+                  const newerItemIds = new Set(newerItems.map(item => item.id));
+                  const olderGroupNames = new Set(olderGroups.map(g => g.name));
+                  const newerGroupNames = new Set(newerGroups.map(g => g.name));
+                  
+                  const addedItems = newerItems.filter(item => !olderItemIds.has(item.id));
+                  const removedItems = olderItems.filter(item => !newerItemIds.has(item.id));
+                  const modifiedItems = newerItems.filter(item => {
+                    if (!olderItemIds.has(item.id)) return false;
+                    const oldItem = olderItems.find(o => o.id === item.id);
+                    return oldItem && (oldItem.name !== item.name || oldItem.group !== item.group || oldItem.order !== item.order);
+                  });
+                  
+                  const addedGroups = newerGroups.filter(g => !olderGroupNames.has(g.name));
+                  const removedGroups = olderGroups.filter(g => !newerGroupNames.has(g.name));
+                  
+                  const hasChanges = addedItems.length > 0 || removedItems.length > 0 || modifiedItems.length > 0 || addedGroups.length > 0 || removedGroups.length > 0;
+                  
+                  return (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4 text-sm">
+                          <span className="text-muted-foreground">Comparing:</span>
+                          <Badge variant="secondary">v{older.versionNumber} {older.label && `(${older.label})`}</Badge>
+                          <span className="text-muted-foreground">→</span>
+                          <Badge variant="default">v{newer.versionNumber} {newer.label && `(${newer.label})`}</Badge>
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setSelectedVersionsToCompare([])}
+                        >
+                          Change Selection
+                        </Button>
+                      </div>
+                      
+                      <ScrollArea className="h-[400px]">
+                        {!hasChanges ? (
+                          <div className="text-center py-12 text-muted-foreground">
+                            <Check className="h-12 w-12 mx-auto mb-4" />
+                            <p>No differences found between these versions.</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-6">
+                            {/* Summary */}
+                            <div className="flex gap-4 p-3 bg-muted/50 rounded-lg">
+                              <div className="text-center flex-1">
+                                <div className="text-2xl font-bold text-green-600">{addedItems.length}</div>
+                                <div className="text-xs text-muted-foreground">Added</div>
+                              </div>
+                              <div className="text-center flex-1">
+                                <div className="text-2xl font-bold text-red-600">{removedItems.length}</div>
+                                <div className="text-xs text-muted-foreground">Removed</div>
+                              </div>
+                              <div className="text-center flex-1">
+                                <div className="text-2xl font-bold text-yellow-600">{modifiedItems.length}</div>
+                                <div className="text-xs text-muted-foreground">Modified</div>
+                              </div>
+                            </div>
+                            
+                            {/* Added Items */}
+                            {addedItems.length > 0 && (
+                              <div>
+                                <h4 className="text-sm font-semibold text-green-600 mb-2 flex items-center gap-2">
+                                  <Plus className="h-4 w-4" /> Added Items
+                                </h4>
+                                <div className="space-y-1 pl-4">
+                                  {addedItems.map((item, i) => (
+                                    <div key={i} className="text-sm p-2 bg-green-50 dark:bg-green-950/20 rounded border-l-2 border-green-500">
+                                      {item.name} {item.group && <span className="text-muted-foreground">({item.group})</span>}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Removed Items */}
+                            {removedItems.length > 0 && (
+                              <div>
+                                <h4 className="text-sm font-semibold text-red-600 mb-2 flex items-center gap-2">
+                                  <Trash2 className="h-4 w-4" /> Removed Items
+                                </h4>
+                                <div className="space-y-1 pl-4">
+                                  {removedItems.map((item, i) => (
+                                    <div key={i} className="text-sm p-2 bg-red-50 dark:bg-red-950/20 rounded border-l-2 border-red-500 line-through">
+                                      {item.name} {item.group && <span className="text-muted-foreground">({item.group})</span>}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Modified Items */}
+                            {modifiedItems.length > 0 && (
+                              <div>
+                                <h4 className="text-sm font-semibold text-yellow-600 mb-2 flex items-center gap-2">
+                                  <Pencil className="h-4 w-4" /> Modified Items
+                                </h4>
+                                <div className="space-y-1 pl-4">
+                                  {modifiedItems.map((item, i) => {
+                                    const oldItem = olderItems.find(o => o.id === item.id);
+                                    return (
+                                      <div key={i} className="text-sm p-2 bg-yellow-50 dark:bg-yellow-950/20 rounded border-l-2 border-yellow-500">
+                                        <div className="flex items-center gap-2">
+                                          <span className="line-through text-muted-foreground">{oldItem?.name}</span>
+                                          <span>→</span>
+                                          <span>{item.name}</span>
+                                        </div>
+                                        {oldItem?.group !== item.group && (
+                                          <div className="text-xs text-muted-foreground mt-1">
+                                            Group: {oldItem?.group || 'Ungrouped'} → {item.group || 'Ungrouped'}
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Group Changes */}
+                            {(addedGroups.length > 0 || removedGroups.length > 0) && (
+                              <div>
+                                <h4 className="text-sm font-semibold text-muted-foreground mb-2 flex items-center gap-2">
+                                  <Layers className="h-4 w-4" /> Structure Group Changes
+                                </h4>
+                                <div className="space-y-1 pl-4">
+                                  {addedGroups.map((group, i) => (
+                                    <div key={`add-${i}`} className="text-sm p-2 bg-green-50 dark:bg-green-950/20 rounded">
+                                      <span className="text-green-600">+ </span>{group.name}
+                                    </div>
+                                  ))}
+                                  {removedGroups.map((group, i) => (
+                                    <div key={`rem-${i}`} className="text-sm p-2 bg-red-50 dark:bg-red-950/20 rounded line-through">
+                                      <span className="text-red-600">- </span>{group.name}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </ScrollArea>
+                    </div>
+                  );
+                })()
+              )}
+              
+              <DialogFooter>
+                <Button variant="outline" onClick={() => {
+                  setIsCompareDialogOpen(false);
+                  setSelectedVersionsToCompare([]);
+                }}>
+                  Close
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </TabsContent>
 
         <TabsContent value="departments" className="mt-6">
