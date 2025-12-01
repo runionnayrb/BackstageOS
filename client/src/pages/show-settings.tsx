@@ -2583,7 +2583,7 @@ The Production Team`
                                         <div className="flex items-center gap-2">
                                           <GripVertical className="h-4 w-4 text-muted-foreground" />
                                           <span className="text-base select-none flex-1">{item.name}</span>
-                                          {item.duration && <div className="text-sm text-muted-foreground flex" style={{width: '140px', gap: '2px'}}><span>Length:</span><span className="text-right flex-1">{item.duration}</span></div>}
+                                          {item.duration && <div className="text-sm text-muted-foreground flex" style={{width: '140px', gap: '1px'}}><span>Length:</span><span className="text-right flex-1">{item.duration}</span></div>}
                                         </div>
                                       </div>
                                     ))}
@@ -2643,7 +2643,7 @@ The Production Team`
                                         <div className="flex items-center gap-2">
                                           <GripVertical className="h-4 w-4 text-muted-foreground" />
                                           <span className="text-base select-none flex-1">{item.name}</span>
-                                          {item.duration && <div className="text-sm text-muted-foreground flex" style={{width: '140px', gap: '2px'}}><span>Length:</span><span className="text-right flex-1">{item.duration}</span></div>}
+                                          {item.duration && <div className="text-sm text-muted-foreground flex" style={{width: '140px', gap: '1px'}}><span>Length:</span><span className="text-right flex-1">{item.duration}</span></div>}
                                         </div>
                                       </div>
                                     ))}
