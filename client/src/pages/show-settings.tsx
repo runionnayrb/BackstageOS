@@ -277,17 +277,17 @@ export default function ShowSettings() {
 
   // Sync email form when modal opens
   useEffect(() => {
-    if (isEmailModalOpen && !emailForm.subject && project?.name) {
+    if (isEmailModalOpen && !emailForm.subject) {
       const today = new Date();
       const dateStr = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-      const subject = `${project.name} Running Order - ${dateStr}`;
+      const subject = `${project?.name || 'Project'} Running Order - ${dateStr}`;
       setEmailForm(prev => ({ ...prev, subject }));
     }
     // Sync editor content
     if (emailEditor && isEmailModalOpen && emailForm.body) {
       emailEditor.commands.setContent(emailForm.body);
     }
-  }, [isEmailModalOpen, emailEditor, emailForm.body, project?.name]);
+  }, [isEmailModalOpen, emailEditor, emailForm.body]);
 
   // Use admin view context to override profile type for testing
   const { selectedProfileType } = useAdminView();
