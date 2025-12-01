@@ -2274,13 +2274,13 @@ The Production Team`
                       return sortedGroups.map((groupName) => (
                         <div key={groupName} className="space-y-2">
                           <h4 className="text-sm font-semibold text-muted-foreground px-2">{groupName}</h4>
-                          <div className="space-y-2 pl-2 border-l-2 border-muted-foreground/30">
+                          <div className="space-y-2">
                             {grouped[groupName]
                               .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
                               .map((item) => (
-                                <Card 
+                                <div
                                   key={item.id} 
-                                  className="cursor-pointer hover:shadow-md transition-shadow select-none" 
+                                  className="cursor-pointer hover:shadow-md transition-shadow select-none p-4 rounded-md bg-background" 
                                   data-testid={`card-running-order-${item.id}`}
                                   onClick={() => {
                                     setEditingRunningOrderItem(item);
@@ -2288,15 +2288,13 @@ The Production Team`
                                     setIsRunningOrderDialogOpen(true);
                                   }}
                                 >
-                                  <CardHeader className="p-4">
-                                    <div className="flex items-center justify-between">
-                                      <div className="flex items-center gap-2">
-                                        <GripVertical className="h-4 w-4 text-muted-foreground" />
-                                        <CardTitle className="text-base select-none">{item.name}</CardTitle>
-                                      </div>
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      <GripVertical className="h-4 w-4 text-muted-foreground" />
+                                      <span className="text-base select-none">{item.name}</span>
                                     </div>
-                                  </CardHeader>
-                                </Card>
+                                  </div>
+                                </div>
                               ))}
                           </div>
                         </div>
