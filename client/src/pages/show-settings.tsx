@@ -14,6 +14,9 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Underline from '@tiptap/extension-underline';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -80,7 +83,11 @@ import {
   Check,
   FileCheck,
   ChevronsLeft,
-  Upload
+  Upload,
+  Bold,
+  Italic,
+  List,
+  ListOrdered
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -238,6 +245,32 @@ export default function ShowSettings() {
   const [emailForm, setEmailForm] = useState({ to: '', cc: '', bcc: '', subject: '', body: '' });
   const [showCCField, setShowCCField] = useState(false);
   const [showBCCField, setShowBCCField] = useState(false);
+  
+  // Email body rich text editor
+  const emailEditor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        heading: false,
+        code: false,
+        codeBlock: false,
+        blockquote: false,
+        horizontalRule: false,
+        dropcursor: false,
+        gapcursor: false,
+        strike: false,
+      }),
+      Underline,
+    ],
+    content: emailForm.body || '',
+    onUpdate: ({ editor }) => {
+      setEmailForm({ ...emailForm, body: editor.getHTML() });
+    },
+    editorProps: {
+      attributes: {
+        class: 'prose prose-sm max-w-none focus:outline-none min-h-[120px] p-3',
+      },
+    },
+  });
 
   // Use admin view context to override profile type for testing
   const { selectedProfileType } = useAdminView();
@@ -2638,14 +2671,81 @@ The Production Team`
 
                       <div>
                         <Label htmlFor="email-body">Message</Label>
-                        <Textarea
-                          id="email-body"
-                          placeholder="Email message body"
-                          value={emailForm.body}
-                          onChange={(e) => setEmailForm({ ...emailForm, body: e.target.value })}
-                          data-testid="textarea-email-body"
-                          className="min-h-32"
-                        />
+                        {emailEditor && (
+                          <div className="border border-gray-200 dark:border-gray-700 rounded-md focus-within:ring-2 focus-within:ring-blue-500">
+                            {/* Toolbar */}
+                            <div className="border-b border-gray-200 dark:border-gray-700 p-2 flex gap-1 bg-gray-50 dark:bg-gray-900">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => emailEditor.chain().focus().toggleBold().run()}
+                                className={`h-8 w-8 p-0 ${emailEditor.isActive('bold') ? 'bg-blue-200 dark:bg-blue-900' : ''}`}
+                                title="Bold"
+                                data-testid="button-email-bold"
+                              >
+                                <Bold className="h-4 w-4" />
+                              </Button>
+                              
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => emailEditor.chain().focus().toggleItalic().run()}
+                                className={`h-8 w-8 p-0 ${emailEditor.isActive('italic') ? 'bg-blue-200 dark:bg-blue-900' : ''}`}
+                                title="Italic"
+                                data-testid="button-email-italic"
+                              >
+                                <Italic className="h-4 w-4" />
+                              </Button>
+                              
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => emailEditor.chain().focus().toggleUnderline().run()}
+                                className={`h-8 w-8 p-0 ${emailEditor.isActive('underline') ? 'bg-blue-200 dark:bg-blue-900' : ''}`}
+                                title="Underline"
+                                data-testid="button-email-underline"
+                              >
+                                <UnderlineIcon className="h-4 w-4" />
+                              </Button>
+                              
+                              <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1" />
+                              
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => emailEditor.chain().focus().toggleBulletList().run()}
+                                className={`h-8 w-8 p-0 ${emailEditor.isActive('bulletList') ? 'bg-blue-200 dark:bg-blue-900' : ''}`}
+                                title="Bullet List"
+                                data-testid="button-email-bullet-list"
+                              >
+                                <List className="h-4 w-4" />
+                              </Button>
+                              
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => emailEditor.chain().focus().toggleOrderedList().run()}
+                                className={`h-8 w-8 p-0 ${emailEditor.isActive('orderedList') ? 'bg-blue-200 dark:bg-blue-900' : ''}`}
+                                title="Numbered List"
+                                data-testid="button-email-ordered-list"
+                              >
+                                <ListOrdered className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            
+                            {/* Editor */}
+                            <EditorContent 
+                              editor={emailEditor}
+                              data-testid="editor-email-body"
+                              className="[&_.ProseMirror]:outline-none [&_.ProseMirror]:p-3 [&_.ProseMirror]:min-h-[120px]"
+                            />
+                          </div>
+                        )}
                       </div>
 
                       <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded text-sm text-blue-900 dark:text-blue-100">
