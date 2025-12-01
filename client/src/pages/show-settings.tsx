@@ -270,7 +270,7 @@ export default function ShowSettings() {
     },
     editorProps: {
       attributes: {
-        class: 'prose prose-sm max-w-none focus:outline-none min-h-[120px] p-3 [&_ul]:text-inherit [&_li]:text-inherit [&_h2]:text-inherit',
+        class: 'prose prose-sm max-w-none focus:outline-none min-h-[120px] p-3 [&_ul]:text-inherit [&_li]:text-inherit [&_h3]:text-inherit',
       },
     },
   });
@@ -1329,7 +1329,7 @@ The Production Team`
     let html = '';
     sortedGroups.forEach((groupName) => {
       if (groupName !== 'Ungrouped') {
-        html += `<h2>${groupName}</h2>`;
+        html += `<h3>${groupName}</h3>`;
       }
       html += '<ul style="color: inherit; list-style-color: inherit;">';
       grouped[groupName]
