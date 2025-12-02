@@ -109,13 +109,13 @@ export function TemplateWeekEditor({ templateId, projectId, weekStartDay }: Temp
       grouped[i] = [];
     }
     events.forEach(event => {
-      if (grouped[event.dayOfWeek]) {
+      if (event.dayOfWeek >= 0 && event.dayOfWeek <= 6) {
         grouped[event.dayOfWeek].push(event);
       }
     });
-    Object.keys(grouped).forEach(day => {
-      grouped[parseInt(day)].sort((a, b) => a.startTime.localeCompare(b.startTime));
-    });
+    for (let i = 0; i < 7; i++) {
+      grouped[i].sort((a, b) => a.startTime.localeCompare(b.startTime));
+    }
     return grouped;
   }, [events]);
 
