@@ -141,7 +141,7 @@ export default function WaitlistLanding() {
     {
       icon: Calendar,
       title: "Visual Drag-and-Drop Calendar",
-      description: "Monthly, weekly, and daily views with personalized schedules for each team member. Publish major and minor versions, manage timezones, customize event types with color coding, and use schedule templates for quick setup.",
+      description: "Monthly, weekly, and daily views with personalized schedules for each team member. Publish major and minor versions, manage timezones, customize event types with color coding. Save schedule templates to snapshot a week's events and instantly replicate them to other weeks.",
       comingSoon: false
     },
     {

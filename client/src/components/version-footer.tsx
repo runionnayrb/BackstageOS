@@ -6,9 +6,27 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, CheckCircle, Archive } from "lucide-react";
 import { Link } from "wouter";
 
-const CURRENT_VERSION = "26.4.0";
+const CURRENT_VERSION = "26.5.0";
 
 const RELEASE_NOTES = [
+  {
+    version: "26.5.0",
+    date: "December 2, 2025",
+    type: "Major",
+    features: [
+      "<strong><u>SCHEDULE TEMPLATES:</u></strong>",
+      "New Schedule Templates feature allowing users to save a week's schedule as a template and replicate it to any other week",
+      "Template editor with identical visual design and functionality to main schedule page for consistency",
+      "Full support for template events including click-to-edit, drag-to-move for timed events, and proper overlapping event layout",
+      "Optimistic UI updates with automatic rollback on errors for smooth user experience",
+      "Template event popover with proper open/close state management preventing flash-close bugs",
+      "<strong><u>SCHEDULE PAGE IMPROVEMENTS:</u></strong>",
+      "Frozen header with sticky positioning containing controls, dates, publishing features, and personal schedules",
+      "Fixed scrollbar behavior maintaining 600px max-height scroll container with proper alignment",
+      "Restored original scroll functionality while keeping main page header frozen at top",
+      "Removed redundant toast notifications from auto-saving template mutations to reduce UI noise"
+    ]
+  },
   {
     version: "26.4.0",
     date: "November 27, 2025",
