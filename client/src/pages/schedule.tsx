@@ -839,7 +839,7 @@ The Production Team`
   return (
     <div className="w-full h-screen flex flex-col">
       {/* Desktop Header - Unified Weekly View Style */}
-      <div className="hidden md:block px-4 sm:px-6 lg:px-8 py-4 sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+      <div className="hidden md:block px-4 sm:px-6 lg:px-8 py-4 sticky top-0 z-50 bg-white">
         <div className="flex items-center justify-between mb-4">
           {/* Left side - Dynamic Date/Range display */}
           <div className="flex items-center">
@@ -1126,7 +1126,7 @@ The Production Team`
       </div>
 
       {/* Mobile Header */}
-      <div className="md:hidden sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+      <div className="md:hidden sticky top-0 z-50 bg-white">
         {/* Main Mobile Header */}
         <div className="px-4 py-3 border-b border-gray-200">
           <div className="flex items-center justify-between">
