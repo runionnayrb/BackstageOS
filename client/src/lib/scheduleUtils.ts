@@ -102,3 +102,149 @@ export function formatDateInTimezone(date: Date, timeZone: string): string {
     return date.toLocaleDateString('en-US');
   }
 }
+
+// ============================================
+// Overlap Detection and Layout Calculation
+// ============================================
+
+interface EventForLayout {
+  id: number;
+  startTime: string;
+  endTime: string;
+  isAllDay?: boolean;
+}
+
+interface EventLayout {
+  column: number;
+  totalColumns: number;
+  width: number;
+  left: number;
+}
+
+// Convert time string "HH:MM" or "HH:MM:SS" to minutes from midnight
+function timeToMinutes(time: string): number {
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + minutes;
+}
+
+// Check if two events overlap in time
+function eventsOverlap(eventA: EventForLayout, eventB: EventForLayout): boolean {
+  const startA = timeToMinutes(eventA.startTime);
+  const endA = timeToMinutes(eventA.endTime);
+  const startB = timeToMinutes(eventB.startTime);
+  const endB = timeToMinutes(eventB.endTime);
+  
+  // Events overlap if one starts before the other ends
+  return startA < endB && startB < endA;
+}
+
+// Find all events that overlap with a given event
+function findOverlappingEvents(event: EventForLayout, allEvents: EventForLayout[]): EventForLayout[] {
+  return allEvents.filter(other => other.id !== event.id && eventsOverlap(event, other));
+}
+
+// Group events into clusters of overlapping events
+function groupOverlappingEvents(events: EventForLayout[]): EventForLayout[][] {
+  const groups: EventForLayout[][] = [];
+  const assigned = new Set<number>();
+  
+  for (const event of events) {
+    if (assigned.has(event.id)) continue;
+    
+    // Start a new group with this event
+    const group: EventForLayout[] = [event];
+    assigned.add(event.id);
+    
+    // Find all events that overlap with any event in this group
+    let i = 0;
+    while (i < group.length) {
+      const current = group[i];
+      for (const other of events) {
+        if (!assigned.has(other.id) && eventsOverlap(current, other)) {
+          group.push(other);
+          assigned.add(other.id);
+        }
+      }
+      i++;
+    }
+    
+    groups.push(group);
+  }
+  
+  return groups;
+}
+
+// Assign columns to events within a group using a greedy algorithm
+function assignColumns(group: EventForLayout[]): Map<number, number> {
+  // Sort by start time, then by end time
+  const sorted = [...group].sort((a, b) => {
+    const startA = timeToMinutes(a.startTime);
+    const startB = timeToMinutes(b.startTime);
+    if (startA !== startB) return startA - startB;
+    return timeToMinutes(a.endTime) - timeToMinutes(b.endTime);
+  });
+  
+  const columnAssignments = new Map<number, number>();
+  const columnEndTimes: number[] = [];
+  
+  for (const event of sorted) {
+    const startTime = timeToMinutes(event.startTime);
+    
+    // Find the first column where the event fits (column ends before this event starts)
+    let assignedColumn = -1;
+    for (let col = 0; col < columnEndTimes.length; col++) {
+      if (columnEndTimes[col] <= startTime) {
+        assignedColumn = col;
+        break;
+      }
+    }
+    
+    // If no suitable column found, create a new one
+    if (assignedColumn === -1) {
+      assignedColumn = columnEndTimes.length;
+      columnEndTimes.push(0);
+    }
+    
+    // Assign the event to this column and update its end time
+    columnAssignments.set(event.id, assignedColumn);
+    columnEndTimes[assignedColumn] = timeToMinutes(event.endTime);
+  }
+  
+  return columnAssignments;
+}
+
+// Calculate layout for all events, handling overlaps
+export function calculateEventLayouts(events: EventForLayout[]): Map<number, EventLayout> {
+  const layouts = new Map<number, EventLayout>();
+  
+  // Filter out all-day events (they don't participate in overlap layout)
+  const timedEvents = events.filter(e => !e.isAllDay);
+  
+  // Group overlapping events
+  const groups = groupOverlappingEvents(timedEvents);
+  
+  for (const group of groups) {
+    // Assign columns within this group
+    const columnAssignments = assignColumns(group);
+    const totalColumns = Math.max(...Array.from(columnAssignments.values())) + 1;
+    
+    // Calculate width and position for each event
+    for (const event of group) {
+      const column = columnAssignments.get(event.id) || 0;
+      
+      // Calculate width as a percentage of the available space
+      // Leave a small gap between events for visual clarity
+      const gap = 2; // pixels
+      const widthPercent = 100 / totalColumns;
+      
+      layouts.set(event.id, {
+        column,
+        totalColumns,
+        width: widthPercent,
+        left: column * widthPercent,
+      });
+    }
+  }
+  
+  return layouts;
+}
