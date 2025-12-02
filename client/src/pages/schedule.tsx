@@ -837,9 +837,9 @@ The Production Team`
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full h-screen flex flex-col">
       {/* Desktop Header - Unified Weekly View Style */}
-      <div className="hidden md:block px-4 sm:px-6 lg:px-8 py-4">
+      <div className="hidden md:block px-4 sm:px-6 lg:px-8 py-4 sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           {/* Left side - Dynamic Date/Range display */}
           <div className="flex items-center">
@@ -1126,9 +1126,9 @@ The Production Team`
       </div>
 
       {/* Mobile Header */}
-      <div className="md:hidden">
+      <div className="md:hidden sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
         {/* Main Mobile Header */}
-        <div className="px-4 py-3 border-b border-gray-200 bg-white">
+        <div className="px-4 py-3 border-b border-gray-200">
           <div className="flex items-center justify-between">
             {/* Dynamic Title */}
             <h1 className="text-xl font-semibold text-gray-900">
@@ -1310,7 +1310,7 @@ The Production Team`
         </div>
       </div>
       {/* Content Container - Responsive Padding */}
-      <div className="px-0 md:px-4 lg:px-8">
+      <div className="px-0 md:px-4 lg:px-8 flex-1 overflow-auto">
         {viewMode === 'monthly' ? (
           <MonthlyScheduleView 
             projectId={parseInt(projectId)} 
