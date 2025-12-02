@@ -35,7 +35,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Edit3, Trash2, Calendar, Copy, LayoutTemplate, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
-import { TemplateWeekEditor } from "./TemplateWeekEditor";
+import { TemplateWeeklyScheduleView } from "./TemplateWeeklyScheduleView";
 
 interface ScheduleTemplate {
   id: number;
@@ -365,7 +365,7 @@ export function ScheduleTemplatesSection({ projectId }: ScheduleTemplatesSection
               </TabsList>
 
               <TabsContent value="schedule" className="mt-4">
-                <TemplateWeekEditor
+                <TemplateWeeklyScheduleView
                   templateId={selectedTemplate.id}
                   projectId={projectId}
                   weekStartDay={selectedTemplate.weekStartDay}
