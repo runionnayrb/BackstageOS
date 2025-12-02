@@ -84,13 +84,16 @@ export default function ScheduleFilter({
     }
   }, [enabledEventTypes, showScheduleEnabled, onEventTypeFilterChange]);
 
-  // Group contacts by contact group, then by category for better organization
+  // Group contacts by contact group ONLY (don't fall back to category)
   const contactsByCategory = contacts.reduce((acc, contact) => {
-    const groupName = (contact as any).contactGroup?.name || (contact.category || 'Other');
-    if (!acc[groupName]) {
-      acc[groupName] = [];
+    // Only include contacts that have a contact group assigned
+    const groupName = (contact as any).contactGroup?.name;
+    if (groupName) {
+      if (!acc[groupName]) {
+        acc[groupName] = [];
+      }
+      acc[groupName].push(contact);
     }
-    acc[groupName].push(contact);
     return acc;
   }, {} as Record<string, Contact[]>);
 

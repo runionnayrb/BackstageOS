@@ -1610,10 +1610,14 @@ export class DatabaseStorage implements IStorage {
     const result = await db.select().from(contacts)
       .leftJoin(contactGroups, eq(contacts.groupId, contactGroups.id))
       .where(eq(contacts.projectId, projectId));
-    return result.map(row => ({
-      ...row.contacts,
-      contactGroup: row.contact_groups
-    }));
+    return result.map(row => {
+      const contact = row.contacts;
+      const group = row.contact_groups;
+      return {
+        ...contact,
+        contactGroup: group || null
+      };
+    });
   }
 
   async getAllContactsByUserId(userId: string): Promise<Contact[]> {
