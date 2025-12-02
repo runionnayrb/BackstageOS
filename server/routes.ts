@@ -8367,6 +8367,46 @@ Best regards,
     }
   });
 
+  // Get template events
+  app.get('/api/schedule-templates/:templateId/events', isAuthenticated, async (req: any, res) => {
+    try {
+      const templateId = parseInt(req.params.templateId);
+      const template = await storage.getScheduleTemplateById(templateId);
+      
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      // Check project access
+      const project = await storage.getProjectById(template.projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(template.projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      // Get template events with their participants
+      const events = await storage.getScheduleTemplateEventsById(templateId);
+      const eventsWithParticipants = await Promise.all(
+        events.map(async (event) => {
+          const participants = await storage.getScheduleTemplateEventParticipants(event.id);
+          return { ...event, participants };
+        })
+      );
+
+      res.json(eventsWithParticipants);
+    } catch (error) {
+      console.error("Failed to fetch template events:", error);
+      res.status(500).json({ message: "Failed to fetch template events" });
+    }
+  });
+
   // Create template event
   app.post('/api/schedule-templates/:templateId/events', isAuthenticated, async (req: any, res) => {
     try {
