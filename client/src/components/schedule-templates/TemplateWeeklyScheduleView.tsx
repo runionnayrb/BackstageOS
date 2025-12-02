@@ -23,6 +23,15 @@ interface ScheduleTemplateEvent {
   location: string | null;
   notes: string | null;
   isAllDay: boolean;
+  participants?: Array<{
+    id: number;
+    contactId: number;
+    contact: {
+      id: number;
+      firstName: string;
+      lastName: string;
+    };
+  }>;
 }
 
 interface EventType {
@@ -30,6 +39,18 @@ interface EventType {
   name: string;
   color: string;
   isDefault?: boolean;
+}
+
+interface Contact {
+  id: number;
+  firstName: string;
+  lastName: string;
+  category: string;
+  role?: string;
+  contactGroup?: {
+    id: number;
+    name: string;
+  };
 }
 
 interface TemplateWeeklyScheduleViewProps {
@@ -97,6 +118,10 @@ export function TemplateWeeklyScheduleView({
 
   const { data: eventTypes = [] } = useQuery<EventType[]>({
     queryKey: [`/api/projects/${projectId}/event-types`],
+  });
+
+  const { data: contacts = [] } = useQuery<Contact[]>({
+    queryKey: [`/api/projects/${projectId}/contacts`],
   });
 
   const orderedDays = useMemo(() => {
@@ -725,6 +750,7 @@ export function TemplateWeeklyScheduleView({
             <TemplateEventForm
               projectId={projectId}
               eventTypes={eventTypes}
+              contacts={contacts}
               onSubmit={handleCreateEvent}
               onCancel={() => {
                 setIsCreatingEvent(false);
@@ -773,6 +799,7 @@ export function TemplateWeeklyScheduleView({
               <TemplateEventForm
                 projectId={projectId}
                 eventTypes={eventTypes}
+                contacts={contacts}
                 onSubmit={handleUpdateEvent}
                 onCancel={() => setEditingEvent(null)}
                 showButtons={false}
@@ -786,6 +813,7 @@ export function TemplateWeeklyScheduleView({
                   location: editingEvent.location || '',
                   notes: editingEvent.notes || '',
                   isAllDay: editingEvent.isAllDay,
+                  participantIds: editingEvent.participants?.map(p => p.contactId) || [],
                 }}
               />
             )}

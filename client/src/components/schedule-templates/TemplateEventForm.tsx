@@ -14,9 +14,22 @@ interface EventType {
   color: string;
 }
 
+interface Contact {
+  id: number;
+  firstName: string;
+  lastName: string;
+  category: string;
+  role?: string;
+  contactGroup?: {
+    id: number;
+    name: string;
+  };
+}
+
 interface TemplateEventFormProps {
   projectId: number;
   eventTypes: EventType[];
+  contacts: Contact[];
   onSubmit: (data: any) => void;
   onCancel: () => void;
   showButtons?: boolean;
@@ -30,6 +43,7 @@ interface TemplateEventFormProps {
     location?: string;
     notes?: string;
     isAllDay?: boolean;
+    participantIds?: number[];
   };
 }
 
@@ -46,6 +60,7 @@ const DAY_OPTIONS = [
 export default function TemplateEventForm({
   projectId,
   eventTypes,
+  contacts,
   onSubmit,
   onCancel,
   showButtons = true,
@@ -61,6 +76,7 @@ export default function TemplateEventForm({
     location: initialValues?.location || '',
     notes: initialValues?.notes || '',
     isAllDay: initialValues?.isAllDay ?? false,
+    participantIds: initialValues?.participantIds || [] as number[],
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -178,6 +194,146 @@ export default function TemplateEventForm({
           rows={2}
           data-testid="input-template-description"
         />
+      </div>
+
+      <div>
+        <Label>Participants</Label>
+        <div className="space-y-3 max-h-60 overflow-y-auto border rounded-md p-3">
+          {contacts.length === 0 ? (
+            <p className="text-sm text-gray-500">No contacts available. Add contacts to your project to assign participants.</p>
+          ) : (
+            (() => {
+              const contactsByGroup = contacts.reduce((acc, contact) => {
+                if (contact.contactGroup?.name) {
+                  const groupName = contact.contactGroup.name;
+                  if (!acc[groupName]) {
+                    acc[groupName] = [];
+                  }
+                  acc[groupName].push(contact);
+                }
+                return acc;
+              }, {} as Record<string, typeof contacts>);
+
+              const ungroupedContacts = contacts.filter(c => !c.contactGroup?.name);
+
+              return (
+                <>
+                  {Object.entries(contactsByGroup).map(([groupName, groupContacts]) => {
+                    const groupContactIds = groupContacts.map(c => c.id);
+                    const allGroupSelected = groupContactIds.every(id => formData.participantIds.includes(id));
+                    const someGroupSelected = groupContactIds.some(id => formData.participantIds.includes(id));
+
+                    return (
+                      <div key={groupName} className="space-y-2">
+                        <div className="flex items-center space-x-2 font-medium text-gray-700 border-b border-gray-200 pb-1">
+                          <Checkbox
+                            id={`group-${groupName}`}
+                            checked={allGroupSelected}
+                            ref={(el) => {
+                              if (el) {
+                                const input = el.querySelector('input');
+                                if (input) {
+                                  input.indeterminate = someGroupSelected && !allGroupSelected;
+                                }
+                              }
+                            }}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                const newParticipants = [
+                                  ...formData.participantIds,
+                                  ...groupContactIds.filter(id => !formData.participantIds.includes(id))
+                                ];
+                                setFormData({
+                                  ...formData,
+                                  participantIds: newParticipants,
+                                });
+                              } else {
+                                setFormData({
+                                  ...formData,
+                                  participantIds: formData.participantIds.filter(id => !groupContactIds.includes(id)),
+                                });
+                              }
+                            }}
+                          />
+                          <Label htmlFor={`group-${groupName}`} className="text-sm font-semibold">
+                            {groupName.replace(/_/g, ' ').toUpperCase()}
+                          </Label>
+                        </div>
+
+                        <div className="space-y-1 ml-6">
+                          {groupContacts.map(contact => (
+                            <div key={contact.id} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={`contact-${contact.id}`}
+                                checked={formData.participantIds.includes(contact.id)}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    setFormData({
+                                      ...formData,
+                                      participantIds: [...formData.participantIds, contact.id],
+                                    });
+                                  } else {
+                                    setFormData({
+                                      ...formData,
+                                      participantIds: formData.participantIds.filter(id => id !== contact.id),
+                                    });
+                                  }
+                                }}
+                              />
+                              <Label htmlFor={`contact-${contact.id}`} className="text-sm">
+                                {contact.firstName} {contact.lastName}
+                                {contact.role && (
+                                  <span className="text-gray-500 ml-1">({contact.role})</span>
+                                )}
+                              </Label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {ungroupedContacts.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2 font-medium text-gray-700 border-b border-gray-200 pb-1">
+                        <Label className="text-sm font-semibold">UNGROUPED</Label>
+                      </div>
+                      <div className="space-y-1 ml-6">
+                        {ungroupedContacts.map(contact => (
+                          <div key={contact.id} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`contact-${contact.id}`}
+                              checked={formData.participantIds.includes(contact.id)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setFormData({
+                                    ...formData,
+                                    participantIds: [...formData.participantIds, contact.id],
+                                  });
+                                } else {
+                                  setFormData({
+                                    ...formData,
+                                    participantIds: formData.participantIds.filter(id => id !== contact.id),
+                                  });
+                                }
+                              }}
+                            />
+                            <Label htmlFor={`contact-${contact.id}`} className="text-sm">
+                              {contact.firstName} {contact.lastName}
+                              {contact.role && (
+                                <span className="text-gray-500 ml-1">({contact.role})</span>
+                              )}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              );
+            })()
+          )}
+        </div>
       </div>
 
       <div>
