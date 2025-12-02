@@ -87,8 +87,17 @@ export default function ShowReports() {
     ? allReports.filter((report: any) => report.type === canonicalSlug) 
     : [];
   
+  // Helper function to format slug to title case
+  const formatSlugToTitle = (slug: string) => {
+    return slug
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
   // Page title = Report Type category name (e.g., "Meeting Reports")
-  const pageTitle = currentReportType?.name || "Reports";
+  // Use formatted URL slug as optimistic value, update when data loads
+  const pageTitle = currentReportType?.name || formatSlugToTitle(reportType || "Reports");
   
   // Template name for individual reports (e.g., "Production Meeting Report")
   const templateName = currentTemplate?.name || currentReportType?.name || "Report";
