@@ -1134,7 +1134,7 @@ export default function WeeklyScheduleView({
 
   return (
     <>
-      <div className="flex flex-col h-full min-h-0">
+      <div>
         {/* Removed individual header - using unified main page header */}
 
         {/* Multi-select status and controls */}
@@ -1165,9 +1165,9 @@ export default function WeeklyScheduleView({
         )}
 
         {/* Main Schedule Grid */}
-        <div className="border border-gray-200 rounded-lg overflow-hidden flex flex-col h-full min-h-0">
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
           {/* Header row - fixed, no scroll */}
-          <div className="relative bg-gray-50 border-b border-gray-200" style={{ height: '24px', flexShrink: 0 }}>
+          <div className="relative bg-gray-50 border-b border-gray-200" style={{ height: '24px' }}>
             <div 
               style={{ 
                 position: 'absolute',
@@ -1292,7 +1292,7 @@ export default function WeeklyScheduleView({
 
           {/* All Day Events Section - fixed, no scroll */}
           {showAllDayEvents && (
-            <div className="relative min-h-[60px] bg-gray-50 border-b border-gray-200" style={{ flexShrink: 0 }}>
+            <div className="relative min-h-[60px] bg-gray-50 border-b border-gray-200">
               <div 
                 className="absolute left-0 top-0 bottom-0 bg-gray-50 border-r border-gray-200 flex items-center justify-center text-xs font-medium text-gray-600 select-none"
                 style={{ width: '64px', minHeight: '60px' }}
@@ -1513,14 +1513,16 @@ export default function WeeklyScheduleView({
           <div 
             className="overflow-y-auto scrollbar-hide" 
             style={{ 
-              flex: 1,
-              minHeight: 0,
+              maxHeight: '600px',
               scrollbarWidth: 'none',
               msOverflowStyle: 'none'
             }}
           >
             <div 
               ref={scrollContainerRef}
+              style={{ 
+                height: '600px',
+              }}
             >
             <div 
               ref={calendarRef}

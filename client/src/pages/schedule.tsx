@@ -837,7 +837,7 @@ The Production Team`
   };
 
   return (
-    <div className="w-full h-screen flex flex-col">
+    <div className="w-full">
       {/* Desktop Header - Unified Weekly View Style */}
       <div className="hidden md:block px-4 sm:px-6 lg:px-8 py-4 sticky top-0 z-50 bg-white">
         <div className="flex items-center justify-between mb-4">
@@ -1310,7 +1310,7 @@ The Production Team`
         </div>
       </div>
       {/* Content Container - Responsive Padding */}
-      <div className="px-0 md:px-4 lg:px-8 flex-1 min-h-0 overflow-hidden">
+      <div className="px-0 md:px-4 lg:px-8">
         {viewMode === 'monthly' ? (
           <MonthlyScheduleView 
             projectId={parseInt(projectId)} 
