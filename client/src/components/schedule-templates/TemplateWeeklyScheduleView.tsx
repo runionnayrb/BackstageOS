@@ -4,7 +4,6 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useToast } from "@/hooks/use-toast";
 import { Clock, MapPin, Edit, Trash2 } from "lucide-react";
 import { formatTimeDisplay } from "@/lib/timeUtils";
 import { getEventTypeColorFromDatabase } from "@/lib/eventUtils";
@@ -77,7 +76,6 @@ export function TemplateWeeklyScheduleView({
   timeIncrement = 30,
   timeFormat = '12'
 }: TemplateWeeklyScheduleViewProps) {
-  const { toast } = useToast();
   const calendarRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   
@@ -186,7 +184,6 @@ export function TemplateWeeklyScheduleView({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [eventsQueryKey], refetchType: 'all' });
-      toast({ title: "Event added to template" });
       setIsCreatingEvent(false);
       setNewEventDefaults(null);
     },
@@ -194,7 +191,6 @@ export function TemplateWeeklyScheduleView({
       if (context?.previousEvents) {
         queryClient.setQueryData([eventsQueryKey], context.previousEvents);
       }
-      toast({ title: "Failed to add event", variant: "destructive" });
     },
   });
 
@@ -215,14 +211,12 @@ export function TemplateWeeklyScheduleView({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [eventsQueryKey], refetchType: 'all' });
-      toast({ title: "Event updated" });
       setEditingEvent(null);
     },
     onError: (_error, _variables, context) => {
       if (context?.previousEvents) {
         queryClient.setQueryData([eventsQueryKey], context.previousEvents);
       }
-      toast({ title: "Failed to update event", variant: "destructive" });
     },
   });
 
@@ -241,14 +235,12 @@ export function TemplateWeeklyScheduleView({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [eventsQueryKey], refetchType: 'all' });
-      toast({ title: "Event deleted" });
       setEditingEvent(null);
     },
     onError: (_error, _id, context) => {
       if (context?.previousEvents) {
         queryClient.setQueryData([eventsQueryKey], context.previousEvents);
       }
-      toast({ title: "Failed to delete event", variant: "destructive" });
     },
   });
 
