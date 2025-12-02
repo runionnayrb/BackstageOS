@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { formatTimeDisplay, parseScheduleSettings, formatAsCalendarDate } from '@/lib/timeUtils';
-import { filterEventsBySettings, getTimezoneAbbreviation } from '@/lib/scheduleUtils';
+import { filterEventsBySettings, getTimezoneAbbreviation, calculateEventLayouts } from '@/lib/scheduleUtils';
 import { getEventTypeColor, getEventTypeColorFromDatabase, getEventTypeDisplayName } from '@/lib/eventUtils';
 import { ChevronLeft, ChevronRight, Plus, Calendar, Clock, ChevronDown, MapPin, Users, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -292,6 +292,12 @@ export default function DailyScheduleView({
   }, [timeIncrement]);
 
   const containerHeight = TOTAL_MINUTES; // Match weekly view exactly
+
+  // Calculate layouts for overlapping events
+  const eventLayouts = useMemo(() => {
+    const dayEvents = getEventsForDate(selectedDate).filter(e => !e.isAllDay);
+    return calculateEventLayouts(dayEvents);
+  }, [events, selectedDate, selectedEventTypes, selectedIndividualTypes, selectedContactIds, eventTypes]);
 
   // Helper functions for navigation
   const goToPreviousDay = () => {
@@ -647,6 +653,26 @@ export default function DailyScheduleView({
                       const isShortEvent = actualHeight <= 15;
                       const isVeryShortEvent = actualHeight <= 10;
 
+                      // Get layout for overlapping events
+                      const layout = eventLayouts.get(event.id);
+                      const hasOverlap = layout && layout.totalColumns > 1;
+                      
+                      // Calculate width and left position based on overlap layout
+                      let eventLeft: string;
+                      let eventWidth: string;
+                      
+                      if (hasOverlap && layout) {
+                        // Overlapping event: position within its column
+                        const columnWidthPercent = layout.width;
+                        const columnLeftPercent = layout.left;
+                        eventLeft = `calc(${columnLeftPercent}% + 2px)`;
+                        eventWidth = `calc(${columnWidthPercent}% - 4px)`;
+                      } else {
+                        // Non-overlapping event: use full width with small margins
+                        eventLeft = '4px';
+                        eventWidth = 'calc(100% - 8px)';
+                      }
+
                       return (
                         <Popover 
                           key={event.id}
@@ -655,10 +681,12 @@ export default function DailyScheduleView({
                         >
                           <PopoverTrigger asChild>
                             <div
-                              className="absolute left-1 right-1 text-white rounded text-sm overflow-hidden cursor-pointer hover:opacity-90 transition-opacity border-l-4"
+                              className="absolute text-white rounded text-sm overflow-hidden cursor-pointer hover:opacity-90 transition-all border-l-4"
                               style={{
                                 top: `${top}px`,
                                 height: `${height}px`,
+                                left: eventLeft,
+                                width: eventWidth,
                                 backgroundColor: eventTypeColor,
                                 borderLeftColor: eventTypeColor,
                                 padding: isVeryShortEvent ? '2px 4px' : '8px',

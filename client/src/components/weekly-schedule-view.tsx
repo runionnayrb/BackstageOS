@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatTimeDisplay, parseScheduleSettings, formatAsCalendarDate } from "@/lib/timeUtils";
 import { isShowEvent, getEventTypeDisplayName, getEventTypeColor, getEventTypeBorderColor, getEventTypeColorFromDatabase } from "@/lib/eventUtils";
-import { filterEventsBySettings, getTimezoneAbbreviation } from "@/lib/scheduleUtils";
+import { filterEventsBySettings, getTimezoneAbbreviation, calculateEventLayouts } from "@/lib/scheduleUtils";
 import LocationSelect from "@/components/location-select";
 import EventTypeSelect from "@/components/event-type-select";
 import EventForm from "@/components/event-form";
@@ -304,7 +304,24 @@ export default function WeeklyScheduleView({
     }
   })();
 
-
+  // Calculate layouts for overlapping events for each day
+  const eventLayoutsByDay = useMemo(() => {
+    const layoutsByDay: Map<number, Map<number, { column: number; totalColumns: number; width: number; left: number }>> = new Map();
+    
+    weekDates.forEach((date, dayIndex) => {
+      const dateStr = formatAsCalendarDate(date);
+      const dayEvents = filteredEvents.filter(event => 
+        event.date === dateStr && !event.isAllDay
+      );
+      
+      if (dayEvents.length > 0) {
+        const layouts = calculateEventLayouts(dayEvents);
+        layoutsByDay.set(dayIndex, layouts);
+      }
+    });
+    
+    return layoutsByDay;
+  }, [filteredEvents, weekDates]);
 
   // Navigation functions
   const goToPreviousWeek = () => {
@@ -1574,6 +1591,30 @@ export default function WeeklyScheduleView({
                   const isShortEvent = durationMinutes <= 15;
                   const isVeryShortEvent = durationMinutes <= 10;
 
+                  // Get layout for overlapping events
+                  const dayLayouts = eventLayoutsByDay.get(dayIndex);
+                  const eventLayout = dayLayouts?.get(event.id);
+                  const hasOverlap = eventLayout && eventLayout.totalColumns > 1;
+                  
+                  // Calculate width and left position based on overlap layout
+                  const dayColumnWidth = `calc((100% - 64px) / 7)`;
+                  const baseLeft = `calc(64px + (100% - 64px) * ${displayDayIndex} / 7)`;
+                  
+                  let eventLeft: string;
+                  let eventWidth: string;
+                  
+                  if (hasOverlap && eventLayout) {
+                    // Overlapping event: position within its column
+                    const columnWidthPercent = eventLayout.width;
+                    const columnLeftPercent = eventLayout.left;
+                    eventLeft = `calc(${baseLeft} + ${dayColumnWidth} * ${columnLeftPercent / 100} + 1px)`;
+                    eventWidth = `calc(${dayColumnWidth} * ${columnWidthPercent / 100} - 2px)`;
+                  } else {
+                    // Non-overlapping event: use full width
+                    eventLeft = `calc(${baseLeft} + 2px)`;
+                    eventWidth = `calc(${dayColumnWidth} - 4px)`;
+                  }
+
                   return (
                     <Popover 
                       key={event.id} 
@@ -1586,12 +1627,12 @@ export default function WeeklyScheduleView({
                     >
                       <PopoverTrigger asChild>
                         <div
-                          className={`absolute text-white text-sm rounded-md shadow-sm border-l-4 cursor-pointer hover:opacity-90 z-30 ${
+                          className={`absolute text-white text-sm rounded-md shadow-sm border-l-4 cursor-pointer hover:opacity-90 z-30 transition-all ${
                             selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''
                           } ${draggedEvent?.event.id === event.id && draggedEvent.isDragging ? 'opacity-50' : ''}`}
                           style={{
-                            left: `calc(64px + (100% - 64px) * ${displayDayIndex} / 7 + 2px)`,
-                            width: `calc((100% - 64px) / 7 - 4px)`,
+                            left: eventLeft,
+                            width: eventWidth,
                             top: `${resizedTop}px`,
                             height: `${Math.max(20, displayHeight)}px`,
                             minHeight: '20px',
