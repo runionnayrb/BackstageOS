@@ -176,12 +176,16 @@ function groupOverlappingEvents(events: EventForLayout[]): EventForLayout[][] {
 
 // Assign columns to events within a group using a greedy algorithm
 function assignColumns(group: EventForLayout[]): Map<number, number> {
-  // Sort by start time, then by end time
+  // Sort by start time, then by end time, then by ID (for stable ordering)
   const sorted = [...group].sort((a, b) => {
     const startA = timeToMinutes(a.startTime);
     const startB = timeToMinutes(b.startTime);
     if (startA !== startB) return startA - startB;
-    return timeToMinutes(a.endTime) - timeToMinutes(b.endTime);
+    const endA = timeToMinutes(a.endTime);
+    const endB = timeToMinutes(b.endTime);
+    if (endA !== endB) return endA - endB;
+    // Use ID as final tiebreaker for stable sorting
+    return a.id - b.id;
   });
   
   const columnAssignments = new Map<number, number>();
