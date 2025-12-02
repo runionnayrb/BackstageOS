@@ -16,6 +16,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -25,8 +32,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Edit3, Trash2, Calendar, Copy, LayoutTemplate } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, Edit3, Trash2, Calendar, Copy, LayoutTemplate, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
+import { TemplateWeekEditor } from "./TemplateWeekEditor";
 
 interface ScheduleTemplate {
   id: number;
@@ -64,11 +73,13 @@ const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Frid
 
 export function ScheduleTemplatesSection({ projectId }: ScheduleTemplatesSectionProps) {
   const { toast } = useToast();
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editSheetOpen, setEditSheetOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<ScheduleTemplate | null>(null);
   const [templateName, setTemplateName] = useState("");
   const [templateDescription, setTemplateDescription] = useState("");
+  const [activeTab, setActiveTab] = useState("schedule");
 
   const { data: templates = [], isLoading } = useQuery<ScheduleTemplate[]>({
     queryKey: [`/api/projects/${projectId}/schedule-templates`],
@@ -77,10 +88,15 @@ export function ScheduleTemplatesSection({ projectId }: ScheduleTemplatesSection
   const createTemplateMutation = useMutation({
     mutationFn: (data: { name: string; description: string }) =>
       apiRequest("POST", `/api/projects/${projectId}/schedule-templates`, data),
-    onSuccess: () => {
+    onSuccess: (newTemplate: ScheduleTemplate) => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-templates`] });
       toast({ title: "Template created successfully" });
-      handleCloseEditDialog();
+      handleCloseCreateDialog();
+      setSelectedTemplate(newTemplate);
+      setTemplateName(newTemplate.name);
+      setTemplateDescription(newTemplate.description || "");
+      setActiveTab("schedule");
+      setEditSheetOpen(true);
     },
     onError: () => {
       toast({ title: "Failed to create template", variant: "destructive" });
@@ -93,7 +109,6 @@ export function ScheduleTemplatesSection({ projectId }: ScheduleTemplatesSection
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-templates`] });
       toast({ title: "Template updated successfully" });
-      handleCloseEditDialog();
     },
     onError: () => {
       toast({ title: "Failed to update template", variant: "destructive" });
@@ -107,6 +122,7 @@ export function ScheduleTemplatesSection({ projectId }: ScheduleTemplatesSection
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-templates`] });
       toast({ title: "Template deleted successfully" });
       setDeleteDialogOpen(false);
+      setEditSheetOpen(false);
       setSelectedTemplate(null);
     },
     onError: () => {
@@ -118,14 +134,15 @@ export function ScheduleTemplatesSection({ projectId }: ScheduleTemplatesSection
     setSelectedTemplate(null);
     setTemplateName("");
     setTemplateDescription("");
-    setEditDialogOpen(true);
+    setCreateDialogOpen(true);
   };
 
   const handleEditTemplate = (template: ScheduleTemplate) => {
     setSelectedTemplate(template);
     setTemplateName(template.name);
     setTemplateDescription(template.description || "");
-    setEditDialogOpen(true);
+    setActiveTab("schedule");
+    setEditSheetOpen(true);
   };
 
   const handleDeleteTemplate = (template: ScheduleTemplate) => {
@@ -133,14 +150,20 @@ export function ScheduleTemplatesSection({ projectId }: ScheduleTemplatesSection
     setDeleteDialogOpen(true);
   };
 
-  const handleCloseEditDialog = () => {
-    setEditDialogOpen(false);
+  const handleCloseCreateDialog = () => {
+    setCreateDialogOpen(false);
+    setTemplateName("");
+    setTemplateDescription("");
+  };
+
+  const handleCloseEditSheet = () => {
+    setEditSheetOpen(false);
     setSelectedTemplate(null);
     setTemplateName("");
     setTemplateDescription("");
   };
 
-  const handleSaveTemplate = () => {
+  const handleSaveTemplateDetails = () => {
     if (!templateName.trim()) {
       toast({ title: "Please enter a template name", variant: "destructive" });
       return;
@@ -152,12 +175,19 @@ export function ScheduleTemplatesSection({ projectId }: ScheduleTemplatesSection
         name: templateName.trim(),
         description: templateDescription.trim(),
       });
-    } else {
-      createTemplateMutation.mutate({
-        name: templateName.trim(),
-        description: templateDescription.trim(),
-      });
     }
+  };
+
+  const handleCreateNewTemplate = () => {
+    if (!templateName.trim()) {
+      toast({ title: "Please enter a template name", variant: "destructive" });
+      return;
+    }
+
+    createTemplateMutation.mutate({
+      name: templateName.trim(),
+      description: templateDescription.trim(),
+    });
   };
 
   const formatDate = (dateString: string) => {
@@ -249,16 +279,13 @@ export function ScheduleTemplatesSection({ projectId }: ScheduleTemplatesSection
         )}
       </CardContent>
 
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+      {/* Create Template Dialog */}
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>
-              {selectedTemplate ? "Edit Template" : "Create Template"}
-            </DialogTitle>
+            <DialogTitle>Create Template</DialogTitle>
             <DialogDescription>
-              {selectedTemplate 
-                ? "Update the template name and description." 
-                : "Create a new weekly schedule template."}
+              Create a new weekly schedule template. You can add events after creating it.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -284,43 +311,115 @@ export function ScheduleTemplatesSection({ projectId }: ScheduleTemplatesSection
               />
             </div>
           </div>
-          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
-            {selectedTemplate && (
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  setEditDialogOpen(false);
-                  handleDeleteTemplate(selectedTemplate);
-                }}
-                className="w-full sm:w-auto"
-                data-testid="button-delete-template"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete
-              </Button>
-            )}
-            <div className="flex gap-2 w-full sm:w-auto sm:ml-auto">
-              <Button
-                variant="outline"
-                onClick={handleCloseEditDialog}
-                className="flex-1 sm:flex-none"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSaveTemplate}
-                disabled={createTemplateMutation.isPending || updateTemplateMutation.isPending}
-                className="flex-1 sm:flex-none"
-                data-testid="button-save-template"
-              >
-                {(createTemplateMutation.isPending || updateTemplateMutation.isPending) 
-                  ? "Saving..." 
-                  : (selectedTemplate ? "Save Changes" : "Create Template")}
-              </Button>
-            </div>
+          <DialogFooter className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleCloseCreateDialog}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateNewTemplate}
+              disabled={createTemplateMutation.isPending}
+              data-testid="button-save-template"
+            >
+              {createTemplateMutation.isPending ? "Creating..." : "Create Template"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Edit Template Sheet */}
+      <Sheet open={editSheetOpen} onOpenChange={(open) => !open && handleCloseEditSheet()}>
+        <SheetContent side="right" className="w-full sm:max-w-4xl overflow-y-auto">
+          <SheetHeader className="pb-4 border-b">
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-8 w-8 p-0"
+                onClick={handleCloseEditSheet}
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <div>
+                <SheetTitle className="text-lg">{selectedTemplate?.name || "Edit Template"}</SheetTitle>
+                <SheetDescription className="text-sm">
+                  Edit template schedule and details
+                </SheetDescription>
+              </div>
+            </div>
+          </SheetHeader>
+
+          {selectedTemplate && (
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="schedule" data-testid="tab-schedule">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Schedule
+                </TabsTrigger>
+                <TabsTrigger value="details" data-testid="tab-details">
+                  <Edit3 className="h-4 w-4 mr-2" />
+                  Details
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="schedule" className="mt-4">
+                <TemplateWeekEditor
+                  templateId={selectedTemplate.id}
+                  projectId={projectId}
+                  weekStartDay={selectedTemplate.weekStartDay}
+                />
+              </TabsContent>
+
+              <TabsContent value="details" className="mt-4">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="editTemplateName">Template Name</Label>
+                    <Input
+                      id="editTemplateName"
+                      value={templateName}
+                      onChange={(e) => setTemplateName(e.target.value)}
+                      placeholder="e.g., Tech Week Schedule"
+                      data-testid="input-edit-template-name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="editTemplateDescription">Description (optional)</Label>
+                    <Textarea
+                      id="editTemplateDescription"
+                      value={templateDescription}
+                      onChange={(e) => setTemplateDescription(e.target.value)}
+                      placeholder="Describe what this template is for..."
+                      rows={3}
+                      data-testid="input-edit-template-description"
+                    />
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-2 pt-4">
+                    <Button
+                      variant="destructive"
+                      onClick={() => handleDeleteTemplate(selectedTemplate)}
+                      className="w-full sm:w-auto"
+                      data-testid="button-delete-template"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete Template
+                    </Button>
+                    <Button
+                      onClick={handleSaveTemplateDetails}
+                      disabled={updateTemplateMutation.isPending}
+                      className="w-full sm:w-auto sm:ml-auto"
+                      data-testid="button-save-template-details"
+                    >
+                      {updateTemplateMutation.isPending ? "Saving..." : "Save Details"}
+                    </Button>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
+          )}
+        </SheetContent>
+      </Sheet>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
