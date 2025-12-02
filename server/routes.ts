@@ -8391,8 +8391,8 @@ Best regards,
       const event = await storage.createScheduleTemplateEvent(eventData);
 
       // Handle participants if provided
-      if (req.body.participants && Array.isArray(req.body.participants)) {
-        for (const contactId of req.body.participants) {
+      if (req.body.participantIds && Array.isArray(req.body.participantIds)) {
+        for (const contactId of req.body.participantIds) {
           await storage.addScheduleTemplateEventParticipant({
             templateEventId: event.id,
             contactId,
@@ -8445,9 +8445,9 @@ Best regards,
       const updatedEvent = await storage.updateScheduleTemplateEvent(eventId, validatedData);
 
       // Handle participants update if provided
-      if (req.body.participants && Array.isArray(req.body.participants)) {
+      if (req.body.participantIds && Array.isArray(req.body.participantIds)) {
         await storage.removeScheduleTemplateEventParticipants(eventId);
-        for (const contactId of req.body.participants) {
+        for (const contactId of req.body.participantIds) {
           await storage.addScheduleTemplateEventParticipant({
             templateEventId: eventId,
             contactId,
