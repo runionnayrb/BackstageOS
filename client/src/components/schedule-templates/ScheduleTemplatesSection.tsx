@@ -370,7 +370,7 @@ export function ScheduleTemplatesSection({ projectId }: ScheduleTemplatesSection
           </SheetHeader>
 
           {selectedTemplate && (
-            <div className="flex-1 min-h-0 overflow-hidden">
+            <div className="flex-1 min-h-0 overflow-hidden p-4">
               <TemplateWeeklyScheduleView
                 templateId={selectedTemplate.id}
                 projectId={projectId}

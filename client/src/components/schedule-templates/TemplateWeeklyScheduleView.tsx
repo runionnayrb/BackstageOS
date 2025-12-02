@@ -469,7 +469,7 @@ export function TemplateWeeklyScheduleView({
 
   return (
     <>
-      <div className="overflow-hidden h-full flex flex-col">
+      <div className="border border-gray-200 rounded-lg overflow-hidden h-full flex flex-col">
         {/* Header row */}
         <div className="relative bg-gray-50 border-b border-gray-200 flex-shrink-0" style={{ height: '24px' }}>
           <div 
