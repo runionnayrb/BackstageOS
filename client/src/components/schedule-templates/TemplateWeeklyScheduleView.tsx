@@ -518,8 +518,8 @@ export function TemplateWeeklyScheduleView({
                 backgroundColor: '#f9fafb',
               }}
             >
-              <span className="text-sm font-bold text-gray-600">{day.shortName}</span>
-              <span className="text-sm font-bold text-gray-900 ml-1 hidden sm:inline">{day.name.slice(2)}</span>
+              <span className="text-sm font-bold text-gray-600 sm:hidden">{day.shortName}</span>
+              <span className="text-sm font-bold text-gray-600 hidden sm:inline">{day.name}</span>
             </div>
           ))}
         </div>
