@@ -1412,7 +1412,7 @@ export default function TemplateEditorV2() {
                               />
                             )}
                             {field.type === "richtext" && (
-                              <div className="text-sm whitespace-pre-wrap [&_ul]:ml-6 [&_ol]:ml-6 [&_li]:ml-2 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: field.defaultValue || field.placeholder || "" }} />
+                              <div className="text-sm whitespace-pre-wrap [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: field.defaultValue || field.placeholder || "" }} />
                             )}
                             {field.type === "number" && (
                               <Input
