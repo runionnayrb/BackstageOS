@@ -352,7 +352,7 @@ export default function ContactSheet() {
   });
 
   // Fetch contact groups
-  const { data: contactGroups = [] } = useQuery<ContactGroup[]>({
+  const { data: contactGroups = [], isLoading: isLoadingGroups } = useQuery<ContactGroup[]>({
     queryKey: [`/api/projects/${projectId}/contact-groups`],
     enabled: !!projectId,
   });
@@ -1115,7 +1115,7 @@ export default function ContactSheet() {
                     <div>
                       <Label className="text-sm font-semibold mb-2 block">Your Groups (drag to reorder)</Label>
                       <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                        {contactGroups.length === 0 ? (
+                        {!isLoadingGroups && contactGroups.length === 0 ? (
                           <p className="text-sm text-muted-foreground text-center py-4">No groups yet</p>
                         ) : (
                           contactGroups.map((group) => (
