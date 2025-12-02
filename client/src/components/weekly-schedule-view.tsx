@@ -1514,6 +1514,7 @@ export default function WeeklyScheduleView({
             className="overflow-y-auto scrollbar-hide" 
             style={{ 
               flex: 1,
+              minHeight: 0,
               scrollbarWidth: 'none',
               msOverflowStyle: 'none'
             }}
