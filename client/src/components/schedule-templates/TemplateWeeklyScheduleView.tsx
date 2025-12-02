@@ -112,8 +112,10 @@ export function TemplateWeeklyScheduleView({
     endTime: string;
   } | null>(null);
 
+  const eventsQueryKey = `/api/schedule-templates/${templateId}/events`;
+  
   const { data: events = [], isLoading } = useQuery<ScheduleTemplateEvent[]>({
-    queryKey: [`/api/schedule-templates/${templateId}/events`],
+    queryKey: [eventsQueryKey],
   });
 
   const { data: eventTypes = [] } = useQuery<EventType[]>({
@@ -141,7 +143,7 @@ export function TemplateWeeklyScheduleView({
     mutationFn: (data: any) =>
       apiRequest("POST", `/api/schedule-templates/${templateId}/events`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/schedule-templates/${templateId}/events`] });
+      queryClient.invalidateQueries({ queryKey: [eventsQueryKey] });
       toast({ title: "Event added to template" });
       setEditingEvent(null);
     },
@@ -154,12 +156,12 @@ export function TemplateWeeklyScheduleView({
     mutationFn: ({ id, ...data }: { id: number } & any) =>
       apiRequest("PATCH", `/api/schedule-template-events/${id}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/schedule-templates/${templateId}/events`] });
+      queryClient.invalidateQueries({ queryKey: [eventsQueryKey] });
       toast({ title: "Event updated" });
       setEditingEvent(null);
     },
     onError: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/schedule-templates/${templateId}/events`] });
+      queryClient.invalidateQueries({ queryKey: [eventsQueryKey] });
       toast({ title: "Failed to update event", variant: "destructive" });
     },
   });
@@ -168,7 +170,7 @@ export function TemplateWeeklyScheduleView({
     mutationFn: (id: number) =>
       apiRequest("DELETE", `/api/schedule-template-events/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/schedule-templates/${templateId}/events`] });
+      queryClient.invalidateQueries({ queryKey: [eventsQueryKey] });
       toast({ title: "Event deleted" });
       setEditingEvent(null);
     },
