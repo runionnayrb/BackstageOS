@@ -141,7 +141,6 @@ export default function ShowReports() {
             ) : (
               <h1 className="text-3xl font-bold text-gray-900">{pageTitle}</h1>
             )}
-            <p className="text-gray-600 mt-1">{project.name}</p>
           </div>
         </div>
       )}
