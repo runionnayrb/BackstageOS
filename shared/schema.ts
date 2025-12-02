@@ -759,6 +759,48 @@ export const scheduleVersionNotifications = pgTable("schedule_version_notificati
   errorMessage: text("error_message"),
 });
 
+// ========== SCHEDULE TEMPLATES SYSTEM ==========
+
+// Schedule templates for reusable weekly schedules
+export const scheduleTemplates = pgTable("schedule_templates", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  weekStartDay: integer("week_start_day").default(0), // 0=Sunday, 1=Monday, etc. - matches show settings
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Schedule template events (events within a template, using day of week instead of date)
+export const scheduleTemplateEvents = pgTable("schedule_template_events", {
+  id: serial("id").primaryKey(),
+  templateId: integer("template_id").notNull().references(() => scheduleTemplates.id, { onDelete: "cascade" }),
+  dayOfWeek: integer("day_of_week").notNull(), // 0-6, relative to template's week start
+  title: varchar("title").notNull(),
+  description: text("description"),
+  startTime: time("start_time").notNull(),
+  endTime: time("end_time").notNull(),
+  type: varchar("type").notNull().default("rehearsal"),
+  eventTypeId: integer("event_type_id").references(() => eventTypes.id, { onDelete: "set null" }),
+  location: varchar("location"),
+  notes: text("notes"),
+  isAllDay: boolean("is_all_day").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Schedule template event participants
+export const scheduleTemplateEventParticipants = pgTable("schedule_template_event_participants", {
+  id: serial("id").primaryKey(),
+  templateEventId: integer("template_event_id").notNull().references(() => scheduleTemplateEvents.id, { onDelete: "cascade" }),
+  contactId: integer("contact_id").notNull().references(() => contacts.id, { onDelete: "cascade" }),
+  isRequired: boolean("is_required").default(true),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Custom email templates for schedule notifications
 export const scheduleEmailTemplates = pgTable("schedule_email_templates", {
   id: serial("id").primaryKey(),
@@ -2697,6 +2739,24 @@ export const insertScheduleEmailTemplateSchema = createInsertSchema(scheduleEmai
   updatedAt: true,
 });
 
+// Schedule template insert schemas
+export const insertScheduleTemplateSchema = createInsertSchema(scheduleTemplates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertScheduleTemplateEventSchema = createInsertSchema(scheduleTemplateEvents).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertScheduleTemplateEventParticipantSchema = createInsertSchema(scheduleTemplateEventParticipants).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type ContactAvailability = typeof contactAvailability.$inferSelect;
 export type InsertContactAvailability = z.infer<typeof insertContactAvailabilitySchema>;
@@ -2706,6 +2766,12 @@ export type ScheduleEventParticipant = typeof scheduleEventParticipants.$inferSe
 export type InsertScheduleEventParticipant = z.infer<typeof insertScheduleEventParticipantSchema>;
 export type ReportNote = typeof reportNotes.$inferSelect;
 export type InsertReportNote = z.infer<typeof insertReportNoteSchema>;
+export type ScheduleTemplate = typeof scheduleTemplates.$inferSelect;
+export type InsertScheduleTemplate = z.infer<typeof insertScheduleTemplateSchema>;
+export type ScheduleTemplateEvent = typeof scheduleTemplateEvents.$inferSelect;
+export type InsertScheduleTemplateEvent = z.infer<typeof insertScheduleTemplateEventSchema>;
+export type ScheduleTemplateEventParticipant = typeof scheduleTemplateEventParticipants.$inferSelect;
+export type InsertScheduleTemplateEventParticipant = z.infer<typeof insertScheduleTemplateEventParticipantSchema>;
 
 export const insertContactSheetVersionSchema = createInsertSchema(contactSheetVersions).omit({
   id: true,
