@@ -8383,16 +8383,20 @@ Best regards,
         return res.status(403).json({ message: "Access denied" });
       }
 
+      // Extract participants before schema validation
+      const participantIds = req.body.participantIds || [];
+      const { participantIds: _, ...eventBody } = req.body;
+
       const eventData = insertScheduleTemplateEventSchema.parse({
-        ...req.body,
+        ...eventBody,
         templateId,
       });
 
       const event = await storage.createScheduleTemplateEvent(eventData);
 
       // Handle participants if provided
-      if (req.body.participantIds && Array.isArray(req.body.participantIds)) {
-        for (const contactId of req.body.participantIds) {
+      if (participantIds && Array.isArray(participantIds)) {
+        for (const contactId of participantIds) {
           await storage.addScheduleTemplateEventParticipant({
             templateEventId: event.id,
             contactId,
@@ -8437,17 +8441,21 @@ Best regards,
         return res.status(403).json({ message: "Access denied" });
       }
 
+      // Extract participants before schema validation
+      const participantIds = req.body.participantIds || [];
+      const { participantIds: _, ...updateBody } = req.body;
+
       const updateSchema = insertScheduleTemplateEventSchema.partial().omit({
         templateId: true,
       });
       
-      const validatedData = updateSchema.parse(req.body);
+      const validatedData = updateSchema.parse(updateBody);
       const updatedEvent = await storage.updateScheduleTemplateEvent(eventId, validatedData);
 
       // Handle participants update if provided
-      if (req.body.participantIds && Array.isArray(req.body.participantIds)) {
+      if (participantIds && Array.isArray(participantIds)) {
         await storage.removeScheduleTemplateEventParticipants(eventId);
-        for (const contactId of req.body.participantIds) {
+        for (const contactId of participantIds) {
           await storage.addScheduleTemplateEventParticipant({
             templateEventId: eventId,
             contactId,
