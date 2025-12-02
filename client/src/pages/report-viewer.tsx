@@ -384,13 +384,13 @@ function renderReportContent(report: any, template: any, isEditing: boolean, for
                           form.setValue("content", newContent);
                         }}
                         dangerouslySetInnerHTML={{__html: content[field.label] || field.defaultValue || ""}}
-                        className="text-sm whitespace-pre-wrap outline-none"
+                        className="text-sm whitespace-pre-wrap outline-none [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4"
                       />
                     )}
                     {field.type === "richtext" && !isEditing && (
                       <div 
                         dangerouslySetInnerHTML={{__html: content[field.label] || field.defaultValue || ""}}
-                        className="text-sm whitespace-pre-wrap"
+                        className="text-sm whitespace-pre-wrap [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4"
                       />
                     )}
                     {field.type === "text" && (
