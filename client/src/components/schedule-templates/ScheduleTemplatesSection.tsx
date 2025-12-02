@@ -87,7 +87,6 @@ export function ScheduleTemplatesSection({ projectId }: ScheduleTemplatesSection
       setSelectedTemplate(newTemplate);
       setTemplateName(newTemplate.name);
       setTemplateDescription(newTemplate.description || "");
-      setActiveTab("schedule");
       setEditSheetOpen(true);
     },
     onError: () => {
@@ -328,9 +327,9 @@ export function ScheduleTemplatesSection({ projectId }: ScheduleTemplatesSection
         </DialogContent>
       </Dialog>
 
-      {/* Edit Template Modal */}
+      {/* Edit Template Modal - Full Screen */}
       <Dialog open={editSheetOpen} onOpenChange={(open) => !open && handleCloseEditSheet()}>
-        <DialogContent className="w-screen h-screen max-w-full max-h-full p-0 gap-0 rounded-none flex flex-col">
+        <DialogContent className="fixed inset-0 left-0 top-0 w-screen h-screen max-w-none max-h-none p-0 gap-0 rounded-none border-0 shadow-none flex flex-col translate-x-0 translate-y-0">
           <div className="px-6 py-4 border-b flex-shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
