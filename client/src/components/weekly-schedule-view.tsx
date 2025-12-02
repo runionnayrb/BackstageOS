@@ -1569,9 +1569,9 @@ export default function WeeklyScheduleView({
                   const resizedTop = resizingEvent?.event.id === event.id ?
                     minutesToPosition(timeToMinutes(resizingEvent.event.startTime)) : displayTop;
 
-                  // Calculate if event is very short (less than 40px or less than 30 minutes)
-                  const isVeryShortEvent = displayHeight < 40 && (endMinutes - startMinutes) < 30;
-                  const isTinyEvent = displayHeight < 30 && (endMinutes - startMinutes) < 20;
+                  // Calculate duration in minutes
+                  const durationMinutes = endMinutes - startMinutes;
+                  const isShortEvent = durationMinutes <= 15;
 
                   return (
                     <Popover 
@@ -1585,7 +1585,7 @@ export default function WeeklyScheduleView({
                     >
                       <PopoverTrigger asChild>
                         <div
-                          className={`absolute text-white rounded-md shadow-sm border-l-4 cursor-pointer hover:opacity-90 z-30 transition-all ${
+                          className={`absolute text-white text-sm p-2 rounded-md shadow-sm border-l-4 cursor-pointer hover:opacity-90 z-30 ${
                             selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''
                           } ${draggedEvent?.event.id === event.id && draggedEvent.isDragging ? 'opacity-50' : ''}`}
                           style={{
@@ -1596,39 +1596,26 @@ export default function WeeklyScheduleView({
                             minHeight: '20px',
                             backgroundColor: eventTypeColor,
                             borderLeftColor: eventTypeColor,
-                            padding: isTinyEvent ? '2px 4px' : '8px',
-                            fontSize: isTinyEvent ? '10px' : isVeryShortEvent ? '11px' : '14px',
-                            lineHeight: isTinyEvent ? '1' : 'normal',
                             overflow: 'hidden',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            justifyContent: 'center',
                           }}
                           onMouseDown={(e) => handleEventMouseDown(e, event)}
                           onContextMenu={(e) => e.preventDefault()}
-                          title={`${event.title} - ${formatTimeDisplay(formatTime(startMinutes), timeFormat as '12' | '24')} to ${formatTimeDisplay(formatTime(endMinutes), timeFormat as '12' | '24')}`}
                         >
-                          {isTinyEvent ? (
-                            <div className="truncate font-semibold">•</div>
-                          ) : (
-                            <>
-                              <div className="font-semibold truncate">{event.title}</div>
-                              {!isVeryShortEvent && (
-                                <div className="text-xs opacity-90 truncate">
-                                  {(() => {
-                                    // Use dragged position times if this event is being dragged
-                                    if (draggedEvent?.event.id === event.id && draggedEvent.isDragging) {
-                                      const dragStartMinutes = draggedEvent.currentPosition.startMinutes;
-                                      const duration = endMinutes - startMinutes;
-                                      const dragEndMinutes = dragStartMinutes + duration;
-                                      return `${formatTimeDisplay(formatTime(dragStartMinutes), timeFormat as '12' | '24')} - ${formatTimeDisplay(formatTime(dragEndMinutes), timeFormat as '12' | '24')}`;
-                                    }
-                                    // Use normal times for non-dragged events
-                                    return `${formatTimeDisplay(formatTime(startMinutes), timeFormat as '12' | '24')} - ${formatTimeDisplay(formatTime(endMinutes), timeFormat as '12' | '24')}`;
-                                  })()}
-                                </div>
-                              )}
-                            </>
+                          <div className="font-medium truncate">{event.title}</div>
+                          {!isShortEvent && (
+                            <div className="text-xs opacity-90 truncate">
+                              {(() => {
+                                // Use dragged position times if this event is being dragged
+                                if (draggedEvent?.event.id === event.id && draggedEvent.isDragging) {
+                                  const dragStartMinutes = draggedEvent.currentPosition.startMinutes;
+                                  const duration = endMinutes - startMinutes;
+                                  const dragEndMinutes = dragStartMinutes + duration;
+                                  return `${formatTimeDisplay(formatTime(dragStartMinutes), timeFormat as '12' | '24')} - ${formatTimeDisplay(formatTime(dragEndMinutes), timeFormat as '12' | '24')}`;
+                                }
+                                // Use normal times for non-dragged events
+                                return `${formatTimeDisplay(formatTime(startMinutes), timeFormat as '12' | '24')} - ${formatTimeDisplay(formatTime(endMinutes), timeFormat as '12' | '24')}`;
+                              })()}
+                            </div>
                           )}
                           
                           {/* Resize handles */}

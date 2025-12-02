@@ -644,10 +644,7 @@ export default function DailyScheduleView({
                       const actualHeight = endMinutes - startMinutes;
                       const height = Math.max(20, actualHeight); // Minimum 20px height
                       const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes);
-                      
-                      // Determine if event is very short
-                      const isVeryShortEvent = actualHeight < 30 && actualHeight < 30;
-                      const isTinyEvent = actualHeight < 20 && actualHeight < 20;
+                      const isShortEvent = actualHeight <= 15;
 
                       return (
                         <Popover 
@@ -657,33 +654,19 @@ export default function DailyScheduleView({
                         >
                           <PopoverTrigger asChild>
                             <div
-                              className="absolute left-1 right-1 text-white rounded border-l-4 cursor-pointer hover:opacity-90 transition-opacity"
+                              className="absolute left-1 right-1 text-white rounded px-2 py-1 text-sm overflow-hidden cursor-pointer hover:opacity-90 transition-opacity border-l-4"
                               style={{
                                 top: `${top}px`,
                                 height: `${height}px`,
                                 backgroundColor: eventTypeColor,
                                 borderLeftColor: eventTypeColor,
-                                padding: isTinyEvent ? '2px 4px' : '8px',
-                                fontSize: isTinyEvent ? '10px' : isVeryShortEvent ? '11px' : '14px',
-                                lineHeight: isTinyEvent ? '1' : 'normal',
-                                overflow: 'hidden',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                justifyContent: 'center',
                               }}
-                              title={`${event.title} - ${formatTimeDisplay(formatTime(startMinutes), timeFormat)} to ${formatTimeDisplay(formatTime(endMinutes), timeFormat)}`}
                             >
-                              {isTinyEvent ? (
-                                <div className="truncate font-semibold">•</div>
-                              ) : (
-                                <>
-                                  <div className="font-semibold truncate">{event.title}</div>
-                                  {!isVeryShortEvent && (
-                                    <div className="text-xs opacity-90 truncate">
-                                      {formatTimeDisplay(formatTime(startMinutes), timeFormat)} - {formatTimeDisplay(formatTime(endMinutes), timeFormat)}
-                                    </div>
-                                  )}
-                                </>
+                              <div className="font-medium truncate">{event.title}</div>
+                              {!isShortEvent && (
+                                <div className="text-xs opacity-90 truncate">
+                                  {formatTimeDisplay(formatTime(startMinutes), timeFormat)} - {formatTimeDisplay(formatTime(endMinutes), timeFormat)}
+                                </div>
                               )}
                             </div>
                           </PopoverTrigger>
