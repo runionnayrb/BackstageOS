@@ -84,13 +84,13 @@ export default function ScheduleFilter({
     }
   }, [enabledEventTypes, showScheduleEnabled, onEventTypeFilterChange]);
 
-  // Group contacts by category for better organization
+  // Group contacts by contact group, then by category for better organization
   const contactsByCategory = contacts.reduce((acc, contact) => {
-    const category = contact.category || 'Other';
-    if (!acc[category]) {
-      acc[category] = [];
+    const groupName = (contact as any).contactGroup?.name || (contact.category || 'Other');
+    if (!acc[groupName]) {
+      acc[groupName] = [];
     }
-    acc[category].push(contact);
+    acc[groupName].push(contact);
     return acc;
   }, {} as Record<string, Contact[]>);
 

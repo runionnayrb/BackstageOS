@@ -1606,9 +1606,14 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getContactsByProjectId(projectId: number): Promise<Contact[]> {
-    const result = await db.select().from(contacts).where(eq(contacts.projectId, projectId));
-    return result;
+  async getContactsByProjectId(projectId: number): Promise<any[]> {
+    const result = await db.select().from(contacts)
+      .leftJoin(contactGroups, eq(contacts.groupId, contactGroups.id))
+      .where(eq(contacts.projectId, projectId));
+    return result.map(row => ({
+      ...row.contacts,
+      contactGroup: row.contact_groups
+    }));
   }
 
   async getAllContactsByUserId(userId: string): Promise<Contact[]> {

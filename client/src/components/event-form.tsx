@@ -238,64 +238,64 @@ export default function EventForm({
             <p className="text-sm text-gray-500">No contacts available</p>
           ) : (
             (() => {
-              // Group contacts by category
-              const contactsByCategory = contacts.reduce((acc, contact) => {
-                const category = contact.category || 'Other';
-                if (!acc[category]) {
-                  acc[category] = [];
+              // Group contacts by contact group, then by category
+              const contactsByGroup = contacts.reduce((acc, contact) => {
+                const groupName = contact.contactGroup?.name || (contact.category || 'Other');
+                if (!acc[groupName]) {
+                  acc[groupName] = [];
                 }
-                acc[category].push(contact);
+                acc[groupName].push(contact);
                 return acc;
               }, {} as Record<string, typeof contacts>);
 
-              return Object.entries(contactsByCategory).map(([category, categoryContacts]) => {
-                const categoryContactIds = categoryContacts.map(c => c.id);
-                const allCategorySelected = categoryContactIds.every(id => formData.participantIds.includes(id));
-                const someCategorySelected = categoryContactIds.some(id => formData.participantIds.includes(id));
+              return Object.entries(contactsByGroup).map(([groupName, groupContacts]) => {
+                const groupContactIds = groupContacts.map(c => c.id);
+                const allGroupSelected = groupContactIds.every(id => formData.participantIds.includes(id));
+                const someGroupSelected = groupContactIds.some(id => formData.participantIds.includes(id));
 
                 return (
-                  <div key={category} className="space-y-2">
-                    {/* Category header with select all checkbox */}
+                  <div key={groupName} className="space-y-2">
+                    {/* Group header with select all checkbox */}
                     <div className="flex items-center space-x-2 font-medium text-gray-700 border-b border-gray-200 pb-1">
                       <Checkbox
-                        id={`category-${category}`}
-                        checked={allCategorySelected}
+                        id={`group-${groupName}`}
+                        checked={allGroupSelected}
                         ref={(el) => {
                           if (el) {
                             const input = el.querySelector('input');
                             if (input) {
-                              input.indeterminate = someCategorySelected && !allCategorySelected;
+                              input.indeterminate = someGroupSelected && !allGroupSelected;
                             }
                           }
                         }}
                         onCheckedChange={(checked) => {
                           if (checked) {
-                            // Add all category contacts that aren't already selected
+                            // Add all group contacts that aren't already selected
                             const newParticipants = [
                               ...formData.participantIds,
-                              ...categoryContactIds.filter(id => !formData.participantIds.includes(id))
+                              ...groupContactIds.filter(id => !formData.participantIds.includes(id))
                             ];
                             setFormData({
                               ...formData,
                               participantIds: newParticipants,
                             });
                           } else {
-                            // Remove all category contacts
+                            // Remove all group contacts
                             setFormData({
                               ...formData,
-                              participantIds: formData.participantIds.filter(id => !categoryContactIds.includes(id)),
+                              participantIds: formData.participantIds.filter(id => !groupContactIds.includes(id)),
                             });
                           }
                         }}
                       />
-                      <Label htmlFor={`category-${category}`} className="text-sm font-semibold">
-                        {category.replace(/_/g, ' ').toUpperCase()}
+                      <Label htmlFor={`group-${groupName}`} className="text-sm font-semibold">
+                        {groupName.replace(/_/g, ' ').toUpperCase()}
                       </Label>
                     </div>
 
-                    {/* Individual contacts in category */}
+                    {/* Individual contacts in group */}
                     <div className="space-y-1 ml-6">
-                      {categoryContacts.map(contact => (
+                      {groupContacts.map(contact => (
                         <div key={contact.id} className="flex items-center space-x-2">
                           <Checkbox
                             id={`contact-${contact.id}`}
