@@ -16,13 +16,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -335,11 +328,11 @@ export function ScheduleTemplatesSection({ projectId }: ScheduleTemplatesSection
         </DialogContent>
       </Dialog>
 
-      {/* Edit Template Sheet */}
-      <Sheet open={editSheetOpen} onOpenChange={(open) => !open && handleCloseEditSheet()}>
-        <SheetContent side="right" className="w-full sm:max-w-4xl h-full flex flex-col p-0" hideCloseButton>
-          <SheetHeader className="px-6 py-0 border-b flex-shrink-0">
-            <div className="flex items-center justify-between py-4">
+      {/* Edit Template Modal */}
+      <Dialog open={editSheetOpen} onOpenChange={(open) => !open && handleCloseEditSheet()}>
+        <DialogContent className="w-screen h-screen max-w-full max-h-full p-0 gap-0 rounded-none flex flex-col">
+          <div className="px-6 py-4 border-b flex-shrink-0">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Button 
                   variant="ghost" 
@@ -350,10 +343,10 @@ export function ScheduleTemplatesSection({ projectId }: ScheduleTemplatesSection
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
                 <div>
-                  <SheetTitle className="text-lg">{selectedTemplate?.name ? `${selectedTemplate.name} - Weekly Schedule Template` : "Edit Template"}</SheetTitle>
-                  <SheetDescription className="text-sm">
+                  <DialogTitle className="text-lg">{selectedTemplate?.name ? `${selectedTemplate.name} - Weekly Schedule Template` : "Edit Template"}</DialogTitle>
+                  <DialogDescription className="text-sm">
                     Edit template schedule
-                  </SheetDescription>
+                  </DialogDescription>
                 </div>
               </div>
               <Button
@@ -367,10 +360,10 @@ export function ScheduleTemplatesSection({ projectId }: ScheduleTemplatesSection
                 Details
               </Button>
             </div>
-          </SheetHeader>
+          </div>
 
           {selectedTemplate && (
-            <div className="flex-1 min-h-0 overflow-hidden p-4">
+            <div className="flex-1 min-h-0 overflow-hidden px-6 py-4">
               <TemplateWeeklyScheduleView
                 templateId={selectedTemplate.id}
                 projectId={projectId}
@@ -378,8 +371,8 @@ export function ScheduleTemplatesSection({ projectId }: ScheduleTemplatesSection
               />
             </div>
           )}
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
 
       {/* Template Details Dialog */}
       <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
