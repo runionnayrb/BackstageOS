@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Clock, Plus, Calendar, X, History, Settings, FileText, User, Send, Crown, Megaphone, Bell } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Clock, Plus, Calendar, X, History, Settings, FileText, User, Send, Crown, Megaphone, Bell, LayoutTemplate, Copy, CalendarPlus } from "lucide-react";
 import { FloatingActionButton } from "@/components/navigation/floating-action-button";
 import { ChangeSummaryEditor } from "@/components/ChangeSummaryEditor";
 import WeeklyScheduleView from "@/components/weekly-schedule-view";
@@ -85,6 +85,12 @@ export default function Schedule() {
   const [showTestEmailDialog, setShowTestEmailDialog] = useState(false);
   const [showResendScheduleDialog, setShowResendScheduleDialog] = useState(false);
   const [resendSelectedContacts, setResendSelectedContacts] = useState<number[]>([]);
+  const [showCreateTemplateDialog, setShowCreateTemplateDialog] = useState(false);
+  const [showApplyTemplateDialog, setShowApplyTemplateDialog] = useState(false);
+  const [templateName, setTemplateName] = useState('');
+  const [templateDescription, setTemplateDescription] = useState('');
+  const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
+  const [skipConflicts, setSkipConflicts] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -269,6 +275,11 @@ The Production Team`
     enabled: showScheduleSettings, // Only fetch when modal is open
   });
 
+  // Fetch schedule templates
+  const { data: scheduleTemplates = [] } = useQuery<any[]>({
+    queryKey: [`/api/projects/${projectId}/schedule-templates`],
+  });
+
   // Test email mutation
   const sendTestEmailMutation = useMutation({
     mutationFn: async () => {
@@ -346,6 +357,79 @@ The Production Team`
     resendScheduleMutation.mutate(resendSelectedContacts);
   };
 
+  // Create template (snapshot) mutation
+  const createTemplateMutation = useMutation({
+    mutationFn: async ({ name, description, weekStartDate }: { name: string; description: string; weekStartDate: string }) => {
+      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+        ? JSON.parse((settings as any).scheduleSettings) 
+        : ((settings as any)?.scheduleSettings || {});
+      const weekStartDay = scheduleSettings?.weekStartDay || 'sunday';
+      const weekStartDayNumber = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].indexOf(weekStartDay);
+      
+      const response = await apiRequest('POST', `/api/projects/${projectId}/schedule-templates/snapshot`, {
+        name,
+        description,
+        weekStartDate,
+        weekStartDay: weekStartDayNumber >= 0 ? weekStartDayNumber : 0
+      });
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-templates`] });
+      toast({
+        title: "Template Created",
+        description: "Weekly schedule template has been saved successfully.",
+      });
+      setShowCreateTemplateDialog(false);
+      setTemplateName('');
+      setTemplateDescription('');
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create template. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Apply template mutation
+  const applyTemplateMutation = useMutation({
+    mutationFn: async ({ templateId, targetWeekStartDate, skipConflicts }: { templateId: number; targetWeekStartDate: string; skipConflicts: boolean }) => {
+      const response = await apiRequest('POST', `/api/schedule-templates/${templateId}/apply`, {
+        targetWeekStartDate,
+        skipConflicts
+      });
+      return response;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      toast({
+        title: "Template Applied",
+        description: `Created ${data.eventsCreated || 0} events from template.`,
+      });
+      setShowApplyTemplateDialog(false);
+      setSelectedTemplateId(null);
+      setSkipConflicts(false);
+    },
+    onError: (error: any) => {
+      if (error.conflicts) {
+        toast({
+          title: "Scheduling Conflicts Detected",
+          description: `${error.conflicts.length} time conflicts were found. Enable "Skip conflicts" to create non-conflicting events only.`,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to apply template. Please try again.",
+          variant: "destructive",
+        });
+      }
+    },
+  });
+
   // Organize contacts by type for resend dialog
   const organizedContacts = contacts.reduce((acc: any, contact: any) => {
     const contactType = contact.category || 'Other';
@@ -379,6 +463,31 @@ The Production Team`
     // Return the most recent version
     return sortedVersions[0];
   }, [scheduleVersions]);
+
+  // Calculate week range consistently for template dialogs
+  const currentWeekRange = useMemo(() => {
+    const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+      ? JSON.parse((settings as any).scheduleSettings) 
+      : ((settings as any)?.scheduleSettings || {});
+    const weekStartDay = scheduleSettings?.weekStartDay || 'sunday';
+    const weekStartDayNumber = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].indexOf(weekStartDay);
+    
+    const startOfWeek = new Date(currentDate);
+    const currentDay = startOfWeek.getDay();
+    const diff = currentDay - weekStartDayNumber;
+    startOfWeek.setDate(startOfWeek.getDate() - (diff < 0 ? diff + 7 : diff));
+    
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(endOfWeek.getDate() + 6);
+    
+    return {
+      startDate: startOfWeek,
+      endDate: endOfWeek,
+      startDateStr: startOfWeek.toISOString().split('T')[0],
+      displayText: `${startOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
+      weekStartDayNumber
+    };
+  }, [currentDate, settings]);
 
   // Handle Full Company toggle
   const handleFullCompanyToggle = (checked: boolean) => {
@@ -926,12 +1035,41 @@ The Production Team`
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
-              <button 
-                onClick={() => setCreateEventDialog(true)} 
-                className="p-1 hover:bg-gray-100 rounded ml-2 transition-colors"
-              >
-                <Plus className="h-4 w-4" />
-              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button 
+                    className="p-1 hover:bg-gray-100 rounded ml-2 transition-colors"
+                    data-testid="button-add-schedule-menu"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem 
+                    onClick={() => setCreateEventDialog(true)}
+                    data-testid="menu-add-event"
+                  >
+                    <CalendarPlus className="h-4 w-4 mr-2" />
+                    Add Event
+                  </DropdownMenuItem>
+                  {scheduleTemplates.length > 0 && (
+                    <DropdownMenuItem 
+                      onClick={() => setShowApplyTemplateDialog(true)}
+                      data-testid="menu-apply-template"
+                    >
+                      <Copy className="h-4 w-4 mr-2" />
+                      Apply Weekly Template
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem 
+                    onClick={() => setShowCreateTemplateDialog(true)}
+                    data-testid="menu-save-template"
+                  >
+                    <LayoutTemplate className="h-4 w-4 mr-2" />
+                    Save Week as Template
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
             </div>
             
@@ -2126,6 +2264,195 @@ The Production Team`}
               className="bg-blue-600 hover:bg-blue-700"
             >
               {sendTestEmailMutation.isPending ? 'Sending...' : 'Send Test Email'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Create Template Dialog */}
+      <Dialog 
+        open={showCreateTemplateDialog} 
+        onOpenChange={(open) => {
+          setShowCreateTemplateDialog(open);
+          if (!open) {
+            setTemplateName('');
+            setTemplateDescription('');
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Save Week as Template</DialogTitle>
+            <DialogDescription>
+              Save the current week's schedule as a reusable template. You can apply this template to other weeks later.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="templateName">Template Name</Label>
+              <Input
+                id="templateName"
+                placeholder="e.g., Tech Week Schedule"
+                value={templateName}
+                onChange={(e) => setTemplateName(e.target.value)}
+                className="mt-1"
+                data-testid="input-template-name"
+              />
+            </div>
+            <div>
+              <Label htmlFor="templateDescription">Description (optional)</Label>
+              <Input
+                id="templateDescription"
+                placeholder="Describe what this template is for..."
+                value={templateDescription}
+                onChange={(e) => setTemplateDescription(e.target.value)}
+                className="mt-1"
+                data-testid="input-template-description"
+              />
+            </div>
+            <div className="bg-blue-50 p-3 rounded-lg text-sm text-blue-800">
+              <p className="font-medium">Week being saved:</p>
+              <p>{currentWeekRange.displayText}</p>
+            </div>
+          </div>
+          <DialogFooter className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowCreateTemplateDialog(false);
+                setTemplateName('');
+                setTemplateDescription('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                if (!templateName.trim()) {
+                  toast({
+                    title: "Template name required",
+                    description: "Please enter a name for the template.",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+                
+                createTemplateMutation.mutate({
+                  name: templateName.trim(),
+                  description: templateDescription.trim(),
+                  weekStartDate: currentWeekRange.startDateStr
+                });
+              }}
+              disabled={createTemplateMutation.isPending}
+              data-testid="button-save-template-confirm"
+            >
+              {createTemplateMutation.isPending ? 'Saving...' : 'Save Template'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Apply Template Dialog */}
+      <Dialog 
+        open={showApplyTemplateDialog} 
+        onOpenChange={(open) => {
+          setShowApplyTemplateDialog(open);
+          if (!open) {
+            setSelectedTemplateId(null);
+            setSkipConflicts(false);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Apply Weekly Template</DialogTitle>
+            <DialogDescription>
+              Select a template to apply to the current week. Events from the template will be created on the corresponding days.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="selectTemplate">Select Template</Label>
+              <Select
+                value={selectedTemplateId?.toString() || ''}
+                onValueChange={(value) => setSelectedTemplateId(parseInt(value))}
+              >
+                <SelectTrigger className="mt-1" data-testid="select-template">
+                  <SelectValue placeholder="Choose a template..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {scheduleTemplates.map((template: any) => (
+                    <SelectItem key={template.id} value={template.id.toString()}>
+                      {template.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {selectedTemplateId && (
+              <div className="bg-gray-50 p-3 rounded-lg text-sm">
+                {(() => {
+                  const template = scheduleTemplates.find((t: any) => t.id === selectedTemplateId);
+                  return template ? (
+                    <>
+                      <p className="font-medium">{template.name}</p>
+                      {template.description && <p className="text-gray-600">{template.description}</p>}
+                    </>
+                  ) : null;
+                })()}
+              </div>
+            )}
+            
+            <div className="bg-blue-50 p-3 rounded-lg text-sm text-blue-800">
+              <p className="font-medium">Target week:</p>
+              <p>{currentWeekRange.displayText}</p>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="skipConflicts"
+                checked={skipConflicts}
+                onCheckedChange={(checked) => setSkipConflicts(checked as boolean)}
+                data-testid="checkbox-skip-conflicts"
+              />
+              <Label htmlFor="skipConflicts" className="text-sm">
+                Skip conflicting events (create only non-overlapping events)
+              </Label>
+            </div>
+          </div>
+          <DialogFooter className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowApplyTemplateDialog(false);
+                setSelectedTemplateId(null);
+                setSkipConflicts(false);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                if (!selectedTemplateId) {
+                  toast({
+                    title: "No template selected",
+                    description: "Please select a template to apply.",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+                
+                applyTemplateMutation.mutate({
+                  templateId: selectedTemplateId,
+                  targetWeekStartDate: currentWeekRange.startDateStr,
+                  skipConflicts
+                });
+              }}
+              disabled={applyTemplateMutation.isPending || !selectedTemplateId}
+              data-testid="button-apply-template-confirm"
+            >
+              {applyTemplateMutation.isPending ? 'Applying...' : 'Apply Template'}
             </Button>
           </DialogFooter>
         </DialogContent>
