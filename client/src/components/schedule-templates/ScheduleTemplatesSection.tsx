@@ -337,8 +337,8 @@ export function ScheduleTemplatesSection({ projectId }: ScheduleTemplatesSection
 
       {/* Edit Template Sheet */}
       <Sheet open={editSheetOpen} onOpenChange={(open) => !open && handleCloseEditSheet()}>
-        <SheetContent side="right" className="w-full sm:max-w-4xl overflow-y-auto">
-          <SheetHeader className="pb-4 border-b">
+        <SheetContent side="right" className="w-full sm:max-w-4xl h-full flex flex-col p-0">
+          <SheetHeader className="px-6 py-4 border-b flex-shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Button 
@@ -370,7 +370,7 @@ export function ScheduleTemplatesSection({ projectId }: ScheduleTemplatesSection
           </SheetHeader>
 
           {selectedTemplate && (
-            <div className="mt-4">
+            <div className="flex-1 min-h-0 overflow-hidden">
               <TemplateWeeklyScheduleView
                 templateId={selectedTemplate.id}
                 projectId={projectId}

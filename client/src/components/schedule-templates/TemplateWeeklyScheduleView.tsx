@@ -469,9 +469,9 @@ export function TemplateWeeklyScheduleView({
 
   return (
     <>
-      <div className="border border-gray-200 rounded-lg overflow-hidden">
+      <div className="border border-gray-200 rounded-lg overflow-hidden h-full flex flex-col">
         {/* Header row */}
-        <div className="relative bg-gray-50 border-b border-gray-200" style={{ height: '24px' }}>
+        <div className="relative bg-gray-50 border-b border-gray-200 flex-shrink-0" style={{ height: '24px' }}>
           <div 
             style={{ 
               position: 'absolute',
@@ -511,7 +511,7 @@ export function TemplateWeeklyScheduleView({
         </div>
 
         {/* All Day Events Section */}
-        <div className="relative min-h-[40px] bg-gray-50 border-b border-gray-200">
+        <div className="relative min-h-[40px] bg-gray-50 border-b border-gray-200 flex-shrink-0">
           <div 
             className="absolute left-0 top-0 bottom-0 bg-gray-50 border-r border-gray-200 flex items-center justify-center text-xs font-medium text-gray-600 select-none"
             style={{ width: '64px' }}
@@ -576,8 +576,8 @@ export function TemplateWeeklyScheduleView({
 
         {/* Scrollable calendar content */}
         <div 
-          className="overflow-y-auto scrollbar-hide" 
-          style={{ maxHeight: '500px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          className="overflow-y-auto scrollbar-hide flex-1 min-h-0" 
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           <div 
             ref={calendarRef}
