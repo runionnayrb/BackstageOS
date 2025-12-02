@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Clock, MapPin, Edit, Trash2 } from "lucide-react";
 import { formatTimeDisplay } from "@/lib/timeUtils";
 import { getEventTypeColorFromDatabase } from "@/lib/eventUtils";
+import { calculateEventLayouts } from "@/lib/scheduleUtils";
 import TemplateEventForm from "./TemplateEventForm";
 
 interface ScheduleTemplateEvent {
@@ -78,6 +79,7 @@ export function TemplateWeeklyScheduleView({
 }: TemplateWeeklyScheduleViewProps) {
   const { toast } = useToast();
   const calendarRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   
   const [dragState, setDragState] = useState<{
     isActive: boolean;
@@ -103,6 +105,12 @@ export function TemplateWeeklyScheduleView({
   
   const resizingEventRef = useRef<typeof resizingEvent>(null);
   const [openPopoverId, setOpenPopoverId] = useState<number | null>(null);
+  const openPopoverIdRef = useRef<number | null>(null);
+  
+  const updateOpenPopoverId = useCallback((newId: number | null) => {
+    openPopoverIdRef.current = newId;
+    setOpenPopoverId(newId);
+  }, []);
   const [justDragged, setJustDragged] = useState<number | null>(null);
   const [editingEvent, setEditingEvent] = useState<ScheduleTemplateEvent | null>(null);
   const [isCreatingEvent, setIsCreatingEvent] = useState(false);
@@ -142,12 +150,50 @@ export function TemplateWeeklyScheduleView({
   const createEventMutation = useMutation({
     mutationFn: (data: any) =>
       apiRequest("POST", `/api/schedule-templates/${templateId}/events`, data),
+    onMutate: async (eventData: any) => {
+      await queryClient.cancelQueries({ queryKey: [eventsQueryKey] });
+      const previousEvents = queryClient.getQueryData<ScheduleTemplateEvent[]>([eventsQueryKey]);
+      
+      const optimisticEvent: ScheduleTemplateEvent = {
+        id: Date.now(),
+        templateId,
+        title: eventData.title || 'New Event',
+        description: eventData.description || null,
+        dayOfWeek: eventData.dayOfWeek,
+        startTime: eventData.startTime,
+        endTime: eventData.endTime,
+        type: eventData.type || 'other',
+        eventTypeId: eventData.eventTypeId || null,
+        location: eventData.location || null,
+        notes: eventData.notes || null,
+        isAllDay: eventData.isAllDay || false,
+        participants: eventData.participantIds?.map((id: number) => {
+          const contact = contacts.find(c => c.id === id);
+          if (!contact) return null;
+          return {
+            id: Date.now() + id,
+            contactId: id,
+            contact: { id: contact.id, firstName: contact.firstName, lastName: contact.lastName }
+          };
+        }).filter(Boolean) || []
+      };
+      
+      queryClient.setQueryData<ScheduleTemplateEvent[]>([eventsQueryKey], (old) => 
+        old ? [...old, optimisticEvent] : [optimisticEvent]
+      );
+      
+      return { previousEvents, optimisticEvent };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [eventsQueryKey], refetchType: 'all' });
       toast({ title: "Event added to template" });
-      setEditingEvent(null);
+      setIsCreatingEvent(false);
+      setNewEventDefaults(null);
     },
-    onError: () => {
+    onError: (_error, _eventData, context) => {
+      if (context?.previousEvents) {
+        queryClient.setQueryData([eventsQueryKey], context.previousEvents);
+      }
       toast({ title: "Failed to add event", variant: "destructive" });
     },
   });
@@ -155,13 +201,27 @@ export function TemplateWeeklyScheduleView({
   const updateEventMutation = useMutation({
     mutationFn: ({ id, ...data }: { id: number } & any) =>
       apiRequest("PATCH", `/api/schedule-template-events/${id}`, data),
+    onMutate: async ({ id, ...eventData }) => {
+      await queryClient.cancelQueries({ queryKey: [eventsQueryKey] });
+      const previousEvents = queryClient.getQueryData<ScheduleTemplateEvent[]>([eventsQueryKey]);
+      
+      queryClient.setQueryData<ScheduleTemplateEvent[]>([eventsQueryKey], (old) =>
+        old?.map(event => 
+          event.id === id ? { ...event, ...eventData } : event
+        ) || []
+      );
+      
+      return { previousEvents };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [eventsQueryKey], refetchType: 'all' });
       toast({ title: "Event updated" });
       setEditingEvent(null);
     },
-    onError: () => {
-      queryClient.invalidateQueries({ queryKey: [eventsQueryKey], refetchType: 'all' });
+    onError: (_error, _variables, context) => {
+      if (context?.previousEvents) {
+        queryClient.setQueryData([eventsQueryKey], context.previousEvents);
+      }
       toast({ title: "Failed to update event", variant: "destructive" });
     },
   });
@@ -169,12 +229,25 @@ export function TemplateWeeklyScheduleView({
   const deleteEventMutation = useMutation({
     mutationFn: (id: number) =>
       apiRequest("DELETE", `/api/schedule-template-events/${id}`),
+    onMutate: async (id: number) => {
+      await queryClient.cancelQueries({ queryKey: [eventsQueryKey] });
+      const previousEvents = queryClient.getQueryData<ScheduleTemplateEvent[]>([eventsQueryKey]);
+      
+      queryClient.setQueryData<ScheduleTemplateEvent[]>([eventsQueryKey], (old) =>
+        old?.filter(event => event.id !== id) || []
+      );
+      
+      return { previousEvents };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [eventsQueryKey], refetchType: 'all' });
       toast({ title: "Event deleted" });
       setEditingEvent(null);
     },
-    onError: () => {
+    onError: (_error, _id, context) => {
+      if (context?.previousEvents) {
+        queryClient.setQueryData([eventsQueryKey], context.previousEvents);
+      }
       toast({ title: "Failed to delete event", variant: "destructive" });
     },
   });
@@ -280,13 +353,27 @@ export function TemplateWeeklyScheduleView({
     
     const startMinutes = timeToMinutes(event.startTime);
     const dayIndex = orderedDays.findIndex(d => d.index === event.dayOfWeek);
+    const duration = timeToMinutes(event.endTime) - timeToMinutes(event.startTime);
     
-    setDraggedEvent({
+    const rect = calendarRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    
+    const eventLeft = 64 + ((rect.width - 64) * dayIndex / 7);
+    const eventTop = minutesToPosition(startMinutes);
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top + (scrollContainerRef.current?.scrollTop || 0);
+    
+    const initialDragState = {
       event,
       originalPosition: { dayIndex, startMinutes },
       currentPosition: { dayIndex, startMinutes },
+      offset: { x: clickX - eventLeft, y: clickY - eventTop },
       isDragging: false,
-    });
+    };
+    
+    setDraggedEvent(initialDragState);
+    
+    let currentDragPosition = { dayIndex, startMinutes };
     
     const handleMouseMove = (e: MouseEvent) => {
       const deltaX = e.clientX - startX;
@@ -294,53 +381,63 @@ export function TemplateWeeklyScheduleView({
       
       if (!hasStartedDragging && (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5)) {
         hasStartedDragging = true;
-        setOpenPopoverId(null);
+        updateOpenPopoverId(null);
+        setDraggedEvent(prev => prev ? { ...prev, isDragging: true } : null);
       }
       
       if (hasStartedDragging && calendarRef.current) {
-        const rect = calendarRef.current.getBoundingClientRect();
-        const y = e.clientY - rect.top;
-        const newStartMinutes = snapToIncrement(positionToMinutes(y));
+        const newRect = calendarRef.current.getBoundingClientRect();
+        const scrollTop = scrollContainerRef.current?.scrollTop || 0;
         
-        const calendarWidth = rect.width - 64;
-        const dayWidth = calendarWidth / 7;
-        const x = e.clientX - rect.left - 64;
-        const newDayIndex = Math.max(0, Math.min(6, Math.floor(x / dayWidth)));
+        const mouseX = e.clientX - newRect.left;
+        const mouseY = e.clientY - newRect.top + scrollTop;
+        
+        const eventX = mouseX - initialDragState.offset.x;
+        const eventY = mouseY - initialDragState.offset.y;
+        
+        const newDayIndex = Math.round((eventX - 64) / ((newRect.width - 64) / 7));
+        const constrainedDayIndex = Math.max(0, Math.min(6, newDayIndex));
+        const newStartMinutes = snapToIncrement(positionToMinutes(eventY));
+        
+        currentDragPosition = { dayIndex: constrainedDayIndex, startMinutes: newStartMinutes };
+        
+        queryClient.setQueryData<ScheduleTemplateEvent[]>([eventsQueryKey], (old) =>
+          old?.map(evt => 
+            evt.id === event.id ? {
+              ...evt,
+              dayOfWeek: orderedDays[constrainedDayIndex].index,
+              startTime: formatTime(newStartMinutes),
+              endTime: formatTime(newStartMinutes + duration),
+            } : evt
+          ) || []
+        );
         
         setDraggedEvent(prev => prev ? {
           ...prev,
-          currentPosition: { dayIndex: newDayIndex, startMinutes: newStartMinutes },
+          currentPosition: currentDragPosition,
           isDragging: true,
         } : null);
       }
     };
     
     const handleMouseUp = () => {
-      if (hasStartedDragging && draggedEvent) {
-        setDraggedEvent(prev => {
-          if (prev && prev.isDragging) {
-            const duration = timeToMinutes(event.endTime) - timeToMinutes(event.startTime);
-            const newDayOfWeek = orderedDays[prev.currentPosition.dayIndex].index;
-            const newStartTime = formatTime(prev.currentPosition.startMinutes);
-            const newEndTime = formatTime(prev.currentPosition.startMinutes + duration);
-            
-            updateEventMutation.mutate({
-              id: event.id,
-              dayOfWeek: newDayOfWeek,
-              startTime: newStartTime,
-              endTime: newEndTime,
-            });
-            
-            setJustDragged(event.id);
-            setTimeout(() => setJustDragged(null), 100);
-          }
-          return null;
+      if (hasStartedDragging) {
+        const newDayOfWeek = orderedDays[currentDragPosition.dayIndex].index;
+        const newStartTime = formatTime(currentDragPosition.startMinutes);
+        const newEndTime = formatTime(currentDragPosition.startMinutes + duration);
+        
+        updateEventMutation.mutate({
+          id: event.id,
+          dayOfWeek: newDayOfWeek,
+          startTime: newStartTime,
+          endTime: newEndTime,
         });
+        
+        setJustDragged(event.id);
+        setTimeout(() => setJustDragged(null), 200);
+        setDraggedEvent(null);
       } else {
         setDraggedEvent(null);
-        if (!hasStartedDragging) {
-          setOpenPopoverId(openPopoverId === event.id ? null : event.id);
-        }
       }
       
       document.removeEventListener('mousemove', handleMouseMove);
@@ -349,7 +446,7 @@ export function TemplateWeeklyScheduleView({
     
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-  }, [orderedDays, timeIncrement, updateEventMutation, openPopoverId]);
+  }, [orderedDays, timeIncrement, updateEventMutation, eventsQueryKey]);
 
   const handleResizeStart = useCallback((e: React.MouseEvent, event: ScheduleTemplateEvent, edge: 'start' | 'end') => {
     e.preventDefault();
@@ -368,11 +465,15 @@ export function TemplateWeeklyScheduleView({
     setResizingEvent(resizingData);
     resizingEventRef.current = resizingData;
     
+    let currentStartTime = event.startTime;
+    let currentEndTime = event.endTime;
+    
     const handleMouseMove = (e: MouseEvent) => {
       if (!calendarRef.current) return;
       
       const rect = calendarRef.current.getBoundingClientRect();
-      const y = e.clientY - rect.top;
+      const scrollTop = scrollContainerRef.current?.scrollTop || 0;
+      const y = e.clientY - rect.top + scrollTop;
       const minutes = snapToIncrement(positionToMinutes(y));
       
       let newStartMinutes = originalStartMinutes;
@@ -386,6 +487,18 @@ export function TemplateWeeklyScheduleView({
       
       const newStartTime = formatTime(newStartMinutes);
       const newEndTime = formatTime(newEndMinutes);
+      currentStartTime = newStartTime;
+      currentEndTime = newEndTime;
+      
+      queryClient.setQueryData<ScheduleTemplateEvent[]>([eventsQueryKey], (old) =>
+        old?.map(evt => 
+          evt.id === event.id ? {
+            ...evt,
+            startTime: newStartTime,
+            endTime: newEndTime,
+          } : evt
+        ) || []
+      );
       
       const updatedEvent = { ...resizingEventRef.current!.event, startTime: newStartTime, endTime: newEndTime };
       setResizingEvent(prev => prev ? { ...prev, event: updatedEvent } : null);
@@ -393,13 +506,11 @@ export function TemplateWeeklyScheduleView({
     };
     
     const handleMouseUp = () => {
-      if (resizingEventRef.current) {
-        updateEventMutation.mutate({
-          id: event.id,
-          startTime: resizingEventRef.current.event.startTime,
-          endTime: resizingEventRef.current.event.endTime,
-        });
-      }
+      updateEventMutation.mutate({
+        id: event.id,
+        startTime: currentStartTime,
+        endTime: currentEndTime,
+      });
       
       setResizingEvent(null);
       resizingEventRef.current = null;
@@ -409,11 +520,11 @@ export function TemplateWeeklyScheduleView({
     
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-  }, [timeIncrement, updateEventMutation]);
+  }, [timeIncrement, updateEventMutation, eventsQueryKey]);
 
   const openEditDialog = (event: ScheduleTemplateEvent) => {
     setEditingEvent(event);
-    setOpenPopoverId(null);
+    updateOpenPopoverId(null);
   };
 
   const handleCreateEvent = (data: any) => {
@@ -460,6 +571,26 @@ export function TemplateWeeklyScheduleView({
     }
     return lines;
   }, [timeIncrement]);
+
+  const eventLayoutsByDay = useMemo(() => {
+    const layoutsByDay: Map<number, Map<number, { column: number; totalColumns: number; width: number; left: number }>> = new Map();
+    
+    orderedDays.forEach((day) => {
+      const dayEvents = events
+        .filter(event => event.dayOfWeek === day.index && !event.isAllDay)
+        .map(event => ({
+          id: event.id,
+          startTime: event.startTime,
+          endTime: event.endTime,
+          isAllDay: event.isAllDay
+        }));
+      
+      const layouts = calculateEventLayouts(dayEvents);
+      layoutsByDay.set(day.index, layouts);
+    });
+    
+    return layoutsByDay;
+  }, [events, orderedDays]);
 
   if (isLoading) {
     return (
@@ -537,14 +668,13 @@ export function TemplateWeeklyScheduleView({
                     open={openPopoverId === event.id}
                     onOpenChange={(open) => {
                       if (open && justDragged === event.id) return;
-                      setOpenPopoverId(open ? event.id : null);
+                      updateOpenPopoverId(open ? event.id : null);
                     }}
                   >
                     <PopoverTrigger asChild>
                       <div
                         className="text-white text-xs p-1 rounded cursor-pointer hover:opacity-80 select-none truncate"
                         style={{ backgroundColor: getEventColor(event) }}
-                        onClick={() => setOpenPopoverId(openPopoverId === event.id ? null : event.id)}
                       >
                         {event.title}
                       </div>
@@ -578,6 +708,7 @@ export function TemplateWeeklyScheduleView({
 
         {/* Scrollable calendar content */}
         <div 
+          ref={scrollContainerRef}
           className="overflow-y-auto scrollbar-hide flex-1 min-h-0" 
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
@@ -637,13 +768,24 @@ export function TemplateWeeklyScheduleView({
                 const durationMinutes = endMinutes - startMinutes;
                 const isShortEvent = durationMinutes <= 15;
 
+                const dayLayouts = eventLayoutsByDay.get(event.dayOfWeek);
+                const layout = dayLayouts?.get(event.id);
+                
+                let eventWidthPercent = 100;
+                let eventLeftPercent = 0;
+                
+                if (layout) {
+                  eventWidthPercent = layout.width;
+                  eventLeftPercent = layout.left;
+                }
+
                 return (
                   <Popover 
                     key={event.id}
                     open={openPopoverId === event.id}
                     onOpenChange={(open) => {
                       if (open && justDragged === event.id) return;
-                      setOpenPopoverId(open ? event.id : null);
+                      updateOpenPopoverId(open ? event.id : null);
                     }}
                   >
                     <PopoverTrigger asChild>
@@ -652,8 +794,8 @@ export function TemplateWeeklyScheduleView({
                           draggedEvent?.event.id === event.id && draggedEvent.isDragging ? 'opacity-50' : ''
                         }`}
                         style={{
-                          left: `calc(64px + (100% - 64px) * ${displayDayIndex} / 7 + 2px)`,
-                          width: `calc((100% - 64px) / 7 - 4px)`,
+                          left: `calc(64px + (100% - 64px) * ${displayDayIndex} / 7 + ((100% - 64px) / 7) * ${eventLeftPercent / 100} + 2px)`,
+                          width: `calc(((100% - 64px) / 7) * ${eventWidthPercent / 100} - 4px)`,
                           top: `${resizedTop}px`,
                           height: `${Math.max(20, displayHeight)}px`,
                           minHeight: '20px',
