@@ -4,16 +4,11 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
-import { Clock, MapPin, Calendar, Edit, Trash2 } from "lucide-react";
+import { Clock, MapPin, Edit, Trash2 } from "lucide-react";
 import { formatTimeDisplay } from "@/lib/timeUtils";
 import { getEventTypeColorFromDatabase } from "@/lib/eventUtils";
+import TemplateEventForm from "./TemplateEventForm";
 
 interface ScheduleTemplateEvent {
   id: number;
@@ -89,17 +84,12 @@ export function TemplateWeeklyScheduleView({
   const [openPopoverId, setOpenPopoverId] = useState<number | null>(null);
   const [justDragged, setJustDragged] = useState<number | null>(null);
   const [editingEvent, setEditingEvent] = useState<ScheduleTemplateEvent | null>(null);
-  
-  const [eventTitle, setEventTitle] = useState("");
-  const [eventDescription, setEventDescription] = useState("");
-  const [eventStartTime, setEventStartTime] = useState("09:00");
-  const [eventEndTime, setEventEndTime] = useState("10:00");
-  const [eventType, setEventType] = useState("rehearsal");
-  const [eventTypeId, setEventTypeId] = useState<number | null>(null);
-  const [eventLocation, setEventLocation] = useState("");
-  const [eventNotes, setEventNotes] = useState("");
-  const [eventIsAllDay, setEventIsAllDay] = useState(false);
-  const [eventDayOfWeek, setEventDayOfWeek] = useState(0);
+  const [isCreatingEvent, setIsCreatingEvent] = useState(false);
+  const [newEventDefaults, setNewEventDefaults] = useState<{
+    dayOfWeek: number;
+    startTime: string;
+    endTime: string;
+  } | null>(null);
 
   const { data: events = [], isLoading } = useQuery<ScheduleTemplateEvent[]>({
     queryKey: [`/api/schedule-templates/${templateId}/events`],
@@ -233,17 +223,12 @@ export function TemplateWeeklyScheduleView({
           const endTime = Math.max(prev.startTime, prev.currentTime);
           
           if (endTime - startTime >= timeIncrement) {
-            setEventTitle("");
-            setEventDescription("");
-            setEventStartTime(formatTime(startTime));
-            setEventEndTime(formatTime(endTime));
-            setEventType("rehearsal");
-            setEventTypeId(null);
-            setEventLocation("");
-            setEventNotes("");
-            setEventIsAllDay(false);
-            setEventDayOfWeek(actualDayIndex);
-            setEditingEvent({ id: -1 } as ScheduleTemplateEvent);
+            setNewEventDefaults({
+              dayOfWeek: actualDayIndex,
+              startTime: formatTime(startTime),
+              endTime: formatTime(endTime),
+            });
+            setIsCreatingEvent(true);
           }
         }
         return null;
@@ -401,42 +386,18 @@ export function TemplateWeeklyScheduleView({
 
   const openEditDialog = (event: ScheduleTemplateEvent) => {
     setEditingEvent(event);
-    setEventTitle(event.title);
-    setEventDescription(event.description || "");
-    setEventStartTime(event.startTime.slice(0, 5));
-    setEventEndTime(event.endTime.slice(0, 5));
-    setEventType(event.type);
-    setEventTypeId(event.eventTypeId);
-    setEventLocation(event.location || "");
-    setEventNotes(event.notes || "");
-    setEventIsAllDay(event.isAllDay);
-    setEventDayOfWeek(event.dayOfWeek);
     setOpenPopoverId(null);
   };
 
-  const handleSaveEvent = () => {
-    if (!eventTitle.trim()) {
-      toast({ title: "Please enter an event title", variant: "destructive" });
-      return;
-    }
+  const handleCreateEvent = (data: any) => {
+    createEventMutation.mutate(data);
+    setIsCreatingEvent(false);
+    setNewEventDefaults(null);
+  };
 
-    const eventData = {
-      dayOfWeek: eventDayOfWeek,
-      title: eventTitle.trim(),
-      description: eventDescription.trim() || null,
-      startTime: eventIsAllDay ? "00:00" : eventStartTime,
-      endTime: eventIsAllDay ? "23:59" : eventEndTime,
-      type: eventType,
-      eventTypeId: eventTypeId,
-      location: eventLocation.trim() || null,
-      notes: eventNotes.trim() || null,
-      isAllDay: eventIsAllDay,
-    };
-
-    if (editingEvent && editingEvent.id > 0) {
-      updateEventMutation.mutate({ id: editingEvent.id, ...eventData });
-    } else {
-      createEventMutation.mutate(eventData);
+  const handleUpdateEvent = (data: any) => {
+    if (editingEvent) {
+      updateEventMutation.mutate({ id: editingEvent.id, ...data });
     }
   };
 
@@ -749,188 +710,115 @@ export function TemplateWeeklyScheduleView({
         </div>
       </div>
 
-      {/* Edit/Create Event Dialog */}
-      <Dialog open={!!editingEvent} onOpenChange={(open) => !open && setEditingEvent(null)}>
-        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+      {/* Create Event Dialog */}
+      <Dialog open={isCreatingEvent} onOpenChange={(open) => {
+        if (!open) {
+          setIsCreatingEvent(false);
+          setNewEventDefaults(null);
+        }
+      }}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
-            <DialogTitle>
-              {editingEvent && editingEvent.id > 0 ? "Edit Event" : "Add Event"}
-            </DialogTitle>
+            <DialogTitle>Add Event</DialogTitle>
           </DialogHeader>
-          <ScrollArea className="flex-1 -mx-6 px-6">
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="eventTitle">Event Title *</Label>
-                <Input
-                  id="eventTitle"
-                  value={eventTitle}
-                  onChange={(e) => setEventTitle(e.target.value)}
-                  placeholder="e.g., Full Company Rehearsal"
-                  data-testid="input-event-title"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="eventDay">Day</Label>
-                <Select
-                  value={eventDayOfWeek.toString()}
-                  onValueChange={(value) => setEventDayOfWeek(parseInt(value))}
-                >
-                  <SelectTrigger data-testid="select-event-day">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {DEFAULT_DAY_ORDER.map((name, index) => (
-                      <SelectItem key={index} value={index.toString()}>
-                        {name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="isAllDay"
-                  checked={eventIsAllDay}
-                  onCheckedChange={(checked) => setEventIsAllDay(checked as boolean)}
-                  data-testid="checkbox-all-day"
-                />
-                <Label htmlFor="isAllDay">All day event</Label>
-              </div>
-
-              {!eventIsAllDay && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="startTime">Start Time</Label>
-                    <Input
-                      id="startTime"
-                      type="time"
-                      value={eventStartTime}
-                      onChange={(e) => setEventStartTime(e.target.value)}
-                      data-testid="input-start-time"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="endTime">End Time</Label>
-                    <Input
-                      id="endTime"
-                      type="time"
-                      value={eventEndTime}
-                      onChange={(e) => setEventEndTime(e.target.value)}
-                      data-testid="input-end-time"
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <Label htmlFor="eventType">Event Type</Label>
-                <Select
-                  value={eventTypeId?.toString() || eventType}
-                  onValueChange={(value) => {
-                    const numValue = parseInt(value);
-                    if (!isNaN(numValue)) {
-                      setEventTypeId(numValue);
-                      const type = eventTypes.find(t => t.id === numValue);
-                      if (type) setEventType(type.name.toLowerCase());
-                    } else {
-                      setEventTypeId(null);
-                      setEventType(value);
-                    }
-                  }}
-                >
-                  <SelectTrigger data-testid="select-event-type">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {eventTypes.length > 0 ? (
-                      eventTypes.map((type) => (
-                        <SelectItem key={type.id} value={type.id.toString()}>
-                          <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: type.color }} />
-                            {type.name}
-                          </div>
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <>
-                        <SelectItem value="rehearsal">Rehearsal</SelectItem>
-                        <SelectItem value="performance">Performance</SelectItem>
-                        <SelectItem value="tech">Tech</SelectItem>
-                        <SelectItem value="meeting">Meeting</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </>
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="eventLocation">Location</Label>
-                <Input
-                  id="eventLocation"
-                  value={eventLocation}
-                  onChange={(e) => setEventLocation(e.target.value)}
-                  placeholder="e.g., Main Stage"
-                  data-testid="input-event-location"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="eventDescription">Description</Label>
-                <Textarea
-                  id="eventDescription"
-                  value={eventDescription}
-                  onChange={(e) => setEventDescription(e.target.value)}
-                  placeholder="Brief description..."
-                  rows={2}
-                  data-testid="input-event-description"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="eventNotes">Notes</Label>
-                <Textarea
-                  id="eventNotes"
-                  value={eventNotes}
-                  onChange={(e) => setEventNotes(e.target.value)}
-                  placeholder="Additional notes..."
-                  rows={2}
-                  data-testid="input-event-notes"
-                />
-              </div>
+          <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 px-6">
+            <TemplateEventForm
+              projectId={projectId}
+              eventTypes={eventTypes}
+              onSubmit={handleCreateEvent}
+              onCancel={() => {
+                setIsCreatingEvent(false);
+                setNewEventDefaults(null);
+              }}
+              showButtons={false}
+              initialValues={newEventDefaults ? {
+                dayOfWeek: newEventDefaults.dayOfWeek,
+                startTime: newEventDefaults.startTime,
+                endTime: newEventDefaults.endTime,
+              } : undefined}
+            />
+          </div>
+          <div className="border-t border-gray-200 p-4 bg-white flex-shrink-0 mt-auto">
+            <div className="flex justify-end space-x-2">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setIsCreatingEvent(false);
+                  setNewEventDefaults(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                form="template-event-form"
+                disabled={createEventMutation.isPending}
+                data-testid="button-create-template-event"
+              >
+                {createEventMutation.isPending ? "Creating..." : "Create Event"}
+              </Button>
             </div>
-          </ScrollArea>
-          <div className="border-t border-gray-200 pt-4 flex-shrink-0">
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Event Dialog */}
+      <Dialog open={!!editingEvent} onOpenChange={(open) => !open && setEditingEvent(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Edit Event</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 px-6">
+            {editingEvent && (
+              <TemplateEventForm
+                projectId={projectId}
+                eventTypes={eventTypes}
+                onSubmit={handleUpdateEvent}
+                onCancel={() => setEditingEvent(null)}
+                showButtons={false}
+                initialValues={{
+                  title: editingEvent.title,
+                  description: editingEvent.description || '',
+                  type: editingEvent.type,
+                  dayOfWeek: editingEvent.dayOfWeek,
+                  startTime: editingEvent.startTime,
+                  endTime: editingEvent.endTime,
+                  location: editingEvent.location || '',
+                  notes: editingEvent.notes || '',
+                  isAllDay: editingEvent.isAllDay,
+                }}
+              />
+            )}
+          </div>
+          <div className="border-t border-gray-200 p-4 bg-white flex-shrink-0 mt-auto">
             <div className="flex justify-between items-center">
-              {editingEvent && editingEvent.id > 0 && (
-                <Button
-                  variant="destructive"
-                  onClick={() => {
-                    if (confirm('Are you sure you want to delete this event?')) {
-                      deleteEventMutation.mutate(editingEvent.id);
-                    }
-                  }}
-                  disabled={deleteEventMutation.isPending}
-                  data-testid="button-delete-event"
+              <Button 
+                variant="destructive" 
+                onClick={() => {
+                  if (editingEvent && confirm('Are you sure you want to delete this event?')) {
+                    deleteEventMutation.mutate(editingEvent.id);
+                  }
+                }}
+                disabled={deleteEventMutation.isPending}
+                data-testid="button-delete-template-event"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {deleteEventMutation.isPending ? "Deleting..." : "Delete Event"}
+              </Button>
+              <div className="flex space-x-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setEditingEvent(null)}
                 >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  {deleteEventMutation.isPending ? "Deleting..." : "Delete"}
-                </Button>
-              )}
-              <div className={`flex gap-2 ${editingEvent && editingEvent.id > 0 ? '' : 'ml-auto'}`}>
-                <Button variant="outline" onClick={() => setEditingEvent(null)}>
                   Cancel
                 </Button>
-                <Button
-                  onClick={handleSaveEvent}
-                  disabled={createEventMutation.isPending || updateEventMutation.isPending}
-                  data-testid="button-save-event"
+                <Button 
+                  type="submit" 
+                  form="template-event-form"
+                  disabled={updateEventMutation.isPending}
+                  data-testid="button-save-template-event"
                 >
-                  {(createEventMutation.isPending || updateEventMutation.isPending) 
-                    ? "Saving..." 
-                    : (editingEvent && editingEvent.id > 0 ? "Save Changes" : "Add Event")}
+                  {updateEventMutation.isPending ? "Saving..." : "Save Changes"}
                 </Button>
               </div>
             </div>
