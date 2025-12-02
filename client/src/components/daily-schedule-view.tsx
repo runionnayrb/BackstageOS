@@ -645,6 +645,7 @@ export default function DailyScheduleView({
                       const height = Math.max(20, actualHeight); // Minimum 20px height
                       const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes);
                       const isShortEvent = actualHeight <= 15;
+                      const isVeryShortEvent = actualHeight <= 10;
 
                       return (
                         <Popover 
@@ -654,12 +655,13 @@ export default function DailyScheduleView({
                         >
                           <PopoverTrigger asChild>
                             <div
-                              className="absolute left-1 right-1 text-white rounded px-2 py-1 text-sm overflow-hidden cursor-pointer hover:opacity-90 transition-opacity border-l-4"
+                              className="absolute left-1 right-1 text-white rounded text-sm overflow-hidden cursor-pointer hover:opacity-90 transition-opacity border-l-4"
                               style={{
                                 top: `${top}px`,
                                 height: `${height}px`,
                                 backgroundColor: eventTypeColor,
                                 borderLeftColor: eventTypeColor,
+                                padding: isVeryShortEvent ? '2px 4px' : '8px',
                               }}
                             >
                               <div className="font-medium truncate">{event.title}</div>

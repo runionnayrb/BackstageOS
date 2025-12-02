@@ -1572,6 +1572,7 @@ export default function WeeklyScheduleView({
                   // Calculate duration in minutes
                   const durationMinutes = endMinutes - startMinutes;
                   const isShortEvent = durationMinutes <= 15;
+                  const isVeryShortEvent = durationMinutes <= 10;
 
                   return (
                     <Popover 
@@ -1585,7 +1586,7 @@ export default function WeeklyScheduleView({
                     >
                       <PopoverTrigger asChild>
                         <div
-                          className={`absolute text-white text-sm p-2 rounded-md shadow-sm border-l-4 cursor-pointer hover:opacity-90 z-30 ${
+                          className={`absolute text-white text-sm rounded-md shadow-sm border-l-4 cursor-pointer hover:opacity-90 z-30 ${
                             selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''
                           } ${draggedEvent?.event.id === event.id && draggedEvent.isDragging ? 'opacity-50' : ''}`}
                           style={{
@@ -1597,6 +1598,7 @@ export default function WeeklyScheduleView({
                             backgroundColor: eventTypeColor,
                             borderLeftColor: eventTypeColor,
                             overflow: 'hidden',
+                            padding: isVeryShortEvent ? '2px 4px' : '8px',
                           }}
                           onMouseDown={(e) => handleEventMouseDown(e, event)}
                           onContextMenu={(e) => e.preventDefault()}
