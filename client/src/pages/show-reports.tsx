@@ -139,18 +139,26 @@ export default function ShowReports() {
           </div>
         ) : (
           <div className="space-y-1">
-            {reports.map((report: any) => (
-              <div 
-                key={report.id} 
-                className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
-                onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}/${report.id}`)}
-                data-testid={`report-item-${report.id}`}
-              >
-                <h3 className="text-lg font-medium text-gray-900" data-testid={`report-title-${report.id}`}>
-                  {templateName} - {project.name} - {new Date(report.date || report.createdAt).toLocaleDateString()}
-                </h3>
-              </div>
-            ))}
+            {reports.map((report: any) => {
+              // Get the specific template for this report
+              const reportTemplate = Array.isArray(templatesV2) 
+                ? templatesV2.find((t: any) => t.id === report.templateId)
+                : null;
+              const reportTemplateName = reportTemplate?.name || currentTemplate?.name || currentReportType?.name || "Report";
+              
+              return (
+                <div 
+                  key={report.id} 
+                  className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}/${report.id}`)}
+                  data-testid={`report-item-${report.id}`}
+                >
+                  <h3 className="text-lg font-medium text-gray-900" data-testid={`report-title-${report.id}`}>
+                    {reportTemplateName} - {project.name} - {new Date(report.date || report.createdAt).toLocaleDateString()}
+                  </h3>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
