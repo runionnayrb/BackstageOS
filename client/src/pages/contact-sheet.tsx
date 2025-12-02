@@ -193,6 +193,7 @@ export default function ContactSheet() {
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contact-groups`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contacts`] });
       setNewGroupName('');
       toast({ title: "Group created successfully" });
     },
@@ -204,6 +205,7 @@ export default function ContactSheet() {
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contact-groups`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contacts`] });
       toast({ title: "Group deleted successfully" });
     },
   });
@@ -225,6 +227,7 @@ export default function ContactSheet() {
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contact-groups`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contacts`] });
       setEditingGroupId(null);
       setEditingGroupName('');
       toast({ title: "Group renamed successfully" });

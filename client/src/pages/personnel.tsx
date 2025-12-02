@@ -190,6 +190,7 @@ export default function Personnel() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contact-groups`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contacts`] });
       setNewGroupName('');
       toast({ title: "Group created successfully" });
     },
@@ -218,6 +219,7 @@ export default function Personnel() {
       });
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contacts`] });
       toast({ title: "Group deleted successfully" });
     },
   });
@@ -258,6 +260,7 @@ export default function Personnel() {
     mutationFn: (data: { groupId: number; name: string }) => apiRequest('PATCH', `/api/contact-groups/${data.groupId}`, { name: data.name }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contact-groups`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contacts`] });
       setEditingGroupId(null);
       setEditingGroupName('');
       toast({ title: "Group renamed successfully" });

@@ -108,6 +108,7 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
     onSuccess: () => {
       toast({ title: "Contact created successfully" });
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'contacts'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contacts`] });
       queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
       onSuccess();
     },
@@ -127,6 +128,7 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
     onSuccess: () => {
       toast({ title: "Contact updated successfully" });
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'contacts'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contacts`] });
       queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
       onSuccess();
     },
@@ -146,6 +148,7 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
     onSuccess: () => {
       toast({ title: "Contact deleted successfully" });
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'contacts'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contacts`] });
       queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
       onSuccess();
     },
