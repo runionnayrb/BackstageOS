@@ -143,7 +143,7 @@ export function TemplateWeeklyScheduleView({
     mutationFn: (data: any) =>
       apiRequest("POST", `/api/schedule-templates/${templateId}/events`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [eventsQueryKey] });
+      queryClient.invalidateQueries({ queryKey: [eventsQueryKey], refetchType: 'all' });
       toast({ title: "Event added to template" });
       setEditingEvent(null);
     },
@@ -156,12 +156,12 @@ export function TemplateWeeklyScheduleView({
     mutationFn: ({ id, ...data }: { id: number } & any) =>
       apiRequest("PATCH", `/api/schedule-template-events/${id}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [eventsQueryKey] });
+      queryClient.invalidateQueries({ queryKey: [eventsQueryKey], refetchType: 'all' });
       toast({ title: "Event updated" });
       setEditingEvent(null);
     },
     onError: () => {
-      queryClient.invalidateQueries({ queryKey: [eventsQueryKey] });
+      queryClient.invalidateQueries({ queryKey: [eventsQueryKey], refetchType: 'all' });
       toast({ title: "Failed to update event", variant: "destructive" });
     },
   });
@@ -170,7 +170,7 @@ export function TemplateWeeklyScheduleView({
     mutationFn: (id: number) =>
       apiRequest("DELETE", `/api/schedule-template-events/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [eventsQueryKey] });
+      queryClient.invalidateQueries({ queryKey: [eventsQueryKey], refetchType: 'all' });
       toast({ title: "Event deleted" });
       setEditingEvent(null);
     },
