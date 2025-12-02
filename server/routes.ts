@@ -13,11 +13,11 @@ const __dirname = path.dirname(__filename);
 import { storage } from "./storage";
 import { db } from "./db";
 import { sql, and, eq } from "drizzle-orm";
-import { scheduledEmails } from "@shared/schema";
+import { scheduledEmails, scheduleTemplateEvents } from "@shared/schema";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
-import { insertProjectSchema, insertSeasonSchema, insertVenueSchema, insertProjectMemberSchema, insertReportSchema, insertReportTemplateSchema, insertReportTemplateV2Schema, insertTemplateSectionSchema, insertTemplateFieldSchema, insertReportTypeSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertEmailContactSchema, insertDistributionListSchema, insertDistributionListMemberSchema, insertContactGroupSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertCostumeSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema, insertShowContractSettingsSchema, insertPerformanceTrackerSchema, insertRehearsalTrackerSchema, insertTaskDatabaseSchema, insertTaskPropertySchema, insertTaskSchema, insertTaskAssignmentSchema, insertTaskCommentSchema, insertTaskAttachmentSchema, insertTaskViewSchema, insertNoteFolderSchema, insertNoteSchema, insertNoteCollaboratorSchema, insertNoteCommentSchema, insertNoteAttachmentSchema, insertPublicCalendarShareSchema, insertDailyCallSchema, insertUserActivitySchema, insertApiCostSchema, insertUserSessionSchema, insertFeatureUsageSchema, insertAccountTypeSchema, insertBillingPlanSchema, insertBillingPlanPriceSchema, insertBillingHistorySchema, insertPaymentMethodSchema, insertSubscriptionUsageSchema } from "@shared/schema";
+import { insertProjectSchema, insertSeasonSchema, insertVenueSchema, insertProjectMemberSchema, insertReportSchema, insertReportTemplateSchema, insertReportTemplateV2Schema, insertTemplateSectionSchema, insertTemplateFieldSchema, insertReportTypeSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertEmailContactSchema, insertDistributionListSchema, insertDistributionListMemberSchema, insertContactGroupSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertCostumeSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema, insertShowContractSettingsSchema, insertPerformanceTrackerSchema, insertRehearsalTrackerSchema, insertTaskDatabaseSchema, insertTaskPropertySchema, insertTaskSchema, insertTaskAssignmentSchema, insertTaskCommentSchema, insertTaskAttachmentSchema, insertTaskViewSchema, insertNoteFolderSchema, insertNoteSchema, insertNoteCollaboratorSchema, insertNoteCommentSchema, insertNoteAttachmentSchema, insertPublicCalendarShareSchema, insertDailyCallSchema, insertUserActivitySchema, insertApiCostSchema, insertUserSessionSchema, insertFeatureUsageSchema, insertAccountTypeSchema, insertBillingPlanSchema, insertBillingPlanPriceSchema, insertBillingHistorySchema, insertPaymentMethodSchema, insertSubscriptionUsageSchema, insertScheduleTemplateSchema, insertScheduleTemplateEventSchema, insertScheduleTemplateEventParticipantSchema } from "@shared/schema";
 import { cloudflareService } from "./services/cloudflareService";
 import { ErrorClusteringService } from "./errorClusteringService";
 import { ConflictValidationService } from "./services/conflictValidationService.js";
@@ -8206,6 +8206,513 @@ Best regards,
       res.json(structuredChanges);
     } catch (error) {
       res.status(500).json({ message: "Failed to generate structured changes" });
+    }
+  });
+
+  // ========== SCHEDULE TEMPLATES API ROUTES ==========
+
+  // Get all schedule templates for a project
+  app.get('/api/projects/:id/schedule-templates', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership or team membership
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const templates = await storage.getScheduleTemplatesByProjectId(projectId);
+      res.json(templates);
+    } catch (error) {
+      console.error("Failed to fetch schedule templates:", error);
+      res.status(500).json({ message: "Failed to fetch schedule templates" });
+    }
+  });
+
+  // Get a single schedule template with events
+  app.get('/api/schedule-templates/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const templateId = parseInt(req.params.id);
+      const template = await storage.getScheduleTemplateById(templateId);
+      
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      // Check project access
+      const project = await storage.getProjectById(template.projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(template.projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      // Get template events with their participants
+      const events = await storage.getScheduleTemplateEventsById(templateId);
+      const eventsWithParticipants = await Promise.all(
+        events.map(async (event) => {
+          const participants = await storage.getScheduleTemplateEventParticipants(event.id);
+          return { ...event, participants };
+        })
+      );
+
+      res.json({ ...template, events: eventsWithParticipants });
+    } catch (error) {
+      console.error("Failed to fetch schedule template:", error);
+      res.status(500).json({ message: "Failed to fetch schedule template" });
+    }
+  });
+
+  // Create a new schedule template
+  app.post('/api/projects/:id/schedule-templates', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const templateData = insertScheduleTemplateSchema.parse({
+        ...req.body,
+        projectId,
+        createdBy: parseInt(req.user.id.toString()),
+      });
+
+      const template = await storage.createScheduleTemplate(templateData);
+      res.json(template);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid template data", errors: error.errors });
+      }
+      console.error("Failed to create schedule template:", error);
+      res.status(500).json({ message: "Failed to create schedule template" });
+    }
+  });
+
+  // Update a schedule template
+  app.patch('/api/schedule-templates/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const templateId = parseInt(req.params.id);
+      const template = await storage.getScheduleTemplateById(templateId);
+      
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      // Check project ownership
+      const project = await storage.getProjectById(template.projectId);
+      if (!project || project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const updateSchema = insertScheduleTemplateSchema.partial().omit({
+        projectId: true,
+        createdBy: true,
+      });
+      
+      const validatedData = updateSchema.parse(req.body);
+      const updatedTemplate = await storage.updateScheduleTemplate(templateId, validatedData);
+      res.json(updatedTemplate);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid template data", errors: error.errors });
+      }
+      console.error("Failed to update schedule template:", error);
+      res.status(500).json({ message: "Failed to update schedule template" });
+    }
+  });
+
+  // Delete a schedule template
+  app.delete('/api/schedule-templates/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const templateId = parseInt(req.params.id);
+      const template = await storage.getScheduleTemplateById(templateId);
+      
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      // Check project ownership
+      const project = await storage.getProjectById(template.projectId);
+      if (!project || project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      await storage.deleteScheduleTemplate(templateId);
+      res.json({ message: "Template deleted successfully" });
+    } catch (error) {
+      console.error("Failed to delete schedule template:", error);
+      res.status(500).json({ message: "Failed to delete schedule template" });
+    }
+  });
+
+  // Create template event
+  app.post('/api/schedule-templates/:templateId/events', isAuthenticated, async (req: any, res) => {
+    try {
+      const templateId = parseInt(req.params.templateId);
+      const template = await storage.getScheduleTemplateById(templateId);
+      
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      // Check project ownership
+      const project = await storage.getProjectById(template.projectId);
+      if (!project || project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const eventData = insertScheduleTemplateEventSchema.parse({
+        ...req.body,
+        templateId,
+      });
+
+      const event = await storage.createScheduleTemplateEvent(eventData);
+
+      // Handle participants if provided
+      if (req.body.participants && Array.isArray(req.body.participants)) {
+        for (const contactId of req.body.participants) {
+          await storage.addScheduleTemplateEventParticipant({
+            templateEventId: event.id,
+            contactId,
+            isRequired: true,
+          });
+        }
+      }
+
+      const participants = await storage.getScheduleTemplateEventParticipants(event.id);
+      res.json({ ...event, participants });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid event data", errors: error.errors });
+      }
+      console.error("Failed to create template event:", error);
+      res.status(500).json({ message: "Failed to create template event" });
+    }
+  });
+
+  // Update template event
+  app.patch('/api/schedule-template-events/:eventId', isAuthenticated, async (req: any, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const events = await storage.getScheduleTemplateEventsById(eventId);
+      
+      // Since getScheduleTemplateEventsById is for templateId, we need a different approach
+      // Let's query directly for the event
+      const event = (await db.select().from(scheduleTemplateEvents).where(eq(scheduleTemplateEvents.id, eventId)))[0];
+      
+      if (!event) {
+        return res.status(404).json({ message: "Template event not found" });
+      }
+
+      const template = await storage.getScheduleTemplateById(event.templateId);
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      // Check project ownership
+      const project = await storage.getProjectById(template.projectId);
+      if (!project || project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const updateSchema = insertScheduleTemplateEventSchema.partial().omit({
+        templateId: true,
+      });
+      
+      const validatedData = updateSchema.parse(req.body);
+      const updatedEvent = await storage.updateScheduleTemplateEvent(eventId, validatedData);
+
+      // Handle participants update if provided
+      if (req.body.participants && Array.isArray(req.body.participants)) {
+        await storage.removeScheduleTemplateEventParticipants(eventId);
+        for (const contactId of req.body.participants) {
+          await storage.addScheduleTemplateEventParticipant({
+            templateEventId: eventId,
+            contactId,
+            isRequired: true,
+          });
+        }
+      }
+
+      const participants = await storage.getScheduleTemplateEventParticipants(eventId);
+      res.json({ ...updatedEvent, participants });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid event data", errors: error.errors });
+      }
+      console.error("Failed to update template event:", error);
+      res.status(500).json({ message: "Failed to update template event" });
+    }
+  });
+
+  // Delete template event
+  app.delete('/api/schedule-template-events/:eventId', isAuthenticated, async (req: any, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const event = (await db.select().from(scheduleTemplateEvents).where(eq(scheduleTemplateEvents.id, eventId)))[0];
+      
+      if (!event) {
+        return res.status(404).json({ message: "Template event not found" });
+      }
+
+      const template = await storage.getScheduleTemplateById(event.templateId);
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      // Check project ownership
+      const project = await storage.getProjectById(template.projectId);
+      if (!project || project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      await storage.deleteScheduleTemplateEvent(eventId);
+      res.json({ message: "Template event deleted successfully" });
+    } catch (error) {
+      console.error("Failed to delete template event:", error);
+      res.status(500).json({ message: "Failed to delete template event" });
+    }
+  });
+
+  // Snapshot current week into a new template
+  app.post('/api/projects/:id/schedule-templates/snapshot', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const { name, description, weekStartDate, weekStartDay = 0 } = req.body;
+
+      if (!name || !weekStartDate) {
+        return res.status(400).json({ message: "Name and weekStartDate are required" });
+      }
+
+      // Calculate week date range
+      const startDate = new Date(weekStartDate);
+      const endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + 6);
+
+      // Get events for the week
+      const events = await storage.getScheduleEventsByProjectId(
+        projectId,
+        startDate.toISOString().split('T')[0],
+        endDate.toISOString().split('T')[0]
+      );
+
+      // Create the template
+      const template = await storage.createScheduleTemplate({
+        projectId,
+        name,
+        description: description || null,
+        weekStartDay,
+        createdBy: parseInt(req.user.id.toString()),
+      });
+
+      // Create template events from the week's events
+      for (const event of events) {
+        const eventDate = new Date(event.date);
+        const dayOfWeek = (eventDate.getDay() - weekStartDay + 7) % 7;
+
+        const templateEvent = await storage.createScheduleTemplateEvent({
+          templateId: template.id,
+          dayOfWeek,
+          title: event.title,
+          description: event.description,
+          startTime: event.startTime,
+          endTime: event.endTime,
+          type: event.type || 'rehearsal',
+          eventTypeId: event.eventTypeId,
+          location: event.location,
+          notes: event.notes,
+          isAllDay: event.isAllDay || false,
+        });
+
+        // Copy participants if they exist
+        if (event.participants && Array.isArray(event.participants)) {
+          for (const participant of event.participants) {
+            await storage.addScheduleTemplateEventParticipant({
+              templateEventId: templateEvent.id,
+              contactId: participant.contactId || participant.id,
+              isRequired: participant.isRequired !== false,
+              notes: participant.notes || null,
+            });
+          }
+        }
+      }
+
+      // Return the complete template with events
+      const templateEvents = await storage.getScheduleTemplateEventsById(template.id);
+      const eventsWithParticipants = await Promise.all(
+        templateEvents.map(async (event) => {
+          const participants = await storage.getScheduleTemplateEventParticipants(event.id);
+          return { ...event, participants };
+        })
+      );
+
+      res.json({ ...template, events: eventsWithParticipants });
+    } catch (error) {
+      console.error("Failed to create schedule template snapshot:", error);
+      res.status(500).json({ message: "Failed to create schedule template snapshot" });
+    }
+  });
+
+  // Apply a template to a specific week
+  app.post('/api/schedule-templates/:id/apply', isAuthenticated, async (req: any, res) => {
+    try {
+      const templateId = parseInt(req.params.id);
+      const template = await storage.getScheduleTemplateById(templateId);
+      
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      // Check project ownership
+      const project = await storage.getProjectById(template.projectId);
+      if (!project || project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const { targetWeekStartDate, skipConflicts = false } = req.body;
+
+      if (!targetWeekStartDate) {
+        return res.status(400).json({ message: "targetWeekStartDate is required" });
+      }
+
+      const targetStart = new Date(targetWeekStartDate);
+      const targetEnd = new Date(targetStart);
+      targetEnd.setDate(targetEnd.getDate() + 6);
+
+      // Get existing events for the target week
+      const existingEvents = await storage.getScheduleEventsByProjectId(
+        template.projectId,
+        targetStart.toISOString().split('T')[0],
+        targetEnd.toISOString().split('T')[0]
+      );
+
+      // Get template events
+      const templateEvents = await storage.getScheduleTemplateEventsById(templateId);
+
+      // Check for conflicts
+      const conflicts: any[] = [];
+      const eventsToCreate: any[] = [];
+
+      for (const templateEvent of templateEvents) {
+        const targetDate = new Date(targetStart);
+        targetDate.setDate(targetDate.getDate() + templateEvent.dayOfWeek);
+        const targetDateStr = targetDate.toISOString().split('T')[0];
+
+        // Check for time conflicts with existing events
+        const conflictingEvents = existingEvents.filter(existing => {
+          if (existing.date !== targetDateStr) return false;
+          
+          // Check time overlap
+          const existingStart = existing.startTime;
+          const existingEnd = existing.endTime;
+          const newStart = templateEvent.startTime;
+          const newEnd = templateEvent.endTime;
+
+          return (newStart < existingEnd && newEnd > existingStart);
+        });
+
+        if (conflictingEvents.length > 0) {
+          conflicts.push({
+            templateEvent,
+            targetDate: targetDateStr,
+            conflictingEvents,
+          });
+        }
+
+        eventsToCreate.push({
+          templateEvent,
+          targetDate: targetDateStr,
+          hasConflict: conflictingEvents.length > 0,
+        });
+      }
+
+      // If there are conflicts and we're not skipping them, return conflict info
+      if (conflicts.length > 0 && !skipConflicts) {
+        return res.status(409).json({
+          message: "Scheduling conflicts detected",
+          conflicts,
+          eventsToCreate: eventsToCreate.length,
+        });
+      }
+
+      // Create the events
+      const createdEvents: any[] = [];
+
+      for (const eventInfo of eventsToCreate) {
+        if (eventInfo.hasConflict && !skipConflicts) continue;
+
+        const templateEvent = eventInfo.templateEvent;
+        const participants = await storage.getScheduleTemplateEventParticipants(templateEvent.id);
+
+        const newEvent = await storage.createScheduleEvent({
+          projectId: template.projectId,
+          date: eventInfo.targetDate,
+          title: templateEvent.title,
+          description: templateEvent.description,
+          startTime: templateEvent.startTime,
+          endTime: templateEvent.endTime,
+          type: templateEvent.type || 'rehearsal',
+          eventTypeId: templateEvent.eventTypeId,
+          location: templateEvent.location,
+          notes: templateEvent.notes,
+          isAllDay: templateEvent.isAllDay || false,
+          createdBy: parseInt(req.user.id.toString()),
+        });
+
+        // Add participants
+        for (const participant of participants) {
+          await storage.addEventParticipant({
+            eventId: newEvent.id,
+            contactId: participant.contactId,
+            isRequired: participant.isRequired,
+            notes: participant.notes,
+          });
+        }
+
+        createdEvents.push(newEvent);
+      }
+
+      res.json({
+        message: `Created ${createdEvents.length} events from template`,
+        createdEvents,
+        skippedConflicts: conflicts.length,
+      });
+    } catch (error) {
+      console.error("Failed to apply schedule template:", error);
+      res.status(500).json({ message: "Failed to apply schedule template" });
     }
   });
 

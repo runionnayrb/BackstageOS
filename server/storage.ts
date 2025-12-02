@@ -87,6 +87,9 @@ import {
   searchSuggestions,
   searchAnalytics,
   runningOrderVersions,
+  scheduleTemplates,
+  scheduleTemplateEvents,
+  scheduleTemplateEventParticipants,
 
   type User,
   type UpsertUser,
@@ -252,6 +255,12 @@ import {
   type InsertSearchAnalytics,
   type RunningOrderVersion,
   type InsertRunningOrderVersion,
+  type ScheduleTemplate,
+  type InsertScheduleTemplate,
+  type ScheduleTemplateEvent,
+  type InsertScheduleTemplateEvent,
+  type ScheduleTemplateEventParticipant,
+  type InsertScheduleTemplateEventParticipant,
 
 } from "@shared/schema";
 import { db } from "./db";
@@ -769,6 +778,20 @@ export interface IStorage {
   createRunningOrderVersion(version: InsertRunningOrderVersion): Promise<RunningOrderVersion>;
   updateRunningOrderVersion(id: number, version: Partial<InsertRunningOrderVersion>): Promise<RunningOrderVersion>;
   deleteRunningOrderVersion(id: number): Promise<void>;
+
+  // Schedule Templates operations
+  getScheduleTemplatesByProjectId(projectId: number): Promise<ScheduleTemplate[]>;
+  getScheduleTemplateById(templateId: number): Promise<ScheduleTemplate | undefined>;
+  createScheduleTemplate(template: InsertScheduleTemplate): Promise<ScheduleTemplate>;
+  updateScheduleTemplate(templateId: number, updates: Partial<InsertScheduleTemplate>): Promise<ScheduleTemplate>;
+  deleteScheduleTemplate(templateId: number): Promise<void>;
+  getScheduleTemplateEventsById(templateId: number): Promise<ScheduleTemplateEvent[]>;
+  createScheduleTemplateEvent(event: InsertScheduleTemplateEvent): Promise<ScheduleTemplateEvent>;
+  updateScheduleTemplateEvent(eventId: number, updates: Partial<InsertScheduleTemplateEvent>): Promise<ScheduleTemplateEvent>;
+  deleteScheduleTemplateEvent(eventId: number): Promise<void>;
+  getScheduleTemplateEventParticipants(templateEventId: number): Promise<ScheduleTemplateEventParticipant[]>;
+  addScheduleTemplateEventParticipant(participant: InsertScheduleTemplateEventParticipant): Promise<ScheduleTemplateEventParticipant>;
+  removeScheduleTemplateEventParticipants(templateEventId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -6279,6 +6302,81 @@ export class DatabaseStorage implements IStorage {
 
   async deleteRunningOrderVersion(id: number): Promise<void> {
     await db.delete(runningOrderVersions).where(eq(runningOrderVersions.id, id));
+  }
+
+  // Schedule Templates operations
+  async getScheduleTemplatesByProjectId(projectId: number): Promise<ScheduleTemplate[]> {
+    const result = await db.select()
+      .from(scheduleTemplates)
+      .where(eq(scheduleTemplates.projectId, projectId))
+      .orderBy(desc(scheduleTemplates.createdAt));
+    return result;
+  }
+
+  async getScheduleTemplateById(templateId: number): Promise<ScheduleTemplate | undefined> {
+    const result = await db.select()
+      .from(scheduleTemplates)
+      .where(eq(scheduleTemplates.id, templateId));
+    return result[0];
+  }
+
+  async createScheduleTemplate(template: InsertScheduleTemplate): Promise<ScheduleTemplate> {
+    const result = await db.insert(scheduleTemplates).values(template).returning();
+    return result[0];
+  }
+
+  async updateScheduleTemplate(templateId: number, updates: Partial<InsertScheduleTemplate>): Promise<ScheduleTemplate> {
+    const result = await db.update(scheduleTemplates)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(scheduleTemplates.id, templateId))
+      .returning();
+    return result[0];
+  }
+
+  async deleteScheduleTemplate(templateId: number): Promise<void> {
+    await db.delete(scheduleTemplates).where(eq(scheduleTemplates.id, templateId));
+  }
+
+  async getScheduleTemplateEventsById(templateId: number): Promise<ScheduleTemplateEvent[]> {
+    const result = await db.select()
+      .from(scheduleTemplateEvents)
+      .where(eq(scheduleTemplateEvents.templateId, templateId))
+      .orderBy(scheduleTemplateEvents.dayOfWeek, scheduleTemplateEvents.startTime);
+    return result;
+  }
+
+  async createScheduleTemplateEvent(event: InsertScheduleTemplateEvent): Promise<ScheduleTemplateEvent> {
+    const result = await db.insert(scheduleTemplateEvents).values(event).returning();
+    return result[0];
+  }
+
+  async updateScheduleTemplateEvent(eventId: number, updates: Partial<InsertScheduleTemplateEvent>): Promise<ScheduleTemplateEvent> {
+    const result = await db.update(scheduleTemplateEvents)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(scheduleTemplateEvents.id, eventId))
+      .returning();
+    return result[0];
+  }
+
+  async deleteScheduleTemplateEvent(eventId: number): Promise<void> {
+    await db.delete(scheduleTemplateEvents).where(eq(scheduleTemplateEvents.id, eventId));
+  }
+
+  async getScheduleTemplateEventParticipants(templateEventId: number): Promise<ScheduleTemplateEventParticipant[]> {
+    const result = await db.select()
+      .from(scheduleTemplateEventParticipants)
+      .where(eq(scheduleTemplateEventParticipants.templateEventId, templateEventId));
+    return result;
+  }
+
+  async addScheduleTemplateEventParticipant(participant: InsertScheduleTemplateEventParticipant): Promise<ScheduleTemplateEventParticipant> {
+    const result = await db.insert(scheduleTemplateEventParticipants).values(participant).returning();
+    return result[0];
+  }
+
+  async removeScheduleTemplateEventParticipants(templateEventId: number): Promise<void> {
+    await db.delete(scheduleTemplateEventParticipants)
+      .where(eq(scheduleTemplateEventParticipants.templateEventId, templateEventId));
   }
 
 }
