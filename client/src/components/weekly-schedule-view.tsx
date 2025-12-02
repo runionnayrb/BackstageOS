@@ -1134,7 +1134,7 @@ export default function WeeklyScheduleView({
 
   return (
     <>
-      <div>
+      <div className="flex flex-col h-full min-h-0">
         {/* Removed individual header - using unified main page header */}
 
         {/* Multi-select status and controls */}
@@ -1165,7 +1165,7 @@ export default function WeeklyScheduleView({
         )}
 
         {/* Main Schedule Grid */}
-        <div className="border border-gray-200 rounded-lg overflow-hidden flex flex-col h-full">
+        <div className="border border-gray-200 rounded-lg overflow-hidden flex flex-col h-full min-h-0">
           {/* Header row - fixed, no scroll */}
           <div className="relative bg-gray-50 border-b border-gray-200" style={{ height: '24px', flexShrink: 0 }}>
             <div 
