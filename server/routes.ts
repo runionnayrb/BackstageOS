@@ -7775,10 +7775,10 @@ Best regards,
       await syncImportantDateEventToProject(event, validatedData);
       
       // Handle participants update if provided
-      if (req.body.participants && Array.isArray(req.body.participants)) {
+      if (req.body.participantIds && Array.isArray(req.body.participantIds)) {
         await storage.removeAllEventParticipants(eventId);
         
-        for (const participantId of req.body.participants) {
+        for (const participantId of req.body.participantIds) {
           await storage.addEventParticipant({
             eventId: eventId,
             contactId: participantId,
@@ -7819,13 +7819,13 @@ Best regards,
       });
 
       // Validate for conflicts if participants are provided or location is specified
-      if ((req.body.participants && Array.isArray(req.body.participants) && req.body.participants.length > 0) || eventData.location) {
+      if ((req.body.participantIds && Array.isArray(req.body.participantIds) && req.body.participantIds.length > 0) || eventData.location) {
         const conflictResult = await conflictValidationService.validateEventConflicts(
           projectId,
           eventData.date,
           eventData.startTime,
           eventData.endTime,
-          req.body.participants || [],
+          req.body.participantIds || [],
           eventData.location
         );
 
@@ -7840,8 +7840,8 @@ Best regards,
       const event = await storage.createScheduleEvent(eventData);
       
       // Handle participants if provided
-      if (req.body.participants && Array.isArray(req.body.participants)) {
-        for (const participantId of req.body.participants) {
+      if (req.body.participantIds && Array.isArray(req.body.participantIds)) {
+        for (const participantId of req.body.participantIds) {
           await storage.addEventParticipant({
             eventId: event.id,
             contactId: participantId,
