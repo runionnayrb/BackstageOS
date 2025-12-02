@@ -350,7 +350,7 @@ export function ScheduleTemplatesSection({ projectId }: ScheduleTemplatesSection
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
                 <div>
-                  <SheetTitle className="text-lg">{selectedTemplate?.name || "Edit Template"}</SheetTitle>
+                  <SheetTitle className="text-lg">{selectedTemplate?.name ? `${selectedTemplate.name} - Weekly Schedule Template` : "Edit Template"}</SheetTitle>
                   <SheetDescription className="text-sm">
                     Edit template schedule
                   </SheetDescription>
