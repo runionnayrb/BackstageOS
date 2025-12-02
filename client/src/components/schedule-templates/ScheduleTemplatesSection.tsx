@@ -338,8 +338,8 @@ export function ScheduleTemplatesSection({ projectId }: ScheduleTemplatesSection
       {/* Edit Template Sheet */}
       <Sheet open={editSheetOpen} onOpenChange={(open) => !open && handleCloseEditSheet()}>
         <SheetContent side="right" className="w-full sm:max-w-4xl h-full flex flex-col p-0">
-          <SheetHeader className="px-6 py-4 border-b flex-shrink-0">
-            <div className="flex items-center justify-between">
+          <SheetHeader className="px-6 py-0 border-b flex-shrink-0">
+            <div className="flex items-center justify-between py-4">
               <div className="flex items-center gap-2">
                 <Button 
                   variant="ghost" 
