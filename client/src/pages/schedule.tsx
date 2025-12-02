@@ -1310,7 +1310,7 @@ The Production Team`
         </div>
       </div>
       {/* Content Container - Responsive Padding */}
-      <div className="px-0 md:px-4 lg:px-8 flex-1 overflow-auto">
+      <div className="px-0 md:px-4 lg:px-8 flex-1 overflow-hidden">
         {viewMode === 'monthly' ? (
           <MonthlyScheduleView 
             projectId={parseInt(projectId)} 
