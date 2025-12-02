@@ -174,44 +174,46 @@ function groupOverlappingEvents(events: EventForLayout[]): EventForLayout[][] {
   return groups;
 }
 
-// Assign columns to events within a group using a greedy algorithm
+// Assign columns to events within a group
+// Uses a stable approach: columns are assigned by event ID order to ensure consistent positioning
 function assignColumns(group: EventForLayout[]): Map<number, number> {
-  // Sort by start time, then by end time, then by ID (for stable ordering)
-  const sorted = [...group].sort((a, b) => {
+  // First, determine the actual number of columns needed using greedy algorithm on time-sorted events
+  const timeSorted = [...group].sort((a, b) => {
     const startA = timeToMinutes(a.startTime);
     const startB = timeToMinutes(b.startTime);
     if (startA !== startB) return startA - startB;
     const endA = timeToMinutes(a.endTime);
     const endB = timeToMinutes(b.endTime);
     if (endA !== endB) return endA - endB;
-    // Use ID as final tiebreaker for stable sorting
     return a.id - b.id;
   });
   
-  const columnAssignments = new Map<number, number>();
-  const columnEndTimes: number[] = [];
-  
-  for (const event of sorted) {
+  const tempColumnEndTimes: number[] = [];
+  for (const event of timeSorted) {
     const startTime = timeToMinutes(event.startTime);
-    
-    // Find the first column where the event fits (column ends before this event starts)
     let assignedColumn = -1;
-    for (let col = 0; col < columnEndTimes.length; col++) {
-      if (columnEndTimes[col] <= startTime) {
+    for (let col = 0; col < tempColumnEndTimes.length; col++) {
+      if (tempColumnEndTimes[col] <= startTime) {
         assignedColumn = col;
         break;
       }
     }
-    
-    // If no suitable column found, create a new one
     if (assignedColumn === -1) {
-      assignedColumn = columnEndTimes.length;
-      columnEndTimes.push(0);
+      assignedColumn = tempColumnEndTimes.length;
+      tempColumnEndTimes.push(0);
     }
-    
-    // Assign the event to this column and update its end time
-    columnAssignments.set(event.id, assignedColumn);
-    columnEndTimes[assignedColumn] = timeToMinutes(event.endTime);
+    tempColumnEndTimes[assignedColumn] = timeToMinutes(event.endTime);
+  }
+  
+  const totalColumns = tempColumnEndTimes.length;
+  
+  // Now assign columns based on ID order for stable positioning
+  // This ensures the same events always maintain the same left/right positions
+  const idSorted = [...group].sort((a, b) => a.id - b.id);
+  const columnAssignments = new Map<number, number>();
+  
+  for (let i = 0; i < idSorted.length; i++) {
+    columnAssignments.set(idSorted[i].id, i % totalColumns);
   }
   
   return columnAssignments;
