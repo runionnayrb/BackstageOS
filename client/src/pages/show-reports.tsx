@@ -95,55 +95,29 @@ export default function ShowReports() {
 
   return (
     <div className="w-full">
-      {/* Mobile: Only show buttons container with minimal padding */}
-      {isMobile && (
-        <div className="px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <ContextAwareBackButton 
-              showName={project?.name}
-            />
-            
-            <Button onClick={() => {
-              const url = currentTemplate 
-                ? `/shows/${projectId}/reports/${reportType}/builder?template=${currentTemplate.id}`
-                : `/shows/${projectId}/reports/${reportType}/builder`;
-              setLocation(url);
-            }}>
-              <Plus className="h-4 w-4 mr-2" />
-              New Report
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Desktop: Full header with title */}
-      {!isMobile && (
-        <div className="px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <ContextAwareBackButton 
-              showName={project?.name}
-            />
-            
-            <Button onClick={() => {
-              const url = currentTemplate 
-                ? `/shows/${projectId}/reports/${reportType}/builder?template=${currentTemplate.id}`
-                : `/shows/${projectId}/reports/${reportType}/builder`;
-              setLocation(url);
-            }}>
-              <Plus className="h-4 w-4 mr-2" />
-              New Report
-            </Button>
-          </div>
+      {/* Header with title - shown on all devices */}
+      <div className="px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex items-center justify-between mb-4">
+          <ContextAwareBackButton 
+            showName={project?.name}
+          />
           
-          <div className="mb-2">
-            {reportTypesLoading ? (
-              <div className="h-9 w-48 bg-gray-200 animate-pulse rounded"></div>
-            ) : (
-              <h1 className="text-3xl font-bold text-gray-900">{pageTitle}</h1>
-            )}
-          </div>
+          <Button onClick={() => {
+            const url = currentTemplate 
+              ? `/shows/${projectId}/reports/${reportType}/builder?template=${currentTemplate.id}`
+              : `/shows/${projectId}/reports/${reportType}/builder`;
+            setLocation(url);
+          }}>
+            <Plus className="h-4 w-4 mr-2" />
+            New Report
+          </Button>
         </div>
-      )}
+        
+        {/* Page title - show immediately without loading state */}
+        <div className="mb-2">
+          <h1 className="text-3xl font-bold text-gray-900">{pageTitle}</h1>
+        </div>
+      </div>
 
       <div className="px-4 sm:px-6 lg:px-8">
         {reportsLoading ? (
