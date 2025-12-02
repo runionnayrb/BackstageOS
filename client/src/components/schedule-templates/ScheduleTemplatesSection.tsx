@@ -32,8 +32,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Edit3, Trash2, Calendar, Copy, LayoutTemplate, ArrowLeft } from "lucide-react";
+import { Plus, Edit3, Trash2, LayoutTemplate, ArrowLeft, Settings } from "lucide-react";
 import { format } from "date-fns";
 import { TemplateWeeklyScheduleView } from "./TemplateWeeklyScheduleView";
 
@@ -76,10 +75,10 @@ export function ScheduleTemplatesSection({ projectId }: ScheduleTemplatesSection
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editSheetOpen, setEditSheetOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<ScheduleTemplate | null>(null);
   const [templateName, setTemplateName] = useState("");
   const [templateDescription, setTemplateDescription] = useState("");
-  const [activeTab, setActiveTab] = useState("schedule");
 
   const { data: templates = [], isLoading } = useQuery<ScheduleTemplate[]>({
     queryKey: [`/api/projects/${projectId}/schedule-templates`],
@@ -141,8 +140,15 @@ export function ScheduleTemplatesSection({ projectId }: ScheduleTemplatesSection
     setSelectedTemplate(template);
     setTemplateName(template.name);
     setTemplateDescription(template.description || "");
-    setActiveTab("schedule");
     setEditSheetOpen(true);
+  };
+
+  const handleOpenDetailsDialog = () => {
+    if (selectedTemplate) {
+      setTemplateName(selectedTemplate.name);
+      setTemplateDescription(selectedTemplate.description || "");
+      setDetailsDialogOpen(true);
+    }
   };
 
   const handleDeleteTemplate = (template: ScheduleTemplate) => {
@@ -333,93 +339,113 @@ export function ScheduleTemplatesSection({ projectId }: ScheduleTemplatesSection
       <Sheet open={editSheetOpen} onOpenChange={(open) => !open && handleCloseEditSheet()}>
         <SheetContent side="right" className="w-full sm:max-w-4xl overflow-y-auto">
           <SheetHeader className="pb-4 border-b">
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-8 w-8 p-0"
-                onClick={handleCloseEditSheet}
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <div>
-                <SheetTitle className="text-lg">{selectedTemplate?.name || "Edit Template"}</SheetTitle>
-                <SheetDescription className="text-sm">
-                  Edit template schedule and details
-                </SheetDescription>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-8 w-8 p-0"
+                  onClick={handleCloseEditSheet}
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <div>
+                  <SheetTitle className="text-lg">{selectedTemplate?.name || "Edit Template"}</SheetTitle>
+                  <SheetDescription className="text-sm">
+                    Edit template schedule
+                  </SheetDescription>
+                </div>
               </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleOpenDetailsDialog}
+                className="text-muted-foreground hover:text-foreground"
+                data-testid="button-open-details"
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Details
+              </Button>
             </div>
           </SheetHeader>
 
           {selectedTemplate && (
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="schedule" data-testid="tab-schedule">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Schedule
-                </TabsTrigger>
-                <TabsTrigger value="details" data-testid="tab-details">
-                  <Edit3 className="h-4 w-4 mr-2" />
-                  Details
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="schedule" className="mt-4">
-                <TemplateWeeklyScheduleView
-                  templateId={selectedTemplate.id}
-                  projectId={projectId}
-                  weekStartDay={selectedTemplate.weekStartDay}
-                />
-              </TabsContent>
-
-              <TabsContent value="details" className="mt-4">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="editTemplateName">Template Name</Label>
-                    <Input
-                      id="editTemplateName"
-                      value={templateName}
-                      onChange={(e) => setTemplateName(e.target.value)}
-                      placeholder="e.g., Tech Week Schedule"
-                      data-testid="input-edit-template-name"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="editTemplateDescription">Description (optional)</Label>
-                    <Textarea
-                      id="editTemplateDescription"
-                      value={templateDescription}
-                      onChange={(e) => setTemplateDescription(e.target.value)}
-                      placeholder="Describe what this template is for..."
-                      rows={3}
-                      data-testid="input-edit-template-description"
-                    />
-                  </div>
-                  <div className="flex flex-col sm:flex-row gap-2 pt-4">
-                    <Button
-                      variant="destructive"
-                      onClick={() => handleDeleteTemplate(selectedTemplate)}
-                      className="w-full sm:w-auto"
-                      data-testid="button-delete-template"
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete Template
-                    </Button>
-                    <Button
-                      onClick={handleSaveTemplateDetails}
-                      disabled={updateTemplateMutation.isPending}
-                      className="w-full sm:w-auto sm:ml-auto"
-                      data-testid="button-save-template-details"
-                    >
-                      {updateTemplateMutation.isPending ? "Saving..." : "Save Details"}
-                    </Button>
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
+            <div className="mt-4">
+              <TemplateWeeklyScheduleView
+                templateId={selectedTemplate.id}
+                projectId={projectId}
+                weekStartDay={selectedTemplate.weekStartDay}
+              />
+            </div>
           )}
         </SheetContent>
       </Sheet>
+
+      {/* Template Details Dialog */}
+      <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Template Details</DialogTitle>
+            <DialogDescription>
+              Update the template name and description.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="editTemplateName">Template Name</Label>
+              <Input
+                id="editTemplateName"
+                value={templateName}
+                onChange={(e) => setTemplateName(e.target.value)}
+                placeholder="e.g., Tech Week Schedule"
+                data-testid="input-edit-template-name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="editTemplateDescription">Description (optional)</Label>
+              <Textarea
+                id="editTemplateDescription"
+                value={templateDescription}
+                onChange={(e) => setTemplateDescription(e.target.value)}
+                placeholder="Describe what this template is for..."
+                rows={3}
+                data-testid="input-edit-template-description"
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex justify-between sm:justify-between">
+            <Button
+              variant="destructive"
+              onClick={() => {
+                setDetailsDialogOpen(false);
+                if (selectedTemplate) handleDeleteTemplate(selectedTemplate);
+              }}
+              data-testid="button-delete-template"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setDetailsDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  handleSaveTemplateDetails();
+                  setDetailsDialogOpen(false);
+                }}
+                disabled={updateTemplateMutation.isPending}
+                data-testid="button-save-template-details"
+              >
+                {updateTemplateMutation.isPending ? "Saving..." : "Save"}
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
