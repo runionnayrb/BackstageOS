@@ -26,6 +26,7 @@ import { ChangeSummaryEditor } from "@/components/ChangeSummaryEditor";
 import { InviteTeamMemberDialog } from "@/components/team/InviteTeamMemberDialog";
 import { TeamMembersList } from "@/components/team/TeamMembersList";
 import { GlobalTemplateSettingsContent } from "@/components/GlobalTemplateSettingsContent";
+import { ScheduleTemplatesSection } from "@/components/schedule-templates/ScheduleTemplatesSection";
 import {
   Dialog,
   DialogContent,
@@ -4097,6 +4098,9 @@ The Production Team`
               </div>
             </CardContent>
           </Card>
+
+          {/* Weekly Templates */}
+          <ScheduleTemplatesSection projectId={parseInt(params.id)} />
 
           {/* Event Locations Management */}
           <Card className="mt-6 border-0 shadow-none">
