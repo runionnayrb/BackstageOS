@@ -1165,7 +1165,7 @@ export default function WeeklyScheduleView({
         )}
 
         {/* Main Schedule Grid */}
-        <div className="border border-gray-200 rounded-lg overflow-hidden flex flex-col" style={{ height: 'calc(100vh - 280px)' }}>
+        <div className="border border-gray-200 rounded-lg overflow-hidden flex flex-col h-full">
           {/* Header row - fixed, no scroll */}
           <div className="relative bg-gray-50 border-b border-gray-200" style={{ height: '24px', flexShrink: 0 }}>
             <div 
