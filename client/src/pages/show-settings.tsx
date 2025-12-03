@@ -25,6 +25,7 @@ import { PersonalScheduleShare } from "@/components/personal-schedule-share";
 import { ChangeSummaryEditor } from "@/components/ChangeSummaryEditor";
 import { InviteTeamMemberDialog } from "@/components/team/InviteTeamMemberDialog";
 import { TeamMembersList } from "@/components/team/TeamMembersList";
+import { ManageTeamRolesModal } from "@/components/team/ManageTeamRolesModal";
 import { GlobalTemplateSettingsContent } from "@/components/GlobalTemplateSettingsContent";
 import { ScheduleTemplatesSection } from "@/components/schedule-templates/ScheduleTemplatesSection";
 import {
@@ -185,6 +186,7 @@ export default function ShowSettings() {
   const [showBasicInfo, setShowBasicInfo] = useState<any>({});
   const [isEditingBasicInfo, setIsEditingBasicInfo] = useState(false);
   const [activeTab, setActiveTab] = useState("general");
+  const [isManageTeamRolesOpen, setIsManageTeamRolesOpen] = useState(false);
   
   // Event types and locations management state
   const [isEventTypeDialogOpen, setIsEventTypeDialogOpen] = useState(false);
@@ -2360,6 +2362,30 @@ The Production Team`
 
         <TabsContent value="team" className="mt-6">
           <div className="space-y-6">
+            {/* Manage Team Roles */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Team Settings</CardTitle>
+                    <CardDescription>Customize production roles and manage team permissions</CardDescription>
+                  </div>
+                  <Button 
+                    onClick={() => setIsManageTeamRolesOpen(true)}
+                    data-testid="button-manage-team-roles"
+                  >
+                    Manage Roles
+                  </Button>
+                </div>
+              </CardHeader>
+            </Card>
+
+            <ManageTeamRolesModal 
+              open={isManageTeamRolesOpen}
+              onOpenChange={setIsManageTeamRolesOpen}
+              settings={settings}
+            />
+
             {/* Editor Invitations */}
             <Card>
               <CardHeader>

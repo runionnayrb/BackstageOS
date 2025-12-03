@@ -54,6 +54,21 @@ export function InviteTeamMemberDialog({ variant, trigger }: InviteTeamMemberDia
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Fetch project settings to get custom roles
+  const { data: settings } = useQuery({
+    queryKey: [`/api/projects/${projectId}/settings`],
+    enabled: !!projectId,
+  });
+
+  // Get default roles if no custom roles exist
+  const defaultRoles = [
+    "Production Stage Manager",
+    "Stage Manager",
+    "Production Assistant",
+  ];
+
+  const roles = settings?.teamRoles?.map((r: any) => r.name) || defaultRoles;
+
   const form = useForm<InviteTeamMemberForm>({
     resolver: zodResolver(inviteTeamMemberSchema),
     defaultValues: {
@@ -188,9 +203,11 @@ export function InviteTeamMemberDialog({ variant, trigger }: InviteTeamMemberDia
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="Production Stage Manager">Production Stage Manager</SelectItem>
-                      <SelectItem value="Stage Manager">Stage Manager</SelectItem>
-                      <SelectItem value="Production Assistant">Production Assistant</SelectItem>
+                      {roles.map((roleName: string) => (
+                        <SelectItem key={roleName} value={roleName}>
+                          {roleName}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
