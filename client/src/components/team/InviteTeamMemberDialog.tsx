@@ -100,7 +100,35 @@ export function InviteTeamMemberDialog({ variant, trigger }: InviteTeamMemberDia
     mutationFn: async (data: InviteTeamMemberForm) => {
       return apiRequest("POST", `/api/projects/${projectId}/team-members`, data);
     },
+    onMutate: async (data: InviteTeamMemberForm) => {
+      // Cancel outgoing refetches to avoid overwriting optimistic updates
+      await queryClient.cancelQueries({ queryKey: ["/api/projects", projectId, "team-members"] });
+      
+      // Snapshot previous data
+      const previousTeamMembers = queryClient.getQueryData(["/api/projects", projectId, "team-members"]);
+      
+      // Optimistically update cache with new team member
+      queryClient.setQueryData(["/api/projects", projectId, "team-members"], (old: any[] = []) => [
+        ...old,
+        {
+          id: Math.random(), // Temporary ID
+          projectId: parseInt(projectId),
+          email: data.email,
+          role: data.role,
+          roleType: data.roleType,
+          accessLevel: data.accessLevel,
+          status: "pending",
+          userName: "",
+          userLastName: "",
+          userEmail: data.email,
+          invitedAt: new Date().toISOString(),
+        },
+      ]);
+      
+      return { previousTeamMembers };
+    },
     onSuccess: () => {
+      // Refetch to get the real data from server
       queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "team-members"] });
       toast({
         title: "Team member invited",
@@ -109,7 +137,11 @@ export function InviteTeamMemberDialog({ variant, trigger }: InviteTeamMemberDia
       form.reset();
       setOpen(false);
     },
-    onError: (error: any) => {
+    onError: (error: any, variables, context) => {
+      // Rollback to previous data on error
+      if (context?.previousTeamMembers) {
+        queryClient.setQueryData(["/api/projects", projectId, "team-members"], context.previousTeamMembers);
+      }
       toast({
         title: "Error",
         description: error.message || "Failed to invite team member",
