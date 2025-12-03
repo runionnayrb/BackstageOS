@@ -30,7 +30,7 @@ const reportSchema = z.object({
 type ReportFormData = z.infer<typeof reportSchema>;
 
 interface ReportBuilderParams {
-  slug: string;
+  id: string;
   type: string;
   reportId?: string;
 }
@@ -52,18 +52,9 @@ export default function ReportBuilder() {
   const searchParams = new URLSearchParams(window.location.search);
   const templateQueryParam = searchParams.get('template');
   
-  // Extract slug and fetch project
-  const projectSlug = params.slug;
+  // Parse params early (use 0 as fallback for hooks, will guard later)
+  const projectId = params.id ? parseInt(params.id) : 0;
   const reportType = params.type || "";
-  
-  // Fetch project by slug first
-  const { data: project } = useQuery<any>({
-    queryKey: ['/api/projects/by-slug', projectSlug],
-    enabled: !!projectSlug,
-  });
-  
-  // Derive projectId from project
-  const projectId = project?.id;
   
   // Determine if we're in edit mode by checking the URL path
   // If URL contains "/builder", we're creating a new report (not editing)
@@ -74,9 +65,13 @@ export default function ReportBuilder() {
   const reportId = !isCreatingNew && params.reportId ? parseInt(params.reportId) : null;
   const isEditMode = !isCreatingNew && !!reportId && !isNaN(reportId as number);
 
+  const { data: project } = useQuery<any>({
+    queryKey: [`/api/projects/${projectId}`],
+  });
+
   const { data: existingReport } = useQuery<any>({
     queryKey: reportId && !isNaN(reportId) ? [`/api/projects/${projectId}/reports/${reportId}`] : ['disabled-query'],
-    enabled: isEditMode && !!projectId && !!reportId && !isNaN(reportId as number),
+    enabled: isEditMode && !!reportId && !isNaN(reportId as number),
   });
 
   const { data: templatesV2 = [], isLoading: templatesLoading } = useQuery({
@@ -351,9 +346,9 @@ export default function ReportBuilder() {
         description: isEditMode ? "Your report has been updated successfully!" : "Your report has been created successfully!",
       });
       if (isEditMode && reportId) {
-        setLocation(`/shows/${projectSlug}/reports/${reportType}/${reportId}`);
+        setLocation(`/shows/${projectId}/reports/${reportType}/${reportId}`);
       } else {
-        setLocation(`/shows/${projectSlug}/reports/${reportType}`);
+        setLocation(`/shows/${projectId}/reports/${reportType}`);
       }
     },
     onError: (error) => {
@@ -366,7 +361,7 @@ export default function ReportBuilder() {
   });
 
   // Guard against missing parameters (AFTER all hooks to respect React rules)
-  if (!params.slug || !params.type) {
+  if (!params.id || !params.type) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -1168,7 +1163,7 @@ export default function ReportBuilder() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => setLocation(`/shows/${projectSlug}/reports/${reportType}`)}
+            onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}`)}
           >
             Cancel
           </Button>

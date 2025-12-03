@@ -2953,23 +2953,6 @@ Respond with valid JSON only.`;
     }
   });
 
-  // Get project by slug (must be before :id route)
-  app.get('/api/projects/by-slug/:slug', isAuthenticated, async (req: any, res) => {
-    try {
-      const slug = req.params.slug;
-      const userId = req.user.id;
-      const project = await storage.getProjectBySlug(slug, userId);
-      
-      if (!project) {
-        return res.status(404).json({ message: "Project not found" });
-      }
-
-      res.json(project);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch project" });
-    }
-  });
-
   app.get('/api/projects/:id', isAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);
@@ -13196,7 +13179,7 @@ Best regards,
       // Send invitation email
       try {
         const { sendEmail } = await import('./services/gmailService.js');
-        const invitationLink = `${process.env.APP_URL || 'https://backstageos.com'}/join/${project.slug}`;
+        const invitationLink = `${process.env.APP_URL || 'https://backstageos.com'}/join/${projectId}`;
         
         const emailHtml = `
           <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
@@ -13254,7 +13237,7 @@ Best regards,
 
       // Send invitation email
       const { sendEmail } = await import('./services/gmailService.js');
-      const invitationLink = `${process.env.APP_URL || 'https://backstageos.com'}/join/${project.slug}`;
+      const invitationLink = `${process.env.APP_URL || 'https://backstageos.com'}/join/${teamMember.projectId}`;
       
       const emailHtml = `
         <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">

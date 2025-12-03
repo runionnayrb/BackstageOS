@@ -6,13 +6,12 @@ import { GlobalTemplateSettingsContent, GlobalTemplateSettingsRef } from "@/comp
 import { ArrowLeft, Save } from "lucide-react";
 
 interface GlobalTemplateSettingsParams {
-  slug: string;
+  id: string;
 }
 
 interface Project {
   id: number;
   name: string;
-  slug: string;
   description?: string;
   venue?: string;
 }
@@ -20,17 +19,12 @@ interface Project {
 export default function GlobalTemplateSettings() {
   const [, setLocation] = useLocation();
   const params = useParams<GlobalTemplateSettingsParams>();
-  const projectSlug = params.slug;
+  const projectId = params.id;
   const settingsRef = useRef<GlobalTemplateSettingsRef>(null);
 
-  // Fetch project by slug first
   const { data: project } = useQuery<Project>({
-    queryKey: ['/api/projects/by-slug', projectSlug],
-    enabled: !!projectSlug,
+    queryKey: [`/api/projects/${projectId}`],
   });
-  
-  // Derive projectId from project
-  const projectId = project?.id;
 
   if (!project) {
     return (
@@ -52,7 +46,7 @@ export default function GlobalTemplateSettings() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setLocation(`/shows/${projectSlug}/templates`)}
+            onClick={() => setLocation(`/shows/${projectId}/templates`)}
             className="text-gray-600 hover:text-gray-900"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />

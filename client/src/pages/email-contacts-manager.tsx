@@ -16,22 +16,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import type { EmailContact, Project, DistributionList, DistributionListMember } from "@shared/schema";
 
 interface EmailContactsManagerParams {
-  slug: string;
+  id: string;
 }
 
 export default function EmailContactsManager() {
   const params = useParams<EmailContactsManagerParams>();
-  const projectSlug = params.slug;
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  const { data: project, isLoading: projectLoading } = useQuery<Project>({
-    queryKey: ['/api/projects/by-slug', projectSlug],
-    enabled: !!projectSlug,
-  });
-
-  const projectId = project?.id;
-  const isGlobalView = !projectSlug;
+  const projectId = params.id ? parseInt(params.id) : null;
+  const isGlobalView = !projectId;
 
   const [addContactOpen, setAddContactOpen] = useState(false);
   const [newContact, setNewContact] = useState({
@@ -52,16 +45,22 @@ export default function EmailContactsManager() {
     projectId: projectId
   });
 
+  // Fetch project data
+  const { data: project } = useQuery<Project>({
+    queryKey: ['/api/projects', projectId],
+    enabled: !!projectId,
+  });
+
   // Fetch email contacts - use global endpoint if no project ID
   const { data: emailContacts = [], isLoading } = useQuery<EmailContact[]>({
     queryKey: isGlobalView ? ['/api/contacts'] : ['/api/email-contacts', projectId],
-    enabled: isGlobalView || !!projectId,
+    enabled: true,
   });
 
   // Fetch distribution lists
   const { data: distributionLists = [] } = useQuery<DistributionList[]>({
     queryKey: ['/api/distribution-lists', projectId],
-    enabled: isGlobalView || !!projectId,
+    enabled: true,
   });
 
 
@@ -70,7 +69,7 @@ export default function EmailContactsManager() {
   const addContactMutation = useMutation({
     mutationFn: (contactData: typeof newContact) => apiRequest('/api/email-contacts', {
       method: 'POST',
-      body: JSON.stringify({ ...contactData, projectId }),
+      body: JSON.stringify(contactData),
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/email-contacts'] });
@@ -100,7 +99,7 @@ export default function EmailContactsManager() {
   const createDistributionListMutation = useMutation({
     mutationFn: (listData: typeof newList) => apiRequest('/api/distribution-lists', {
       method: 'POST',
-      body: JSON.stringify({ ...listData, projectId }),
+      body: JSON.stringify(listData),
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/distribution-lists'] });
@@ -205,17 +204,6 @@ export default function EmailContactsManager() {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
-
-  if (projectLoading) {
-    return (
-      <div className="container mx-auto p-6 max-w-6xl">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
-        </div>
-      </div>
-    );
-  }
 
   const showContacts = emailContacts.filter(contact => contact.projectId === projectId);
   const generalContacts = emailContacts.filter(contact => !contact.projectId);
@@ -620,13 +608,12 @@ function DistributionListCard({ list, emailContacts, onUpdate, onDelete }: Distr
             value={editDescription}
             onChange={(e) => setEditDescription(e.target.value)}
             placeholder="Description (optional)"
-            className="h-8"
           />
           <Select
             value={editListType}
             onValueChange={(value: 'to' | 'cc' | 'bcc') => setEditListType(value)}
           >
-            <SelectTrigger className="h-8">
+            <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -644,24 +631,29 @@ function DistributionListCard({ list, emailContacts, onUpdate, onDelete }: Distr
 
       {isExpanded && (
         <div className="mt-4 space-y-3">
-          <h4 className="text-sm font-medium">Manage Members</h4>
+          <h4 className="font-medium text-sm">Manage Members</h4>
           <div className="grid gap-2 max-h-60 overflow-y-auto">
             {emailContacts.map((contact) => {
               const isMember = members.some(m => m.emailContact.id === contact.id);
               return (
-                <div key={contact.id} className="flex items-center gap-2 p-2 border rounded">
+                <div key={contact.id} className="flex items-center space-x-2 p-2 border rounded">
                   <Checkbox
                     checked={isMember}
                     onCheckedChange={(checked) => handleToggleMember(contact, checked as boolean)}
                   />
                   <div className="flex-1">
-                    <div className="text-sm font-medium">
+                    <div className="font-medium text-sm">
                       {contact.firstName} {contact.lastName}
                     </div>
                     <div className="text-xs text-muted-foreground">
                       {contact.email}
                     </div>
                   </div>
+                  {contact.contactCategory && (
+                    <Badge variant="outline" className="text-xs">
+                      {contact.contactCategory}
+                    </Badge>
+                  )}
                 </div>
               );
             })}

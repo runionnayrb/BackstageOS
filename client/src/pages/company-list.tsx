@@ -13,7 +13,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 interface ContactSheetParams {
-  slug: string;
+  id: string;
 }
 
 interface Contact {
@@ -49,16 +49,9 @@ interface Column {
 export default function CompanyList() {
   const [, setLocation] = useLocation();
   const params = useParams<ContactSheetParams>();
-  const projectSlug = params.slug;
+  const projectId = params.id;
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  const { data: project } = useQuery({
-    queryKey: ['/api/projects/by-slug', projectSlug],
-    enabled: !!projectSlug,
-  });
-
-  const projectId = project?.id;
 
   const defaultCategories = [
     { id: "cast", title: "Cast", visible: true },
@@ -254,6 +247,10 @@ export default function CompanyList() {
     { label: 'Total Pages', value: '{{totalPages}}' },
     { label: 'Generated Date', value: '{{generatedDate}}' }
   ];
+
+  const { data: project } = useQuery({
+    queryKey: [`/api/projects/${projectId}`],
+  });
 
   const { data: projectSettings } = useQuery({
     queryKey: [`/api/projects/${projectId}/settings`],
@@ -905,7 +902,7 @@ export default function CompanyList() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setLocation(`/shows/${projectSlug}/contacts`)}
+            onClick={() => setLocation(`/shows/${projectId}/contacts`)}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />

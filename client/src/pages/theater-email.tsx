@@ -52,18 +52,10 @@ interface DeliveryStats {
 }
 
 export default function TheaterEmail() {
-  const { slug } = useParams<{ slug: string }>();
+  const { showId } = useParams<{ showId: string }>();
   const [selectedTab, setSelectedTab] = useState('overview');
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  // Get project by slug
-  const { data: project, isLoading: projectLoading } = useQuery({
-    queryKey: ['/api/projects/by-slug', slug],
-    enabled: !!slug,
-  });
-
-  const projectId = project?.id;
 
   // Get email accounts
   const { data: accounts = [] } = useQuery({
@@ -71,6 +63,12 @@ export default function TheaterEmail() {
   });
 
   const primaryAccount = accounts[0];
+
+  // Get show details
+  const { data: show } = useQuery({
+    queryKey: ['/api/projects', showId],
+    enabled: !!showId,
+  });
 
   // Get delivery stats
   const { data: deliveryStats } = useQuery<DeliveryStats>({
@@ -80,22 +78,22 @@ export default function TheaterEmail() {
 
   // Get email templates
   const { data: templates = [] } = useQuery<EmailTemplate[]>({
-    queryKey: ['/api/email/templates', projectId],
-    queryFn: () => apiRequest(`/api/email/templates?showId=${projectId}`),
-    enabled: !!projectId,
+    queryKey: ['/api/email/templates'],
+    queryFn: () => apiRequest(`/api/email/templates?showId=${showId}`),
+    enabled: !!showId,
   });
 
   // Get email rules
   const { data: rules = [] } = useQuery<EmailRule[]>({
-    queryKey: ['/api/email/rules', projectId],
-    queryFn: () => apiRequest(`/api/email/rules?accountId=${primaryAccount?.id}&showId=${projectId}`),
-    enabled: !!primaryAccount && !!projectId,
+    queryKey: ['/api/email/rules'],
+    queryFn: () => apiRequest(`/api/email/rules?accountId=${primaryAccount?.id}&showId=${showId}`),
+    enabled: !!primaryAccount && !!showId,
   });
 
   // Get show emails
   const { data: showEmails = [] } = useQuery({
-    queryKey: ['/api/email/shows', projectId, 'messages'],
-    enabled: !!projectId,
+    queryKey: ['/api/email/shows', showId, 'messages'],
+    enabled: !!showId,
   });
 
   // Create default templates mutation
@@ -105,9 +103,9 @@ export default function TheaterEmail() {
       body: {
         name: 'Call Sheet',
         templateType: 'call_sheet',
-        subject: `${project?.name} - Call Sheet for {{date}}`,
-        content: `Dear {{recipientName}},\n\nPlease find the call sheet for ${project?.name} on {{date}}.\n\nCall Time: {{callTime}}\nLocation: ${project?.venue}\n\nThank you,\n{{senderName}}\nStage Manager`,
-        projectId: projectId,
+        subject: `${show?.name} - Call Sheet for {{date}}`,
+        content: `Dear {{recipientName}},\n\nPlease find the call sheet for ${show?.name} on {{date}}.\n\nCall Time: {{callTime}}\nLocation: ${show?.venue}\n\nThank you,\n{{senderName}}\nStage Manager`,
+        projectId: parseInt(showId!),
       },
     }),
     onSuccess: () => {
@@ -118,7 +116,7 @@ export default function TheaterEmail() {
 
   // Bulk email mutation
   const bulkEmailMutation = useMutation({
-    mutationFn: (data: any) => apiRequest(`/api/email/shows/${projectId}/bulk-send`, {
+    mutationFn: (data: any) => apiRequest(`/api/email/shows/${showId}/bulk-send`, {
       method: 'POST',
       body: data,
     }),
@@ -136,12 +134,12 @@ export default function TheaterEmail() {
     bulkEmailMutation.mutate({
       accountId: primaryAccount.id,
       recipientType,
-      subject: `${project?.name} - Update`,
-      message: `Dear team,\n\nThis is an update for ${project?.name}.\n\nBest regards,\nStage Management`,
+      subject: `${show?.name} - Update`,
+      message: `Dear team,\n\nThis is an update for ${show?.name}.\n\nBest regards,\nStage Management`,
     });
   };
 
-  if (!slug) {
+  if (!showId) {
     return (
       <div className="p-6">
         <div className="text-center">
@@ -156,17 +154,6 @@ export default function TheaterEmail() {
     );
   }
 
-  if (projectLoading) {
-    return (
-      <div className="p-6 max-w-7xl mx-auto">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="mb-6">
@@ -175,7 +162,7 @@ export default function TheaterEmail() {
           <h1 className="text-2xl font-bold">Theater Email Management</h1>
         </div>
         <p className="text-gray-600">
-          Manage email communications for {project?.name || 'your production'}
+          Manage email communications for {show?.name || 'your production'}
         </p>
       </div>
 
@@ -301,7 +288,7 @@ export default function TheaterEmail() {
           <div>
             <h2 className="text-xl font-semibold mb-4">Bulk Email to Cast & Crew</h2>
             <p className="text-gray-600 mb-6">
-              Send emails to specific groups for {project?.name}
+              Send emails to specific groups for {show?.name}
             </p>
           </div>
 

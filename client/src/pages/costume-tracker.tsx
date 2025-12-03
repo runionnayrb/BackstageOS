@@ -31,7 +31,7 @@ import {
 } from "lucide-react";
 
 interface CostumeTrackerParams {
-  slug: string;
+  id: string;
 }
 
 interface Costume {
@@ -71,16 +71,9 @@ export default function CostumeTracker() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
   const params = useParams<CostumeTrackerParams>();
-  const projectSlug = params.slug;
+  const projectId = params.id;
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
-
-  const { data: project } = useQuery({
-    queryKey: ['/api/projects/by-slug', projectSlug],
-    enabled: !!projectSlug,
-  });
-
-  const projectId = project?.id;
 
   const [isAddingCostume, setIsAddingCostume] = useState(false);
   const [editingCostume, setEditingCostume] = useState<Costume | null>(null);
@@ -264,6 +257,13 @@ export default function CostumeTracker() {
     };
   }, [isMobile, sortField, sortDirection]);
 
+  const { data: projects, isLoading: projectsLoading } = useQuery({
+    queryKey: ["/api/projects"],
+    enabled: isAuthenticated,
+  });
+
+  const project = Array.isArray(projects) ? projects.find((p: any) => p.id === parseInt(projectId || '0')) : null;
+
   const { data: costumes = [], isLoading: costumesLoading } = useQuery({
     queryKey: ["/api/projects", projectId, "costumes"],
     enabled: !!projectId && isAuthenticated,
@@ -446,7 +446,7 @@ export default function CostumeTracker() {
     return aNum - bNum;
   }) : [];
 
-  if (isLoading || costumesLoading) {
+  if (isLoading || projectsLoading || costumesLoading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
 

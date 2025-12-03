@@ -16,7 +16,7 @@ import { useBetaFeatures } from "@/hooks/useBetaFeatures";
 import { usePageTitle } from "@/hooks/usePageTitle";
 
 interface ShowDetailParams {
-  slug: string;
+  id: string;
 }
 
 export default function ShowDetail() {
@@ -24,26 +24,34 @@ export default function ShowDetail() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
   const params = useParams<ShowDetailParams>();
-  const projectSlug = params.slug || '';
+  const projectId = params.id;
   const queryClient = useQueryClient();
 
-  // State for drag and drop reordering - MUST be called before any early returns
+  // Guard against missing projectId
+  if (!projectId) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-semibold text-foreground mb-2">Show Not Found</h1>
+          <p className="text-muted-foreground mb-4">The show you're looking for doesn't exist or the URL is invalid.</p>
+          <Button onClick={() => setLocation('/shows')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Shows
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // State for drag and drop reordering
   const [isReordering, setIsReordering] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   
   // Set page title for mobile header
   usePageTitle();
 
-  // Fetch project by slug first
-  const { data: projectFromSlug, isLoading: projectFromSlugLoading, isFetching: projectFromSlugFetching, isSuccess: projectFromSlugSuccess } = useQuery({
-    queryKey: ['/api/projects/by-slug', projectSlug],
-    enabled: !!projectSlug && isAuthenticated,
-  });
-  
-  const projectId = projectFromSlug?.id;
-
   // Import feature settings hooks - both user preferences and beta access
-  const { isFeatureEnabled } = useFeatureSettings(projectId?.toString());
+  const { isFeatureEnabled } = useFeatureSettings(projectId);
   const { canAccessFeature } = useBetaFeatures();
   
   // Helper function to check if feature should be shown (both user enabled AND beta accessible)
@@ -56,32 +64,32 @@ export default function ShowDetail() {
     ...(shouldShowFeature('reports', 'report-builder') ? [{
       id: "reports",
       title: "Reports",
-      href: `/shows/${projectSlug}/reports`,
+      href: `/shows/${projectId}/reports`,
     }] : []),
     ...(shouldShowFeature('calendar', 'calendar-management') ? [{
       id: "calendar",
       title: "Calendar",
-      href: `/shows/${projectSlug}/calendar`,
+      href: `/shows/${projectId}/calendar`,
     }] : []),
     ...(shouldShowFeature('script', 'script-editor') ? [{
       id: "script",
       title: "Script",
-      href: `/shows/${projectSlug}/script`,
+      href: `/shows/${projectId}/script`,
     }] : []),
     ...(shouldShowFeature('props', 'props-tracker') ? [{
       id: "props",
       title: "Props",
-      href: `/shows/${projectSlug}/props`,
+      href: `/shows/${projectId}/props`,
     }] : []),
     ...(shouldShowFeature('costumes', 'costume-tracker') ? [{
       id: "costumes",
       title: "Costumes",
-      href: `/shows/${projectSlug}/costumes`,
+      href: `/shows/${projectId}/costumes`,
     }] : []),
     ...(shouldShowFeature('contacts', 'contact-management') ? [{
       id: "contacts",
       title: "Contacts",
-      href: `/shows/${projectSlug}/contacts`,
+      href: `/shows/${projectId}/contacts`,
     }] : []),
   ];
 
@@ -94,7 +102,7 @@ export default function ShowDetail() {
     enabled: isAuthenticated,
   });
 
-  const { data: projectSettings, isLoading: projectSettingsLoading } = useQuery({
+  const { data: projectSettings } = useQuery({
     queryKey: [`/api/projects/${projectId}/settings`],
     enabled: isAuthenticated && !!projectId,
   });
@@ -169,31 +177,7 @@ export default function ShowDetail() {
   }, [projectSettings]);
 
   // Early returns after all hooks are called
-  // Guard against missing projectSlug - must be after all hooks
-  if (!projectSlug) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-semibold text-foreground mb-2">Show Not Found</h1>
-          <p className="text-muted-foreground mb-4">The show you're looking for doesn't exist or the URL is invalid.</p>
-          <Button onClick={() => setLocation('/shows')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Shows
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // Include projectSettingsLoading to wait for settings before rendering
-  // Also wait for auth to fully resolve and for projectFromSlug query to complete
-  const isAuthResolving = isLoading;
-  // Wait if: we have a slug AND we're authenticated AND (query is loading OR fetching OR we don't have data yet and query hasn't errored)
-  const isProjectQueryPending = !!projectSlug && isAuthenticated && (projectFromSlugLoading || projectFromSlugFetching || (!projectFromSlug && !projectFromSlugSuccess));
-  const isSettingsLoading = !!projectId && projectSettingsLoading;
-  const isDataLoading = isAuthResolving || isProjectQueryPending || isSettingsLoading;
-  
-  if (isDataLoading) {
+  if (isLoading || projectsLoading || sections.length === 0) {
     return (
       <div className="w-full">
         {/* Mobile Loading */}
@@ -229,8 +213,7 @@ export default function ShowDetail() {
     return null;
   }
 
-  // Use the project fetched directly by slug instead of searching the projects array
-  const project = projectFromSlug;
+  const project = Array.isArray(projects) ? projects.find((p: any) => p.id === parseInt(projectId)) : null;
   
   if (!project) {
     return (

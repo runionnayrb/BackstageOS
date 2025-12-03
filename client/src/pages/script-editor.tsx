@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 
 interface ScriptEditorParams {
-  slug: string;
+  id: string;
 }
 
 export default function ScriptEditor() {
@@ -35,16 +35,8 @@ export default function ScriptEditor() {
   const { canAccessFeature } = useBetaFeatures();
   const [, setLocation] = useLocation();
   const params = useParams<ScriptEditorParams>();
-  const projectSlug = params.slug;
+  const projectId = params.id;
   const queryClient = useQueryClient();
-
-  // Fetch project by slug first
-  const { data: projectFromSlug, isLoading: projectLoading } = useQuery({
-    queryKey: ['/api/projects/by-slug', projectSlug],
-    enabled: !!projectSlug,
-  });
-  
-  const projectId = projectFromSlug?.id?.toString();
 
   // Enhanced script state for Google Docs-like functionality
   const [scriptContent, setScriptContent] = useState("");
@@ -83,12 +75,17 @@ export default function ScriptEditor() {
         description: "The script editor feature is not currently available for your account.",
         variant: "destructive",
       });
-      setLocation(`/shows/${projectSlug}`);
+      setLocation(`/shows/${projectId}`);
       return;
     }
-  }, [user, toast, setLocation, canAccessFeature, projectSlug]);
+  }, [user, toast, setLocation, canAccessFeature, projectId]);
 
-  const project = projectFromSlug;
+  const { data: projects, isLoading: projectsLoading } = useQuery({
+    queryKey: ["/api/projects"],
+    enabled: !!user,
+  });
+
+  const project = Array.isArray(projects) ? projects.find((p: any) => p.id === parseInt(projectId || '0')) : null;
 
   // Track if we've loaded the initial script content
   const [isContentLoaded, setIsContentLoaded] = useState(false);

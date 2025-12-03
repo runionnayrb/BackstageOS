@@ -22,7 +22,7 @@ interface SwitchStatus {
 export default function MobileFooterNav() {
   const [location, setLocation] = useLocation();
   const { user, logoutMutation } = useAuth();
-  const { showId, showSlug } = usePageTitle();  // showId for API, showSlug for URLs
+  const { showId } = usePageTitle();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -67,7 +67,7 @@ export default function MobileFooterNav() {
   const { canAccessFeature } = useBetaFeatures();
   
 
-  // Get show data if we're in a show context (use numeric ID for API)
+  // Get show data if we're in a show context
   const { data: showData } = useQuery({
     queryKey: [`/api/projects/${showId}`],
     enabled: !!showId,
@@ -213,7 +213,7 @@ export default function MobileFooterNav() {
             </DropdownMenuItem>
             
             {/* Show-specific navigation - only when in a show */}
-            {showSlug && showData && (
+            {showId && showData && (
               <>
                 <DropdownMenuSeparator />
                 <div className="px-3 py-2 text-sm font-semibold text-gray-900">
@@ -221,65 +221,65 @@ export default function MobileFooterNav() {
                 </div>
                 {canAccessFeature('report-builder') && isFeatureEnabled('reports') && (
                   <>
-                    <DropdownMenuItem onClick={() => setLocation(`/shows/${showSlug}/reports`)}>
+                    <DropdownMenuItem onClick={() => setLocation(`/shows/${showId}/reports`)}>
                       <FileText className="h-4 w-4 mr-2" />
                       Reports
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setLocation(`/shows/${showSlug}/notes-tracking`)}>
+                    <DropdownMenuItem onClick={() => setLocation(`/shows/${showId}/notes-tracking`)}>
                       <FileText className="h-4 w-4 mr-2" />
                       Report Notes
                     </DropdownMenuItem>
                   </>
                 )}
                 {canAccessFeature('calendar-management') && isFeatureEnabled('calendar') && (
-                  <DropdownMenuItem onClick={() => setLocation(`/shows/${showSlug}/calendar`)}>
+                  <DropdownMenuItem onClick={() => setLocation(`/shows/${showId}/calendar`)}>
                     <Calendar className="h-4 w-4 mr-2" />
                     Calendar
                   </DropdownMenuItem>
                 )}
                 {canAccessFeature('script-editor') && isFeatureEnabled('script') && (
-                  <DropdownMenuItem onClick={() => setLocation(`/shows/${showSlug}/script`)}>
+                  <DropdownMenuItem onClick={() => setLocation(`/shows/${showId}/script`)}>
                     <FileText className="h-4 w-4 mr-2" />
                     Script
                   </DropdownMenuItem>
                 )}
                 {canAccessFeature('props-tracker') && isFeatureEnabled('props') && (
-                  <DropdownMenuItem onClick={() => setLocation(`/shows/${showSlug}/props`)}>
+                  <DropdownMenuItem onClick={() => setLocation(`/shows/${showId}/props`)}>
                     <FolderOpen className="h-4 w-4 mr-2" />
                     Props
                   </DropdownMenuItem>
                 )}
                 {isFeatureEnabled('contacts') && (
-                  <DropdownMenuItem onClick={() => setLocation(`/shows/${showSlug}/contacts`)}>
+                  <DropdownMenuItem onClick={() => setLocation(`/shows/${showId}/contacts`)}>
                     <Users className="h-4 w-4 mr-2" />
                     Contacts
                   </DropdownMenuItem>
                 )}
                 {canAccessFeature('performance-tracker') && (
-                  <DropdownMenuItem onClick={() => setLocation(`/shows/${showSlug}/performance-tracker`)}>
+                  <DropdownMenuItem onClick={() => setLocation(`/shows/${showId}/performance-tracker`)}>
                     <TrendingUp className="h-4 w-4 mr-2" />
                     Performance Tracker
                   </DropdownMenuItem>
                 )}
                 {canAccessFeature('costume-tracker') && isFeatureEnabled('costumes') && (
-                  <DropdownMenuItem onClick={() => setLocation(`/shows/${showSlug}/costumes`)}>
+                  <DropdownMenuItem onClick={() => setLocation(`/shows/${showId}/costumes`)}>
                     <Shirt className="h-4 w-4 mr-2" />
                     Costumes
                   </DropdownMenuItem>
                 )}
                 {canAccessFeature('task-boards') && (
-                  <DropdownMenuItem onClick={() => setLocation(`/shows/${showSlug}/tasks`)}>
+                  <DropdownMenuItem onClick={() => setLocation(`/shows/${showId}/tasks`)}>
                     <CheckSquare className="h-4 w-4 mr-2" />
                     Show Tasks
                   </DropdownMenuItem>
                 )}
                 {canAccessFeature('advanced-notes') && (
-                  <DropdownMenuItem onClick={() => setLocation(`/shows/${showSlug}/notes`)}>
+                  <DropdownMenuItem onClick={() => setLocation(`/shows/${showId}/notes`)}>
                     <FileText className="h-4 w-4 mr-2" />
                     Show Notes
                   </DropdownMenuItem>
                 )}
-                <DropdownMenuItem onClick={() => setLocation(`/shows/${showSlug}/settings`)}>
+                <DropdownMenuItem onClick={() => setLocation(`/shows/${showId}/settings`)}>
                   <Settings className="h-4 w-4 mr-2" />
                   Show Settings
                 </DropdownMenuItem>

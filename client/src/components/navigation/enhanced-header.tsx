@@ -37,7 +37,7 @@ interface User {
 }
 
 interface NavigationContext {
-  showSlug?: string;   // Slug for navigation URLs
+  showId?: string;
   showName?: string;
   sectionId?: string;
   pageTitle?: string;
@@ -71,7 +71,7 @@ export default function EnhancedHeader() {
     const pathParts = location.split('/');
     
     if (pathParts[1] === 'shows' && pathParts[2]) {
-      const showSlug = pathParts[2];  // URL now contains slug, not numeric ID
+      const showId = pathParts[2];
       
       // Determine section from path
       let sectionId: string | undefined;
@@ -80,7 +80,7 @@ export default function EnhancedHeader() {
       }
       
       return {
-        showSlug,
+        showId,
         sectionId,
       };
     }
@@ -90,18 +90,15 @@ export default function EnhancedHeader() {
 
   const navContext = getNavigationContext();
 
-  // Fetch project by slug to get show data and numeric ID
+  // Get show data if we're in a show context
   const { data: showData } = useQuery({
-    queryKey: ['/api/projects/by-slug', navContext.showSlug],
-    enabled: !!navContext.showSlug,
+    queryKey: [`/api/projects/${navContext.showId}`],
+    enabled: !!navContext.showId,
     select: (data: any) => data || {},
   });
-  
-  // Derive showId from fetched data for API calls that need numeric ID
-  const showId = showData?.id?.toString();
 
-  // Get feature settings for the current show (uses numeric ID)
-  const { isFeatureEnabled, isEmailEnabled } = useFeatureSettings(showId);
+  // Get feature settings for the current show
+  const { isFeatureEnabled, isEmailEnabled } = useFeatureSettings(navContext.showId);
   
   // Get beta feature access
   const { canAccessFeature } = useBetaFeatures();
@@ -312,7 +309,7 @@ export default function EnhancedHeader() {
                   </DropdownMenuItem>
                   
                   {/* Show-specific navigation - only when in a show */}
-                  {navContext.showSlug && showData && (
+                  {navContext.showId && showData && (
                     <>
                       <DropdownMenuSeparator />
                       <div className="px-3 py-2 text-sm font-semibold text-gray-900">
@@ -320,54 +317,54 @@ export default function EnhancedHeader() {
                       </div>
                       {canAccessFeature('report-builder') && (
                         <>
-                          <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showSlug}/reports`)}>
+                          <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/reports`)}>
                             <FileText className="h-4 w-4 mr-2" strokeWidth={1.5} />
                             Reports
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showSlug}/notes-tracking`)}>
+                          <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/notes-tracking`)}>
                             <FileText className="h-4 w-4 mr-2" strokeWidth={1.5} />
                             Report Notes
                           </DropdownMenuItem>
                         </>
                       )}
                       {canAccessFeature('calendar-management') && (
-                        <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showSlug}/calendar`)}>
+                        <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/calendar`)}>
                           <Calendar className="h-4 w-4 mr-2" strokeWidth={1.5} />
                           Calendar
                         </DropdownMenuItem>
                       )}
                       {canAccessFeature('script-editor') && (
-                        <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showSlug}/script`)}>
+                        <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/script`)}>
                           <FileText className="h-4 w-4 mr-2" strokeWidth={1.5} />
                           Script
                         </DropdownMenuItem>
                       )}
                       {canAccessFeature('props-tracker') && (
-                        <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showSlug}/props`)}>
+                        <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/props`)}>
                           <FolderOpen className="h-4 w-4 mr-2" strokeWidth={1.5} />
                           Props
                         </DropdownMenuItem>
                       )}
                       {canAccessFeature('costume-tracker') && (
-                        <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showSlug}/costumes`)}>
+                        <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/costumes`)}>
                           <Shirt className="h-4 w-4 mr-2" strokeWidth={1.5} />
                           Costumes
                         </DropdownMenuItem>
                       )}
                       {canAccessFeature('contact-management') && (
-                        <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showSlug}/contacts`)}>
+                        <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/contacts`)}>
                           <Users className="h-4 w-4 mr-2" strokeWidth={1.5} />
                           Contacts
                         </DropdownMenuItem>
                       )}
                       {canAccessFeature('task-boards') && (
-                        <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showSlug}/tasks`)}>
+                        <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/tasks`)}>
                           <CheckSquare className="h-4 w-4 mr-2" strokeWidth={1.5} />
                           Show Tasks
                         </DropdownMenuItem>
                       )}
                       {canAccessFeature('advanced-notes') && (
-                        <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showSlug}/notes`)}>
+                        <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/notes`)}>
                           <FileText className="h-4 w-4 mr-2" strokeWidth={1.5} />
                           Show Notes
                         </DropdownMenuItem>
@@ -418,7 +415,7 @@ export default function EnhancedHeader() {
             </div>
             
             {/* Venue row - Show underneath title only on show details page */}
-            {showData?.venue && navContext.showSlug && !navContext.sectionId && (
+            {showData?.venue && navContext.showId && !navContext.sectionId && (
               <div>
                 <p className="text-base text-foreground">{showData.venue}</p>
               </div>
@@ -463,11 +460,11 @@ export default function EnhancedHeader() {
             {/* Expandable Search Icon */}
             <GlobalSearchBar />
             {/* Show Settings Button - appears when in a show, hidden on mobile */}
-            {navContext.showSlug && showData?.name && (
+            {navContext.showId && showData?.name && (
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setLocation(`/shows/${navContext.showSlug}/settings`)}
+                onClick={() => setLocation(`/shows/${navContext.showId}/settings`)}
                 className="hidden sm:flex items-center gap-2 hover:text-blue-600 hover:bg-transparent"
               >
                 <Settings className="h-4 w-4" />
@@ -595,7 +592,7 @@ export default function EnhancedHeader() {
             )}
             
             {/* Reorder button - Only show on show details page */}
-            {navContext.showSlug && !navContext.sectionId && (
+            {navContext.showId && !navContext.sectionId && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -611,20 +608,20 @@ export default function EnhancedHeader() {
             )}
 
             {/* Template Settings button - Only show on reports page */}
-            {navContext.showSlug && navContext.sectionId === 'reports' && (
+            {navContext.showId && navContext.sectionId === 'reports' && (
               <Button
                 variant="ghost"
                 size="sm"
                 className="h-8 w-8 p-0 hover:bg-gray-100"
                 title="Template Settings"
-                onClick={() => setLocation(`/shows/${navContext.showSlug}/templates`)}
+                onClick={() => setLocation(`/shows/${navContext.showId}/templates`)}
               >
                 <Settings className="h-4 w-4" />
               </Button>
             )}
 
             {/* Availability button - Only show on calendar overview page (not on schedule subpage) */}
-            {navContext.showSlug && navContext.sectionId === 'calendar' && !location.includes('/schedule') && (
+            {navContext.showId && navContext.sectionId === 'calendar' && !location.includes('/schedule') && (
               <Button
                 variant="ghost"
                 size="sm"

@@ -12,13 +12,13 @@ interface Section {
 }
 
 interface QuickSectionSwitcherProps {
-  currentShowSlug: string;
+  currentShowId: string;
   currentShowName: string;
   currentSection?: string;
 }
 
 export default function QuickSectionSwitcher({ 
-  currentShowSlug, 
+  currentShowId, 
   currentShowName, 
   currentSection 
 }: QuickSectionSwitcherProps) {
@@ -29,42 +29,42 @@ export default function QuickSectionSwitcher({
     {
       id: "reports",
       title: "Reports",
-      href: `/shows/${currentShowSlug}/reports`
+      href: `/shows/${currentShowId}/reports`
     },
     {
       id: "calendar",
       title: "Calendar", 
-      href: `/shows/${currentShowSlug}/calendar`
+      href: `/shows/${currentShowId}/calendar`
     },
     {
       id: "script",
       title: "Script",
-      href: `/shows/${currentShowSlug}/script`
+      href: `/shows/${currentShowId}/script`
     },
     {
       id: "props",
       title: "Props",
-      href: `/shows/${currentShowSlug}/props`
+      href: `/shows/${currentShowId}/props`
     },
     {
       id: "contacts",
       title: "Contacts",
-      href: `/shows/${currentShowSlug}/contacts`
+      href: `/shows/${currentShowId}/contacts`
     },
     {
       id: "performance-tracker",
       title: "Performance Tracker",
-      href: `/shows/${currentShowSlug}/performance-tracker`
+      href: `/shows/${currentShowId}/performance-tracker`
     },
     {
       id: "schedule-mapping",
       title: "Schedule Mapping",
-      href: `/shows/${currentShowSlug}/schedule-mapping`
+      href: `/shows/${currentShowId}/schedule-mapping`
     },
     {
       id: "report-notes",
       title: "Report Notes",
-      href: `/shows/${currentShowSlug}/notes-tracking`
+      href: `/shows/${currentShowId}/notes-tracking`
     }
   ];
 

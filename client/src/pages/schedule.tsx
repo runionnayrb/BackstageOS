@@ -39,16 +39,16 @@ const safeJsonParse = (jsonString: string, fallback: any = {}) => {
 };
 
 interface ScheduleParams {
-  slug: string;
+  id: string;
 }
 
 export default function Schedule() {
   const [, setLocation] = useLocation();
   const params = useParams<ScheduleParams>();
-  const projectSlug = params.slug;
+  const projectId = params.id;
 
-  // Guard against missing projectSlug
-  if (!projectSlug) {
+  // Guard against missing projectId
+  if (!projectId) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -94,14 +94,6 @@ export default function Schedule() {
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  // Fetch project by slug first
-  const { data: project, isLoading: projectLoading } = useQuery({
-    queryKey: ['/api/projects/by-slug', projectSlug],
-    enabled: !!projectSlug,
-  });
-  
-  const projectId = project?.id;
   
   // Email template refs
   const emailSubjectRef = useRef<HTMLInputElement>(null);
@@ -222,37 +214,37 @@ The Production Team`
     });
   };
 
+  const { data: project } = useQuery({
+    queryKey: [`/api/projects/${projectId}`],
+  });
+
   const { data: user } = useQuery({
     queryKey: [`/api/user`],
   });
 
   const { data: settings } = useQuery({
     queryKey: [`/api/projects/${projectId}/settings`],
-    enabled: !!projectId,
   });
 
   // Get schedule versions to find current published version
   const { data: scheduleVersions = [] } = useQuery({
     queryKey: [`/api/projects/${projectId}/schedule-versions`],
-    enabled: !!projectId,
+    enabled: !!projectId
   });
 
   // Fetch contacts for event creation
   const { data: contacts = [] } = useQuery({
     queryKey: [`/api/projects/${projectId}/contacts`],
-    enabled: !!projectId,
   });
 
   // Fetch event types for event creation
   const { data: eventTypes = [] } = useQuery({
     queryKey: [`/api/projects/${projectId}/event-types`],
-    enabled: !!projectId,
   });
 
   // Fetch schedule events for updated timestamp
   const { data: events = [] } = useQuery({
     queryKey: [`/api/projects/${projectId}/schedule-events`],
-    enabled: !!projectId,
   });
 
   // Fetch all users for "updated by" information
@@ -263,31 +255,29 @@ The Production Team`
   // Fetch personal schedules with contact information
   const { data: personalSchedules = [] } = useQuery({
     queryKey: [`/api/projects/${projectId}/personal-schedules`],
-    enabled: !!projectId,
   });
 
   // Fetch email accounts for reply-to configuration
   const { data: emailAccounts = [] } = useQuery({
     queryKey: [`/api/email/accounts`],
-    enabled: showScheduleSettings,
+    enabled: showScheduleSettings, // Only fetch when modal is open
   });
 
   // Fetch auto-generated changes summary
   const { data: autoChangesSummary } = useQuery({
     queryKey: [`/api/projects/${projectId}/schedule-changes-summary`],
-    enabled: showScheduleSettings && !!projectId,
+    enabled: showScheduleSettings, // Only fetch when modal is open
   });
 
   // Fetch structured changes for individual template variables
   const { data: structuredChanges } = useQuery({
     queryKey: [`/api/projects/${projectId}/schedule-changes-structured`],
-    enabled: showScheduleSettings && !!projectId,
+    enabled: showScheduleSettings, // Only fetch when modal is open
   });
 
   // Fetch schedule templates
   const { data: scheduleTemplates = [] } = useQuery<any[]>({
     queryKey: [`/api/projects/${projectId}/schedule-templates`],
-    enabled: !!projectId,
   });
 
   // Test email mutation

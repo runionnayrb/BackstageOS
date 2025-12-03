@@ -2,8 +2,7 @@ import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 
 interface NavigationContext {
-  showId?: string;      // Numeric ID for API calls
-  showSlug?: string;    // Slug for navigation URLs
+  showId?: string;
   showName?: string;
   sectionId?: string;
   subsectionId?: string;
@@ -29,19 +28,18 @@ export function useNavigation(): NavigationContext & {
   const pathParts = location.split('/').filter(Boolean);
   
   const isInShow = pathParts[0] === 'shows' && !!pathParts[1];
-  const showSlug = isInShow ? pathParts[1] : undefined;  // URL now contains slug
+  const showId = isInShow ? pathParts[1] : undefined;
   const sectionId = isInShow && pathParts[2] ? pathParts[2] : undefined;
   const subsectionId = isInShow && pathParts[3] ? pathParts[3] : undefined;
   const isInSection = isInShow && !!sectionId;
 
-  // Fetch project by slug to get name and numeric ID
+  // Get show data if we're in a show
   const { data: showData } = useQuery({
-    queryKey: ['/api/projects/by-slug', showSlug],
-    enabled: !!showSlug,
+    queryKey: [`/api/projects/${showId}`],
+    enabled: !!showId,
   });
 
   const showName = showData?.name as string;
-  const showId = showData?.id?.toString();
 
   // Generate breadcrumbs
   const generateBreadcrumbs = (): BreadcrumbItem[] => {
@@ -58,7 +56,7 @@ export function useNavigation(): NavigationContext & {
       if (showName) {
         breadcrumbs.push({
           label: showName,
-          href: `/shows/${showSlug}`
+          href: `/shows/${showId}`
         });
       }
 
@@ -69,7 +67,7 @@ export function useNavigation(): NavigationContext & {
         
         breadcrumbs.push({
           label: sectionLabel,
-          href: isCurrentSection ? undefined : `/shows/${showSlug}/${sectionId}`,
+          href: isCurrentSection ? undefined : `/shows/${showId}/${sectionId}`,
           isCurrentPage: isCurrentSection
         });
       }
@@ -87,17 +85,17 @@ export function useNavigation(): NavigationContext & {
     return breadcrumbs;
   };
 
-  // Get smart back destination (uses slug for URLs)
+  // Get smart back destination
   const getBackDestination = (): string => {
     if (isInShow) {
       if (subsectionId) {
         // From subsection back to section
-        return `/shows/${showSlug}/${sectionId}`;
+        return `/shows/${showId}/${sectionId}`;
       }
       
       if (sectionId) {
         // From section back to show
-        return `/shows/${showSlug}`;
+        return `/shows/${showId}`;
       }
       
       // From show back to shows list
@@ -130,8 +128,7 @@ export function useNavigation(): NavigationContext & {
   const backText = getBackText();
 
   return {
-    showId,       // Numeric ID for API calls
-    showSlug,     // Slug for navigation URLs
+    showId,
     showName,
     sectionId,
     subsectionId,

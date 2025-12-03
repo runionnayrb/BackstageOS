@@ -48,18 +48,16 @@ export default function MobileBottomNav() {
     enabled: location.startsWith('/email'),
   });
 
-  // Parse current show slug from URL (slugs are non-numeric strings after /shows/)
-  const currentShowSlug = location.match(/\/shows\/([^\/]+)/)?.[1];
+  // Parse current show ID from URL
+  const currentShowId = location.match(/\/shows\/(\d+)/)?.[1];
   
-  // Fetch project by slug to get the ID for feature settings
-  const { data: currentProject } = useQuery({
-    queryKey: ['/api/projects/by-slug', currentShowSlug],
-    enabled: !!currentShowSlug,
+  console.log('🔍 Mobile Nav Debug:', { 
+    location,
+    currentShowId,
+    currentShowIdNumber: currentShowId ? parseInt(currentShowId) : undefined
   });
   
-  const currentShowId = currentProject?.id?.toString();
-  
-  // Get feature settings for the current show (uses ID)
+  // Get feature settings for the current show
   const { isFeatureEnabled, isEmailEnabled } = useFeatureSettings(currentShowId);
   
   // Get beta feature access
@@ -74,7 +72,7 @@ export default function MobileBottomNav() {
       href: '/',
     },
     // Only show email if enabled globally or if email features are enabled for the current show
-    ...((!currentShowSlug || isEmailEnabled()) ? [{
+    ...((!currentShowId || isEmailEnabled()) ? [{
       id: 'email',
       label: 'Email',
       icon: Mail,
@@ -82,7 +80,7 @@ export default function MobileBottomNav() {
       badge: unreadCount > 0 ? unreadCount : undefined,
     }] : []),
     // Only show chat if enabled globally or if chat is enabled for the current show
-    ...((!currentShowSlug || isFeatureEnabled('chat')) ? [{
+    ...((!currentShowId || isFeatureEnabled('chat')) ? [{
       id: 'chat',
       label: 'Chat',
       icon: MessageCircle,
@@ -92,28 +90,28 @@ export default function MobileBottomNav() {
 
   // Get contextual menu items based on current location
   const getContextualMenuItems = (): MenuItem[] => {
-    if (currentShowSlug) {
+    if (currentShowId) {
       // In a show context - show production tools based on feature settings
       const menuItems: MenuItem[] = [];
       
       if (isFeatureEnabled('reports')) {
-        menuItems.push({ label: 'Reports', href: `/shows/${currentShowSlug}/reports`, icon: FileText });
+        menuItems.push({ label: 'Reports', href: `/shows/${currentShowId}/reports`, icon: FileText });
       }
       if (canAccessFeature('calendar-management') && isFeatureEnabled('calendar')) {
-        menuItems.push({ label: 'Calendar', href: `/shows/${currentShowSlug}/calendar`, icon: Calendar });
+        menuItems.push({ label: 'Calendar', href: `/shows/${currentShowId}/calendar`, icon: Calendar });
       }
       if (canAccessFeature('script-editor') && isFeatureEnabled('script')) {
-        menuItems.push({ label: 'Script', href: `/shows/${currentShowSlug}/script`, icon: FileText });
+        menuItems.push({ label: 'Script', href: `/shows/${currentShowId}/script`, icon: FileText });
       }
       if (canAccessFeature('props-tracker') && isFeatureEnabled('props')) {
-        menuItems.push({ label: 'Props', href: `/shows/${currentShowSlug}/props`, icon: Package });
+        menuItems.push({ label: 'Props', href: `/shows/${currentShowId}/props`, icon: Package });
       }
       if (isFeatureEnabled('contacts')) {
-        menuItems.push({ label: 'Contacts', href: `/shows/${currentShowSlug}/contacts`, icon: Users });
+        menuItems.push({ label: 'Contacts', href: `/shows/${currentShowId}/contacts`, icon: Users });
       }
       
       // Settings always available
-      menuItems.push({ label: 'Show Settings', href: `/shows/${currentShowSlug}/settings`, icon: Settings });
+      menuItems.push({ label: 'Show Settings', href: `/shows/${currentShowId}/settings`, icon: Settings });
       
       return menuItems;
     } else {
@@ -227,7 +225,7 @@ export default function MobileBottomNav() {
           fromAccountId={primaryEmailAccount.id}
           fromEmail={primaryEmailAccount.emailAddress}
           composeMode="compose"
-          projectId={currentProject?.id}
+          projectId={currentShowId ? parseInt(currentShowId) : undefined}
         />
       )}
       

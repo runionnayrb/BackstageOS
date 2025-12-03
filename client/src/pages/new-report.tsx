@@ -20,7 +20,7 @@ const reportSchema = z.object({
 type ReportFormData = z.infer<typeof reportSchema>;
 
 interface NewReportParams {
-  slug: string;
+  id: string;
   type: string;
 }
 
@@ -30,17 +30,12 @@ export default function NewReport() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  const projectSlug = params.slug;
+  const projectId = parseInt(params.id!);
   const reportType = params.type!;
 
-  // Fetch project by slug first
-  const { data: project } = useQuery<any>({
-    queryKey: ['/api/projects/by-slug', projectSlug],
-    enabled: !!projectSlug,
+  const { data: project } = useQuery({
+    queryKey: [`/api/projects/${projectId}`],
   });
-  
-  // Derive projectId from project
-  const projectId = project?.id;
 
   const form = useForm<ReportFormData>({
     resolver: zodResolver(reportSchema),
@@ -81,7 +76,7 @@ export default function NewReport() {
         title: "Report Created",
         description: "Your report has been created successfully!",
       });
-      setLocation(`/shows/${projectSlug}/reports/${reportType}`);
+      setLocation(`/shows/${projectId}/reports/${reportType}`);
     },
     onError: (error) => {
       toast({
@@ -277,7 +272,7 @@ export default function NewReport() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => setLocation(`/shows/${projectSlug}/reports/${reportType}`)}
+              onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}`)}
             >
               Cancel
             </Button>

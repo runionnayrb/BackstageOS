@@ -12,28 +12,24 @@ import { useToast } from "@/hooks/use-toast";
 import { formatTimeFromMinutes, parseScheduleSettings, getTimezoneAbbreviation } from "@/lib/timeUtils";
 
 interface ContactAvailabilityParams {
-  slug: string;
+  id: string;
   contactId: string;
 }
 
 export default function ContactAvailability() {
   const [, setLocation] = useLocation();
   const params = useParams<ContactAvailabilityParams>();
-  const projectSlug = params.slug;
+  const projectId = parseInt(params.id!);
   const contactId = parseInt(params.contactId!);
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [timeIncrement, setTimeIncrement] = useState<15 | 30 | 60>(30);
 
-  const { data: project, isLoading: projectLoading } = useQuery({
-    queryKey: ['/api/projects/by-slug', projectSlug],
-    enabled: !!projectSlug,
+  const { data: project } = useQuery({
+    queryKey: [`/api/projects/${projectId}`],
   });
-
-  const projectId = project?.id;
 
   const { data: contact, isLoading: isLoadingContact } = useQuery({
     queryKey: [`/api/contacts/${contactId}`],
-    enabled: !!contactId,
   });
 
   // Navigation functions
@@ -72,7 +68,7 @@ export default function ContactAvailability() {
 
 
 
-  if (projectLoading || isLoadingContact || !project || !contact) {
+  if (isLoadingContact || !project || !contact) {
     return (
       <div className="min-h-screen bg-background">
         <div className="container mx-auto p-6">
@@ -93,7 +89,7 @@ export default function ContactAvailability() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setLocation(`/shows/${projectSlug}/contacts`)}
+            onClick={() => setLocation(`/shows/${projectId}/contacts`)}
             className="text-gray-600 hover:text-gray-900"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -161,7 +157,6 @@ export default function ContactAvailability() {
               currentDate={currentDate}
               setCurrentDate={setCurrentDate}
               timeIncrement={timeIncrement}
-              projectId={projectId}
             />
           </div>
         </div>
@@ -175,14 +170,12 @@ function WeeklyAvailabilityEditorPage({
   contact, 
   currentDate, 
   setCurrentDate, 
-  timeIncrement,
-  projectId
+  timeIncrement 
 }: { 
   contact: any; 
   currentDate: Date;
   setCurrentDate: (date: Date) => void;
   timeIncrement: 15 | 30 | 60;
-  projectId?: number;
 }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -202,14 +195,12 @@ function WeeklyAvailabilityEditorPage({
 
   // Fetch project settings for time format and timezone
   const { data: showSettings } = useQuery({
-    queryKey: [`/api/projects/${projectId}/settings`],
-    enabled: !!projectId,
+    queryKey: [`/api/projects/${contact.projectId}/settings`],
   });
 
   // Fetch availability for this contact
   const { data: availability = [] } = useQuery({
-    queryKey: [`/api/projects/${projectId}/contacts/${contact.id}/availability`],
-    enabled: !!projectId,
+    queryKey: [`/api/projects/${contact.projectId}/contacts/${contact.id}/availability`],
   });
 
   const scheduleSettings = parseScheduleSettings(showSettings);

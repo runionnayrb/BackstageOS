@@ -24,7 +24,7 @@ import type { ContactGroup } from "@shared/schema";
 
 
 interface PersonnelParams {
-  slug: string;
+  id: string;
 }
 
 interface Contact {
@@ -46,21 +46,13 @@ export default function Personnel() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const params = useParams<PersonnelParams>();
-  const projectSlug = params.slug;
+  const projectId = params.id;
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
 
-  // Fetch project by slug first
-  const { data: projectData } = useQuery({
-    queryKey: ['/api/projects/by-slug', projectSlug],
-    enabled: !!projectSlug,
-  });
-  
-  const projectId = projectData?.id?.toString();
-
-  // Guard against missing projectSlug
-  if (!projectSlug) {
+  // Guard against missing projectId
+  if (!projectId) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -143,10 +135,10 @@ export default function Personnel() {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="bottom" align="end" sideOffset={8}>
-                <DropdownMenuItem onClick={() => setLocation(`/shows/${projectSlug}/contact-sheet`)}>
+                <DropdownMenuItem onClick={() => setLocation(`/shows/${projectId}/contact-sheet`)}>
                   Contact Sheet
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLocation(`/shows/${projectSlug}/company-list`)}>
+                <DropdownMenuItem onClick={() => setLocation(`/shows/${projectId}/company-list`)}>
                   Company List
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -318,7 +310,7 @@ export default function Personnel() {
 
   const handleEditContact = (contact: Contact) => {
     // Navigate to the category page for editing
-    setLocation(`/shows/${projectSlug}/contacts/${contact.category}`);
+    setLocation(`/shows/${projectId}/contacts/${contact.category}`);
   };
 
   const handleAvailabilityClick = (contact: Contact) => {
@@ -346,7 +338,7 @@ export default function Personnel() {
   };
 
   const handleEmailContact = (email: string) => {
-    setLocation(`/shows/${projectSlug}/compose?to=${encodeURIComponent(email)}`);
+    setLocation(`/shows/${projectId}/compose?to=${encodeURIComponent(email)}`);
   };
 
   const handleDownloadContactSheet = async () => {
