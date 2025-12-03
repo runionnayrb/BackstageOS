@@ -101,10 +101,7 @@ export function TeamMembersList({ accessLevel, isActive = true }: TeamMembersLis
 
   const updateTeamMemberMutation = useMutation({
     mutationFn: async ({ memberId, role }: { memberId: number; role: string }) => {
-      return apiRequest(`/api/team-members/${memberId}`, {
-        method: "PUT",
-        body: { role },
-      });
+      return apiRequest("PUT", `/api/team-members/${memberId}`, { role });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "team-members"] });
