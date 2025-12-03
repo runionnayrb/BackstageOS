@@ -160,33 +160,19 @@ export function TeamMembersList({ accessLevel, isActive = true }: TeamMembersLis
                 </Avatar>
                 
                 <div className="flex-1">
-                  <div className="flex items-center space-x-2">
-                    <p className="font-medium">
-                      {member.userName} {member.userLastName}
-                    </p>
-                    <Badge 
-                      variant="secondary" 
-                      className={`text-xs ${getAccessColor(member.accessLevel)}`}
-                    >
-                      {getAccessIcon(member.accessLevel)}
-                      <span className="ml-1 capitalize">{member.accessLevel}</span>
-                    </Badge>
-                  </div>
+                  <p className="font-medium">
+                    {member.userName} {member.userLastName}
+                  </p>
                   
                   <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                    <span className="flex items-center space-x-1">
-                      <Mail className="w-3 h-3" />
-                      <span>{member.userEmail}</span>
-                    </span>
                     <span>{member.role}</span>
+                    <span>
+                      {member.status === "joined" 
+                        ? `Joined ${new Date(member.joinedAt!).toLocaleDateString()}`
+                        : `Invited ${new Date(member.invitedAt).toLocaleDateString()}`
+                      }
+                    </span>
                   </div>
-                  
-                  <p className="text-xs text-muted-foreground">
-                    {member.status === "joined" 
-                      ? `Joined ${new Date(member.joinedAt!).toLocaleDateString()}`
-                      : `Invited ${new Date(member.invitedAt).toLocaleDateString()}`
-                    }
-                  </p>
                 </div>
               </div>
 
