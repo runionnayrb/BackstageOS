@@ -8,7 +8,7 @@ import AvailabilityComparison from "@/components/availability-comparison";
 import LocationAvailabilityPage from "@/components/location-availability";
 
 interface CalendarParams {
-  id: string;
+  slug: string;
 }
 
 export default function Calendar() {
@@ -18,7 +18,7 @@ export default function Calendar() {
   const [showAvailabilityDropdown, setShowAvailabilityDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const params = useParams<CalendarParams>();
-  const projectId = params.id;
+  const projectSlug = params.slug;
 
   // Listen for header button click
   useEffect(() => {
@@ -33,19 +33,22 @@ export default function Calendar() {
   }, [showAvailabilityDropdown]);
 
   const { data: project } = useQuery({
-    queryKey: [`/api/projects/${projectId}`],
+    queryKey: ['/api/projects/by-slug', projectSlug],
+    enabled: !!projectSlug,
   });
+  
+  const projectId = project?.id;
 
   const sections = [
     {
       title: "Schedule",
       description: "Rehearsal and performance calendar with drag-drop scheduling",
-      href: `/shows/${projectId}/calendar/schedule`,
+      href: `/shows/${projectSlug}/calendar/schedule`,
     },
     {
       title: "Daily Calls", 
       description: "Daily call sheets and scheduling information",
-      href: `/shows/${projectId}/calls`,
+      href: `/shows/${projectSlug}/calls`,
     },
   ];
 
@@ -70,7 +73,7 @@ export default function Calendar() {
   if (showAvailabilityComparison) {
     return (
       <AvailabilityComparison
-        projectId={parseInt(projectId)}
+        projectId={projectId!}
         onBack={() => setShowAvailabilityComparison(false)}
       />
     );
@@ -80,7 +83,7 @@ export default function Calendar() {
   if (showLocationAvailability) {
     return (
       <LocationAvailabilityPage
-        projectId={parseInt(projectId)}
+        projectId={projectId!}
         onBack={() => setShowLocationAvailability(false)}
       />
     );

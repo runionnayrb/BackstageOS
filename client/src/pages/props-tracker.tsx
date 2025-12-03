@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 
 interface PropsTrackerParams {
-  id: string;
+  slug: string;
 }
 
 interface Prop {
@@ -81,9 +81,17 @@ export default function PropsTracker() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
   const params = useParams<PropsTrackerParams>();
-  const projectId = params.id;
+  const projectSlug = params.slug;
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
+
+  // Fetch project by slug first
+  const { data: projectFromSlug, isLoading: projectLoading } = useQuery({
+    queryKey: ['/api/projects/by-slug', projectSlug],
+    enabled: !!projectSlug,
+  });
+  
+  const projectId = projectFromSlug?.id?.toString();
 
   const [isAddingProp, setIsAddingProp] = useState(false);
   const [editingProp, setEditingProp] = useState<Prop | null>(null);
@@ -302,17 +310,12 @@ export default function PropsTracker() {
     };
   }, [isMobile, sortField, sortDirection]);
 
-  const { data: projects, isLoading: projectsLoading } = useQuery({
-    queryKey: ["/api/projects"],
-    enabled: isAuthenticated,
-  });
-
-  const project = Array.isArray(projects) ? projects.find((p: any) => p.id === parseInt(projectId || '0')) : null;
-
   const { data: props = [], isLoading: propsLoading } = useQuery({
     queryKey: ["/api/projects", projectId, "props"],
     enabled: !!projectId && isAuthenticated,
   });
+
+  const project = projectFromSlug;
 
   const createPropMutation = useOptimisticCreate<Prop, typeof formData>({
     queryKey: ["/api/projects", projectId, "props"],

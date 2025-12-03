@@ -11,7 +11,7 @@ import ContextAwareBackButton from "@/components/navigation/context-aware-back-b
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ShowReportsParams {
-  id: string;
+  slug: string;
   type: string;
 }
 
@@ -20,7 +20,7 @@ export default function ShowReports() {
   const { isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
   const params = useParams<ShowReportsParams>();
-  const projectId = params.id;
+  const projectSlug = params.slug;
   const reportType = params.type;
   const isMobile = useIsMobile();
 
@@ -39,12 +39,12 @@ export default function ShowReports() {
     }
   }, [isAuthenticated, isLoading, toast]);
 
-  const { data: projects, isLoading: projectsLoading } = useQuery({
-    queryKey: ["/api/projects"],
-    enabled: isAuthenticated,
+  const { data: project, isLoading: projectLoading } = useQuery({
+    queryKey: ['/api/projects/by-slug', projectSlug],
+    enabled: !!projectSlug && isAuthenticated,
   });
   
-  const project = Array.isArray(projects) ? projects.find((p: any) => p.id === parseInt(projectId || '0')) : null;
+  const projectId = project?.id;
 
   const { data: allReports = [], isLoading: reportsLoading } = useQuery({
     queryKey: [`/api/projects/${projectId}/reports`],
@@ -67,7 +67,7 @@ export default function ShowReports() {
     enabled: !!projectId && isAuthenticated,
   });
 
-  if (isLoading || projectsLoading) return <div>Loading...</div>;
+  if (isLoading || projectLoading) return <div>Loading...</div>;
   if (!project) return <div>Show not found</div>;
 
   // Get report type name from fetched report types
@@ -113,8 +113,8 @@ export default function ShowReports() {
           
           <Button onClick={() => {
             const url = currentTemplate 
-              ? `/shows/${projectId}/reports/${reportType}/builder?template=${currentTemplate.id}`
-              : `/shows/${projectId}/reports/${reportType}/builder`;
+              ? `/shows/${projectSlug}/reports/${reportType}/builder?template=${currentTemplate.id}`
+              : `/shows/${projectSlug}/reports/${reportType}/builder`;
             setLocation(url);
           }}>
             <Plus className="h-4 w-4 mr-2" />
@@ -150,7 +150,7 @@ export default function ShowReports() {
                 <div 
                   key={report.id} 
                   className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
-                  onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}/${report.id}`)}
+                  onClick={() => setLocation(`/shows/${projectSlug}/reports/${reportType}/${report.id}`)}
                   data-testid={`report-item-${report.id}`}
                 >
                   <h3 className="text-lg font-medium text-gray-900" data-testid={`report-title-${report.id}`}>

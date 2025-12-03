@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 
 interface PersonnelCategoryParams {
-  id: string;
+  slug: string;
   category: string;
 }
 
@@ -43,11 +43,18 @@ interface Contact {
 export default function PersonnelCategory() {
   const [, setLocation] = useLocation();
   const params = useParams<PersonnelCategoryParams>();
-  const projectId = params.id;
+  const projectSlug = params.slug;
   const category = params.category;
 
+  const { data: project } = useQuery({
+    queryKey: ['/api/projects/by-slug', projectSlug],
+    enabled: !!projectSlug,
+  });
+
+  const projectId = project?.id;
+
   // Guard against missing parameters
-  if (!projectId || !category) {
+  if (!projectSlug || !category) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -75,12 +82,9 @@ export default function PersonnelCategory() {
   const [composerRecipient, setComposerRecipient] = useState('');
   const [composerFromAccount, setComposerFromAccount] = useState<any>(null);
 
-  const { data: project } = useQuery({
-    queryKey: [`/api/projects/${projectId}`],
-  });
-
   const { data: contacts = [], isLoading } = useQuery<Contact[]>({
     queryKey: [`/api/projects/${projectId}/contacts`],
+    enabled: !!projectId,
   });
 
   // Query for shared inboxes (team emails) for this show

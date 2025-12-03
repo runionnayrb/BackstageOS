@@ -7,32 +7,38 @@ import { ChevronLeft, Plus, Calendar, FileText, ChevronDown, ChevronRight } from
 import { format, parseISO, startOfWeek, endOfWeek, isAfter, isBefore } from "date-fns";
 
 interface DailyCallsListParams {
-  id: string;
+  slug: string;
 }
 
 export default function DailyCallsList() {
   const [, setLocation] = useLocation();
   const params = useParams<DailyCallsListParams>();
-  const projectId = params.id;
+  const projectSlug = params.slug;
   const [expandedWeeks, setExpandedWeeks] = useState<Set<string>>(new Set());
 
-  const { data: project } = useQuery({
-    queryKey: [`/api/projects/${projectId}`],
+  // Fetch project by slug first
+  const { data: project, isLoading: projectLoading } = useQuery({
+    queryKey: ['/api/projects/by-slug', projectSlug],
+    enabled: !!projectSlug,
   });
+  
+  const projectId = project?.id;
 
   // Fetch show settings to get week start day
   const { data: showSettings } = useQuery({
     queryKey: [`/api/projects/${projectId}/settings`],
+    enabled: !!projectId,
   });
 
   // Fetch all daily calls for this project
   const { data: dailyCalls, isLoading } = useQuery({
     queryKey: ['/api/projects', projectId, 'daily-calls-list'],
+    enabled: !!projectId,
   });
 
   const handleNewCall = () => {
     const today = new Date().toISOString().split('T')[0];
-    setLocation(`/shows/${projectId}/calls/${today}?edit=true`);
+    setLocation(`/shows/${projectSlug}/calls/${today}?edit=true`);
   };
 
   // Group calls by week and sort
@@ -178,7 +184,7 @@ export default function DailyCallsList() {
                             <div 
                               key={call.id} 
                               className="cursor-pointer hover:bg-gray-50 transition-colors p-3 rounded-lg"
-                              onClick={() => setLocation(`/shows/${projectId}/calls/${call.date}`)}
+                              onClick={() => setLocation(`/shows/${projectSlug}/calls/${call.date}`)}
                             >
                               <h4 className="text-base font-medium text-gray-900">
                                 {format(parseISO(call.date), 'EEEE, MMMM d, yyyy')}

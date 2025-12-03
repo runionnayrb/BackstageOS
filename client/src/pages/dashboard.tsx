@@ -89,7 +89,7 @@ export default function Dashboard() {
                   <div 
                     key={project.id} 
                     className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
-                    onClick={() => setLocation(`/shows/${project.id}`)}
+                    onClick={() => setLocation(`/shows/${project.slug}`)}
                   >
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">

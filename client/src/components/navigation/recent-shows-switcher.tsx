@@ -9,6 +9,7 @@ import { apiRequest } from "@/lib/queryClient";
 
 interface Show {
   id: number;
+  slug: string;
   name: string;
   venue?: string;
   status: string;
@@ -17,11 +18,11 @@ interface Show {
 }
 
 interface RecentShowsSwitcherProps {
-  currentShowId?: string;
+  currentShowSlug?: string;
   className?: string;
 }
 
-export default function RecentShowsSwitcher({ currentShowId, className = "" }: RecentShowsSwitcherProps) {
+export default function RecentShowsSwitcher({ currentShowSlug, className = "" }: RecentShowsSwitcherProps) {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
 
@@ -30,39 +31,75 @@ export default function RecentShowsSwitcher({ currentShowId, className = "" }: R
     queryKey: ['/api/projects'],
   });
 
-  // Get recent/pinned shows from localStorage
+  // Get recent/pinned shows from localStorage (now stores slugs)
   const [recentShows, setRecentShows] = useState<string[]>([]);
   const [pinnedShows, setPinnedShows] = useState<string[]>([]);
 
+  // Migrate old ID-based storage to slug-based on component mount
   useEffect(() => {
-    const recent = JSON.parse(localStorage.getItem('recentShows') || '[]');
-    const pinned = JSON.parse(localStorage.getItem('pinnedShows') || '[]');
-    setRecentShows(recent);
-    setPinnedShows(pinned);
-  }, []);
+    if ((shows as Show[]).length === 0) return;
+    
+    const storedRecent = JSON.parse(localStorage.getItem('recentShows') || '[]');
+    const storedPinned = JSON.parse(localStorage.getItem('pinnedShows') || '[]');
+    
+    // Helper to resolve a stored value to a slug
+    // Handles: legacy IDs -> slug, numeric slugs (like "1984"), and regular slugs
+    const resolveToSlug = (value: string): string | null => {
+      // First check if this matches an existing slug directly
+      const matchBySlug = (shows as Show[]).find(s => s.slug === value);
+      if (matchBySlug) return value;
+      
+      // If numeric, check if it's a legacy ID that needs migration
+      if (!isNaN(Number(value))) {
+        const matchById = (shows as Show[]).find(s => s.id.toString() === value);
+        if (matchById) return matchById.slug;
+      }
+      
+      // Value doesn't match any current show (may have been deleted)
+      return null;
+    };
+    
+    // Resolve all stored values
+    const resolvedRecent = storedRecent.map(resolveToSlug).filter(Boolean) as string[];
+    const resolvedPinned = storedPinned.map(resolveToSlug).filter(Boolean) as string[];
+    
+    // Update localStorage if any migrations occurred
+    const recentChanged = JSON.stringify(resolvedRecent) !== JSON.stringify(storedRecent);
+    const pinnedChanged = JSON.stringify(resolvedPinned) !== JSON.stringify(storedPinned);
+    
+    if (recentChanged) {
+      localStorage.setItem('recentShows', JSON.stringify(resolvedRecent));
+    }
+    if (pinnedChanged) {
+      localStorage.setItem('pinnedShows', JSON.stringify(resolvedPinned));
+    }
+    
+    setRecentShows(resolvedRecent);
+    setPinnedShows(resolvedPinned);
+  }, [shows]);
 
-  // Update recent shows when currentShowId changes
+  // Update recent shows when currentShowSlug changes
   useEffect(() => {
-    if (currentShowId && !recentShows.includes(currentShowId)) {
-      const updated = [currentShowId, ...recentShows.slice(0, 4)]; // Keep last 5
+    if (currentShowSlug && !recentShows.includes(currentShowSlug)) {
+      const updated = [currentShowSlug, ...recentShows.slice(0, 4)]; // Keep last 5
       setRecentShows(updated);
       localStorage.setItem('recentShows', JSON.stringify(updated));
     }
-  }, [currentShowId, recentShows]);
+  }, [currentShowSlug, recentShows]);
 
-  const togglePin = (showId: string) => {
-    const updated = pinnedShows.includes(showId)
-      ? pinnedShows.filter(id => id !== showId)
-      : [...pinnedShows, showId];
+  const togglePin = (showSlug: string) => {
+    const updated = pinnedShows.includes(showSlug)
+      ? pinnedShows.filter(slug => slug !== showSlug)
+      : [...pinnedShows, showSlug];
     
     setPinnedShows(updated);
     localStorage.setItem('pinnedShows', JSON.stringify(updated));
   };
 
-  const currentShow = (shows as Show[]).find((show: Show) => show.id.toString() === currentShowId);
-  const pinnedShowsData = (shows as Show[]).filter((show: Show) => pinnedShows.includes(show.id.toString()));
+  const currentShow = (shows as Show[]).find((show: Show) => show.slug === currentShowSlug);
+  const pinnedShowsData = (shows as Show[]).filter((show: Show) => pinnedShows.includes(show.slug));
   const recentShowsData = (shows as Show[]).filter((show: Show) => 
-    recentShows.includes(show.id.toString()) && !pinnedShows.includes(show.id.toString())
+    recentShows.includes(show.slug) && !pinnedShows.includes(show.slug)
   ).slice(0, 5);
 
   const getStatusColor = (status: string) => {
@@ -96,7 +133,7 @@ export default function RecentShowsSwitcher({ currentShowId, className = "" }: R
             {pinnedShowsData.map((show: Show) => (
               <DropdownMenuItem 
                 key={show.id}
-                onClick={() => setLocation(`/shows/${show.id}`)}
+                onClick={() => setLocation(`/shows/${show.slug}`)}
                 className="flex items-center justify-between cursor-pointer p-3"
               >
                 <div className="flex flex-col gap-1">
@@ -115,7 +152,7 @@ export default function RecentShowsSwitcher({ currentShowId, className = "" }: R
                   size="sm"
                   onClick={(e) => {
                     e.stopPropagation();
-                    togglePin(show.id.toString());
+                    togglePin(show.slug);
                   }}
                   className="h-6 w-6 p-0"
                 >
@@ -135,7 +172,7 @@ export default function RecentShowsSwitcher({ currentShowId, className = "" }: R
             {recentShowsData.map((show: Show) => (
               <DropdownMenuItem 
                 key={show.id}
-                onClick={() => setLocation(`/shows/${show.id}`)}
+                onClick={() => setLocation(`/shows/${show.slug}`)}
                 className="flex items-center justify-between cursor-pointer p-3"
               >
                 <div className="flex flex-col gap-1">
@@ -154,7 +191,7 @@ export default function RecentShowsSwitcher({ currentShowId, className = "" }: R
                   size="sm"
                   onClick={(e) => {
                     e.stopPropagation();
-                    togglePin(show.id.toString());
+                    togglePin(show.slug);
                   }}
                   className="h-6 w-6 p-0"
                 >

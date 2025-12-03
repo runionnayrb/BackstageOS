@@ -17,7 +17,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import type { ContactGroup } from "@shared/schema";
 
 interface ContactSheetParams {
-  id: string;
+  slug: string;
 }
 
 interface Contact {
@@ -67,10 +67,17 @@ const formatPhoneNumber = (phone: string | undefined): string => {
 export default function ContactSheet() {
   const [, setLocation] = useLocation();
   const params = useParams<ContactSheetParams>();
-  const projectId = params.id;
+  const projectSlug = params.slug;
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
+
+  const { data: project } = useQuery({
+    queryKey: ['/api/projects/by-slug', projectSlug],
+    enabled: !!projectSlug,
+  });
+
+  const projectId = project?.id;
 
   const defaultCategories = [
     { id: "cast", title: "Cast", visible: true },
@@ -344,10 +351,6 @@ export default function ContactSheet() {
     { label: 'Total Pages', value: '{{totalPages}}' },
     { label: 'Generated Date', value: '{{generatedDate}}' }
   ];
-
-  const { data: project } = useQuery({
-    queryKey: [`/api/projects/${projectId}`],
-  });
 
   const { data: projectSettings } = useQuery({
     queryKey: [`/api/projects/${projectId}/settings`],

@@ -4,28 +4,31 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
 interface PropsAndCostumesParams {
-  id: string;
+  slug: string;
 }
 
 export default function PropsAndCostumes() {
   const [, setLocation] = useLocation();
   const params = useParams<PropsAndCostumesParams>();
-  const projectId = params.id;
+  const projectSlug = params.slug;
 
   const { data: project } = useQuery({
-    queryKey: [`/api/projects/${projectId}`],
+    queryKey: ['/api/projects/by-slug', projectSlug],
+    enabled: !!projectSlug,
   });
+
+  const projectId = project?.id;
 
   const sections = [
     {
       title: "Props Tracker",
       description: "Scene/character organization with status tracking and sourcing notes",
-      href: `/shows/${projectId}/props`,
+      href: `/shows/${projectSlug}/props`,
     },
     {
       title: "Costume Tracker", 
       description: "Quick-change timing, repair tracking, character-based organization",
-      href: `/shows/${projectId}/costumes`,
+      href: `/shows/${projectSlug}/costumes`,
     },
   ];
 

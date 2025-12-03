@@ -41,7 +41,7 @@ const reportSchema = z.object({
 });
 
 interface ReportViewerParams {
-  id: string;
+  slug: string;
   type: string;
   reportId: string;
 }
@@ -49,7 +49,7 @@ interface ReportViewerParams {
 export default function ReportViewer() {
   const [, setLocation] = useLocation();
   const params = useParams<ReportViewerParams>();
-  const projectId = parseInt(params.id!);
+  const projectSlug = params.slug;
   const reportType = params.type!;
   const reportId = parseInt(params.reportId!);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -58,20 +58,28 @@ export default function ReportViewer() {
   
   // Always-editable report viewer - no lock/unlock functionality
 
+  // Fetch project by slug first
   const { data: project } = useQuery<any>({
-    queryKey: [`/api/projects/${projectId}`],
+    queryKey: ['/api/projects/by-slug', projectSlug],
+    enabled: !!projectSlug,
   });
+  
+  // Derive projectId from project
+  const projectId = project?.id;
 
   const { data: report } = useQuery<any>({
     queryKey: [`/api/projects/${projectId}/reports/${reportId}`],
+    enabled: !!projectId,
   });
 
   const { data: projectSettings } = useQuery<any>({
     queryKey: [`/api/projects/${projectId}/settings`],
+    enabled: !!projectId,
   });
 
   const { data: templatesV2 = [] } = useQuery<any>({
     queryKey: [`/api/projects/${projectId}/templates-v2`],
+    enabled: !!projectId,
   });
 
   // Get the V2 template for this report
@@ -131,7 +139,7 @@ export default function ReportViewer() {
         title: "Report Deleted",
         description: "The report has been deleted successfully.",
       });
-      setLocation(`/shows/${projectId}/reports/${reportType}`);
+      setLocation(`/shows/${projectSlug}/reports/${reportType}`);
     },
     onError: (error) => {
       toast({

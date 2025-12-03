@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 
 interface PropDetailParams {
-  id: string;
+  slug: string;
   propId: string;
 }
 
@@ -56,27 +56,25 @@ export default function PropDetail() {
   const { isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
   const params = useParams<PropDetailParams>();
-  const projectId = params.id;
+  const projectSlug = params.slug;
   const propId = params.propId;
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Guard against missing parameters
-  if (!projectId || !propId) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-semibold text-foreground mb-2">Prop Not Found</h1>
-          <p className="text-muted-foreground mb-4">The prop you're looking for doesn't exist or the URL is invalid.</p>
-          <Button onClick={() => setLocation('/shows')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Shows
-          </Button>
-        </div>
-      </div>
-    );
-  }
-  
+  const { data: project, isLoading: projectLoading } = useQuery({
+    queryKey: ['/api/projects/by-slug', projectSlug],
+    enabled: !!projectSlug,
+  });
+
+  const projectId = project?.id;
+
+  const { data: props = [], isLoading: propsLoading } = useQuery({
+    queryKey: ["/api/projects", projectId, "props"],
+    enabled: !!projectId && isAuthenticated,
+  });
+
+  const prop = Array.isArray(props) ? props.find((p: Prop) => p.id === parseInt(propId || '0')) : null;
+
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editForm, setEditForm] = useState({
     name: '',
@@ -91,19 +89,6 @@ export default function PropDetail() {
     status: 'needed' as 'needed' | 'pulled' | 'rehearsal' | 'performance' | 'returned',
     location: ''
   });
-
-  const { data: projects, isLoading: projectsLoading } = useQuery({
-    queryKey: ["/api/projects"],
-    enabled: isAuthenticated,
-  });
-
-  const { data: props = [], isLoading: propsLoading } = useQuery({
-    queryKey: ["/api/projects", projectId, "props"],
-    enabled: !!projectId && isAuthenticated,
-  });
-
-  const project = Array.isArray(projects) ? projects.find((p: any) => p.id === parseInt(projectId || '0')) : null;
-  const prop = Array.isArray(props) ? props.find((p: Prop) => p.id === parseInt(propId || '0')) : null;
 
   const editMutation = useMutation({
     mutationFn: async (propData: any) => {
@@ -153,7 +138,22 @@ export default function PropDetail() {
     return statusOptions.find(s => s.value === status) || statusOptions[0];
   };
 
-  if (isLoading || projectsLoading || propsLoading) {
+  if (!projectSlug || !propId) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-semibold text-foreground mb-2">Prop Not Found</h1>
+          <p className="text-muted-foreground mb-4">The prop you're looking for doesn't exist or the URL is invalid.</p>
+          <Button onClick={() => setLocation('/shows')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Shows
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading || projectLoading || propsLoading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
 

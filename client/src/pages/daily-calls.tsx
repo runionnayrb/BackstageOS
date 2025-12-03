@@ -30,7 +30,7 @@ import { CastSelector } from "@/components/cast-selector";
 import { DailyCall, Project, EmailContact, ScheduleEvent } from "@shared/schema";
 
 interface DailyCallSheetParams {
-  id: string;
+  slug: string;
   date: string;
 }
 
@@ -52,8 +52,17 @@ export default function DailyCallSheet() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  const actualProjectId = params.id;
+  const projectSlug = params.slug;
   const selectedDate = params.date;
+
+  // Fetch project by slug first
+  const { data: projectFromSlug, isLoading: projectLoading } = useQuery({
+    queryKey: ['/api/projects/by-slug', projectSlug],
+    enabled: !!projectSlug,
+  });
+  
+  const projectId = projectFromSlug?.id;
+  const actualProjectId = projectId?.toString();
   
   // Check if we're in edit mode from URL query parameter
   const urlParams = new URLSearchParams(window.location.search);
@@ -217,7 +226,7 @@ export default function DailyCallSheet() {
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
       const selectedDateStr = format(date, 'yyyy-MM-dd');
-      setLocation(`/shows/${actualProjectId}/calls/${selectedDateStr}`);
+      setLocation(`/shows/${projectSlug}/calls/${selectedDateStr}`);
       setDatePickerOpen(false);
     }
   };
@@ -414,7 +423,7 @@ export default function DailyCallSheet() {
       });
       setShowDeleteDialog(false);
       // Navigate back to the list
-      setLocation(`/shows/${actualProjectId}/calls`);
+      setLocation(`/shows/${projectSlug}/calls`);
     },
     onError: (_error, _variables, context) => {
       // Rollback to the previous value on error

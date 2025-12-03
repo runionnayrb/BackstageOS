@@ -5,18 +5,21 @@ import { ArrowLeft, Settings } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ShowReportsListParams {
-  id: string;
+  slug: string;
 }
 
 export default function ShowReportsList() {
   const [, setLocation] = useLocation();
   const params = useParams<ShowReportsListParams>();
-  const projectId = params.id;
+  const projectSlug = params.slug;
   const isMobile = useIsMobile();
 
   const { data: project } = useQuery({
-    queryKey: [`/api/projects/${projectId}`],
+    queryKey: ['/api/projects/by-slug', projectSlug],
+    enabled: !!projectSlug,
   });
+  
+  const projectId = project?.id;
 
   // Default report types for first-time visitors (will be replaced by API data)
   const defaultReportTypes = [
@@ -58,7 +61,7 @@ export default function ShowReportsList() {
             <div className="flex gap-2">
               <Button 
                 variant="outline"
-                onClick={() => setLocation(`/shows/${projectId}/templates-v2`)}
+                onClick={() => setLocation(`/shows/${projectSlug}/templates-v2`)}
                 className="flex items-center gap-2"
               >
                 <Settings className="w-4 h-4" />
@@ -78,7 +81,7 @@ export default function ShowReportsList() {
             <div
               key={reportType.type}
               className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
-              onClick={() => setLocation(`/shows/${projectId}/reports/${reportType.type}`)}
+              onClick={() => setLocation(`/shows/${projectSlug}/reports/${reportType.type}`)}
             >
               <h3 className="text-lg font-medium text-gray-900">{reportType.name}</h3>
             </div>

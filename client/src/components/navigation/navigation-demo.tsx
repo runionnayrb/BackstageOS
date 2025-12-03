@@ -68,7 +68,7 @@ export default function NavigationDemo() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="bg-gray-50 p-4 rounded-lg flex items-center">
-            <RecentShowsSwitcher currentShowId="1" />
+            <RecentShowsSwitcher currentShowSlug="demo-show" />
           </div>
           <div className="text-sm text-gray-600">
             <strong>Key Features:</strong>

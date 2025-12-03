@@ -16,7 +16,7 @@ import { useBetaFeatures } from "@/hooks/useBetaFeatures";
 import { usePageTitle } from "@/hooks/usePageTitle";
 
 interface ShowDetailParams {
-  id: string;
+  slug: string;
 }
 
 export default function ShowDetail() {
@@ -24,11 +24,11 @@ export default function ShowDetail() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
   const params = useParams<ShowDetailParams>();
-  const projectId = params.id;
+  const projectSlug = params.slug;
   const queryClient = useQueryClient();
 
-  // Guard against missing projectId
-  if (!projectId) {
+  // Guard against missing projectSlug
+  if (!projectSlug) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -50,8 +50,16 @@ export default function ShowDetail() {
   // Set page title for mobile header
   usePageTitle();
 
+  // Fetch project by slug first
+  const { data: projectFromSlug, isLoading: projectFromSlugLoading } = useQuery({
+    queryKey: ['/api/projects/by-slug', projectSlug],
+    enabled: !!projectSlug && isAuthenticated,
+  });
+  
+  const projectId = projectFromSlug?.id;
+
   // Import feature settings hooks - both user preferences and beta access
-  const { isFeatureEnabled } = useFeatureSettings(projectId);
+  const { isFeatureEnabled } = useFeatureSettings(projectId?.toString());
   const { canAccessFeature } = useBetaFeatures();
   
   // Helper function to check if feature should be shown (both user enabled AND beta accessible)
@@ -64,32 +72,32 @@ export default function ShowDetail() {
     ...(shouldShowFeature('reports', 'report-builder') ? [{
       id: "reports",
       title: "Reports",
-      href: `/shows/${projectId}/reports`,
+      href: `/shows/${projectSlug}/reports`,
     }] : []),
     ...(shouldShowFeature('calendar', 'calendar-management') ? [{
       id: "calendar",
       title: "Calendar",
-      href: `/shows/${projectId}/calendar`,
+      href: `/shows/${projectSlug}/calendar`,
     }] : []),
     ...(shouldShowFeature('script', 'script-editor') ? [{
       id: "script",
       title: "Script",
-      href: `/shows/${projectId}/script`,
+      href: `/shows/${projectSlug}/script`,
     }] : []),
     ...(shouldShowFeature('props', 'props-tracker') ? [{
       id: "props",
       title: "Props",
-      href: `/shows/${projectId}/props`,
+      href: `/shows/${projectSlug}/props`,
     }] : []),
     ...(shouldShowFeature('costumes', 'costume-tracker') ? [{
       id: "costumes",
       title: "Costumes",
-      href: `/shows/${projectId}/costumes`,
+      href: `/shows/${projectSlug}/costumes`,
     }] : []),
     ...(shouldShowFeature('contacts', 'contact-management') ? [{
       id: "contacts",
       title: "Contacts",
-      href: `/shows/${projectId}/contacts`,
+      href: `/shows/${projectSlug}/contacts`,
     }] : []),
   ];
 
@@ -177,7 +185,7 @@ export default function ShowDetail() {
   }, [projectSettings]);
 
   // Early returns after all hooks are called
-  if (isLoading || projectsLoading || sections.length === 0) {
+  if (isLoading || projectsLoading || projectFromSlugLoading || sections.length === 0) {
     return (
       <div className="w-full">
         {/* Mobile Loading */}

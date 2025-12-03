@@ -38,7 +38,7 @@ import { ArrowLeft, Plus, Trash2, FileText, List } from "lucide-react";
 import ReportTypesDialog from "@/components/report-types-dialog";
 
 interface TemplateSettingsV2Params {
-  id: string;
+  slug: string;
 }
 
 interface ReportType {
@@ -64,7 +64,15 @@ export default function TemplateSettingsV2() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const params = useParams<TemplateSettingsV2Params>();
-  const projectId = params.id;
+  const projectSlug = params.slug;
+
+  // Fetch project by slug
+  const { data: project } = useQuery({
+    queryKey: ['/api/projects/by-slug', projectSlug],
+    enabled: !!projectSlug,
+  });
+  
+  const projectId = project?.id;
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -79,12 +87,14 @@ export default function TemplateSettingsV2() {
 
   // Fetch report types
   const { data: reportTypes = [] } = useQuery<ReportType[]>({
-    queryKey: ["/api/projects", parseInt(projectId!), "report-types"],
+    queryKey: ["/api/projects", projectId, "report-types"],
+    enabled: !!projectId,
   });
 
   // Fetch templates with full data
   const { data: templates = [], isLoading } = useQuery<ReportTemplateV2[]>({
-    queryKey: ["/api/projects", parseInt(projectId!), "templates-v2"],
+    queryKey: ["/api/projects", projectId, "templates-v2"],
+    enabled: !!projectId,
   });
 
   // Create template mutation
@@ -387,7 +397,7 @@ export default function TemplateSettingsV2() {
               <Card
                 key={template.id}
                 className="cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => setLocation(`/shows/${projectId}/templates-v2/${template.id}/edit`)}
+                onClick={() => setLocation(`/shows/${projectSlug}/templates-v2/${template.id}/edit`)}
                 data-testid={`card-template-${template.id}`}
               >
                 <CardHeader className="p-4">
@@ -457,7 +467,7 @@ export default function TemplateSettingsV2() {
                   className="w-full"
                   onClick={() => {
                     setIsEditDialogOpen(false);
-                    setLocation(`/shows/${projectId}/templates-v2/${selectedTemplate?.id}/edit`);
+                    setLocation(`/shows/${projectSlug}/templates-v2/${selectedTemplate?.id}/edit`);
                   }}
                   data-testid="button-edit-template-fields"
                 >

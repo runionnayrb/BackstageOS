@@ -38,7 +38,7 @@ import { ArrowLeft, Plus, Trash2, GripVertical, Edit, Eye, Settings } from "luci
 import { ChangeSummaryEditor } from "@/components/ChangeSummaryEditor";
 
 interface TemplateEditorV2Params {
-  id: string;
+  slug: string;
   templateId: string;
 }
 
@@ -96,8 +96,17 @@ export default function TemplateEditorV2() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const params = useParams<TemplateEditorV2Params>();
-  const projectId = params.id;
+  const projectSlug = params.slug;
   const templateId = params.templateId;
+  
+  // Fetch project by slug first
+  const { data: project } = useQuery<any>({
+    queryKey: ['/api/projects/by-slug', projectSlug],
+    enabled: !!projectSlug,
+  });
+  
+  // Derive projectId from project
+  const projectId = project?.id;
 
   const [isAddSectionDialogOpen, setIsAddSectionDialogOpen] = useState(false);
   const [isEditSectionDialogOpen, setIsEditSectionDialogOpen] = useState(false);
@@ -143,17 +152,20 @@ export default function TemplateEditorV2() {
 
   // Fetch template with full data
   const { data: template, isLoading } = useQuery<TemplateWithData>({
-    queryKey: ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+    queryKey: ["/api/projects", projectId, "templates-v2", parseInt(templateId!)],
+    enabled: !!projectId,
   });
 
   // Fetch show settings for departments
   const { data: showSettings } = useQuery({
-    queryKey: ["/api/projects", parseInt(projectId!), "settings"],
+    queryKey: ["/api/projects", projectId, "settings"],
+    enabled: !!projectId,
   });
 
   // Fetch report types
   const { data: reportTypes = [] } = useQuery<ReportType[]>({
-    queryKey: ["/api/projects", parseInt(projectId!), "report-types"],
+    queryKey: ["/api/projects", projectId, "report-types"],
+    enabled: !!projectId,
   });
 
   const departments = showSettings?.departmentNames || {};
@@ -169,14 +181,14 @@ export default function TemplateEditorV2() {
     onMutate: async (newSection) => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({
-        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+        queryKey: ["/api/projects", projectId, "templates-v2", parseInt(templateId!)],
       });
 
       // Snapshot previous value
-      const previousTemplate = queryClient.getQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)]);
+      const previousTemplate = queryClient.getQueryData(["/api/projects", projectId, "templates-v2", parseInt(templateId!)]);
 
       // Optimistically update
-      queryClient.setQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)], (old: any) => {
+      queryClient.setQueryData(["/api/projects", projectId, "templates-v2", parseInt(templateId!)], (old: any) => {
         if (!old) return old;
         return {
           ...old,
@@ -198,7 +210,7 @@ export default function TemplateEditorV2() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2"],
+        queryKey: ["/api/projects", projectId, "templates-v2"],
       });
       toast({
         title: "Section added",
@@ -212,7 +224,7 @@ export default function TemplateEditorV2() {
       // Revert on error
       if (context?.previousTemplate) {
         queryClient.setQueryData(
-          ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+          ["/api/projects", projectId, "templates-v2", parseInt(templateId!)],
           context.previousTemplate
         );
       }
@@ -231,12 +243,12 @@ export default function TemplateEditorV2() {
     },
     onMutate: async ({ id, data }) => {
       await queryClient.cancelQueries({
-        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+        queryKey: ["/api/projects", projectId, "templates-v2", parseInt(templateId!)],
       });
 
-      const previousTemplate = queryClient.getQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)]);
+      const previousTemplate = queryClient.getQueryData(["/api/projects", projectId, "templates-v2", parseInt(templateId!)]);
 
-      queryClient.setQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)], (old: any) => {
+      queryClient.setQueryData(["/api/projects", projectId, "templates-v2", parseInt(templateId!)], (old: any) => {
         if (!old) return old;
         return {
           ...old,
@@ -250,7 +262,7 @@ export default function TemplateEditorV2() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2"],
+        queryKey: ["/api/projects", projectId, "templates-v2"],
       });
       toast({
         title: "Section updated",
@@ -262,7 +274,7 @@ export default function TemplateEditorV2() {
     onError: (error, variables, context) => {
       if (context?.previousTemplate) {
         queryClient.setQueryData(
-          ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+          ["/api/projects", projectId, "templates-v2", parseInt(templateId!)],
           context.previousTemplate
         );
       }
@@ -281,12 +293,12 @@ export default function TemplateEditorV2() {
     },
     onMutate: async (id) => {
       await queryClient.cancelQueries({
-        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+        queryKey: ["/api/projects", projectId, "templates-v2", parseInt(templateId!)],
       });
 
-      const previousTemplate = queryClient.getQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)]);
+      const previousTemplate = queryClient.getQueryData(["/api/projects", projectId, "templates-v2", parseInt(templateId!)]);
 
-      queryClient.setQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)], (old: any) => {
+      queryClient.setQueryData(["/api/projects", projectId, "templates-v2", parseInt(templateId!)], (old: any) => {
         if (!old) return old;
         return {
           ...old,
@@ -298,7 +310,7 @@ export default function TemplateEditorV2() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2"],
+        queryKey: ["/api/projects", projectId, "templates-v2"],
       });
       toast({
         title: "Section deleted",
@@ -310,7 +322,7 @@ export default function TemplateEditorV2() {
     onError: (error, variables, context) => {
       if (context?.previousTemplate) {
         queryClient.setQueryData(
-          ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+          ["/api/projects", projectId, "templates-v2", parseInt(templateId!)],
           context.previousTemplate
         );
       }
@@ -342,12 +354,12 @@ export default function TemplateEditorV2() {
     },
     onMutate: async (newField) => {
       await queryClient.cancelQueries({
-        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+        queryKey: ["/api/projects", projectId, "templates-v2", parseInt(templateId!)],
       });
 
-      const previousTemplate = queryClient.getQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)]);
+      const previousTemplate = queryClient.getQueryData(["/api/projects", projectId, "templates-v2", parseInt(templateId!)]);
 
-      queryClient.setQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)], (old: any) => {
+      queryClient.setQueryData(["/api/projects", projectId, "templates-v2", parseInt(templateId!)], (old: any) => {
         if (!old) return old;
         return {
           ...old,
@@ -380,7 +392,7 @@ export default function TemplateEditorV2() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2"],
+        queryKey: ["/api/projects", projectId, "templates-v2"],
       });
       toast({
         title: "Field added",
@@ -392,7 +404,7 @@ export default function TemplateEditorV2() {
     onError: (error, variables, context) => {
       if (context?.previousTemplate) {
         queryClient.setQueryData(
-          ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+          ["/api/projects", projectId, "templates-v2", parseInt(templateId!)],
           context.previousTemplate
         );
       }
@@ -411,12 +423,12 @@ export default function TemplateEditorV2() {
     },
     onMutate: async ({ id, data }) => {
       await queryClient.cancelQueries({
-        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+        queryKey: ["/api/projects", projectId, "templates-v2", parseInt(templateId!)],
       });
 
-      const previousTemplate = queryClient.getQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)]);
+      const previousTemplate = queryClient.getQueryData(["/api/projects", projectId, "templates-v2", parseInt(templateId!)]);
 
-      queryClient.setQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)], (old: any) => {
+      queryClient.setQueryData(["/api/projects", projectId, "templates-v2", parseInt(templateId!)], (old: any) => {
         if (!old) return old;
         return {
           ...old,
@@ -433,7 +445,7 @@ export default function TemplateEditorV2() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2"],
+        queryKey: ["/api/projects", projectId, "templates-v2"],
       });
       toast({
         title: "Field updated",
@@ -445,7 +457,7 @@ export default function TemplateEditorV2() {
     onError: (error, variables, context) => {
       if (context?.previousTemplate) {
         queryClient.setQueryData(
-          ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+          ["/api/projects", projectId, "templates-v2", parseInt(templateId!)],
           context.previousTemplate
         );
       }
@@ -464,12 +476,12 @@ export default function TemplateEditorV2() {
     },
     onMutate: async (id) => {
       await queryClient.cancelQueries({
-        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+        queryKey: ["/api/projects", projectId, "templates-v2", parseInt(templateId!)],
       });
 
-      const previousTemplate = queryClient.getQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)]);
+      const previousTemplate = queryClient.getQueryData(["/api/projects", projectId, "templates-v2", parseInt(templateId!)]);
 
-      queryClient.setQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)], (old: any) => {
+      queryClient.setQueryData(["/api/projects", projectId, "templates-v2", parseInt(templateId!)], (old: any) => {
         if (!old) return old;
         return {
           ...old,
@@ -484,7 +496,7 @@ export default function TemplateEditorV2() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2"],
+        queryKey: ["/api/projects", projectId, "templates-v2"],
       });
       toast({
         title: "Field deleted",
@@ -496,7 +508,7 @@ export default function TemplateEditorV2() {
     onError: (error, variables, context) => {
       if (context?.previousTemplate) {
         queryClient.setQueryData(
-          ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+          ["/api/projects", projectId, "templates-v2", parseInt(templateId!)],
           context.previousTemplate
         );
       }
@@ -516,14 +528,14 @@ export default function TemplateEditorV2() {
     onMutate: async (data) => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({
-        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+        queryKey: ["/api/projects", projectId, "templates-v2", parseInt(templateId!)],
       });
 
       // Snapshot previous value
-      const previousTemplate = queryClient.getQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)]);
+      const previousTemplate = queryClient.getQueryData(["/api/projects", projectId, "templates-v2", parseInt(templateId!)]);
 
       // Optimistic update
-      queryClient.setQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)], (old: any) => {
+      queryClient.setQueryData(["/api/projects", projectId, "templates-v2", parseInt(templateId!)], (old: any) => {
         if (!old) return old;
         return { ...old, ...data };
       });
@@ -533,10 +545,10 @@ export default function TemplateEditorV2() {
     onSuccess: () => {
       // Invalidate both list and detail queries
       queryClient.invalidateQueries({
-        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2"],
+        queryKey: ["/api/projects", projectId, "templates-v2"],
       });
       queryClient.invalidateQueries({
-        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+        queryKey: ["/api/projects", projectId, "templates-v2", parseInt(templateId!)],
       });
       toast({
         title: "Template updated",
@@ -548,7 +560,7 @@ export default function TemplateEditorV2() {
       // Revert optimistic update
       if (context?.previousTemplate) {
         queryClient.setQueryData(
-          ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+          ["/api/projects", projectId, "templates-v2", parseInt(templateId!)],
           context.previousTemplate
         );
       }
@@ -568,18 +580,18 @@ export default function TemplateEditorV2() {
     onSuccess: () => {
       // Remove the detail cache entry for the deleted template
       queryClient.removeQueries({
-        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+        queryKey: ["/api/projects", projectId, "templates-v2", parseInt(templateId!)],
       });
       // Invalidate the templates list
       queryClient.invalidateQueries({
-        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2"],
+        queryKey: ["/api/projects", projectId, "templates-v2"],
       });
       toast({
         title: "Template deleted",
         description: "Your template has been deleted successfully.",
       });
       // Navigate after cache cleanup
-      setLocation(`/shows/${projectId}/templates-v2`);
+      setLocation(`/shows/${projectSlug}/templates-v2`);
     },
     onError: () => {
       toast({
