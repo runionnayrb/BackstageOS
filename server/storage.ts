@@ -4,6 +4,7 @@ import {
   venues,
   projects,
   projectMembers,
+  teamMembers,
   reports,
   reportTemplates,
   reportTemplatesV2,
