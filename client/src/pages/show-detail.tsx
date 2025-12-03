@@ -221,7 +221,8 @@ export default function ShowDetail() {
     return null;
   }
 
-  const project = Array.isArray(projects) ? projects.find((p: any) => p.id === parseInt(projectId)) : null;
+  // Use the project fetched directly by slug instead of searching the projects array
+  const project = projectFromSlug;
   
   if (!project) {
     return (
