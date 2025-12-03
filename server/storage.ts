@@ -5600,6 +5600,8 @@ export class DatabaseStorage implements IStorage {
         status: teamMembers.status,
         invitedAt: teamMembers.invitedAt,
         joinedAt: teamMembers.joinedAt,
+        isArchived: teamMembers.isArchived,
+        archivedAt: teamMembers.archivedAt,
         // Include user information
         userName: users.firstName,
         userLastName: users.lastName,
@@ -5607,7 +5609,10 @@ export class DatabaseStorage implements IStorage {
       })
       .from(teamMembers)
       .leftJoin(users, eq(teamMembers.userId, users.id))
-      .where(eq(teamMembers.projectId, projectId))
+      .where(and(
+        eq(teamMembers.projectId, projectId),
+        eq(teamMembers.isArchived, false)
+      ))
       .orderBy(teamMembers.id);
     
     return result;
@@ -5648,7 +5653,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteTeamMember(id: number): Promise<void> {
-    await db.delete(teamMembers).where(eq(teamMembers.id, id));
+    await db
+      .update(teamMembers)
+      .set({ isArchived: true, archivedAt: new Date() })
+      .where(eq(teamMembers.id, id));
   }
 
   async getTeamMemberByUserAndProject(userId: number, projectId: number): Promise<TeamMember | null> {

@@ -158,6 +158,8 @@ export const teamMembers = pgTable("team_members", {
   status: varchar("status").notNull().default("pending"),
   invitedAt: timestamp("invited_at").defaultNow(),
   joinedAt: timestamp("joined_at"),
+  isArchived: boolean("is_archived").notNull().default(false),
+  archivedAt: timestamp("archived_at"),
 });
 
 export const reports = pgTable("reports", {
