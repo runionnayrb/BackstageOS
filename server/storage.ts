@@ -5593,14 +5593,13 @@ export class DatabaseStorage implements IStorage {
         id: teamMembers.id,
         projectId: teamMembers.projectId,
         userId: teamMembers.userId,
+        email: teamMembers.email,
+        name: teamMembers.name,
         role: teamMembers.role,
-        roleType: teamMembers.roleType,
         accessLevel: teamMembers.accessLevel,
         status: teamMembers.status,
         invitedAt: teamMembers.invitedAt,
         joinedAt: teamMembers.joinedAt,
-        createdAt: teamMembers.createdAt,
-        updatedAt: teamMembers.updatedAt,
         // Include user information
         userName: users.firstName,
         userLastName: users.lastName,
@@ -5609,7 +5608,7 @@ export class DatabaseStorage implements IStorage {
       .from(teamMembers)
       .leftJoin(users, eq(teamMembers.userId, users.id))
       .where(eq(teamMembers.projectId, projectId))
-      .orderBy(teamMembers.createdAt);
+      .orderBy(teamMembers.id);
     
     return result;
   }
