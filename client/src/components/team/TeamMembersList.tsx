@@ -32,17 +32,19 @@ import { useToast } from "@/hooks/use-toast";
 
 interface TeamMember {
   id: number;
-  userId: number;
+  userId?: number;
   email: string;
+  name?: string;
   role: string;
-  roleType: string;
+  roleType?: string;
   accessLevel: "editor" | "viewer";
   status: string;
-  userName: string;
-  userLastName: string;
+  userName?: string;
+  userLastName?: string;
   userEmail: string;
   invitedAt: string;
   joinedAt?: string;
+  projectId: number;
 }
 
 interface TeamMembersListProps {
@@ -62,12 +64,6 @@ export function TeamMembersList({ accessLevel, isActive = true }: TeamMembersLis
     enabled: !!projectId && isActive,
   });
 
-  // Fetch project settings to get custom roles
-  const { data: settings } = useQuery({
-    queryKey: [`/api/projects/${projectId}/settings`],
-    enabled: !!projectId,
-  });
-
   const defaultRoles = [
     "Production Stage Manager",
     "Stage Manager",
@@ -75,13 +71,11 @@ export function TeamMembersList({ accessLevel, isActive = true }: TeamMembersLis
     "Production Assistant",
   ];
 
-  const roles = settings?.teamRoles?.map((r: any) => r.name) || defaultRoles;
+  const roles = defaultRoles;
 
   const removeTeamMemberMutation = useMutation({
     mutationFn: async (memberId: number) => {
-      return apiRequest(`/api/team-members/${memberId}`, {
-        method: "DELETE",
-      });
+      return apiRequest("DELETE", `/api/team-members/${memberId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "team-members"] });
@@ -121,7 +115,7 @@ export function TeamMembersList({ accessLevel, isActive = true }: TeamMembersLis
     },
   });
 
-  const filteredMembers = teamMembers.filter(member => member.accessLevel === accessLevel);
+  const filteredMembers = (teamMembers as TeamMember[]).filter((member: TeamMember) => member.accessLevel === accessLevel);
 
   const handleRemoveMember = (memberId: number) => {
     if (confirm("Are you sure you want to remove this team member?")) {
@@ -138,6 +132,29 @@ export function TeamMembersList({ accessLevel, isActive = true }: TeamMembersLis
     if (editingMemberId && selectedRole) {
       updateTeamMemberMutation.mutate({ memberId: editingMemberId, role: selectedRole });
     }
+  };
+
+  const resendInvitationMutation = useMutation({
+    mutationFn: async (memberId: number) => {
+      return apiRequest("POST", `/api/team-members/${memberId}/resend-invitation`, {});
+    },
+    onSuccess: () => {
+      toast({
+        title: "Invitation sent",
+        description: "Invitation email has been resent to the team member.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to resend invitation",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleResendInvitation = (memberId: number) => {
+    resendInvitationMutation.mutate(memberId);
   };
 
   const getInitials = (firstName: string, lastName: string) => {
@@ -213,7 +230,7 @@ export function TeamMembersList({ accessLevel, isActive = true }: TeamMembersLis
   return (
     <>
       <div className="space-y-3">
-        {filteredMembers.map((member) => (
+        {filteredMembers.map((member: TeamMember) => (
           <Card key={member.id}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -254,7 +271,7 @@ export function TeamMembersList({ accessLevel, isActive = true }: TeamMembersLis
                         <Edit3 className="w-4 h-4 mr-2" />
                         Edit Role
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleResendInvitation(member.id)}>
                         <Mail className="w-4 h-4 mr-2" />
                         Resend Invitation
                       </DropdownMenuItem>
@@ -298,7 +315,7 @@ export function TeamMembersList({ accessLevel, isActive = true }: TeamMembersLis
                   <SelectValue placeholder="Select a role" />
                 </SelectTrigger>
                 <SelectContent>
-                  {roles.map((roleName: string) => (
+                  {roles.map((roleName) => (
                     <SelectItem key={roleName} value={roleName}>
                       {roleName}
                     </SelectItem>

@@ -13129,7 +13129,7 @@ Best regards,
   app.post('/api/projects/:id/team-members', isAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);
-      const { email, role, roleType, accessLevel } = req.body;
+      const { email, role, roleType, accessLevel, name } = req.body;
 
       // Validate request
       const validatedData = insertTeamMemberSchema.parse({
@@ -13137,6 +13137,7 @@ Best regards,
         email,
         role,
         accessLevel,
+        name,
       });
 
       // Check editor limit
@@ -13149,8 +13150,13 @@ Best regards,
         }
       }
 
+      // Get project name for email
+      const project = await storage.getProjectById(projectId);
+
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(email);
+      let teamMember;
+      
       if (existingUser) {
         // User exists, check if already a team member
         const existingMember = await storage.getTeamMemberByUserAndProject(existingUser.id, projectId);
@@ -13161,20 +13167,109 @@ Best regards,
         }
         
         // Add existing user to team
-        const teamMember = await storage.createTeamMember({
+        teamMember = await storage.createTeamMember({
           ...validatedData,
           userId: existingUser.id,
         });
-        
-        res.status(201).json(teamMember);
       } else {
         // User doesn't exist, create invitation with no userId
-        const teamMember = await storage.createTeamMember(validatedData);
-        res.status(201).json(teamMember);
+        teamMember = await storage.createTeamMember(validatedData);
       }
+
+      // Send invitation email
+      try {
+        const { sendEmail } = await import('./services/sendgridService.js');
+        const invitationLink = `${process.env.APP_URL || 'https://backstageos.com'}/join/${projectId}`;
+        
+        const emailHtml = `
+          <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <h2>You're Invited to Join ${project.name}</h2>
+            <p>Hi ${name || 'there'},</p>
+            <p>You've been invited to join <strong>${project.name}</strong> as a team member with the role of <strong>${role}</strong>.</p>
+            <p style="margin-top: 24px;">
+              <a href="${invitationLink}" style="background-color: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                Accept Invitation
+              </a>
+            </p>
+            <p style="margin-top: 24px; font-size: 14px; color: #666;">
+              Or copy this link: ${invitationLink}
+            </p>
+            <p>Best regards,<br>BackstageOS Team</p>
+          </div>
+        `;
+
+        await sendEmail({
+          to: [email],
+          subject: `You're invited to ${project.name}`,
+          html: emailHtml,
+          from: {
+            email: 'invitations@backstageos.com',
+            name: 'BackstageOS'
+          }
+        });
+
+        console.log(`✅ Sent invitation email to ${email}`);
+      } catch (emailError) {
+        console.error('Failed to send invitation email:', emailError);
+        // Don't fail the request if email fails, just log it
+      }
+
+      res.status(201).json(teamMember);
     } catch (error: any) {
       console.error('Team member invite error:', error);
       res.status(500).json({ message: "Failed to invite team member", error: error.message });
+    }
+  });
+
+  // Resend invitation email for team member
+  app.post('/api/team-members/:id/resend-invitation', isAuthenticated, async (req: any, res) => {
+    try {
+      const memberId = parseInt(req.params.id);
+      
+      // Get team member
+      const teamMember = await storage.getTeamMemberById(memberId);
+      if (!teamMember) {
+        return res.status(404).json({ message: "Team member not found" });
+      }
+
+      // Get project info
+      const project = await storage.getProjectById(teamMember.projectId);
+
+      // Send invitation email
+      const { sendEmail } = await import('./services/sendgridService.js');
+      const invitationLink = `${process.env.APP_URL || 'https://backstageos.com'}/join/${teamMember.projectId}`;
+      
+      const emailHtml = `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+          <h2>Team Member Invitation Reminder</h2>
+          <p>Hi ${teamMember.name || 'there'},</p>
+          <p>This is a reminder that you've been invited to join <strong>${project.name}</strong> as a team member with the role of <strong>${teamMember.role}</strong>.</p>
+          <p style="margin-top: 24px;">
+            <a href="${invitationLink}" style="background-color: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+              Accept Invitation
+            </a>
+          </p>
+          <p style="margin-top: 24px; font-size: 14px; color: #666;">
+            Or copy this link: ${invitationLink}
+          </p>
+          <p>Best regards,<br>BackstageOS Team</p>
+        </div>
+      `;
+
+      await sendEmail({
+        to: [teamMember.email],
+        subject: `Reminder: You're invited to ${project.name}`,
+        html: emailHtml,
+        from: {
+          email: 'invitations@backstageos.com',
+          name: 'BackstageOS'
+        }
+      });
+
+      res.json({ message: "Invitation resent successfully" });
+    } catch (error: any) {
+      console.error('Resend invitation error:', error);
+      res.status(500).json({ message: "Failed to resend invitation", error: error.message });
     }
   });
 

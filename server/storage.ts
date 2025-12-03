@@ -5659,6 +5659,16 @@ export class DatabaseStorage implements IStorage {
       .where(eq(teamMembers.id, id));
   }
 
+  async getTeamMemberById(id: number): Promise<TeamMember | null> {
+    const result = await db
+      .select()
+      .from(teamMembers)
+      .where(eq(teamMembers.id, id))
+      .limit(1);
+    
+    return result[0] || null;
+  }
+
   async getTeamMemberByUserAndProject(userId: number, projectId: number): Promise<TeamMember | null> {
     const result = await db
       .select()
