@@ -128,7 +128,7 @@ const templateVariables = [
 ];
 
 interface ShowSettingsParams {
-  id: string;
+  slug: string;
 }
 
 interface ShowSettings {
@@ -176,7 +176,7 @@ interface ShowSettings {
 
 export default function ShowSettings() {
   const params = useParams<ShowSettingsParams>();
-  const { id } = params;
+  const { slug } = params;
   const { user } = useAuth();
   const { canAccessFeature } = useBetaFeatures();
   const { toast } = useToast();
@@ -301,50 +301,52 @@ export default function ShowSettings() {
   const showLabel = isFullTime ? "Show" : "Project";
 
   const { data: project, isLoading: projectLoading, error: projectError } = useQuery({
-    queryKey: [`/api/projects/${params.id}`],
-    enabled: !!params.id,
+    queryKey: ['/api/projects/by-slug', slug],
+    enabled: !!slug,
   });
 
+  const projectId = project?.id;
+
   const { data: settings, isLoading } = useQuery({
-    queryKey: [`/api/projects/${params.id}/settings`],
-    enabled: !!params.id,
+    queryKey: [`/api/projects/${projectId}/settings`],
+    enabled: !!projectId,
   });
 
   // Query for auto-generated change summary (for the change summary section)
   const { data: autoChangesSummary } = useQuery({
-    queryKey: [`/api/projects/${params.id}/schedule-changes-summary`],
-    enabled: !!params.id,
+    queryKey: [`/api/projects/${projectId}/schedule-changes-summary`],
+    enabled: !!projectId,
   });
 
   const { data: eventTypes = [], refetch: refetchEventTypes } = useQuery({
-    queryKey: [`/api/projects/${params.id}/event-types`],
-    enabled: !!params.id && !!user,
+    queryKey: [`/api/projects/${projectId}/event-types`],
+    enabled: !!projectId && !!user,
   });
 
   const { data: locations = [], refetch: refetchLocations } = useQuery({
-    queryKey: [`/api/projects/${params.id}/event-locations`],
-    enabled: !!params.id && !!user,
+    queryKey: [`/api/projects/${projectId}/event-locations`],
+    enabled: !!projectId && !!user,
   });
 
   // Phase 5 queries
   const { data: calendarIntegrations = [] } = useQuery({
-    queryKey: [`/api/projects/${params.id}/calendar/integrations`],
-    enabled: !!params.id,
+    queryKey: [`/api/projects/${projectId}/calendar/integrations`],
+    enabled: !!projectId,
   });
 
   const { data: notificationPreferences = [] } = useQuery({
-    queryKey: [`/api/projects/${params.id}/notification-preferences`],
-    enabled: !!params.id,
+    queryKey: [`/api/projects/${projectId}/notification-preferences`],
+    enabled: !!projectId,
   });
 
   const { data: scheduleComparisons = [] } = useQuery({
-    queryKey: [`/api/projects/${params.id}/schedule/comparisons`],
-    enabled: !!params.id,
+    queryKey: [`/api/projects/${projectId}/schedule/comparisons`],
+    enabled: !!projectId,
   });
 
   const { data: changeStats } = useQuery({
-    queryKey: [`/api/projects/${params.id}/schedule/change-stats`],
-    enabled: !!params.id,
+    queryKey: [`/api/projects/${projectId}/schedule/change-stats`],
+    enabled: !!projectId,
   });
 
   // Query venues for full-time users
@@ -356,13 +358,13 @@ export default function ShowSettings() {
 
 
   const { data: emailTemplateCategories = [] } = useQuery({
-    queryKey: [`/api/projects/${params.id}/email-template-categories`],
-    enabled: !!params.id,
+    queryKey: [`/api/projects/${projectId}/email-template-categories`],
+    enabled: !!projectId,
   });
 
   const { data: contacts = [] } = useQuery({
-    queryKey: [`/api/projects/${params.id}/contacts`],
-    enabled: !!params.id,
+    queryKey: [`/api/projects/${projectId}/contacts`],
+    enabled: !!projectId,
   });
 
   // Query for email accounts
@@ -373,8 +375,8 @@ export default function ShowSettings() {
 
   // Query for running order versions
   const { data: runningOrderVersions = [], refetch: refetchVersions } = useQuery({
-    queryKey: [`/api/projects/${params.id}/running-order-versions`],
-    enabled: !!params.id && activeTab === 'running-order',
+    queryKey: [`/api/projects/${projectId}/running-order-versions`],
+    enabled: !!projectId && activeTab === 'running-order',
   });
 
   // Mutation for creating a new version
@@ -386,14 +388,14 @@ export default function ShowSettings() {
       const runningOrder = scheduleSettings.runningOrder || [];
       const structureGroups = scheduleSettings.structureGroups || [];
       
-      return await apiRequest("POST", `/api/projects/${params.id}/running-order-versions`, {
+      return await apiRequest("POST", `/api/projects/${projectId}/running-order-versions`, {
         ...data,
         runningOrder,
         structureGroups,
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/running-order-versions`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/running-order-versions`] });
       setIsSaveVersionDialogOpen(false);
       setVersionForm({ label: '', notes: '' });
       toast({
@@ -413,10 +415,10 @@ export default function ShowSettings() {
   // Mutation for updating a version
   const updateVersionMutation = useMutation({
     mutationFn: async ({ id, ...data }: { id: number; label?: string; notes?: string; status?: string }) => {
-      return await apiRequest("PATCH", `/api/projects/${params.id}/running-order-versions/${id}`, data);
+      return await apiRequest("PATCH", `/api/projects/${projectId}/running-order-versions/${id}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/running-order-versions`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/running-order-versions`] });
       toast({
         title: "Version Updated",
         description: "Version has been updated successfully.",
@@ -434,10 +436,10 @@ export default function ShowSettings() {
   // Mutation for deleting a version
   const deleteVersionMutation = useMutation({
     mutationFn: async (id: number) => {
-      return await apiRequest("DELETE", `/api/projects/${params.id}/running-order-versions/${id}`);
+      return await apiRequest("DELETE", `/api/projects/${projectId}/running-order-versions/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/running-order-versions`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/running-order-versions`] });
       toast({
         title: "Version Deleted",
         description: "Version has been deleted successfully.",
@@ -477,17 +479,17 @@ export default function ShowSettings() {
 
   const updateSettingsMutation = useMutation({
     mutationFn: async (data: Partial<ShowSettings>) => {
-      return await apiRequest("PATCH", `/api/projects/${params.id}/settings`, data);
+      return await apiRequest("PATCH", `/api/projects/${projectId}/settings`, data);
     },
     onMutate: async (newSettings) => {
       // Cancel outgoing refetches
-      await queryClient.cancelQueries({ queryKey: [`/api/projects/${params.id}/settings`] });
+      await queryClient.cancelQueries({ queryKey: [`/api/projects/${projectId}/settings`] });
       
       // Snapshot the previous value
-      const previousSettings = queryClient.getQueryData([`/api/projects/${params.id}/settings`]);
+      const previousSettings = queryClient.getQueryData([`/api/projects/${projectId}/settings`]);
       
       // Optimistically update to the new value
-      queryClient.setQueryData([`/api/projects/${params.id}/settings`], (oldData: any) => {
+      queryClient.setQueryData([`/api/projects/${projectId}/settings`], (oldData: any) => {
         if (!oldData) return newSettings;
         return { ...oldData, ...newSettings };
       });
@@ -496,7 +498,7 @@ export default function ShowSettings() {
       return { previousSettings };
     },
     onSuccess: (data, variables, context) => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/settings`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/settings`] });
       
       // Check if this is a schedule filtering update (no toast for these)
       let isScheduleFilterUpdate = false;
@@ -518,7 +520,7 @@ export default function ShowSettings() {
     onError: (error, variables, context) => {
       // Roll back to the previous value
       if (context?.previousSettings) {
-        queryClient.setQueryData([`/api/projects/${params.id}/settings`], context.previousSettings);
+        queryClient.setQueryData([`/api/projects/${projectId}/settings`], context.previousSettings);
       }
       
       toast({
@@ -555,7 +557,7 @@ The Production Team`,
         testEmailAddress: testEmailAddress || user?.email || ""
       };
       
-      return await apiRequest("POST", `/api/projects/${params.id}/send-test-email`, emailData);
+      return await apiRequest("POST", `/api/projects/${projectId}/send-test-email`, emailData);
     },
     onSuccess: (data) => {
       toast({
@@ -668,11 +670,11 @@ The Production Team`
 
   const saveProjectMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("PUT", `/api/projects/${params.id}`, projectUpdates);
+      return await apiRequest("PUT", `/api/projects/${projectId}`, projectUpdates);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/schedule-events`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
       setProjectUpdates({}); // Clear the pending updates
       toast({
         title: "Important Dates Updated",
@@ -690,10 +692,10 @@ The Production Team`
 
   const updateBasicInfoMutation = useMutation({
     mutationFn: async (data: { name?: string; venue?: string; description?: string }) => {
-      return await apiRequest("PUT", `/api/projects/${params.id}`, data);
+      return await apiRequest("PUT", `/api/projects/${projectId}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}`] });
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
       setIsEditingBasicInfo(false);
       toast({
@@ -712,7 +714,7 @@ The Production Team`
 
   const deleteProjectMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("DELETE", `/api/projects/${params.id}`);
+      return await apiRequest("DELETE", `/api/projects/${projectId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
@@ -733,11 +735,11 @@ The Production Team`
 
   const archiveProjectMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("POST", `/api/projects/${params.id}/archive`);
+      return await apiRequest("POST", `/api/projects/${projectId}/archive`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}`] });
       setLocation("/");
       toast({
         title: "Show Archived",
@@ -755,7 +757,7 @@ The Production Team`
 
   const generateShareLinkMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("POST", `/api/projects/${params.id}/share-link`);
+      return await apiRequest("POST", `/api/projects/${projectId}/share-link`);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects", id, "settings"] });
@@ -769,7 +771,7 @@ The Production Team`
   // Event type mutations
   const createEventTypeMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest("POST", `/api/projects/${params.id}/event-types`, data);
+      return await apiRequest("POST", `/api/projects/${projectId}/event-types`, data);
     },
     onSuccess: () => {
       refetchEventTypes();
@@ -840,10 +842,10 @@ The Production Team`
   // Location mutations
   const createLocationMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest("POST", `/api/projects/${params.id}/event-locations`, data);
+      return await apiRequest("POST", `/api/projects/${projectId}/event-locations`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/event-locations`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/event-locations`] });
       refetchLocations();
       setIsLocationDialogOpen(false);
       setLocationForm({ name: '', address: '', description: '', capacity: '', notes: '' });
@@ -907,7 +909,7 @@ The Production Team`
 
   const reorderLocationsMutation = useMutation({
     mutationFn: async (locationIds: number[]) => {
-      return await apiRequest("PUT", `/api/projects/${params.id}/event-locations/reorder`, {
+      return await apiRequest("PUT", `/api/projects/${projectId}/event-locations/reorder`, {
         locationIds
       });
     },
@@ -981,7 +983,7 @@ The Production Team`
     mutationFn: async () => {
       // Always use real OAuth flow - let server handle development bypasses
       console.log('Starting Google Calendar connection...');
-      const response = await apiRequest('GET', `/api/projects/${params.id}/calendar/auth-url`);
+      const response = await apiRequest('GET', `/api/projects/${projectId}/calendar/auth-url`);
       console.log('API Response:', response);
       console.log('Response type:', typeof response);
       console.log('Auth URL:', response?.authUrl);
@@ -1001,7 +1003,7 @@ The Production Team`
         const messageHandler = (event: MessageEvent) => {
           if (event.data.type === 'GOOGLE_AUTH_SUCCESS') {
             window.removeEventListener('message', messageHandler);
-            queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/calendar/integrations`] });
+            queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/calendar/integrations`] });
             resolve(event.data.data);
             
             // Handle both real and temporary integrations
@@ -1048,10 +1050,10 @@ The Production Team`
 
   const updateSyncSettings = useMutation({
     mutationFn: async ({ integrationId, syncSettings }: { integrationId: number; syncSettings: any }) => {
-      return apiRequest('PUT', `/api/projects/${params.id}/calendar/integrations/${integrationId}`, { syncSettings });
+      return apiRequest('PUT', `/api/projects/${projectId}/calendar/integrations/${integrationId}`, { syncSettings });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/calendar/integrations`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/calendar/integrations`] });
       toast({
         title: "Settings updated",
         description: "Google Calendar sync settings have been updated.",
@@ -1061,10 +1063,10 @@ The Production Team`
 
   const disconnectCalendar = useMutation({
     mutationFn: async (integrationId: number) => {
-      return apiRequest('DELETE', `/api/projects/${params.id}/calendar/integrations/${integrationId}`);
+      return apiRequest('DELETE', `/api/projects/${projectId}/calendar/integrations/${integrationId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/calendar/integrations`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/calendar/integrations`] });
       toast({
         title: "Calendar disconnected",
         description: "Google Calendar has been disconnected.",
@@ -1074,10 +1076,10 @@ The Production Team`
 
   const updateNotificationPreferences = useMutation({
     mutationFn: async ({ contactId, preferences }: { contactId: number; preferences: any }) => {
-      return apiRequest('PUT', `/api/projects/${params.id}/notification-preferences/${contactId}`, preferences);
+      return apiRequest('PUT', `/api/projects/${projectId}/notification-preferences/${contactId}`, preferences);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/notification-preferences`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/notification-preferences`] });
       toast({
         title: "Preferences updated",
         description: "Notification preferences have been updated.",
@@ -1087,10 +1089,10 @@ The Production Team`
 
   const createTemplateCategory = useMutation({
     mutationFn: async (categoryData: { name: string; description: string }) => {
-      return apiRequest('POST', `/api/projects/${params.id}/email-template-categories`, categoryData);
+      return apiRequest('POST', `/api/projects/${projectId}/email-template-categories`, categoryData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/email-template-categories`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/email-template-categories`] });
       setShowNewCategoryDialog(false);
       setNewTemplateCategory({ name: '', description: '' });
       toast({
@@ -1102,10 +1104,10 @@ The Production Team`
 
   const deleteTemplateCategory = useMutation({
     mutationFn: async (categoryId: number) => {
-      return apiRequest('DELETE', `/api/projects/${params.id}/email-template-categories/${categoryId}`);
+      return apiRequest('DELETE', `/api/projects/${projectId}/email-template-categories/${categoryId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/email-template-categories`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/email-template-categories`] });
       toast({
         title: "Category deleted",
         description: "Email template category has been deleted.",
@@ -4123,7 +4125,7 @@ The Production Team`
           </Card>
 
           {/* Weekly Templates */}
-          <ScheduleTemplatesSection projectId={parseInt(params.id)} />
+          <ScheduleTemplatesSection projectId={projectId} />
 
           {/* Event Locations Management */}
           <Card className="mt-6 border-0 shadow-none">
@@ -4519,7 +4521,7 @@ The Production Team`
                         )}
                         <SelectItem value="account">{user?.email} (Account Email)</SelectItem>
                         {emailAccounts
-                          .filter((account: any) => account.projectId === parseInt(params.id) && account.accountType === 'team')
+                          .filter((account: any) => account.projectId === projectId && account.accountType === 'team')
                           .map((teamAccount: any) => (
                             <SelectItem key={teamAccount.id} value={`team_${teamAccount.id}`}>
                               {teamAccount.emailAddress} (Team Email)
@@ -4527,7 +4529,7 @@ The Production Team`
                           ))}
                         <SelectItem value="external">Custom Email Address</SelectItem>
                         {!emailAccounts.find((account: any) => 
-                          account.projectId === parseInt(params.id) && 
+                          account.projectId === projectId && 
                           account.accountType === 'team') && (
                           <SelectItem 
                             value="new_team_account"
@@ -4774,7 +4776,7 @@ The Production Team`}
               <CardTitle>Schedule Sharing</CardTitle>
             </CardHeader>
             <CardContent>
-              <PersonalScheduleShare projectId={parseInt(params.id)} />
+              <PersonalScheduleShare projectId={projectId} />
             </CardContent>
           </Card>
         </TabsContent>

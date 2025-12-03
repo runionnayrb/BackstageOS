@@ -241,43 +241,43 @@ function Router() {
         <Route path="/projects" component={Projects} />
         <Route path="/projects/archived" component={ArchivedShows} />
         <Route path="/create-project" component={CreateProject} />
-        <Route path="/shows/:id" component={ShowDetail} />
-        <Route path="/shows/:id/reports" component={ShowReportsList} />
-        <Route path="/shows/:id/reports/:type/new" component={NewReport} />
-        <Route path="/shows/:id/reports/:type/builder" component={ReportBuilder} />
-        <Route path="/shows/:id/reports/:type/:reportId/edit" component={ReportBuilder} />
-        <Route path="/shows/:id/reports/:type/:reportId" component={ReportViewer} />
-        <Route path="/shows/:id/reports/:type" component={ShowReports} />
-        <Route path="/shows/:id/calendar" component={Calendar} />
-        <Route path="/shows/:id/calendar/schedule" component={Schedule} />
-        <Route path="/shows/:id/calls" component={DailyCallsList} />
-        <Route path="/shows/:id/calls/:date" component={DailyCallSheet} />
-        <Route path="/shows/:id/script" component={ScriptEditor} />
-        <Route path="/shows/:id/props-costumes" component={PropsAndCostumes} />
-        <Route path="/shows/:id/props" component={PropsTracker} />
-        <Route path="/shows/:id/props/:propId" component={PropDetail} />
-        <Route path="/shows/:id/costumes" component={CostumeTracker} />
-        <Route path="/shows/:id/contacts" component={Personnel} />
-        <Route path="/shows/:id/contact-sheet" component={ContactSheet} />
-        <Route path="/shows/:id/company-list" component={CompanyList} />
-        <Route path="/shows/:id/contacts/:category" component={PersonnelCategory} />
-        <Route path="/shows/:id/contacts/:contactId/availability" component={ContactAvailability} />
-        <Route path="/shows/:id/performance-tracker" component={PerformanceTracker} />
-        <Route path="/shows/:id/tasks" component={TaskManagement} />
+        <Route path="/shows/:slug" component={ShowDetail} />
+        <Route path="/shows/:slug/reports" component={ShowReportsList} />
+        <Route path="/shows/:slug/reports/:type/new" component={NewReport} />
+        <Route path="/shows/:slug/reports/:type/builder" component={ReportBuilder} />
+        <Route path="/shows/:slug/reports/:type/:reportId/edit" component={ReportBuilder} />
+        <Route path="/shows/:slug/reports/:type/:reportId" component={ReportViewer} />
+        <Route path="/shows/:slug/reports/:type" component={ShowReports} />
+        <Route path="/shows/:slug/calendar" component={Calendar} />
+        <Route path="/shows/:slug/calendar/schedule" component={Schedule} />
+        <Route path="/shows/:slug/calls" component={DailyCallsList} />
+        <Route path="/shows/:slug/calls/:date" component={DailyCallSheet} />
+        <Route path="/shows/:slug/script" component={ScriptEditor} />
+        <Route path="/shows/:slug/props-costumes" component={PropsAndCostumes} />
+        <Route path="/shows/:slug/props" component={PropsTracker} />
+        <Route path="/shows/:slug/props/:propId" component={PropDetail} />
+        <Route path="/shows/:slug/costumes" component={CostumeTracker} />
+        <Route path="/shows/:slug/contacts" component={Personnel} />
+        <Route path="/shows/:slug/contact-sheet" component={ContactSheet} />
+        <Route path="/shows/:slug/company-list" component={CompanyList} />
+        <Route path="/shows/:slug/contacts/:category" component={PersonnelCategory} />
+        <Route path="/shows/:slug/contacts/:contactId/availability" component={ContactAvailability} />
+        <Route path="/shows/:slug/performance-tracker" component={PerformanceTracker} />
+        <Route path="/shows/:slug/tasks" component={TaskManagement} />
         <Route path="/tasks" component={TaskManagement} />
-        <Route path="/shows/:id/notes" component={Notes} />
-        <Route path="/shows/:id/notes-tracking" component={NotesTracking} />
-        <Route path="/shows/:id/email-contacts" component={EmailContacts} />
-        <Route path="/shows/:id/schedule-mapping" component={() => {
-          const params = useParams<{ id: string }>();
-          return <ScheduleRelationshipMapping projectId={parseInt(params.id || '1')} />;
+        <Route path="/shows/:slug/notes" component={Notes} />
+        <Route path="/shows/:slug/notes-tracking" component={NotesTracking} />
+        <Route path="/shows/:slug/email-contacts" component={EmailContacts} />
+        <Route path="/shows/:slug/schedule-mapping" component={() => {
+          const params = useParams<{ slug: string }>();
+          return <ScheduleRelationshipMapping projectSlug={params.slug || ''} />;
         }} />
         <Route path="/notes" component={Notes} />
         <Route path="/templates" component={Templates} />
-        <Route path="/shows/:id/templates-v2/:templateId/edit" component={TemplateEditorV2} />
-        <Route path="/shows/:id/templates-v2" component={TemplateSettingsV2} />
-        <Route path="/shows/:id/global-template-settings" component={GlobalTemplateSettings} />
-        <Route path="/shows/:id/settings" component={ShowSettings} />
+        <Route path="/shows/:slug/templates-v2/:templateId/edit" component={TemplateEditorV2} />
+        <Route path="/shows/:slug/templates-v2" component={TemplateSettingsV2} />
+        <Route path="/shows/:slug/global-template-settings" component={GlobalTemplateSettings} />
+        <Route path="/shows/:slug/settings" component={ShowSettings} />
         <Route path="/settings" component={Settings} />
         <Route path="/profile" component={ProfileSettings} />
         <Route path="/feedback" component={FeedbackPage} />
@@ -300,7 +300,7 @@ function Router() {
         <Route path="/email-setup/forwarding" component={EmailForwardingSetupPage} />
         <Route path="/tools" component={Tools} />
         <Route path="/chat" component={Chat} />
-        <Route path="/shows/:showId/theater-email" component={TheaterEmail} />
+        <Route path="/shows/:slug/theater-email" component={TheaterEmail} />
         <Route path="/auto-resolution-dashboard" component={AutoResolutionDashboard} />
         <Route path="/advanced-analytics-dashboard" component={AdvancedAnalyticsDashboard} />
         <Route path="/test-notes" component={TestNotesPage} />
