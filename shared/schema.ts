@@ -146,6 +146,24 @@ export const projectMembers = pgTable("project_members", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Team members table for inviting users to productions
+export const teamMembers = pgTable("team_members", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }),
+  email: varchar("email").notNull(),
+  name: varchar("name"),
+  role: varchar("role").notNull(), // Production Stage Manager, Stage Manager, etc.
+  roleType: varchar("role_type").notNull().default("production"), // production, department
+  accessLevel: varchar("access_level").notNull(), // 'editor', 'viewer'
+  status: varchar("status").notNull().default("pending"), // pending, accepted, declined
+  invitedBy: integer("invited_by").notNull().references(() => users.id),
+  invitedAt: timestamp("invited_at").defaultNow(),
+  joinedAt: timestamp("joined_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const reports = pgTable("reports", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").notNull().references(() => projects.id),
@@ -1428,6 +1446,21 @@ export const projectMembersRelations = relations(projectMembers, ({ one }) => ({
   }),
 }));
 
+export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
+  project: one(projects, {
+    fields: [teamMembers.projectId],
+    references: [projects.id],
+  }),
+  user: one(users, {
+    fields: [teamMembers.userId],
+    references: [users.id],
+  }),
+  invitedByUser: one(users, {
+    fields: [teamMembers.invitedBy],
+    references: [users.id],
+  }),
+}));
+
 export const reportsRelations = relations(reports, ({ one, many }) => ({
   project: one(projects, {
     fields: [reports.projectId],
@@ -2476,6 +2509,17 @@ export const insertProjectMemberSchema = createInsertSchema(projectMembers).omit
   createdAt: true,
   updatedAt: true,
 });
+
+export const insertTeamMemberSchema = createInsertSchema(teamMembers).omit({
+  id: true,
+  invitedAt: true,
+  joinedAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type TeamMember = typeof teamMembers.$inferSelect;
+export type InsertTeamMember = z.infer<typeof insertTeamMemberSchema>;
 
 export const insertReportSchema = createInsertSchema(reports).omit({
   id: true,
