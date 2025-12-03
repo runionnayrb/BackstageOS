@@ -98,11 +98,7 @@ export function InviteTeamMemberDialog({ variant, trigger }: InviteTeamMemberDia
 
   const inviteTeamMemberMutation = useMutation({
     mutationFn: async (data: InviteTeamMemberForm) => {
-      return apiRequest(`/api/projects/${projectId}/team-members`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+      return apiRequest("POST", `/api/projects/${projectId}/team-members`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "team-members"] });
