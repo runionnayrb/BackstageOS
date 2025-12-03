@@ -1168,7 +1168,7 @@ export default function ReportBuilder() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}`)}
+            onClick={() => setLocation(`/shows/${projectSlug}/reports/${reportType}`)}
           >
             Cancel
           </Button>

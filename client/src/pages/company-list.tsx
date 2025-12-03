@@ -905,7 +905,7 @@ export default function CompanyList() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setLocation(`/shows/${projectId}/contacts`)}
+            onClick={() => setLocation(`/shows/${projectSlug}/contacts`)}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />

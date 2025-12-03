@@ -4,15 +4,19 @@ import { useQuery } from "@tanstack/react-query";
 export function usePageTitle(dynamicTitle?: string) {
   const [location] = useLocation();
   
-  // Get show data if we're in a show context
+  // Get show slug from URL (URLs now use slugs, not numeric IDs)
   const pathParts = location.split('/');
-  const showId = pathParts[1] === 'shows' && pathParts[2] ? pathParts[2] : null;
+  const showSlug = pathParts[1] === 'shows' && pathParts[2] ? pathParts[2] : null;
   
+  // Fetch project by slug to get both name and numeric ID
   const { data: showData } = useQuery({
-    queryKey: [`/api/projects/${showId}`],
-    enabled: !!showId,
+    queryKey: ['/api/projects/by-slug', showSlug],
+    enabled: !!showSlug,
     select: (data: any) => data || {},
   });
+  
+  // Derive numeric ID from project data (for API calls that need it)
+  const showId = showData?.id?.toString() || null;
 
   const getPageTitle = (): string => {
     // If dynamic title is provided, use it
@@ -94,7 +98,8 @@ export function usePageTitle(dynamicTitle?: string) {
 
   return {
     pageTitle: getPageTitle(),
-    showId,
+    showId,      // Numeric ID for API calls
+    showSlug,    // Slug for navigation URLs
     showName: showData?.name
   };
 }

@@ -13196,7 +13196,7 @@ Best regards,
       // Send invitation email
       try {
         const { sendEmail } = await import('./services/gmailService.js');
-        const invitationLink = `${process.env.APP_URL || 'https://backstageos.com'}/join/${projectId}`;
+        const invitationLink = `${process.env.APP_URL || 'https://backstageos.com'}/join/${project.slug}`;
         
         const emailHtml = `
           <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
@@ -13254,7 +13254,7 @@ Best regards,
 
       // Send invitation email
       const { sendEmail } = await import('./services/gmailService.js');
-      const invitationLink = `${process.env.APP_URL || 'https://backstageos.com'}/join/${teamMember.projectId}`;
+      const invitationLink = `${process.env.APP_URL || 'https://backstageos.com'}/join/${project.slug}`;
       
       const emailHtml = `
         <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
