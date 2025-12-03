@@ -89,6 +89,7 @@ import PrivacyPage from "@/pages/privacy";
 import TermsPage from "@/pages/terms";
 import ForgotPassword from "@/pages/forgot-password";
 import ResetPassword from "@/pages/reset-password";
+import JoinProject from "@/pages/join-project";
 
 
 function Router() {
@@ -158,6 +159,10 @@ function Router() {
     return <PublicCalendar />;
   }
 
+  // Join project invitation route - allows users to accept invitations
+  if (location.startsWith('/join/')) {
+    return <JoinProject />;
+  }
   
   // If this is the join domain, redirect to /landing
   if (isJoinDomain && location !== '/landing') {

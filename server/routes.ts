@@ -2973,6 +2973,91 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Get project info for join page (public endpoint - minimal project info)
+  app.get('/api/projects/:id/join-info', async (req: Request, res: Response) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const email = req.query.email as string | undefined;
+      
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Get invitation info if email provided
+      let invitation = null;
+      if (email) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const matchingMember = teamMembers.find(m => m.email.toLowerCase() === email.toLowerCase());
+        if (matchingMember) {
+          invitation = {
+            id: matchingMember.id,
+            email: matchingMember.email,
+            role: matchingMember.role,
+            status: matchingMember.status
+          };
+        }
+      }
+
+      // Return minimal project info for public display
+      res.json({
+        project: {
+          id: project.id,
+          name: project.name,
+          venue: project.venue,
+        },
+        invitation
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch project info" });
+    }
+  });
+
+  // Accept invitation to join a project
+  app.post('/api/projects/:id/accept-invitation', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const userId = req.user.id;
+      const userEmail = req.user.email;
+      
+      // Find pending/invited invitation for this user's email
+      const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+      const invitation = teamMembers.find(
+        m => m.email.toLowerCase() === userEmail.toLowerCase() && 
+             (m.status === 'pending' || m.status === 'invited')
+      );
+      
+      if (!invitation) {
+        // Check if already a member
+        const existingMember = teamMembers.find(
+          m => m.email.toLowerCase() === userEmail.toLowerCase() && m.status === 'active'
+        );
+        
+        if (existingMember) {
+          return res.status(400).json({ message: "You are already a member of this project" });
+        }
+        
+        return res.status(404).json({ message: "No pending invitation found for your email address" });
+      }
+
+      // Update the team member record to link to this user and activate
+      const updatedMember = await storage.updateTeamMember(invitation.id, {
+        userId: userId,
+        status: 'active',
+        joinedAt: new Date()
+      });
+
+      res.json({ 
+        message: "Successfully joined the project",
+        member: updatedMember 
+      });
+    } catch (error: any) {
+      console.error('Accept invitation error:', error);
+      res.status(500).json({ message: "Failed to accept invitation", error: error.message });
+    }
+  });
+
   app.post('/api/projects', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id.toString();

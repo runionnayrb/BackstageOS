@@ -5637,16 +5637,14 @@ export class DatabaseStorage implements IStorage {
       ...teamMember,
       invitedAt: new Date(),
       status: 'invited',
-      createdAt: new Date(),
-      updatedAt: new Date(),
     }).returning();
     return result[0];
   }
 
-  async updateTeamMember(id: number, updates: Partial<InsertTeamMember>): Promise<TeamMember> {
+  async updateTeamMember(id: number, updates: Partial<InsertTeamMember> & { joinedAt?: Date; userId?: number }): Promise<TeamMember> {
     const result = await db
       .update(teamMembers)
-      .set({ ...updates, updatedAt: new Date() })
+      .set(updates)
       .where(eq(teamMembers.id, id))
       .returning();
     return result[0];

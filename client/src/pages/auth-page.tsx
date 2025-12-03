@@ -20,7 +20,14 @@ export default function AuthPage() {
 
   // Redirect if already logged in
   if (user) {
-    setLocation("/");
+    // Check for invitation redirect
+    const returnPath = sessionStorage.getItem('returnToJoin');
+    if (returnPath) {
+      sessionStorage.removeItem('returnToJoin');
+      setLocation(returnPath);
+    } else {
+      setLocation("/");
+    }
     return null;
   }
 
