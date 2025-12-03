@@ -193,7 +193,7 @@ export function TeamMembersList({ accessLevel, isActive = true }: TeamMembersLis
                     onClick={() => handleRemoveMember(member.id)}
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
-                    Remove from Production
+                    Remove from Team
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
