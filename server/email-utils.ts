@@ -57,9 +57,9 @@ export function formatEmailSender(config: EmailConfig): string {
 }
 
 /**
- * Get SendGrid-compatible email configuration
+ * Get email provider configuration (Gmail)
  */
-export function getSendGridConfig(config: EmailConfig) {
+export function getEmailProviderConfig(config: EmailConfig) {
   return {
     from: {
       email: config.fromEmail,

@@ -13178,7 +13178,7 @@ Best regards,
 
       // Send invitation email
       try {
-        const { sendEmail } = await import('./services/sendgridService.js');
+        const { sendEmail } = await import('./services/gmailService.js');
         const invitationLink = `${process.env.APP_URL || 'https://backstageos.com'}/join/${projectId}`;
         
         const emailHtml = `
@@ -13236,7 +13236,7 @@ Best regards,
       const project = await storage.getProjectById(teamMember.projectId);
 
       // Send invitation email
-      const { sendEmail } = await import('./services/sendgridService.js');
+      const { sendEmail } = await import('./services/gmailService.js');
       const invitationLink = `${process.env.APP_URL || 'https://backstageos.com'}/join/${teamMember.projectId}`;
       
       const emailHtml = `
