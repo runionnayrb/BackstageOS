@@ -154,6 +154,7 @@ export const teamMembers = pgTable("team_members", {
   email: varchar("email").notNull(),
   name: varchar("name"),
   role: varchar("role").notNull(),
+  accessLevel: varchar("access_level").notNull().default("viewer"), // 'editor' or 'viewer'
   status: varchar("status").notNull().default("pending"),
   invitedAt: timestamp("invited_at").defaultNow(),
   joinedAt: timestamp("joined_at"),

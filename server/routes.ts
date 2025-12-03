@@ -13136,8 +13136,18 @@ Best regards,
         projectId,
         email,
         role,
+        accessLevel,
       });
 
+      // Check editor limit
+      if (accessLevel === 'editor') {
+        const editorCount = await storage.getEditorCountByProject(projectId);
+        if (editorCount >= 3) {
+          return res.status(400).json({ 
+            message: "Cannot invite more than 3 editors per production" 
+          });
+        }
+      }
 
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(email);
