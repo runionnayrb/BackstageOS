@@ -13203,7 +13203,7 @@ Best regards,
           subject: `You're invited to ${project.name}`,
           html: emailHtml,
           from: {
-            email: 'invitations@backstageos.com',
+            email: 'hello@backstageos.com',
             name: 'BackstageOS'
           }
         });
@@ -13261,7 +13261,7 @@ Best regards,
         subject: `Reminder: You're invited to ${project.name}`,
         html: emailHtml,
         from: {
-          email: 'invitations@backstageos.com',
+          email: 'hello@backstageos.com',
           name: 'BackstageOS'
         }
       });
