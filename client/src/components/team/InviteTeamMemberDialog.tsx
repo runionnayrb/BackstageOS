@@ -64,6 +64,7 @@ export function InviteTeamMemberDialog({ variant, trigger }: InviteTeamMemberDia
   const defaultRoles = [
     "Production Stage Manager",
     "Stage Manager",
+    "Assistant Stage Manager",
     "Production Assistant",
   ];
 

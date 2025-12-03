@@ -42,7 +42,8 @@ export function ManageTeamRolesModal({ open, onOpenChange, settings }: ManageTea
   const defaultRoles: TeamRole[] = [
     { id: "psmid", name: "Production Stage Manager", order: 0 },
     { id: "smid", name: "Stage Manager", order: 1 },
-    { id: "paid", name: "Production Assistant", order: 2 },
+    { id: "asmid", name: "Assistant Stage Manager", order: 2 },
+    { id: "paid", name: "Production Assistant", order: 3 },
   ];
 
   const roles = useMemo(() => {
