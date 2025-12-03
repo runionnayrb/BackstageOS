@@ -32,16 +32,17 @@ interface TeamMember {
 
 interface TeamMembersListProps {
   accessLevel: "editor" | "viewer";
+  isActive?: boolean;
 }
 
-export function TeamMembersList({ accessLevel }: TeamMembersListProps) {
+export function TeamMembersList({ accessLevel, isActive = true }: TeamMembersListProps) {
   const { id: projectId } = useParams();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const { data: teamMembers = [], isLoading } = useQuery({
     queryKey: ["/api/projects", projectId, "team-members"],
-    enabled: !!projectId,
+    enabled: !!projectId && isActive,
   });
 
   const removeTeamMemberMutation = useMutation({

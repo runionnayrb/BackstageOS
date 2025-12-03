@@ -2387,7 +2387,7 @@ The Production Team`
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <TeamMembersList accessLevel="editor" />
+                <TeamMembersList accessLevel="editor" isActive={activeTab === 'team'} />
               </CardContent>
             </Card>
 
@@ -2418,7 +2418,7 @@ The Production Team`
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <TeamMembersList accessLevel="viewer" />
+                <TeamMembersList accessLevel="viewer" isActive={activeTab === 'team'} />
               </CardContent>
             </Card>
           </div>
