@@ -67,8 +67,7 @@ export function InviteTeamMemberDialog({ variant, trigger }: InviteTeamMemberDia
   // Check editor limits when email is provided and variant is editor
   const checkLimitsMutation = useMutation({
     mutationFn: async ({ email, name }: { email: string; name: string }) => {
-      const response = await apiRequest('POST', '/api/admin/check-editor-limits', { email, name });
-      return response.json();
+      return await apiRequest('POST', '/api/admin/check-editor-limits', { email, name });
     },
   });
 
