@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import { useParams } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -6,12 +7,26 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { MoreVertical, Mail, Shield, Eye, Edit3, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -39,11 +54,28 @@ export function TeamMembersList({ accessLevel, isActive = true }: TeamMembersLis
   const { id: projectId } = useParams();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [editingMemberId, setEditingMemberId] = useState<number | null>(null);
+  const [selectedRole, setSelectedRole] = useState<string>("");
 
   const { data: teamMembers = [], isLoading } = useQuery({
     queryKey: ["/api/projects", projectId, "team-members"],
     enabled: !!projectId && isActive,
   });
+
+  // Fetch project settings to get custom roles
+  const { data: settings } = useQuery({
+    queryKey: [`/api/projects/${projectId}/settings`],
+    enabled: !!projectId,
+  });
+
+  const defaultRoles = [
+    "Production Stage Manager",
+    "Stage Manager",
+    "Assistant Stage Manager",
+    "Production Assistant",
+  ];
+
+  const roles = settings?.teamRoles?.map((r: any) => r.name) || defaultRoles;
 
   const removeTeamMemberMutation = useMutation({
     mutationFn: async (memberId: number) => {
@@ -67,11 +99,47 @@ export function TeamMembersList({ accessLevel, isActive = true }: TeamMembersLis
     },
   });
 
+  const updateTeamMemberMutation = useMutation({
+    mutationFn: async ({ memberId, role }: { memberId: number; role: string }) => {
+      return apiRequest(`/api/team-members/${memberId}`, {
+        method: "PUT",
+        body: { role },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "team-members"] });
+      toast({
+        title: "Role updated",
+        description: "Team member role has been updated.",
+      });
+      setEditingMemberId(null);
+      setSelectedRole("");
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update team member",
+        variant: "destructive",
+      });
+    },
+  });
+
   const filteredMembers = teamMembers.filter(member => member.accessLevel === accessLevel);
 
   const handleRemoveMember = (memberId: number) => {
     if (confirm("Are you sure you want to remove this team member?")) {
       removeTeamMemberMutation.mutate(memberId);
+    }
+  };
+
+  const handleEditMember = (member: TeamMember) => {
+    setEditingMemberId(member.id);
+    setSelectedRole(member.role);
+  };
+
+  const handleSaveRole = () => {
+    if (editingMemberId && selectedRole) {
+      updateTeamMemberMutation.mutate({ memberId: editingMemberId, role: selectedRole });
     }
   };
 
@@ -146,63 +214,122 @@ export function TeamMembersList({ accessLevel, isActive = true }: TeamMembersLis
   }
 
   return (
-    <div className="space-y-3">
-      {filteredMembers.map((member) => (
-        <Card key={member.id}>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3 flex-1">
-                <Avatar>
-                  <AvatarImage src={`https://avatar.vercel.sh/${member.userEmail}`} />
-                  <AvatarFallback>
-                    {member.name ? member.name.split(' ').map(n => n[0]).join('') : getInitials(member.userName, member.userLastName)}
-                  </AvatarFallback>
-                </Avatar>
-                
-                <div className="flex-1">
-                  <p className="font-medium">
-                    {member.name || `${member.userName} ${member.userLastName}`.trim()}
+    <>
+      <div className="space-y-3">
+        {filteredMembers.map((member) => (
+          <Card key={member.id}>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3 flex-1">
+                  <Avatar>
+                    <AvatarImage src={`https://avatar.vercel.sh/${member.userEmail}`} />
+                    <AvatarFallback>
+                      {member.name ? member.name.split(' ').map(n => n[0]).join('') : getInitials(member.userName, member.userLastName)}
+                    </AvatarFallback>
+                  </Avatar>
+                  
+                  <div className="flex-1">
+                    <p className="font-medium">
+                      {member.name || `${member.userName} ${member.userLastName}`.trim()}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {member.role}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-4">
+                  <p className="text-sm text-muted-foreground whitespace-nowrap">
+                    {member.status === "joined" 
+                      ? `Joined ${new Date(member.joinedAt!).toLocaleDateString()}`
+                      : `Invited ${new Date(member.invitedAt).toLocaleDateString()}`
+                    }
                   </p>
-                  <p className="text-sm text-muted-foreground">
-                    {member.role}
-                  </p>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <MoreVertical className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleEditMember(member)}>
+                        <Edit3 className="w-4 h-4 mr-2" />
+                        Edit Role
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <Mail className="w-4 h-4 mr-2" />
+                        Resend Invitation
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem 
+                        className="text-red-600"
+                        onClick={() => handleRemoveMember(member.id)}
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Remove from Team
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-              <div className="flex items-center space-x-4">
-                <p className="text-sm text-muted-foreground whitespace-nowrap">
-                  {member.status === "joined" 
-                    ? `Joined ${new Date(member.joinedAt!).toLocaleDateString()}`
-                    : `Invited ${new Date(member.invitedAt).toLocaleDateString()}`
-                  }
-                </p>
+      {/* Edit Role Dialog */}
+      <Dialog open={editingMemberId !== null} onOpenChange={(open) => {
+        if (!open) {
+          setEditingMemberId(null);
+          setSelectedRole("");
+        }
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Team Member Role</DialogTitle>
+            <DialogDescription>
+              Select a new production role for this team member
+            </DialogDescription>
+          </DialogHeader>
 
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm">
-                      <MoreVertical className="w-4 h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem>
-                      <Mail className="w-4 h-4 mr-2" />
-                      Resend Invitation
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem 
-                      className="text-red-600"
-                      onClick={() => handleRemoveMember(member.id)}
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Remove from Team
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Production Role</label>
+              <Select value={selectedRole} onValueChange={setSelectedRole}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a role" />
+                </SelectTrigger>
+                <SelectContent>
+                  {roles.map((roleName: string) => (
+                    <SelectItem key={roleName} value={roleName}>
+                      {roleName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+
+            <div className="flex justify-end space-x-2">
+              <Button 
+                variant="outline"
+                onClick={() => {
+                  setEditingMemberId(null);
+                  setSelectedRole("");
+                }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleSaveRole}
+                disabled={updateTeamMemberMutation.isPending}
+              >
+                {updateTeamMemberMutation.isPending ? "Saving..." : "Save Role"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
