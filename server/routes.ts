@@ -13136,7 +13136,7 @@ Best regards,
         projectId,
         email,
         role,
-        roleType,
+        roleType: roleType || 'production',
         accessLevel,
         invitedBy: req.user.id,
       });
@@ -13170,12 +13170,20 @@ Best regards,
         
         res.status(201).json(teamMember);
       } else {
-        // User doesn't exist, create invitation (for future implementation)
-        const teamMember = await storage.createTeamMember(validatedData);
+        // User doesn't exist, create invitation with no userId
+        const teamMember = await storage.createTeamMember({
+          projectId: validatedData.projectId,
+          email: validatedData.email,
+          role: validatedData.role,
+          roleType: validatedData.roleType,
+          accessLevel: validatedData.accessLevel,
+          invitedBy: validatedData.invitedBy,
+        });
         res.status(201).json(teamMember);
       }
-    } catch (error) {
-      res.status(500).json({ message: "Failed to invite team member" });
+    } catch (error: any) {
+      console.error('Team member invite error:', error);
+      res.status(500).json({ message: "Failed to invite team member", error: error.message });
     }
   });
 
