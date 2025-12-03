@@ -2362,37 +2362,22 @@ The Production Team`
 
         <TabsContent value="team" className="mt-6">
           <div className="space-y-6">
-            {/* Manage Team Roles */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Team Settings</CardTitle>
-                    <CardDescription>Customize production roles and manage team permissions</CardDescription>
-                  </div>
-                  <Button 
-                    onClick={() => setIsManageTeamRolesOpen(true)}
-                    data-testid="button-manage-team-roles"
-                  >
-                    Manage Roles
-                  </Button>
-                </div>
-              </CardHeader>
-            </Card>
-
-            <ManageTeamRolesModal 
-              open={isManageTeamRolesOpen}
-              onOpenChange={setIsManageTeamRolesOpen}
-              settings={settings}
-            />
-
             {/* Editor Invitations */}
             <Card>
               <CardHeader>
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div className="flex items-center justify-between">
                     <CardTitle>Stage Management Team</CardTitle>
-                    <div className="md:hidden">
+                    <div className="md:hidden flex gap-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-8 w-8 p-0"
+                        onClick={() => setIsManageTeamRolesOpen(true)}
+                        data-testid="button-manage-team-roles"
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
                       <InviteTeamMemberDialog 
                         variant="editor" 
                         trigger={
@@ -2403,7 +2388,15 @@ The Production Team`
                       />
                     </div>
                   </div>
-                  <div className="hidden md:block">
+                  <div className="hidden md:flex gap-2">
+                    <Button 
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsManageTeamRolesOpen(true)}
+                      data-testid="button-manage-team-roles"
+                    >
+                      Manage Roles
+                    </Button>
                     <InviteTeamMemberDialog variant="editor" />
                   </div>
                   <CardDescription className="md:hidden">Invite up to 3 team members</CardDescription>
@@ -2448,6 +2441,12 @@ The Production Team`
               </CardContent>
             </Card>
           </div>
+
+          <ManageTeamRolesModal 
+            open={isManageTeamRolesOpen}
+            onOpenChange={setIsManageTeamRolesOpen}
+            settings={settings}
+          />
         </TabsContent>
 
         <TabsContent value="running-order" className="mt-6">
