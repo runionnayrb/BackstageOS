@@ -160,10 +160,6 @@ function Router() {
   }
 
   // Join project invitation route - allows users to accept invitations
-  if (location.startsWith('/join/')) {
-    return <JoinProject />;
-  }
-  
   // If this is the join domain, redirect to /landing
   if (isJoinDomain && location !== '/landing') {
     window.location.pathname = '/landing';
@@ -314,6 +310,7 @@ function Router() {
         <Route path="/checkout" component={Checkout} />
         <Route path="/subscribe" component={Subscribe} />
         <Route path="/billing" component={Billing} />
+        <Route path="/join/:projectId" component={JoinProject} />
         <Route component={NotFound} />
         </Switch>
       </Layout>
