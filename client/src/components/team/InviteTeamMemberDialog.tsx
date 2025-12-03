@@ -35,6 +35,7 @@ import { useToast } from "@/hooks/use-toast";
 import { UserPlus, Eye, AlertTriangle, Shield } from "lucide-react";
 
 const inviteTeamMemberSchema = z.object({
+  name: z.string().min(1, "Please enter their name"),
   email: z.string().email("Please enter a valid email address"),
   role: z.string().min(1, "Please select a role"),
   roleType: z.string().default("production"),
@@ -73,6 +74,7 @@ export function InviteTeamMemberDialog({ variant, trigger }: InviteTeamMemberDia
   const form = useForm<InviteTeamMemberForm>({
     resolver: zodResolver(inviteTeamMemberSchema),
     defaultValues: {
+      name: "",
       email: "",
       role: "Production Assistant",
       roleType: "production",
@@ -113,6 +115,7 @@ export function InviteTeamMemberDialog({ variant, trigger }: InviteTeamMemberDia
         {
           id: Math.random(), // Temporary ID
           projectId: parseInt(projectId),
+          name: data.name,
           email: data.email,
           role: data.role,
           roleType: data.roleType,
@@ -201,6 +204,23 @@ export function InviteTeamMemberDialog({ variant, trigger }: InviteTeamMemberDia
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Full Name</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="e.g., Bryan Runion" 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="email"

@@ -151,52 +151,54 @@ export function TeamMembersList({ accessLevel, isActive = true }: TeamMembersLis
         <Card key={member.id}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-3 flex-1">
                 <Avatar>
                   <AvatarImage src={`https://avatar.vercel.sh/${member.userEmail}`} />
                   <AvatarFallback>
-                    {getInitials(member.userName, member.userLastName)}
+                    {member.name ? member.name.split(' ').map(n => n[0]).join('') : getInitials(member.userName, member.userLastName)}
                   </AvatarFallback>
                 </Avatar>
                 
                 <div className="flex-1">
                   <p className="font-medium">
-                    {member.userName} {member.userLastName}
+                    {member.name || `${member.userName} ${member.userLastName}`.trim()}
                   </p>
-                  
-                  <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                    <span>{member.role}</span>
-                    <span>
-                      {member.status === "joined" 
-                        ? `Joined ${new Date(member.joinedAt!).toLocaleDateString()}`
-                        : `Invited ${new Date(member.invitedAt).toLocaleDateString()}`
-                      }
-                    </span>
-                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {member.role}
+                  </p>
                 </div>
               </div>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    <MoreVertical className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem>
-                    <Mail className="w-4 h-4 mr-2" />
-                    Resend Invitation
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    className="text-red-600"
-                    onClick={() => handleRemoveMember(member.id)}
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Remove from Team
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <div className="flex items-center space-x-4">
+                <p className="text-sm text-muted-foreground whitespace-nowrap">
+                  {member.status === "joined" 
+                    ? `Joined ${new Date(member.joinedAt!).toLocaleDateString()}`
+                    : `Invited ${new Date(member.invitedAt).toLocaleDateString()}`
+                  }
+                </p>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                      <MoreVertical className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem>
+                      <Mail className="w-4 h-4 mr-2" />
+                      Resend Invitation
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      className="text-red-600"
+                      onClick={() => handleRemoveMember(member.id)}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Remove from Team
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
           </CardContent>
         </Card>
