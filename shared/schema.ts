@@ -153,15 +153,10 @@ export const teamMembers = pgTable("team_members", {
   userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }),
   email: varchar("email").notNull(),
   name: varchar("name"),
-  role: varchar("role").notNull(), // Production Stage Manager, Stage Manager, etc.
-  roleType: varchar("role_type").notNull().default("production"), // production, department
-  accessLevel: varchar("access_level").notNull(), // 'editor', 'viewer'
-  status: varchar("status").notNull().default("pending"), // pending, accepted, declined
-  invitedBy: integer("invited_by").notNull().references(() => users.id),
+  role: varchar("role").notNull(),
+  status: varchar("status").notNull().default("pending"),
   invitedAt: timestamp("invited_at").defaultNow(),
   joinedAt: timestamp("joined_at"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const reports = pgTable("reports", {
@@ -1455,10 +1450,6 @@ export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
     fields: [teamMembers.userId],
     references: [users.id],
   }),
-  invitedByUser: one(users, {
-    fields: [teamMembers.invitedBy],
-    references: [users.id],
-  }),
 }));
 
 export const reportsRelations = relations(reports, ({ one, many }) => ({
@@ -2514,8 +2505,6 @@ export const insertTeamMemberSchema = createInsertSchema(teamMembers).omit({
   id: true,
   invitedAt: true,
   joinedAt: true,
-  createdAt: true,
-  updatedAt: true,
 });
 
 export type TeamMember = typeof teamMembers.$inferSelect;

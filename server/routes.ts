@@ -13136,20 +13136,8 @@ Best regards,
         projectId,
         email,
         role,
-        roleType: roleType || 'production',
-        accessLevel,
-        invitedBy: req.user.id,
       });
 
-      // Check editor limit
-      if (accessLevel === 'editor') {
-        const editorCount = await storage.getEditorCountByProject(projectId);
-        if (editorCount >= 3) {
-          return res.status(400).json({ 
-            message: "Cannot invite more than 3 editors per production" 
-          });
-        }
-      }
 
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(email);
@@ -13171,14 +13159,7 @@ Best regards,
         res.status(201).json(teamMember);
       } else {
         // User doesn't exist, create invitation with no userId
-        const teamMember = await storage.createTeamMember({
-          projectId: validatedData.projectId,
-          email: validatedData.email,
-          role: validatedData.role,
-          roleType: validatedData.roleType,
-          accessLevel: validatedData.accessLevel,
-          invitedBy: validatedData.invitedBy,
-        });
+        const teamMember = await storage.createTeamMember(validatedData);
         res.status(201).json(teamMember);
       }
     } catch (error: any) {
