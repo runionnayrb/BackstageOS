@@ -24,26 +24,10 @@ export default function ShowDetail() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
   const params = useParams<ShowDetailParams>();
-  const projectSlug = params.slug;
+  const projectSlug = params.slug || '';
   const queryClient = useQueryClient();
 
-  // Guard against missing projectSlug
-  if (!projectSlug) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-semibold text-foreground mb-2">Show Not Found</h1>
-          <p className="text-muted-foreground mb-4">The show you're looking for doesn't exist or the URL is invalid.</p>
-          <Button onClick={() => setLocation('/shows')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Shows
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // State for drag and drop reordering
+  // State for drag and drop reordering - MUST be called before any early returns
   const [isReordering, setIsReordering] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   
@@ -110,7 +94,7 @@ export default function ShowDetail() {
     enabled: isAuthenticated,
   });
 
-  const { data: projectSettings } = useQuery({
+  const { data: projectSettings, isLoading: projectSettingsLoading } = useQuery({
     queryKey: [`/api/projects/${projectId}/settings`],
     enabled: isAuthenticated && !!projectId,
   });
@@ -185,7 +169,26 @@ export default function ShowDetail() {
   }, [projectSettings]);
 
   // Early returns after all hooks are called
-  if (isLoading || projectsLoading || projectFromSlugLoading || sections.length === 0) {
+  // Guard against missing projectSlug - must be after all hooks
+  if (!projectSlug) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-semibold text-foreground mb-2">Show Not Found</h1>
+          <p className="text-muted-foreground mb-4">The show you're looking for doesn't exist or the URL is invalid.</p>
+          <Button onClick={() => setLocation('/shows')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Shows
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Include projectSettingsLoading to wait for settings before rendering
+  const isDataLoading = isLoading || projectFromSlugLoading || (!!projectId && projectSettingsLoading);
+  
+  if (isDataLoading) {
     return (
       <div className="w-full">
         {/* Mobile Loading */}
