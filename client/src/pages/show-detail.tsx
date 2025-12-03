@@ -35,7 +35,7 @@ export default function ShowDetail() {
   usePageTitle();
 
   // Fetch project by slug first
-  const { data: projectFromSlug, isLoading: projectFromSlugLoading } = useQuery({
+  const { data: projectFromSlug, isLoading: projectFromSlugLoading, isFetching: projectFromSlugFetching, isSuccess: projectFromSlugSuccess } = useQuery({
     queryKey: ['/api/projects/by-slug', projectSlug],
     enabled: !!projectSlug && isAuthenticated,
   });
@@ -186,7 +186,12 @@ export default function ShowDetail() {
   }
 
   // Include projectSettingsLoading to wait for settings before rendering
-  const isDataLoading = isLoading || projectFromSlugLoading || (!!projectId && projectSettingsLoading);
+  // Also wait for auth to fully resolve and for projectFromSlug query to complete
+  const isAuthResolving = isLoading;
+  // Wait if: we have a slug AND we're authenticated AND (query is loading OR fetching OR we don't have data yet and query hasn't errored)
+  const isProjectQueryPending = !!projectSlug && isAuthenticated && (projectFromSlugLoading || projectFromSlugFetching || (!projectFromSlug && !projectFromSlugSuccess));
+  const isSettingsLoading = !!projectId && projectSettingsLoading;
+  const isDataLoading = isAuthResolving || isProjectQueryPending || isSettingsLoading;
   
   if (isDataLoading) {
     return (
