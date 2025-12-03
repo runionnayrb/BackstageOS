@@ -2394,9 +2394,7 @@ The Production Team`
                       size="sm"
                       onClick={() => setIsManageTeamRolesOpen(true)}
                       data-testid="button-manage-team-roles"
-                    >
-                      Manage Roles
-                    </Button>
+                    >Manage Team</Button>
                     <InviteTeamMemberDialog variant="editor" />
                   </div>
                   <CardDescription className="md:hidden">Invite up to 3 team members</CardDescription>
