@@ -1344,6 +1344,9 @@ export default function WeeklyScheduleView({
                         const isCurrentlyDragging = draggedEvent?.event.id === event.id;
                         const wasJustDragged = justDragged === event.id;
                         
+                        // Don't open popover during multi-select mode
+                        if (isShiftPressed || selectedEvents.size > 0) return;
+                        
                         if (!isCurrentlyDragging && !wasJustDragged) {
                           // Normal click - toggle popover
                           setOpenPopoverId(openPopoverId === event.id ? null : event.id);
@@ -1357,6 +1360,8 @@ export default function WeeklyScheduleView({
                           onOpenChange={(open) => {
                             // Don't open popover if event was just dragged
                             if (open && justDragged === event.id) return;
+                            // Don't open popover during multi-select mode
+                            if (open && (isShiftPressed || selectedEvents.size > 0)) return;
                             setOpenPopoverId(open ? event.id : null);
                           }}
                         >
@@ -1624,6 +1629,8 @@ export default function WeeklyScheduleView({
                       onOpenChange={(open) => {
                         // Don't open popover if this event was just dragged
                         if (open && justDragged === event.id) return;
+                        // Don't open popover during multi-select mode
+                        if (open && (isShiftPressed || selectedEvents.size > 0)) return;
                         setOpenPopoverId(open ? event.id : null);
                       }}
                     >
