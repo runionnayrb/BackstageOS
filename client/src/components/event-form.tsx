@@ -223,15 +223,6 @@ export default function EventForm({
       </div>
 
       <div>
-        <Label htmlFor="description">Description</Label>
-        <Textarea
-          id="description"
-          value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-        />
-      </div>
-
-      <div>
         <Label>Participants</Label>
         <div className="space-y-3 max-h-80 overflow-y-auto border rounded-md p-3">
           {contacts.length === 0 ? (
@@ -332,6 +323,15 @@ export default function EventForm({
             })()
           )}
         </div>
+      </div>
+
+      <div>
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+        />
       </div>
 
       {showButtons && (
