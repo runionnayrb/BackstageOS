@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { formatTimeDisplay, parseScheduleSettings, formatAsCalendarDate } from '@/lib/timeUtils';
 import { filterEventsBySettings, getTimezoneAbbreviation, calculateEventLayouts } from '@/lib/scheduleUtils';
 import { getEventTypeColor, getEventTypeColorFromDatabase, getEventTypeDisplayName, isLightColor, darkenColor } from '@/lib/eventUtils';
@@ -8,7 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ScheduleFilter from "@/components/schedule-filter";
+import { useToast } from "@/hooks/use-toast";
 
 // Constants for time grid (8 AM to midnight = 16 hours)
 const START_HOUR = 8;
@@ -100,6 +102,15 @@ export default function DailyScheduleView({
 }: DailyScheduleViewProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [openPopoverId, setOpenPopoverId] = useState<string | null>(null);
+  
+  // Multi-select state
+  const [selectedEvents, setSelectedEvents] = useState<Set<number>>(new Set());
+  const [isShiftPressed, setIsShiftPressed] = useState(false);
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
+  const isClearingSelectionRef = useRef(false);
+  
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Touch handling for swipe navigation
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
@@ -157,6 +168,110 @@ export default function DailyScheduleView({
 
     setTouchStartX(null);
     setTouchStartY(null);
+  };
+
+  // Bulk delete mutation
+  const bulkDeleteEventsMutation = useMutation({
+    mutationFn: async (eventIds: number[]) => {
+      await Promise.all(eventIds.map(id =>
+        fetch(`/api/schedule-events/${id}`, {
+          method: "DELETE",
+        }).then(response => {
+          if (!response.ok) throw new Error(`Failed to delete event ${id}`);
+        })
+      ));
+    },
+    onMutate: async (eventIds: number[]) => {
+      await queryClient.cancelQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      
+      queryClient.setQueriesData(
+        { queryKey: [`/api/projects/${projectId}/schedule-events`] },
+        (old: any) => {
+          return old?.filter((e: any) => !eventIds.includes(e.id)) || [];
+        }
+      );
+      
+      return { eventIds };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      setSelectedEvents(new Set());
+      setShowBulkDeleteDialog(false);
+      toast({ title: "Selected events deleted successfully" });
+    },
+    onError: (error: Error) => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      toast({ 
+        title: "Failed to delete events", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    },
+  });
+
+  // Handle bulk delete
+  const handleBulkDelete = () => {
+    const selectedIds = Array.from(selectedEvents);
+    bulkDeleteEventsMutation.mutate(selectedIds);
+  };
+
+  // Handle keyboard events for multi-select and bulk delete
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Shift') {
+        setIsShiftPressed(true);
+      }
+      
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedEvents.size > 0) {
+        e.preventDefault();
+        setShowBulkDeleteDialog(true);
+      }
+      
+      // Escape key to exit multi-select mode and deselect all
+      if (e.key === 'Escape' && selectedEvents.size > 0) {
+        e.preventDefault();
+        setSelectedEvents(new Set());
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'Shift') {
+        setIsShiftPressed(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [selectedEvents]);
+
+  // Handle event mousedown for multi-select (matching weekly view pattern)
+  const handleEventMouseDown = (e: React.MouseEvent, eventId: number) => {
+    if (e.shiftKey || isShiftPressed) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (selectedEvents.has(eventId)) {
+        const newSelected = new Set(selectedEvents);
+        newSelected.delete(eventId);
+        setSelectedEvents(newSelected);
+      } else {
+        const newSelected = new Set(selectedEvents);
+        newSelected.add(eventId);
+        setSelectedEvents(newSelected);
+      }
+    } else if (selectedEvents.size > 0) {
+      // Clear selection on non-Shift click - use ref to bypass popover guard
+      isClearingSelectionRef.current = true;
+      setSelectedEvents(new Set());
+      // Reset the ref after a macrotask to ensure popover opens first
+      setTimeout(() => {
+        isClearingSelectionRef.current = false;
+      }, 0);
+    }
   };
 
   // Time utilities
@@ -328,6 +443,33 @@ export default function DailyScheduleView({
 
   return (
     <div className="flex flex-col h-full bg-gray-50">
+      {/* Multi-select status bar */}
+      {(isShiftPressed || selectedEvents.size > 0) && (
+        <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg p-3 mb-2">
+          <div className="flex items-center space-x-4">
+            {isShiftPressed && (
+              <div className="text-sm text-blue-700 font-medium">
+                Multi-select mode - Click events to select/deselect
+              </div>
+            )}
+            {selectedEvents.size > 0 && (
+              <div className="text-sm text-blue-700">
+                {selectedEvents.size} selected - Press Delete to remove
+              </div>
+            )}
+          </div>
+          {selectedEvents.size > 0 && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setShowBulkDeleteDialog(true)}
+            >
+              Delete Selected
+            </Button>
+          )}
+        </div>
+      )}
+      
       {/* Removed individual header - using unified main page header */}
       {/* Main Content Container */}
       <div className="border border-gray-200 rounded-lg overflow-hidden">
@@ -473,17 +615,23 @@ export default function DailyScheduleView({
                         <Popover 
                           key={event.id}
                           open={openPopoverId === `allday-${event.id}`}
-                          onOpenChange={(open) => setOpenPopoverId(open ? `allday-${event.id}` : null)}
+                          onOpenChange={(open) => {
+                            // Don't open popover during multi-select mode (unless we're clearing selection)
+                            if (open && !isClearingSelectionRef.current && (isShiftPressed || selectedEvents.size > 0)) return;
+                            setOpenPopoverId(open ? `allday-${event.id}` : null);
+                          }}
                         >
                           <PopoverTrigger asChild>
                             <div
+                              data-event-card
                               className={`rounded px-2 py-1 text-sm mb-1 cursor-pointer hover:opacity-90 transition-opacity ${
                                 isLightColor(eventTypeColor) ? 'text-gray-900' : 'text-white'
-                              }`}
+                              } ${selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''}`}
                               style={{ 
                                 backgroundColor: eventTypeColor,
                                 border: `1px solid ${darkenColor(eventTypeColor, 25)}`,
                               }}
+                              onMouseDown={(e) => handleEventMouseDown(e, event.id)}
                             >
                               <div className="font-medium truncate">{event.title}</div>
                             </div>
@@ -681,13 +829,19 @@ export default function DailyScheduleView({
                         <Popover 
                           key={event.id}
                           open={openPopoverId === `timed-${event.id}`}
-                          onOpenChange={(open) => setOpenPopoverId(open ? `timed-${event.id}` : null)}
+                          onOpenChange={(open) => {
+                            // Don't open popover during multi-select mode (unless we're clearing selection)
+                            if (open && !isClearingSelectionRef.current && (isShiftPressed || selectedEvents.size > 0)) return;
+                            setOpenPopoverId(open ? `timed-${event.id}` : null);
+                          }}
                         >
                           <PopoverTrigger asChild>
                             <div
+                              data-event-card
                               className={`absolute rounded text-sm overflow-hidden cursor-pointer hover:opacity-90 transition-all ${
                                 isLightColor(eventTypeColor) ? 'text-gray-900' : 'text-white'
-                              } ${isCenterableShortEvent ? 'flex items-center' : ''}`}
+                              } ${isCenterableShortEvent ? 'flex items-center' : ''
+                              } ${selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''}`}
                               style={{
                                 top: `${top}px`,
                                 height: `${height}px`,
@@ -697,6 +851,7 @@ export default function DailyScheduleView({
                                 border: `1px solid ${darkenColor(eventTypeColor, 25)}`,
                                 padding: isCenterableShortEvent ? '0 8px' : (isVeryShortEvent ? '2px 4px' : '8px'),
                               }}
+                              onMouseDown={(e) => handleEventMouseDown(e, event.id)}
                             >
                               {isUnderOneHour ? (
                                 <div className="flex items-center gap-1 truncate">
@@ -857,6 +1012,35 @@ export default function DailyScheduleView({
         </div>
       </div>
       </div>
+      
+      {/* Bulk Delete Confirmation Dialog */}
+      {showBulkDeleteDialog && (
+        <Dialog open={showBulkDeleteDialog} onOpenChange={setShowBulkDeleteDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Selected Events</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p>
+                Are you sure you want to delete {selectedEvents.size} selected event{selectedEvents.size !== 1 ? 's' : ''}? 
+                This action cannot be undone.
+              </p>
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => setShowBulkDeleteDialog(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  onClick={handleBulkDelete}
+                  disabled={bulkDeleteEventsMutation.isPending}
+                >
+                  {bulkDeleteEventsMutation.isPending ? "Deleting..." : "Delete"}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
