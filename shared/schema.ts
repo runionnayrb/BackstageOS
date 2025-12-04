@@ -738,7 +738,8 @@ export const locationAvailability = pgTable("location_availability", {
 export const scheduleVersions = pgTable("schedule_versions", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
-  version: varchar("version").notNull(), // "1.0", "1.1", "2.0", etc.
+  version: varchar("version").notNull(), // Major version number: "1", "2", "3", etc.
+  minorVersion: integer("minor_version").default(0), // Minor version number: 0, 1, 2, etc. Display as major.minor
   versionType: varchar("version_type").notNull(), // 'major' | 'minor'
   title: varchar("title").notNull(), // version title/name
   description: text("description"), // version description

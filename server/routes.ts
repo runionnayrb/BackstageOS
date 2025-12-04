@@ -14736,31 +14736,41 @@ Best regards,
       // Get current schedule events to create snapshot
       const scheduleEvents = await storage.getScheduleEventsByProjectId(projectId);
       
-      // Calculate version number based on weekly versioning logic
-      const currentDate = new Date();
-      const startOfWeek = new Date(currentDate);
-      startOfWeek.setDate(currentDate.getDate() - currentDate.getDay()); // Sunday
-      startOfWeek.setHours(0, 0, 0, 0);
-      
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 6); // Saturday
-      endOfWeek.setHours(23, 59, 59, 999);
-      
-      // Get all versions from this week
+      // Get all versions to calculate proper major.minor versioning
       const allVersions = await storage.getScheduleVersionsByProjectId(projectId);
-      const versionsThisWeek = allVersions.filter(v => {
-        const versionDate = new Date(v.createdAt);
-        return versionDate >= startOfWeek && versionDate <= endOfWeek;
-      });
       
-      // Determine version number: first version in a week should be version 1
-      const newVersionNumber = versionsThisWeek.length === 0 ? 1 : versionsThisWeek.length + 1;
+      // Calculate version number based on major.minor logic
+      let newMajorVersion = 1;
+      let newMinorVersion = 0;
+      
+      if (allVersions.length > 0) {
+        // Sort by publishedAt to get the latest version
+        const sortedVersions = [...allVersions].sort((a, b) => 
+          new Date(b.publishedAt || b.createdAt).getTime() - new Date(a.publishedAt || a.createdAt).getTime()
+        );
+        const latestVersion = sortedVersions[0];
+        const currentMajor = parseInt(latestVersion.version) || 1;
+        const currentMinor = latestVersion.minorVersion || 0;
+        
+        if (req.body.versionType === 'major') {
+          // Major version: increment major, reset minor to 0
+          newMajorVersion = currentMajor + 1;
+          newMinorVersion = 0;
+        } else {
+          // Minor version: keep major, increment minor
+          newMajorVersion = currentMajor;
+          newMinorVersion = currentMinor + 1;
+        }
+      }
+      
+      const versionString = newMajorVersion.toString();
       
       const versionData = {
         projectId,
-        version: newVersionNumber.toString(),
+        version: versionString,
         versionType: req.body.versionType,
-        title: req.body.title || `${req.body.versionType === 'major' ? 'Major' : 'Minor'} Version ${newVersionNumber}`,
+        minorVersion: newMinorVersion,
+        title: req.body.title || `${req.body.versionType === 'major' ? 'Major' : 'Minor'} Version ${versionString}.${newMinorVersion}`,
         description: req.body.description || null,
         scheduleData: {
           events: scheduleEvents,
@@ -14777,9 +14787,9 @@ Best regards,
       // Create new version
       const newVersion = await storage.createScheduleVersion(versionData);
       
-      // Update or create personal schedules for all contacts
+      // Update or create personal schedules for all contacts in parallel for speed
       const contacts = await storage.getContactsByProjectId(projectId);
-      for (const contact of contacts) {
+      await Promise.all(contacts.map(async (contact) => {
         const existingPersonalSchedule = await storage.getPersonalScheduleByContactId(contact.id, projectId);
         
         if (existingPersonalSchedule) {
@@ -14802,7 +14812,7 @@ Best regards,
             }
           });
         }
-      }
+      }));
 
       // Add changelog field with default message if not provided
       const changelog = req.body.changelog || `${req.body.versionType === 'major' ? 'Major' : 'Minor'} schedule update published by stage management. Please review your updated personal schedule.`;
