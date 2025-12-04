@@ -405,9 +405,10 @@ The Production Team`
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      const eventsCreated = data.createdEvents?.length || 0;
       toast({
         title: "Template Applied",
-        description: `Created ${data.eventsCreated || 0} events from template.`,
+        description: `Created ${eventsCreated} events from template.`,
       });
       setShowApplyTemplateDialog(false);
       setSelectedTemplateId(null);
