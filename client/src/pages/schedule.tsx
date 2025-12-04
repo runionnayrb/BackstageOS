@@ -1129,15 +1129,17 @@ The Production Team`
                       Minor Version
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuItem
-                    onClick={() => {
-                      setShowResendScheduleDialog(true);
-                      setResendSelectedContacts([]);
-                    }}
-                  >
-                    <Send className="h-4 w-4 mr-2" />
-                    Resend Schedule
-                  </DropdownMenuItem>
+                  {!isCurrentWeekDraft && (
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setShowResendScheduleDialog(true);
+                        setResendSelectedContacts([]);
+                      }}
+                    >
+                      <Send className="h-4 w-4 mr-2" />
+                      Resend Schedule
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
               {Object.keys(organizedSchedules).length > 0 && (
