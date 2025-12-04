@@ -658,6 +658,12 @@ export default function WeeklyScheduleView({
         e.preventDefault();
         setShowBulkDeleteDialog(true);
       }
+      
+      // Escape key to exit multi-select mode and deselect all
+      if (e.key === 'Escape' && selectedEvents.size > 0) {
+        e.preventDefault();
+        setSelectedEvents(new Set());
+      }
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
