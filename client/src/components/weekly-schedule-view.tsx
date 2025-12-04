@@ -653,7 +653,18 @@ export default function WeeklyScheduleView({
 
   // Handle keyboard events for multi-select and bulk delete
   useEffect(() => {
+    const isInputFocused = () => {
+      const activeElement = document.activeElement;
+      if (!activeElement) return false;
+      const tagName = activeElement.tagName.toLowerCase();
+      return tagName === 'input' || tagName === 'textarea' || 
+             activeElement.getAttribute('contenteditable') === 'true';
+    };
+
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore keyboard shortcuts when typing in input fields
+      if (isInputFocused()) return;
+
       if (e.key === 'Shift') {
         setIsShiftPressed(true);
       }
