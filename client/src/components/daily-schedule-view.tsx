@@ -321,7 +321,7 @@ export default function DailyScheduleView({
 
   // Handle mouse down on empty calendar space to start drag-to-create
   const handleCalendarMouseDown = (e: React.MouseEvent) => {
-    if (!calendarRef.current || !scrollContainerRef.current) return;
+    if (!calendarRef.current) return;
     
     // Ignore right clicks
     if (e.button !== 0) return;
@@ -331,7 +331,8 @@ export default function DailyScheduleView({
     if (target.closest('[data-event-card]')) return;
     
     const rect = calendarRef.current.getBoundingClientRect();
-    const scrollTop = scrollContainerRef.current.scrollTop || 0;
+    // Use scrollContainerRef if available, otherwise use parent element's scroll or 0
+    const scrollTop = scrollContainerRef.current?.scrollTop || calendarRef.current.parentElement?.scrollTop || 0;
     const y = e.clientY - rect.top + scrollTop;
     const minutes = snapToIncrement(positionToMinutes(y));
     
@@ -354,10 +355,10 @@ export default function DailyScheduleView({
     };
     
     const handleMouseMove = (moveEvent: MouseEvent) => {
-      if (!calendarRef.current || !scrollContainerRef.current || isCancelled) return;
+      if (!calendarRef.current || isCancelled) return;
       
       const rect = calendarRef.current.getBoundingClientRect();
-      const scrollTop = scrollContainerRef.current.scrollTop || 0;
+      const scrollTop = scrollContainerRef.current?.scrollTop || calendarRef.current.parentElement?.scrollTop || 0;
       const y = moveEvent.clientY - rect.top + scrollTop;
       const newMinutes = snapToIncrement(positionToMinutes(y));
       
@@ -884,31 +885,40 @@ export default function DailyScheduleView({
                 </div>
               )}
 
-              {/* Day Schedule Content */}
+              {/* Day Schedule Content - matching weekly view structure */}
               <div 
-                className="relative bg-white flex-1"
+                className="overflow-y-auto scrollbar-hide flex-1" 
+                style={{ 
+                  maxHeight: '600px',
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none'
+                }}
               >
                 <div 
-                  ref={calendarRef}
-                  className="relative"
-                  style={{ height: `${containerHeight}px`, cursor: 'crosshair' }}
-                  onMouseDown={handleCalendarMouseDown}
+                  ref={scrollContainerRef}
+                  style={{ height: '600px' }}
                 >
-                  {/* Time grid background */}
-                  <div className="absolute inset-0 pointer-events-none">
-                    {incrementLines.map((line) => (
-                      <div
-                        key={`increment-${line.minutes}`}
-                        className="absolute left-0 right-0 border-t border-gray-100"
-                        style={{ top: `${line.position}px` }}
-                      />
-                    ))}
-                  </div>
+                  <div 
+                    ref={calendarRef}
+                    className="relative bg-white"
+                    style={{ height: `${containerHeight}px`, cursor: 'crosshair' }}
+                    onMouseDown={handleCalendarMouseDown}
+                  >
+                    {/* Time grid background */}
+                    <div className="absolute inset-0 pointer-events-none">
+                      {incrementLines.map((line) => (
+                        <div
+                          key={`increment-${line.minutes}`}
+                          className="absolute left-0 right-0 border-t border-gray-100"
+                          style={{ top: `${line.position}px` }}
+                        />
+                      ))}
+                    </div>
 
-                  {/* Events for this day - only non-all-day events */}
-                  {getEventsForDate(selectedDate)
-                    .filter(event => !event.isAllDay)
-                    .map((event) => {
+                    {/* Events for this day - only non-all-day events */}
+                    {getEventsForDate(selectedDate)
+                      .filter(event => !event.isAllDay)
+                      .map((event) => {
                       const startMinutes = timeToMinutes(event.startTime);
                       const endMinutes = timeToMinutes(event.endTime);
                       const top = minutesToPosition(startMinutes);
@@ -1123,32 +1133,33 @@ export default function DailyScheduleView({
                       );
                     })}
 
-                  {/* Drag-to-create preview */}
-                  {dragState?.isActive && (
-                    <div
-                      className="absolute text-xs text-white rounded bg-gray-500 opacity-60 pointer-events-none z-30"
-                      style={{
-                        left: '4px',
-                        width: 'calc(100% - 8px)',
-                        top: `${minutesToPosition(Math.min(dragState.startTime, dragState.currentTime))}px`,
-                        height: `${Math.abs(minutesToPosition(dragState.currentTime) - minutesToPosition(dragState.startTime))}px`,
-                        minHeight: '20px',
-                      }}
-                    >
-                      <div className="px-2 py-1 h-full flex flex-col justify-start">
-                        <div className="font-medium truncate">New Event</div>
-                        <div className="text-xs opacity-90 truncate">
-                          {formatTimeDisplay(formatTime(Math.min(dragState.startTime, dragState.currentTime)), timeFormat as '12' | '24')} - {formatTimeDisplay(formatTime(Math.max(dragState.startTime, dragState.currentTime)), timeFormat as '12' | '24')}
+                    {/* Drag-to-create preview */}
+                    {dragState?.isActive && (
+                      <div
+                        className="absolute text-xs text-white rounded bg-gray-500 opacity-60 pointer-events-none z-30"
+                        style={{
+                          left: '4px',
+                          width: 'calc(100% - 8px)',
+                          top: `${minutesToPosition(Math.min(dragState.startTime, dragState.currentTime))}px`,
+                          height: `${Math.abs(minutesToPosition(dragState.currentTime) - minutesToPosition(dragState.startTime))}px`,
+                          minHeight: '20px',
+                        }}
+                      >
+                        <div className="px-2 py-1 h-full flex flex-col justify-start">
+                          <div className="font-medium truncate">New Event</div>
+                          <div className="text-xs opacity-90 truncate">
+                            {formatTimeDisplay(formatTime(Math.min(dragState.startTime, dragState.currentTime)), timeFormat as '12' | '24')} - {formatTimeDisplay(formatTime(Math.max(dragState.startTime, dragState.currentTime)), timeFormat as '12' | '24')}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+        </div>
       </div>
       
       {/* Bulk Delete Confirmation Dialog */}
