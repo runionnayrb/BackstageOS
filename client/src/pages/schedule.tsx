@@ -1181,7 +1181,7 @@ The Production Team`
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
-              {Object.keys(organizedSchedules).length > 0 && (
+              {(scheduleHeader?.hasPersonalSchedules || Object.keys(organizedSchedules).length > 0) && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -1457,7 +1457,7 @@ The Production Team`
               </DropdownMenu>
 
               {/* Personal Schedules Dropdown - moved to right of publish */}
-              {Object.keys(organizedSchedules).length > 0 && (
+              {(scheduleHeader?.hasPersonalSchedules || Object.keys(organizedSchedules).length > 0) && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" className="p-2">
