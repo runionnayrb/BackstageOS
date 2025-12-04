@@ -1466,16 +1466,16 @@ export default function WeeklyScheduleView({
                                       <h4 className="font-medium text-sm">People Called</h4>
                                       <div className="space-y-3">
                                         {(() => {
-                                          // Group participants by contact category
-                                          const participantsByCategory = event.participants.reduce((acc, participant) => {
-                                            // Find the contact details from the contacts array for category and role
+                                          // Group participants by contact group name
+                                          const participantsByGroup = event.participants.reduce((acc, participant) => {
+                                            // Find the contact details from the contacts array for group and role
                                             const contact = contacts.find(c => c.id === participant.contactId);
-                                            const category = contact?.category || 'Other';
+                                            const groupName = contact?.contactGroup?.name || 'Unassigned';
                                             
-                                            if (!acc[category]) {
-                                              acc[category] = [];
+                                            if (!acc[groupName]) {
+                                              acc[groupName] = [];
                                             }
-                                            acc[category].push({
+                                            acc[groupName].push({
                                               ...participant,
                                               contactName: `${participant.contactFirstName || contact?.firstName || ''} ${participant.contactLastName || contact?.lastName || ''}`.trim() || 'Unknown',
                                               contactRole: contact?.role
@@ -1483,23 +1483,19 @@ export default function WeeklyScheduleView({
                                             return acc;
                                           }, {} as Record<string, any[]>);
 
-                                          // Sort categories in the same order as the filter
-                                          const categoryOrder = ['cast', 'stage_management', 'crew', 'creative_team', 'theater_staff'];
-                                          const sortedCategories = Object.keys(participantsByCategory).sort((a, b) => {
-                                            const aIndex = categoryOrder.indexOf(a);
-                                            const bIndex = categoryOrder.indexOf(b);
-                                            if (aIndex === -1 && bIndex === -1) return a.localeCompare(b);
-                                            if (aIndex === -1) return 1;
-                                            if (bIndex === -1) return -1;
-                                            return aIndex - bIndex;
+                                          // Sort groups alphabetically, with Unassigned at the end
+                                          const sortedGroups = Object.keys(participantsByGroup).sort((a, b) => {
+                                            if (a === 'Unassigned') return 1;
+                                            if (b === 'Unassigned') return -1;
+                                            return a.localeCompare(b);
                                           });
 
-                                          return sortedCategories.map(category => (
-                                            <div key={category} className="space-y-1">
-                                              <div className="text-xs font-medium text-gray-800 capitalize border-b border-gray-200 pb-1">
-                                                {category.replace('_', ' ')}
+                                          return sortedGroups.map(groupName => (
+                                            <div key={groupName} className="space-y-1">
+                                              <div className="text-xs font-medium text-gray-800 border-b border-gray-200 pb-1">
+                                                {groupName}
                                               </div>
-                                              {participantsByCategory[category].map(participant => (
+                                              {participantsByGroup[groupName].map(participant => (
                                                 <div key={participant.id} className="text-xs text-gray-900 ml-1 py-0.5">
                                                   <span className="font-medium">
                                                     {participant.contactName || 'No name'}
@@ -1793,16 +1789,16 @@ export default function WeeklyScheduleView({
                                     <h4 className="font-medium text-sm">People Called</h4>
                                     <div className="space-y-3">
                                       {(() => {
-                                        // Group participants by contact category
-                                        const participantsByCategory = event.participants.reduce((acc, participant) => {
-                                          // Find the contact details from the contacts array for category and role
+                                        // Group participants by contact group name
+                                        const participantsByGroup = event.participants.reduce((acc, participant) => {
+                                          // Find the contact details from the contacts array for group and role
                                           const contact = contacts.find(c => c.id === participant.contactId);
-                                          const category = contact?.category || 'Other';
+                                          const groupName = contact?.contactGroup?.name || 'Unassigned';
                                           
-                                          if (!acc[category]) {
-                                            acc[category] = [];
+                                          if (!acc[groupName]) {
+                                            acc[groupName] = [];
                                           }
-                                          acc[category].push({
+                                          acc[groupName].push({
                                             ...participant,
                                             contactName: `${participant.contactFirstName || contact?.firstName || ''} ${participant.contactLastName || contact?.lastName || ''}`.trim() || 'Unknown',
                                             contactRole: contact?.role
@@ -1810,23 +1806,19 @@ export default function WeeklyScheduleView({
                                           return acc;
                                         }, {} as Record<string, any[]>);
 
-                                        // Sort categories in the same order as the filter
-                                        const categoryOrder = ['cast', 'stage_management', 'crew', 'creative_team', 'theater_staff'];
-                                        const sortedCategories = Object.keys(participantsByCategory).sort((a, b) => {
-                                          const aIndex = categoryOrder.indexOf(a);
-                                          const bIndex = categoryOrder.indexOf(b);
-                                          if (aIndex === -1 && bIndex === -1) return a.localeCompare(b);
-                                          if (aIndex === -1) return 1;
-                                          if (bIndex === -1) return -1;
-                                          return aIndex - bIndex;
+                                        // Sort groups alphabetically, with Unassigned at the end
+                                        const sortedGroups = Object.keys(participantsByGroup).sort((a, b) => {
+                                          if (a === 'Unassigned') return 1;
+                                          if (b === 'Unassigned') return -1;
+                                          return a.localeCompare(b);
                                         });
 
-                                        return sortedCategories.map(category => (
-                                          <div key={category} className="space-y-1">
-                                            <div className="text-xs font-medium text-gray-800 capitalize border-b border-gray-200 pb-1">
-                                              {category.replace('_', ' ')}
+                                        return sortedGroups.map(groupName => (
+                                          <div key={groupName} className="space-y-1">
+                                            <div className="text-xs font-medium text-gray-800 border-b border-gray-200 pb-1">
+                                              {groupName}
                                             </div>
-                                            {participantsByCategory[category].map(participant => (
+                                            {participantsByGroup[groupName].map(participant => (
                                               <div key={participant.id} className="text-xs text-gray-900 ml-1 py-0.5">
                                                 <span className="font-medium">
                                                   {participant.contactName || 'No name'}
@@ -2147,7 +2139,7 @@ function CreateEventForm({
                 }}
               />
               <Label htmlFor={`contact-${contact.id}`} className="text-sm">
-                {contact.firstName} {contact.lastName} ({contact.role || contact.category})
+                {contact.firstName} {contact.lastName} ({contact.role || contact.contactGroup?.name || 'Unassigned'})
               </Label>
             </div>
           ))}
@@ -2336,7 +2328,7 @@ function EditEventForm({
                 }}
               />
               <Label htmlFor={`contact-${contact.id}`} className="text-sm">
-                {contact.firstName} {contact.lastName} ({contact.role || contact.category})
+                {contact.firstName} {contact.lastName} ({contact.role || contact.contactGroup?.name || 'Unassigned'})
               </Label>
             </div>
           ))}

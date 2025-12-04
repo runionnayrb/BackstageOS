@@ -455,15 +455,14 @@ The Production Team`
     },
   });
 
-  // Organize contacts by type for resend dialog
+  // Organize contacts by group for resend dialog
   const organizedContacts = contacts.reduce((acc: any, contact: any) => {
-    const contactType = contact.category || 'Other';
-    const typeName = contactType.toUpperCase().replace(/_/g, ' ');
+    const groupName = contact.contactGroup?.name || 'Unassigned';
     
-    if (!acc[typeName]) {
-      acc[typeName] = [];
+    if (!acc[groupName]) {
+      acc[groupName] = [];
     }
-    acc[typeName].push({
+    acc[groupName].push({
       id: contact.id,
       name: `${contact.firstName || ''} ${contact.lastName || ''}`.trim() || contact.email || 'Unknown Contact',
       firstName: contact.firstName,
