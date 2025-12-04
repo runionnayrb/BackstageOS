@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,10 @@ interface Contact {
   lastName: string;
   category: string;
   role?: string;
+  contactGroup?: {
+    id: number;
+    name: string;
+  };
 }
 
 interface EventFormProps {
@@ -85,6 +89,70 @@ export default function EventForm({
   });
   
   console.log('🎭 EventForm - final formData.isProductionLevel:', formData.isProductionLevel);
+
+  // Compute contact groups and IDs
+  const contactsByGroup = useMemo(() => {
+    return contacts.reduce((acc, contact) => {
+      if (contact.contactGroup?.name) {
+        const groupName = contact.contactGroup.name;
+        if (!acc[groupName]) {
+          acc[groupName] = [];
+        }
+        acc[groupName].push(contact);
+      }
+      return acc;
+    }, {} as Record<string, Contact[]>);
+  }, [contacts]);
+
+  const allContactIds = useMemo(() => {
+    return contacts.filter(c => c.contactGroup?.name).map(c => c.id);
+  }, [contacts]);
+
+  const sortedGroups = useMemo(() => {
+    return Object.keys(contactsByGroup).sort((a, b) => {
+      if (a === 'Cast' && b !== 'Cast') return -1;
+      if (a !== 'Cast' && b === 'Cast') return 1;
+      return a.localeCompare(b);
+    });
+  }, [contactsByGroup]);
+
+  // Participant selection handlers
+  const handleSelectAllParticipants = useCallback(() => {
+    setFormData(prev => ({
+      ...prev,
+      participantIds: [...new Set([...prev.participantIds, ...allContactIds])],
+    }));
+  }, [allContactIds]);
+
+  const handleClearAllParticipants = useCallback(() => {
+    setFormData(prev => ({
+      ...prev,
+      participantIds: prev.participantIds.filter(id => !allContactIds.includes(id)),
+    }));
+  }, [allContactIds]);
+
+  const handleSelectGroupAll = useCallback((groupContactIds: number[]) => {
+    setFormData(prev => ({
+      ...prev,
+      participantIds: [...new Set([...prev.participantIds, ...groupContactIds])],
+    }));
+  }, []);
+
+  const handleSelectGroupNone = useCallback((groupContactIds: number[]) => {
+    setFormData(prev => ({
+      ...prev,
+      participantIds: prev.participantIds.filter(id => !groupContactIds.includes(id)),
+    }));
+  }, []);
+
+  const handleToggleParticipant = useCallback((contactId: number) => {
+    setFormData(prev => ({
+      ...prev,
+      participantIds: prev.participantIds.includes(contactId)
+        ? prev.participantIds.filter(id => id !== contactId)
+        : [...prev.participantIds, contactId],
+    }));
+  }, []);
 
   // Auto-populate end date when start date changes
   const handleStartDateChange = (newStartDate: string) => {
@@ -223,150 +291,92 @@ export default function EventForm({
           {contacts.length === 0 ? (
             <p className="text-sm text-gray-500 p-3">No contacts available</p>
           ) : (
-            (() => {
-              const contactsByGroup = contacts.reduce((acc, contact) => {
-                if (contact.contactGroup?.name) {
-                  const groupName = contact.contactGroup.name;
-                  if (!acc[groupName]) {
-                    acc[groupName] = [];
-                  }
-                  acc[groupName].push(contact);
-                }
-                return acc;
-              }, {} as Record<string, typeof contacts>);
-
-              const allContactIds = contacts.filter(c => c.contactGroup?.name).map(c => c.id);
-
-              const handleSelectAll = () => {
-                setFormData(prev => ({
-                  ...prev,
-                  participantIds: [...new Set([...prev.participantIds, ...allContactIds])],
-                }));
-              };
-
-              const handleClearAll = () => {
-                setFormData(prev => ({
-                  ...prev,
-                  participantIds: prev.participantIds.filter(id => !allContactIds.includes(id)),
-                }));
-              };
-
-              const handleSelectGroupAll = (groupContactIds: number[]) => {
-                setFormData(prev => ({
-                  ...prev,
-                  participantIds: [...new Set([...prev.participantIds, ...groupContactIds])],
-                }));
-              };
-
-              const handleSelectGroupNone = (groupContactIds: number[]) => {
-                setFormData(prev => ({
-                  ...prev,
-                  participantIds: prev.participantIds.filter(id => !groupContactIds.includes(id)),
-                }));
-              };
-
-              const sortedGroups = Object.keys(contactsByGroup).sort((a, b) => {
-                if (a === 'Cast' && b !== 'Cast') return -1;
-                if (a !== 'Cast' && b === 'Cast') return 1;
-                return a.localeCompare(b);
-              });
-
-              return (
-                <>
-                  <div className="px-3 py-2 bg-gray-50 border-b">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700">FULL COMPANY</span>
-                      <div className="flex gap-1">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={handleSelectAll}
-                          className="text-xs px-2 py-1 h-5"
-                        >
-                          All
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={handleClearAll}
-                          className="text-xs px-2 py-1 h-5"
-                        >
-                          None
-                        </Button>
-                      </div>
-                    </div>
+            <>
+              <div className="px-3 py-2 bg-gray-50 border-b">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">FULL COMPANY</span>
+                  <div className="flex gap-1">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleSelectAllParticipants}
+                      className="text-xs px-2 py-1 h-5"
+                    >
+                      All
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleClearAllParticipants}
+                      className="text-xs px-2 py-1 h-5"
+                    >
+                      None
+                    </Button>
                   </div>
+                </div>
+              </div>
 
-                  <div className="p-2">
-                    {sortedGroups.map((groupName) => {
-                      const groupContacts = contactsByGroup[groupName];
-                      const groupContactIds = groupContacts.map(c => c.id);
+              <div className="p-2">
+                {sortedGroups.map((groupName) => {
+                  const groupContacts = contactsByGroup[groupName];
+                  const groupContactIds = groupContacts.map(c => c.id);
 
-                      return (
-                        <div key={groupName} className="mb-4">
-                          <div className="flex items-center justify-between px-2 py-1 text-sm font-medium text-gray-600 border-b">
-                            <span>{groupName.replace(/_/g, ' ').toUpperCase()}</span>
-                            <div className="flex gap-1">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleSelectGroupAll(groupContactIds)}
-                                className="text-xs px-2 py-1 h-5"
-                              >
-                                All
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleSelectGroupNone(groupContactIds)}
-                                className="text-xs px-2 py-1 h-5"
-                              >
-                                None
-                              </Button>
+                  return (
+                    <div key={groupName} className="mb-4">
+                      <div className="flex items-center justify-between px-2 py-1 text-sm font-medium text-gray-600 border-b">
+                        <span>{groupName.replace(/_/g, ' ').toUpperCase()}</span>
+                        <div className="flex gap-1">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleSelectGroupAll(groupContactIds)}
+                            className="text-xs px-2 py-1 h-5"
+                          >
+                            All
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleSelectGroupNone(groupContactIds)}
+                            className="text-xs px-2 py-1 h-5"
+                          >
+                            None
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="space-y-1 mt-2">
+                        {groupContacts.map(contact => (
+                          <div
+                            key={contact.id}
+                            className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer"
+                            onClick={() => handleToggleParticipant(contact.id)}
+                          >
+                            <Checkbox
+                              checked={formData.participantIds.includes(contact.id)}
+                              className="pointer-events-none"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">
+                                {contact.firstName} {contact.lastName}
+                              </p>
+                              {contact.role && (
+                                <p className="text-xs text-gray-500 truncate">
+                                  {contact.role}
+                                </p>
+                              )}
                             </div>
                           </div>
-                          <div className="space-y-1 mt-2">
-                            {groupContacts.map(contact => (
-                              <div
-                                key={contact.id}
-                                className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer"
-                                onClick={() => {
-                                  setFormData(prev => ({
-                                    ...prev,
-                                    participantIds: prev.participantIds.includes(contact.id)
-                                      ? prev.participantIds.filter(id => id !== contact.id)
-                                      : [...prev.participantIds, contact.id],
-                                  }));
-                                }}
-                              >
-                                <Checkbox
-                                  checked={formData.participantIds.includes(contact.id)}
-                                  className="pointer-events-none"
-                                />
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium truncate">
-                                    {contact.firstName} {contact.lastName}
-                                  </p>
-                                  {contact.role && (
-                                    <p className="text-xs text-gray-500 truncate">
-                                      {contact.role}
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </>
-              );
-            })()
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
           )}
         </div>
       </div>
