@@ -15219,10 +15219,10 @@ The Production Team`;
       const schedulesWithContacts = await Promise.all(
         personalSchedules.map(async (schedule) => {
           const contact = await storage.getContactById(schedule.contactId);
-          // Get the contact group if the contact has one
+          // Get the contact group if the contact has one (field is 'groupId' in schema)
           let contactGroup = null;
-          if (contact && contact.contactGroupId) {
-            contactGroup = await storage.getContactGroupById(contact.contactGroupId);
+          if (contact && contact.groupId) {
+            contactGroup = await storage.getContactGroupById(contact.groupId);
           }
           return {
             ...schedule,
