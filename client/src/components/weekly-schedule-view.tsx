@@ -1464,7 +1464,7 @@ export default function WeeklyScheduleView({
                                   <PopoverContent className="w-72 p-0" align="start">
                                     <div className="p-4 space-y-3">
                                       <h4 className="font-medium text-sm">People Called</h4>
-                                      <div className="space-y-3">
+                                      <div className="space-y-3 max-h-64 overflow-y-auto">
                                         {(() => {
                                           // Group participants by contact category
                                           const participantsByCategory = event.participants.reduce((acc, participant) => {
