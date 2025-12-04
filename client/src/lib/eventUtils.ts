@@ -29,8 +29,40 @@ export const isShowEvent = (eventType: string): boolean => {
   return SHOW_EVENT_TYPES.includes(eventType as any);
 };
 
-// Get display names for event types
-export const getEventTypeDisplayName = (eventType: string): string => {
+// Get display names for event types - uses database event types if provided
+export const getEventTypeDisplayName = (eventType: string, eventTypes?: any[], eventTypeId?: number): string => {
+  // If eventTypes array is provided, look up the actual name from the database
+  if (eventTypes && eventTypes.length > 0) {
+    // If eventTypeId is provided, use it for direct lookup first
+    if (eventTypeId) {
+      const matchedEventType = eventTypes.find(et => et.id === eventTypeId);
+      if (matchedEventType?.name) {
+        return matchedEventType.name;
+      }
+    }
+    
+    // Try direct match by name/type
+    let matchedEventType = eventTypes.find(et => 
+      et.id === eventType || 
+      et.name === eventType ||
+      et.name.toLowerCase() === eventType.toLowerCase()
+    );
+    
+    // If no direct match, try format conversions (underscore to space, hyphen to space, etc.)
+    if (!matchedEventType) {
+      matchedEventType = eventTypes.find(et => 
+        et.name.toLowerCase().replace(/[\s-]+/g, '_') === eventType.toLowerCase() ||
+        et.name.toLowerCase().replace(/[\s_]+/g, '-') === eventType.toLowerCase() ||
+        et.name.toLowerCase() === eventType.toLowerCase().replace(/[_-]/g, ' ')
+      );
+    }
+    
+    if (matchedEventType?.name) {
+      return matchedEventType.name;
+    }
+  }
+  
+  // Fallback to hardcoded names for standard event types
   switch (eventType) {
     case 'rehearsal': return 'Rehearsal';
     case 'tech': return 'Tech Rehearsal';

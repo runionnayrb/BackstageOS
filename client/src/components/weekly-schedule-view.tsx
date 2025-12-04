@@ -1449,7 +1449,7 @@ export default function WeeklyScheduleView({
                               {/* Event Type */}
                               <div className="flex items-center space-x-2 text-xs text-gray-600">
                                 <Calendar className="h-3 w-3" />
-                                <span>{getEventTypeDisplayName(event.type)}</span>
+                                <span>{getEventTypeDisplayName(event.type, eventTypes, event.eventTypeId)}</span>
                               </div>
 
                               {/* Participants */}
@@ -1776,7 +1776,7 @@ export default function WeeklyScheduleView({
                             {/* Event Type */}
                             <div className="flex items-center space-x-2 text-xs text-gray-600">
                               <Calendar className="h-3 w-3" />
-                              <span>{getEventTypeDisplayName(event.type)}</span>
+                              <span>{getEventTypeDisplayName(event.type, eventTypes, event.eventTypeId)}</span>
                             </div>
 
                             {/* Participants */}
