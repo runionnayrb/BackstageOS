@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Clock, MapPin, Edit, Trash2 } from "lucide-react";
 import { formatTimeDisplay } from "@/lib/timeUtils";
-import { getEventTypeColorFromDatabase } from "@/lib/eventUtils";
+import { getEventTypeColorFromDatabase, isLightColor, darkenColor } from "@/lib/eventUtils";
 import { calculateEventLayouts } from "@/lib/scheduleUtils";
 import TemplateEventForm from "./TemplateEventForm";
 
@@ -23,6 +23,7 @@ interface ScheduleTemplateEvent {
   location: string | null;
   notes: string | null;
   isAllDay: boolean;
+  isProductionLevel: boolean;
   participants?: Array<{
     id: number;
     contactId: number;
@@ -782,9 +783,9 @@ export function TemplateWeeklyScheduleView({
                   >
                     <PopoverTrigger asChild>
                       <div
-                        className={`absolute text-white text-sm rounded-md shadow-sm border-l-4 cursor-pointer hover:opacity-90 z-30 transition-all ${
-                          draggedEvent?.event.id === event.id && draggedEvent.isDragging ? 'opacity-50' : ''
-                        }`}
+                        className={`absolute text-sm rounded-md shadow-sm cursor-pointer hover:opacity-90 z-30 transition-all ${
+                          isLightColor(eventColor) ? 'text-gray-900' : 'text-white'
+                        } ${draggedEvent?.event.id === event.id && draggedEvent.isDragging ? 'opacity-50' : ''}`}
                         style={{
                           left: `calc(64px + (100% - 64px) * ${displayDayIndex} / 7 + ((100% - 64px) / 7) * ${eventLeftPercent / 100} + 2px)`,
                           width: `calc(((100% - 64px) / 7) * ${eventWidthPercent / 100} - 4px)`,
@@ -792,7 +793,7 @@ export function TemplateWeeklyScheduleView({
                           height: `${Math.max(20, displayHeight)}px`,
                           minHeight: '20px',
                           backgroundColor: eventColor,
-                          borderLeftColor: eventColor,
+                          border: `1px solid ${darkenColor(eventColor, 25)}`,
                           overflow: 'hidden',
                           padding: isShortEvent ? '2px 4px' : '8px',
                         }}
@@ -949,6 +950,7 @@ export function TemplateWeeklyScheduleView({
                   location: editingEvent.location || '',
                   notes: editingEvent.notes || '',
                   isAllDay: editingEvent.isAllDay,
+                  isProductionLevel: editingEvent.isProductionLevel ?? false,
                   participantIds: editingEvent.participants?.map(p => p.contactId) || [],
                 }}
               />

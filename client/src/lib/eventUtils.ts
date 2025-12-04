@@ -142,3 +142,53 @@ export const getEventTypeBorderColor = (eventType: string): string => {
     default: return 'border-gray-700';
   }
 };
+
+// Calculate relative luminance of a color (for contrast calculations)
+// Uses the WCAG 2.0 formula for relative luminance
+const getLuminance = (hexColor: string): number => {
+  // Remove # if present
+  const hex = hexColor.replace('#', '');
+  
+  // Parse RGB values
+  const r = parseInt(hex.substring(0, 2), 16) / 255;
+  const g = parseInt(hex.substring(2, 4), 16) / 255;
+  const b = parseInt(hex.substring(4, 6), 16) / 255;
+  
+  // Apply gamma correction
+  const rLinear = r <= 0.03928 ? r / 12.92 : Math.pow((r + 0.055) / 1.055, 2.4);
+  const gLinear = g <= 0.03928 ? g / 12.92 : Math.pow((g + 0.055) / 1.055, 2.4);
+  const bLinear = b <= 0.03928 ? b / 12.92 : Math.pow((b + 0.055) / 1.055, 2.4);
+  
+  // Calculate luminance
+  return 0.2126 * rLinear + 0.7152 * gLinear + 0.0722 * bLinear;
+};
+
+// Determine if a color is "light" (needs dark text) or "dark" (needs light text)
+export const isLightColor = (hexColor: string): boolean => {
+  if (!hexColor || !hexColor.startsWith('#')) {
+    return false; // Default to dark text assumption for invalid colors
+  }
+  const luminance = getLuminance(hexColor);
+  // Threshold of 0.5 - colors above this are considered "light"
+  return luminance > 0.5;
+};
+
+// Get text color for a given background color
+// Returns 'text-gray-900' for light backgrounds, 'text-white' for dark backgrounds
+export const getTextColorForBackground = (hexColor: string): string => {
+  return isLightColor(hexColor) ? 'text-gray-900' : 'text-white';
+};
+
+// Darken a hex color by a percentage (for border colors)
+export const darkenColor = (hexColor: string, percent: number = 20): string => {
+  if (!hexColor || !hexColor.startsWith('#')) {
+    return hexColor;
+  }
+  
+  const hex = hexColor.replace('#', '');
+  const r = Math.max(0, Math.round(parseInt(hex.substring(0, 2), 16) * (1 - percent / 100)));
+  const g = Math.max(0, Math.round(parseInt(hex.substring(2, 4), 16) * (1 - percent / 100)));
+  const b = Math.max(0, Math.round(parseInt(hex.substring(4, 6), 16) * (1 - percent / 100)));
+  
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+};

@@ -12,7 +12,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatTimeDisplay, parseScheduleSettings, formatAsCalendarDate } from "@/lib/timeUtils";
-import { isShowEvent, getEventTypeDisplayName, getEventTypeColor, getEventTypeBorderColor, getEventTypeColorFromDatabase } from "@/lib/eventUtils";
+import { isShowEvent, getEventTypeDisplayName, getEventTypeColor, getEventTypeBorderColor, getEventTypeColorFromDatabase, isLightColor, darkenColor } from "@/lib/eventUtils";
 import { filterEventsBySettings, getTimezoneAbbreviation, calculateEventLayouts } from "@/lib/scheduleUtils";
 import LocationSelect from "@/components/location-select";
 import EventTypeSelect from "@/components/event-type-select";
@@ -1627,8 +1627,9 @@ export default function WeeklyScheduleView({
                     >
                       <PopoverTrigger asChild>
                         <div
-                          className={`absolute text-white text-sm rounded-md shadow-sm border-l-4 cursor-pointer hover:opacity-90 z-30 transition-all ${
-                            selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''
+                          className={`absolute text-sm rounded-md shadow-sm cursor-pointer hover:opacity-90 z-30 transition-all ${
+                            isLightColor(eventTypeColor) ? 'text-gray-900' : 'text-white'
+                          } ${selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''
                           } ${draggedEvent?.event.id === event.id && draggedEvent.isDragging ? 'opacity-50' : ''}`}
                           style={{
                             left: eventLeft,
@@ -1637,7 +1638,7 @@ export default function WeeklyScheduleView({
                             height: `${Math.max(20, displayHeight)}px`,
                             minHeight: '20px',
                             backgroundColor: eventTypeColor,
-                            borderLeftColor: eventTypeColor,
+                            border: `1px solid ${darkenColor(eventTypeColor, 25)}`,
                             overflow: 'hidden',
                             padding: isVeryShortEvent ? '2px 4px' : '8px',
                           }}

@@ -803,6 +803,7 @@ export const scheduleTemplateEvents = pgTable("schedule_template_events", {
   location: varchar("location"),
   notes: text("notes"),
   isAllDay: boolean("is_all_day").default(false),
+  isProductionLevel: boolean("is_production_level").default(false), // true for events to appear on production calendar
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

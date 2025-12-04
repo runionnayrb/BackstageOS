@@ -43,6 +43,7 @@ interface TemplateEventFormProps {
     location?: string;
     notes?: string;
     isAllDay?: boolean;
+    isProductionLevel?: boolean;
     participantIds?: number[];
   };
 }
@@ -76,6 +77,7 @@ export default function TemplateEventForm({
     location: initialValues?.location || '',
     notes: initialValues?.notes || '',
     isAllDay: initialValues?.isAllDay ?? false,
+    isProductionLevel: initialValues?.isProductionLevel ?? false,
     participantIds: initialValues?.participantIds || [] as number[],
   });
 
@@ -165,14 +167,29 @@ export default function TemplateEventForm({
         </div>
       </div>
 
-      <div className="flex items-center space-x-2">
-        <Checkbox
-          id="isAllDay"
-          checked={formData.isAllDay}
-          onCheckedChange={(checked) => setFormData({ ...formData, isAllDay: !!checked })}
-          data-testid="checkbox-template-all-day"
-        />
-        <Label htmlFor="isAllDay">All Day Event</Label>
+      <div className="space-y-3">
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="isAllDay"
+            checked={formData.isAllDay}
+            onCheckedChange={(checked) => setFormData({ ...formData, isAllDay: !!checked })}
+            data-testid="checkbox-template-all-day"
+          />
+          <Label htmlFor="isAllDay">All Day Event</Label>
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="isProductionLevel"
+            checked={formData.isProductionLevel}
+            onCheckedChange={(checked) => setFormData({ ...formData, isProductionLevel: !!checked })}
+            data-testid="checkbox-template-production-level"
+          />
+          <Label htmlFor="isProductionLevel" className="flex items-center space-x-2">
+            <span>Add to Production Calendar</span>
+            <span className="text-xs text-muted-foreground">(Master production schedule)</span>
+          </Label>
+        </div>
       </div>
 
       <div>

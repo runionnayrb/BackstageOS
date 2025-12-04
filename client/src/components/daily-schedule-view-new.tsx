@@ -1,12 +1,14 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Plus, Trash2, Users } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { queryClient } from '@/lib/queryClient';
+import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { formatTimeDisplay, formatTimeFromMinutes } from '@/lib/timeUtils';
+import { getEventTypeColorFromDatabase, isLightColor, darkenColor } from '@/lib/eventUtils';
+import EventForm from '@/components/event-form';
 
 // Constants for time grid (8 AM to midnight = 16 hours)
 const START_HOUR = 8;
@@ -116,6 +118,41 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
     queryKey: [`/api/projects/${projectId}/contacts`],
   });
 
+  // Fetch event types for color matching
+  const { data: eventTypes = [] } = useQuery<any[]>({
+    queryKey: [`/api/projects/${projectId}/event-types`],
+  });
+
+  // Update event mutation
+  const updateEventMutation = useMutation({
+    mutationFn: async ({ eventId, eventData }: { eventId: number; eventData: any }) => {
+      return apiRequest("PATCH", `/api/projects/${projectId}/schedule/events/${eventId}`, eventData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule/events`] });
+      setEditingEvent(null);
+      toast({ title: 'Event updated successfully' });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Error updating event', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  // Delete event mutation
+  const deleteEventMutation = useMutation({
+    mutationFn: async (eventId: number) => {
+      return apiRequest("DELETE", `/api/projects/${projectId}/schedule/events/${eventId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule/events`] });
+      setEditingEvent(null);
+      toast({ title: 'Event deleted successfully' });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Error deleting event', description: error.message, variant: 'destructive' });
+    },
+  });
+
   // Filter events for the current day
   const dayEvents = useMemo(() => {
     const dateStr = currentDate.toISOString().split('T')[0];
@@ -220,18 +257,6 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
     setEditingEvent(event);
   }, []);
 
-  // Event type colors
-  const getEventTypeColor = (type: string) => {
-    const colors = {
-      rehearsal: 'bg-blue-100 border-blue-300 text-blue-800',
-      performance: 'bg-red-100 border-red-300 text-red-800',
-      tech: 'bg-orange-100 border-orange-300 text-orange-800',
-      meeting: 'bg-green-100 border-green-300 text-green-800',
-      other: 'bg-gray-100 border-gray-300 text-gray-800',
-    };
-    return colors[type as keyof typeof colors] || colors.other;
-  };
-
   // Handle keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -320,19 +345,28 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
           <div className="mb-6">
             <h3 className="text-sm font-medium text-gray-600 mb-2">All Day</h3>
             <div className="space-y-1">
-              {dayEvents.filter(event => event.isAllDay).map((event) => (
-                <div
-                  key={event.id}
-                  className={`p-2 border rounded-lg cursor-pointer hover:opacity-80 ${getEventTypeColor(event.type)} ${selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''}`}
-                  onClick={(e) => handleEventClick(e, event)}
-                  onDoubleClick={() => handleEventDoubleClick(event)}
-                >
-                  <div className="font-medium text-sm">{event.title}</div>
-                  {event.description && (
-                    <div className="text-xs opacity-75">{event.description}</div>
-                  )}
-                </div>
-              ))}
+              {dayEvents.filter(event => event.isAllDay).map((event) => {
+                const eventColor = getEventTypeColorFromDatabase(event.type, eventTypes);
+                return (
+                  <div
+                    key={event.id}
+                    className={`p-2 rounded-lg cursor-pointer hover:opacity-80 ${
+                      isLightColor(eventColor) ? 'text-gray-900' : 'text-white'
+                    } ${selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''}`}
+                    style={{
+                      backgroundColor: eventColor,
+                      border: `1px solid ${darkenColor(eventColor, 25)}`,
+                    }}
+                    onClick={(e) => handleEventClick(e, event)}
+                    onDoubleClick={() => handleEventDoubleClick(event)}
+                  >
+                    <div className="font-medium text-sm">{event.title}</div>
+                    {event.description && (
+                      <div className="text-xs opacity-75">{event.description}</div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -394,17 +428,22 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
                       const startMinutes = timeToMinutes(event.startTime);
                       const endMinutes = timeToMinutes(event.endTime);
                       const duration = endMinutes - startMinutes;
+                      const eventColor = getEventTypeColorFromDatabase(event.type, eventTypes);
                       
                       return (
                         <div
                           key={event.id}
-                          className={`absolute rounded cursor-pointer border-2 transition-opacity hover:opacity-90 ${getEventTypeColor(event.type)} ${selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''}`}
+                          className={`absolute rounded cursor-pointer transition-opacity hover:opacity-90 ${
+                            isLightColor(eventColor) ? 'text-gray-900' : 'text-white'
+                          } ${selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''}`}
                           style={{
                             left: '4px',
                             right: '4px',
                             top: `${minutesToPosition(startMinutes)}px`,
                             height: `${minutesToHeight(duration)}px`,
-                            minHeight: '24px'
+                            minHeight: '24px',
+                            backgroundColor: eventColor,
+                            border: `1px solid ${darkenColor(eventColor, 25)}`,
                           }}
                           onClick={(e) => handleEventClick(e, event)}
                           onDoubleClick={() => handleEventDoubleClick(event)}
@@ -468,6 +507,62 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
                 Delete Events
               </Button>
             </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Event Dialog */}
+        <Dialog open={!!editingEvent} onOpenChange={(open) => !open && setEditingEvent(null)}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Event</DialogTitle>
+            </DialogHeader>
+            {editingEvent && (
+              <EventForm
+                projectId={projectId}
+                event={{
+                  id: editingEvent.id,
+                  title: editingEvent.title,
+                  description: editingEvent.description || '',
+                  date: editingEvent.date,
+                  startTime: editingEvent.startTime,
+                  endTime: editingEvent.endTime,
+                  type: editingEvent.type,
+                  location: editingEvent.location || '',
+                  notes: editingEvent.notes || '',
+                  isAllDay: editingEvent.isAllDay,
+                  participants: editingEvent.participants.map(p => ({
+                    contactId: p.contactId,
+                    isRequired: p.isRequired,
+                    status: p.status
+                  }))
+                }}
+                onSubmit={(eventData) => {
+                  updateEventMutation.mutate({ eventId: editingEvent.id, eventData });
+                }}
+                onCancel={() => setEditingEvent(null)}
+                isSubmitting={updateEventMutation.isPending}
+              />
+            )}
+            <DialogFooter className="flex justify-between items-center border-t pt-4">
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (editingEvent && confirm('Are you sure you want to delete this event?')) {
+                    deleteEventMutation.mutate(editingEvent.id);
+                  }
+                }}
+                disabled={deleteEventMutation.isPending}
+                className="h-10"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Event
+              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setEditingEvent(null)} className="h-10">
+                  Cancel
+                </Button>
+              </div>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
