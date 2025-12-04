@@ -532,11 +532,12 @@ The Production Team`
     }
   };
 
-  // Organize personal schedules by contact type
+  // Organize personal schedules by contact group (from Manage Contact Groups)
   const organizedSchedules = personalSchedules.reduce((acc: any, schedule: any) => {
     if (schedule.contact) {
-      const contactType = schedule.contact.category || 'Other';
-      const typeName = contactType.charAt(0).toUpperCase() + contactType.slice(1).replace(/_/g, ' ');
+      // Use contact group name if available, otherwise fall back to category
+      const groupName = schedule.contact.contactGroup?.name || schedule.contact.category || 'Other';
+      const typeName = groupName.charAt(0).toUpperCase() + groupName.slice(1).replace(/_/g, ' ');
       
       if (!acc[typeName]) {
         acc[typeName] = [];
@@ -896,7 +897,7 @@ The Production Team`
               </h1>
               {currentPublishedVersion && (
                 <p className="text-sm text-gray-600 mt-1">
-                  Version {currentPublishedVersion.version}, Published: {(() => {
+                  Version {currentPublishedVersion.version}{currentPublishedVersion.versionType === 'minor' ? `.${currentPublishedVersion.minorVersion || 1}` : '.0'}, Published: {(() => {
                     try {
                       const date = new Date(currentPublishedVersion.publishedAt);
                       if (isNaN(date.getTime())) {
@@ -1065,7 +1066,7 @@ The Production Team`
                   <DropdownMenuContent align="end" className="max-h-80 overflow-y-auto">
                     {Object.entries(organizedSchedules).map(([contactType, contacts]: [string, any[]]) => (
                       <div key={contactType}>
-                        <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 uppercase border-b">
+                        <div className="px-2 py-1.5 text-xs font-bold text-gray-800 uppercase border-b">
                           {contactType}
                         </div>
                         {contacts.map((contact) => (
@@ -1334,7 +1335,7 @@ The Production Team`
                   <DropdownMenuContent align="end" className="max-h-80 overflow-y-auto">
                     {Object.entries(organizedSchedules).map(([contactType, contacts]: [string, any[]]) => (
                       <div key={contactType}>
-                        <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 uppercase border-b">
+                        <div className="px-2 py-1.5 text-xs font-bold text-gray-800 uppercase border-b">
                           {contactType}
                         </div>
                         {contacts.map((contact) => (

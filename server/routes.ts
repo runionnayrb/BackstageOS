@@ -15188,13 +15188,21 @@ The Production Team`;
       
       const personalSchedules = await storage.getPersonalSchedulesByProjectId(projectId);
       
-      // Get contact details for each personal schedule
+      // Get contact details with contact group for each personal schedule
       const schedulesWithContacts = await Promise.all(
         personalSchedules.map(async (schedule) => {
           const contact = await storage.getContactById(schedule.contactId);
+          // Get the contact group if the contact has one
+          let contactGroup = null;
+          if (contact && contact.contactGroupId) {
+            contactGroup = await storage.getContactGroupById(contact.contactGroupId);
+          }
           return {
             ...schedule,
-            contact
+            contact: contact ? {
+              ...contact,
+              contactGroup
+            } : null
           };
         })
       );

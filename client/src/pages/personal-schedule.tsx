@@ -25,6 +25,7 @@ interface PersonalScheduleData {
     id: number;
     version: string;
     versionType: 'major' | 'minor';
+    minorVersion?: number;
     title: string;
     description?: string;
     publishedAt: string;
@@ -188,11 +189,11 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
     return defaultColors[type] || '#6B7280'; // default gray
   };
 
-  const getVersionDisplay = (version: { version: string; versionType: 'major' | 'minor' }) => {
+  const getVersionDisplay = (version: { version: string; versionType: 'major' | 'minor'; minorVersion?: number }) => {
     if (version.versionType === 'minor') {
-      return `${version.version}.1`;
+      return `${version.version}.${version.minorVersion || 1}`;
     }
-    return version.version;
+    return `${version.version}.0`;
   };
 
   // Note: Expiry checking removed as it's handled server-side
