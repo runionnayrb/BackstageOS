@@ -150,6 +150,7 @@ export default function WeeklyScheduleView({
     originalEndMinutes: number;
   } | null>(null);
   const [justDragged, setJustDragged] = useState<number | null>(null);
+  const [justResized, setJustResized] = useState<number | null>(null);
   const [selectedEvents, setSelectedEvents] = useState<Set<number>>(new Set());
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
@@ -1084,6 +1085,10 @@ export default function WeeklyScheduleView({
     const handleMouseUp = () => {
       console.log('🎯 Resize mouse up, resizingEventRef.current:', resizingEventRef.current);
       if (resizingEventRef.current) {
+        // Mark this event as just resized to prevent popover opening
+        setJustResized(event.id);
+        setTimeout(() => setJustResized(null), 200);
+        
         const eventData = {
           startTime: resizingEventRef.current.event.startTime + ':00',
           endTime: resizingEventRef.current.event.endTime + ':00',
@@ -1383,8 +1388,8 @@ export default function WeeklyScheduleView({
                           key={event.id} 
                           open={openPopoverId === event.id} 
                           onOpenChange={(open) => {
-                            // Don't open popover if event was just dragged
-                            if (open && justDragged === event.id) return;
+                            // Don't open popover if event was just dragged or resized
+                            if (open && (justDragged === event.id || justResized === event.id)) return;
                             // Don't open popover during multi-select mode
                             if (open && (isShiftPressed || selectedEvents.size > 0)) return;
                             setOpenPopoverId(open ? event.id : null);
@@ -1653,8 +1658,8 @@ export default function WeeklyScheduleView({
                       key={event.id} 
                       open={openPopoverId === event.id} 
                       onOpenChange={(open) => {
-                        // Don't open popover if this event was just dragged
-                        if (open && justDragged === event.id) return;
+                        // Don't open popover if this event was just dragged or resized
+                        if (open && (justDragged === event.id || justResized === event.id)) return;
                         // Don't open popover during multi-select mode
                         if (open && (isShiftPressed || selectedEvents.size > 0)) return;
                         setOpenPopoverId(open ? event.id : null);

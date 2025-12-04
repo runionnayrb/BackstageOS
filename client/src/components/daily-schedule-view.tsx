@@ -128,6 +128,7 @@ export default function DailyScheduleView({
     isDragging: boolean;
   } | null>(null);
   const [justDragged, setJustDragged] = useState<number | null>(null);
+  const [justResized, setJustResized] = useState<number | null>(null);
   
   // Drag-to-resize state
   const [resizingEvent, setResizingEvent] = useState<{
@@ -501,6 +502,10 @@ export default function DailyScheduleView({
 
     const handleMouseUp = () => {
       if (resizingEventRef.current) {
+        // Mark this event as just resized to prevent popover opening
+        setJustResized(event.id);
+        setTimeout(() => setJustResized(null), 200);
+        
         const eventData = {
           startTime: resizingEventRef.current.event.startTime + ':00',
           endTime: resizingEventRef.current.event.endTime + ':00',
@@ -1207,8 +1212,8 @@ export default function DailyScheduleView({
                           key={event.id}
                           open={openPopoverId === `timed-${event.id}`}
                           onOpenChange={(open) => {
-                            // Don't open popover during multi-select mode or after drag
-                            if (open && justDragged === event.id) return;
+                            // Don't open popover during multi-select mode or after drag/resize
+                            if (open && (justDragged === event.id || justResized === event.id)) return;
                             if (open && !isClearingSelectionRef.current && (isShiftPressed || selectedEvents.size > 0)) return;
                             setOpenPopoverId(open ? `timed-${event.id}` : null);
                           }}
