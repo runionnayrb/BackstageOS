@@ -198,9 +198,9 @@ export default function TemplateEventForm({
       </div>
       <div>
         <Label>People</Label>
-        <div className="space-y-3 max-h-60 overflow-y-auto border rounded-md p-3">
+        <div className="max-h-60 overflow-y-auto">
           {contacts.length === 0 ? (
-            <p className="text-sm text-gray-500">No contacts available. Add contacts to your project to assign participants.</p>
+            <p className="text-sm text-gray-500 p-3">No contacts available. Add contacts to your project to assign participants.</p>
           ) : (
             (() => {
               const contactsByGroup = contacts.reduce((acc, contact) => {
@@ -214,119 +214,141 @@ export default function TemplateEventForm({
                 return acc;
               }, {} as Record<string, typeof contacts>);
 
-              const ungroupedContacts = contacts.filter(c => !c.contactGroup?.name);
+              const allContactIds = contacts.filter(c => c.contactGroup?.name).map(c => c.id);
+
+              const handleSelectAll = () => {
+                setFormData({
+                  ...formData,
+                  participantIds: [...new Set([...formData.participantIds, ...allContactIds])],
+                });
+              };
+
+              const handleClearAll = () => {
+                setFormData({
+                  ...formData,
+                  participantIds: formData.participantIds.filter(id => !allContactIds.includes(id)),
+                });
+              };
+
+              const handleSelectGroupAll = (groupContacts: typeof contacts) => {
+                const groupContactIds = groupContacts.map(c => c.id);
+                setFormData({
+                  ...formData,
+                  participantIds: [...new Set([...formData.participantIds, ...groupContactIds])],
+                });
+              };
+
+              const handleSelectGroupNone = (groupContacts: typeof contacts) => {
+                const groupContactIds = groupContacts.map(c => c.id);
+                setFormData({
+                  ...formData,
+                  participantIds: formData.participantIds.filter(id => !groupContactIds.includes(id)),
+                });
+              };
+
+              const sortedGroups = Object.keys(contactsByGroup).sort((a, b) => {
+                if (a === 'Cast' && b !== 'Cast') return -1;
+                if (a !== 'Cast' && b === 'Cast') return 1;
+                return a.localeCompare(b);
+              });
 
               return (
                 <>
-                  {Object.entries(contactsByGroup).map(([groupName, groupContacts]) => {
-                    const groupContactIds = groupContacts.map(c => c.id);
-                    const allGroupSelected = groupContactIds.every(id => formData.participantIds.includes(id));
-                    const someGroupSelected = groupContactIds.some(id => formData.participantIds.includes(id));
+                  <div className="px-3 py-2 bg-gray-50 border-b">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-700">FULL COMPANY</span>
+                      <div className="flex gap-1">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleSelectAll}
+                          className="text-xs px-2 py-1 h-5"
+                        >
+                          All
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleClearAll}
+                          className="text-xs px-2 py-1 h-5"
+                        >
+                          None
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
 
-                    return (
-                      <div key={groupName} className="space-y-2">
-                        <div className="flex items-center space-x-2 font-medium text-gray-700 border-b border-gray-200 pb-1">
-                          <Checkbox
-                            id={`group-${groupName}`}
-                            checked={allGroupSelected}
-                            ref={(el) => {
-                              if (el) {
-                                const input = el.querySelector('input');
-                                if (input) {
-                                  input.indeterminate = someGroupSelected && !allGroupSelected;
-                                }
-                              }
-                            }}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                const newParticipants = [
-                                  ...formData.participantIds,
-                                  ...groupContactIds.filter(id => !formData.participantIds.includes(id))
-                                ];
-                                setFormData({
-                                  ...formData,
-                                  participantIds: newParticipants,
-                                });
-                              } else {
-                                setFormData({
-                                  ...formData,
-                                  participantIds: formData.participantIds.filter(id => !groupContactIds.includes(id)),
-                                });
-                              }
-                            }}
-                          />
-                          <Label htmlFor={`group-${groupName}`} className="text-sm font-semibold">
-                            {groupName.replace(/_/g, ' ').toUpperCase()}
-                          </Label>
-                        </div>
-                        <div className="space-y-1 ml-6">
-                          {groupContacts.map(contact => (
-                            <div key={contact.id} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`contact-${contact.id}`}
-                                checked={formData.participantIds.includes(contact.id)}
-                                onCheckedChange={(checked) => {
-                                  if (checked) {
-                                    setFormData({
-                                      ...formData,
-                                      participantIds: [...formData.participantIds, contact.id],
-                                    });
-                                  } else {
+                  <div className="p-2">
+                    {sortedGroups.map((groupName) => {
+                      const groupContacts = contactsByGroup[groupName];
+
+                      return (
+                        <div key={groupName} className="mb-4">
+                          <div className="flex items-center justify-between px-2 py-1 text-sm font-medium text-gray-600 border-b">
+                            <span>{groupName.replace(/_/g, ' ').toUpperCase()}</span>
+                            <div className="flex gap-1">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleSelectGroupAll(groupContacts)}
+                                className="text-xs px-2 py-1 h-5"
+                              >
+                                All
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleSelectGroupNone(groupContacts)}
+                                className="text-xs px-2 py-1 h-5"
+                              >
+                                None
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="space-y-1 mt-2">
+                            {groupContacts.map(contact => (
+                              <div
+                                key={contact.id}
+                                className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer"
+                                onClick={() => {
+                                  if (formData.participantIds.includes(contact.id)) {
                                     setFormData({
                                       ...formData,
                                       participantIds: formData.participantIds.filter(id => id !== contact.id),
                                     });
+                                  } else {
+                                    setFormData({
+                                      ...formData,
+                                      participantIds: [...formData.participantIds, contact.id],
+                                    });
                                   }
                                 }}
-                              />
-                              <Label htmlFor={`contact-${contact.id}`} className="text-sm">
-                                {contact.firstName} {contact.lastName}
-                                {contact.role && (
-                                  <span className="text-gray-500 ml-1">({contact.role})</span>
-                                )}
-                              </Label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                  {ungroupedContacts.length > 0 && (
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2 font-medium text-gray-700 border-b border-gray-200 pb-1">
-                        <Label className="text-sm font-semibold">UNGROUPED</Label>
-                      </div>
-                      <div className="space-y-1 ml-6">
-                        {ungroupedContacts.map(contact => (
-                          <div key={contact.id} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`contact-${contact.id}`}
-                              checked={formData.participantIds.includes(contact.id)}
-                              onCheckedChange={(checked) => {
-                                if (checked) {
-                                  setFormData({
-                                    ...formData,
-                                    participantIds: [...formData.participantIds, contact.id],
-                                  });
-                                } else {
-                                  setFormData({
-                                    ...formData,
-                                    participantIds: formData.participantIds.filter(id => id !== contact.id),
-                                  });
-                                }
-                              }}
-                            />
-                            <Label htmlFor={`contact-${contact.id}`} className="text-sm">
-                              {contact.firstName} {contact.lastName}
-                              {contact.role && (
-                                <span className="text-gray-500 ml-1">({contact.role})</span>
-                              )}
-                            </Label>
+                              >
+                                <Checkbox
+                                  checked={formData.participantIds.includes(contact.id)}
+                                  className="pointer-events-none"
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium truncate">
+                                    {contact.firstName} {contact.lastName}
+                                  </p>
+                                  {contact.role && (
+                                    <p className="text-xs text-gray-500 truncate">
+                                      {contact.role}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </>
               );
             })()
