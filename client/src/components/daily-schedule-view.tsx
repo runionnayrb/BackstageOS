@@ -38,6 +38,7 @@ interface DailyScheduleViewProps {
   setShowAllDayEvents?: (show: boolean) => void;
   createEventDialog: boolean;
   setCreateEventDialog: (open: boolean) => void;
+  setCreateEventData: (data: { date?: string; startTime?: string; endTime?: string }) => void;
   viewMode: 'monthly' | 'weekly' | 'daily';
   setViewMode: (mode: 'monthly' | 'weekly' | 'daily') => void;
 }
@@ -95,12 +96,14 @@ export default function DailyScheduleView({
   setShowAllDayEvents,
   createEventDialog,
   setCreateEventDialog,
+  setCreateEventData,
   viewMode,
   setViewMode,
   editingEvent,
   setEditingEvent
 }: DailyScheduleViewProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const calendarRef = useRef<HTMLDivElement>(null);
   const [openPopoverId, setOpenPopoverId] = useState<string | null>(null);
   
   // Multi-select state
@@ -108,6 +111,13 @@ export default function DailyScheduleView({
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
   const isClearingSelectionRef = useRef(false);
+  
+  // Drag-to-create state
+  const [dragState, setDragState] = useState<{
+    isActive: boolean;
+    startTime: number;
+    currentTime: number;
+  } | null>(null);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -299,6 +309,94 @@ export default function DailyScheduleView({
 
   const minutesToPosition = (minutes: number): number => {
     return Math.max(0, minutes - START_MINUTES);
+  };
+
+  const positionToMinutes = (position: number): number => {
+    return position + START_MINUTES;
+  };
+
+  const snapToIncrement = (minutes: number): number => {
+    return Math.round(minutes / timeIncrement) * timeIncrement;
+  };
+
+  // Handle mouse down on empty calendar space to start drag-to-create
+  const handleCalendarMouseDown = (e: React.MouseEvent) => {
+    if (!calendarRef.current || !scrollContainerRef.current) return;
+    
+    // Ignore right clicks
+    if (e.button !== 0) return;
+    
+    // Check if clicking on an event (don't start drag-to-create)
+    const target = e.target as HTMLElement;
+    if (target.closest('[data-event-card]')) return;
+    
+    const rect = calendarRef.current.getBoundingClientRect();
+    const scrollTop = scrollContainerRef.current.scrollTop || 0;
+    const y = e.clientY - rect.top + scrollTop;
+    const minutes = snapToIncrement(positionToMinutes(y));
+    
+    // Track whether drag was cancelled
+    let isCancelled = false;
+    
+    // Start drag creation
+    let dragStateLocal = {
+      isActive: true,
+      startTime: minutes,
+      currentTime: minutes,
+    };
+    
+    setDragState(dragStateLocal);
+    
+    const cleanup = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+    
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      if (!calendarRef.current || !scrollContainerRef.current || isCancelled) return;
+      
+      const rect = calendarRef.current.getBoundingClientRect();
+      const scrollTop = scrollContainerRef.current.scrollTop || 0;
+      const y = moveEvent.clientY - rect.top + scrollTop;
+      const newMinutes = snapToIncrement(positionToMinutes(y));
+      
+      dragStateLocal = { ...dragStateLocal, currentTime: newMinutes };
+      setDragState(dragStateLocal);
+    };
+    
+    const handleKeyDown = (keyEvent: KeyboardEvent) => {
+      if (keyEvent.key === 'Escape') {
+        isCancelled = true;
+        setDragState(null);
+        cleanup();
+      }
+    };
+    
+    const handleMouseUp = () => {
+      if (dragStateLocal.isActive && !isCancelled) {
+        const startTime = Math.min(dragStateLocal.startTime, dragStateLocal.currentTime);
+        const endTime = Math.max(dragStateLocal.startTime, dragStateLocal.currentTime);
+        
+        // Enforce minimum duration of one time increment
+        if (endTime - startTime >= timeIncrement) {
+          const date = formatAsCalendarDate(selectedDate);
+          setCreateEventData({
+            date,
+            startTime: formatTime(startTime),
+            endTime: formatTime(endTime),
+          });
+          setCreateEventDialog(true);
+        }
+      }
+      
+      setDragState(null);
+      cleanup();
+    };
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('keydown', handleKeyDown);
   };
 
   // Fetch project settings
@@ -791,11 +889,13 @@ export default function DailyScheduleView({
                 className="relative bg-white flex-1"
               >
                 <div 
+                  ref={calendarRef}
                   className="relative"
-                  style={{ height: `${containerHeight}px` }}
+                  style={{ height: `${containerHeight}px`, cursor: 'crosshair' }}
+                  onMouseDown={handleCalendarMouseDown}
                 >
                   {/* Time grid background */}
-                  <div className="absolute inset-0">
+                  <div className="absolute inset-0 pointer-events-none">
                     {incrementLines.map((line) => (
                       <div
                         key={`increment-${line.minutes}`}
@@ -1022,6 +1122,27 @@ export default function DailyScheduleView({
                         </Popover>
                       );
                     })}
+
+                  {/* Drag-to-create preview */}
+                  {dragState?.isActive && (
+                    <div
+                      className="absolute text-xs text-white rounded bg-gray-500 opacity-60 pointer-events-none z-30"
+                      style={{
+                        left: '4px',
+                        width: 'calc(100% - 8px)',
+                        top: `${minutesToPosition(Math.min(dragState.startTime, dragState.currentTime))}px`,
+                        height: `${Math.abs(minutesToPosition(dragState.currentTime) - minutesToPosition(dragState.startTime))}px`,
+                        minHeight: '20px',
+                      }}
+                    >
+                      <div className="px-2 py-1 h-full flex flex-col justify-start">
+                        <div className="font-medium truncate">New Event</div>
+                        <div className="text-xs opacity-90 truncate">
+                          {formatTimeDisplay(formatTime(Math.min(dragState.startTime, dragState.currentTime)), timeFormat as '12' | '24')} - {formatTimeDisplay(formatTime(Math.max(dragState.startTime, dragState.currentTime)), timeFormat as '12' | '24')}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

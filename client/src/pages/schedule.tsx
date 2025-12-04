@@ -1462,6 +1462,7 @@ The Production Team`
             setShowAllDayEvents={setShowAllDayEvents}
             createEventDialog={createEventDialog}
             setCreateEventDialog={setCreateEventDialog}
+            setCreateEventData={setCreateEventData}
             viewMode={viewMode}
             setViewMode={setViewMode}
             editingEvent={editingEvent}
