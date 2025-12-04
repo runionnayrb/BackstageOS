@@ -1461,10 +1461,10 @@ export default function WeeklyScheduleView({
                                       <span>{event.participants.length} {event.participants.length === 1 ? 'Person Called' : 'People Called'}</span>
                                     </div>
                                   </PopoverTrigger>
-                                  <PopoverContent className="w-72 p-0" align="start">
+                                  <PopoverContent className="w-72 p-0 max-h-80 overflow-y-auto" align="start">
                                     <div className="p-4 space-y-3">
                                       <h4 className="font-medium text-sm">People Called</h4>
-                                      <div className="space-y-3 max-h-64 overflow-y-auto">
+                                      <div className="space-y-3">
                                         {(() => {
                                           // Group participants by contact category
                                           const participantsByCategory = event.participants.reduce((acc, participant) => {
