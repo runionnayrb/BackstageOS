@@ -738,6 +738,7 @@ export const locationAvailability = pgTable("location_availability", {
 export const scheduleVersions = pgTable("schedule_versions", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  weekStart: varchar("week_start"), // Week start date (Sunday) in YYYY-MM-DD format for weekly versioning
   version: varchar("version").notNull(), // Major version number: "1", "2", "3", etc.
   minorVersion: integer("minor_version").default(0), // Minor version number: 0, 1, 2, etc. Display as major.minor
   versionType: varchar("version_type").notNull(), // 'major' | 'minor'
@@ -747,7 +748,7 @@ export const scheduleVersions = pgTable("schedule_versions", {
   scheduleData: jsonb("schedule_data").notNull(), // complete snapshot of schedule data
   publishedBy: integer("published_by").notNull().references(() => users.id),
   publishedAt: timestamp("published_at").defaultNow(),
-  isCurrent: boolean("is_current").default(false), // current active version
+  isCurrent: boolean("is_current").default(false), // current active version for this week
 });
 
 // Personal schedules for individual contact schedule access

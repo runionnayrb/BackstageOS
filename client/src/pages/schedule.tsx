@@ -476,18 +476,42 @@ The Production Team`
   // Get all contact IDs for "Full Company" toggle
   const allContactIds = contacts.map((contact: any) => contact.id);
 
-  // Get the current published version for dynamic description
+  // Calculate the week start date string for the current viewed week
+  const currentWeekStartStr = useMemo(() => {
+    const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+      ? JSON.parse((settings as any).scheduleSettings) 
+      : ((settings as any)?.scheduleSettings || {});
+    const weekStartDay = scheduleSettings?.weekStartDay || 'sunday';
+    const weekStartDayNumber = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].indexOf(weekStartDay);
+    
+    const startOfWeek = new Date(currentDate);
+    const currentDay = startOfWeek.getDay();
+    const diff = currentDay - weekStartDayNumber;
+    startOfWeek.setDate(startOfWeek.getDate() - (diff < 0 ? diff + 7 : diff));
+    
+    return startOfWeek.toISOString().split('T')[0];
+  }, [currentDate, settings]);
+
+  // Get the current published version for THIS WEEK (weekly versioning)
   const currentPublishedVersion = useMemo(() => {
     if (!scheduleVersions || scheduleVersions.length === 0) return null;
     
+    // Filter versions for the current week only
+    const weekVersions = scheduleVersions.filter((v: any) => v.weekStart === currentWeekStartStr);
+    
+    if (weekVersions.length === 0) return null;
+    
     // Sort versions by published date, latest first
-    const sortedVersions = [...scheduleVersions].sort((a, b) => 
+    const sortedVersions = [...weekVersions].sort((a, b) => 
       new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
     );
     
-    // Return the most recent version
+    // Return the most recent version for this week
     return sortedVersions[0];
-  }, [scheduleVersions]);
+  }, [scheduleVersions, currentWeekStartStr]);
+
+  // Check if the current week is a draft (never been published)
+  const isCurrentWeekDraft = !currentPublishedVersion;
 
   // Calculate week range consistently for template dialogs
   const currentWeekRange = useMemo(() => {
@@ -712,25 +736,27 @@ The Production Team`
 
   // Publish schedule version mutation with optimistic updates for instant UI feedback
   const publishVersionMutation = useMutation({
-    mutationFn: ({ versionType }: { versionType: 'major' | 'minor' }) => {
+    mutationFn: ({ versionType, weekStart }: { versionType: 'major' | 'minor'; weekStart: string }) => {
       return apiRequest('POST', `/api/projects/${projectId}/schedule-versions`, {
-        versionType
+        versionType,
+        weekStart
       });
     },
-    onMutate: async ({ versionType }) => {
+    onMutate: async ({ versionType, weekStart }) => {
       // Cancel any outgoing refetches so they don't overwrite our optimistic update
       await queryClient.cancelQueries({ queryKey: [`/api/projects/${projectId}/schedule-versions`] });
       
       // Snapshot current data for rollback
       const previousVersions = queryClient.getQueryData([`/api/projects/${projectId}/schedule-versions`]);
       
-      // Calculate optimistic version based on current data
+      // Calculate optimistic version based on THIS WEEK's versions only
       const currentVersions = (previousVersions as any[]) || [];
+      const weekVersions = currentVersions.filter((v: any) => v.weekStart === weekStart);
       let newMajor = 1;
       let newMinor = 0;
       
-      if (currentVersions.length > 0) {
-        const sorted = [...currentVersions].sort((a, b) => 
+      if (weekVersions.length > 0) {
+        const sorted = [...weekVersions].sort((a, b) => 
           new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
         );
         const latest = sorted[0];
@@ -750,6 +776,7 @@ The Production Team`
       const optimisticVersion = {
         id: -Date.now(), // Temporary negative ID
         projectId: parseInt(projectId),
+        weekStart, // Track which week this version belongs to
         version: newMajor.toString(),
         minorVersion: newMinor,
         versionType,
@@ -768,7 +795,7 @@ The Production Team`
       setShowPublishVersionConfirm(false);
       toast({
         title: "Schedule published!",
-        description: `Version ${newMajor}.${newMinor} is now live.`,
+        description: `Version ${newMajor}.${newMinor} is now live for this week.`,
       });
       
       return { previousVersions };
@@ -793,7 +820,7 @@ The Production Team`
 
   // Handle publish confirmation
   const handlePublishConfirm = () => {
-    publishVersionMutation.mutate({ versionType: selectedVersionType });
+    publishVersionMutation.mutate({ versionType: selectedVersionType, weekStart: currentWeekStartStr });
   };
 
   // Safe JSON parse helper
@@ -951,9 +978,9 @@ The Production Team`
               <h1 className="hidden md:block text-3xl font-bold text-gray-900">
                 {getHeaderText()}
               </h1>
-              {currentPublishedVersion && (
+              {currentPublishedVersion ? (
                 <p className="text-sm text-gray-600 mt-1">
-                  Version {currentPublishedVersion.version}{currentPublishedVersion.versionType === 'minor' ? `.${currentPublishedVersion.minorVersion || 1}` : '.0'}, Published: {(() => {
+                  Version {currentPublishedVersion.version}.{currentPublishedVersion.minorVersion || 0}, Published: {(() => {
                     try {
                       const date = new Date(currentPublishedVersion.publishedAt);
                       if (isNaN(date.getTime())) {
@@ -986,6 +1013,10 @@ The Production Team`
                       return 'Date formatting error';
                     }
                   })()}
+                </p>
+              ) : (
+                <p className="text-sm text-amber-600 mt-1 font-medium">
+                  This week is unpublished
                 </p>
               )}
             </div>
@@ -1071,9 +1102,9 @@ The Production Team`
                   <Button
                     variant="outline"
                     size="sm"
-                    className="gap-1 text-xs px-2 py-1 h-auto ml-2"
+                    className={`gap-1 text-xs px-2 py-1 h-auto ml-2 ${isCurrentWeekDraft ? 'bg-amber-50 border-amber-200 text-amber-700' : ''}`}
                   >
-                    Publish
+                    {isCurrentWeekDraft ? 'DRAFT' : 'Publish'}
                     <ChevronDown className="h-3 w-3" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -1085,17 +1116,19 @@ The Production Team`
                     }}
                   >
                     <Megaphone className="h-4 w-4 mr-2" />
-                    Major Version
+                    {isCurrentWeekDraft ? 'Publish Week' : 'Major Version'}
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      setSelectedVersionType('minor');
-                      setShowPublishVersionConfirm(true);
-                    }}
-                  >
-                    <Bell className="h-4 w-4 mr-2" />
-                    Minor Version
-                  </DropdownMenuItem>
+                  {!isCurrentWeekDraft && (
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setSelectedVersionType('minor');
+                        setShowPublishVersionConfirm(true);
+                      }}
+                    >
+                      <Bell className="h-4 w-4 mr-2" />
+                      Minor Version
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem
                     onClick={() => {
                       setShowResendScheduleDialog(true);
@@ -1348,8 +1381,8 @@ The Production Team`
               {/* Mobile Publish Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="p-2 h-8 border-0 bg-transparent hover:bg-gray-100 rounded-md transition-colors">
-                    <FileText className="h-4 w-4 text-gray-600" />
+                  <button className={`p-2 h-8 border-0 bg-transparent hover:bg-gray-100 rounded-md transition-colors ${isCurrentWeekDraft ? 'bg-amber-50' : ''}`}>
+                    <FileText className={`h-4 w-4 ${isCurrentWeekDraft ? 'text-amber-600' : 'text-gray-600'}`} />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -1360,17 +1393,19 @@ The Production Team`
                     }}
                   >
                     <Megaphone className="h-4 w-4 mr-2" />
-                    Major Version
+                    {isCurrentWeekDraft ? 'Publish Week' : 'Major Version'}
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      setSelectedVersionType('minor');
-                      setShowPublishVersionConfirm(true);
-                    }}
-                  >
-                    <Bell className="h-4 w-4 mr-2" />
-                    Minor Version
-                  </DropdownMenuItem>
+                  {!isCurrentWeekDraft && (
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setSelectedVersionType('minor');
+                        setShowPublishVersionConfirm(true);
+                      }}
+                    >
+                      <Bell className="h-4 w-4 mr-2" />
+                      Minor Version
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem
                     onClick={() => setShowVersionControl(true)}
                   >
@@ -2243,10 +2278,16 @@ The Production Team`}
       <AlertDialog open={showPublishVersionConfirm} onOpenChange={setShowPublishVersionConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Publish {selectedVersionType === 'major' ? 'Major' : 'Minor'} Version?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {isCurrentWeekDraft 
+                ? 'Publish This Week?' 
+                : `Publish ${selectedVersionType === 'major' ? 'Major' : 'Minor'} Version?`}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              This will create a new {selectedVersionType} version of your schedule and send it to all team members with active calendar subscriptions. 
-              {selectedVersionType === 'major' ? ' Major versions typically indicate significant schedule changes.' : ' Minor versions typically indicate small adjustments or corrections.'}
+              {isCurrentWeekDraft 
+                ? 'This will publish this week\'s schedule (Version 1.0) and make it visible to all team members with personal schedules.'
+                : `This will create a new ${selectedVersionType} version of your schedule and update all team members' personal schedules. ${selectedVersionType === 'major' ? 'Major versions typically indicate significant schedule changes.' : 'Minor versions typically indicate small adjustments or corrections.'}`
+              }
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -2255,7 +2296,11 @@ The Production Team`}
               onClick={handlePublishConfirm}
               disabled={publishVersionMutation.isPending}
             >
-              {publishVersionMutation.isPending ? 'Publishing...' : `Publish ${selectedVersionType === 'major' ? 'Major' : 'Minor'} Version`}
+              {publishVersionMutation.isPending 
+                ? 'Publishing...' 
+                : isCurrentWeekDraft 
+                  ? 'Publish Week'
+                  : `Publish ${selectedVersionType === 'major' ? 'Major' : 'Minor'} Version`}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

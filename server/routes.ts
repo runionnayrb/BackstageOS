@@ -14733,19 +14733,33 @@ Best regards,
         return res.status(403).json({ message: "Access denied" });
       }
 
-      // Get current schedule events to create snapshot
-      const scheduleEvents = await storage.getScheduleEventsByProjectId(projectId);
+      // Get the week start from request body (client sends the current viewed week)
+      const weekStart = req.body.weekStart;
+      if (!weekStart) {
+        return res.status(400).json({ message: "weekStart is required for publishing" });
+      }
       
-      // Get all versions to calculate proper major.minor versioning
+      // Get current schedule events for this week only
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 6);
+      const weekEndStr = weekEnd.toISOString().split('T')[0];
+      
+      const allEvents = await storage.getScheduleEventsByProjectId(projectId);
+      const scheduleEvents = allEvents.filter((event: any) => {
+        return event.date >= weekStart && event.date <= weekEndStr;
+      });
+      
+      // Get versions for THIS WEEK only to calculate weekly versioning
       const allVersions = await storage.getScheduleVersionsByProjectId(projectId);
+      const weekVersions = allVersions.filter((v: any) => v.weekStart === weekStart);
       
-      // Calculate version number based on major.minor logic
+      // Calculate version number based on major.minor logic FOR THIS WEEK
       let newMajorVersion = 1;
       let newMinorVersion = 0;
       
-      if (allVersions.length > 0) {
-        // Sort by publishedAt to get the latest version
-        const sortedVersions = [...allVersions].sort((a, b) => 
+      if (weekVersions.length > 0) {
+        // Sort by publishedAt to get the latest version for this week
+        const sortedVersions = [...weekVersions].sort((a, b) => 
           new Date(b.publishedAt || b.createdAt).getTime() - new Date(a.publishedAt || a.createdAt).getTime()
         );
         const latestVersion = sortedVersions[0];
@@ -14767,6 +14781,7 @@ Best regards,
       
       const versionData = {
         projectId,
+        weekStart, // Track which week this version belongs to
         version: versionString,
         versionType: req.body.versionType,
         minorVersion: newMinorVersion,
@@ -14775,10 +14790,12 @@ Best regards,
         scheduleData: {
           events: scheduleEvents,
           exportedAt: new Date().toISOString(),
-          totalEvents: scheduleEvents.length
+          totalEvents: scheduleEvents.length,
+          weekStart,
+          weekEnd: weekEndStr
         },
         publishedBy: parseInt(req.user.id),
-        isCurrent: true // New version becomes current
+        isCurrent: true // New version becomes current for this week
       };
 
       // Mark all previous versions as not current
@@ -15383,17 +15400,51 @@ The Production Team`;
         return res.status(404).json({ message: "Contact not found" });
       }
 
-      // Get schedule version
-      const version = await storage.getScheduleVersionById(personalSchedule.currentVersionId);
-      if (!version) {
-        return res.status(404).json({ message: "Schedule version not found" });
+      // With weekly versioning, get ALL published versions and combine their events
+      // Only show events from weeks that have been published
+      const allVersions = await storage.getScheduleVersionsByProjectId(personalSchedule.projectId);
+      
+      // Group versions by weekStart and get the latest version for each week
+      const latestVersionsByWeek: Record<string, any> = {};
+      for (const version of allVersions) {
+        if (version.weekStart) {
+          const existing = latestVersionsByWeek[version.weekStart];
+          if (!existing || new Date(version.publishedAt) > new Date(existing.publishedAt)) {
+            latestVersionsByWeek[version.weekStart] = version;
+          }
+        }
       }
+      
+      // Collect all events from all published weeks
+      const allContactEvents: any[] = [];
+      const seenEventIds = new Set<number>();
+      
+      for (const version of Object.values(latestVersionsByWeek)) {
+        const versionEvents = version.scheduleData?.events || [];
+        for (const event of versionEvents) {
+          // Filter for this contact and avoid duplicates
+          if (!seenEventIds.has(event.id) && 
+              event.participants && 
+              event.participants.some((p: any) => p.contactId === contact.id)) {
+            seenEventIds.add(event.id);
+            allContactEvents.push(event);
+          }
+        }
+      }
+      
+      // Sort events by date
+      allContactEvents.sort((a, b) => {
+        const dateA = new Date(`${a.date}T${a.startTime || '00:00:00'}`);
+        const dateB = new Date(`${b.date}T${b.startTime || '00:00:00'}`);
+        return dateA.getTime() - dateB.getTime();
+      });
 
-      // Get events that involve this contact from the version snapshot
-      const allEvents = version.scheduleData?.events || [];
-      const contactEvents = allEvents.filter((event: any) => 
-        event.participants && event.participants.some((p: any) => p.contactId === contact.id)
-      );
+      // Get the most recent version for the response header
+      const latestVersion = allVersions.length > 0 
+        ? allVersions.reduce((latest, v) => 
+            new Date(v.publishedAt) > new Date(latest.publishedAt) ? v : latest
+          )
+        : null;
 
       res.json({
         personalSchedule: {
@@ -15413,15 +15464,16 @@ The Production Team`;
           email: contact.email,
           contactType: contact.contactType
         },
-        version: {
-          id: version.id,
-          version: version.version,
-          versionType: version.versionType,
-          title: version.title,
-          description: version.description,
-          publishedAt: version.publishedAt
-        },
-        events: contactEvents
+        version: latestVersion ? {
+          id: latestVersion.id,
+          version: latestVersion.version,
+          versionType: latestVersion.versionType,
+          minorVersion: latestVersion.minorVersion,
+          title: latestVersion.title,
+          description: latestVersion.description,
+          publishedAt: latestVersion.publishedAt
+        } : null,
+        events: allContactEvents
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch personal schedule" });
@@ -15461,20 +15513,52 @@ The Production Team`;
         return res.status(404).send('Contact not found');
       }
 
-      // Get schedule version
-      const version = await storage.getScheduleVersionById(personalSchedule.versionId);
-      if (!version) {
-        return res.status(404).send('Schedule version not found');
+      // With weekly versioning, get ALL published versions and combine their events
+      const allVersions = await storage.getScheduleVersionsByProjectId(personalSchedule.projectId);
+      
+      // Group versions by weekStart and get the latest version for each week
+      const latestVersionsByWeek: Record<string, any> = {};
+      for (const version of allVersions) {
+        if (version.weekStart) {
+          const existing = latestVersionsByWeek[version.weekStart];
+          if (!existing || new Date(version.publishedAt) > new Date(existing.publishedAt)) {
+            latestVersionsByWeek[version.weekStart] = version;
+          }
+        }
       }
+      
+      // Collect all events from all published weeks for this contact
+      const allContactEvents: any[] = [];
+      const seenEventIds = new Set<number>();
+      
+      for (const version of Object.values(latestVersionsByWeek)) {
+        const versionEvents = version.scheduleData?.events || [];
+        for (const event of versionEvents) {
+          if (!seenEventIds.has(event.id) && 
+              event.participants && 
+              event.participants.some((p: any) => p.contactId === contact.id)) {
+            seenEventIds.add(event.id);
+            allContactEvents.push(event);
+          }
+        }
+      }
+      
+      // Sort events by date
+      allContactEvents.sort((a, b) => {
+        const dateA = new Date(`${a.date}T${a.startTime || '00:00:00'}`);
+        const dateB = new Date(`${b.date}T${b.startTime || '00:00:00'}`);
+        return dateA.getTime() - dateB.getTime();
+      });
 
-      // Get events that involve this contact from the version snapshot
-      const allEvents = version.scheduleData?.events || [];
-      const contactEvents = allEvents.filter((event: any) => 
-        event.participants && event.participants.some((p: any) => p.contactId === contact.id)
-      );
+      // Get the most recent version for metadata
+      const latestVersion = allVersions.length > 0 
+        ? allVersions.reduce((latest, v) => 
+            new Date(v.publishedAt) > new Date(latest.publishedAt) ? v : latest
+          )
+        : null;
 
       // Generate ICS file content with calendar subscription headers
-      const icsContent = generatePersonalScheduleICSSubscriptionContent(contactEvents, project, contact, version, req.get('host'));
+      const icsContent = generatePersonalScheduleICSSubscriptionContent(allContactEvents, project, contact, latestVersion, req.get('host'));
 
       // Set headers for dynamic calendar subscription
       res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
