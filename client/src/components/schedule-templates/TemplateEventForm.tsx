@@ -217,33 +217,31 @@ export default function TemplateEventForm({
               const allContactIds = contacts.filter(c => c.contactGroup?.name).map(c => c.id);
 
               const handleSelectAll = () => {
-                setFormData({
-                  ...formData,
-                  participantIds: [...new Set([...formData.participantIds, ...allContactIds])],
-                });
+                setFormData(prev => ({
+                  ...prev,
+                  participantIds: [...new Set([...prev.participantIds, ...allContactIds])],
+                }));
               };
 
               const handleClearAll = () => {
-                setFormData({
-                  ...formData,
-                  participantIds: formData.participantIds.filter(id => !allContactIds.includes(id)),
-                });
+                setFormData(prev => ({
+                  ...prev,
+                  participantIds: prev.participantIds.filter(id => !allContactIds.includes(id)),
+                }));
               };
 
-              const handleSelectGroupAll = (groupContacts: typeof contacts) => {
-                const groupContactIds = groupContacts.map(c => c.id);
-                setFormData({
-                  ...formData,
-                  participantIds: [...new Set([...formData.participantIds, ...groupContactIds])],
-                });
+              const handleSelectGroupAll = (groupContactIds: number[]) => {
+                setFormData(prev => ({
+                  ...prev,
+                  participantIds: [...new Set([...prev.participantIds, ...groupContactIds])],
+                }));
               };
 
-              const handleSelectGroupNone = (groupContacts: typeof contacts) => {
-                const groupContactIds = groupContacts.map(c => c.id);
-                setFormData({
-                  ...formData,
-                  participantIds: formData.participantIds.filter(id => !groupContactIds.includes(id)),
-                });
+              const handleSelectGroupNone = (groupContactIds: number[]) => {
+                setFormData(prev => ({
+                  ...prev,
+                  participantIds: prev.participantIds.filter(id => !groupContactIds.includes(id)),
+                }));
               };
 
               const sortedGroups = Object.keys(contactsByGroup).sort((a, b) => {
@@ -283,6 +281,7 @@ export default function TemplateEventForm({
                   <div className="p-2">
                     {sortedGroups.map((groupName) => {
                       const groupContacts = contactsByGroup[groupName];
+                      const groupContactIds = groupContacts.map(c => c.id);
 
                       return (
                         <div key={groupName} className="mb-4">
@@ -293,7 +292,7 @@ export default function TemplateEventForm({
                                 type="button"
                                 variant="outline"
                                 size="sm"
-                                onClick={() => handleSelectGroupAll(groupContacts)}
+                                onClick={() => handleSelectGroupAll(groupContactIds)}
                                 className="text-xs px-2 py-1 h-5"
                               >
                                 All
@@ -302,7 +301,7 @@ export default function TemplateEventForm({
                                 type="button"
                                 variant="outline"
                                 size="sm"
-                                onClick={() => handleSelectGroupNone(groupContacts)}
+                                onClick={() => handleSelectGroupNone(groupContactIds)}
                                 className="text-xs px-2 py-1 h-5"
                               >
                                 None
@@ -315,17 +314,12 @@ export default function TemplateEventForm({
                                 key={contact.id}
                                 className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer"
                                 onClick={() => {
-                                  if (formData.participantIds.includes(contact.id)) {
-                                    setFormData({
-                                      ...formData,
-                                      participantIds: formData.participantIds.filter(id => id !== contact.id),
-                                    });
-                                  } else {
-                                    setFormData({
-                                      ...formData,
-                                      participantIds: [...formData.participantIds, contact.id],
-                                    });
-                                  }
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    participantIds: prev.participantIds.includes(contact.id)
+                                      ? prev.participantIds.filter(id => id !== contact.id)
+                                      : [...prev.participantIds, contact.id],
+                                  }));
                                 }}
                               >
                                 <Checkbox
