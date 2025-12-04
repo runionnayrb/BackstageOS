@@ -855,7 +855,7 @@ export default function DailyScheduleView({
                                 width: eventWidth,
                                 backgroundColor: eventTypeColor,
                                 border: `1px solid ${darkenColor(eventTypeColor, 25)}`,
-                                padding: isCenterableShortEvent ? '0 8px' : (isVeryShortEvent ? '2px 4px' : '8px'),
+                                padding: isCenterableShortEvent ? '0 8px' : (isVeryShortEvent ? '2px 4px' : '6px 8px 8px 8px'),
                               }}
                               onMouseDown={(e) => handleEventMouseDown(e, event.id)}
                             >
