@@ -36,7 +36,7 @@ interface Contact {
 
 interface ContactFormProps {
   projectId: string;
-  category: string;
+  category?: string;
   contact?: Contact | null;
   onClose: () => void;
   onSuccess: () => void;
@@ -235,14 +235,10 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
     }
   };
 
-  const ContactGroupSelect = () => {
-    const { data: contactGroups = [] } = useQuery({
-      queryKey: [`/api/projects/${projectId}/contact-groups`],
-    });
-    
+  const renderContactGroupOptions = () => {
     return (
       <>
-        {contactGroups.map((group) => (
+        {contactGroups.map((group: any) => (
           <SelectItem key={group.id} value={group.id.toString()}>
             {group.name}
           </SelectItem>
@@ -366,7 +362,7 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
                     <SelectValue placeholder="Select a group..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <ContactGroupSelect projectId={projectId} />
+                    {renderContactGroupOptions()}
                   </SelectContent>
                 </Select>
               </div>

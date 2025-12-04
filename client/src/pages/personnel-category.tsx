@@ -64,7 +64,11 @@ export default function PersonnelCategory() {
   
   // Parse group param: "group-123" -> groupId 123, "unassigned" -> null
   const isUnassigned = groupParam === 'unassigned';
-  const groupId = groupParam.startsWith('group-') ? parseInt(groupParam.slice(6)) : null;
+  const parsedGroupId = groupParam.startsWith('group-') ? parseInt(groupParam.slice(6)) : null;
+  const groupId = (parsedGroupId !== null && !isNaN(parsedGroupId)) ? parsedGroupId : null;
+  
+  // If the URL has a malformed group ID (e.g., group-abc), treat as invalid
+  const isInvalidGroupParam = groupParam.startsWith('group-') && (parsedGroupId === null || isNaN(parsedGroupId));
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
 
@@ -188,6 +192,21 @@ export default function PersonnelCategory() {
     // Priority 3: Fallback to mailto if no email system setup
     window.location.href = `mailto:${contactEmail}`;
   };
+
+  // Guard against invalid group URL parameters
+  if (isInvalidGroupParam) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-semibold text-foreground mb-2">Invalid Group</h1>
+          <p className="text-muted-foreground mb-4">The group URL is invalid or malformed.</p>
+          <Button onClick={() => setLocation(`/shows/${projectId}/contacts`)}>
+            Go to Contacts
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
