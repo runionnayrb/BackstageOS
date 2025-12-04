@@ -26,7 +26,8 @@ interface Contact {
   lastName: string;
   email?: string;
   phone?: string;
-  category: string;
+  groupId?: number;
+  contactGroup?: { name: string };
   role?: string;
   notes?: string;
   emergencyContactName?: string;
@@ -44,15 +45,15 @@ export default function PersonnelCategory() {
   const [, setLocation] = useLocation();
   const params = useParams<PersonnelCategoryParams>();
   const projectId = params.id;
-  const category = params.category;
+  const groupParam = params.category;
 
   // Guard against missing parameters
-  if (!projectId || !category) {
+  if (!projectId || !groupParam) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-semibold text-foreground mb-2">Personnel Category Not Found</h1>
-          <p className="text-muted-foreground mb-4">The personnel category you're looking for doesn't exist or the URL is invalid.</p>
+          <h1 className="text-2xl font-semibold text-foreground mb-2">Personnel Group Not Found</h1>
+          <p className="text-muted-foreground mb-4">The personnel group you're looking for doesn't exist or the URL is invalid.</p>
           <Button onClick={() => setLocation('/shows')}>
             Go to Shows
           </Button>
@@ -60,6 +61,10 @@ export default function PersonnelCategory() {
       </div>
     );
   }
+  
+  // Parse group param: "group-123" -> groupId 123, "unassigned" -> null
+  const isUnassigned = groupParam === 'unassigned';
+  const groupId = groupParam.startsWith('group-') ? parseInt(groupParam.slice(6)) : null;
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
 
@@ -93,20 +98,25 @@ export default function PersonnelCategory() {
     queryKey: ['/api/email/accounts'],
     retry: false,
   });
+  
+  // Query for contact groups to get the group name
+  const { data: contactGroups = [] } = useQuery<any[]>({
+    queryKey: [`/api/projects/${projectId}/contact-groups`],
+  });
 
-  // Filter contacts by category
-  const categoryContacts = contacts.filter((contact: Contact) => contact.category === category);
-
-  // Get category display name
-  const getCategoryTitle = (cat: string) => {
-    switch (cat) {
-      case 'cast': return 'Cast';
-      case 'crew': return 'Crew';
-      case 'stage_management': return 'Stage Management';
-      case 'creative_team': return 'Creative Team';
-      case 'theater_staff': return 'Theater Staff';
-      default: return cat;
+  // Filter contacts by group
+  const groupContacts = contacts.filter((contact: Contact) => {
+    if (isUnassigned) {
+      return !contact.groupId;
     }
+    return contact.groupId === groupId;
+  });
+
+  // Get group display name
+  const getGroupTitle = () => {
+    if (isUnassigned) return 'Unassigned';
+    const group = contactGroups.find((g: any) => g.id === groupId);
+    return group?.name || 'Unknown Group';
   };
 
   const handleContactClick = (contact: Contact) => {
@@ -203,9 +213,9 @@ export default function PersonnelCategory() {
 
         <div className="mb-8 flex justify-between items-start">
           <div>
-            <h1 className="text-3xl font-bold">{getCategoryTitle(category)}</h1>
+            <h1 className="text-3xl font-bold">{getGroupTitle()}</h1>
             <p className="text-gray-500 mt-2">
-              {categoryContacts.length} contact{categoryContacts.length !== 1 ? 's' : ''}
+              {groupContacts.length} contact{groupContacts.length !== 1 ? 's' : ''}
             </p>
           </div>
           <Button onClick={handleAddContact} className="flex items-center gap-2">
@@ -216,16 +226,16 @@ export default function PersonnelCategory() {
 
         {/* Contact List */}
         <div className="max-w-4xl mx-auto">
-          {categoryContacts.length === 0 ? (
+          {groupContacts.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-500 mb-4">No contacts in this category yet</p>
+              <p className="text-gray-500 mb-4">No contacts in this group yet</p>
               <Button onClick={handleAddContact} variant="outline">
                 Add First Contact
               </Button>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {categoryContacts.map((contact: Contact) => (
+              {groupContacts.map((contact: Contact) => (
                 <div
                   key={contact.id}
                   className="group p-4 cursor-pointer transition-colors hover:bg-gray-50 rounded-lg"
@@ -296,7 +306,7 @@ export default function PersonnelCategory() {
             </DialogHeader>
             <ContactForm
               projectId={projectId}
-              category={category}
+              category={groupParam}
               contact={editingContact}
               onClose={handleFormModalClose}
               onSuccess={handleFormSuccess}

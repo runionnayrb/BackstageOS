@@ -83,7 +83,6 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
     phone: contact?.phone ? formatPhoneNumber(contact.phone) : "",
     whatsapp: contact?.whatsapp ? formatPhoneNumber(contact.whatsapp) : "",
     groupId: contact?.groupId || "",
-    category: contact?.category || "",
     role: contact?.role || "",
     notes: contact?.notes || "",
     emergencyContactName: contact?.emergencyContactName || "",
@@ -100,6 +99,18 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Query contact groups for determining if selected group is "Cast"
+  const { data: contactGroups = [] } = useQuery<any[]>({
+    queryKey: [`/api/projects/${projectId}/contact-groups`],
+  });
+  
+  // Helper to check if the selected group is "Cast"
+  const isSelectedGroupCast = () => {
+    if (!formData.groupId) return false;
+    const selectedGroup = contactGroups.find((g: any) => g.id === parseInt(formData.groupId.toString()));
+    return selectedGroup?.name === 'Cast';
+  };
 
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -191,8 +202,8 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
       whatsapp: formData.whatsapp,
       emergencyContactPhone: parsePhoneNumber(formData.emergencyContactPhone),
       groupId: formData.groupId ? parseInt(formData.groupId) : null,
-      // Only include equity status for cast members
-      equityStatus: formData.category === 'cast' ? formData.equityStatus : null,
+      // Only include equity status for cast members (contacts in "Cast" group)
+      equityStatus: isSelectedGroupCast() ? formData.equityStatus : null,
     };
     
     console.log("ContactForm submission data:", data);
