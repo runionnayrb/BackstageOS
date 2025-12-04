@@ -450,6 +450,7 @@ export interface IStorage {
 
   // Contact groups operations
   getContactGroupsByProjectId(projectId: number): Promise<ContactGroup[]>;
+  getContactGroupById(id: number): Promise<ContactGroup | undefined>;
   createContactGroup(group: InsertContactGroup): Promise<ContactGroup>;
   updateContactGroup(id: number, group: Partial<InsertContactGroup>): Promise<ContactGroup>;
   deleteContactGroup(id: number): Promise<void>;
@@ -2828,6 +2829,13 @@ export class DatabaseStorage implements IStorage {
       .where(eq(contactGroups.projectId, projectId))
       .orderBy(contactGroups.sortOrder, contactGroups.name);
     return result;
+  }
+
+  async getContactGroupById(id: number): Promise<ContactGroup | undefined> {
+    const result = await db.select()
+      .from(contactGroups)
+      .where(eq(contactGroups.id, id));
+    return result[0];
   }
 
   async createContactGroup(group: InsertContactGroup & { createdBy?: number }): Promise<ContactGroup> {
