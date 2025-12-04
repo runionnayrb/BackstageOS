@@ -808,6 +808,7 @@ export default function DailyScheduleView({
                       const isVeryShortEvent = durationMinutes <= 10;
                       const isCompactEvent = durationMinutes <= 30; // Time on same line as title
                       const isCenterableShortEvent = durationMinutes >= 5 && durationMinutes <= 30;
+                      const isCenterableMediumEvent = durationMinutes > 30 && durationMinutes <= 60; // Stacked layout but centered
 
                       // Get layout for overlapping events
                       const layout = eventLayouts.get(event.id);
@@ -845,6 +846,7 @@ export default function DailyScheduleView({
                               className={`absolute rounded text-sm overflow-hidden cursor-pointer hover:opacity-90 ${
                                 isLightColor(eventTypeColor) ? 'text-gray-900' : 'text-white'
                               } ${isCenterableShortEvent ? 'flex items-center' : ''
+                              } ${isCenterableMediumEvent ? 'flex flex-col justify-center' : ''
                               } ${selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''}`}
                               style={{
                                 top: `${top}px`,

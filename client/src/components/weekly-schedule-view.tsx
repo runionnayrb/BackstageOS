@@ -1611,6 +1611,7 @@ export default function WeeklyScheduleView({
                   const isVeryShortEvent = durationMinutes <= 10;
                   const isCompactEvent = durationMinutes <= 30; // Time on same line as title
                   const isCenterableShortEvent = durationMinutes >= 5 && durationMinutes <= 30;
+                  const isCenterableMediumEvent = durationMinutes > 30 && durationMinutes <= 60; // Stacked layout but centered
 
                   // Get layout for overlapping events
                   const dayLayouts = eventLayoutsByDay.get(dayIndex);
@@ -1654,7 +1655,8 @@ export default function WeeklyScheduleView({
                             isLightColor(eventTypeColor) ? 'text-gray-900' : 'text-white'
                           } ${selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''
                           } ${draggedEvent?.event.id === event.id && draggedEvent.isDragging ? 'opacity-50' : ''
-                          } ${isCenterableShortEvent ? 'flex items-center' : ''}`}
+                          } ${isCenterableShortEvent ? 'flex items-center' : ''
+                          } ${isCenterableMediumEvent ? 'flex flex-col justify-center' : ''}`}
                           style={{
                             left: eventLeft,
                             width: eventWidth,
