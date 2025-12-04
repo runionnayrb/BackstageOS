@@ -2057,15 +2057,6 @@ function CreateEventForm({
         </div>
       </div>
 
-      <div>
-        <Label htmlFor="description">Description</Label>
-        <Textarea
-          id="description"
-          value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-        />
-      </div>
-
       <div className="grid grid-cols-3 gap-4">
         <div>
           <Label htmlFor="date">Date</Label>
@@ -2156,6 +2147,15 @@ function CreateEventForm({
             </div>
           ))}
         </div>
+      </div>
+
+      <div>
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+        />
       </div>
 
       <div className="flex justify-end space-x-2">
@@ -2300,15 +2300,6 @@ function EditEventForm({
       </div>
 
       <div>
-        <Label htmlFor="description">Description</Label>
-        <Textarea
-          id="description"
-          value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-        />
-      </div>
-
-      <div>
         <Label htmlFor="notes">Notes</Label>
         <Textarea
           id="notes"
@@ -2345,6 +2336,15 @@ function EditEventForm({
             </div>
           ))}
         </div>
+      </div>
+
+      <div>
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+        />
       </div>
 
       <div className="flex justify-end space-x-2">

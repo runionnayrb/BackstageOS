@@ -202,18 +202,6 @@ export default function TemplateEventForm({
       </div>
 
       <div>
-        <Label htmlFor="description">Description</Label>
-        <Textarea
-          id="description"
-          value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          placeholder="Brief description of the event..."
-          rows={2}
-          data-testid="input-template-description"
-        />
-      </div>
-
-      <div>
         <Label>Participants</Label>
         <div className="space-y-3 max-h-60 overflow-y-auto border rounded-md p-3">
           {contacts.length === 0 ? (
@@ -351,6 +339,18 @@ export default function TemplateEventForm({
             })()
           )}
         </div>
+      </div>
+
+      <div>
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          placeholder="Brief description of the event..."
+          rows={2}
+          data-testid="input-template-description"
+        />
       </div>
 
       <div>
