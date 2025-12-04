@@ -557,16 +557,16 @@ The Production Team`
   };
 
   // Organize personal schedules by contact group (from Manage Contact Groups)
+  // Only use contact group names - no fallback to old category field
   const organizedSchedules = personalSchedules.reduce((acc: any, schedule: any) => {
     if (schedule.contact) {
-      // Use contact group name if available, otherwise fall back to category
-      const groupName = schedule.contact.contactGroup?.name || schedule.contact.category || 'Other';
-      const typeName = groupName.charAt(0).toUpperCase() + groupName.slice(1).replace(/_/g, ' ');
+      // Use contact group name only - show "Unassigned" for contacts without a group
+      const groupName = schedule.contact.contactGroup?.name || 'Unassigned';
       
-      if (!acc[typeName]) {
-        acc[typeName] = [];
+      if (!acc[groupName]) {
+        acc[groupName] = [];
       }
-      acc[typeName].push({
+      acc[groupName].push({
         name: `${schedule.contact.firstName || ''} ${schedule.contact.lastName || ''}`.trim() || schedule.contact.email || 'Unknown Contact',
         token: schedule.accessToken,
         contactId: schedule.contact.id
