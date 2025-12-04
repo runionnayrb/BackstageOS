@@ -1,27 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format, addDays, startOfWeek } from "date-fns";
-import { CalendarIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
 import EventTypeSelect from "@/components/event-type-select";
 import LocationSelect from "@/components/location-select";
-
-function getNextDateForDayOfWeek(dayOfWeek: number, referenceWeekStart?: Date): Date {
-  const today = referenceWeekStart || new Date();
-  const currentDayOfWeek = today.getDay();
-  let daysUntilTarget = dayOfWeek - currentDayOfWeek;
-  if (daysUntilTarget < 0) {
-    daysUntilTarget += 7;
-  }
-  return addDays(today, daysUntilTarget);
-}
 
 interface EventType {
   id: number;
@@ -48,7 +33,6 @@ interface TemplateEventFormProps {
   onSubmit: (data: any) => void;
   onCancel: () => void;
   showButtons?: boolean;
-  weekStartDate?: Date;
   initialValues?: {
     title?: string;
     description?: string;
@@ -81,34 +65,21 @@ export default function TemplateEventForm({
   onSubmit,
   onCancel,
   showButtons = true,
-  weekStartDate,
   initialValues
 }: TemplateEventFormProps) {
-  const initialDayOfWeek = initialValues?.dayOfWeek ?? 1;
-  
   const [formData, setFormData] = useState({
     title: initialValues?.title || '',
     description: initialValues?.description || '',
     type: initialValues?.type || '',
-    dayOfWeek: initialDayOfWeek,
+    dayOfWeek: initialValues?.dayOfWeek ?? 1,
     startTime: initialValues?.startTime?.slice(0, 5) || '09:00',
     endTime: initialValues?.endTime?.slice(0, 5) || '10:00',
     location: initialValues?.location || '',
     notes: initialValues?.notes || '',
     isAllDay: initialValues?.isAllDay ?? false,
-    addToProductionCalendar: false,
-    productionDate: getNextDateForDayOfWeek(initialDayOfWeek, weekStartDate),
+    isProductionLevel: initialValues?.isProductionLevel ?? false,
     participantIds: initialValues?.participantIds || [] as number[],
   });
-
-  useEffect(() => {
-    if (formData.addToProductionCalendar) {
-      setFormData(prev => ({
-        ...prev,
-        productionDate: getNextDateForDayOfWeek(prev.dayOfWeek, weekStartDate)
-      }));
-    }
-  }, [formData.dayOfWeek, weekStartDate]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,9 +88,6 @@ export default function TemplateEventForm({
       location: formData.location?.trim() || null,
       description: formData.description?.trim() || null,
       notes: formData.notes?.trim() || null,
-      productionDate: formData.addToProductionCalendar && formData.productionDate 
-        ? format(formData.productionDate, 'yyyy-MM-dd') 
-        : null,
     };
     onSubmit(cleanedData);
   };
@@ -210,54 +178,17 @@ export default function TemplateEventForm({
           <Label htmlFor="isAllDay">All Day Event</Label>
         </div>
         
-        <div className="space-y-2">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="addToProductionCalendar"
-              checked={formData.addToProductionCalendar}
-              onCheckedChange={(checked) => setFormData({ 
-                ...formData, 
-                addToProductionCalendar: !!checked,
-                productionDate: checked 
-                  ? getNextDateForDayOfWeek(formData.dayOfWeek, weekStartDate) 
-                  : null
-              })}
-              data-testid="checkbox-add-to-production-calendar"
-            />
-            <Label htmlFor="addToProductionCalendar" className="flex items-center space-x-2">
-              <span>Also add to Production Calendar</span>
-              <span className="text-xs text-muted-foreground">(Create a copy on a specific date)</span>
-            </Label>
-          </div>
-          
-          {formData.addToProductionCalendar && (
-            <div className="ml-6">
-              <Label className="text-sm mb-1 block">Select Date for Production Calendar</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-[240px] justify-start text-left font-normal",
-                      !formData.productionDate && "text-muted-foreground"
-                    )}
-                    data-testid="button-production-date"
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.productionDate ? format(formData.productionDate, "PPP") : "Pick a date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={formData.productionDate || undefined}
-                    onSelect={(date) => setFormData({ ...formData, productionDate: date || null })}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-          )}
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="isProductionLevel"
+            checked={formData.isProductionLevel}
+            onCheckedChange={(checked) => setFormData({ ...formData, isProductionLevel: !!checked })}
+            data-testid="checkbox-production-level"
+          />
+          <Label htmlFor="isProductionLevel" className="flex items-center space-x-2">
+            <span>Add to Production Calendar</span>
+            <span className="text-xs text-muted-foreground">(When template is applied to a week)</span>
+          </Label>
         </div>
       </div>
 

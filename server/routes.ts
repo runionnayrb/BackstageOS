@@ -8508,11 +8508,9 @@ Best regards,
         return res.status(403).json({ message: "Access denied" });
       }
 
-      // Extract participants and addToProductionCalendar before schema validation
+      // Extract participants before schema validation
       const participantIds = req.body.participantIds || [];
-      const addToProductionCalendar = req.body.addToProductionCalendar || false;
-      const productionDate = req.body.productionDate || null;
-      const { participantIds: _, addToProductionCalendar: __, productionDate: ___, ...eventBody } = req.body;
+      const { participantIds: _, ...eventBody } = req.body;
 
       const eventData = insertScheduleTemplateEventSchema.parse({
         ...eventBody,
@@ -8532,40 +8530,8 @@ Best regards,
         }
       }
 
-      // If addToProductionCalendar is true, create a corresponding production event
-      let productionEvent = null;
-      if (addToProductionCalendar && productionDate) {
-        const productionEventData = {
-          projectId: template.projectId,
-          title: event.title,
-          description: event.description || null,
-          date: productionDate,
-          startTime: event.startTime,
-          endTime: event.endTime,
-          type: event.type,
-          eventTypeId: event.eventTypeId || null,
-          location: event.location || null,
-          notes: event.notes || null,
-          isAllDay: event.isAllDay || false,
-          isProductionLevel: true,
-          createdBy: parseInt(req.user.id.toString()),
-        };
-        productionEvent = await storage.createScheduleEvent(productionEventData);
-        
-        // Copy participants to the production event
-        if (participantIds && Array.isArray(participantIds)) {
-          for (const contactId of participantIds) {
-            await storage.addScheduleEventParticipant({
-              eventId: productionEvent.id,
-              contactId,
-              isRequired: true,
-            });
-          }
-        }
-      }
-
       const participants = await storage.getScheduleTemplateEventParticipants(event.id);
-      res.json({ ...event, participants, productionEvent });
+      res.json({ ...event, participants });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid event data", errors: error.errors });
@@ -8600,11 +8566,9 @@ Best regards,
         return res.status(403).json({ message: "Access denied" });
       }
 
-      // Extract participants and addToProductionCalendar before schema validation
+      // Extract participants before schema validation
       const participantIds = req.body.participantIds || [];
-      const addToProductionCalendar = req.body.addToProductionCalendar || false;
-      const productionDate = req.body.productionDate || null;
-      const { participantIds: _, addToProductionCalendar: __, productionDate: ___, ...updateBody } = req.body;
+      const { participantIds: _, ...updateBody } = req.body;
 
       const updateSchema = insertScheduleTemplateEventSchema.partial().omit({
         templateId: true,
@@ -8625,40 +8589,8 @@ Best regards,
         }
       }
 
-      // If addToProductionCalendar is true, create a corresponding production event
-      let productionEvent = null;
-      if (addToProductionCalendar && productionDate) {
-        const productionEventData = {
-          projectId: template.projectId,
-          title: updatedEvent.title,
-          description: updatedEvent.description || null,
-          date: productionDate,
-          startTime: updatedEvent.startTime,
-          endTime: updatedEvent.endTime,
-          type: updatedEvent.type,
-          eventTypeId: updatedEvent.eventTypeId || null,
-          location: updatedEvent.location || null,
-          notes: updatedEvent.notes || null,
-          isAllDay: updatedEvent.isAllDay || false,
-          isProductionLevel: true,
-          createdBy: parseInt(req.user.id.toString()),
-        };
-        productionEvent = await storage.createScheduleEvent(productionEventData);
-        
-        // Copy participants to the production event
-        if (participantIds && Array.isArray(participantIds)) {
-          for (const contactId of participantIds) {
-            await storage.addScheduleEventParticipant({
-              eventId: productionEvent.id,
-              contactId,
-              isRequired: true,
-            });
-          }
-        }
-      }
-
       const participants = await storage.getScheduleTemplateEventParticipants(eventId);
-      res.json({ ...updatedEvent, participants, productionEvent });
+      res.json({ ...updatedEvent, participants });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid event data", errors: error.errors });
@@ -8904,6 +8836,37 @@ Best regards,
         }
 
         createdEvents.push(newEvent);
+
+        // If template event is marked for production calendar, create a production level event
+        if (templateEvent.isProductionLevel) {
+          const productionEvent = await storage.createScheduleEvent({
+            projectId: template.projectId,
+            date: eventInfo.targetDate,
+            title: templateEvent.title,
+            description: templateEvent.description,
+            startTime: templateEvent.startTime,
+            endTime: templateEvent.endTime,
+            type: templateEvent.type || 'rehearsal',
+            eventTypeId: templateEvent.eventTypeId,
+            location: templateEvent.location,
+            notes: templateEvent.notes,
+            isAllDay: templateEvent.isAllDay || false,
+            isProductionLevel: true,
+            createdBy: parseInt(req.user.id.toString()),
+          });
+
+          // Add participants to production event
+          for (const participant of participants) {
+            await storage.addEventParticipant({
+              eventId: productionEvent.id,
+              contactId: participant.contactId,
+              isRequired: participant.isRequired,
+              notes: participant.notes,
+            });
+          }
+
+          createdEvents.push(productionEvent);
+        }
       }
 
       res.json({
