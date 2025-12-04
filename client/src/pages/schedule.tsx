@@ -403,9 +403,33 @@ The Production Team`
       return response;
     },
     onSuccess: (data) => {
+      const eventsCreated = data.createdEvents?.length || 0;
+      
+      // Immediately update cache with new events for instant UI update
+      if (data.createdEvents && data.createdEvents.length > 0) {
+        // Update the general schedule events cache
+        queryClient.setQueryData(
+          [`/api/projects/${projectId}/schedule-events`],
+          (oldData: any[] | undefined) => {
+            if (!oldData) return data.createdEvents;
+            return [...oldData, ...data.createdEvents];
+          }
+        );
+        
+        // Also update any date-filtered caches that might be active
+        queryClient.setQueriesData(
+          { queryKey: ['/api/projects', projectId, 'schedule-events'] },
+          (oldData: any[] | undefined) => {
+            if (!oldData) return oldData;
+            return [...oldData, ...data.createdEvents];
+          }
+        );
+      }
+      
+      // Still invalidate to ensure eventual consistency with server
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
-      const eventsCreated = data.createdEvents?.length || 0;
+      
       toast({
         title: "Template Applied",
         description: `Created ${eventsCreated} events from template.`,
