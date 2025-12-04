@@ -1590,6 +1590,7 @@ export default function WeeklyScheduleView({
                   const durationMinutes = endMinutes - startMinutes;
                   const isShortEvent = durationMinutes <= 15;
                   const isVeryShortEvent = durationMinutes <= 10;
+                  const isUnderOneHour = durationMinutes < 60;
                   const isCenterableShortEvent = durationMinutes >= 5 && durationMinutes <= 30;
 
                   // Get layout for overlapping events
@@ -1647,21 +1648,33 @@ export default function WeeklyScheduleView({
                           onMouseDown={(e) => handleEventMouseDown(e, event)}
                           onContextMenu={(e) => e.preventDefault()}
                         >
-                          <div className="font-medium truncate">{event.title}</div>
-                          {!isShortEvent && (
-                            <div className="text-xs opacity-90 truncate">
-                              {(() => {
-                                // Use dragged position times if this event is being dragged
+                          {isUnderOneHour ? (
+                            <div className="font-medium truncate">
+                              {event.title} {(() => {
                                 if (draggedEvent?.event.id === event.id && draggedEvent.isDragging) {
                                   const dragStartMinutes = draggedEvent.currentPosition.startMinutes;
                                   const duration = endMinutes - startMinutes;
                                   const dragEndMinutes = dragStartMinutes + duration;
                                   return `${formatTimeDisplay(formatTime(dragStartMinutes), timeFormat as '12' | '24')} - ${formatTimeDisplay(formatTime(dragEndMinutes), timeFormat as '12' | '24')}`;
                                 }
-                                // Use normal times for non-dragged events
                                 return `${formatTimeDisplay(formatTime(startMinutes), timeFormat as '12' | '24')} - ${formatTimeDisplay(formatTime(endMinutes), timeFormat as '12' | '24')}`;
                               })()}
                             </div>
+                          ) : (
+                            <>
+                              <div className="font-medium truncate">{event.title}</div>
+                              <div className="text-xs opacity-90 truncate">
+                                {(() => {
+                                  if (draggedEvent?.event.id === event.id && draggedEvent.isDragging) {
+                                    const dragStartMinutes = draggedEvent.currentPosition.startMinutes;
+                                    const duration = endMinutes - startMinutes;
+                                    const dragEndMinutes = dragStartMinutes + duration;
+                                    return `${formatTimeDisplay(formatTime(dragStartMinutes), timeFormat as '12' | '24')} - ${formatTimeDisplay(formatTime(dragEndMinutes), timeFormat as '12' | '24')}`;
+                                  }
+                                  return `${formatTimeDisplay(formatTime(startMinutes), timeFormat as '12' | '24')} - ${formatTimeDisplay(formatTime(endMinutes), timeFormat as '12' | '24')}`;
+                                })()}
+                              </div>
+                            </>
                           )}
                           
                           {/* Resize handles */}

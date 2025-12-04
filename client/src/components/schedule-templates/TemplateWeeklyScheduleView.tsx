@@ -760,6 +760,7 @@ export function TemplateWeeklyScheduleView({
 
                 const durationMinutes = endMinutes - startMinutes;
                 const isShortEvent = durationMinutes <= 15;
+                const isUnderOneHour = durationMinutes < 60;
                 const isCenterableShortEvent = durationMinutes >= 5 && durationMinutes <= 30;
 
                 const dayLayouts = eventLayoutsByDay.get(event.dayOfWeek);
@@ -802,11 +803,17 @@ export function TemplateWeeklyScheduleView({
                         onMouseDown={(e) => handleEventMouseDown(e, event)}
                         onContextMenu={(e) => e.preventDefault()}
                       >
-                        <div className="font-medium truncate">{event.title}</div>
-                        {!isShortEvent && (
-                          <div className="text-xs opacity-90 truncate">
-                            {formatTimeDisplay(event.startTime.slice(0, 5), timeFormat)} - {formatTimeDisplay(event.endTime.slice(0, 5), timeFormat)}
+                        {isUnderOneHour ? (
+                          <div className="font-medium truncate">
+                            {event.title} {formatTimeDisplay(event.startTime.slice(0, 5), timeFormat)} - {formatTimeDisplay(event.endTime.slice(0, 5), timeFormat)}
                           </div>
+                        ) : (
+                          <>
+                            <div className="font-medium truncate">{event.title}</div>
+                            <div className="text-xs opacity-90 truncate">
+                              {formatTimeDisplay(event.startTime.slice(0, 5), timeFormat)} - {formatTimeDisplay(event.endTime.slice(0, 5), timeFormat)}
+                            </div>
+                          </>
                         )}
                         
                         {/* Resize handles */}

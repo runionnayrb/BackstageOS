@@ -654,6 +654,7 @@ export default function DailyScheduleView({
                       const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes);
                       const isShortEvent = durationMinutes <= 15;
                       const isVeryShortEvent = durationMinutes <= 10;
+                      const isUnderOneHour = durationMinutes < 60;
                       const isCenterableShortEvent = durationMinutes >= 5 && durationMinutes <= 30;
 
                       // Get layout for overlapping events
@@ -697,11 +698,17 @@ export default function DailyScheduleView({
                                 padding: isCenterableShortEvent ? '0 8px' : (isVeryShortEvent ? '2px 4px' : '8px'),
                               }}
                             >
-                              <div className="font-medium truncate">{event.title}</div>
-                              {!isShortEvent && (
-                                <div className="text-xs opacity-90 truncate">
-                                  {formatTimeDisplay(formatTime(startMinutes), timeFormat)} - {formatTimeDisplay(formatTime(endMinutes), timeFormat)}
+                              {isUnderOneHour ? (
+                                <div className="font-medium truncate">
+                                  {event.title} {formatTimeDisplay(formatTime(startMinutes), timeFormat)} - {formatTimeDisplay(formatTime(endMinutes), timeFormat)}
                                 </div>
+                              ) : (
+                                <>
+                                  <div className="font-medium truncate">{event.title}</div>
+                                  <div className="text-xs opacity-90 truncate">
+                                    {formatTimeDisplay(formatTime(startMinutes), timeFormat)} - {formatTimeDisplay(formatTime(endMinutes), timeFormat)}
+                                  </div>
+                                </>
                               )}
                             </div>
                           </PopoverTrigger>
