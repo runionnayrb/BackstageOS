@@ -1649,8 +1649,9 @@ export default function WeeklyScheduleView({
                           onContextMenu={(e) => e.preventDefault()}
                         >
                           {isUnderOneHour ? (
-                            <div className="font-medium truncate">
-                              {event.title} {(() => {
+                            <div className="flex items-center gap-1 truncate">
+                              <span className="font-medium">{event.title}</span>
+                              <span className="text-xs opacity-90">{(() => {
                                 if (draggedEvent?.event.id === event.id && draggedEvent.isDragging) {
                                   const dragStartMinutes = draggedEvent.currentPosition.startMinutes;
                                   const duration = endMinutes - startMinutes;
@@ -1658,7 +1659,7 @@ export default function WeeklyScheduleView({
                                   return `${formatTimeDisplay(formatTime(dragStartMinutes), timeFormat as '12' | '24')} - ${formatTimeDisplay(formatTime(dragEndMinutes), timeFormat as '12' | '24')}`;
                                 }
                                 return `${formatTimeDisplay(formatTime(startMinutes), timeFormat as '12' | '24')} - ${formatTimeDisplay(formatTime(endMinutes), timeFormat as '12' | '24')}`;
-                              })()}
+                              })()}</span>
                             </div>
                           ) : (
                             <>

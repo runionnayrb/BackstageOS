@@ -699,8 +699,9 @@ export default function DailyScheduleView({
                               }}
                             >
                               {isUnderOneHour ? (
-                                <div className="font-medium truncate">
-                                  {event.title} {formatTimeDisplay(formatTime(startMinutes), timeFormat)} - {formatTimeDisplay(formatTime(endMinutes), timeFormat)}
+                                <div className="flex items-center gap-1 truncate">
+                                  <span className="font-medium">{event.title}</span>
+                                  <span className="text-xs opacity-90">{formatTimeDisplay(formatTime(startMinutes), timeFormat)} - {formatTimeDisplay(formatTime(endMinutes), timeFormat)}</span>
                                 </div>
                               ) : (
                                 <>

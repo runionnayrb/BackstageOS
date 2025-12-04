@@ -804,8 +804,9 @@ export function TemplateWeeklyScheduleView({
                         onContextMenu={(e) => e.preventDefault()}
                       >
                         {isUnderOneHour ? (
-                          <div className="font-medium truncate">
-                            {event.title} {formatTimeDisplay(event.startTime.slice(0, 5), timeFormat)} - {formatTimeDisplay(event.endTime.slice(0, 5), timeFormat)}
+                          <div className="flex items-center gap-1 truncate">
+                            <span className="font-medium">{event.title}</span>
+                            <span className="text-xs opacity-90">{formatTimeDisplay(event.startTime.slice(0, 5), timeFormat)} - {formatTimeDisplay(event.endTime.slice(0, 5), timeFormat)}</span>
                           </div>
                         ) : (
                           <>
