@@ -710,26 +710,82 @@ The Production Team`
     },
   });
 
-  // Publish schedule version mutation
+  // Publish schedule version mutation with optimistic updates for instant UI feedback
   const publishVersionMutation = useMutation({
     mutationFn: ({ versionType }: { versionType: 'major' | 'minor' }) => {
       return apiRequest('POST', `/api/projects/${projectId}/schedule-versions`, {
         versionType
       });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-versions`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/personal-schedules`] });
+    onMutate: async ({ versionType }) => {
+      // Cancel any outgoing refetches so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: [`/api/projects/${projectId}/schedule-versions`] });
+      
+      // Snapshot current data for rollback
+      const previousVersions = queryClient.getQueryData([`/api/projects/${projectId}/schedule-versions`]);
+      
+      // Calculate optimistic version based on current data
+      const currentVersions = (previousVersions as any[]) || [];
+      let newMajor = 1;
+      let newMinor = 0;
+      
+      if (currentVersions.length > 0) {
+        const sorted = [...currentVersions].sort((a, b) => 
+          new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+        );
+        const latest = sorted[0];
+        const currentMajor = parseInt(latest.version) || 1;
+        const currentMinor = latest.minorVersion || 0;
+        
+        if (versionType === 'major') {
+          newMajor = currentMajor + 1;
+          newMinor = 0;
+        } else {
+          newMajor = currentMajor;
+          newMinor = currentMinor + 1;
+        }
+      }
+      
+      // Create optimistic version entry
+      const optimisticVersion = {
+        id: -Date.now(), // Temporary negative ID
+        projectId: parseInt(projectId),
+        version: newMajor.toString(),
+        minorVersion: newMinor,
+        versionType,
+        title: `${versionType === 'major' ? 'Major' : 'Minor'} Version ${newMajor}.${newMinor}`,
+        publishedAt: new Date().toISOString(),
+        isCurrent: true,
+      };
+      
+      // Optimistically update the cache
+      queryClient.setQueryData([`/api/projects/${projectId}/schedule-versions`], (old: any[]) => {
+        const updated = (old || []).map(v => ({ ...v, isCurrent: false }));
+        return [optimisticVersion, ...updated];
+      });
+      
+      // Close dialog and show toast immediately
       setShowPublishVersionConfirm(false);
       toast({
-        title: "Schedule published successfully",
-        description: `Your ${selectedVersionType} version has been published and shared with team members.`,
+        title: "Schedule published!",
+        description: `Version ${newMajor}.${newMinor} is now live.`,
       });
+      
+      return { previousVersions };
     },
-    onError: (error: any) => {
+    onSuccess: (data) => {
+      // Replace optimistic data with real server response
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-versions`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/personal-schedules`] });
+    },
+    onError: (error: any, variables, context) => {
+      // Rollback to previous state on error
+      if (context?.previousVersions) {
+        queryClient.setQueryData([`/api/projects/${projectId}/schedule-versions`], context.previousVersions);
+      }
       toast({
         title: "Error publishing schedule",
-        description: error.message || "Failed to publish schedule version. Please try again.",
+        description: error.message || "Failed to publish. Please try again.",
         variant: "destructive",
       });
     },
