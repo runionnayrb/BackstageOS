@@ -60,6 +60,8 @@ BackstageOS is built with a show-centric design, ensuring complete data isolatio
 - **Error Handling**: Comprehensive logging, real-time notifications, and advanced analytics.
 - **Subscription System**: Tiered pricing with access control based on subscription status, integrated with Stripe for price synchronization.
 - **Schedule Views**: Standardized weekly and daily schedule views with perfectly aligned grids and consistent time increment behavior, featuring visually hidden scrollbars for uniform width.
+- **Weekly Versioning**: Each week maintains independent version numbers (major.minor) for granular schedule tracking. Personal schedules show current week forward with "Previous Schedules" access for historical weeks.
+- **Scrollable Participant Lists**: Event popovers with large participant counts (e.g., Full Company) use scrollable containers with max-height constraints on PopoverContent.
 
 ## External Dependencies
 - **OpenID Connect**

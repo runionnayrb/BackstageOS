@@ -6,9 +6,27 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, CheckCircle, Archive } from "lucide-react";
 import { Link } from "wouter";
 
-const CURRENT_VERSION = "26.5.0";
+const CURRENT_VERSION = "26.6.0";
 
 const RELEASE_NOTES = [
+  {
+    version: "26.6.0",
+    date: "December 4, 2025",
+    type: "Major",
+    features: [
+      "<strong><u>SCHEDULE IMPROVEMENTS:</u></strong>",
+      "Each week now tracks its own version history independently, making it easier to manage schedules week by week",
+      "Personal schedules now show upcoming events organized by week with clear date headers",
+      "New 'Previous Schedules' button lets team members access historical weeks they may have missed",
+      "Schedule publishing is now faster with instant updates after clicking publish",
+      "The 'Resend Schedule' option now only appears after a schedule has been published",
+      "<strong><u>EASIER TO VIEW LARGE GROUPS:</u></strong>",
+      "When viewing who's called for an event, the list now scrolls so you can see everyone - even Full Company calls",
+      "This works across all schedule views (monthly, weekly, and daily)",
+      "<strong><u>CLEANER PROJECT LIST:</u></strong>",
+      "Simplified project cards by removing date ranges for a cleaner look"
+    ]
+  },
   {
     version: "26.5.0",
     date: "December 2, 2025",
