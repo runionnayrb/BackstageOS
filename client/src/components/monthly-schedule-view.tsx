@@ -10,7 +10,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatTimeDisplay, parseScheduleSettings } from "@/lib/timeUtils";
-import { isShowEvent, getEventTypeDisplayName, getEventTypeColor, ALL_EVENT_TYPES } from "@/lib/eventUtils";
+import { isShowEvent, getEventTypeDisplayName, getEventTypeColor, getEventTypeColorFromDatabase, isLightColor, ALL_EVENT_TYPES } from "@/lib/eventUtils";
 import { filterEventsBySettings } from "@/lib/scheduleUtils";
 import EventForm from "@/components/event-form";
 import ScheduleFilter from "@/components/schedule-filter";
@@ -377,12 +377,14 @@ export default function MonthlyScheduleView({
                   {dayEvents
                     .filter(event => showAllDayEvents || !event.isAllDay)
                     .slice(0, 2) // Show fewer events on mobile for cleaner look
-                    .map((event) => (
+                    .map((event) => {
+                    const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes as any[], (event as any).eventTypeId);
+                    const textColorClass = isLightColor(eventTypeColor) ? 'text-gray-900' : 'text-white';
+                    return (
                     <div
                       key={event.id}
-                      className={`text-xs px-1 py-0.5 rounded text-white truncate cursor-pointer transition-transform active:scale-95 ${
-                        eventTypeColors[event.type as keyof typeof eventTypeColors]
-                      }`}
+                      className={`text-xs px-1 py-0.5 rounded truncate cursor-pointer transition-transform active:scale-95 ${textColorClass}`}
+                      style={{ backgroundColor: eventTypeColor }}
                       title={`${event.title} (${event.isAllDay ? 'All Day' : `${formatTimeDisplay(event.startTime, timeFormat)} - ${formatTimeDisplay(event.endTime, timeFormat)}`})`}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -424,7 +426,8 @@ export default function MonthlyScheduleView({
                         {event.title}
                       </span>
                     </div>
-                  ))}
+                  );
+                  })}
                   {dayEvents.filter(event => showAllDayEvents || !event.isAllDay).length > 2 && (
                     <div className="text-xs text-gray-500 px-1 text-center md:text-left">
                       +{dayEvents.filter(event => showAllDayEvents || !event.isAllDay).length - 2}
