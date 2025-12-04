@@ -344,14 +344,18 @@ export default function DailyScheduleView({
         );
         
         // Check if this event type is selected in Show Schedule
-        const typeIdentifier = eventType ? (eventType.isDefault ? eventType.name : eventType.id) : event.type;
-        const isSelectedInShowSchedule = selectedEventTypes.includes(typeIdentifier);
+        // Use the event type NAME for comparison since schedule-filter passes names
+        const eventTypeName = eventType ? eventType.name : event.type;
+        const isSelectedInShowSchedule = selectedEventTypes.some(selectedType => 
+          selectedType.toLowerCase() === eventTypeName.toLowerCase() ||
+          selectedType.toLowerCase() === event.type.toLowerCase() ||
+          selectedType.toLowerCase() === normalizedEventType
+        );
         
         if (isSelectedInShowSchedule) {
           return true;
         } else {
           // Check if it's selected in Individual Events
-          const eventTypeName = eventType ? eventType.name : event.type;
           const normalizedEventTypeName = eventTypeName.replace(/_/g, ' ').toLowerCase();
           
           return selectedIndividualTypes.some(selectedType => {
