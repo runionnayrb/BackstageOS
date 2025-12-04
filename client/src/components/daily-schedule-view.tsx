@@ -129,6 +129,20 @@ export default function DailyScheduleView({
   } | null>(null);
   const [justDragged, setJustDragged] = useState<number | null>(null);
   
+  // Drag-to-resize state
+  const [resizingEvent, setResizingEvent] = useState<{
+    event: ScheduleEvent;
+    edge: 'start' | 'end';
+    originalStartMinutes: number;
+    originalEndMinutes: number;
+  } | null>(null);
+  const resizingEventRef = useRef<{
+    event: ScheduleEvent;
+    edge: 'start' | 'end';
+    originalStartMinutes: number;
+    originalEndMinutes: number;
+  } | null>(null);
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -428,6 +442,86 @@ export default function DailyScheduleView({
       }
 
       setDraggedEvent(null);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+
+  // Handle event resize (drag top or bottom edge to change duration)
+  const handleResizeStart = (e: React.MouseEvent, event: ScheduleEvent, edge: 'start' | 'end') => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const originalStartMinutes = timeToMinutes(event.startTime);
+    const originalEndMinutes = timeToMinutes(event.endTime);
+
+    const resizingData = {
+      event,
+      edge,
+      originalStartMinutes,
+      originalEndMinutes,
+    };
+    
+    setResizingEvent(resizingData);
+    resizingEventRef.current = resizingData;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      if (!calendarRef.current || !scrollContainerRef.current) return;
+
+      const rect = calendarRef.current.getBoundingClientRect();
+      const scrollTop = scrollContainerRef.current.scrollTop;
+      const y = moveEvent.clientY - rect.top + scrollTop;
+      const minutes = snapToIncrement(positionToMinutes(y));
+
+      let newStartMinutes = originalStartMinutes;
+      let newEndMinutes = originalEndMinutes;
+
+      if (edge === 'start') {
+        // Dragging top edge - can't go past end time minus minimum duration
+        newStartMinutes = Math.min(minutes, originalEndMinutes - timeIncrement);
+      } else {
+        // Dragging bottom edge - can't go before start time plus minimum duration
+        newEndMinutes = Math.max(minutes, originalStartMinutes + timeIncrement);
+      }
+
+      const newStartTime = formatTime(newStartMinutes);
+      const newEndTime = formatTime(newEndMinutes);
+
+      // Update the event optimistically for visual feedback
+      const updatedEvent = { ...resizingEventRef.current!.event, startTime: newStartTime, endTime: newEndTime };
+      setResizingEvent(prev => prev ? {
+        ...prev,
+        event: updatedEvent,
+      } : null);
+      resizingEventRef.current!.event = updatedEvent;
+    };
+
+    const handleMouseUp = () => {
+      if (resizingEventRef.current) {
+        const eventData = {
+          startTime: resizingEventRef.current.event.startTime + ':00',
+          endTime: resizingEventRef.current.event.endTime + ':00',
+        };
+
+        // Optimistically update the cache for instant visual feedback
+        queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
+          return old?.map((e: ScheduleEvent) => 
+            e.id === event.id ? { ...e, startTime: eventData.startTime, endTime: eventData.endTime } : e
+          ) || [];
+        });
+
+        // Use the mutation for backend update
+        updateEventMutation.mutate({
+          eventId: event.id,
+          eventData
+        });
+      }
+
+      setResizingEvent(null);
+      resizingEventRef.current = null;
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
@@ -1095,9 +1189,18 @@ export default function DailyScheduleView({
                       // Check if this event is currently being dragged
                       const isCurrentlyDragging = draggedEvent?.event.id === event.id && draggedEvent.isDragging;
                       
-                      // Use dragged position if this event is being dragged
+                      // Check if this event is being resized
+                      const isCurrentlyResizing = resizingEvent?.event.id === event.id;
+                      
+                      // Use resized dimensions if this event is being resized
+                      const displayHeight = isCurrentlyResizing ?
+                        timeToMinutes(resizingEvent.event.endTime) - timeToMinutes(resizingEvent.event.startTime) : height;
+                      const resizedTop = isCurrentlyResizing ?
+                        minutesToPosition(timeToMinutes(resizingEvent.event.startTime)) : top;
+                      
+                      // Use dragged position if this event is being dragged (takes priority over resize)
                       const displayTop = draggedEvent?.event.id === event.id ? 
-                        minutesToPosition(draggedEvent.currentPosition.startMinutes) : top;
+                        minutesToPosition(draggedEvent.currentPosition.startMinutes) : resizedTop;
 
                       return (
                         <Popover 
@@ -1121,7 +1224,7 @@ export default function DailyScheduleView({
                               } ${isCurrentlyDragging ? 'opacity-50 cursor-grabbing' : 'cursor-grab'}`}
                               style={{
                                 top: `${displayTop}px`,
-                                height: `${height}px`,
+                                height: `${displayHeight}px`,
                                 left: eventLeft,
                                 width: eventWidth,
                                 backgroundColor: eventTypeColor,
@@ -1133,16 +1236,42 @@ export default function DailyScheduleView({
                               {isCompactEvent ? (
                                 <div className="flex items-center gap-1 truncate">
                                   <span className="font-medium">{event.title}</span>
-                                  <span className="text-xs opacity-90">{formatTimeDisplay(formatTime(startMinutes), timeFormat)} - {formatTimeDisplay(formatTime(endMinutes), timeFormat)}</span>
+                                  <span className="text-xs opacity-90">{(() => {
+                                    // Show updated times during resize
+                                    if (isCurrentlyResizing) {
+                                      const resizeStartMins = timeToMinutes(resizingEvent.event.startTime);
+                                      const resizeEndMins = timeToMinutes(resizingEvent.event.endTime);
+                                      return `${formatTimeDisplay(formatTime(resizeStartMins), timeFormat)} - ${formatTimeDisplay(formatTime(resizeEndMins), timeFormat)}`;
+                                    }
+                                    return `${formatTimeDisplay(formatTime(startMinutes), timeFormat)} - ${formatTimeDisplay(formatTime(endMinutes), timeFormat)}`;
+                                  })()}</span>
                                 </div>
                               ) : (
                                 <div>
                                   <div className="font-medium truncate">{event.title}</div>
                                   <div className="text-xs opacity-90 truncate mt-0.5">
-                                    {formatTimeDisplay(formatTime(startMinutes), timeFormat)} - {formatTimeDisplay(formatTime(endMinutes), timeFormat)}
+                                    {(() => {
+                                      // Show updated times during resize
+                                      if (isCurrentlyResizing) {
+                                        const resizeStartMins = timeToMinutes(resizingEvent.event.startTime);
+                                        const resizeEndMins = timeToMinutes(resizingEvent.event.endTime);
+                                        return `${formatTimeDisplay(formatTime(resizeStartMins), timeFormat)} - ${formatTimeDisplay(formatTime(resizeEndMins), timeFormat)}`;
+                                      }
+                                      return `${formatTimeDisplay(formatTime(startMinutes), timeFormat)} - ${formatTimeDisplay(formatTime(endMinutes), timeFormat)}`;
+                                    })()}
                                   </div>
                                 </div>
                               )}
+                              
+                              {/* Resize handles */}
+                              <div
+                                className="absolute left-0 right-0 top-0 h-1 cursor-n-resize hover:bg-blue-300 opacity-0 hover:opacity-100"
+                                onMouseDown={(e) => handleResizeStart(e, event, 'start')}
+                              />
+                              <div
+                                className="absolute left-0 right-0 bottom-0 h-1 cursor-s-resize hover:bg-blue-300 opacity-0 hover:opacity-100"
+                                onMouseDown={(e) => handleResizeStart(e, event, 'end')}
+                              />
                             </div>
                           </PopoverTrigger>
                           <PopoverContent className="w-80 p-0" align="start">
