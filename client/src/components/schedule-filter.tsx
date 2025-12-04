@@ -119,7 +119,10 @@ export default function ScheduleFilter({
   };
 
   const handleSelectAll = () => {
-    const allContactIds = contacts.map(contact => contact.id);
+    // Only select contacts that have a contact group assigned (exclude unassigned)
+    const allContactIds = contacts
+      .filter((contact: any) => contact.contactGroup?.name)
+      .map(contact => contact.id);
     onFilterChange(allContactIds);
   };
 

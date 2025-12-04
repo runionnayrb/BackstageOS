@@ -455,9 +455,10 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
     !eventTypeShares.some((share: EventTypeCalendarShare) => share.eventTypeName === eventType.name)
   );
 
-  // Filter contacts that don't already have shares
-  const availableContacts = contacts.filter((contact: Contact) => 
-    !shares.some((share: PublicCalendarShare) => share.contactId === contact.id)
+  // Filter contacts that don't already have shares and have a contact group assigned
+  const availableContacts = contacts.filter((contact: any) => 
+    !shares.some((share: PublicCalendarShare) => share.contactId === contact.id) &&
+    contact.contactGroup?.name // Only include contacts with a group assigned
   );
 
   return (
