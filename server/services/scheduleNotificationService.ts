@@ -44,16 +44,12 @@ export class ScheduleNotificationService {
     versionId: number
   ): Promise<string> {
     const accessToken = nanoid(32);
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 30); // 30 days from now
     
     await storage.createPersonalSchedule({
       projectId,
       contactId,
-      versionId,
-      accessToken,
-      expiresAt,
-      isActive: true
+      currentVersionId: versionId,
+      accessToken
     });
     
     return accessToken;
@@ -63,7 +59,7 @@ export class ScheduleNotificationService {
    * Get or create default email template for project
    */
   private async getEmailTemplate(projectId: number, templateType: 'major' | 'minor' = 'major') {
-    const templates = await storage.getScheduleEmailTemplatesByProject(projectId);
+    const templates = await storage.getScheduleEmailTemplatesByProjectId(projectId);
     let template = templates.find(t => t.templateType === templateType);
     
     if (!template) {
