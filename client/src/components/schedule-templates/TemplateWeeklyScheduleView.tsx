@@ -58,6 +58,7 @@ interface TemplateWeeklyScheduleViewProps {
   templateId: number;
   projectId: number;
   weekStartDay: number;
+  weekStartDate?: Date;
   timeIncrement?: 15 | 30 | 60;
   timeFormat?: '12' | '24';
 }
@@ -74,6 +75,7 @@ export function TemplateWeeklyScheduleView({
   templateId, 
   projectId, 
   weekStartDay,
+  weekStartDate,
   timeIncrement = 30,
   timeFormat = '12'
 }: TemplateWeeklyScheduleViewProps) {
