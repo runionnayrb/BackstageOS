@@ -760,6 +760,7 @@ export function TemplateWeeklyScheduleView({
 
                 const durationMinutes = endMinutes - startMinutes;
                 const isShortEvent = durationMinutes <= 15;
+                const isCenterableShortEvent = durationMinutes >= 5 && durationMinutes <= 30;
 
                 const dayLayouts = eventLayoutsByDay.get(event.dayOfWeek);
                 const layout = dayLayouts?.get(event.id);
@@ -785,7 +786,8 @@ export function TemplateWeeklyScheduleView({
                       <div
                         className={`absolute text-sm rounded-md shadow-sm cursor-pointer hover:opacity-90 z-30 transition-all ${
                           isLightColor(eventColor) ? 'text-gray-900' : 'text-white'
-                        } ${draggedEvent?.event.id === event.id && draggedEvent.isDragging ? 'opacity-50' : ''}`}
+                        } ${draggedEvent?.event.id === event.id && draggedEvent.isDragging ? 'opacity-50' : ''
+                        } ${isCenterableShortEvent ? 'flex items-center' : ''}`}
                         style={{
                           left: `calc(64px + (100% - 64px) * ${displayDayIndex} / 7 + ((100% - 64px) / 7) * ${eventLeftPercent / 100} + 2px)`,
                           width: `calc(((100% - 64px) / 7) * ${eventWidthPercent / 100} - 4px)`,
@@ -795,7 +797,7 @@ export function TemplateWeeklyScheduleView({
                           backgroundColor: eventColor,
                           border: `1px solid ${darkenColor(eventColor, 25)}`,
                           overflow: 'hidden',
-                          padding: isShortEvent ? '2px 4px' : '8px',
+                          padding: isCenterableShortEvent ? '0 8px' : (isShortEvent ? '2px 4px' : '8px'),
                         }}
                         onMouseDown={(e) => handleEventMouseDown(e, event)}
                         onContextMenu={(e) => e.preventDefault()}

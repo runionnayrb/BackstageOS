@@ -1590,6 +1590,7 @@ export default function WeeklyScheduleView({
                   const durationMinutes = endMinutes - startMinutes;
                   const isShortEvent = durationMinutes <= 15;
                   const isVeryShortEvent = durationMinutes <= 10;
+                  const isCenterableShortEvent = durationMinutes >= 5 && durationMinutes <= 30;
 
                   // Get layout for overlapping events
                   const dayLayouts = eventLayoutsByDay.get(dayIndex);
@@ -1630,7 +1631,8 @@ export default function WeeklyScheduleView({
                           className={`absolute text-sm rounded-md shadow-sm cursor-pointer hover:opacity-90 z-30 transition-all ${
                             isLightColor(eventTypeColor) ? 'text-gray-900' : 'text-white'
                           } ${selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''
-                          } ${draggedEvent?.event.id === event.id && draggedEvent.isDragging ? 'opacity-50' : ''}`}
+                          } ${draggedEvent?.event.id === event.id && draggedEvent.isDragging ? 'opacity-50' : ''
+                          } ${isCenterableShortEvent ? 'flex items-center' : ''}`}
                           style={{
                             left: eventLeft,
                             width: eventWidth,
@@ -1640,7 +1642,7 @@ export default function WeeklyScheduleView({
                             backgroundColor: eventTypeColor,
                             border: `1px solid ${darkenColor(eventTypeColor, 25)}`,
                             overflow: 'hidden',
-                            padding: isVeryShortEvent ? '2px 4px' : '8px',
+                            padding: isCenterableShortEvent ? '0 8px' : (isVeryShortEvent ? '2px 4px' : '8px'),
                           }}
                           onMouseDown={(e) => handleEventMouseDown(e, event)}
                           onContextMenu={(e) => e.preventDefault()}
