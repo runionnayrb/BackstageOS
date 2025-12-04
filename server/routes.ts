@@ -15400,11 +15400,46 @@ The Production Team`;
         return res.status(404).json({ message: "Contact not found" });
       }
 
-      // With weekly versioning, get ALL published versions and combine their events
-      // Only show events from weeks that have been published
+      // Personal schedule shows two buckets:
+      // 1. Upcoming events: Current week and forward, only from published week versions
+      // 2. Historical weeks: Past weeks (available via "Previous Schedules" button)
+      
       const allVersions = await storage.getScheduleVersionsByProjectId(personalSchedule.projectId);
       
-      // Group versions by weekStart and get the latest version for each week
+      // Calculate current week start (Sunday) - use Date objects for comparison
+      const today = new Date();
+      const dayOfWeek = today.getDay();
+      const currentWeekStart = new Date(today);
+      currentWeekStart.setDate(today.getDate() - dayOfWeek);
+      currentWeekStart.setHours(0, 0, 0, 0);
+      const currentWeekStartTime = currentWeekStart.getTime();
+      
+      // Helper to parse weekStart string to Date for comparison (handles various formats including YYYY-M-D)
+      const parseWeekStartDate = (weekStartStr: string): Date => {
+        // Normalize date string by splitting and padding components
+        const parts = weekStartStr.split('-');
+        if (parts.length === 3) {
+          const year = parseInt(parts[0], 10);
+          const month = parseInt(parts[1], 10) - 1; // JS months are 0-indexed
+          const day = parseInt(parts[2], 10);
+          if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+            const date = new Date(year, month, day, 0, 0, 0, 0);
+            return date;
+          }
+        }
+        // Fallback to standard parsing if format is unexpected
+        const date = new Date(weekStartStr);
+        date.setHours(0, 0, 0, 0);
+        return date;
+      };
+      
+      // Helper to check if a week is current or future
+      const isCurrentOrFutureWeek = (weekStartStr: string): boolean => {
+        const weekDate = parseWeekStartDate(weekStartStr);
+        return weekDate.getTime() >= currentWeekStartTime;
+      };
+      
+      // Group published versions by weekStart and get the latest version for each week
       const latestVersionsByWeek: Record<string, any> = {};
       for (const version of allVersions) {
         if (version.weekStart) {
@@ -15415,36 +15450,112 @@ The Production Team`;
         }
       }
       
-      // Collect all events from all published weeks
-      const allContactEvents: any[] = [];
+      // Also get the legacy version for historical data
+      const legacyVersion = personalSchedule.currentVersionId 
+        ? await storage.getScheduleVersionById(personalSchedule.currentVersionId)
+        : null;
+      
+      // Collect UPCOMING events (current week and forward, published only)
+      const upcomingEvents: any[] = [];
       const seenEventIds = new Set<number>();
       
-      for (const version of Object.values(latestVersionsByWeek)) {
-        const versionEvents = version.scheduleData?.events || [];
-        for (const event of versionEvents) {
-          // Filter for this contact and avoid duplicates
-          if (!seenEventIds.has(event.id) && 
-              event.participants && 
-              event.participants.some((p: any) => p.contactId === contact.id)) {
-            seenEventIds.add(event.id);
-            allContactEvents.push(event);
+      // Helper to filter events for this contact
+      const filterContactEvents = (events: any[]) => {
+        return events.filter((event: any) => 
+          event.participants && event.participants.some((p: any) => p.contactId === contact.id)
+        );
+      };
+      
+      // Add events from published week versions that are current or future
+      for (const [weekStart, version] of Object.entries(latestVersionsByWeek)) {
+        if (isCurrentOrFutureWeek(weekStart)) {
+          const versionEvents = version.scheduleData?.events || [];
+          const contactEvents = filterContactEvents(versionEvents);
+          for (const event of contactEvents) {
+            if (!seenEventIds.has(event.id)) {
+              seenEventIds.add(event.id);
+              upcomingEvents.push(event);
+            }
           }
         }
       }
       
-      // Sort events by date
-      allContactEvents.sort((a, b) => {
+      // Sort upcoming events by date
+      upcomingEvents.sort((a, b) => {
         const dateA = new Date(`${a.date}T${a.startTime || '00:00:00'}`);
         const dateB = new Date(`${b.date}T${b.startTime || '00:00:00'}`);
         return dateA.getTime() - dateB.getTime();
       });
+      
+      // Build historical week summaries (for "Previous Schedules" button)
+      const historicalWeeks: any[] = [];
+      const processedHistoricalWeeks = new Set<string>();
+      
+      // Add historical weeks from published versions (using Date comparison)
+      for (const [weekStart, version] of Object.entries(latestVersionsByWeek)) {
+        if (!isCurrentOrFutureWeek(weekStart)) {
+          const versionEvents = version.scheduleData?.events || [];
+          const contactEvents = filterContactEvents(versionEvents);
+          if (contactEvents.length > 0) {
+            processedHistoricalWeeks.add(weekStart);
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekEnd.getDate() + 6);
+            historicalWeeks.push({
+              weekStart,
+              weekEnd: weekEnd.toISOString().split('T')[0],
+              version: `${version.version}.${version.minorVersion || 0}`,
+              publishedAt: version.publishedAt,
+              eventCount: contactEvents.length
+            });
+          }
+        }
+      }
+      
+      // Add historical weeks from legacy version (for data before weekly versioning)
+      if (legacyVersion && legacyVersion.scheduleData?.events) {
+        const legacyContactEvents = filterContactEvents(legacyVersion.scheduleData.events);
+        const legacyWeekEvents: Record<string, any[]> = {};
+        
+        for (const event of legacyContactEvents) {
+          const eventWeekStart = new Date(event.date);
+          const eventDayOfWeek = eventWeekStart.getDay();
+          eventWeekStart.setDate(eventWeekStart.getDate() - eventDayOfWeek);
+          eventWeekStart.setHours(0, 0, 0, 0);
+          const eventWeekStartStr = eventWeekStart.toISOString().split('T')[0];
+          
+          // Only add to historical if it's a past week (using Date comparison) and not already covered
+          const isPastWeek = eventWeekStart.getTime() < currentWeekStartTime;
+          if (isPastWeek && !processedHistoricalWeeks.has(eventWeekStartStr)) {
+            if (!legacyWeekEvents[eventWeekStartStr]) {
+              legacyWeekEvents[eventWeekStartStr] = [];
+            }
+            legacyWeekEvents[eventWeekStartStr].push(event);
+          }
+        }
+        
+        for (const [weekStart, events] of Object.entries(legacyWeekEvents)) {
+          const weekEnd = new Date(weekStart);
+          weekEnd.setDate(weekEnd.getDate() + 6);
+          historicalWeeks.push({
+            weekStart,
+            weekEnd: weekEnd.toISOString().split('T')[0],
+            version: legacyVersion.version ? `${legacyVersion.version}.${legacyVersion.minorVersion || 0}` : 'Legacy',
+            publishedAt: legacyVersion.publishedAt,
+            eventCount: events.length,
+            isLegacy: true
+          });
+        }
+      }
+      
+      // Sort historical weeks by date (most recent first)
+      historicalWeeks.sort((a, b) => b.weekStart.localeCompare(a.weekStart));
 
       // Get the most recent version for the response header
       const latestVersion = allVersions.length > 0 
         ? allVersions.reduce((latest, v) => 
             new Date(v.publishedAt) > new Date(latest.publishedAt) ? v : latest
           )
-        : null;
+        : legacyVersion;
 
       res.json({
         personalSchedule: {
@@ -15473,10 +15584,88 @@ The Production Team`;
           description: latestVersion.description,
           publishedAt: latestVersion.publishedAt
         } : null,
-        events: allContactEvents
+        events: upcomingEvents, // Only current week and forward (published)
+        historicalWeeks // Summary of past weeks for "Previous Schedules" button
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch personal schedule" });
+    }
+  });
+
+  // Get historical week events for personal schedule (on-demand fetch)
+  app.get('/api/schedule/:accessToken/history/:weekStart', async (req: any, res) => {
+    try {
+      const { accessToken, weekStart } = req.params;
+      
+      // Find personal schedule by access token
+      const personalSchedule = await storage.getPersonalScheduleByToken(accessToken);
+      
+      if (!personalSchedule) {
+        return res.status(404).json({ message: "Personal schedule not found" });
+      }
+
+      // Get contact details
+      const contact = await storage.getContactById(personalSchedule.contactId);
+      if (!contact) {
+        return res.status(404).json({ message: "Contact not found" });
+      }
+
+      // Get all versions for this project
+      const allVersions = await storage.getScheduleVersionsByProjectId(personalSchedule.projectId);
+      
+      // Find the published version for this week
+      const weekVersions = allVersions.filter((v: any) => v.weekStart === weekStart);
+      let targetVersion = null;
+      
+      if (weekVersions.length > 0) {
+        // Get the latest version for this week
+        targetVersion = weekVersions.reduce((latest: any, v: any) => 
+          new Date(v.publishedAt) > new Date(latest.publishedAt) ? v : latest
+        );
+      } else {
+        // Fall back to legacy version
+        const legacyVersion = personalSchedule.currentVersionId 
+          ? await storage.getScheduleVersionById(personalSchedule.currentVersionId)
+          : null;
+        if (legacyVersion) {
+          targetVersion = legacyVersion;
+        }
+      }
+
+      if (!targetVersion) {
+        return res.status(404).json({ message: "No version found for this week" });
+      }
+
+      // Get events for this contact from the version
+      const allEvents = targetVersion.scheduleData?.events || [];
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 6);
+      const weekEndStr = weekEnd.toISOString().split('T')[0];
+      
+      // Filter events for this week and this contact
+      const weekEvents = allEvents.filter((event: any) => {
+        const isInWeek = event.date >= weekStart && event.date <= weekEndStr;
+        const isForContact = event.participants && 
+          event.participants.some((p: any) => p.contactId === contact.id);
+        return isInWeek && isForContact;
+      });
+
+      // Sort events by date
+      weekEvents.sort((a: any, b: any) => {
+        const dateA = new Date(`${a.date}T${a.startTime || '00:00:00'}`);
+        const dateB = new Date(`${b.date}T${b.startTime || '00:00:00'}`);
+        return dateA.getTime() - dateB.getTime();
+      });
+
+      res.json({
+        weekStart,
+        weekEnd: weekEndStr,
+        version: `${targetVersion.version}.${targetVersion.minorVersion || 0}`,
+        publishedAt: targetVersion.publishedAt,
+        events: weekEvents
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch historical week events" });
     }
   });
 
@@ -15513,8 +15702,38 @@ The Production Team`;
         return res.status(404).send('Contact not found');
       }
 
-      // With weekly versioning, get ALL published versions and combine their events
+      // ICS subscription shows only current week and forward (same as main personal schedule)
       const allVersions = await storage.getScheduleVersionsByProjectId(personalSchedule.projectId);
+      
+      // Calculate current week start (Sunday) - use Date objects for comparison
+      const today = new Date();
+      const dayOfWeek = today.getDay();
+      const currentWeekStart = new Date(today);
+      currentWeekStart.setDate(today.getDate() - dayOfWeek);
+      currentWeekStart.setHours(0, 0, 0, 0);
+      const currentWeekStartTime = currentWeekStart.getTime();
+      
+      // Helper to parse weekStart string to Date for comparison (handles various formats including YYYY-M-D)
+      const parseWeekStartDate = (weekStartStr: string): Date => {
+        const parts = weekStartStr.split('-');
+        if (parts.length === 3) {
+          const year = parseInt(parts[0], 10);
+          const month = parseInt(parts[1], 10) - 1;
+          const day = parseInt(parts[2], 10);
+          if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+            return new Date(year, month, day, 0, 0, 0, 0);
+          }
+        }
+        const date = new Date(weekStartStr);
+        date.setHours(0, 0, 0, 0);
+        return date;
+      };
+      
+      // Helper to check if a week is current or future
+      const isCurrentOrFutureWeek = (weekStartStr: string): boolean => {
+        const weekDate = parseWeekStartDate(weekStartStr);
+        return weekDate.getTime() >= currentWeekStartTime;
+      };
       
       // Group versions by weekStart and get the latest version for each week
       const latestVersionsByWeek: Record<string, any> = {};
@@ -15527,24 +15746,27 @@ The Production Team`;
         }
       }
       
-      // Collect all events from all published weeks for this contact
-      const allContactEvents: any[] = [];
+      // Collect events from current week and forward (published only)
+      const upcomingEvents: any[] = [];
       const seenEventIds = new Set<number>();
       
-      for (const version of Object.values(latestVersionsByWeek)) {
-        const versionEvents = version.scheduleData?.events || [];
-        for (const event of versionEvents) {
-          if (!seenEventIds.has(event.id) && 
-              event.participants && 
-              event.participants.some((p: any) => p.contactId === contact.id)) {
-            seenEventIds.add(event.id);
-            allContactEvents.push(event);
+      for (const [weekStart, version] of Object.entries(latestVersionsByWeek)) {
+        // Only include current week and future weeks (using Date comparison)
+        if (isCurrentOrFutureWeek(weekStart)) {
+          const versionEvents = version.scheduleData?.events || [];
+          for (const event of versionEvents) {
+            if (!seenEventIds.has(event.id) && 
+                event.participants && 
+                event.participants.some((p: any) => p.contactId === contact.id)) {
+              seenEventIds.add(event.id);
+              upcomingEvents.push(event);
+            }
           }
         }
       }
       
       // Sort events by date
-      allContactEvents.sort((a, b) => {
+      upcomingEvents.sort((a, b) => {
         const dateA = new Date(`${a.date}T${a.startTime || '00:00:00'}`);
         const dateB = new Date(`${b.date}T${b.startTime || '00:00:00'}`);
         return dateA.getTime() - dateB.getTime();
@@ -15558,7 +15780,7 @@ The Production Team`;
         : null;
 
       // Generate ICS file content with calendar subscription headers
-      const icsContent = generatePersonalScheduleICSSubscriptionContent(allContactEvents, project, contact, latestVersion, req.get('host'));
+      const icsContent = generatePersonalScheduleICSSubscriptionContent(upcomingEvents, project, contact, latestVersion, req.get('host'));
 
       // Set headers for dynamic calendar subscription
       res.setHeader('Content-Type', 'text/calendar; charset=utf-8');

@@ -1,7 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Calendar, AlertCircle, X, MapPin, Clock, Users } from "lucide-react";
+import { Calendar, AlertCircle, X, MapPin, Clock, Users, History, ChevronRight } from "lucide-react";
 import { format, parseISO, isValid } from "date-fns";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+
+interface HistoricalWeek {
+  weekStart: string;
+  weekEnd: string;
+  version: string;
+  publishedAt: string;
+  eventCount: number;
+  isLegacy?: boolean;
+}
 
 interface PersonalScheduleData {
   personalSchedule: {
@@ -29,7 +39,27 @@ interface PersonalScheduleData {
     title: string;
     description?: string;
     publishedAt: string;
-  };
+  } | null;
+  events: Array<{
+    id: number;
+    title: string;
+    description?: string;
+    date: string;
+    startTime?: string;
+    endTime?: string;
+    location?: string;
+    type: string;
+    isAllDay: boolean;
+    notes?: string;
+  }>;
+  historicalWeeks?: HistoricalWeek[];
+}
+
+interface HistoricalWeekEvents {
+  weekStart: string;
+  weekEnd: string;
+  version: string;
+  publishedAt: string;
   events: Array<{
     id: number;
     title: string;
@@ -50,10 +80,19 @@ interface PersonalScheduleViewerProps {
 
 function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [showPreviousSchedules, setShowPreviousSchedules] = useState(false);
+  const [selectedHistoricalWeek, setSelectedHistoricalWeek] = useState<string | null>(null);
 
   const { data: scheduleData, isLoading, error } = useQuery<PersonalScheduleData>({
     queryKey: token === "test" ? [`/api/schedule/test-personal`] : [`/api/schedule/${token}`],
     enabled: !!token,
+  });
+
+  // Fetch historical week events on demand (not available for test tokens)
+  const isTestToken = token === "test";
+  const { data: historicalWeekData, isLoading: isLoadingHistorical } = useQuery<HistoricalWeekEvents>({
+    queryKey: [`/api/schedule/${token}/history/${selectedHistoricalWeek}`],
+    enabled: !!token && !!selectedHistoricalWeek && !isTestToken,
   });
 
 
@@ -90,6 +129,15 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
   const { personalSchedule, project, contact, version, events } = scheduleData;
   const contactName = contact.firstName ? `${contact.firstName} ${contact.lastName || ''}`.trim() : contact.email;
   
+  // Helper to get week start (Sunday) for a date
+  const getWeekStart = (dateString: string): string => {
+    const date = parseISO(dateString);
+    const dayOfWeek = date.getDay();
+    const weekStart = new Date(date);
+    weekStart.setDate(date.getDate() - dayOfWeek);
+    return format(weekStart, 'yyyy-MM-dd');
+  };
+
   // Sort events by date and time
   const sortedEvents = [...events].sort((a, b) => {
     const dateA = new Date(`${a.date}T${a.startTime || '00:00:00'}`);
@@ -97,30 +145,44 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
     return dateA.getTime() - dateB.getTime();
   });
 
-  // Group events by date
-  const eventsByDate = sortedEvents.reduce((acc, event) => {
-    const dateKey = event.date;
-    if (!acc[dateKey]) {
-      acc[dateKey] = [];
+  // Group events by week, then by date
+  const eventsByWeek = sortedEvents.reduce((acc, event) => {
+    const weekKey = getWeekStart(event.date);
+    if (!acc[weekKey]) {
+      acc[weekKey] = {};
     }
-    acc[dateKey].push(event);
+    const dateKey = event.date;
+    if (!acc[weekKey][dateKey]) {
+      acc[weekKey][dateKey] = [];
+    }
+    acc[weekKey][dateKey].push(event);
     return acc;
-  }, {} as Record<string, typeof sortedEvents>);
+  }, {} as Record<string, Record<string, typeof sortedEvents>>);
 
   // Sort events within each date by time
-  Object.values(eventsByDate).forEach(dayEvents => {
-    dayEvents.sort((a, b) => {
-      // All day events first
-      if (a.isAllDay && !b.isAllDay) return -1;
-      if (!a.isAllDay && b.isAllDay) return 1;
-      if (a.isAllDay && b.isAllDay) return 0;
-      
-      // Then by start time
-      const timeA = a.startTime || '00:00:00';
-      const timeB = b.startTime || '00:00:00';
-      return timeA.localeCompare(timeB);
+  Object.values(eventsByWeek).forEach(weekEvents => {
+    Object.values(weekEvents).forEach(dayEvents => {
+      dayEvents.sort((a, b) => {
+        if (a.isAllDay && !b.isAllDay) return -1;
+        if (!a.isAllDay && b.isAllDay) return 1;
+        if (a.isAllDay && b.isAllDay) return 0;
+        const timeA = a.startTime || '00:00:00';
+        const timeB = b.startTime || '00:00:00';
+        return timeA.localeCompare(timeB);
+      });
     });
   });
+
+  // Get sorted week keys
+  const sortedWeeks = Object.keys(eventsByWeek).sort();
+  
+  // Format week range for display
+  const formatWeekRange = (weekStart: string): string => {
+    const start = parseISO(weekStart);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    return `${format(start, 'MMM d')} - ${format(end, 'MMM d, yyyy')}`;
+  };
 
   const formatDate = (dateString: string) => {
     try {
@@ -207,9 +269,15 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
             <div>
               <h1 className="text-2xl font-bold text-gray-900 mb-2">Personal Schedule</h1>
               <div className="space-y-1">
-                <p className="text-gray-600 mb-2">
-                  Version {getVersionDisplay(version)}, Published: {formatPublishedDate(version.publishedAt)}
-                </p>
+                {version ? (
+                  <p className="text-gray-600 mb-2">
+                    Version {getVersionDisplay(version)}, Published: {formatPublishedDate(version.publishedAt)}
+                  </p>
+                ) : (
+                  <p className="text-gray-600 mb-2">
+                    No upcoming schedule published
+                  </p>
+                )}
                 <p className="text-gray-700">
                   <span className="font-medium">{contactName}</span> • {getContactTypeDisplay(contact.contactType)}
                 </p>
@@ -226,82 +294,130 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
         {/* Events List */}
         <div className="bg-white rounded-lg">
           <div className="px-6 py-4">
-            <h2 className="text-lg font-semibold text-gray-900">My Schedule</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Upcoming Schedule</h2>
             <p className="text-gray-600 text-sm">
-              You are scheduled for {events.length} event{events.length !== 1 ? 's' : ''} this week
+              You have {events.length} upcoming event{events.length !== 1 ? 's' : ''} scheduled
             </p>
           </div>
 
           {events.length === 0 ? (
             <div className="p-8 text-center">
               <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No Events Scheduled</h3>
-              <p className="text-gray-600">You don't have any events assigned to you in this schedule version.</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No Upcoming Events</h3>
+              <p className="text-gray-600">
+                {scheduleData.historicalWeeks && scheduleData.historicalWeeks.length > 0 
+                  ? "You don't have any upcoming events scheduled. Check Previous Schedules below for past weeks."
+                  : "You don't have any events assigned to you in this schedule yet."}
+              </p>
             </div>
           ) : (
             <div>
-              {Object.entries(eventsByDate).map(([date, dayEvents], dateIndex) => (
-                <div key={date}>
-                  {/* Date Header */}
-                  <div className="px-6 pt-4 pb-2 bg-white">
-                    <h3 className="text-lg font-semibold text-gray-900">{formatDate(date)}</h3>
-                    <p className="text-sm text-gray-600">
-                      {dayEvents.length} event{dayEvents.length !== 1 ? 's' : ''}
-                    </p>
-                  </div>
-                  
-                  {/* Events for this date */}
-                  <div>
-                    {dayEvents.map((event) => (
-                      <div 
-                        key={event.id} 
-                        className="px-6 pt-2 pb-6 cursor-pointer hover:bg-gray-50 transition-colors"
-                        onClick={() => setSelectedEvent(event)}
-                      >
-                        <div 
-                          className="flex items-start gap-3 p-4 rounded-lg border-l-4" 
-                          style={{ 
-                            borderLeftColor: getEventTypeColor(event.type),
-                            backgroundColor: `${getEventTypeColor(event.type)}10`
-                          }}
-                        >
-                          <div className="text-sm text-gray-700 min-w-[80px] pt-1">
-                            {event.isAllDay ? (
-                              <div>
-                                <span className="inline-flex items-center px-2 py-1 bg-white bg-opacity-80 text-gray-800 rounded text-xs font-medium">
-                                  All Day
-                                </span>
-                              </div>
-                            ) : (
-                              <div>
-                                <div className="font-medium">
-                                  {formatTime(event.startTime)}
-                                </div>
-                                {event.endTime && (
-                                  <div className="text-xs text-gray-600 mt-1">
-                                    {formatTime(event.endTime)}
-                                  </div>
-                                )}
-                              </div>
-                            )}
+              {sortedWeeks.map((weekStart, weekIndex) => {
+                const weekEvents = eventsByWeek[weekStart];
+                const sortedDates = Object.keys(weekEvents).sort();
+                const weekEventCount = Object.values(weekEvents).flat().length;
+                
+                return (
+                  <div key={weekStart} className={weekIndex > 0 ? "mt-6 pt-6 border-t border-gray-200" : ""}>
+                    {/* Week Header */}
+                    <div className="px-6 py-3 bg-gray-50 rounded-t-lg">
+                      <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                        Week of {formatWeekRange(weekStart)}
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        {weekEventCount} event{weekEventCount !== 1 ? 's' : ''}
+                      </p>
+                    </div>
+                    
+                    {/* Days within this week */}
+                    {sortedDates.map((date) => {
+                      const dayEvents = weekEvents[date];
+                      return (
+                        <div key={date}>
+                          {/* Date Header */}
+                          <div className="px-6 pt-4 pb-2 bg-white">
+                            <h4 className="text-base font-semibold text-gray-900">{formatDate(date)}</h4>
+                            <p className="text-sm text-gray-600">
+                              {dayEvents.length} event{dayEvents.length !== 1 ? 's' : ''}
+                            </p>
                           </div>
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900 mb-1">{event.title}</h4>
-                            {event.location && (
-                              <div className="text-sm text-gray-700 mb-1">
-                                {event.location}
+                          
+                          {/* Events for this date */}
+                          <div>
+                            {dayEvents.map((event) => (
+                              <div 
+                                key={event.id} 
+                                className="px-6 pt-2 pb-6 cursor-pointer hover:bg-gray-50 transition-colors"
+                                onClick={() => setSelectedEvent(event)}
+                              >
+                                <div 
+                                  className="flex items-start gap-3 p-4 rounded-lg border-l-4" 
+                                  style={{ 
+                                    borderLeftColor: getEventTypeColor(event.type),
+                                    backgroundColor: `${getEventTypeColor(event.type)}10`
+                                  }}
+                                >
+                                  <div className="text-sm text-gray-700 min-w-[80px] pt-1">
+                                    {event.isAllDay ? (
+                                      <div>
+                                        <span className="inline-flex items-center px-2 py-1 bg-white bg-opacity-80 text-gray-800 rounded text-xs font-medium">
+                                          All Day
+                                        </span>
+                                      </div>
+                                    ) : (
+                                      <div>
+                                        <div className="font-medium">
+                                          {formatTime(event.startTime)}
+                                        </div>
+                                        {event.endTime && (
+                                          <div className="text-xs text-gray-600 mt-1">
+                                            {formatTime(event.endTime)}
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="flex-1">
+                                    <h4 className="font-semibold text-gray-900 mb-1">{event.title}</h4>
+                                    {event.location && (
+                                      <div className="text-sm text-gray-700 mb-1">
+                                        {event.location}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
                               </div>
-                            )}
+                            ))}
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
+
+        {/* Previous Schedules Button - hide for test tokens since they don't have real historical data */}
+        {!isTestToken && scheduleData.historicalWeeks && scheduleData.historicalWeeks.length > 0 && (
+          <div className="mt-6">
+            <button
+              onClick={() => setShowPreviousSchedules(true)}
+              className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors"
+              data-testid="button-previous-schedules"
+            >
+              <div className="flex items-center gap-3">
+                <History className="h-5 w-5 text-gray-500" />
+                <div className="text-left">
+                  <p className="font-medium text-gray-900">Previous Schedules</p>
+                  <p className="text-sm text-gray-500">{scheduleData.historicalWeeks.length} past week{scheduleData.historicalWeeks.length !== 1 ? 's' : ''} available</p>
+                </div>
+              </div>
+              <ChevronRight className="h-5 w-5 text-gray-400" />
+            </button>
+          </div>
+        )}
 
         {/* Footer */}
         <div className="mt-8 text-center text-sm text-gray-500">
@@ -309,6 +425,108 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
           <p>Powered by BackstageOS</p>
         </div>
       </div>
+
+      {/* Previous Schedules Sheet */}
+      <Sheet open={showPreviousSchedules} onOpenChange={(open) => {
+        setShowPreviousSchedules(open);
+        if (!open) {
+          setSelectedHistoricalWeek(null);
+        }
+      }}>
+        <SheetContent side="bottom" className="h-[80vh] rounded-t-xl">
+          <SheetHeader className="pb-4 border-b">
+            <SheetTitle>Previous Schedules</SheetTitle>
+          </SheetHeader>
+          
+          <div className="overflow-y-auto h-full pb-8">
+            {selectedHistoricalWeek ? (
+              // Show events for selected historical week
+              <div className="py-4">
+                <button
+                  onClick={() => setSelectedHistoricalWeek(null)}
+                  className="flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-4"
+                >
+                  <ChevronRight className="h-4 w-4 rotate-180" />
+                  Back to weeks
+                </button>
+                
+                {isLoadingHistorical ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                  </div>
+                ) : historicalWeekData ? (
+                  <div>
+                    <div className="mb-4">
+                      <h3 className="font-semibold text-gray-900">
+                        {format(parseISO(historicalWeekData.weekStart), 'MMM d')} - {format(parseISO(historicalWeekData.weekEnd), 'MMM d, yyyy')}
+                      </h3>
+                      <p className="text-sm text-gray-500">Version {historicalWeekData.version}</p>
+                    </div>
+                    
+                    {historicalWeekData.events.length === 0 ? (
+                      <p className="text-gray-500 text-center py-4">No events for this week</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {historicalWeekData.events.map((event) => (
+                          <div 
+                            key={event.id}
+                            className="p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100"
+                            onClick={() => {
+                              setSelectedEvent(event);
+                              setShowPreviousSchedules(false);
+                            }}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="text-sm text-gray-600 min-w-[60px]">
+                                {event.isAllDay ? 'All Day' : formatTime(event.startTime)}
+                              </div>
+                              <div>
+                                <p className="font-medium text-gray-900">{event.title}</p>
+                                <p className="text-sm text-gray-500">{formatDate(event.date)}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-center py-4">Failed to load events</p>
+                )}
+              </div>
+            ) : (
+              // Show list of historical weeks
+              <div className="py-4 space-y-2">
+                {(!scheduleData.historicalWeeks || scheduleData.historicalWeeks.length === 0) ? (
+                  <div className="text-center py-8">
+                    <History className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500">No previous schedules available</p>
+                    <p className="text-sm text-gray-400 mt-1">Past weeks will appear here once published</p>
+                  </div>
+                ) : (
+                  scheduleData.historicalWeeks.map((week) => (
+                    <button
+                      key={week.weekStart}
+                      onClick={() => setSelectedHistoricalWeek(week.weekStart)}
+                      className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      <div className="text-left">
+                        <p className="font-medium text-gray-900">
+                          {format(parseISO(week.weekStart), 'MMM d')} - {format(parseISO(week.weekEnd), 'MMM d, yyyy')}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {week.eventCount} event{week.eventCount !== 1 ? 's' : ''} • Version {week.version}
+                        </p>
+                      </div>
+                      <ChevronRight className="h-5 w-5 text-gray-400" />
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* Event Details Modal */}
       {selectedEvent && (
