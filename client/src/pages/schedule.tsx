@@ -226,10 +226,34 @@ The Production Team`
     queryKey: [`/api/projects/${projectId}/settings`],
   });
 
-  // Get schedule versions to find current published version
+  // Calculate current week start for header query
+  const headerWeekStart = useMemo(() => {
+    const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+      ? safeJsonParse((settings as any).scheduleSettings, {}) 
+      : ((settings as any)?.scheduleSettings || {});
+    const weekStartDay = scheduleSettings?.weekStartDay || 'sunday';
+    const weekStartDayNumber = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].indexOf(weekStartDay);
+    
+    const startOfWeek = new Date(currentDate);
+    const currentDay = startOfWeek.getDay();
+    const diff = currentDay - weekStartDayNumber;
+    startOfWeek.setDate(startOfWeek.getDate() - (diff < 0 ? diff + 7 : diff));
+    
+    return startOfWeek.toISOString().split('T')[0];
+  }, [currentDate, settings]);
+
+  // Lightweight header data - loads instantly for publish/personal controls
+  const { data: scheduleHeader } = useQuery({
+    queryKey: [`/api/projects/${projectId}/schedule-header`, { weekStart: headerWeekStart }],
+    enabled: !!projectId && !!headerWeekStart,
+    staleTime: 30000, // Cache for 30 seconds
+  });
+
+  // Get schedule versions - deferred, only needed for version history modal
   const { data: scheduleVersions = [] } = useQuery({
     queryKey: [`/api/projects/${projectId}/schedule-versions`],
-    enabled: !!projectId
+    enabled: !!projectId && showVersionControl, // Only fetch when version history is open
+    staleTime: 60000,
   });
 
   // Fetch contacts for event creation
@@ -252,9 +276,10 @@ The Production Team`
     queryKey: [`/api/admin/users`],
   });
 
-  // Fetch personal schedules with contact information
+  // Fetch personal schedules - deferred, use header data for dropdown
   const { data: personalSchedules = [] } = useQuery({
     queryKey: [`/api/projects/${projectId}/personal-schedules`],
+    enabled: showResendScheduleDialog, // Only fetch when resend dialog is open
   });
 
   // Fetch email accounts for reply-to configuration
@@ -492,8 +517,13 @@ The Production Team`
     return startOfWeek.toISOString().split('T')[0];
   }, [currentDate, settings]);
 
-  // Get the current published version for THIS WEEK (weekly versioning)
+  // Get the current published version for THIS WEEK - use header data for instant rendering
   const currentPublishedVersion = useMemo(() => {
+    // Use header data if available (instant load)
+    if (scheduleHeader?.currentVersion) {
+      return scheduleHeader.currentVersion;
+    }
+    // Fallback to full scheduleVersions if header not yet loaded
     if (!scheduleVersions || scheduleVersions.length === 0) return null;
     
     // Filter versions for the current week only
@@ -508,10 +538,10 @@ The Production Team`
     
     // Return the most recent version for this week
     return sortedVersions[0];
-  }, [scheduleVersions, currentWeekStartStr]);
+  }, [scheduleHeader, scheduleVersions, currentWeekStartStr]);
 
-  // Check if the current week is a draft (never been published)
-  const isCurrentWeekDraft = !currentPublishedVersion;
+  // Check if the current week is a draft - use header data for instant rendering
+  const isCurrentWeekDraft = scheduleHeader ? scheduleHeader.isDraft : !currentPublishedVersion;
 
   // Calculate week range consistently for template dialogs
   const currentWeekRange = useMemo(() => {
@@ -556,24 +586,31 @@ The Production Team`
     }
   };
 
-  // Organize personal schedules by contact group (from Manage Contact Groups)
-  const organizedSchedules = personalSchedules.reduce((acc: any, schedule: any) => {
-    if (schedule.contact) {
-      // Use contact group name if available, otherwise fall back to category
-      const groupName = schedule.contact.contactGroup?.name || schedule.contact.category || 'Other';
-      const typeName = groupName.charAt(0).toUpperCase() + groupName.slice(1).replace(/_/g, ' ');
-      
-      if (!acc[typeName]) {
-        acc[typeName] = [];
-      }
-      acc[typeName].push({
-        name: `${schedule.contact.firstName || ''} ${schedule.contact.lastName || ''}`.trim() || schedule.contact.email || 'Unknown Contact',
-        token: schedule.accessToken,
-        contactId: schedule.contact.id
-      });
+  // Organize personal schedules by contact group - use header data for instant dropdown rendering
+  const organizedSchedules = useMemo(() => {
+    // Use header data if available (instant load for dropdown)
+    if (scheduleHeader?.personalSchedules) {
+      return scheduleHeader.personalSchedules;
     }
-    return acc;
-  }, {});
+    // Fallback to full personalSchedules if header not yet loaded
+    return personalSchedules.reduce((acc: any, schedule: any) => {
+      if (schedule.contact) {
+        // Use contact group name if available, otherwise fall back to category
+        const groupName = schedule.contact.contactGroup?.name || schedule.contact.category || 'Other';
+        const typeName = groupName.charAt(0).toUpperCase() + groupName.slice(1).replace(/_/g, ' ');
+        
+        if (!acc[typeName]) {
+          acc[typeName] = [];
+        }
+        acc[typeName].push({
+          name: `${schedule.contact.firstName || ''} ${schedule.contact.lastName || ''}`.trim() || schedule.contact.email || 'Unknown Contact',
+          token: schedule.accessToken,
+          contactId: schedule.contact.id
+        });
+      }
+      return acc;
+    }, {});
+  }, [scheduleHeader, personalSchedules]);
 
   // Function to navigate to personal schedule
   const navigateToPersonalSchedule = (token: string) => {
@@ -804,6 +841,8 @@ The Production Team`
       // Replace optimistic data with real server response
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-versions`] });
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/personal-schedules`] });
+      // Also invalidate header for instant UI update
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-header`] });
     },
     onError: (error: any, variables, context) => {
       // Rollback to previous state on error
