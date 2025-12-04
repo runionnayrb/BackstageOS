@@ -706,8 +706,10 @@ export default function WeeklyScheduleView({
     if (e.button !== 0) return;
 
     // Use same coordinate system as weekly availability editor
+    // Add scroll offset to get the actual position within the full calendar content
     const rect = calendarRef.current.getBoundingClientRect();
-    const y = e.clientY - rect.top;
+    const scrollTop = scrollContainerRef.current.scrollTop || 0;
+    const y = e.clientY - rect.top + scrollTop;
     const minutes = snapToIncrement(positionToMinutes(y));
     
     console.log('Mouse click:', { 
@@ -720,11 +722,12 @@ export default function WeeklyScheduleView({
     });
 
     // Check if clicking on existing event
+    // Use < for end time to avoid matching when clicking at the exact boundary between events
     const clickedEvent = filteredEvents.find(event => {
       const eventDay = weekDates.findIndex((date: Date) => formatAsCalendarDate(date) === event.date);
       const eventStart = timeToMinutes(event.startTime);
       const eventEnd = timeToMinutes(event.endTime);
-      return eventDay === dayIndex && minutes >= eventStart && minutes <= eventEnd && !event.isAllDay;
+      return eventDay === dayIndex && minutes >= eventStart && minutes < eventEnd && !event.isAllDay;
     });
 
     if (clickedEvent) {
@@ -748,7 +751,8 @@ export default function WeeklyScheduleView({
       if (!calendarRef.current || !scrollContainerRef.current) return;
 
       const rect = calendarRef.current.getBoundingClientRect();
-      const y = e.clientY - rect.top;
+      const scrollTop = scrollContainerRef.current.scrollTop || 0;
+      const y = e.clientY - rect.top + scrollTop;
       const newMinutes = snapToIncrement(positionToMinutes(y));
 
       dragState = { ...dragState, currentTime: newMinutes };
