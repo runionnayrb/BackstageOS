@@ -277,6 +277,9 @@ export default function Personnel() {
     return acc;
   }, {} as Record<number, Contact[]>);
 
+  // Get unassigned contacts (contacts without a groupId)
+  const unassignedContacts = allContacts.filter(contact => !contact.groupId);
+
   const handleContactClick = (contact: Contact) => {
     setSelectedContact(contact);
     setShowContactModal(true);
@@ -695,6 +698,71 @@ export default function Personnel() {
               </div>
             );
           })}
+
+          {/* Mobile Unassigned Section */}
+          {unassignedContacts.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <h2 className="text-lg font-semibold text-gray-500">Unassigned</h2>
+                <span className="text-gray-400 text-sm">({unassignedContacts.length})</span>
+              </div>
+              <div className="space-y-2">
+                {unassignedContacts.map((contact) => (
+                  <div
+                    key={contact.id}
+                    className="p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
+                    onClick={() => handleContactClick(contact)}
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex-1">
+                        <h3 className="font-medium text-gray-900">
+                          {contact.firstName} {contact.lastName}
+                        </h3>
+                        {contact.role && (
+                          <p className="text-sm text-gray-600 mt-0.5">{contact.role}</p>
+                        )}
+                      </div>
+                      <div className="flex gap-1 ml-2">
+                        <Calendar 
+                          className="h-4 w-4 text-gray-500 hover:text-gray-700 cursor-pointer" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAvailabilityClick(contact);
+                          }}
+                        />
+                        {contact.email && (
+                          <Mail 
+                            className="h-4 w-4 text-gray-500 hover:text-gray-700 cursor-pointer" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEmailContact(contact.email!);
+                            }}
+                          />
+                        )}
+                        {contact.phone && (
+                          <Phone 
+                            className="h-4 w-4 text-gray-500 hover:text-gray-700 cursor-pointer" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.location.href = `tel:${contact.phone}`;
+                            }}
+                          />
+                        )}
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      {contact.email && (
+                        <p className="text-sm text-gray-600 truncate">{contact.email}</p>
+                      )}
+                      {contact.phone && (
+                        <p className="text-sm text-gray-600">{formatPhoneNumber(contact.phone)}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
       )}
@@ -790,6 +858,68 @@ export default function Personnel() {
               </div>
             );
           })}
+
+          {/* Desktop Unassigned Section */}
+          {unassignedContacts.length > 0 && (
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                <h2 className="text-xl font-semibold text-gray-500">Unassigned</h2>
+                <span className="text-gray-400 text-sm">({unassignedContacts.length})</span>
+              </div>
+              <div className="space-y-1">
+                {unassignedContacts.map((contact) => (
+                  <div
+                    key={contact.id}
+                    className="p-2 hover:bg-gray-100 cursor-pointer transition-colors bg-gray-50 rounded"
+                    onClick={() => handleContactClick(contact)}
+                  >
+                    <div className="grid items-center gap-6" style={{ gridTemplateColumns: "2fr 1.5fr 3fr 1.5fr auto" }}>
+                      <div className="text-gray-900">
+                        {contact.firstName} {contact.lastName}
+                      </div>
+                      <div className="text-gray-900">
+                        {contact.role || ''}
+                      </div>
+                      <div className="text-gray-900">
+                        {contact.email || ''}
+                      </div>
+                      <div className="text-gray-600">
+                        {formatPhoneNumber(contact.phone)}
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <Calendar 
+                          className="h-4 w-4 text-gray-600 hover:text-gray-800 cursor-pointer" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAvailabilityClick(contact);
+                          }}
+                        />
+                        {contact.email && (
+                          <Mail 
+                            className="h-4 w-4 text-gray-600 hover:text-gray-800 cursor-pointer" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEmailContact(contact.email!);
+                            }}
+                          />
+                        )}
+                        {contact.phone && (
+                          <Phone 
+                            className="h-4 w-4 text-gray-600 hover:text-gray-800 cursor-pointer" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.location.href = `tel:${contact.phone}`;
+                            }}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
       )}
