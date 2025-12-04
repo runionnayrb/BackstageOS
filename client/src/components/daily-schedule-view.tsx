@@ -838,7 +838,7 @@ export default function DailyScheduleView({
                           <PopoverTrigger asChild>
                             <div
                               data-event-card
-                              className={`absolute rounded text-sm overflow-hidden cursor-pointer hover:opacity-90 transition-all ${
+                              className={`absolute rounded text-sm overflow-hidden cursor-pointer hover:opacity-90 ${
                                 isLightColor(eventTypeColor) ? 'text-gray-900' : 'text-white'
                               } ${isCenterableShortEvent ? 'flex items-center' : ''
                               } ${selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''}`}

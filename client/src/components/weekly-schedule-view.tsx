@@ -1642,7 +1642,7 @@ export default function WeeklyScheduleView({
                     >
                       <PopoverTrigger asChild>
                         <div
-                          className={`absolute text-sm rounded-md shadow-sm cursor-pointer hover:opacity-90 z-30 transition-all ${
+                          className={`absolute text-sm rounded-md shadow-sm cursor-pointer hover:opacity-90 z-30 ${
                             isLightColor(eventTypeColor) ? 'text-gray-900' : 'text-white'
                           } ${selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''
                           } ${draggedEvent?.event.id === event.id && draggedEvent.isDragging ? 'opacity-50' : ''
