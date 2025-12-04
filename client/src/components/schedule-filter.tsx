@@ -454,10 +454,10 @@ export default function ScheduleFilter({
                         <Checkbox
                           checked={selectedEventTypes?.includes(eventType.name) || false}
                           onChange={() => handleEventTypeToggle(eventType.name)}
-                          className="pointer-events-none"
+                          className="pointer-events-none flex-shrink-0"
                         />
-                        <div className="flex-1">
-                          <p className="text-sm font-medium">
+                        <div className="flex-1 min-w-0 overflow-hidden">
+                          <p className="text-sm font-medium truncate">
                             {eventType.name}
                           </p>
                           {eventType.description && (
@@ -467,7 +467,7 @@ export default function ScheduleFilter({
                           )}
                         </div>
                         <div 
-                          className="w-3 h-3 rounded-full border"
+                          className="w-3 h-3 rounded-full border flex-shrink-0"
                           style={{ backgroundColor: eventType.color }}
                         />
                       </div>
@@ -516,10 +516,10 @@ export default function ScheduleFilter({
                         <Checkbox
                           checked={selectedIndividualTypes?.includes(eventType.name) || false}
                           onChange={() => handleIndividualTypeToggle(eventType.name)}
-                          className="pointer-events-none"
+                          className="pointer-events-none flex-shrink-0"
                         />
-                        <div className="flex-1">
-                          <p className="text-sm font-medium">
+                        <div className="flex-1 min-w-0 overflow-hidden">
+                          <p className="text-sm font-medium truncate">
                             {eventType.name}
                           </p>
                           {eventType.description && (
@@ -529,7 +529,7 @@ export default function ScheduleFilter({
                           )}
                         </div>
                         <div 
-                          className="w-3 h-3 rounded-full border"
+                          className="w-3 h-3 rounded-full border flex-shrink-0"
                           style={{ backgroundColor: eventType.color }}
                         />
                       </div>
