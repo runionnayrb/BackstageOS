@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Clock, Plus, Calendar, X, History, Settings, FileText, User, Send, Crown, Megaphone, Bell, LayoutTemplate, Copy, CalendarPlus } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Clock, Plus, Calendar, X, History, Settings, FileText, User, Send, Crown, Megaphone, Bell, LayoutTemplate, Copy, CalendarPlus, Trash2 } from "lucide-react";
 import { FloatingActionButton } from "@/components/navigation/floating-action-button";
 import { ChangeSummaryEditor } from "@/components/ChangeSummaryEditor";
 import WeeklyScheduleView from "@/components/weekly-schedule-view";
@@ -659,6 +659,28 @@ The Production Team`
           variant: "destructive",
         });
       }
+    },
+  });
+
+  // Delete event mutation
+  const deleteEventMutation = useMutation({
+    mutationFn: (eventId: number) => 
+      apiRequest('DELETE', `/api/projects/${projectId}/schedule-events/${eventId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/settings`] });
+      setEditingEvent(null);
+      toast({
+        title: "Event deleted",
+        description: "The event has been deleted successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error deleting event",
+        description: error.message || "Failed to delete event. Please try again.",
+        variant: "destructive",
+      });
     },
   });
 
@@ -1508,21 +1530,36 @@ The Production Team`
               </div>
               
               <div className="border-t border-gray-200 p-4 bg-white flex-shrink-0 mt-auto">
-                <div className="flex justify-end space-x-2">
+                <div className="flex justify-between items-center">
                   <Button 
                     type="button" 
-                    variant="outline" 
-                    onClick={() => setEditingEvent(null)}
+                    variant="destructive"
+                    onClick={() => {
+                      if (confirm('Are you sure you want to delete this event? This action cannot be undone.')) {
+                        deleteEventMutation.mutate(editingEvent.id);
+                      }
+                    }}
+                    disabled={deleteEventMutation.isPending}
                   >
-                    Cancel
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    {deleteEventMutation.isPending ? "Deleting..." : "Delete Event"}
                   </Button>
-                  <Button 
-                    type="submit" 
-                    form="event-form"
-                    disabled={updateEventMutation.isPending}
-                  >
-                    {updateEventMutation.isPending ? "Saving..." : "Save Changes"}
-                  </Button>
+                  <div className="flex space-x-2">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => setEditingEvent(null)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      form="event-form"
+                      disabled={updateEventMutation.isPending}
+                    >
+                      {updateEventMutation.isPending ? "Saving..." : "Save Changes"}
+                    </Button>
+                  </div>
                 </div>
               </div>
             </>

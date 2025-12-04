@@ -2,7 +2,7 @@ import React, { useState, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { formatTimeDisplay, parseScheduleSettings, formatAsCalendarDate } from '@/lib/timeUtils';
 import { filterEventsBySettings, getTimezoneAbbreviation, calculateEventLayouts } from '@/lib/scheduleUtils';
-import { getEventTypeColor, getEventTypeColorFromDatabase, getEventTypeDisplayName } from '@/lib/eventUtils';
+import { getEventTypeColor, getEventTypeColorFromDatabase, getEventTypeDisplayName, isLightColor, darkenColor } from '@/lib/eventUtils';
 import { ChevronLeft, ChevronRight, Plus, Calendar, Clock, ChevronDown, MapPin, Users, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -477,10 +477,12 @@ export default function DailyScheduleView({
                         >
                           <PopoverTrigger asChild>
                             <div
-                              className="text-white rounded px-2 py-1 text-sm mb-1 cursor-pointer hover:opacity-90 transition-opacity border-l-4"
+                              className={`rounded px-2 py-1 text-sm mb-1 cursor-pointer hover:opacity-90 transition-opacity ${
+                                isLightColor(eventTypeColor) ? 'text-gray-900' : 'text-white'
+                              }`}
                               style={{ 
                                 backgroundColor: eventTypeColor,
-                                borderLeftColor: eventTypeColor,
+                                border: `1px solid ${darkenColor(eventTypeColor, 25)}`,
                               }}
                             >
                               <div className="font-medium truncate">{event.title}</div>
@@ -681,14 +683,16 @@ export default function DailyScheduleView({
                         >
                           <PopoverTrigger asChild>
                             <div
-                              className="absolute text-white rounded text-sm overflow-hidden cursor-pointer hover:opacity-90 transition-all border-l-4"
+                              className={`absolute rounded text-sm overflow-hidden cursor-pointer hover:opacity-90 transition-all ${
+                                isLightColor(eventTypeColor) ? 'text-gray-900' : 'text-white'
+                              }`}
                               style={{
                                 top: `${top}px`,
                                 height: `${height}px`,
                                 left: eventLeft,
                                 width: eventWidth,
                                 backgroundColor: eventTypeColor,
-                                borderLeftColor: eventTypeColor,
+                                border: `1px solid ${darkenColor(eventTypeColor, 25)}`,
                                 padding: isVeryShortEvent ? '2px 4px' : '8px',
                               }}
                             >
