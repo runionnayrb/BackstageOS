@@ -230,7 +230,7 @@ export default function EventForm({
       </div>
       <div>
         <Label>People</Label>
-        <div className="border rounded-md max-h-80 overflow-y-auto">
+        <div className="max-h-80 overflow-y-auto">
           {contacts.length === 0 ? (
             <p className="text-sm text-gray-500 p-3">No contacts available</p>
           ) : (
