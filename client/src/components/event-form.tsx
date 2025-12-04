@@ -136,7 +136,6 @@ export default function EventForm({
           />
         </div>
       </div>
-
       <div className="grid grid-cols-2 gap-3">
         <div className="min-w-0">
           <Label htmlFor="startDate">Start Date</Label>
@@ -161,7 +160,6 @@ export default function EventForm({
           />
         </div>
       </div>
-
       <div className="grid grid-cols-2 gap-3">
         <div className="min-w-0">
           <Label htmlFor="startTime">Start Time</Label>
@@ -186,7 +184,6 @@ export default function EventForm({
           />
         </div>
       </div>
-
       <div className="space-y-3">
         <div className="flex items-center space-x-2">
           <Checkbox
@@ -209,7 +206,6 @@ export default function EventForm({
           </Label>
         </div>
       </div>
-
       <div>
         <Label>Location</Label>
         <LocationSelect
@@ -221,9 +217,8 @@ export default function EventForm({
           endTime={formData.endTime}
         />
       </div>
-
       <div>
-        <Label>Participants</Label>
+        <Label>People</Label>
         <div className="space-y-3 max-h-80 overflow-y-auto border rounded-md p-3">
           {contacts.length === 0 ? (
             <p className="text-sm text-gray-500">No contacts available</p>
@@ -286,7 +281,6 @@ export default function EventForm({
                         {groupName.replace(/_/g, ' ').toUpperCase()}
                       </Label>
                     </div>
-
                     {/* Individual contacts in group */}
                     <div className="space-y-1 ml-6">
                       {groupContacts.map(contact => (
@@ -324,7 +318,6 @@ export default function EventForm({
           )}
         </div>
       </div>
-
       <div>
         <Label htmlFor="description">Description</Label>
         <Textarea
@@ -333,7 +326,6 @@ export default function EventForm({
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
         />
       </div>
-
       {showButtons && (
         <div className="flex justify-end space-x-2 pb-4">
           <Button type="button" variant="outline" onClick={onCancel}>
