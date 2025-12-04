@@ -1609,7 +1609,7 @@ export default function WeeklyScheduleView({
                   const durationMinutes = endMinutes - startMinutes;
                   const isShortEvent = durationMinutes <= 15;
                   const isVeryShortEvent = durationMinutes <= 10;
-                  const isUnderOneHour = durationMinutes < 60;
+                  const isCompactEvent = durationMinutes <= 30; // Time on same line as title
                   const isCenterableShortEvent = durationMinutes >= 5 && durationMinutes <= 30;
 
                   // Get layout for overlapping events
@@ -1669,7 +1669,7 @@ export default function WeeklyScheduleView({
                           onMouseDown={(e) => handleEventMouseDown(e, event)}
                           onContextMenu={(e) => e.preventDefault()}
                         >
-                          {isUnderOneHour ? (
+                          {isCompactEvent ? (
                             <div className="flex items-center gap-1 truncate">
                               <span className="font-medium">{event.title}</span>
                               <span className="text-xs opacity-90">{(() => {
