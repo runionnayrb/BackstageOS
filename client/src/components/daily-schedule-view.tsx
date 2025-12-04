@@ -865,12 +865,12 @@ export default function DailyScheduleView({
                                   <span className="text-xs opacity-90">{formatTimeDisplay(formatTime(startMinutes), timeFormat)} - {formatTimeDisplay(formatTime(endMinutes), timeFormat)}</span>
                                 </div>
                               ) : (
-                                <>
+                                <div>
                                   <div className="font-medium truncate">{event.title}</div>
-                                  <div className="text-xs opacity-90 truncate">
+                                  <div className="text-xs opacity-90 truncate mt-0.5">
                                     {formatTimeDisplay(formatTime(startMinutes), timeFormat)} - {formatTimeDisplay(formatTime(endMinutes), timeFormat)}
                                   </div>
-                                </>
+                                </div>
                               )}
                             </div>
                           </PopoverTrigger>

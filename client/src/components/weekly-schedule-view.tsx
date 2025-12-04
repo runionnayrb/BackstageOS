@@ -1685,9 +1685,9 @@ export default function WeeklyScheduleView({
                               })()}</span>
                             </div>
                           ) : (
-                            <>
+                            <div>
                               <div className="font-medium truncate">{event.title}</div>
-                              <div className="text-xs opacity-90 truncate">
+                              <div className="text-xs opacity-90 truncate mt-0.5">
                                 {(() => {
                                   if (draggedEvent?.event.id === event.id && draggedEvent.isDragging) {
                                     const dragStartMinutes = draggedEvent.currentPosition.startMinutes;
@@ -1698,7 +1698,7 @@ export default function WeeklyScheduleView({
                                   return `${formatTimeDisplay(formatTime(startMinutes), timeFormat as '12' | '24')} - ${formatTimeDisplay(formatTime(endMinutes), timeFormat as '12' | '24')}`;
                                 })()}
                               </div>
-                            </>
+                            </div>
                           )}
                           
                           {/* Resize handles */}
