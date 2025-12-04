@@ -126,27 +126,6 @@ export default function Personnel() {
     if (isMobile) {
       setPageHeaderIcons([
         {
-          icon: FileText,
-          component: () => (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="p-1 hover:text-blue-600 transition-colors">
-                  <FileText className="h-5 w-5" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent side="bottom" align="end" sideOffset={8}>
-                <DropdownMenuItem onClick={() => setLocation(`/shows/${projectId}/contact-sheet`)}>
-                  Contact Sheet
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLocation(`/shows/${projectId}/company-list`)}>
-                  Company List
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ),
-          title: 'Create reports'
-        },
-        {
           icon: Users,
           onClick: () => setGroupsModalOpen(true),
           title: 'Manage groups'

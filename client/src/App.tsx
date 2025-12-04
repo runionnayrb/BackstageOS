@@ -44,8 +44,6 @@ import Schedule from "@/pages/schedule";
 import PropsAndCostumes from "@/pages/props-costumes";
 import Personnel from "@/pages/personnel";
 import PersonnelCategory from "@/pages/personnel-category";
-import ContactSheet from "@/pages/contact-sheet";
-import CompanyList from "@/pages/company-list";
 import FeedbackPage from "@/pages/feedback";
 import NotFound from "@/pages/not-found";
 import WaitlistLanding from "@/pages/waitlist-landing";
@@ -264,8 +262,6 @@ function Router() {
         <Route path="/shows/:id/props/:propId" component={PropDetail} />
         <Route path="/shows/:id/costumes" component={CostumeTracker} />
         <Route path="/shows/:id/contacts" component={Personnel} />
-        <Route path="/shows/:id/contact-sheet" component={ContactSheet} />
-        <Route path="/shows/:id/company-list" component={CompanyList} />
         <Route path="/shows/:id/contacts/:category" component={PersonnelCategory} />
         <Route path="/shows/:id/contacts/:contactId/availability" component={ContactAvailability} />
         <Route path="/shows/:id/performance-tracker" component={PerformanceTracker} />
