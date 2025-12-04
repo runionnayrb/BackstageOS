@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -90,69 +90,65 @@ export default function EventForm({
   
   console.log('🎭 EventForm - final formData.isProductionLevel:', formData.isProductionLevel);
 
-  // Compute contact groups and IDs
-  const contactsByGroup = useMemo(() => {
-    return contacts.reduce((acc, contact) => {
-      if (contact.contactGroup?.name) {
-        const groupName = contact.contactGroup.name;
-        if (!acc[groupName]) {
-          acc[groupName] = [];
-        }
-        acc[groupName].push(contact);
+  // Group contacts by contact group ONLY (matching schedule-filter pattern)
+  const contactsByGroup = contacts.reduce((acc, contact) => {
+    const groupName = contact.contactGroup?.name;
+    if (groupName) {
+      if (!acc[groupName]) {
+        acc[groupName] = [];
       }
-      return acc;
-    }, {} as Record<string, Contact[]>);
-  }, [contacts]);
+      acc[groupName].push(contact);
+    }
+    return acc;
+  }, {} as Record<string, Contact[]>);
 
-  const allContactIds = useMemo(() => {
-    return contacts.filter(c => c.contactGroup?.name).map(c => c.id);
-  }, [contacts]);
+  // Sort groups with Cast first
+  const sortedGroups = Object.keys(contactsByGroup).sort((a, b) => {
+    if (a === 'Cast' && b !== 'Cast') return -1;
+    if (a !== 'Cast' && b === 'Cast') return 1;
+    return a.localeCompare(b);
+  });
 
-  const sortedGroups = useMemo(() => {
-    return Object.keys(contactsByGroup).sort((a, b) => {
-      if (a === 'Cast' && b !== 'Cast') return -1;
-      if (a !== 'Cast' && b === 'Cast') return 1;
-      return a.localeCompare(b);
-    });
-  }, [contactsByGroup]);
-
-  // Participant selection handlers
-  const handleSelectAllParticipants = useCallback(() => {
+  // Simple handlers matching schedule-filter pattern
+  const handleSelectAll = () => {
+    const allIds = contacts.filter(c => c.contactGroup?.name).map(c => c.id);
     setFormData(prev => ({
       ...prev,
-      participantIds: [...new Set([...prev.participantIds, ...allContactIds])],
+      participantIds: allIds,
     }));
-  }, [allContactIds]);
+  };
 
-  const handleClearAllParticipants = useCallback(() => {
+  const handleClearAll = () => {
     setFormData(prev => ({
       ...prev,
-      participantIds: prev.participantIds.filter(id => !allContactIds.includes(id)),
+      participantIds: [],
     }));
-  }, [allContactIds]);
+  };
 
-  const handleSelectGroupAll = useCallback((groupContactIds: number[]) => {
+  const handleSelectGroupAll = (groupContacts: Contact[]) => {
+    const groupIds = groupContacts.map(c => c.id);
     setFormData(prev => ({
       ...prev,
-      participantIds: [...new Set([...prev.participantIds, ...groupContactIds])],
+      participantIds: [...new Set([...prev.participantIds, ...groupIds])],
     }));
-  }, []);
+  };
 
-  const handleSelectGroupNone = useCallback((groupContactIds: number[]) => {
+  const handleSelectGroupNone = (groupContacts: Contact[]) => {
+    const groupIds = groupContacts.map(c => c.id);
     setFormData(prev => ({
       ...prev,
-      participantIds: prev.participantIds.filter(id => !groupContactIds.includes(id)),
+      participantIds: prev.participantIds.filter(id => !groupIds.includes(id)),
     }));
-  }, []);
+  };
 
-  const handleToggleParticipant = useCallback((contactId: number) => {
+  const handleContactToggle = (contactId: number) => {
     setFormData(prev => ({
       ...prev,
       participantIds: prev.participantIds.includes(contactId)
         ? prev.participantIds.filter(id => id !== contactId)
         : [...prev.participantIds, contactId],
     }));
-  }, []);
+  };
 
   // Auto-populate end date when start date changes
   const handleStartDateChange = (newStartDate: string) => {
@@ -300,7 +296,7 @@ export default function EventForm({
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={handleSelectAllParticipants}
+                      onClick={handleSelectAll}
                       className="text-xs px-2 py-1 h-5"
                     >
                       All
@@ -309,7 +305,7 @@ export default function EventForm({
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={handleClearAllParticipants}
+                      onClick={handleClearAll}
                       className="text-xs px-2 py-1 h-5"
                     >
                       None
@@ -321,7 +317,6 @@ export default function EventForm({
               <div className="p-2">
                 {sortedGroups.map((groupName) => {
                   const groupContacts = contactsByGroup[groupName];
-                  const groupContactIds = groupContacts.map(c => c.id);
 
                   return (
                     <div key={groupName} className="mb-4">
@@ -332,7 +327,7 @@ export default function EventForm({
                             type="button"
                             variant="outline"
                             size="sm"
-                            onClick={() => handleSelectGroupAll(groupContactIds)}
+                            onClick={() => handleSelectGroupAll(groupContacts)}
                             className="text-xs px-2 py-1 h-5"
                           >
                             All
@@ -341,7 +336,7 @@ export default function EventForm({
                             type="button"
                             variant="outline"
                             size="sm"
-                            onClick={() => handleSelectGroupNone(groupContactIds)}
+                            onClick={() => handleSelectGroupNone(groupContacts)}
                             className="text-xs px-2 py-1 h-5"
                           >
                             None
@@ -353,7 +348,7 @@ export default function EventForm({
                           <div
                             key={contact.id}
                             className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer"
-                            onClick={() => handleToggleParticipant(contact.id)}
+                            onClick={() => handleContactToggle(contact.id)}
                           >
                             <Checkbox
                               checked={formData.participantIds.includes(contact.id)}
