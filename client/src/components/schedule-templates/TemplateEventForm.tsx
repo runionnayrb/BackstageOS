@@ -100,57 +100,6 @@ export default function TemplateEventForm({
     return a.localeCompare(b);
   });
 
-  // Simple handlers matching schedule-filter pattern
-  const handleSelectAll = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const allIds = contacts.filter(c => c.contactGroup?.name).map(c => c.id);
-    setFormData(prev => ({
-      ...prev,
-      participantIds: allIds,
-    }));
-  };
-
-  const handleClearAll = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setFormData(prev => ({
-      ...prev,
-      participantIds: [],
-    }));
-  };
-
-  const handleSelectGroupAll = (e: React.MouseEvent, groupContacts: Contact[]) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const groupIds = groupContacts.map(c => c.id);
-    setFormData(prev => ({
-      ...prev,
-      participantIds: [...new Set([...prev.participantIds, ...groupIds])],
-    }));
-  };
-
-  const handleSelectGroupNone = (e: React.MouseEvent, groupContacts: Contact[]) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const groupIds = groupContacts.map(c => c.id);
-    setFormData(prev => ({
-      ...prev,
-      participantIds: prev.participantIds.filter(id => !groupIds.includes(id)),
-    }));
-  };
-
-  const handleContactToggle = (e: React.MouseEvent, contactId: number) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setFormData(prev => ({
-      ...prev,
-      participantIds: prev.participantIds.includes(contactId)
-        ? prev.participantIds.filter(id => id !== contactId)
-        : [...prev.participantIds, contactId],
-    }));
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const cleanedData = {
@@ -268,7 +217,7 @@ export default function TemplateEventForm({
       </div>
       <div>
         <Label>People</Label>
-        <div className="max-h-60 overflow-y-auto">
+        <div className="border rounded-md max-h-60 overflow-y-auto">
           {contacts.length === 0 ? (
             <p className="text-sm text-gray-500 p-3">No contacts available. Add contacts to your project to assign participants.</p>
           ) : (
@@ -277,24 +226,29 @@ export default function TemplateEventForm({
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">FULL COMPANY</span>
                   <div className="flex gap-1">
-                    <Button
+                    <button
                       type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => handleSelectAll(e)}
-                      className="text-xs px-2 py-1 h-5"
+                      className="text-xs px-2 py-0.5 border rounded hover:bg-gray-100 flex items-center justify-center"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const allIds = contacts.filter(c => c.contactGroup?.name).map(c => c.id);
+                        setFormData(prev => ({ ...prev, participantIds: allIds }));
+                      }}
                     >
                       All
-                    </Button>
-                    <Button
+                    </button>
+                    <button
                       type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => handleClearAll(e)}
-                      className="text-xs px-2 py-1 h-5"
+                      className="text-xs px-2 py-0.5 border rounded hover:bg-gray-100 flex items-center justify-center"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setFormData(prev => ({ ...prev, participantIds: [] }));
+                      }}
                     >
                       None
-                    </Button>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -308,36 +262,62 @@ export default function TemplateEventForm({
                       <div className="flex items-center justify-between px-2 py-1 text-sm font-medium text-gray-600 border-b">
                         <span>{groupName.replace(/_/g, ' ').toUpperCase()}</span>
                         <div className="flex gap-1">
-                          <Button
+                          <button
                             type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => handleSelectGroupAll(e, groupContacts)}
-                            className="text-xs px-2 py-1 h-5"
+                            className="text-xs px-2 py-0.5 border rounded hover:bg-gray-100 flex items-center justify-center"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              const groupIds = groupContacts.map(c => c.id);
+                              setFormData(prev => ({
+                                ...prev,
+                                participantIds: [...new Set([...prev.participantIds, ...groupIds])],
+                              }));
+                            }}
                           >
                             All
-                          </Button>
-                          <Button
+                          </button>
+                          <button
                             type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => handleSelectGroupNone(e, groupContacts)}
-                            className="text-xs px-2 py-1 h-5"
+                            className="text-xs px-2 py-0.5 border rounded hover:bg-gray-100 flex items-center justify-center"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              const groupIds = groupContacts.map(c => c.id);
+                              setFormData(prev => ({
+                                ...prev,
+                                participantIds: prev.participantIds.filter(id => !groupIds.includes(id)),
+                              }));
+                            }}
                           >
                             None
-                          </Button>
+                          </button>
                         </div>
                       </div>
                       <div className="space-y-1 mt-2">
                         {groupContacts.map(contact => (
-                          <div
+                          <label
                             key={contact.id}
                             className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer"
-                            onClick={(e) => handleContactToggle(e, contact.id)}
                           >
-                            <Checkbox
+                            <input
+                              type="checkbox"
                               checked={formData.participantIds.includes(contact.id)}
-                              className="pointer-events-none"
+                              onChange={(e) => {
+                                const contactId = contact.id;
+                                if (e.target.checked) {
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    participantIds: [...prev.participantIds, contactId],
+                                  }));
+                                } else {
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    participantIds: prev.participantIds.filter(id => id !== contactId),
+                                  }));
+                                }
+                              }}
+                              className="h-4 w-4"
                             />
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium truncate">
@@ -349,7 +329,7 @@ export default function TemplateEventForm({
                                 </p>
                               )}
                             </div>
-                          </div>
+                          </label>
                         ))}
                       </div>
                     </div>

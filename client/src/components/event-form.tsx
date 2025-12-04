@@ -241,7 +241,7 @@ export default function EventForm({
                   <div className="flex gap-1">
                     <button
                       type="button"
-                      className="text-xs px-2 py-1 h-5 border rounded hover:bg-gray-100"
+                      className="text-xs px-2 py-0.5 border rounded hover:bg-gray-100 flex items-center justify-center"
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -253,7 +253,7 @@ export default function EventForm({
                     </button>
                     <button
                       type="button"
-                      className="text-xs px-2 py-1 h-5 border rounded hover:bg-gray-100"
+                      className="text-xs px-2 py-0.5 border rounded hover:bg-gray-100 flex items-center justify-center"
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -277,7 +277,7 @@ export default function EventForm({
                         <div className="flex gap-1">
                           <button
                             type="button"
-                            className="text-xs px-2 py-1 h-5 border rounded hover:bg-gray-100"
+                            className="text-xs px-2 py-0.5 border rounded hover:bg-gray-100 flex items-center justify-center"
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
@@ -292,7 +292,7 @@ export default function EventForm({
                           </button>
                           <button
                             type="button"
-                            className="text-xs px-2 py-1 h-5 border rounded hover:bg-gray-100"
+                            className="text-xs px-2 py-0.5 border rounded hover:bg-gray-100 flex items-center justify-center"
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
