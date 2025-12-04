@@ -1494,7 +1494,7 @@ The Production Team`
                 startTime: createEventData.startTime,
                 endTime: createEventData.endTime,
               }}
-              key={`${createEventData.date}-${createEventData.startTime}-${createEventData.endTime}`}
+              key="create-event-form"
             />
           </div>
           
@@ -1530,6 +1530,7 @@ The Production Team`
             <>
               <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 px-6">
                 <EventForm
+                  key={`edit-event-${editingEvent.id}`}
                   projectId={parseInt(projectId)}
                   contacts={contacts}
                   eventTypes={eventTypes}
