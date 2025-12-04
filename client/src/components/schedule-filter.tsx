@@ -78,11 +78,24 @@ export default function ScheduleFilter({
 
   // Initialize Show Schedule state when settings load
   useEffect(() => {
-    if (enabledEventTypes.length > 0 && showScheduleEnabled) {
-      // Automatically apply enabled event types when show schedule is enabled
-      onEventTypeFilterChange(enabledEventTypes);
+    if (enabledEventTypes.length > 0 && showScheduleEnabled && eventTypes.length > 0) {
+      // Convert enabledEventTypes (which may contain IDs for custom types) to names
+      const enabledNames = enabledEventTypes.map((enabledType: string | number) => {
+        // If it's a string that matches a default event type name, use it directly
+        const matchByName = eventTypes.find(et => et.name === enabledType);
+        if (matchByName) return matchByName.name;
+        
+        // If it's a number (ID), find the event type by ID and get its name
+        const matchById = eventTypes.find(et => et.id === enabledType || et.id === Number(enabledType));
+        if (matchById) return matchById.name;
+        
+        // Fallback: return as-is (shouldn't happen normally)
+        return enabledType;
+      }).filter(Boolean);
+      
+      onEventTypeFilterChange(enabledNames);
     }
-  }, [enabledEventTypes, showScheduleEnabled, onEventTypeFilterChange]);
+  }, [enabledEventTypes, showScheduleEnabled, onEventTypeFilterChange, eventTypes]);
 
   // Group contacts by contact group ONLY (don't fall back to category)
   const contactsByCategory = contacts.reduce((acc, contact) => {
