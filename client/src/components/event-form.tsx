@@ -110,7 +110,9 @@ export default function EventForm({
   });
 
   // Simple handlers matching schedule-filter pattern
-  const handleSelectAll = () => {
+  const handleSelectAll = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     const allIds = contacts.filter(c => c.contactGroup?.name).map(c => c.id);
     setFormData(prev => ({
       ...prev,
@@ -118,14 +120,18 @@ export default function EventForm({
     }));
   };
 
-  const handleClearAll = () => {
+  const handleClearAll = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     setFormData(prev => ({
       ...prev,
       participantIds: [],
     }));
   };
 
-  const handleSelectGroupAll = (groupContacts: Contact[]) => {
+  const handleSelectGroupAll = (e: React.MouseEvent, groupContacts: Contact[]) => {
+    e.preventDefault();
+    e.stopPropagation();
     const groupIds = groupContacts.map(c => c.id);
     setFormData(prev => ({
       ...prev,
@@ -133,7 +139,9 @@ export default function EventForm({
     }));
   };
 
-  const handleSelectGroupNone = (groupContacts: Contact[]) => {
+  const handleSelectGroupNone = (e: React.MouseEvent, groupContacts: Contact[]) => {
+    e.preventDefault();
+    e.stopPropagation();
     const groupIds = groupContacts.map(c => c.id);
     setFormData(prev => ({
       ...prev,
@@ -141,7 +149,9 @@ export default function EventForm({
     }));
   };
 
-  const handleContactToggle = (contactId: number) => {
+  const handleContactToggle = (e: React.MouseEvent, contactId: number) => {
+    e.preventDefault();
+    e.stopPropagation();
     setFormData(prev => ({
       ...prev,
       participantIds: prev.participantIds.includes(contactId)
@@ -296,7 +306,7 @@ export default function EventForm({
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={handleSelectAll}
+                      onClick={(e) => handleSelectAll(e)}
                       className="text-xs px-2 py-1 h-5"
                     >
                       All
@@ -305,7 +315,7 @@ export default function EventForm({
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={handleClearAll}
+                      onClick={(e) => handleClearAll(e)}
                       className="text-xs px-2 py-1 h-5"
                     >
                       None
@@ -327,7 +337,7 @@ export default function EventForm({
                             type="button"
                             variant="outline"
                             size="sm"
-                            onClick={() => handleSelectGroupAll(groupContacts)}
+                            onClick={(e) => handleSelectGroupAll(e, groupContacts)}
                             className="text-xs px-2 py-1 h-5"
                           >
                             All
@@ -336,7 +346,7 @@ export default function EventForm({
                             type="button"
                             variant="outline"
                             size="sm"
-                            onClick={() => handleSelectGroupNone(groupContacts)}
+                            onClick={(e) => handleSelectGroupNone(e, groupContacts)}
                             className="text-xs px-2 py-1 h-5"
                           >
                             None
@@ -348,7 +358,7 @@ export default function EventForm({
                           <div
                             key={contact.id}
                             className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer"
-                            onClick={() => handleContactToggle(contact.id)}
+                            onClick={(e) => handleContactToggle(e, contact.id)}
                           >
                             <Checkbox
                               checked={formData.participantIds.includes(contact.id)}

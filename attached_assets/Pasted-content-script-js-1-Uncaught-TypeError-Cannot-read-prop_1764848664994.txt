@@ -1,0 +1,1460 @@
+content_script.js:1 Uncaught TypeError: Cannot read properties of undefined (reading 'control')
+    at content_script.js:1:422999
+    at Array.some (<anonymous>)
+    at shouldOfferCompletionListForField (content_script.js:1:422984)
+    at elementWasFocused (content_script.js:1:423712)
+    at HTMLDocument.focusInEventHandler (content_script.js:1:423069)
+(anonymous) @ content_script.js:1
+shouldOfferCompletionListForField @ content_script.js:1
+elementWasFocused @ content_script.js:1
+focusInEventHandler @ content_script.js:1Understand this error
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+chunk-RPCDYKBN.js?v=ffdc7b33:19659 Uncaught Error: Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate. React limits the number of nested updates to prevent infinite loops.
+    at checkForNestedUpdates (chunk-RPCDYKBN.js?v=ffdc7b33:19659:19)
+    at scheduleUpdateOnFiber (chunk-RPCDYKBN.js?v=ffdc7b33:18533:11)
+    at dispatchSetState (chunk-RPCDYKBN.js?v=ffdc7b33:12403:15)
+    at setRef (chunk-JDYSANEB.js?v=ffdc7b33:12:12)
+    at chunk-JDYSANEB.js?v=ffdc7b33:21:23
+    at Array.map (<anonymous>)
+    at chunk-JDYSANEB.js?v=ffdc7b33:20:27
+    at setRef (chunk-JDYSANEB.js?v=ffdc7b33:12:12)
+    at chunk-JDYSANEB.js?v=ffdc7b33:21:23
+    at Array.map (<anonymous>)
+checkForNestedUpdates @ chunk-RPCDYKBN.js?v=ffdc7b33:19659
+scheduleUpdateOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:18533
+dispatchSetState @ chunk-RPCDYKBN.js?v=ffdc7b33:12403
+setRef @ chunk-JDYSANEB.js?v=ffdc7b33:12
+(anonymous) @ chunk-JDYSANEB.js?v=ffdc7b33:21
+(anonymous) @ chunk-JDYSANEB.js?v=ffdc7b33:20
+setRef @ chunk-JDYSANEB.js?v=ffdc7b33:12
+(anonymous) @ chunk-JDYSANEB.js?v=ffdc7b33:21
+(anonymous) @ chunk-JDYSANEB.js?v=ffdc7b33:20
+safelyDetachRef @ chunk-RPCDYKBN.js?v=ffdc7b33:16726
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17741
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17737
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17737
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17737
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17737
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17737
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17737
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17737
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17813
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17737
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17737
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17737
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17737
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17737
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17727
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17794
+commitMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17663
+commitRootImpl @ chunk-RPCDYKBN.js?v=ffdc7b33:19347
+commitRoot @ chunk-RPCDYKBN.js?v=ffdc7b33:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=ffdc7b33:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=ffdc7b33:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=ffdc7b33:18627Understand this error
+chunk-RPCDYKBN.js?v=ffdc7b33:521 Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+    at ErrorBoundary (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/error-boundary.tsx:10:5)
+    at Router (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/App.tsx?v=gxayq47u11gtLSPPYHCg0:108:31)
+    at PWAManager (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/pwa-manager.tsx:22:30)
+    at Provider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=ffdc7b33:38:15)
+    at TooltipProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=ffdc7b33:66:5)
+    at SearchProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/search/SearchContext.tsx:22:34)
+    at AdminViewProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/contexts/AdminViewContext.tsx:20:37)
+    at AuthProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/hooks/useAuth.tsx:26:32)
+    at QueryClientProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=ffdc7b33:2805:3)
+    at App
+printWarning @ chunk-RPCDYKBN.js?v=ffdc7b33:521
+error @ chunk-RPCDYKBN.js?v=ffdc7b33:505
+checkForNestedUpdates @ chunk-RPCDYKBN.js?v=ffdc7b33:19665
+scheduleUpdateOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:18533
+dispatchSetState @ chunk-RPCDYKBN.js?v=ffdc7b33:12403
+setRef @ chunk-JDYSANEB.js?v=ffdc7b33:12
+(anonymous) @ chunk-JDYSANEB.js?v=ffdc7b33:21
+(anonymous) @ chunk-JDYSANEB.js?v=ffdc7b33:20
+setRef @ chunk-JDYSANEB.js?v=ffdc7b33:12
+(anonymous) @ chunk-JDYSANEB.js?v=ffdc7b33:21
+(anonymous) @ chunk-JDYSANEB.js?v=ffdc7b33:20
+safelyDetachRef @ chunk-RPCDYKBN.js?v=ffdc7b33:16726
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17495
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17577
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17577
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17577
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17577
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17577
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17577
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17577
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17610
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17577
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17610
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17577
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17577
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17610
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17577
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17610
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17577
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17577
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17577
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17503
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17503
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17503
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17503
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17577
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17503
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17577
+commitDeletionEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17477
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17674
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17727
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17794
+commitMutationEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17663
+commitRootImpl @ chunk-RPCDYKBN.js?v=ffdc7b33:19347
+commitRoot @ chunk-RPCDYKBN.js?v=ffdc7b33:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=ffdc7b33:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=ffdc7b33:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=ffdc7b33:18627Understand this error
+chunk-RPCDYKBN.js?v=ffdc7b33:14032 The above error occurred in the <button> component:
+
+    at button
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-IWFJIMEQ.js?v=ffdc7b33:42:13
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=ffdc7b33:43:13
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=ffdc7b33:20:13
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-IWFJIMEQ.js?v=ffdc7b33:42:13
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-D2XDA5CK.js?v=ffdc7b33:1929:13
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-select.js?v=ffdc7b33:188:13
+    at _c (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/ui/select.tsx:26:11)
+    at Provider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=ffdc7b33:38:15)
+    at Provider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=ffdc7b33:38:15)
+    at CollectionProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-5KSDU44R.js?v=ffdc7b33:31:13)
+    at Provider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=ffdc7b33:38:15)
+    at Provider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=ffdc7b33:38:15)
+    at Popper (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-D2XDA5CK.js?v=ffdc7b33:1921:11)
+    at Select (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-select.js?v=ffdc7b33:90:5)
+    at div
+    at div
+    at EventTypeSelect (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/event-type-select.tsx:30:3)
+    at div
+    at div
+    at form
+    at EventForm (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/event-form.tsx:27:3)
+    at div
+    at div
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-IWFJIMEQ.js?v=ffdc7b33:42:13
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-R33W635Q.js?v=ffdc7b33:61:7
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=ffdc7b33:43:13
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=ffdc7b33:20:13
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-IWFJIMEQ.js?v=ffdc7b33:42:13
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-HP6KL7FS.js?v=ffdc7b33:29:5
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-X223IVKS.js?v=ffdc7b33:237:13
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-X223IVKS.js?v=ffdc7b33:160:58
+    at Presence (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FDH7FQDE.js?v=ffdc7b33:24:11)
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-X223IVKS.js?v=ffdc7b33:151:64
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=ffdc7b33:43:13
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=ffdc7b33:20:13
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-IWFJIMEQ.js?v=ffdc7b33:42:13
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-R33W635Q.js?v=ffdc7b33:260:22
+    at Presence (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FDH7FQDE.js?v=ffdc7b33:24:11)
+    at Provider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=ffdc7b33:38:15)
+    at DialogPortal (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-X223IVKS.js?v=ffdc7b33:113:11)
+    at _c3 (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/ui/dialog.tsx:52:12)
+    at Provider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=ffdc7b33:38:15)
+    at Dialog (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-X223IVKS.js?v=ffdc7b33:54:5)
+    at WeeklyScheduleView (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/weekly-schedule-view.tsx:44:3)
+    at div
+    at div
+    at div
+    at Schedule (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/pages/schedule.tsx:57:27)
+    at Route (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=ffdc7b33:191:16)
+    at Switch (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=ffdc7b33:247:17)
+    at PageTransition (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/transitions/page-transition.tsx:21:42)
+    at main
+    at div
+    at Layout (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/layout/layout.tsx:21:34)
+    at ErrorBoundary (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/error-boundary.tsx:10:5)
+    at Router (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/App.tsx?v=gxayq47u11gtLSPPYHCg0:108:31)
+    at PWAManager (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/pwa-manager.tsx:22:30)
+    at Provider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=ffdc7b33:38:15)
+    at TooltipProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=ffdc7b33:66:5)
+    at SearchProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/search/SearchContext.tsx:22:34)
+    at AdminViewProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/contexts/AdminViewContext.tsx:20:37)
+    at AuthProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/hooks/useAuth.tsx:26:32)
+    at QueryClientProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=ffdc7b33:2805:3)
+    at App
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary.
+logCapturedError @ chunk-RPCDYKBN.js?v=ffdc7b33:14032
+callback @ chunk-RPCDYKBN.js?v=ffdc7b33:14078
+callCallback @ chunk-RPCDYKBN.js?v=ffdc7b33:11248
+commitUpdateQueue @ chunk-RPCDYKBN.js?v=ffdc7b33:11265
+commitLayoutEffectOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17075
+commitLayoutMountEffects_complete @ chunk-RPCDYKBN.js?v=ffdc7b33:17980
+commitLayoutEffects_begin @ chunk-RPCDYKBN.js?v=ffdc7b33:17969
+commitLayoutEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17920
+commitRootImpl @ chunk-RPCDYKBN.js?v=ffdc7b33:19353
+commitRoot @ chunk-RPCDYKBN.js?v=ffdc7b33:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=ffdc7b33:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=ffdc7b33:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=ffdc7b33:18627Understand this error
+error-boundary.tsx:28 Error Boundary caught an error: Error: Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate. React limits the number of nested updates to prevent infinite loops.
+    at checkForNestedUpdates (chunk-RPCDYKBN.js?v=ffdc7b33:19659:19)
+    at scheduleUpdateOnFiber (chunk-RPCDYKBN.js?v=ffdc7b33:18533:11)
+    at dispatchSetState (chunk-RPCDYKBN.js?v=ffdc7b33:12403:15)
+    at setRef (chunk-JDYSANEB.js?v=ffdc7b33:12:12)
+    at chunk-JDYSANEB.js?v=ffdc7b33:21:23
+    at Array.map (<anonymous>)
+    at chunk-JDYSANEB.js?v=ffdc7b33:20:27
+    at setRef (chunk-JDYSANEB.js?v=ffdc7b33:12:12)
+    at chunk-JDYSANEB.js?v=ffdc7b33:21:23
+    at Array.map (<anonymous>) {componentStack: '\n    at button\n    at https://54b2a03e-f6bc-4ffb-9…tack_react-query.js?v=ffdc7b33:2805:3)\n    at App'}
+componentDidCatch @ error-boundary.tsx:28
+callback @ chunk-RPCDYKBN.js?v=ffdc7b33:14084
+callCallback @ chunk-RPCDYKBN.js?v=ffdc7b33:11248
+commitUpdateQueue @ chunk-RPCDYKBN.js?v=ffdc7b33:11265
+commitLayoutEffectOnFiber @ chunk-RPCDYKBN.js?v=ffdc7b33:17075
+commitLayoutMountEffects_complete @ chunk-RPCDYKBN.js?v=ffdc7b33:17980
+commitLayoutEffects_begin @ chunk-RPCDYKBN.js?v=ffdc7b33:17969
+commitLayoutEffects @ chunk-RPCDYKBN.js?v=ffdc7b33:17920
+commitRootImpl @ chunk-RPCDYKBN.js?v=ffdc7b33:19353
+commitRoot @ chunk-RPCDYKBN.js?v=ffdc7b33:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=ffdc7b33:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=ffdc7b33:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=ffdc7b33:18627Understand this error
+errorLogger.ts:140  POST https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/api/errors/log 400 (Bad Request)
