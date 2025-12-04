@@ -160,9 +160,6 @@ export default function Projects() {
                       <div className="text-sm text-muted-foreground mb-1 ml-0.5">
                         {project.venue || "No venue set"}
                       </div>
-                      <div className="text-sm text-muted-foreground ml-0.5">
-                        {formatDateRange(project.prepStartDate, project.closingDate)}
-                      </div>
                     </div>
                     <div className="text-muted-foreground">
                       →
