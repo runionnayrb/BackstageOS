@@ -378,12 +378,13 @@ export default function MonthlyScheduleView({
                     .filter(event => showAllDayEvents || !event.isAllDay)
                     .slice(0, 2) // Show fewer events on mobile for cleaner look
                     .map((event) => {
-                    const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes as any[], (event as any).eventTypeId);
-                    const textColorClass = isLightColor(eventTypeColor) ? 'text-gray-900' : 'text-white';
+                    const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes);
                     return (
                     <div
                       key={event.id}
-                      className={`text-xs px-1 py-0.5 rounded truncate cursor-pointer transition-transform active:scale-95 ${textColorClass}`}
+                      className={`text-xs px-1 py-0.5 rounded truncate cursor-pointer transition-transform active:scale-95 ${
+                        isLightColor(eventTypeColor) ? 'text-gray-900' : 'text-white'
+                      }`}
                       style={{ backgroundColor: eventTypeColor }}
                       title={`${event.title} (${event.isAllDay ? 'All Day' : `${formatTimeDisplay(event.startTime, timeFormat)} - ${formatTimeDisplay(event.endTime, timeFormat)}`})`}
                       onClick={(e) => {
