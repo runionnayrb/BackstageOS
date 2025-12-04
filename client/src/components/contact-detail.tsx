@@ -525,8 +525,8 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
                 </div>
               </div>
 
-              {/* Cast Types Section - Only for Cast Category */}
-              {contact.category === 'cast' && (
+              {/* Cast Types Section - Only for Cast Group */}
+              {contact.contactGroup?.name === 'Cast' && (
                 <div>
                   <Label>Cast Type</Label>
                   <div className="grid grid-cols-2 gap-2 mt-2">
@@ -546,8 +546,8 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
                 </div>
               )}
 
-              {/* Equity Status Section - Only for Cast Category */}
-              {contact.category === 'cast' && (
+              {/* Equity Status Section - Only for Cast Group */}
+              {contact.contactGroup?.name === 'Cast' && (
                 <div>
                   <Label>Equity Status</Label>
                   <Select value={formData.equityStatus} onValueChange={(value) => setFormData(prev => ({ ...prev, equityStatus: value }))}>
@@ -578,7 +578,7 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
               <div className="grid grid-cols-1 gap-4">
                 <ReadOnlyField label="Role" value={contact.role} />
               </div>
-              {contact.category === 'cast' && (
+              {contact.contactGroup?.name === 'Cast' && (
                 <div className="grid grid-cols-1 gap-4">
                   <ReadOnlyField 
                     label="Cast Type" 
@@ -589,7 +589,7 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
                   />
                 </div>
               )}
-              {contact.category === 'cast' && (
+              {contact.contactGroup?.name === 'Cast' && (
                 <div className="grid grid-cols-1 gap-4">
                   <ReadOnlyField 
                     label="Equity Status" 

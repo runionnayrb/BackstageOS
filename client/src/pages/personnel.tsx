@@ -288,8 +288,9 @@ export default function Personnel() {
   };
 
   const handleEditContact = (contact: Contact) => {
-    // Navigate to the category page for editing
-    setLocation(`/shows/${projectId}/contacts/${contact.category}`);
+    // Navigate to the group page for editing (use group ID or "unassigned")
+    const groupSlug = contact.groupId ? `group-${contact.groupId}` : 'unassigned';
+    setLocation(`/shows/${projectId}/contacts/${groupSlug}`);
   };
 
   const handleAvailabilityClick = (contact: Contact) => {

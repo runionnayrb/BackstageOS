@@ -160,13 +160,13 @@ export default function AvailabilityComparison({
     }
   }, [enabledEventTypes, showScheduleEnabled]);
 
-  // Group contacts by category for better organization
+  // Group contacts by contact group for better organization
   const contactsByCategory = (allContacts as any[]).reduce((acc, contact) => {
-    const category = contact.category || 'Other';
-    if (!acc[category]) {
-      acc[category] = [];
+    const groupName = contact.contactGroup?.name || 'Unassigned';
+    if (!acc[groupName]) {
+      acc[groupName] = [];
     }
-    acc[category].push(contact);
+    acc[groupName].push(contact);
     return acc;
   }, {} as Record<string, any[]>);
 

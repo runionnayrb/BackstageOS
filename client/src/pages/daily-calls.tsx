@@ -257,14 +257,14 @@ export default function DailyCallSheet() {
         locationTypeGroups[locationType] = [];
       }
       
-      // Get actual cast members called to this event (filter by contact category = 'cast')
+      // Get actual cast members called to this event (filter by contacts in "Cast" group)
       const eventCast = (event.participants || [])
         .filter(participant => {
           if (!participant.isRequired) return false;
           
-          // Find the actual contact to get the category
+          // Find the actual contact to check if they're in the Cast group
           const contact = contacts.find(c => c.id === participant.contactId);
-          return contact && contact.category === 'cast';
+          return contact && contact.contactGroup?.name === 'Cast';
         })
         .map(participant => `${participant.contactFirstName.charAt(0)}. ${participant.contactLastName}`);
       

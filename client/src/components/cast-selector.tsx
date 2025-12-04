@@ -26,8 +26,8 @@ export function CastSelector({
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Filter contacts to only cast members
-  const castMembers = contacts.filter(contact => contact.category === 'cast');
+  // Filter contacts to only cast members (contacts in "Cast" group)
+  const castMembers = contacts.filter(contact => contact.contactGroup?.name === 'Cast');
   
   // Format contact name consistently with daily calls display
   const formatContactName = (contact: Contact) => 

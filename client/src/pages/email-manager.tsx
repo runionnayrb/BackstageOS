@@ -1612,48 +1612,48 @@ export default function EmailManager() {
                             <span className="text-xs text-gray-500">({projectContacts.length})</span>
                           </div>
                           
-                          {/* Group by contact type within each show */}
+                          {/* Group by contact group within each show */}
                           {isExpanded && (
                             <div className="ml-6 space-y-3">
                             {Object.entries(
                               projectContacts.reduce((acc, contact) => {
-                                const category = contact.category || 'Other';
-                                if (!acc[category]) {
-                                  acc[category] = [];
+                                const groupName = contact.contactGroup?.name || 'Unassigned';
+                                if (!acc[groupName]) {
+                                  acc[groupName] = [];
                                 }
-                                acc[category].push(contact);
+                                acc[groupName].push(contact);
                                 return acc;
                               }, {} as Record<string, typeof projectContacts>)
-                            ).map(([category, categoryContacts]) => {
-                              const isAllCategorySelected = categoryContacts.every(contact => 
+                            ).map(([groupName, groupContacts]) => {
+                              const isAllGroupSelected = groupContacts.every(contact => 
                                 selectedMembers.includes(contact.id)
                               );
 
                               return (
-                                <div key={category}>
+                                <div key={groupName}>
                                   <div className="flex items-center space-x-2 mb-1">
                                     <input
                                       type="checkbox"
-                                      checked={isAllCategorySelected}
+                                      checked={isAllGroupSelected}
                                       onChange={(e) => {
                                         if (e.target.checked) {
-                                          // Select all contacts from this category
-                                          const categoryContactIds = categoryContacts.map(c => c.id);
-                                          setSelectedMembers([...new Set([...selectedMembers, ...categoryContactIds])]);
+                                          // Select all contacts from this group
+                                          const groupContactIds = groupContacts.map(c => c.id);
+                                          setSelectedMembers([...new Set([...selectedMembers, ...groupContactIds])]);
                                         } else {
-                                          // Deselect all contacts from this category
-                                          const categoryContactIds = categoryContacts.map(c => c.id);
-                                          setSelectedMembers(selectedMembers.filter(id => !categoryContactIds.includes(id)));
+                                          // Deselect all contacts from this group
+                                          const groupContactIds = groupContacts.map(c => c.id);
+                                          setSelectedMembers(selectedMembers.filter(id => !groupContactIds.includes(id)));
                                         }
                                       }}
                                       className="h-4 w-4 text-blue-600 rounded border-gray-300"
                                     />
-                                    <span className="text-sm font-medium capitalize">{category.replace(/_/g, ' ')}</span>
-                                    <span className="text-xs text-gray-500">({categoryContacts.length})</span>
+                                    <span className="text-sm font-medium">{groupName}</span>
+                                    <span className="text-xs text-gray-500">({groupContacts.length})</span>
                                   </div>
                                   
                                   <div className="ml-6 space-y-1">
-                                    {categoryContacts.map(contact => (
+                                    {groupContacts.map(contact => (
                                       <label key={contact.id} className="flex items-center space-x-2 py-1 cursor-pointer hover:bg-gray-50 rounded px-2">
                                         <input
                                           type="checkbox"
