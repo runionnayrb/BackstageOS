@@ -649,11 +649,12 @@ export default function DailyScheduleView({
                       const startMinutes = timeToMinutes(event.startTime);
                       const endMinutes = timeToMinutes(event.endTime);
                       const top = minutesToPosition(startMinutes);
-                      const actualHeight = endMinutes - startMinutes;
-                      const height = Math.max(20, actualHeight); // Minimum 20px height
+                      const durationMinutes = endMinutes - startMinutes;
+                      const height = Math.max(20, durationMinutes); // Minimum 20px height
                       const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes);
-                      const isShortEvent = actualHeight <= 15;
-                      const isVeryShortEvent = actualHeight <= 10;
+                      const isShortEvent = durationMinutes <= 15;
+                      const isVeryShortEvent = durationMinutes <= 10;
+                      const isCenterableShortEvent = durationMinutes >= 5 && durationMinutes <= 30;
 
                       // Get layout for overlapping events
                       const layout = eventLayouts.get(event.id);
@@ -685,7 +686,7 @@ export default function DailyScheduleView({
                             <div
                               className={`absolute rounded text-sm overflow-hidden cursor-pointer hover:opacity-90 transition-all ${
                                 isLightColor(eventTypeColor) ? 'text-gray-900' : 'text-white'
-                              }`}
+                              } ${isCenterableShortEvent ? 'flex items-center' : ''}`}
                               style={{
                                 top: `${top}px`,
                                 height: `${height}px`,
@@ -693,7 +694,7 @@ export default function DailyScheduleView({
                                 width: eventWidth,
                                 backgroundColor: eventTypeColor,
                                 border: `1px solid ${darkenColor(eventTypeColor, 25)}`,
-                                padding: isVeryShortEvent ? '2px 4px' : '8px',
+                                padding: isCenterableShortEvent ? '0 8px' : (isVeryShortEvent ? '2px 4px' : '8px'),
                               }}
                             >
                               <div className="font-medium truncate">{event.title}</div>
