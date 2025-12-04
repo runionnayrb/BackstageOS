@@ -1477,7 +1477,7 @@ export default function WeeklyScheduleView({
                                             }
                                             acc[category].push({
                                               ...participant,
-                                              contactName: `${participant.contactFirstName} ${participant.contactLastName}`,
+                                              contactName: `${participant.contactFirstName || contact?.firstName || ''} ${participant.contactLastName || contact?.lastName || ''}`.trim() || 'Unknown',
                                               contactRole: contact?.role
                                             });
                                             return acc;
@@ -1804,7 +1804,7 @@ export default function WeeklyScheduleView({
                                           }
                                           acc[category].push({
                                             ...participant,
-                                            contactName: `${participant.contactFirstName} ${participant.contactLastName}`,
+                                            contactName: `${participant.contactFirstName || contact?.firstName || ''} ${participant.contactLastName || contact?.lastName || ''}`.trim() || 'Unknown',
                                             contactRole: contact?.role
                                           });
                                           return acc;

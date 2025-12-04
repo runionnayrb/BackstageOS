@@ -533,7 +533,7 @@ export default function MonthlyScheduleView({
                                             }
                                             acc[category].push({
                                               ...participant,
-                                              contactName: `${participant.contactFirstName} ${participant.contactLastName}`,
+                                              contactName: `${participant.contactFirstName || contact?.firstName || ''} ${participant.contactLastName || contact?.lastName || ''}`.trim() || 'Unknown',
                                               contactRole: contact?.role
                                             });
                                             return acc;
