@@ -102,11 +102,14 @@ export default function TemplateEventForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Send both participantIds and participants to handle backend inconsistency
     const cleanedData = {
       ...formData,
       location: formData.location?.trim() || null,
       description: formData.description?.trim() || null,
       notes: formData.notes?.trim() || null,
+      participantIds: formData.participantIds, // For create route
+      participants: formData.participantIds, // For update route
     };
     onSubmit(cleanedData);
   };

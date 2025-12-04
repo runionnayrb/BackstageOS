@@ -110,13 +110,15 @@ export default function EventForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Clean up the form data before submission and map to API format
+    // Send both participantIds (for create) and participants (for update) to handle backend inconsistency
     const cleanedData = {
       ...formData,
       date: formData.startDate, // Use startDate as the primary date for API compatibility
       location: formData.location?.trim() || undefined,
       description: formData.description?.trim() || undefined,
       notes: formData.notes?.trim() || undefined,
-      participants: formData.participantIds, // Map participantIds to participants for backend
+      participantIds: formData.participantIds, // For create route
+      participants: formData.participantIds, // For update route
     };
     onSubmit(cleanedData);
   };
