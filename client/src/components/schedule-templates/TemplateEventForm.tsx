@@ -120,7 +120,6 @@ export default function TemplateEventForm({
           />
         </div>
       </div>
-
       <div>
         <Label htmlFor="dayOfWeek">Day of Week</Label>
         <Select
@@ -139,7 +138,6 @@ export default function TemplateEventForm({
           </SelectContent>
         </Select>
       </div>
-
       <div className="grid grid-cols-2 gap-3">
         <div className="min-w-0">
           <Label htmlFor="startTime">Start Time</Label>
@@ -166,7 +164,6 @@ export default function TemplateEventForm({
           />
         </div>
       </div>
-
       <div className="space-y-3">
         <div className="flex items-center space-x-2">
           <Checkbox
@@ -191,7 +188,6 @@ export default function TemplateEventForm({
           </Label>
         </div>
       </div>
-
       <div>
         <Label>Location</Label>
         <LocationSelect
@@ -200,9 +196,8 @@ export default function TemplateEventForm({
           onValueChange={(value) => setFormData({ ...formData, location: value })}
         />
       </div>
-
       <div>
-        <Label>Participants</Label>
+        <Label>People</Label>
         <div className="space-y-3 max-h-60 overflow-y-auto border rounded-md p-3">
           {contacts.length === 0 ? (
             <p className="text-sm text-gray-500">No contacts available. Add contacts to your project to assign participants.</p>
@@ -264,7 +259,6 @@ export default function TemplateEventForm({
                             {groupName.replace(/_/g, ' ').toUpperCase()}
                           </Label>
                         </div>
-
                         <div className="space-y-1 ml-6">
                           {groupContacts.map(contact => (
                             <div key={contact.id} className="flex items-center space-x-2">
@@ -297,7 +291,6 @@ export default function TemplateEventForm({
                       </div>
                     );
                   })}
-
                   {ungroupedContacts.length > 0 && (
                     <div className="space-y-2">
                       <div className="flex items-center space-x-2 font-medium text-gray-700 border-b border-gray-200 pb-1">
@@ -340,7 +333,6 @@ export default function TemplateEventForm({
           )}
         </div>
       </div>
-
       <div>
         <Label htmlFor="description">Description</Label>
         <Textarea
@@ -352,7 +344,6 @@ export default function TemplateEventForm({
           data-testid="input-template-description"
         />
       </div>
-
       <div>
         <Label htmlFor="notes">Notes</Label>
         <Textarea
@@ -364,7 +355,6 @@ export default function TemplateEventForm({
           data-testid="input-template-notes"
         />
       </div>
-
       {showButtons && (
         <div className="flex justify-end space-x-2 pb-4">
           <Button type="button" variant="outline" onClick={onCancel}>
