@@ -1,0 +1,1391 @@
+analytics.google.com/g/collect?v=2&tid=G-MPJY3F1YEL&gtm=45je5c21v9135634466za200&_p=1764848547702&gcd=13l3l3l3l2l1&npa=0&dma=0&ul=en-us&sr=1920x1080&cid=2086887577.1750532374&ecid=76379031&ir=1&uaa=arm&uab=64&uafvl=Chromium%3B142.0.7444.176%7CGoogle%2520Chrome%3B142.0.7444.176%7CNot_A%2520Brand%3B99.0.0.0&uamb=0&uam=&uap=macOS&uapv=26.1.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=EBAIAAQ&tag_exp=103116026~103200004~104527906~104528500~104684208~104684211~105391252~115583767~115938465~115938469~116184927~116184929~116217636~116217638~116474636&dl=https%3A%2F%2Freplit.com%2F%40runionbryan%2FBackstageOS&dp=%2F%40runionbryan%2FBackstageOS&dt=replEnvironmentDesktop&sid=1764835285&sct=8&seg=1&_tu=wAQ&_s=6&tfd=124685:1  Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+/data/repls/54b2a03e-f6bc-4ffb-98e0-199af055748d/get_connection_metadata:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+/data/repls/54b2a03e-f6bc-4ffb-98e0-199af055748d/get_connection_metadata:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+r.stripe.com/b:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+r.stripe.com/b:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+r.stripe.com/b:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+r.stripe.com/b:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+logs.browser-intake-us5-datadoghq.com/api/v2/logs?ddsource=browser&ddtags=sdk_version%3A4.46.0%2Capi%3Abeacon%2Cenv%3Aproduction%2Cservice%3Awebsite%2Cversion%3Ad6e689ff&dd-api-key=pub31a5047a3a4692afb84a423db984dc57&dd-evp-origin-version=4.46.0&dd-evp-origin=browser&dd-request-id=16368811-3052-46da-acd5-3733dd559f14:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+ingest.app.coframe.com/ingest/v2/batched_monitoring/68c9ad4d4cddb58cf3a1f93d/:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+ingest.app.coframe.com/ingest/v2/batched_events/68c9ad4d4cddb58cf3a1f93d/:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+ingest.app.coframe.com/ingest/v2/batched_events/68c9ad4d4cddb58cf3a1f93d/:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+/data/repls/54b2a03e-f6bc-4ffb-98e0-199af055748d/get_connection_metadata:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+/data/repls/54b2a03e-f6bc-4ffb-98e0-199af055748d/get_connection_metadata:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+r.stripe.com/b:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+r.stripe.com/b:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+r.stripe.com/b:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+r.stripe.com/b:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+shared-eb57a279d7de7…e7d1098f12adf9.js:1 Uncaught (in promise) FetchError: Error fetching https://r.stripe.com/b: Failed to fetch
+    at shared-eb57a279d7de708862e7d1098f12adf9.js:1:228196Understand this error
+/data/repls/54b2a03e-f6bc-4ffb-98e0-199af055748d/get_connection_metadata:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+logs.browser-intake-us5-datadoghq.com/api/v2/logs?ddsource=browser&ddtags=sdk_version%3A4.46.0%2Capi%3Afetch%2Cenv%3Aproduction%2Cservice%3Awebsite%2Cversion%3Ad6e689ff&dd-api-key=pub31a5047a3a4692afb84a423db984dc57&dd-evp-origin-version=4.46.0&dd-evp-origin=browser&dd-request-id=9162cea2-d1f3-438d-9c9c-6ec9a54e4f95:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+logs.browser-intake-us5-datadoghq.com/api/v2/logs?ddsource=browser&ddtags=sdk_version%3A4.46.0%2Capi%3Axhr%2Cenv%3Aproduction%2Cservice%3Awebsite%2Cversion%3Ad6e689ff&dd-api-key=pub31a5047a3a4692afb84a423db984dc57&dd-evp-origin-version=4.46.0&dd-evp-origin=browser&dd-request-id=cba2120b-a08c-4e10-9467-383f75d81f86:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+logs.browser-intake-us5-datadoghq.com/api/v2/logs?ddsource=browser&ddtags=sdk_version%3A4.46.0%2Capi%3Afetch%2Cenv%3Aproduction%2Cservice%3Awebsite%2Cversion%3Ad6e689ff%2Cretry_count%3A1%2Cretry_after%3A0&dd-api-key=pub31a5047a3a4692afb84a423db984dc57&dd-evp-origin-version=4.46.0&dd-evp-origin=browser&dd-request-id=08f6c2b1-d05f-4f2c-b080-d213f3a68537:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+logs.browser-intake-us5-datadoghq.com/api/v2/logs?ddsource=browser&ddtags=sdk_version%3A4.46.0%2Capi%3Axhr%2Cenv%3Aproduction%2Cservice%3Awebsite%2Cversion%3Ad6e689ff%2Cretry_count%3A1%2Cretry_after%3A0&dd-api-key=pub31a5047a3a4692afb84a423db984dc57&dd-evp-origin-version=4.46.0&dd-evp-origin=browser&dd-request-id=8b708f6d-06f0-4a50-96e5-3ad2c79d7b3a:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+/data/repls/54b2a03e-f6bc-4ffb-98e0-199af055748d/get_connection_metadata:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820:1  Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820:1  Failed to load resource: net::ERR_NAME_NOT_RESOLVEDUnderstand this error
+logs.browser-intake-us5-datadoghq.com/api/v2/logs?ddsource=browser&ddtags=sdk_version%3A4.46.0%2Capi%3Afetch%2Cenv%3Aproduction%2Cservice%3Awebsite%2Cversion%3Ad6e689ff&dd-api-key=pub31a5047a3a4692afb84a423db984dc57&dd-evp-origin-version=4.46.0&dd-evp-origin=browser&dd-request-id=5efcec9b-b1ad-40cd-aae0-70abc6ccff45:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+logs.browser-intake-us5-datadoghq.com/api/v2/logs?ddsource=browser&ddtags=sdk_version%3A4.46.0%2Capi%3Axhr%2Cenv%3Aproduction%2Cservice%3Awebsite%2Cversion%3Ad6e689ff&dd-api-key=pub31a5047a3a4692afb84a423db984dc57&dd-evp-origin-version=4.46.0&dd-evp-origin=browser&dd-request-id=4aa24efe-3f86-493c-860d-f8609f0fcb10:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+logs.browser-intake-us5-datadoghq.com/api/v2/logs?ddsource=browser&ddtags=sdk_version%3A4.46.0%2Capi%3Afetch%2Cenv%3Aproduction%2Cservice%3Awebsite%2Cversion%3Ad6e689ff%2Cretry_count%3A1%2Cretry_after%3A0&dd-api-key=pub31a5047a3a4692afb84a423db984dc57&dd-evp-origin-version=4.46.0&dd-evp-origin=browser&dd-request-id=ee5376ff-8314-44cf-a99b-10252920c665:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+logs.browser-intake-us5-datadoghq.com/api/v2/logs?ddsource=browser&ddtags=sdk_version%3A4.46.0%2Capi%3Axhr%2Cenv%3Aproduction%2Cservice%3Awebsite%2Cversion%3Ad6e689ff%2Cretry_count%3A1%2Cretry_after%3A0&dd-api-key=pub31a5047a3a4692afb84a423db984dc57&dd-evp-origin-version=4.46.0&dd-evp-origin=browser&dd-request-id=31b0a628-a617-4741-82eb-0e18a6607ed7:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+/data/repls/54b2a03e-f6bc-4ffb-98e0-199af055748d/get_connection_metadata:1  Failed to load resource: net::ERR_CONNECTION_CLOSEDUnderstand this error
+events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+logs.browser-intake-us5-datadoghq.com/api/v2/logs?ddsource=browser&ddtags=sdk_version%3A4.46.0%2Capi%3Afetch%2Cenv%3Aproduction%2Cservice%3Awebsite%2Cversion%3Ad6e689ff%2Cretry_count%3A2%2Cretry_after%3A0&dd-api-key=pub31a5047a3a4692afb84a423db984dc57&dd-evp-origin-version=4.46.0&dd-evp-origin=browser&dd-request-id=6757e0ed-c4d6-4058-a19d-cc2f6c4cee32:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+logs.browser-intake-us5-datadoghq.com/api/v2/logs?ddsource=browser&ddtags=sdk_version%3A4.46.0%2Capi%3Axhr%2Cenv%3Aproduction%2Cservice%3Awebsite%2Cversion%3Ad6e689ff%2Cretry_count%3A2%2Cretry_after%3A0&dd-api-key=pub31a5047a3a4692afb84a423db984dc57&dd-evp-origin-version=4.46.0&dd-evp-origin=browser&dd-request-id=bd19f007-8de7-4663-b90b-74efcd4103d2:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+/data/repls/54b2a03e-f6bc-4ffb-98e0-199af055748d/get_connection_metadata:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+logs.browser-intake-us5-datadoghq.com/api/v2/logs?ddsource=browser&ddtags=sdk_version%3A4.46.0%2Capi%3Afetch%2Cenv%3Aproduction%2Cservice%3Awebsite%2Cversion%3Ad6e689ff%2Cretry_count%3A3%2Cretry_after%3A0&dd-api-key=pub31a5047a3a4692afb84a423db984dc57&dd-evp-origin-version=4.46.0&dd-evp-origin=browser&dd-request-id=fb7550e6-33e7-4e79-ab9c-6dffe1aa12f4:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+logs.browser-intake-us5-datadoghq.com/api/v2/logs?ddsource=browser&ddtags=sdk_version%3A4.46.0%2Capi%3Axhr%2Cenv%3Aproduction%2Cservice%3Awebsite%2Cversion%3Ad6e689ff%2Cretry_count%3A3%2Cretry_after%3A0&dd-api-key=pub31a5047a3a4692afb84a423db984dc57&dd-evp-origin-version=4.46.0&dd-evp-origin=browser&dd-request-id=49ee6584-a78c-49ec-81e9-5e415d7ce076:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+/data/repls/54b2a03e-f6bc-4ffb-98e0-199af055748d/get_connection_metadata:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+graphql:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+logs.browser-intake-us5-datadoghq.com/api/v2/logs?ddsource=browser&ddtags=sdk_version%3A4.46.0%2Capi%3Afetch%2Cenv%3Aproduction%2Cservice%3Awebsite%2Cversion%3Ad6e689ff%2Cretry_count%3A4%2Cretry_after%3A0&dd-api-key=pub31a5047a3a4692afb84a423db984dc57&dd-evp-origin-version=4.46.0&dd-evp-origin=browser&dd-request-id=73c1f93c-ff23-4df6-a2ea-4c1e1520cdde:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+logs.browser-intake-us5-datadoghq.com/api/v2/logs?ddsource=browser&ddtags=sdk_version%3A4.46.0%2Capi%3Axhr%2Cenv%3Aproduction%2Cservice%3Awebsite%2Cversion%3Ad6e689ff%2Cretry_count%3A4%2Cretry_after%3A0&dd-api-key=pub31a5047a3a4692afb84a423db984dc57&dd-evp-origin-version=4.46.0&dd-evp-origin=browser&dd-request-id=3ffed870-d271-43cd-a2cc-ff2c450d0b39:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+graphql:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+/data/repls/54b2a03e-f6bc-4ffb-98e0-199af055748d/get_connection_metadata:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+graphql:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+2ba697728dee94038.js:2 Uncaught (in promise) ApolloError: Failed to fetch
+    at new t (ba697728dee94038.js:2:39654)
+    at Object.error (73ec0dbaaf377b57.js:2:67337)
+    at m (1b224bbc8db79db2.js:2:2649)
+    at _ (1b224bbc8db79db2.js:2:3131)
+    at r.error (1b224bbc8db79db2.js:2:3684)
+    at Object.error (73ec0dbaaf377b57.js:2:39210)
+    at m (1b224bbc8db79db2.js:2:2649)
+    at _ (1b224bbc8db79db2.js:2:3131)
+    at r.error (1b224bbc8db79db2.js:2:3684)
+    at 73ec0dbaaf377b57.js:2:39465
+    at Array.forEach (<anonymous>)
+    at H (73ec0dbaaf377b57.js:2:39434)
+    at Object.error (73ec0dbaaf377b57.js:2:40156)
+    at m (1b224bbc8db79db2.js:2:2649)
+    at _ (1b224bbc8db79db2.js:2:3131)
+    at r.error (1b224bbc8db79db2.js:2:3684)
+    at m (1b224bbc8db79db2.js:2:2649)
+    at _ (1b224bbc8db79db2.js:2:3131)
+    at r.error (1b224bbc8db79db2.js:2:3684)
+    at e.<anonymous> (73ec0dbaaf377b57.js:2:139774)
+    at Object.next (143f0a7fc4fbf20a.js:2:8580)
+    at a (143f0a7fc4fbf20a.js:2:7419)Understand this error
+o1151714.ingest.sentry.io/api/6318792/envelope/?sentry_key=8aa91189a4274b5a8c9b7b01d46ea360&sentry_version=7&sentry_client=sentry.javascript.browser%2F7.112.0:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+o1151714.ingest.sentry.io/api/6318792/envelope/?sentry_key=8aa91189a4274b5a8c9b7b01d46ea360&sentry_version=7&sentry_client=sentry.javascript.browser%2F7.112.0:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+graphql:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+graphql:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+graphql:1  Failed to load resource: net::ERR_INTERNET_DISCONNECTEDUnderstand this error
+ba697728dee94038.js:2 Uncaught (in promise) ApolloError: Failed to fetch
+    at new t (ba697728dee94038.js:2:39654)
+    at Object.error (73ec0dbaaf377b57.js:2:67337)
+    at m (1b224bbc8db79db2.js:2:2649)
+    at _ (1b224bbc8db79db2.js:2:3131)
+    at r.error (1b224bbc8db79db2.js:2:3684)
+    at Object.error (73ec0dbaaf377b57.js:2:39210)
+    at m (1b224bbc8db79db2.js:2:2649)
+    at _ (1b224bbc8db79db2.js:2:3131)
+    at r.error (1b224bbc8db79db2.js:2:3684)
+    at 73ec0dbaaf377b57.js:2:39465
+    at Array.forEach (<anonymous>)
+    at H (73ec0dbaaf377b57.js:2:39434)
+    at Object.error (73ec0dbaaf377b57.js:2:40156)
+    at m (1b224bbc8db79db2.js:2:2649)
+    at _ (1b224bbc8db79db2.js:2:3131)
+    at r.error (1b224bbc8db79db2.js:2:3684)
+    at m (1b224bbc8db79db2.js:2:2649)
+    at _ (1b224bbc8db79db2.js:2:3131)
+    at r.error (1b224bbc8db79db2.js:2:3684)
+    at e.<anonymous> (73ec0dbaaf377b57.js:2:139774)
+    at Object.next (143f0a7fc4fbf20a.js:2:8580)
+    at a (143f0a7fc4fbf20a.js:2:7419)Understand this error
+ed1e693c96a75807.js:2 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+z @ ed1e693c96a75807.js:2Understand this error
+ed1e693c96a75807.js:2 Unrecognized feature: 'ambient-light-sensor'.
+z @ ed1e693c96a75807.js:2Understand this warning
+ed1e693c96a75807.js:2 Unrecognized feature: 'battery'.
+z @ ed1e693c96a75807.js:2Understand this warning
+ed1e693c96a75807.js:2 Unrecognized feature: 'execution-while-not-rendered'.
+z @ ed1e693c96a75807.js:2Understand this warning
+ed1e693c96a75807.js:2 Unrecognized feature: 'execution-while-out-of-viewport'.
+z @ ed1e693c96a75807.js:2Understand this warning
+ed1e693c96a75807.js:2 Unrecognized feature: 'layout-animations'.
+z @ ed1e693c96a75807.js:2Understand this warning
+ed1e693c96a75807.js:2 Unrecognized feature: 'legacy-image-formats'.
+z @ ed1e693c96a75807.js:2Understand this warning
+ed1e693c96a75807.js:2 Unrecognized feature: 'navigation-override'.
+z @ ed1e693c96a75807.js:2Understand this warning
+ed1e693c96a75807.js:2 Unrecognized feature: 'oversized-images'.
+z @ ed1e693c96a75807.js:2Understand this warning
+ed1e693c96a75807.js:2 Unrecognized feature: 'publickey-credentials'.
+z @ ed1e693c96a75807.js:2Understand this warning
+ed1e693c96a75807.js:2 Unrecognized feature: 'speaker-selection'.
+z @ ed1e693c96a75807.js:2Understand this warning
+ed1e693c96a75807.js:2 Unrecognized feature: 'unoptimized-images'.
+z @ ed1e693c96a75807.js:2Understand this warning
+ed1e693c96a75807.js:2 Unrecognized feature: 'unsized-media'.
+z @ ed1e693c96a75807.js:2Understand this warning
+ed1e693c96a75807.js:2 Unrecognized feature: 'pointer-lock'.
+z @ ed1e693c96a75807.js:2Understand this warning
+ed1e693c96a75807.js:2 Allow attribute will take precedence over 'allowfullscreen'.
+z @ ed1e693c96a75807.js:2Understand this warning
+ed1e693c96a75807.js:2 Allow attribute will take precedence over 'allowpaymentrequest'.
+z @ ed1e693c96a75807.js:2Understand this warning
+ed1e693c96a75807.js:2 The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+e @ ed1e693c96a75807.js:2Understand this error
+ed1e693c96a75807.js:2 The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+e @ ed1e693c96a75807.js:2Understand this error
+ed1e693c96a75807.js:2 The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+e @ ed1e693c96a75807.js:2Understand this error
+ed1e693c96a75807.js:2 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+z @ ed1e693c96a75807.js:2Understand this error
+ed1e693c96a75807.js:2 The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+e @ ed1e693c96a75807.js:2Understand this error
+ed1e693c96a75807.js:2 The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+e @ ed1e693c96a75807.js:2Understand this error
+ed1e693c96a75807.js:2 The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+e @ ed1e693c96a75807.js:2Understand this error
+ed1e693c96a75807.js:2 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+z @ ed1e693c96a75807.js:2Understand this error
+ed1e693c96a75807.js:2 The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+e @ ed1e693c96a75807.js:2Understand this error
+ed1e693c96a75807.js:2 The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+e @ ed1e693c96a75807.js:2Understand this error
+ed1e693c96a75807.js:2 The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+e @ ed1e693c96a75807.js:2Understand this error
+workspace_iframe.html?initialPath=%2F&id=%3Arv5%3A:32 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.Understand this error
+workspace_iframe.html?initialPath=%2F&id=%3Arv5%3A:32 Unrecognized feature: 'ambient-light-sensor'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Arv5%3A:32 Unrecognized feature: 'battery'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Arv5%3A:32 Unrecognized feature: 'execution-while-not-rendered'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Arv5%3A:32 Unrecognized feature: 'execution-while-out-of-viewport'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Arv5%3A:32 Unrecognized feature: 'layout-animations'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Arv5%3A:32 Unrecognized feature: 'legacy-image-formats'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Arv5%3A:32 Unrecognized feature: 'navigation-override'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Arv5%3A:32 Unrecognized feature: 'oversized-images'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Arv5%3A:32 Unrecognized feature: 'publickey-credentials'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Arv5%3A:32 Unrecognized feature: 'speaker-selection'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Arv5%3A:32 Unrecognized feature: 'unoptimized-images'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Arv5%3A:32 Unrecognized feature: 'unsized-media'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Arv5%3A:32 Allow attribute will take precedence over 'allowfullscreen'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Arv5%3A:32 Allow attribute will take precedence over 'allowpaymentrequest'.Understand this warning
+App.tsx:133 Domain routing check: Object
+pwa-manager.tsx:66 [PWA] Service Worker registered successfully
+App.tsx:133 Domain routing check: Object
+useSEO.ts:122 Applying SEO settings: Object
+useSEO.ts:152 Applied share image URL: https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/uploads/shareImage-1751581407362.png
+useSEO.ts:155 Applied share image URL: https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/uploads/shareImage-1751581407362.png
+useSEO.ts:176 Applied Twitter image URL: https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/uploads/shareImage-1751581407362.png
+useSEO.ts:213 Applied AI optimization meta tags
+App.tsx:133 Domain routing check: Object
+App.tsx:133 Domain routing check: Object
+App.tsx:133 Domain routing check: Object
+App.tsx:133 Domain routing check: Object
+weekly-schedule-view.tsx:255 📅 No filters selected - showing all events
+weekly-schedule-view.tsx:222 Events array changed: 0 events
+weekly-schedule-view.tsx:223 Event #25 current data: undefined
+weekly-schedule-view.tsx:255 📅 No filters selected - showing all events
+weekly-schedule-view.tsx:222 Events array changed: 0 events
+weekly-schedule-view.tsx:223 Event #25 current data: undefined
+2weekly-schedule-view.tsx:255 📅 No filters selected - showing all events
+weekly-schedule-view.tsx:222 Events array changed: 0 events
+weekly-schedule-view.tsx:223 Event #25 current data: undefined
+weekly-schedule-view.tsx:222 Events array changed: 0 events
+weekly-schedule-view.tsx:223 Event #25 current data: undefined
+weekly-schedule-view.tsx:209 📅 Weekly view - All events: Array(11)
+weekly-schedule-view.tsx:209 📅 Weekly view - All events: Array(11)
+weekly-schedule-view.tsx:222 Events array changed: 11 events
+weekly-schedule-view.tsx:223 Event #25 current data: undefined
+weekly-schedule-view.tsx:209 📅 Weekly view - All events: Array(11)
+weekly-schedule-view.tsx:209 📅 Weekly view - All events: Array(11)
+weekly-schedule-view.tsx:209 📅 Weekly view - All events: Array(11)
+weekly-schedule-view.tsx:209 📅 Weekly view - All events: Array(11)
+weekly-schedule-view.tsx:878 🎯 Drag initialized: Object
+weekly-schedule-view.tsx:209 📅 Weekly view - All events: Array(11)
+weekly-schedule-view.tsx:970 Mouse up triggered, hasStartedDragging: false currentDragPosition: Object
+weekly-schedule-view.tsx:971 draggedEvent: Object
+weekly-schedule-view.tsx:1024 ❌ Drag cancelled - hasStartedDragging: false draggedEvent: true
+weekly-schedule-view.tsx:209 📅 Weekly view - All events: Array(11)
+weekly-schedule-view.tsx:209 📅 Weekly view - All events: Array(11)
+weekly-schedule-view.tsx:209 📅 Weekly view - All events: Array(11)
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+chunk-X223IVKS.js?v=ffdc7b33:341 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ chunk-X223IVKS.js?v=ffdc7b33:341Understand this warning
+content_script.js:1 Uncaught TypeError: Cannot read properties of undefined (reading 'control')
+    at content_script.js:1:422999
+    at Array.some (<anonymous>)
+    at shouldOfferCompletionListForField (content_script.js:1:422984)
+    at elementWasFocused (content_script.js:1:423712)
+    at HTMLDocument.focusInEventHandler (content_script.js:1:423069)Understand this error
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+event-form.tsx:58 🎭 EventForm component initializing with initialValues: {
+  "title": "Marketing Event",
+  "description": "",
+  "type": "marketing",
+  "startDate": "2025-12-03",
+  "endDate": "2025-12-03",
+  "startTime": "14:00:00",
+  "endTime": "15:00:00",
+  "location": "",
+  "notes": "",
+  "isAllDay": false,
+  "isProductionLevel": false,
+  "participantIds": []
+}
+event-form.tsx:59 🎭 EventForm - isProductionLevel value: false
+event-form.tsx:60 🎭 EventForm - isProductionLevel type: boolean
+event-form.tsx:61 📅 EventForm - startDate from initialValues: 2025-12-03
+event-form.tsx:62 📅 EventForm - initialDate prop: 2025-12-03
+event-form.tsx:85 🎭 EventForm - setting isProductionLevel to: false
+event-form.tsx:91 🎭 EventForm - final formData.isProductionLevel: false
+chunk-RPCDYKBN.js?v=ffdc7b33:16670 Uncaught Error: Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate. React limits the number of nested updates to prevent infinite loops.
+    at checkForNestedUpdates (chunk-RPCDYKBN.js?v=ffdc7b33:19659:19)
+    at scheduleUpdateOnFiber (chunk-RPCDYKBN.js?v=ffdc7b33:18533:11)
+    at dispatchSetState (chunk-RPCDYKBN.js?v=ffdc7b33:12403:15)
+    at setRef (chunk-JDYSANEB.js?v=ffdc7b33:12:12)
+    at chunk-JDYSANEB.js?v=ffdc7b33:21:23
+    at Array.map (<anonymous>)
+    at chunk-JDYSANEB.js?v=ffdc7b33:20:27
+    at setRef (chunk-JDYSANEB.js?v=ffdc7b33:12:12)
+    at chunk-JDYSANEB.js?v=ffdc7b33:21:23
+    at Array.map (<anonymous>)Understand this error
+chunk-RPCDYKBN.js?v=ffdc7b33:521 Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+    at ErrorBoundary (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/error-boundary.tsx:10:5)
+    at Router (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/App.tsx?v=gxayq47u11gtLSPPYHCg0:108:31)
+    at PWAManager (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/pwa-manager.tsx:22:30)
+    at Provider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=ffdc7b33:38:15)
+    at TooltipProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=ffdc7b33:66:5)
+    at SearchProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/search/SearchContext.tsx:22:34)
+    at AdminViewProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/contexts/AdminViewContext.tsx:20:37)
+    at AuthProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/hooks/useAuth.tsx:26:32)
+    at QueryClientProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=ffdc7b33:2805:3)
+    at App
+printWarning @ chunk-RPCDYKBN.js?v=ffdc7b33:521Understand this error
+chunk-RPCDYKBN.js?v=ffdc7b33:14032 The above error occurred in the <button> component:
+
+    at button
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-IWFJIMEQ.js?v=ffdc7b33:42:13
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=ffdc7b33:43:13
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=ffdc7b33:20:13
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-IWFJIMEQ.js?v=ffdc7b33:42:13
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-D2XDA5CK.js?v=ffdc7b33:1929:13
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-select.js?v=ffdc7b33:188:13
+    at _c (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/ui/select.tsx:26:11)
+    at Provider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=ffdc7b33:38:15)
+    at Provider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=ffdc7b33:38:15)
+    at CollectionProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-5KSDU44R.js?v=ffdc7b33:31:13)
+    at Provider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=ffdc7b33:38:15)
+    at Provider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=ffdc7b33:38:15)
+    at Popper (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-D2XDA5CK.js?v=ffdc7b33:1921:11)
+    at Select (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-select.js?v=ffdc7b33:90:5)
+    at div
+    at div
+    at EventTypeSelect (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/event-type-select.tsx:30:3)
+    at div
+    at div
+    at form
+    at EventForm (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/event-form.tsx:27:3)
+    at div
+    at div
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-IWFJIMEQ.js?v=ffdc7b33:42:13
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-R33W635Q.js?v=ffdc7b33:61:7
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=ffdc7b33:43:13
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=ffdc7b33:20:13
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-IWFJIMEQ.js?v=ffdc7b33:42:13
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-HP6KL7FS.js?v=ffdc7b33:29:5
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-X223IVKS.js?v=ffdc7b33:237:13
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-X223IVKS.js?v=ffdc7b33:160:58
+    at Presence (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FDH7FQDE.js?v=ffdc7b33:24:11)
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-X223IVKS.js?v=ffdc7b33:151:64
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=ffdc7b33:43:13
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LHPXHTGV.js?v=ffdc7b33:20:13
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-IWFJIMEQ.js?v=ffdc7b33:42:13
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-R33W635Q.js?v=ffdc7b33:260:22
+    at Presence (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-FDH7FQDE.js?v=ffdc7b33:24:11)
+    at Provider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=ffdc7b33:38:15)
+    at DialogPortal (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-X223IVKS.js?v=ffdc7b33:113:11)
+    at _c3 (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/ui/dialog.tsx:52:12)
+    at Provider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=ffdc7b33:38:15)
+    at Dialog (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-X223IVKS.js?v=ffdc7b33:54:5)
+    at WeeklyScheduleView (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/weekly-schedule-view.tsx:44:3)
+    at div
+    at div
+    at div
+    at Schedule (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/pages/schedule.tsx:57:27)
+    at Route (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=ffdc7b33:191:16)
+    at Switch (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=ffdc7b33:247:17)
+    at PageTransition (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/transitions/page-transition.tsx:21:42)
+    at main
+    at div
+    at Layout (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/layout/layout.tsx:21:34)
+    at ErrorBoundary (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/error-boundary.tsx:10:5)
+    at Router (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/App.tsx?v=gxayq47u11gtLSPPYHCg0:108:31)
+    at PWAManager (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/pwa-manager.tsx:22:30)
+    at Provider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=ffdc7b33:38:15)
+    at TooltipProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=ffdc7b33:66:5)
+    at SearchProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/search/SearchContext.tsx:22:34)
+    at AdminViewProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/contexts/AdminViewContext.tsx:20:37)
+    at AuthProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/hooks/useAuth.tsx:26:32)
+    at QueryClientProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=ffdc7b33:2805:3)
+    at App
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary.
+logCapturedError @ chunk-RPCDYKBN.js?v=ffdc7b33:14032Understand this error
+error-boundary.tsx:28 Error Boundary caught an error: Error: Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate. React limits the number of nested updates to prevent infinite loops.
+    at checkForNestedUpdates (chunk-RPCDYKBN.js?v=ffdc7b33:19659:19)
+    at scheduleUpdateOnFiber (chunk-RPCDYKBN.js?v=ffdc7b33:18533:11)
+    at dispatchSetState (chunk-RPCDYKBN.js?v=ffdc7b33:12403:15)
+    at setRef (chunk-JDYSANEB.js?v=ffdc7b33:12:12)
+    at chunk-JDYSANEB.js?v=ffdc7b33:21:23
+    at Array.map (<anonymous>)
+    at chunk-JDYSANEB.js?v=ffdc7b33:20:27
+    at setRef (chunk-JDYSANEB.js?v=ffdc7b33:12:12)
+    at chunk-JDYSANEB.js?v=ffdc7b33:21:23
+    at Array.map (<anonymous>) Object
+componentDidCatch @ error-boundary.tsx:28Understand this error
+54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/api/errors/log:1  Failed to load resource: the server responded with a status of 400 (Bad Request)
