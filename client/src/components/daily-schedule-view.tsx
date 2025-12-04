@@ -119,6 +119,16 @@ export default function DailyScheduleView({
     currentTime: number;
   } | null>(null);
   
+  // Drag-to-move state (for moving existing events)
+  const [draggedEvent, setDraggedEvent] = useState<{
+    event: ScheduleEvent;
+    originalPosition: { startMinutes: number };
+    currentPosition: { startMinutes: number };
+    offset: { y: number };
+    isDragging: boolean;
+  } | null>(null);
+  const [justDragged, setJustDragged] = useState<number | null>(null);
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -225,6 +235,30 @@ export default function DailyScheduleView({
     bulkDeleteEventsMutation.mutate(selectedIds);
   };
 
+  // Update event mutation for drag-to-move
+  const updateEventMutation = useMutation({
+    mutationFn: async ({ eventId, eventData }: { eventId: number; eventData: any }) => {
+      const response = await fetch(`/api/schedule-events/${eventId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(eventData),
+      });
+      if (!response.ok) throw new Error('Failed to update event');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+    },
+    onError: (error: Error) => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      toast({
+        title: "Failed to move event",
+        description: error.message,
+        variant: "destructive"
+      });
+    },
+  });
+
   // Handle keyboard events for multi-select and bulk delete
   useEffect(() => {
     const isInputFocused = () => {
@@ -270,8 +304,9 @@ export default function DailyScheduleView({
     };
   }, [selectedEvents]);
 
-  // Handle event mousedown for multi-select (matching weekly view pattern)
+  // Handle event mousedown for multi-select and drag-to-move (matching weekly view pattern)
   const handleEventMouseDown = (e: React.MouseEvent, eventId: number) => {
+    // Handle Shift+click for multi-select
     if (e.shiftKey || isShiftPressed) {
       e.preventDefault();
       e.stopPropagation();
@@ -284,15 +319,121 @@ export default function DailyScheduleView({
         newSelected.add(eventId);
         setSelectedEvents(newSelected);
       }
-    } else if (selectedEvents.size > 0) {
-      // Clear selection on non-Shift click - use ref to bypass popover guard
+      return;
+    }
+    
+    // Clear selection on non-Shift click
+    if (selectedEvents.size > 0) {
       isClearingSelectionRef.current = true;
       setSelectedEvents(new Set());
-      // Reset the ref after a macrotask to ensure popover opens first
       setTimeout(() => {
         isClearingSelectionRef.current = false;
       }, 0);
     }
+
+    // Get the event for drag-to-move
+    const event = events.find((ev: ScheduleEvent) => ev.id === eventId);
+    if (!event || event.isAllDay) return; // Don't drag all-day events in daily view
+    
+    // Don't start drag if we just finished dragging
+    if (justDragged === eventId) return;
+
+    const startMinutes = timeToMinutes(event.startTime);
+    const rect = calendarRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    // Calculate the event's current position
+    const eventTop = minutesToPosition(startMinutes);
+    
+    // Calculate offset relative to the event's top edge
+    const scrollTop = scrollContainerRef.current?.scrollTop || 0;
+    const clickY = e.clientY - rect.top + scrollTop;
+    
+    const draggedEventData = {
+      event,
+      originalPosition: { startMinutes },
+      currentPosition: { startMinutes },
+      offset: { y: clickY - eventTop },
+      isDragging: false,
+    };
+
+    setDraggedEvent(draggedEventData);
+
+    let hasStartedDragging = false;
+    let currentDragPosition = { startMinutes: draggedEventData.originalPosition.startMinutes };
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      if (!hasStartedDragging) {
+        hasStartedDragging = true;
+        setDraggedEvent(prev => prev ? { ...prev, isDragging: true } : null);
+      }
+
+      if (!calendarRef.current || !scrollContainerRef.current) return;
+
+      const newRect = calendarRef.current.getBoundingClientRect();
+      const scrollTop = scrollContainerRef.current.scrollTop;
+      
+      // Calculate mouse position relative to calendar content with scroll, adjusted for click offset
+      const mouseY = moveEvent.clientY - newRect.top + scrollTop;
+      
+      // Subtract the offset to get the event's new top position
+      const eventY = mouseY - draggedEventData.offset.y;
+
+      // Calculate time position from event position
+      const newStartMinutes = snapToIncrement(positionToMinutes(eventY));
+
+      // Update local position tracker
+      currentDragPosition = { startMinutes: newStartMinutes };
+
+      // Update the dragged event position for visual feedback
+      setDraggedEvent(prev => prev ? {
+        ...prev,
+        currentPosition: currentDragPosition,
+      } : null);
+
+      // Optimistically update the event in the cache for instant visual feedback
+      const duration = timeToMinutes(event.endTime) - timeToMinutes(event.startTime);
+      const startTime = formatTime(currentDragPosition.startMinutes) + ':00';
+      const endTime = formatTime(currentDragPosition.startMinutes + duration) + ':00';
+
+      queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
+        return old?.map((e: ScheduleEvent) => 
+          e.id === event.id ? { ...e, startTime, endTime } : e
+        ) || [];
+      });
+    };
+
+    const handleMouseUp = () => {
+      if (hasStartedDragging && draggedEventData) {
+        // Mark this event as just dragged to prevent popover opening
+        setJustDragged(event.id);
+        setTimeout(() => setJustDragged(null), 200);
+        
+        // Update event position using the current drag position
+        const duration = timeToMinutes(event.endTime) - timeToMinutes(event.startTime);
+        const startTime = formatTime(currentDragPosition.startMinutes) + ':00';
+        const endTime = formatTime(currentDragPosition.startMinutes + duration) + ':00';
+
+        const eventData = {
+          startTime,
+          endTime,
+          fromDrag: true,
+        };
+
+        // Use the mutation for backend update
+        updateEventMutation.mutate({
+          eventId: event.id,
+          eventData
+        });
+      }
+
+      setDraggedEvent(null);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
   };
 
   // Time utilities
@@ -951,12 +1092,20 @@ export default function DailyScheduleView({
                         eventWidth = 'calc(100% - 8px)';
                       }
 
+                      // Check if this event is currently being dragged
+                      const isCurrentlyDragging = draggedEvent?.event.id === event.id && draggedEvent.isDragging;
+                      
+                      // Use dragged position if this event is being dragged
+                      const displayTop = draggedEvent?.event.id === event.id ? 
+                        minutesToPosition(draggedEvent.currentPosition.startMinutes) : top;
+
                       return (
                         <Popover 
                           key={event.id}
                           open={openPopoverId === `timed-${event.id}`}
                           onOpenChange={(open) => {
-                            // Don't open popover during multi-select mode (unless we're clearing selection)
+                            // Don't open popover during multi-select mode or after drag
+                            if (open && justDragged === event.id) return;
                             if (open && !isClearingSelectionRef.current && (isShiftPressed || selectedEvents.size > 0)) return;
                             setOpenPopoverId(open ? `timed-${event.id}` : null);
                           }}
@@ -968,9 +1117,10 @@ export default function DailyScheduleView({
                                 isLightColor(eventTypeColor) ? 'text-gray-900' : 'text-white'
                               } ${isCenterableShortEvent ? 'flex items-center' : ''
                               } ${isCenterableMediumEvent ? 'flex flex-col justify-center' : ''
-                              } ${selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''}`}
+                              } ${selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''
+                              } ${isCurrentlyDragging ? 'opacity-50 cursor-grabbing' : 'cursor-grab'}`}
                               style={{
-                                top: `${top}px`,
+                                top: `${displayTop}px`,
                                 height: `${height}px`,
                                 left: eventLeft,
                                 width: eventWidth,
