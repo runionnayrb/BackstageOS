@@ -1678,7 +1678,7 @@ export default function WeeklyScheduleView({
                             backgroundColor: eventTypeColor,
                             border: `1px solid ${darkenColor(eventTypeColor, 25)}`,
                             overflow: 'hidden',
-                            padding: isCenterableShortEvent ? '0 8px' : (isVeryShortEvent ? '2px 4px' : (isCenterableMediumEvent ? '8px' : '6px 8px 8px 8px')),
+                            padding: isCenterableShortEvent ? '0 8px' : (isVeryShortEvent ? '2px 4px' : (isCenterableMediumEvent ? '4px 8px' : '6px 8px 8px 8px')),
                           }}
                           onMouseDown={(e) => handleEventMouseDown(e, event)}
                           onContextMenu={(e) => e.preventDefault()}
