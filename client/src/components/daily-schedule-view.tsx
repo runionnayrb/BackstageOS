@@ -217,10 +217,10 @@ export default function DailyScheduleView({
       ));
     },
     onMutate: async (eventIds: number[]) => {
-      await queryClient.cancelQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      await queryClient.cancelQueries({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
       
       queryClient.setQueriesData(
-        { queryKey: [`/api/projects/${projectId}/schedule-events`] },
+        { queryKey: ['/api/projects', projectId, 'schedule-events'] },
         (old: any) => {
           return old?.filter((e: any) => !eventIds.includes(e.id)) || [];
         }
@@ -229,13 +229,13 @@ export default function DailyScheduleView({
       return { eventIds };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
       setSelectedEvents(new Set());
       setShowBulkDeleteDialog(false);
       toast({ title: "Selected events deleted successfully" });
     },
     onError: (error: Error) => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
       toast({ 
         title: "Failed to delete events", 
         description: error.message,
@@ -262,10 +262,10 @@ export default function DailyScheduleView({
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
     },
     onError: (error: Error) => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
       toast({
         title: "Failed to move event",
         description: error.message,
@@ -411,7 +411,7 @@ export default function DailyScheduleView({
       const startTime = formatTime(currentDragPosition.startMinutes) + ':00';
       const endTime = formatTime(currentDragPosition.startMinutes + duration) + ':00';
 
-      queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
+      queryClient.setQueryData(['/api/projects', projectId, 'schedule-events'], (old: ScheduleEvent[]) => {
         return old?.map((e: ScheduleEvent) => 
           e.id === event.id ? { ...e, startTime, endTime } : e
         ) || [];
@@ -512,7 +512,7 @@ export default function DailyScheduleView({
         };
 
         // Optimistically update the cache for instant visual feedback
-        queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
+        queryClient.setQueryData(['/api/projects', projectId, 'schedule-events'], (old: ScheduleEvent[]) => {
           return old?.map((e: ScheduleEvent) => 
             e.id === event.id ? { ...e, startTime: eventData.startTime, endTime: eventData.endTime } : e
           ) || [];
@@ -651,7 +651,7 @@ export default function DailyScheduleView({
 
   // Fetch events
   const { data: events = [] } = useQuery<ScheduleEvent[]>({
-    queryKey: [`/api/projects/${projectId}/schedule-events`],
+    queryKey: ['/api/projects', projectId, 'schedule-events'],
   });
 
   // Fetch event types for filtering
