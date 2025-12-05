@@ -1235,8 +1235,8 @@ export default function DailyScheduleView({
                               onMouseDown={(e) => handleEventMouseDown(e, event.id)}
                             >
                               {isCompactEvent ? (
-                                <div className="flex items-center gap-1 truncate">
-                                  <span className="font-medium">{event.title}</span>
+                                <div className="flex items-center gap-1 break-words overflow-hidden">
+                                  <span className="font-medium break-words">{event.title}</span>
                                   <span className="text-xs opacity-90">{(() => {
                                     // Show updated times during resize
                                     if (isCurrentlyResizing) {
@@ -1248,9 +1248,9 @@ export default function DailyScheduleView({
                                   })()}</span>
                                 </div>
                               ) : (
-                                <div>
-                                  <div className="font-medium truncate">{event.title}</div>
-                                  <div className="text-xs opacity-90 truncate mt-0.5">
+                                <div className="overflow-hidden">
+                                  <div className="font-medium break-words">{event.title}</div>
+                                  <div className="text-xs opacity-90 break-words mt-0.5">
                                     {(() => {
                                       // Show updated times during resize
                                       if (isCurrentlyResizing) {
