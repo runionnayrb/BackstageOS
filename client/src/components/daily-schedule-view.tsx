@@ -827,22 +827,17 @@ export default function DailyScheduleView({
       {/* Removed individual header - using unified main page header */}
       {/* Main Content Container */}
       <div className="border border-gray-200 rounded-lg overflow-hidden">
-        <div className="flex flex-1 overflow-hidden">
-        {/* Time Labels - Fixed on left side */}
-        <div className="w-16 bg-white border-r border-gray-200 flex-shrink-0">
+        {/* Header Row with Timezone and Day */}
+        <div className="flex bg-gray-50 border-b border-gray-200">
+          {/* Timezone Header */}
           <div 
+            className="flex-shrink-0 border-r border-gray-200"
             style={{ 
+              width: '64px',
               height: '24px',
-              minHeight: '24px', 
-              maxHeight: '24px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              overflow: 'hidden',
-              backgroundColor: '#f9fafb',
-              margin: 0,
-              padding: 0,
-              boxSizing: 'border-box'
             }}
           >
             <span 
@@ -851,119 +846,88 @@ export default function DailyScheduleView({
                 fontSize: '14px',
                 fontWeight: 'bold',
                 color: '#6b7280',
-                margin: 0,
-                padding: 0
               }}
             >
               {getTimezoneAbbreviation(timezone || "America/New_York")}
             </span>
           </div>
-
-          {/* All Day Label */}
-          {propShowAllDayEvents && (
-            <div 
-              className="bg-gray-50 border-b border-gray-200 flex items-center justify-center text-xs font-medium text-gray-600"
-              style={{ minHeight: '60px' }}
-            >
-              All Day
-            </div>
-          )}
+          
+          {/* Day Header */}
           <div 
-            className="relative flex-1"
+            className="flex-1"
+            style={{ 
+              height: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
-            <div 
-              className="relative"
-              style={{ height: `${containerHeight}px` }}
-            >
-              {timeLabels.map((timeLabel) => (
-                <div
-                  key={timeLabel.minutes}
-                  className="absolute right-2 text-xs text-gray-500"
-                  style={{ top: `${timeLabel.position}px` }}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span 
+                className="text-sm font-bold text-gray-600" 
+                style={{ 
+                  lineHeight: '14px',
+                  fontSize: '14px'
+                }}
+              >
+                {selectedDate.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 2)}
+              </span>
+              {selectedDate.toDateString() === new Date().toDateString() ? (
+                <div 
+                  className="bg-red-500 rounded-full"
+                  style={{
+                    width: '20px',
+                    height: '20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
                 >
-                  {timeLabel.label}
+                  <span 
+                    className="text-xs font-bold text-white"
+                    style={{ 
+                      lineHeight: '12px',
+                      fontSize: '12px'
+                    }}
+                  >
+                    {selectedDate.getDate()}
+                  </span>
                 </div>
-              ))}
+              ) : (
+                <span 
+                  className="text-sm font-bold text-gray-900" 
+                  style={{ 
+                    lineHeight: '14px',
+                    fontSize: '14px'
+                  }}
+                >
+                  {selectedDate.getDate()}
+                </span>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Day Container */}
-        <div 
-          className="flex-1 overflow-hidden"
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-        >
-          <div className="h-full">
-            <div className="flex flex-col h-full">
-              {/* Day Header */}
-              <div 
-                style={{ 
-                  height: '24px',
-                  minHeight: '24px', 
-                  maxHeight: '24px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  overflow: 'hidden',
-                  backgroundColor: '#f9fafb',
-                  margin: 0,
-                  padding: 0,
-                  boxSizing: 'border-box'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <span 
-                    className="text-sm font-bold text-gray-600" 
-                    style={{ 
-                      lineHeight: '14px',
-                      fontSize: '14px'
-                    }}
-                  >
-                    {selectedDate.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 2)}
-                  </span>
-                  {selectedDate.toDateString() === new Date().toDateString() ? (
-                    <div 
-                      className="bg-red-500 rounded-full"
-                      style={{
-                        width: '20px',
-                        height: '20px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      <span 
-                        className="text-xs font-bold text-white"
-                        style={{ 
-                          lineHeight: '12px',
-                          fontSize: '12px'
-                        }}
-                      >
-                        {selectedDate.getDate()}
-                      </span>
-                    </div>
-                  ) : (
-                    <span 
-                      className="text-sm font-bold text-gray-900" 
-                      style={{ 
-                        lineHeight: '14px',
-                        fontSize: '14px'
-                      }}
-                    >
-                      {selectedDate.getDate()}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* All Day Events Section */}
-              {propShowAllDayEvents && (
-                <div className="bg-gray-50 border-b border-gray-200 min-h-[60px] p-1">
-                  {getEventsForDate(selectedDate)
-                    .filter(event => event.isAllDay)
-                    .map((event) => {
+        {/* All Day Row */}
+        {propShowAllDayEvents && (
+          <div className="flex border-b border-gray-200">
+            {/* All Day Label */}
+            <div 
+              className="flex-shrink-0 bg-gray-50 border-r border-gray-200 flex items-center justify-center text-xs font-medium text-gray-600"
+              style={{ width: '64px', minHeight: '60px' }}
+            >
+              All Day
+            </div>
+            {/* All Day Events */}
+            <div 
+              className="flex-1 bg-gray-50 p-1"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
+              {getEventsForDate(selectedDate)
+                .filter(event => event.isAllDay)
+                .map((event) => {
                       const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes);
                       return (
                         <Popover 
@@ -1118,93 +1082,114 @@ export default function DailyScheduleView({
                         </Popover>
                       );
                     })}
-                </div>
-              )}
+            </div>
+          </div>
+        )}
 
-              {/* Day Schedule Content - matching weekly view structure */}
+        {/* Scrollable calendar content - matching weekly view structure */}
+        <div 
+          className="overflow-y-auto scrollbar-hide flex-1" 
+          style={{ 
+            maxHeight: '600px',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none'
+          }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          <div 
+            ref={scrollContainerRef}
+            style={{ height: '600px' }}
+          >
+            <div 
+              ref={calendarRef}
+              className="relative bg-white"
+              style={{ height: `${containerHeight}px`, cursor: 'crosshair' }}
+              onMouseDown={handleCalendarMouseDown}
+            >
+              {/* Time column with consistent right border - inside scroll container */}
               <div 
-                className="overflow-y-auto scrollbar-hide flex-1" 
-                style={{ 
-                  maxHeight: '600px',
-                  scrollbarWidth: 'none',
-                  msOverflowStyle: 'none'
-                }}
+                className="absolute left-0 top-0 bottom-0 bg-gray-50 border-r border-gray-200 z-20"
+                style={{ width: '64px' }}
               >
-                <div 
-                  ref={scrollContainerRef}
-                  style={{ height: '600px' }}
-                >
-                  <div 
-                    ref={calendarRef}
-                    className="relative bg-white"
-                    style={{ height: `${containerHeight}px`, cursor: 'crosshair' }}
-                    onMouseDown={handleCalendarMouseDown}
+                {timeLabels.map((timeLabel) => (
+                  <div
+                    key={timeLabel.minutes}
+                    className="absolute right-2 text-xs text-gray-500"
+                    style={{ top: `${timeLabel.position}px` }}
                   >
-                    {/* Time grid background */}
-                    <div className="absolute inset-0 pointer-events-none">
-                      {incrementLines.map((line) => (
-                        <div
-                          key={`increment-${line.minutes}`}
-                          className="absolute left-0 right-0 border-t border-gray-100"
-                          style={{ top: `${line.position}px` }}
-                        />
-                      ))}
-                    </div>
+                    {timeLabel.label}
+                  </div>
+                ))}
+              </div>
 
-                    {/* Events for this day - only non-all-day events */}
-                    {getEventsForDate(selectedDate)
-                      .filter(event => !event.isAllDay)
-                      .map((event) => {
-                      const startMinutes = timeToMinutes(event.startTime);
-                      const endMinutes = timeToMinutes(event.endTime);
-                      const top = minutesToPosition(startMinutes);
-                      const durationMinutes = endMinutes - startMinutes;
-                      const height = Math.max(20, durationMinutes); // Minimum 20px height
-                      const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes);
-                      const isShortEvent = durationMinutes <= 15;
-                      const isVeryShortEvent = durationMinutes <= 10;
-                      const isCompactEvent = durationMinutes <= 30; // Time on same line as title
-                      const isCenterableShortEvent = durationMinutes >= 5 && durationMinutes <= 30;
-                      const isCenterableMediumEvent = durationMinutes > 30 && durationMinutes <= 60; // Stacked layout but centered
+              {/* Time grid background */}
+              <div className="absolute pointer-events-none" style={{ left: '64px', right: 0, top: 0, bottom: 0 }}>
+                {incrementLines.map((line) => (
+                  <div
+                    key={`increment-${line.minutes}`}
+                    className="absolute left-0 right-0 border-t border-gray-100"
+                    style={{ top: `${line.position}px` }}
+                  />
+                ))}
+              </div>
 
-                      // Get layout for overlapping events
-                      const layout = eventLayouts.get(event.id);
-                      const hasOverlap = layout && layout.totalColumns > 1;
-                      
-                      // Calculate width and left position based on overlap layout
-                      let eventLeft: string;
-                      let eventWidth: string;
-                      
-                      if (hasOverlap && layout) {
-                        // Overlapping event: position within its column
-                        const columnWidthPercent = layout.width;
-                        const columnLeftPercent = layout.left;
-                        eventLeft = `calc(${columnLeftPercent}% + 2px)`;
-                        eventWidth = `calc(${columnWidthPercent}% - 4px)`;
-                      } else {
-                        // Non-overlapping event: use full width with small margins
-                        eventLeft = '4px';
-                        eventWidth = 'calc(100% - 8px)';
-                      }
+              {/* Events for this day - only non-all-day events */}
+              {getEventsForDate(selectedDate)
+                .filter(event => !event.isAllDay)
+                .map((event) => {
+                const startMinutes = timeToMinutes(event.startTime);
+                const endMinutes = timeToMinutes(event.endTime);
+                const top = minutesToPosition(startMinutes);
+                const durationMinutes = endMinutes - startMinutes;
+                const height = Math.max(20, durationMinutes);
+                const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes);
+                const isShortEvent = durationMinutes <= 15;
+                const isVeryShortEvent = durationMinutes <= 10;
+                const isCompactEvent = durationMinutes <= 30;
+                const isCenterableShortEvent = durationMinutes >= 5 && durationMinutes <= 30;
+                const isCenterableMediumEvent = durationMinutes > 30 && durationMinutes <= 60;
 
-                      // Check if this event is currently being dragged
-                      const isCurrentlyDragging = draggedEvent?.event.id === event.id && draggedEvent.isDragging;
-                      
-                      // Check if this event is being resized
-                      const isCurrentlyResizing = resizingEvent?.event.id === event.id;
-                      
-                      // Use resized dimensions if this event is being resized
-                      const displayHeight = isCurrentlyResizing ?
-                        timeToMinutes(resizingEvent.event.endTime) - timeToMinutes(resizingEvent.event.startTime) : height;
-                      const resizedTop = isCurrentlyResizing ?
-                        minutesToPosition(timeToMinutes(resizingEvent.event.startTime)) : top;
-                      
-                      // Use dragged position if this event is being dragged (takes priority over resize)
-                      const displayTop = draggedEvent?.event.id === event.id ? 
-                        minutesToPosition(draggedEvent.currentPosition.startMinutes) : resizedTop;
+                // Get layout for overlapping events
+                const layout = eventLayouts.get(event.id);
+                const hasOverlap = layout && layout.totalColumns > 1;
+                
+                // Calculate width and left position based on overlap layout
+                // Events are positioned in the area after the 64px time column
+                let eventLeft: string;
+                let eventWidth: string;
+                
+                if (hasOverlap && layout) {
+                  // Overlapping event: position within its column (relative to event area after time column)
+                  const columnWidthPercent = layout.width;
+                  const columnLeftPercent = layout.left;
+                  eventLeft = `calc(64px + (100% - 64px) * ${columnLeftPercent / 100} + 2px)`;
+                  eventWidth = `calc((100% - 64px) * ${columnWidthPercent / 100} - 4px)`;
+                } else {
+                  // Non-overlapping event: use full width after time column with small margins
+                  eventLeft = 'calc(64px + 4px)';
+                  eventWidth = 'calc(100% - 64px - 8px)';
+                }
 
-                      return (
-                        <Popover 
+                // Check if this event is currently being dragged
+                const isCurrentlyDragging = draggedEvent?.event.id === event.id && draggedEvent.isDragging;
+                
+                // Check if this event is being resized
+                const isCurrentlyResizing = resizingEvent?.event.id === event.id;
+                
+                // Use resized dimensions if this event is being resized
+                const displayHeight = isCurrentlyResizing ?
+                  timeToMinutes(resizingEvent.event.endTime) - timeToMinutes(resizingEvent.event.startTime) : height;
+                const resizedTop = isCurrentlyResizing ?
+                  minutesToPosition(timeToMinutes(resizingEvent.event.startTime)) : top;
+                
+                // Use dragged position if this event is being dragged (takes priority over resize)
+                const displayTop = draggedEvent?.event.id === event.id ? 
+                  minutesToPosition(draggedEvent.currentPosition.startMinutes) : resizedTop;
+
+                return (
+                  <Popover 
                           key={event.id}
                           open={openPopoverId === `timed-${event.id}`}
                           onOpenChange={(open) => {
@@ -1409,32 +1394,28 @@ export default function DailyScheduleView({
                       );
                     })}
 
-                    {/* Drag-to-create preview */}
-                    {dragState?.isActive && (
-                      <div
-                        className="absolute text-xs text-white rounded bg-gray-500 opacity-60 pointer-events-none z-30"
-                        style={{
-                          left: '4px',
-                          width: 'calc(100% - 8px)',
-                          top: `${minutesToPosition(Math.min(dragState.startTime, dragState.currentTime))}px`,
-                          height: `${Math.abs(minutesToPosition(dragState.currentTime) - minutesToPosition(dragState.startTime))}px`,
-                          minHeight: '20px',
-                        }}
-                      >
-                        <div className="px-2 py-1 h-full flex flex-col justify-start">
-                          <div className="font-medium truncate">New Event</div>
-                          <div className="text-xs opacity-90 truncate">
-                            {formatTimeDisplay(formatTime(Math.min(dragState.startTime, dragState.currentTime)), timeFormat as '12' | '24')} - {formatTimeDisplay(formatTime(Math.max(dragState.startTime, dragState.currentTime)), timeFormat as '12' | '24')}
-                          </div>
-                        </div>
-                      </div>
-                    )}
+              {/* Drag-to-create preview */}
+              {dragState?.isActive && (
+                <div
+                  className="absolute text-xs text-white rounded bg-gray-500 opacity-60 pointer-events-none z-30"
+                  style={{
+                    left: 'calc(64px + 4px)',
+                    width: 'calc(100% - 64px - 8px)',
+                    top: `${minutesToPosition(Math.min(dragState.startTime, dragState.currentTime))}px`,
+                    height: `${Math.abs(minutesToPosition(dragState.currentTime) - minutesToPosition(dragState.startTime))}px`,
+                    minHeight: '20px',
+                  }}
+                >
+                  <div className="px-2 py-1 h-full flex flex-col justify-start">
+                    <div className="font-medium truncate">New Event</div>
+                    <div className="text-xs opacity-90 truncate">
+                      {formatTimeDisplay(formatTime(Math.min(dragState.startTime, dragState.currentTime)), timeFormat as '12' | '24')} - {formatTimeDisplay(formatTime(Math.max(dragState.startTime, dragState.currentTime)), timeFormat as '12' | '24')}
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
-        </div>
         </div>
       </div>
       
