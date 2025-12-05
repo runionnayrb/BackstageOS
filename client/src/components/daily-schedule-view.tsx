@@ -1143,7 +1143,7 @@ export default function DailyScheduleView({
                 const endMinutes = timeToMinutes(event.endTime);
                 const top = minutesToPosition(startMinutes);
                 const durationMinutes = endMinutes - startMinutes;
-                const height = Math.max(20, durationMinutes);
+                const height = endMinutes - startMinutes;
                 const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes);
                 const isShortEvent = durationMinutes <= 15;
                 const isVeryShortEvent = durationMinutes <= 10;
@@ -1202,26 +1202,28 @@ export default function DailyScheduleView({
                           <PopoverTrigger asChild>
                             <div
                               data-event-card
-                              className={`absolute rounded text-sm overflow-hidden cursor-pointer hover:opacity-90 ${
+                              className={`absolute text-sm rounded-md shadow-sm cursor-pointer hover:opacity-90 z-30 ${
                                 isLightColor(eventTypeColor) ? 'text-gray-900' : 'text-white'
-                              } ${isCenterableShortEvent ? 'flex items-center' : ''
-                              } ${isCenterableMediumEvent ? 'flex flex-col justify-center' : ''
                               } ${selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''
-                              } ${isCurrentlyDragging ? 'opacity-50 cursor-grabbing' : 'cursor-grab'}`}
+                              } ${isCurrentlyDragging ? 'opacity-50 cursor-grabbing' : 'cursor-grab'
+                              } ${isCenterableShortEvent ? 'flex items-center' : ''
+                              } ${isCenterableMediumEvent ? 'flex flex-col justify-center' : ''}`}
                               style={{
-                                top: `${displayTop}px`,
-                                height: `${displayHeight}px`,
                                 left: eventLeft,
                                 width: eventWidth,
+                                top: `${displayTop}px`,
+                                height: `${Math.max(20, displayHeight)}px`,
+                                minHeight: '20px',
                                 backgroundColor: eventTypeColor,
                                 border: `1px solid ${darkenColor(eventTypeColor, 25)}`,
+                                overflow: 'hidden',
                                 padding: isCenterableShortEvent ? '0 8px' : (isVeryShortEvent ? '2px 4px' : (isCenterableMediumEvent ? '8px' : '6px 8px 8px 8px')),
                               }}
                               onMouseDown={(e) => handleEventMouseDown(e, event.id)}
                             >
                               {isCompactEvent ? (
-                                <div className="flex items-center gap-1 min-w-0 overflow-hidden">
-                                  <span className="font-medium whitespace-nowrap overflow-hidden text-ellipsis">{event.title}</span>
+                                <div className={`flex items-center gap-1 ${hasOverlap ? 'flex-wrap overflow-hidden' : 'truncate'}`}>
+                                  <span className={`font-medium ${hasOverlap ? 'break-words' : ''}`}>{event.title}</span>
                                   <span className="text-xs opacity-90">{(() => {
                                     // Show updated times during resize
                                     if (isCurrentlyResizing) {
@@ -1233,9 +1235,9 @@ export default function DailyScheduleView({
                                   })()}</span>
                                 </div>
                               ) : (
-                                <div className="overflow-hidden min-w-0">
-                                  <div className="font-medium whitespace-nowrap overflow-hidden text-ellipsis">{event.title}</div>
-                                  <div className="text-xs opacity-90 mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">
+                                <div className={hasOverlap ? 'overflow-hidden' : ''}>
+                                  <div className={`font-medium ${hasOverlap ? 'break-words' : 'truncate'}`}>{event.title}</div>
+                                  <div className={`text-xs opacity-90 mt-0.5 ${hasOverlap ? 'break-words' : 'truncate'}`}>
                                     {(() => {
                                       // Show updated times during resize
                                       if (isCurrentlyResizing) {

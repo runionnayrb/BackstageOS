@@ -1684,8 +1684,8 @@ export default function WeeklyScheduleView({
                           onContextMenu={(e) => e.preventDefault()}
                         >
                           {isCompactEvent ? (
-                            <div className="flex items-center gap-1 min-w-0 overflow-hidden">
-                              <span className="font-medium whitespace-nowrap overflow-hidden text-ellipsis">{event.title}</span>
+                            <div className={`flex items-center gap-1 ${hasOverlap ? 'flex-wrap overflow-hidden' : 'truncate'}`}>
+                              <span className={`font-medium ${hasOverlap ? 'break-words' : ''}`}>{event.title}</span>
                               <span className="text-xs opacity-90">{(() => {
                                 if (draggedEvent?.event.id === event.id && draggedEvent.isDragging) {
                                   const dragStartMinutes = draggedEvent.currentPosition.startMinutes;
@@ -1697,9 +1697,9 @@ export default function WeeklyScheduleView({
                               })()}</span>
                             </div>
                           ) : (
-                            <div className="overflow-hidden min-w-0">
-                              <div className="font-medium whitespace-nowrap overflow-hidden text-ellipsis">{event.title}</div>
-                              <div className="text-xs opacity-90 mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">
+                            <div className={hasOverlap ? 'overflow-hidden' : ''}>
+                              <div className={`font-medium ${hasOverlap ? 'break-words' : 'truncate'}`}>{event.title}</div>
+                              <div className={`text-xs opacity-90 mt-0.5 ${hasOverlap ? 'break-words' : 'truncate'}`}>
                                 {(() => {
                                   if (draggedEvent?.event.id === event.id && draggedEvent.isDragging) {
                                     const dragStartMinutes = draggedEvent.currentPosition.startMinutes;
