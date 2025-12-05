@@ -411,11 +411,14 @@ export default function DailyScheduleView({
       const startTime = formatTime(currentDragPosition.startMinutes) + ':00';
       const endTime = formatTime(currentDragPosition.startMinutes + duration) + ':00';
 
-      queryClient.setQueryData(['/api/projects', projectId, 'schedule-events'], (old: ScheduleEvent[]) => {
-        return old?.map((e: ScheduleEvent) => 
-          e.id === event.id ? { ...e, startTime, endTime } : e
-        ) || [];
-      });
+      queryClient.setQueriesData(
+        { queryKey: ['/api/projects', projectId, 'schedule-events'] },
+        (old: ScheduleEvent[] | undefined) => {
+          return old?.map((e: ScheduleEvent) => 
+            e.id === event.id ? { ...e, startTime, endTime } : e
+          ) || [];
+        }
+      );
     };
 
     const handleMouseUp = () => {
@@ -512,11 +515,14 @@ export default function DailyScheduleView({
         };
 
         // Optimistically update the cache for instant visual feedback
-        queryClient.setQueryData(['/api/projects', projectId, 'schedule-events'], (old: ScheduleEvent[]) => {
-          return old?.map((e: ScheduleEvent) => 
-            e.id === event.id ? { ...e, startTime: eventData.startTime, endTime: eventData.endTime } : e
-          ) || [];
-        });
+        queryClient.setQueriesData(
+          { queryKey: ['/api/projects', projectId, 'schedule-events'] },
+          (old: ScheduleEvent[] | undefined) => {
+            return old?.map((e: ScheduleEvent) => 
+              e.id === event.id ? { ...e, startTime: eventData.startTime, endTime: eventData.endTime } : e
+            ) || [];
+          }
+        );
 
         // Use the mutation for backend update
         updateEventMutation.mutate({

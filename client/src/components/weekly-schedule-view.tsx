@@ -953,17 +953,20 @@ export default function WeeklyScheduleView({
           endTime = formatTime(currentDragPosition.startMinutes + duration) + ':00';
         }
 
-        queryClient.setQueryData(['/api/projects', projectId, 'schedule-events', { startDate, endDate }], (old: ScheduleEvent[]) => {
-          const updated = old?.map((e: ScheduleEvent) => 
-            e.id === event.id ? { 
-              ...e, 
-              date: newDate,
-              startTime,
-              endTime
-            } : e
-          ) || [];
-          return updated;
-        });
+        queryClient.setQueriesData(
+          { queryKey: ['/api/projects', projectId, 'schedule-events'] },
+          (old: ScheduleEvent[] | undefined) => {
+            const updated = old?.map((e: ScheduleEvent) => 
+              e.id === event.id ? { 
+                ...e, 
+                date: newDate,
+                startTime,
+                endTime
+              } : e
+            ) || [];
+            return updated;
+          }
+        );
       };
 
       const handleMouseUp = () => {
@@ -1095,11 +1098,14 @@ export default function WeeklyScheduleView({
         };
 
         // Optimistically update the cache immediately for instant visual feedback
-        queryClient.setQueryData(['/api/projects', projectId, 'schedule-events', { startDate, endDate }], (old: ScheduleEvent[]) => {
-          return old?.map((e: ScheduleEvent) => 
-            e.id === event.id ? { ...e, startTime: eventData.startTime, endTime: eventData.endTime } : e
-          ) || [];
-        });
+        queryClient.setQueriesData(
+          { queryKey: ['/api/projects', projectId, 'schedule-events'] },
+          (old: ScheduleEvent[] | undefined) => {
+            return old?.map((e: ScheduleEvent) => 
+              e.id === event.id ? { ...e, startTime: eventData.startTime, endTime: eventData.endTime } : e
+            ) || [];
+          }
+        );
 
         console.log('🚀 Calling resize mutation with data:', {
           eventId: event.id,
