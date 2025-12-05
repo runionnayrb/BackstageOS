@@ -1684,8 +1684,8 @@ export default function WeeklyScheduleView({
                           onContextMenu={(e) => e.preventDefault()}
                         >
                           {isCompactEvent ? (
-                            <div className="flex items-center gap-1 break-words overflow-hidden">
-                              <span className="font-medium break-words">{event.title}</span>
+                            <div className="flex items-center gap-1 truncate">
+                              <span className="font-medium">{event.title}</span>
                               <span className="text-xs opacity-90">{(() => {
                                 if (draggedEvent?.event.id === event.id && draggedEvent.isDragging) {
                                   const dragStartMinutes = draggedEvent.currentPosition.startMinutes;
@@ -1697,9 +1697,9 @@ export default function WeeklyScheduleView({
                               })()}</span>
                             </div>
                           ) : (
-                            <div className="overflow-hidden">
-                              <div className="font-medium break-words">{event.title}</div>
-                              <div className="text-xs opacity-90 break-words mt-0.5">
+                            <div>
+                              <div className="font-medium truncate">{event.title}</div>
+                              <div className="text-xs opacity-90 truncate mt-0.5">
                                 {(() => {
                                   if (draggedEvent?.event.id === event.id && draggedEvent.isDragging) {
                                     const dragStartMinutes = draggedEvent.currentPosition.startMinutes;
