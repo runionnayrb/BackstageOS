@@ -405,30 +405,32 @@ The Production Team`
     onSuccess: (data) => {
       const eventsCreated = data.createdEvents?.length || 0;
       
-      // Immediately update cache with new events for instant UI update
+      // Immediately update ALL schedule event caches with new events for instant UI update
       if (data.createdEvents && data.createdEvents.length > 0) {
-        // Update the general schedule events cache
+        // Update all schedule event caches using setQueriesData for partial key matching
+        // This updates both daily view (no date params) and weekly view (with date params)
+        queryClient.setQueriesData(
+          { queryKey: ['/api/projects', projectId, 'schedule-events'] },
+          (oldData: any[] | undefined) => {
+            if (!oldData) return data.createdEvents;
+            // Avoid duplicates by filtering out any events that already exist
+            const existingIds = new Set(oldData.map((e: any) => e.id));
+            const newEvents = data.createdEvents.filter((e: any) => !existingIds.has(e.id));
+            return [...oldData, ...newEvents];
+          }
+        );
+        
+        // Also update the string-format cache key used by some queries
         queryClient.setQueryData(
           [`/api/projects/${projectId}/schedule-events`],
           (oldData: any[] | undefined) => {
             if (!oldData) return data.createdEvents;
-            return [...oldData, ...data.createdEvents];
-          }
-        );
-        
-        // Also update any date-filtered caches that might be active
-        queryClient.setQueriesData(
-          { queryKey: ['/api/projects', projectId, 'schedule-events'] },
-          (oldData: any[] | undefined) => {
-            if (!oldData) return oldData;
-            return [...oldData, ...data.createdEvents];
+            const existingIds = new Set(oldData.map((e: any) => e.id));
+            const newEvents = data.createdEvents.filter((e: any) => !existingIds.has(e.id));
+            return [...oldData, ...newEvents];
           }
         );
       }
-      
-      // Still invalidate to ensure eventual consistency with server
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
       
       toast({
         title: "Template Applied",
