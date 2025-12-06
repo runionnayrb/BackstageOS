@@ -8835,6 +8835,7 @@ Best regards,
           location: templateEvent.location,
           notes: templateEvent.notes,
           isAllDay: templateEvent.isAllDay || false,
+          isProductionLevel: templateEvent.isProductionLevel || false,
           createdBy: parseInt(req.user.id.toString()),
         });
 
@@ -8849,37 +8850,6 @@ Best regards,
         }
 
         createdEvents.push(newEvent);
-
-        // If template event is marked for production calendar, create a production level event
-        if (templateEvent.isProductionLevel) {
-          const productionEvent = await storage.createScheduleEvent({
-            projectId: template.projectId,
-            date: eventInfo.targetDate,
-            title: templateEvent.title,
-            description: templateEvent.description,
-            startTime: templateEvent.startTime,
-            endTime: templateEvent.endTime,
-            type: templateEvent.type || 'rehearsal',
-            eventTypeId: templateEvent.eventTypeId,
-            location: templateEvent.location,
-            notes: templateEvent.notes,
-            isAllDay: templateEvent.isAllDay || false,
-            isProductionLevel: true,
-            createdBy: parseInt(req.user.id.toString()),
-          });
-
-          // Add participants to production event
-          for (const participant of participants) {
-            await storage.addEventParticipant({
-              eventId: productionEvent.id,
-              contactId: participant.contactId,
-              isRequired: participant.isRequired,
-              notes: participant.notes,
-            });
-          }
-
-          createdEvents.push(productionEvent);
-        }
       }
 
       res.json({
