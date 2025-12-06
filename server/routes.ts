@@ -8759,9 +8759,22 @@ Best regards,
       const conflicts: any[] = [];
       const eventsToCreate: any[] = [];
 
+      // Get the template's weekStartDay (default to 0/Sunday if not set)
+      const templateWeekStartDay = template.weekStartDay ?? 0;
+      
+      // Get the target week start's day of week
+      const targetStartDayOfWeek = targetStart.getDay();
+
       for (const templateEvent of templateEvents) {
+        // Convert template's relative dayOfWeek back to absolute day of week (0=Sunday, 6=Saturday)
+        const absoluteDayOfWeek = (templateEvent.dayOfWeek + templateWeekStartDay) % 7;
+        
+        // Calculate how many days from target week start to reach this day
+        // The target week start date's day of week tells us what day it falls on
+        const daysFromTargetStart = (absoluteDayOfWeek - targetStartDayOfWeek + 7) % 7;
+        
         const targetDate = new Date(targetStart);
-        targetDate.setDate(targetDate.getDate() + templateEvent.dayOfWeek);
+        targetDate.setDate(targetDate.getDate() + daysFromTargetStart);
         const targetDateStr = targetDate.toISOString().split('T')[0];
 
         // Check for time conflicts with existing events
