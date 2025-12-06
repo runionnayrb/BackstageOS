@@ -62,6 +62,12 @@ BackstageOS is built with a show-centric design, ensuring complete data isolatio
 - **Schedule Views**: Standardized weekly and daily schedule views with perfectly aligned grids and consistent time increment behavior, featuring visually hidden scrollbars for uniform width.
 - **Weekly Versioning**: Each week maintains independent version numbers (major.minor) for granular schedule tracking. Personal schedules show current week forward with "Previous Schedules" access for historical weeks.
 - **Scrollable Participant Lists**: Event popovers with large participant counts (e.g., Full Company) use scrollable containers with max-height constraints on PopoverContent.
+- **Schedule Template Application**: Templates correctly apply `isProductionLevel` flag to created events without creating duplicates. Template event day offsets are calculated relative to the template's `weekStartDay` setting for accurate day placement.
+- **Event Card Display Rules**: Event cards adapt layout based on duration thresholds (≤10 min, ≤30 min, 30-60 min, >60 min). When events overlap or display side-by-side, vertical centering is disabled to ensure titles always start from the top and remain readable. Overlapping short events show title first with start time only (no time range) to maximize title visibility in narrow cards.
+
+## Recent Changes (December 2025)
+- **Schedule Template Duplicate Fix**: Fixed issue where events marked as "production level" in templates were creating duplicate events. Now the `isProductionLevel` flag is applied to the single created event instead of creating a separate copy.
+- **Event Card Title Visibility**: Fixed event cards cutting off titles when events overlap. Disabled vertical centering for overlapping events so titles always start from the beginning (top-aligned). For compact overlapping events, layout now stacks title above time with word-break for narrow cards.
 
 ## External Dependencies
 - **OpenID Connect**
