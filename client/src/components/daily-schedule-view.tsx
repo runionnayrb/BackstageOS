@@ -1212,8 +1212,8 @@ export default function DailyScheduleView({
                                 isLightColor(eventTypeColor) ? 'text-gray-900' : 'text-white'
                               } ${selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''
                               } ${isCurrentlyDragging ? 'opacity-50 cursor-grabbing' : 'cursor-grab'
-                              } ${isCenterableShortEvent ? 'flex items-center' : ''
-                              } ${isCenterableMediumEvent ? 'flex flex-col justify-center' : ''}`}
+                              } ${isCenterableShortEvent && !hasOverlap ? 'flex items-center' : ''
+                              } ${isCenterableMediumEvent && !hasOverlap ? 'flex flex-col justify-center' : ''}`}
                               style={{
                                 left: eventLeft,
                                 width: eventWidth,
@@ -1223,7 +1223,7 @@ export default function DailyScheduleView({
                                 backgroundColor: eventTypeColor,
                                 border: `1px solid ${darkenColor(eventTypeColor, 25)}`,
                                 overflow: 'hidden',
-                                padding: isCenterableShortEvent ? '0 8px' : (isVeryShortEvent ? '2px 4px' : (isCenterableMediumEvent ? '4px 8px' : '6px 8px 8px 8px')),
+                                padding: (isCenterableShortEvent && !hasOverlap) ? '0 8px' : (isVeryShortEvent ? '2px 4px' : ((isCenterableMediumEvent && !hasOverlap) ? '4px 8px' : '4px 6px')),
                               }}
                               onMouseDown={(e) => handleEventMouseDown(e, event.id)}
                               onContextMenu={(e) => e.preventDefault()}
