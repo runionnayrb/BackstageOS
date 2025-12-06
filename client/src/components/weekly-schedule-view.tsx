@@ -1690,17 +1690,28 @@ export default function WeeklyScheduleView({
                           onContextMenu={(e) => e.preventDefault()}
                         >
                           {isCompactEvent ? (
-                            <div className={`flex items-center gap-1 ${hasOverlap ? 'flex-wrap overflow-hidden' : 'truncate'}`}>
-                              <span className={`font-medium ${hasOverlap ? 'break-words' : ''}`}>{event.title}</span>
-                              <span className="text-xs opacity-90">{(() => {
-                                if (draggedEvent?.event.id === event.id && draggedEvent.isDragging) {
-                                  const dragStartMinutes = draggedEvent.currentPosition.startMinutes;
-                                  const duration = endMinutes - startMinutes;
-                                  const dragEndMinutes = dragStartMinutes + duration;
-                                  return `${formatTimeDisplay(formatTime(dragStartMinutes), timeFormat as '12' | '24')} - ${formatTimeDisplay(formatTime(dragEndMinutes), timeFormat as '12' | '24')}`;
-                                }
-                                return `${formatTimeDisplay(formatTime(startMinutes), timeFormat as '12' | '24')} - ${formatTimeDisplay(formatTime(endMinutes), timeFormat as '12' | '24')}`;
-                              })()}</span>
+                            <div className={`flex items-center gap-1 ${hasOverlap ? 'flex-col items-start' : 'truncate'}`}>
+                              <span className={`font-medium leading-tight ${hasOverlap ? 'line-clamp-2' : 'truncate'}`} style={{ wordBreak: hasOverlap ? 'break-word' : undefined }}>{event.title}</span>
+                              {!hasOverlap && (
+                                <span className="text-xs opacity-90 flex-shrink-0">{(() => {
+                                  if (draggedEvent?.event.id === event.id && draggedEvent.isDragging) {
+                                    const dragStartMinutes = draggedEvent.currentPosition.startMinutes;
+                                    const duration = endMinutes - startMinutes;
+                                    const dragEndMinutes = dragStartMinutes + duration;
+                                    return `${formatTimeDisplay(formatTime(dragStartMinutes), timeFormat as '12' | '24')} - ${formatTimeDisplay(formatTime(dragEndMinutes), timeFormat as '12' | '24')}`;
+                                  }
+                                  return `${formatTimeDisplay(formatTime(startMinutes), timeFormat as '12' | '24')} - ${formatTimeDisplay(formatTime(endMinutes), timeFormat as '12' | '24')}`;
+                                })()}</span>
+                              )}
+                              {hasOverlap && (
+                                <span className="text-xs opacity-90 leading-tight">{(() => {
+                                  if (draggedEvent?.event.id === event.id && draggedEvent.isDragging) {
+                                    const dragStartMinutes = draggedEvent.currentPosition.startMinutes;
+                                    return formatTimeDisplay(formatTime(dragStartMinutes), timeFormat as '12' | '24');
+                                  }
+                                  return formatTimeDisplay(formatTime(startMinutes), timeFormat as '12' | '24');
+                                })()}</span>
+                              )}
                             </div>
                           ) : (
                             <div className={hasOverlap ? 'overflow-hidden' : ''}>

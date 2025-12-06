@@ -1229,17 +1229,29 @@ export default function DailyScheduleView({
                               onContextMenu={(e) => e.preventDefault()}
                             >
                               {isCompactEvent ? (
-                                <div className={`flex items-center gap-1 ${hasOverlap ? 'flex-wrap overflow-hidden' : 'truncate'}`}>
-                                  <span className={`font-medium ${hasOverlap ? 'break-words' : ''}`}>{event.title}</span>
-                                  <span className="text-xs opacity-90">{(() => {
-                                    // Show updated times during resize
-                                    if (isCurrentlyResizing) {
-                                      const resizeStartMins = timeToMinutes(resizingEvent.event.startTime);
-                                      const resizeEndMins = timeToMinutes(resizingEvent.event.endTime);
-                                      return `${formatTimeDisplay(formatTime(resizeStartMins), timeFormat)} - ${formatTimeDisplay(formatTime(resizeEndMins), timeFormat)}`;
-                                    }
-                                    return `${formatTimeDisplay(formatTime(startMinutes), timeFormat)} - ${formatTimeDisplay(formatTime(endMinutes), timeFormat)}`;
-                                  })()}</span>
+                                <div className={`flex items-center gap-1 ${hasOverlap ? 'flex-col items-start' : 'truncate'}`}>
+                                  <span className={`font-medium leading-tight ${hasOverlap ? 'line-clamp-2' : 'truncate'}`} style={{ wordBreak: hasOverlap ? 'break-word' : undefined }}>{event.title}</span>
+                                  {!hasOverlap && (
+                                    <span className="text-xs opacity-90 flex-shrink-0">{(() => {
+                                      // Show updated times during resize
+                                      if (isCurrentlyResizing) {
+                                        const resizeStartMins = timeToMinutes(resizingEvent.event.startTime);
+                                        const resizeEndMins = timeToMinutes(resizingEvent.event.endTime);
+                                        return `${formatTimeDisplay(formatTime(resizeStartMins), timeFormat)} - ${formatTimeDisplay(formatTime(resizeEndMins), timeFormat)}`;
+                                      }
+                                      return `${formatTimeDisplay(formatTime(startMinutes), timeFormat)} - ${formatTimeDisplay(formatTime(endMinutes), timeFormat)}`;
+                                    })()}</span>
+                                  )}
+                                  {hasOverlap && (
+                                    <span className="text-xs opacity-90 leading-tight">{(() => {
+                                      // Show updated times during resize
+                                      if (isCurrentlyResizing) {
+                                        const resizeStartMins = timeToMinutes(resizingEvent.event.startTime);
+                                        return formatTimeDisplay(formatTime(resizeStartMins), timeFormat);
+                                      }
+                                      return formatTimeDisplay(formatTime(startMinutes), timeFormat);
+                                    })()}</span>
+                                  )}
                                 </div>
                               ) : (
                                 <div className={hasOverlap ? 'overflow-hidden' : ''}>
