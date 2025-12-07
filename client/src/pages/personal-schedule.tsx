@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Calendar, AlertCircle, X, MapPin, Clock, Users, History, ChevronRight } from "lucide-react";
 import { format, parseISO, isValid } from "date-fns";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { getEventTypeColorFromDatabase, isLightColor } from "@/lib/eventUtils";
 
 interface HistoricalWeek {
   weekStart: string;
@@ -11,6 +12,12 @@ interface HistoricalWeek {
   publishedAt: string;
   eventCount: number;
   isLegacy?: boolean;
+}
+
+interface EventType {
+  id: number;
+  name: string;
+  color: string;
 }
 
 interface PersonalScheduleData {
@@ -51,8 +58,10 @@ interface PersonalScheduleData {
     type: string;
     isAllDay: boolean;
     notes?: string;
+    eventTypeId?: number;
   }>;
   historicalWeeks?: HistoricalWeek[];
+  eventTypes?: EventType[];
 }
 
 interface HistoricalWeekEvents {
@@ -71,7 +80,9 @@ interface HistoricalWeekEvents {
     type: string;
     isAllDay: boolean;
     notes?: string;
+    eventTypeId?: number;
   }>;
+  eventTypes?: EventType[];
 }
 
 interface PersonalScheduleViewerProps {
@@ -235,20 +246,11 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
     return typeMap[type] || type;
   };
 
-  const getEventTypeColor = (type: string) => {
-    // Default colors for common event types
-    const defaultColors: Record<string, string> = {
-      'rehearsal': '#3B82F6', // blue
-      'tech_rehearsal': '#F59E0B', // amber
-      'performance': '#10B981', // emerald
-      'meeting': '#8B5CF6', // violet
-      'costume_fitting': '#EC4899', // pink
-      'photo_shoot': '#6366F1', // indigo
-      'dress_rehearsal': '#F97316', // orange
-      'preview': '#84CC16', // lime
-      'dark': '#1F2937', // gray-800
-    };
-    return defaultColors[type] || '#6B7280'; // default gray
+  // Get event type color from show settings, falling back to defaults
+  // Can optionally pass eventTypes for historical weeks which have their own event types
+  const getEventColor = (event: { type: string; eventTypeId?: number }, eventTypesOverride?: EventType[]) => {
+    const eventTypesList = eventTypesOverride || scheduleData?.eventTypes || [];
+    return getEventTypeColorFromDatabase(event.type, eventTypesList, event.eventTypeId);
   };
 
   const getVersionDisplay = (version: { version: string; versionType: 'major' | 'minor'; minorVersion?: number }) => {
@@ -353,8 +355,8 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
                                 <div 
                                   className="flex items-start gap-3 p-4 rounded-lg border-l-4" 
                                   style={{ 
-                                    borderLeftColor: getEventTypeColor(event.type),
-                                    backgroundColor: `${getEventTypeColor(event.type)}10`
+                                    borderLeftColor: getEventColor(event),
+                                    backgroundColor: `${getEventColor(event)}10`
                                   }}
                                 >
                                   <div className="text-sm text-gray-700 min-w-[80px] pt-1">
@@ -470,7 +472,11 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
                         {historicalWeekData.events.map((event) => (
                           <div 
                             key={event.id}
-                            className="p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100"
+                            className="p-3 rounded-lg cursor-pointer hover:opacity-90 transition-opacity border-l-4"
+                            style={{ 
+                              borderLeftColor: getEventColor(event, historicalWeekData.eventTypes),
+                              backgroundColor: `${getEventColor(event, historicalWeekData.eventTypes)}15`
+                            }}
                             onClick={() => {
                               setSelectedEvent(event);
                               setShowPreviousSchedules(false);
@@ -549,10 +555,10 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
               <div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">{selectedEvent.title}</h3>
                 <div 
-                  className="inline-block px-3 py-1 rounded text-xs font-medium text-white"
-                  style={{ backgroundColor: getEventTypeColor(selectedEvent.type) }}
+                  className={`inline-block px-3 py-1 rounded text-xs font-medium ${isLightColor(getEventColor(selectedEvent)) ? 'text-gray-900' : 'text-white'}`}
+                  style={{ backgroundColor: getEventColor(selectedEvent) }}
                 >
-                  {selectedEvent.type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                  {selectedEvent.type.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
                 </div>
               </div>
 

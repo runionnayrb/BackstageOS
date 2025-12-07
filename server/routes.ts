@@ -15540,6 +15540,9 @@ The Production Team`;
           )
         : legacyVersion;
 
+      // Get event types for color display
+      const eventTypes = await storage.getEventTypesByProjectId(project.id);
+
       res.json({
         personalSchedule: {
           id: personalSchedule.id,
@@ -15568,7 +15571,8 @@ The Production Team`;
           publishedAt: latestVersion.publishedAt
         } : null,
         events: upcomingEvents, // Only current week and forward (published)
-        historicalWeeks // Summary of past weeks for "Previous Schedules" button
+        historicalWeeks, // Summary of past weeks for "Previous Schedules" button
+        eventTypes: eventTypes.map(et => ({ id: et.id, name: et.name, color: et.color })) // Event type colors from show settings
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch personal schedule" });
@@ -15640,12 +15644,16 @@ The Production Team`;
         return dateA.getTime() - dateB.getTime();
       });
 
+      // Get event types for color display
+      const eventTypes = await storage.getEventTypesByProjectId(personalSchedule.projectId);
+
       res.json({
         weekStart,
         weekEnd: weekEndStr,
         version: `${targetVersion.version}.${targetVersion.minorVersion || 0}`,
         publishedAt: targetVersion.publishedAt,
-        events: weekEvents
+        events: weekEvents,
+        eventTypes: eventTypes.map(et => ({ id: et.id, name: et.name, color: et.color }))
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch historical week events" });
@@ -16772,6 +16780,13 @@ The Production Team`;
             isAllDay: false,
             notes: null
           }
+        ],
+        eventTypes: [
+          { id: 1, name: "rehearsal", color: "#3B82F6" },
+          { id: 2, name: "performance", color: "#22C55E" },
+          { id: 3, name: "tech_rehearsal", color: "#F97316" },
+          { id: 4, name: "meeting", color: "#8B5CF6" },
+          { id: 5, name: "costume_fitting", color: "#EC4899" }
         ]
       };
       
