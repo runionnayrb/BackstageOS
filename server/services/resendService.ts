@@ -51,7 +51,11 @@ interface EmailData {
 export async function sendEmailWithResend(emailData: EmailData): Promise<any> {
   const { client, fromEmail } = await getResendClient();
   
-  const senderEmail = fromEmail || 'noreply@backstageos.com';
+  console.log('📧 Resend fromEmail from connector:', fromEmail);
+  
+  const senderEmail = fromEmail && fromEmail !== '' ? fromEmail : 'onboarding@resend.dev';
+  console.log('📧 Using sender email:', senderEmail);
+  
   const response = await client.emails.send({
     from: `BackstageOS <${senderEmail}>`,
     to: emailData.to,
