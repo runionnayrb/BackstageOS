@@ -10,7 +10,7 @@ import connectPg from "connect-pg-simple";
 import { pool, db } from "./db";
 import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
-import { SendGridService } from "./services/sendgridService";
+import { sendEmailWithResend } from "./services/resendService";
 
 declare global {
   namespace Express {
@@ -352,10 +352,9 @@ export function setupAuth(app: Express) {
       const protocol = req.secure || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
       const resetUrl = `${protocol}://${host}/reset-password?token=${resetToken}`;
 
-      // Send reset email via SendGrid
+      // Send reset email via Resend
       try {
-        const sendgridService = new SendGridService();
-        await sendgridService.sendEmail({
+        await sendEmailWithResend({
           to: [email],
           subject: "Reset Your BackstageOS Password",
           html: `
@@ -380,7 +379,7 @@ export function setupAuth(app: Express) {
             </div>
           `,
         });
-        console.log(`Password reset email sent to ${email}`);
+        console.log(`Password reset email sent to ${email} via Resend`);
       } catch (emailError) {
         console.error("Failed to send password reset email:", emailError);
         // Don't expose email sending errors to user
