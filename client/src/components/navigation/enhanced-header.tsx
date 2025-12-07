@@ -165,21 +165,6 @@ export default function EnhancedHeader() {
     staleTime: 10 * 60 * 1000, // Consider data fresh for 10 minutes
   });
 
-  // Set default user ID to Bryan Runion when users are loaded
-  useEffect(() => {
-    if (allUsers.length > 0 && !defaultUserId) {
-      const bryanRunion = allUsers.find((u: User) => 
-        u.email === "runion.bryan@gmail.com" || 
-        (u.firstName === "Bryan" && u.lastName === "Runion")
-      );
-      if (bryanRunion) {
-        setDefaultUserId(bryanRunion.id.toString());
-      }
-    }
-  }, [allUsers, defaultUserId]);
-
-
-
 
 
   // Fetch current switch status - with staleTime to reduce refetches
@@ -188,6 +173,20 @@ export default function EnhancedHeader() {
     enabled: isOriginalAdmin(user),
     staleTime: 10 * 60 * 1000, // Consider data fresh for 10 minutes
   });
+
+  // Sync defaultUserId with the current viewing user or logged-in user
+  useEffect(() => {
+    if (allUsers.length > 0) {
+      // If viewing as another user, use that user's ID
+      if (switchStatus?.isViewingAs && switchStatus.viewingUser?.id) {
+        setDefaultUserId(switchStatus.viewingUser.id.toString());
+      } 
+      // Otherwise use the logged-in user's ID
+      else if (user?.id && !defaultUserId) {
+        setDefaultUserId(user.id.toString());
+      }
+    }
+  }, [allUsers, switchStatus, user?.id]);
 
   // Switch account mutation
   const switchAccountMutation = useMutation({
