@@ -202,6 +202,11 @@ function Router() {
     return <ResetPassword />;
   }
 
+  // Handle auth/login pages - render without layout wrapper
+  if (location === '/auth' || location === '/login') {
+    return <AuthPage />;
+  }
+
   // Policy pages - public access, render immediately without waiting for auth
   if (location === '/security') {
     return <SecurityPage />;
