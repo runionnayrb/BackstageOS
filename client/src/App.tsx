@@ -288,10 +288,6 @@ function Router() {
         <Route path="/settings" component={Settings} />
         <Route path="/profile" component={ProfileSettings} />
         <Route path="/feedback" component={FeedbackPage} />
-        <Route path="/auth" component={AuthPage} />
-        <Route path="/login" component={AuthPage} />
-        <Route path="/forgot-password" component={ForgotPassword} />
-        <Route path="/reset-password" component={ResetPassword} />
 
         <Route path="/admin" component={AdminDashboard} />
         <Route path="/admin/user-roles" component={AdminUserRoles} />
