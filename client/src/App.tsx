@@ -186,14 +186,8 @@ function Router() {
     return <WaitlistLanding />;
   }
   
-  // For dev environment, show authentication page if not authenticated (except for explicit public routes)
-  const publicRoutes = ['/landing', '/security', '/privacy', '/terms', '/main-landing', '/forgot-password', '/reset-password', '/auth', '/login'];
-  const isPublicRoute = publicRoutes.includes(location);
-  if (isDevEnvironment && !user && !isLoading && !isPublicRoute) {
-    return <AuthPage />;
-  }
-  
-  // Handle password reset pages - no authentication required
+  // Handle auth-related pages FIRST - render without layout wrapper
+  // These must come BEFORE the dev-environment guard to prevent Layout from rendering
   if (location === '/forgot-password' || location.startsWith('/forgot-password')) {
     return <ForgotPassword />;
   }
@@ -202,7 +196,6 @@ function Router() {
     return <ResetPassword />;
   }
 
-  // Handle auth/login pages - render without layout wrapper
   if (location === '/auth' || location === '/login' || location.startsWith('/auth') || location.startsWith('/login')) {
     return <AuthPage />;
   }
@@ -216,6 +209,12 @@ function Router() {
   }
   if (location === '/terms') {
     return <TermsPage />;
+  }
+  
+  // For dev environment, show authentication page if not authenticated (except for explicit public routes)
+  // This guard now comes AFTER the auth page early returns above
+  if (isDevEnvironment && !user && !isLoading) {
+    return <AuthPage />;
   }
 
   if (isLoading) {
