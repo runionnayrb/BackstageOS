@@ -53,7 +53,7 @@ export async function sendEmailWithResend(emailData: EmailData): Promise<any> {
   
   console.log('📧 Resend fromEmail from connector:', fromEmail);
   
-  const senderEmail = fromEmail && fromEmail !== '' ? fromEmail : 'onboarding@resend.dev';
+  const senderEmail = fromEmail && fromEmail !== '' ? fromEmail : 'noreply@reset.backstageos.com';
   console.log('📧 Using sender email:', senderEmail);
   
   const response = await client.emails.send({
