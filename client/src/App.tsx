@@ -136,6 +136,23 @@ function Router() {
     console.log('Beta domain detected - proceeding to authentication flow');
   }
   
+  // CRITICAL: Handle auth-related pages FIRST - these must render without Layout
+  // This check must come before ALL other routing logic to prevent Layout from rendering
+  if (location === '/auth' || location === '/login') {
+    console.log('Early auth route - returning AuthPage without layout');
+    return <AuthPage />;
+  }
+  
+  if (location === '/forgot-password') {
+    console.log('Early forgot-password route - returning without layout');
+    return <ForgotPassword />;
+  }
+  
+  if (location.startsWith('/reset-password')) {
+    console.log('Early reset-password route - returning without layout');
+    return <ResetPassword />;
+  }
+  
   // Special routes that bypass domain restrictions
   if (location === '/seo-test') {
     return <SEOTest />;
@@ -186,20 +203,6 @@ function Router() {
     return <WaitlistLanding />;
   }
   
-  // Handle auth-related pages FIRST - render without layout wrapper
-  // These must come BEFORE the dev-environment guard to prevent Layout from rendering
-  if (location === '/forgot-password' || location.startsWith('/forgot-password')) {
-    return <ForgotPassword />;
-  }
-  
-  if (location === '/reset-password' || location.startsWith('/reset-password')) {
-    return <ResetPassword />;
-  }
-
-  if (location === '/auth' || location === '/login' || location.startsWith('/auth') || location.startsWith('/login')) {
-    return <AuthPage />;
-  }
-
   // Policy pages - public access, render immediately without waiting for auth
   if (location === '/security') {
     return <SecurityPage />;
