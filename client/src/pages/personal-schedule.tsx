@@ -346,50 +346,55 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
                           
                           {/* Events for this date */}
                           <div>
-                            {dayEvents.map((event) => (
-                              <div 
-                                key={event.id} 
-                                className="px-6 pt-2 pb-6 cursor-pointer hover:bg-gray-50 transition-colors"
-                                onClick={() => setSelectedEvent(event)}
-                              >
+                            {dayEvents.map((event) => {
+                              const eventColor = getEventColor(event);
+                              const textColorClass = isLightColor(eventColor) ? 'text-gray-900' : 'text-white';
+                              const secondaryTextClass = isLightColor(eventColor) ? 'text-gray-600' : 'text-gray-300';
+                              return (
                                 <div 
-                                  className="flex items-start gap-3 p-4 rounded-lg border-l-4" 
-                                  style={{ 
-                                    borderLeftColor: getEventColor(event),
-                                    backgroundColor: `${getEventColor(event)}10`
-                                  }}
+                                  key={event.id} 
+                                  className="px-6 pt-2 pb-6 cursor-pointer hover:opacity-90 transition-opacity"
+                                  onClick={() => setSelectedEvent(event)}
                                 >
-                                  <div className="text-sm text-gray-700 min-w-[80px] pt-1">
-                                    {event.isAllDay ? (
-                                      <div>
-                                        <span className="inline-flex items-center px-2 py-1 bg-white bg-opacity-80 text-gray-800 rounded text-xs font-medium">
-                                          All Day
-                                        </span>
-                                      </div>
-                                    ) : (
-                                      <div>
-                                        <div className="font-medium">
-                                          {formatTime(event.startTime)}
+                                  <div 
+                                    className="flex items-start gap-3 p-4 rounded-lg border-l-4" 
+                                    style={{ 
+                                      borderLeftColor: eventColor,
+                                      backgroundColor: `${eventColor}10`
+                                    }}
+                                  >
+                                    <div className={`text-sm min-w-[80px] pt-1 ${secondaryTextClass}`}>
+                                      {event.isAllDay ? (
+                                        <div>
+                                          <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${isLightColor(eventColor) ? 'bg-black/10 text-gray-900' : 'bg-white/20 text-white'}`}>
+                                            All Day
+                                          </span>
                                         </div>
-                                        {event.endTime && (
-                                          <div className="text-xs text-gray-600 mt-1">
-                                            {formatTime(event.endTime)}
+                                      ) : (
+                                        <div>
+                                          <div className="font-medium">
+                                            {formatTime(event.startTime)}
                                           </div>
-                                        )}
-                                      </div>
-                                    )}
-                                  </div>
-                                  <div className="flex-1">
-                                    <h4 className="font-semibold text-gray-900 mb-1">{event.title}</h4>
-                                    {event.location && (
-                                      <div className="text-sm text-gray-700 mb-1">
-                                        {event.location}
-                                      </div>
-                                    )}
+                                          {event.endTime && (
+                                            <div className={`text-xs mt-1 ${secondaryTextClass}`}>
+                                              {formatTime(event.endTime)}
+                                            </div>
+                                          )}
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="flex-1">
+                                      <h4 className={`font-semibold mb-1 ${textColorClass}`}>{event.title}</h4>
+                                      {event.location && (
+                                        <div className={`text-sm mb-1 ${secondaryTextClass}`}>
+                                          {event.location}
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         </div>
                       );
@@ -469,30 +474,35 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
                       <p className="text-gray-500 text-center py-4">No events for this week</p>
                     ) : (
                       <div className="space-y-3">
-                        {historicalWeekData.events.map((event) => (
-                          <div 
-                            key={event.id}
-                            className="p-3 rounded-lg cursor-pointer hover:opacity-90 transition-opacity border-l-4"
-                            style={{ 
-                              borderLeftColor: getEventColor(event, historicalWeekData.eventTypes),
-                              backgroundColor: `${getEventColor(event, historicalWeekData.eventTypes)}15`
-                            }}
-                            onClick={() => {
-                              setSelectedEvent(event);
-                              setShowPreviousSchedules(false);
-                            }}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className="text-sm text-gray-600 min-w-[60px]">
-                                {event.isAllDay ? 'All Day' : formatTime(event.startTime)}
-                              </div>
-                              <div>
-                                <p className="font-medium text-gray-900">{event.title}</p>
-                                <p className="text-sm text-gray-500">{formatDate(event.date)}</p>
+                        {historicalWeekData.events.map((event) => {
+                          const eventColor = getEventColor(event, historicalWeekData.eventTypes);
+                          const textColorClass = isLightColor(eventColor) ? 'text-gray-900' : 'text-white';
+                          const secondaryTextClass = isLightColor(eventColor) ? 'text-gray-600' : 'text-gray-300';
+                          return (
+                            <div 
+                              key={event.id}
+                              className="p-3 rounded-lg cursor-pointer hover:opacity-90 transition-opacity border-l-4"
+                              style={{ 
+                                borderLeftColor: eventColor,
+                                backgroundColor: `${eventColor}10`
+                              }}
+                              onClick={() => {
+                                setSelectedEvent(event);
+                                setShowPreviousSchedules(false);
+                              }}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className={`text-sm min-w-[60px] ${secondaryTextClass}`}>
+                                  {event.isAllDay ? 'All Day' : formatTime(event.startTime)}
+                                </div>
+                                <div>
+                                  <p className={`font-medium ${textColorClass}`}>{event.title}</p>
+                                  <p className={`text-sm ${secondaryTextClass}`}>{formatDate(event.date)}</p>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>
