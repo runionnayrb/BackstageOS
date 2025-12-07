@@ -136,20 +136,16 @@ function Router() {
     console.log('Beta domain detected - proceeding to authentication flow');
   }
   
-  // CRITICAL: Handle auth-related pages FIRST - these must render without Layout
-  // This check must come before ALL other routing logic to prevent Layout from rendering
+  // Handle auth-related pages - these must render without Layout
   if (location === '/auth' || location === '/login') {
-    console.log('Early auth route - returning AuthPage without layout');
     return <AuthPage />;
   }
   
   if (location === '/forgot-password') {
-    console.log('Early forgot-password route - returning without layout');
     return <ForgotPassword />;
   }
   
   if (location.startsWith('/reset-password')) {
-    console.log('Early reset-password route - returning without layout');
     return <ResetPassword />;
   }
   
@@ -322,10 +318,46 @@ function Router() {
 }
 
 function App() {
-  // Check for public policy pages BEFORE mounting AuthProvider
+  // Check for public pages BEFORE mounting AuthProvider
   // This prevents the 20-30 second auth delay on full page refreshes
+  // and ensures these pages render without any Layout wrapper
   const currentPath = window.location.pathname;
   
+  // Auth pages - must render without Layout
+  if (currentPath === '/auth' || currentPath === '/login') {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <AuthPage />
+          </TooltipProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    );
+  }
+  if (currentPath === '/forgot-password') {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <ForgotPassword />
+        </TooltipProvider>
+      </QueryClientProvider>
+    );
+  }
+  if (currentPath.startsWith('/reset-password')) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <ResetPassword />
+        </TooltipProvider>
+      </QueryClientProvider>
+    );
+  }
+  
+  // Policy pages
   if (currentPath === '/security') {
     return <SecurityPage />;
   }
