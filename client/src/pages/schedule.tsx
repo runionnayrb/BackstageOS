@@ -227,7 +227,7 @@ The Production Team`
   });
 
   // Get schedule versions to find current published version
-  const { data: scheduleVersions = [] } = useQuery({
+  const { data: scheduleVersions = [], isLoading: isLoadingVersions } = useQuery({
     queryKey: [`/api/projects/${projectId}/schedule-versions`],
     enabled: !!projectId
   });
@@ -997,7 +997,9 @@ The Production Team`
               <h1 className="hidden md:block text-3xl font-bold text-gray-900">
                 {getHeaderText()}
               </h1>
-              {currentPublishedVersion ? (
+              {isLoadingVersions ? (
+                <p className="text-sm text-gray-400 mt-1">Loading...</p>
+              ) : currentPublishedVersion ? (
                 <p className="text-sm text-gray-600 mt-1">
                   Version {currentPublishedVersion.version}.{currentPublishedVersion.minorVersion || 0}, Published: {(() => {
                     try {
@@ -1121,9 +1123,10 @@ The Production Team`
                   <Button
                     variant="outline"
                     size="sm"
-                    className={`gap-1 text-xs px-2 py-1 h-auto ml-2 ${isCurrentWeekDraft ? 'bg-amber-50 border-amber-200 text-amber-700' : ''}`}
+                    className={`gap-1 text-xs px-2 py-1 h-auto ml-2 ${!isLoadingVersions && isCurrentWeekDraft ? 'bg-amber-50 border-amber-200 text-amber-700' : ''}`}
+                    disabled={isLoadingVersions}
                   >
-                    {isCurrentWeekDraft ? 'DRAFT' : 'Publish'}
+                    {isLoadingVersions ? 'Publish' : isCurrentWeekDraft ? 'DRAFT' : 'Publish'}
                     <ChevronDown className="h-3 w-3" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -1402,8 +1405,11 @@ The Production Team`
               {/* Mobile Publish Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className={`p-2 h-8 border-0 bg-transparent hover:bg-gray-100 rounded-md transition-colors ${isCurrentWeekDraft ? 'bg-amber-50' : ''}`}>
-                    <FileText className={`h-4 w-4 ${isCurrentWeekDraft ? 'text-amber-600' : 'text-gray-600'}`} />
+                  <button 
+                    className={`p-2 h-8 border-0 bg-transparent hover:bg-gray-100 rounded-md transition-colors ${!isLoadingVersions && isCurrentWeekDraft ? 'bg-amber-50' : ''}`}
+                    disabled={isLoadingVersions}
+                  >
+                    <FileText className={`h-4 w-4 ${!isLoadingVersions && isCurrentWeekDraft ? 'text-amber-600' : 'text-gray-600'}`} />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
