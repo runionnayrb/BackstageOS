@@ -359,13 +359,34 @@ function App() {
   
   // Policy pages
   if (currentPath === '/security') {
-    return <SecurityPage />;
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <SecurityPage />
+        </TooltipProvider>
+      </QueryClientProvider>
+    );
   }
   if (currentPath === '/privacy') {
-    return <PrivacyPage />;
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <PrivacyPage />
+        </TooltipProvider>
+      </QueryClientProvider>
+    );
   }
   if (currentPath === '/terms') {
-    return <TermsPage />;
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <TermsPage />
+        </TooltipProvider>
+      </QueryClientProvider>
+    );
   }
 
   return (
