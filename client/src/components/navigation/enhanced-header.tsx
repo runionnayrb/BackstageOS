@@ -199,6 +199,7 @@ export default function EnhancedHeader() {
       });
       queryClient.invalidateQueries({ queryKey: ['/api/user'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/switch-status'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
     },
     onError: (error: any) => {
       toast({
@@ -219,6 +220,7 @@ export default function EnhancedHeader() {
       });
       queryClient.invalidateQueries({ queryKey: ['/api/user'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/switch-status'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
     },
     onError: (error: any) => {
       toast({

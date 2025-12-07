@@ -25,6 +25,16 @@ import { scheduleNotificationService } from "./services/scheduleNotificationServ
 import { ScheduleChangeDetectionService } from "./services/scheduleChangeDetectionService.js";
 import { billingSyncService } from "./services/billingSyncService";
 import { z } from "zod";
+
+// Helper to get effective user ID - respects "view as" feature for admins
+function getEffectiveUserId(req: any): string {
+  // If admin is viewing as another user, use that user's ID
+  if (req.session?.isViewingAs && req.session?.originalAdminId) {
+    return req.session.isViewingAs.toString();
+  }
+  // Otherwise use the logged-in user's ID
+  return req.user.id.toString();
+}
 import sgMail from "@sendgrid/mail";
 import Stripe from "stripe";
 import { googleOAuthService } from "./services/googleOAuthService";
@@ -2934,7 +2944,8 @@ Respond with valid JSON only.`;
   // Project routes
   app.get('/api/projects', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
+      // Use effective user ID to respect admin "view as" feature
+      const userId = getEffectiveUserId(req);
       const projects = await storage.getProjectsByUserId(userId);
       res.json(projects);
     } catch (error) {
@@ -2945,7 +2956,8 @@ Respond with valid JSON only.`;
   // Archive routes (must be defined before parameterized routes)
   app.get('/api/projects/archived', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
+      // Use effective user ID to respect admin "view as" feature
+      const userId = getEffectiveUserId(req);
       const archivedProjects = await storage.getArchivedProjectsByUserId(userId);
       res.json(archivedProjects);
     } catch (error) {
