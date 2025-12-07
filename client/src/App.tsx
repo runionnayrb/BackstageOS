@@ -194,16 +194,16 @@ function Router() {
   }
   
   // Handle password reset pages - no authentication required
-  if (location === '/forgot-password') {
+  if (location === '/forgot-password' || location.startsWith('/forgot-password')) {
     return <ForgotPassword />;
   }
   
-  if (location === '/reset-password') {
+  if (location === '/reset-password' || location.startsWith('/reset-password')) {
     return <ResetPassword />;
   }
 
   // Handle auth/login pages - render without layout wrapper
-  if (location === '/auth' || location === '/login') {
+  if (location === '/auth' || location === '/login' || location.startsWith('/auth') || location.startsWith('/login')) {
     return <AuthPage />;
   }
 
