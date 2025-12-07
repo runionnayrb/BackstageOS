@@ -53,7 +53,8 @@ export async function sendEmailWithResend(emailData: EmailData): Promise<any> {
   
   console.log('📧 Resend fromEmail from connector:', fromEmail);
   
-  const senderEmail = fromEmail && fromEmail !== '' ? fromEmail : 'noreply@reset.backstageos.com';
+  // Always use the verified subdomain for password reset emails
+  const senderEmail = 'noreply@reset.backstageos.com';
   console.log('📧 Using sender email:', senderEmail);
   
   const response = await client.emails.send({
