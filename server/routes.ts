@@ -2974,8 +2974,9 @@ Respond with valid JSON only.`;
         return res.status(404).json({ message: "Project not found" });
       }
 
-      // Check ownership - use loose equality to handle type conversion
-      if (project.ownerId != req.user.id.toString()) {
+      // Check ownership - use effective user ID to respect admin "view as" feature
+      const effectiveUserId = getEffectiveUserId(req);
+      if (project.ownerId != effectiveUserId) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -4502,8 +4503,9 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
 
-      // Check ownership - use loose equality to handle type conversion
-      if (project.ownerId != req.user.id.toString()) {
+      // Check ownership - use effective user ID to respect admin "view as" feature
+      const effectiveUserId = getEffectiveUserId(req);
+      if (project.ownerId != effectiveUserId) {
         return res.status(403).json({ message: "Access denied" });
       }
 
