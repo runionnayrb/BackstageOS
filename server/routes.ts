@@ -330,242 +330,315 @@ function generateDailyCallHTML(callData: any, projectName: string, date: string)
 
 // Helper function to generate ICS content
 function generateICSContent(events: any[], project: any, contact: any): string {
-  const formatDate = (date: string, time?: string) => {
+  const formatDateTime = (date: string, time: string) => {
     const d = new Date(date);
-    if (time) {
-      const [hours, minutes] = time.split(':');
-      d.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-    }
-    return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    const [hours, minutes] = time.split(':');
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hr = String(hours).padStart(2, '0');
+    const min = String(minutes).padStart(2, '0');
+    return `${year}${month}${day}T${hr}${min}00`;
   };
 
   const escapeText = (text: string) => {
-    return text.replace(/[,;\\]/g, '\\$&').replace(/\n/g, '\\n');
+    if (!text) return '';
+    return text.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
   };
 
-  let icsContent = [
+  const now = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  const calendarName = escapeText(`${project.name} - ${contact.firstName} ${contact.lastName}`);
+  const calendarDesc = escapeText(`Personal schedule for ${contact.firstName} ${contact.lastName} in ${project.name}`);
+
+  const lines: string[] = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
     'PRODID:-//BackstageOS//Personal Schedule//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
-    `X-WR-CALNAME:${escapeText(project.name)} - ${escapeText(contact.firstName)} ${escapeText(contact.lastName)}`,
-    `X-WR-CALDESC:Personal schedule for ${escapeText(contact.firstName)} ${escapeText(contact.lastName)} in ${escapeText(project.name)}`
+    `X-WR-CALNAME:${calendarName}`,
+    `X-WR-CALDESC:${calendarDesc}`,
+    'X-WR-TIMEZONE:America/New_York'
   ];
 
   events.forEach(event => {
-    const startDateTime = formatDate(event.date, event.startTime);
-    const endDateTime = formatDate(event.date, event.endTime);
+    const startTime = event.startTime || '09:00';
+    const endTime = event.endTime || '17:00';
     const uid = `${event.id}@backstageos.com`;
     
-    icsContent.push(
-      'BEGIN:VEVENT',
-      `UID:${uid}`,
-      `DTSTART:${startDateTime}`,
-      `DTEND:${endDateTime}`,
-      `SUMMARY:${escapeText(event.title)}`,
-      `DESCRIPTION:${escapeText(event.description || '')}`,
-      `LOCATION:${escapeText(event.location || '')}`,
-      `STATUS:CONFIRMED`,
-      `TRANSP:OPAQUE`,
-      'END:VEVENT'
-    );
+    lines.push('BEGIN:VEVENT');
+    lines.push(`UID:${uid}`);
+    lines.push(`DTSTAMP:${now}`);
+    lines.push(`DTSTART;TZID=America/New_York:${formatDateTime(event.date, startTime)}`);
+    lines.push(`DTEND;TZID=America/New_York:${formatDateTime(event.date, endTime)}`);
+    lines.push(`SUMMARY:${escapeText(event.title)}`);
+    lines.push(`DESCRIPTION:${escapeText(event.description || '')}`);
+    if (event.location) {
+      lines.push(`LOCATION:${escapeText(event.location)}`);
+    }
+    lines.push('STATUS:CONFIRMED');
+    lines.push('TRANSP:OPAQUE');
+    lines.push('END:VEVENT');
   });
 
-  icsContent.push('END:VCALENDAR');
-  return icsContent.join('\r\n');
+  lines.push('END:VCALENDAR');
+  return lines.join('\r\n');
 }
 
 function generateICSSubscriptionContent(events: any[], project: any, contact: any, hostname: string): string {
-  const formatDate = (date: string, time?: string) => {
+  const formatDateTime = (date: string, time: string) => {
     const d = new Date(date);
-    if (time) {
-      const [hours, minutes] = time.split(':');
-      d.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-    }
-    return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    const [hours, minutes] = time.split(':');
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hr = String(hours).padStart(2, '0');
+    const min = String(minutes).padStart(2, '0');
+    return `${year}${month}${day}T${hr}${min}00`;
   };
 
   const escapeText = (text: string) => {
-    return text.replace(/[,;\\]/g, '\\$&').replace(/\n/g, '\\n');
+    if (!text) return '';
+    return text.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
   };
 
-  const now = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  const now = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  const calendarName = escapeText(`${project.name} - ${contact.firstName} ${contact.lastName}`);
+  const calendarDesc = escapeText(`Live schedule for ${contact.firstName} ${contact.lastName} in ${project.name} - Updates automatically`);
   
-  let icsContent = [
+  const lines: string[] = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
     'PRODID:-//BackstageOS//Dynamic Schedule Subscription//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
-    `X-WR-CALNAME:${escapeText(project.name)} - ${escapeText(contact.firstName)} ${escapeText(contact.lastName)}`,
-    `X-WR-CALDESC:Live schedule for ${escapeText(contact.firstName)} ${escapeText(contact.lastName)} in ${escapeText(project.name)} - Updates automatically`,
-    `X-PUBLISHED-TTL:PT1H`, // Refresh every hour
-    `X-WR-TIMEZONE:UTC`,
-    `LAST-MODIFIED:${now}`,
-    `DTSTAMP:${now}`
+    `X-WR-CALNAME:${calendarName}`,
+    `X-WR-CALDESC:${calendarDesc}`,
+    'X-PUBLISHED-TTL:PT1H',
+    'X-WR-TIMEZONE:America/New_York',
+    'REFRESH-INTERVAL;VALUE=DURATION:PT1H'
   ];
 
   events.forEach(event => {
-    const startDateTime = formatDate(event.date, event.startTime);
-    const endDateTime = formatDate(event.date, event.endTime);
+    const startTime = event.startTime || '09:00';
+    const endTime = event.endTime || '17:00';
     const uid = `${event.id}-${project.id}@${hostname || 'backstageos.com'}`;
     
-    icsContent.push(
-      'BEGIN:VEVENT',
-      `UID:${uid}`,
-      `DTSTART:${startDateTime}`,
-      `DTEND:${endDateTime}`,
-      `DTSTAMP:${now}`,
-      `LAST-MODIFIED:${now}`,
-      `SUMMARY:${escapeText(event.title)}`,
-      `DESCRIPTION:${escapeText(event.description || '')}`,
-      `LOCATION:${escapeText(event.location || '')}`,
-      `STATUS:CONFIRMED`,
-      `TRANSP:OPAQUE`,
-      `SEQUENCE:0`,
-      'END:VEVENT'
-    );
+    lines.push('BEGIN:VEVENT');
+    lines.push(`UID:${uid}`);
+    lines.push(`DTSTAMP:${now}`);
+    lines.push(`LAST-MODIFIED:${now}`);
+    lines.push(`DTSTART;TZID=America/New_York:${formatDateTime(event.date, startTime)}`);
+    lines.push(`DTEND;TZID=America/New_York:${formatDateTime(event.date, endTime)}`);
+    lines.push(`SUMMARY:${escapeText(event.title)}`);
+    lines.push(`DESCRIPTION:${escapeText(event.description || '')}`);
+    if (event.location) {
+      lines.push(`LOCATION:${escapeText(event.location)}`);
+    }
+    lines.push('STATUS:CONFIRMED');
+    lines.push('TRANSP:OPAQUE');
+    lines.push('SEQUENCE:0');
+    lines.push('END:VEVENT');
   });
 
-  icsContent.push('END:VCALENDAR');
-  return icsContent.join('\r\n');
+  lines.push('END:VCALENDAR');
+  return lines.join('\r\n');
 }
 
 // Helper function to generate ICS content for personal schedule subscriptions
 function generatePersonalScheduleICSSubscriptionContent(events: any[], project: any, contact: any, version: any, hostname: string): string {
-  const formatDate = (date: string, time?: string) => {
+  // Format date for ICS - returns YYYYMMDD format for all-day, YYYYMMDDTHHmmss for timed events (local time, no Z)
+  const formatDateOnly = (date: string) => {
     const d = new Date(date);
-    if (time) {
-      const [hours, minutes] = time.split(':');
-      d.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-    }
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}${month}${day}`;
+  };
+
+  const formatDateTime = (date: string, time: string) => {
+    const d = new Date(date);
+    const [hours, minutes] = time.split(':');
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hr = String(hours).padStart(2, '0');
+    const min = String(minutes).padStart(2, '0');
+    return `${year}${month}${day}T${hr}${min}00`;
+  };
+
+  const formatNow = () => {
+    const d = new Date();
     return d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
   };
 
-  const now = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-  const calendarName = `${contact.firstName} ${contact.lastName} - ${project.name}`;
+  const escapeText = (text: string) => {
+    if (!text) return '';
+    return text.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+  };
+
+  // Get next day for all-day event DTEND (ICS spec requires DTEND to be exclusive)
+  const getNextDay = (date: string) => {
+    const d = new Date(date);
+    d.setDate(d.getDate() + 1);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}${month}${day}`;
+  };
+
+  const now = formatNow();
+  const calendarName = escapeText(`${contact.firstName} ${contact.lastName} - ${project.name}`);
+  const calendarDesc = escapeText(`Personal schedule for ${contact.firstName} ${contact.lastName} in ${project.name} (Version ${version.version})`);
   
-  let icsContent = `BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//BackstageOS//Personal Schedule//EN
-CALSCALE:GREGORIAN
-METHOD:PUBLISH
-X-WR-CALNAME:${calendarName}
-X-WR-CALDESC:Personal schedule for ${contact.firstName} ${contact.lastName} in ${project.name} (Version ${version.version})
-X-WR-TIMEZONE:America/New_York
-X-PUBLISHED-TTL:PT1H
-REFRESH-INTERVAL:PT1H
-X-ORIGINAL-URL:https://${hostname}/api/schedule/${contact.id}/subscribe.ics
-`;
+  const lines: string[] = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//BackstageOS//Personal Schedule//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    `X-WR-CALNAME:${calendarName}`,
+    `X-WR-CALDESC:${calendarDesc}`,
+    'X-WR-TIMEZONE:America/New_York',
+    'X-PUBLISHED-TTL:PT1H',
+    'REFRESH-INTERVAL;VALUE=DURATION:PT1H'
+  ];
 
   events.forEach((event: any) => {
-    const eventStart = event.isAllDay ? formatDate(event.date) : formatDate(event.date, event.startTime);
-    const eventEnd = event.isAllDay ? formatDate(event.date) : formatDate(event.date, event.endTime);
-    
-    // Generate a unique UID for each event
     const uid = `personal-schedule-${event.id}-${project.id}@backstageos.com`;
     
-    icsContent += `BEGIN:VEVENT
-UID:${uid}
-DTSTAMP:${now}
-DTSTART${event.isAllDay ? ';VALUE=DATE:' + eventStart.split('T')[0].replace(/\D/g, '') : ':' + eventStart}
-DTEND${event.isAllDay ? ';VALUE=DATE:' + eventEnd.split('T')[0].replace(/\D/g, '') : ':' + eventEnd}
-SUMMARY:${event.title.replace(/[,\n\r]/g, '\\$&')}
-DESCRIPTION:${(event.description || '').replace(/[,\n\r]/g, '\\$&')}${event.notes ? '\\n\\nNotes: ' + event.notes.replace(/[,\n\r]/g, '\\$&') : ''}
-LOCATION:${(event.location || '').replace(/[,\n\r]/g, '\\$&')}
-STATUS:CONFIRMED
-CATEGORIES:${event.type.replace(/[,\n\r]/g, '\\$&')}
-CLASS:PUBLIC
-CREATED:${now}
-LAST-MODIFIED:${now}
-SEQUENCE:0
-END:VEVENT
-`;
+    lines.push('BEGIN:VEVENT');
+    lines.push(`UID:${uid}`);
+    lines.push(`DTSTAMP:${now}`);
+    
+    if (event.isAllDay) {
+      lines.push(`DTSTART;VALUE=DATE:${formatDateOnly(event.date)}`);
+      lines.push(`DTEND;VALUE=DATE:${getNextDay(event.date)}`);
+    } else {
+      const startTime = event.startTime || '09:00';
+      const endTime = event.endTime || '17:00';
+      lines.push(`DTSTART;TZID=America/New_York:${formatDateTime(event.date, startTime)}`);
+      lines.push(`DTEND;TZID=America/New_York:${formatDateTime(event.date, endTime)}`);
+    }
+    
+    lines.push(`SUMMARY:${escapeText(event.title)}`);
+    
+    let description = event.description || '';
+    if (event.notes) {
+      description += description ? '\\n\\nNotes: ' + event.notes : 'Notes: ' + event.notes;
+    }
+    lines.push(`DESCRIPTION:${escapeText(description)}`);
+    
+    if (event.location) {
+      lines.push(`LOCATION:${escapeText(event.location)}`);
+    }
+    
+    lines.push('STATUS:CONFIRMED');
+    lines.push(`CATEGORIES:${escapeText(event.type || 'event')}`);
+    lines.push('CLASS:PUBLIC');
+    lines.push(`CREATED:${now}`);
+    lines.push(`LAST-MODIFIED:${now}`);
+    lines.push('SEQUENCE:0');
+    lines.push('END:VEVENT');
   });
 
-  icsContent += 'END:VCALENDAR';
-  return icsContent;
+  lines.push('END:VCALENDAR');
+  
+  // RFC 5545 requires CRLF line endings
+  return lines.join('\r\n');
 }
 
 // Helper function to generate ICS content for event type subscriptions
 function generateEventTypeICSSubscriptionContent(events: any[], project: any, share: any, hostname: string): string {
-  const formatDate = (date: string, time?: string) => {
+  // Format date for ICS - returns YYYYMMDD format for all-day events
+  const formatDateOnly = (date: string) => {
     const d = new Date(date);
-    if (time) {
-      const [hours, minutes] = time.split(':');
-      d.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-    }
-    return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}${month}${day}`;
+  };
+
+  // Format date+time for ICS - returns YYYYMMDDTHHmmss (local time with timezone)
+  const formatDateTime = (date: string, time: string) => {
+    const d = new Date(date);
+    const [hours, minutes] = time.split(':');
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hr = String(hours).padStart(2, '0');
+    const min = String(minutes).padStart(2, '0');
+    return `${year}${month}${day}T${hr}${min}00`;
+  };
+
+  // Get next day for all-day event DTEND (ICS spec requires DTEND to be exclusive)
+  const getNextDay = (date: string) => {
+    const d = new Date(date);
+    d.setDate(d.getDate() + 1);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}${month}${day}`;
   };
 
   const escapeText = (text: string) => {
-    return text.replace(/[,;\\]/g, '\\$&').replace(/\n/g, '\\n');
+    if (!text) return '';
+    return text.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
   };
 
-  const now = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  const now = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
   
-  let calendarName = `${project.name} - ${share.eventTypeName}`;
-  let calendarDesc = `Live ${share.eventTypeName} events for ${project.name} - Updates automatically`;
+  const calendarName = escapeText(`${project.name} - ${share.eventTypeName}`);
+  const calendarDesc = escapeText(`Live ${share.eventTypeName} events for ${project.name} - Updates automatically`);
   
-  let icsContent = [
+  const lines: string[] = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
     'PRODID:-//BackstageOS//Event Type Calendar Subscription//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
-    `X-WR-CALNAME:${escapeText(calendarName)}`,
-    `X-WR-CALDESC:${escapeText(calendarDesc)}`,
-    `X-PUBLISHED-TTL:PT1H`, // Refresh every hour
-    `X-WR-TIMEZONE:UTC`,
-    `LAST-MODIFIED:${now}`,
-    `DTSTAMP:${now}`
+    `X-WR-CALNAME:${calendarName}`,
+    `X-WR-CALDESC:${calendarDesc}`,
+    'X-PUBLISHED-TTL:PT1H',
+    'X-WR-TIMEZONE:America/New_York',
+    'REFRESH-INTERVAL;VALUE=DURATION:PT1H'
   ];
 
   events.forEach(event => {
-    let startDateTime, endDateTime;
-    
-    if (event.isAllDay) {
-      // All-day events use DATE format
-      const eventDate = new Date(event.date);
-      const dateStr = eventDate.toISOString().split('T')[0].replace(/-/g, '');
-      startDateTime = dateStr;
-      endDateTime = dateStr;
-    } else {
-      // Timed events use DATETIME format
-      startDateTime = formatDate(event.date, event.startTime);
-      endDateTime = formatDate(event.date, event.endTime);
-    }
-    
     const uid = `${event.id}-${share.eventTypeName.toLowerCase().replace(/\s+/g, '-')}-${project.id}@${hostname || 'backstageos.com'}`;
     
-    let eventEntry = [
-      'BEGIN:VEVENT',
-      `UID:${uid}`,
-      `DTSTAMP:${now}`,
-      `LAST-MODIFIED:${now}`,
-      `SUMMARY:${escapeText(event.title)}`,
-      `DESCRIPTION:${escapeText(event.description || '')}`,
-      `LOCATION:${escapeText(event.location || '')}`,
-      `STATUS:CONFIRMED`,
-      `TRANSP:OPAQUE`,
-      `SEQUENCE:0`
-    ];
+    lines.push('BEGIN:VEVENT');
+    lines.push(`UID:${uid}`);
+    lines.push(`DTSTAMP:${now}`);
+    lines.push(`LAST-MODIFIED:${now}`);
 
     if (event.isAllDay) {
-      eventEntry.splice(4, 0, `DTSTART;VALUE=DATE:${startDateTime}`);
-      eventEntry.splice(5, 0, `DTEND;VALUE=DATE:${endDateTime}`);
+      lines.push(`DTSTART;VALUE=DATE:${formatDateOnly(event.date)}`);
+      lines.push(`DTEND;VALUE=DATE:${getNextDay(event.date)}`);
     } else {
-      eventEntry.splice(4, 0, `DTSTART:${startDateTime}`);
-      eventEntry.splice(5, 0, `DTEND:${endDateTime}`);
+      const startTime = event.startTime || '09:00';
+      const endTime = event.endTime || '17:00';
+      lines.push(`DTSTART;TZID=America/New_York:${formatDateTime(event.date, startTime)}`);
+      lines.push(`DTEND;TZID=America/New_York:${formatDateTime(event.date, endTime)}`);
     }
 
-    eventEntry.push('END:VEVENT');
-    icsContent.push(...eventEntry);
+    lines.push(`SUMMARY:${escapeText(event.title)}`);
+    lines.push(`DESCRIPTION:${escapeText(event.description || '')}`);
+    
+    if (event.location) {
+      lines.push(`LOCATION:${escapeText(event.location)}`);
+    }
+    
+    lines.push('STATUS:CONFIRMED');
+    lines.push('TRANSP:OPAQUE');
+    lines.push('SEQUENCE:0');
+    lines.push('END:VEVENT');
   });
 
-  icsContent.push('END:VCALENDAR');
-  return icsContent.join('\r\n');
+  lines.push('END:VCALENDAR');
+  
+  // RFC 5545 requires CRLF line endings
+  return lines.join('\r\n');
 }
 
 // Configure multer for image uploads
