@@ -328,6 +328,23 @@ function generateDailyCallHTML(callData: any, projectName: string, date: string)
   `;
 }
 
+// Helper function to fold long lines per RFC 5545 (max 75 octets per line)
+function foldICSLine(line: string): string {
+  const maxLineLength = 75;
+  if (line.length <= maxLineLength) return line;
+  
+  let result = line.substring(0, maxLineLength);
+  let remaining = line.substring(maxLineLength);
+  
+  while (remaining.length > 0) {
+    const chunk = remaining.substring(0, maxLineLength - 1);
+    result += '\r\n ' + chunk;
+    remaining = remaining.substring(maxLineLength - 1);
+  }
+  
+  return result;
+}
+
 // Helper function to generate ICS content
 function generateICSContent(events: any[], project: any, contact: any): string {
   const formatDateTime = (date: string, time: string) => {
@@ -382,17 +399,17 @@ function generateICSContent(events: any[], project: any, contact: any): string {
   events.forEach(event => {
     const startTime = event.startTime || '09:00';
     const endTime = event.endTime || '17:00';
-    const uid = `${event.id}@backstageos.com`;
+    const uid = `event-${event.id}@backstageos.com`;
     
     lines.push('BEGIN:VEVENT');
     lines.push(`UID:${uid}`);
     lines.push(`DTSTAMP:${now}`);
     lines.push(`DTSTART;TZID=America/New_York:${formatDateTime(event.date, startTime)}`);
     lines.push(`DTEND;TZID=America/New_York:${formatDateTime(event.date, endTime)}`);
-    lines.push(`SUMMARY:${escapeText(event.title)}`);
-    lines.push(`DESCRIPTION:${escapeText(event.description || '')}`);
+    lines.push(foldICSLine(`SUMMARY:${escapeText(event.title)}`));
+    lines.push(foldICSLine(`DESCRIPTION:${escapeText(event.description || '')}`));
     if (event.location) {
-      lines.push(`LOCATION:${escapeText(event.location)}`);
+      lines.push(foldICSLine(`LOCATION:${escapeText(event.location)}`));
     }
     lines.push('STATUS:CONFIRMED');
     lines.push('TRANSP:OPAQUE');
@@ -458,7 +475,7 @@ function generateICSSubscriptionContent(events: any[], project: any, contact: an
   events.forEach(event => {
     const startTime = event.startTime || '09:00';
     const endTime = event.endTime || '17:00';
-    const uid = `${event.id}-${project.id}@${hostname || 'backstageos.com'}`;
+    const uid = `schedule-${event.id}-${project.id}@backstageos.com`;
     
     lines.push('BEGIN:VEVENT');
     lines.push(`UID:${uid}`);
@@ -466,10 +483,10 @@ function generateICSSubscriptionContent(events: any[], project: any, contact: an
     lines.push(`LAST-MODIFIED:${now}`);
     lines.push(`DTSTART;TZID=America/New_York:${formatDateTime(event.date, startTime)}`);
     lines.push(`DTEND;TZID=America/New_York:${formatDateTime(event.date, endTime)}`);
-    lines.push(`SUMMARY:${escapeText(event.title)}`);
-    lines.push(`DESCRIPTION:${escapeText(event.description || '')}`);
+    lines.push(foldICSLine(`SUMMARY:${escapeText(event.title)}`));
+    lines.push(foldICSLine(`DESCRIPTION:${escapeText(event.description || '')}`));
     if (event.location) {
-      lines.push(`LOCATION:${escapeText(event.location)}`);
+      lines.push(foldICSLine(`LOCATION:${escapeText(event.location)}`));
     }
     lines.push('STATUS:CONFIRMED');
     lines.push('TRANSP:OPAQUE');
@@ -575,20 +592,20 @@ function generatePersonalScheduleICSSubscriptionContent(events: any[], project: 
       lines.push(`DTEND;TZID=America/New_York:${formatDateTime(event.date, endTime)}`);
     }
     
-    lines.push(`SUMMARY:${escapeText(event.title)}`);
+    lines.push(foldICSLine(`SUMMARY:${escapeText(event.title)}`));
     
     let description = event.description || '';
     if (event.notes) {
       description += description ? '\\n\\nNotes: ' + event.notes : 'Notes: ' + event.notes;
     }
-    lines.push(`DESCRIPTION:${escapeText(description)}`);
+    lines.push(foldICSLine(`DESCRIPTION:${escapeText(description)}`));
     
     if (event.location) {
-      lines.push(`LOCATION:${escapeText(event.location)}`);
+      lines.push(foldICSLine(`LOCATION:${escapeText(event.location)}`));
     }
     
     lines.push('STATUS:CONFIRMED');
-    lines.push(`CATEGORIES:${escapeText(event.type || 'event')}`);
+    lines.push(foldICSLine(`CATEGORIES:${escapeText(event.type || 'event')}`));
     lines.push('CLASS:PUBLIC');
     lines.push(`CREATED:${now}`);
     lines.push(`LAST-MODIFIED:${now}`);
@@ -677,7 +694,8 @@ function generateEventTypeICSSubscriptionContent(events: any[], project: any, sh
   ];
 
   events.forEach(event => {
-    const uid = `${event.id}-${share.eventTypeName.toLowerCase().replace(/\s+/g, '-')}-${project.id}@${hostname || 'backstageos.com'}`;
+    const eventTypeSafe = share.eventTypeName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    const uid = `eventtype-${event.id}-${eventTypeSafe}-${project.id}@backstageos.com`;
     
     lines.push('BEGIN:VEVENT');
     lines.push(`UID:${uid}`);
@@ -694,11 +712,11 @@ function generateEventTypeICSSubscriptionContent(events: any[], project: any, sh
       lines.push(`DTEND;TZID=America/New_York:${formatDateTime(event.date, endTime)}`);
     }
 
-    lines.push(`SUMMARY:${escapeText(event.title)}`);
-    lines.push(`DESCRIPTION:${escapeText(event.description || '')}`);
+    lines.push(foldICSLine(`SUMMARY:${escapeText(event.title)}`));
+    lines.push(foldICSLine(`DESCRIPTION:${escapeText(event.description || '')}`));
     
     if (event.location) {
-      lines.push(`LOCATION:${escapeText(event.location)}`);
+      lines.push(foldICSLine(`LOCATION:${escapeText(event.location)}`));
     }
     
     lines.push('STATUS:CONFIRMED');
