@@ -1,4 +1,5 @@
-import React, { createContext, ReactNode, useContext } from "react";
+import { createContext, useContext } from "react";
+import type { ReactNode, JSX } from "react";
 import {
   useQuery,
   useMutation,
@@ -32,7 +33,7 @@ type RegisterData = {
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
-export function AuthProvider({ children }: { children: ReactNode }): React.JSX.Element {
+export function AuthProvider({ children }: { children: ReactNode }): JSX.Element {
   const { toast } = useToast();
   
   // Check if we're on the main domain - skip authentication entirely
