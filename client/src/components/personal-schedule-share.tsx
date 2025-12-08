@@ -390,7 +390,7 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
   };
 
   const handleCopyEventTypeLink = (token: string, eventTypeName: string) => {
-    const subscriptionLink = `${window.location.origin}/api/schedule/event-type/${token}/subscribe.ics`;
+    const subscriptionLink = `${window.location.origin}/api/public-calendar/event-type/${token}/subscribe.ics`;
     navigator.clipboard.writeText(subscriptionLink);
     toast({
       title: "Subscription Link Copied",
@@ -439,7 +439,7 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
   };
 
   const handleDownloadEventTypeICS = (token: string, eventTypeName: string) => {
-    const link = `${window.location.origin}/api/schedule/event-type/${token}/subscribe.ics`;
+    const link = `${window.location.origin}/api/public-calendar/event-type/${token}/subscribe.ics`;
     const anchor = document.createElement('a');
     anchor.href = link;
     anchor.download = `schedule-${eventTypeName.toLowerCase().replace(/\s+/g, '-')}.ics`;

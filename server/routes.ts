@@ -330,20 +330,51 @@ function generateDailyCallHTML(callData: any, projectName: string, date: string)
 }
 
 // Helper function to fold long lines per RFC 5545 (max 75 octets per line)
+// Uses byte-level slicing to avoid splitting multi-byte UTF-8 characters
 function foldICSLine(line: string): string {
-  const maxLineLength = 75;
-  if (line.length <= maxLineLength) return line;
+  const maxLineBytes = 75;
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+  const lineBytes = encoder.encode(line);
   
-  let result = line.substring(0, maxLineLength);
-  let remaining = line.substring(maxLineLength);
+  if (lineBytes.length <= maxLineBytes) return line;
   
-  while (remaining.length > 0) {
-    const chunk = remaining.substring(0, maxLineLength - 1);
-    result += '\r\n ' + chunk;
-    remaining = remaining.substring(maxLineLength - 1);
+  const result: string[] = [];
+  let offset = 0;
+  let isFirstLine = true;
+  
+  while (offset < lineBytes.length) {
+    // For continuation lines, we use 74 bytes (75 - 1 for the leading space)
+    const maxBytes = isFirstLine ? maxLineBytes : maxLineBytes - 1;
+    let end = Math.min(offset + maxBytes, lineBytes.length);
+    
+    // Don't split in the middle of a UTF-8 multi-byte character
+    // UTF-8 continuation bytes start with 10xxxxxx (0x80-0xBF)
+    // Move back until we find a byte that's not a continuation byte
+    while (end > offset && (lineBytes[end] & 0xC0) === 0x80) {
+      end--;
+    }
+    
+    // Safety: if we couldn't find a valid split point, force include at least one character
+    if (end === offset && offset < lineBytes.length) {
+      end = offset + 1;
+      while (end < lineBytes.length && (lineBytes[end] & 0xC0) === 0x80) {
+        end++;
+      }
+    }
+    
+    const chunk = decoder.decode(lineBytes.slice(offset, end));
+    if (isFirstLine) {
+      result.push(chunk);
+      isFirstLine = false;
+    } else {
+      result.push(' ' + chunk);
+    }
+    
+    offset = end;
   }
   
-  return result;
+  return result.join('\r\n');
 }
 
 // Helper function to generate ICS content
@@ -418,39 +449,85 @@ function generateICSContent(events: any[], project: any, contact: any): string {
   });
 
   lines.push('END:VCALENDAR');
-  return lines.join('\r\n');
+  // RFC 5545 requires CRLF line endings and final CRLF
+  return lines.join('\r\n') + '\r\n';
 }
 
 function generateICSSubscriptionContent(events: any[], project: any, contact: any, hostname: string): string {
-  const calendarName = `${project.name} - ${contact.firstName} ${contact.lastName}`;
-  
-  const icsEvents: ics.EventAttributes[] = events.map(event => {
+  const formatDateTime = (date: string, time: string) => {
+    const d = new Date(date);
+    const [hours, minutes] = time.split(':');
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hr = String(hours).padStart(2, '0');
+    const min = String(minutes).padStart(2, '0');
+    return `${year}${month}${day}T${hr}${min}00`;
+  };
+
+  const escapeText = (text: string) => {
+    if (!text) return '';
+    return text.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+  };
+
+  const now = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  const calendarName = escapeText(`${project.name} - ${contact.firstName} ${contact.lastName}`);
+  const calendarDesc = escapeText(`Dynamic schedule for ${contact.firstName} ${contact.lastName} in ${project.name}`);
+
+  const lines: string[] = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//BackstageOS//Dynamic Schedule Subscription//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    foldICSLine(`X-WR-CALNAME:${calendarName}`),
+    foldICSLine(`X-WR-CALDESC:${calendarDesc}`),
+    'X-WR-TIMEZONE:America/New_York',
+    'X-PUBLISHED-TTL:PT1H',
+    'REFRESH-INTERVAL;VALUE=DURATION:PT1H',
+    'BEGIN:VTIMEZONE',
+    'TZID:America/New_York',
+    'X-LIC-LOCATION:America/New_York',
+    'BEGIN:DAYLIGHT',
+    'TZOFFSETFROM:-0500',
+    'TZOFFSETTO:-0400',
+    'TZNAME:EDT',
+    'DTSTART:19700308T020000',
+    'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU',
+    'END:DAYLIGHT',
+    'BEGIN:STANDARD',
+    'TZOFFSETFROM:-0400',
+    'TZOFFSETTO:-0500',
+    'TZNAME:EST',
+    'DTSTART:19701101T020000',
+    'RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU',
+    'END:STANDARD',
+    'END:VTIMEZONE'
+  ];
+
+  events.forEach(event => {
     const startTime = event.startTime || '09:00';
     const endTime = event.endTime || '17:00';
-    const eventDate = new Date(event.date);
-    const [startHour, startMin] = startTime.split(':').map(Number);
-    const [endHour, endMin] = endTime.split(':').map(Number);
+    const uid = `schedule-${event.id}-${project.id}@backstageos.com`;
     
-    return {
-      uid: `schedule-${event.id}-${project.id}@backstageos.com`,
-      start: [eventDate.getFullYear(), eventDate.getMonth() + 1, eventDate.getDate(), startHour, startMin] as [number, number, number, number, number],
-      end: [eventDate.getFullYear(), eventDate.getMonth() + 1, eventDate.getDate(), endHour, endMin] as [number, number, number, number, number],
-      title: event.title || 'Untitled Event',
-      description: event.description || '',
-      location: event.location || '',
-      status: 'CONFIRMED' as const,
-      busyStatus: 'BUSY' as const,
-      productId: '-//BackstageOS//Dynamic Schedule Subscription//EN',
-      calName: calendarName
-    };
+    lines.push('BEGIN:VEVENT');
+    lines.push(`UID:${uid}`);
+    lines.push(`DTSTAMP:${now}`);
+    lines.push(`DTSTART;TZID=America/New_York:${formatDateTime(event.date, startTime)}`);
+    lines.push(`DTEND;TZID=America/New_York:${formatDateTime(event.date, endTime)}`);
+    lines.push(foldICSLine(`SUMMARY:${escapeText(event.title || 'Untitled Event')}`));
+    lines.push(foldICSLine(`DESCRIPTION:${escapeText(event.description || '')}`));
+    if (event.location) {
+      lines.push(foldICSLine(`LOCATION:${escapeText(event.location)}`));
+    }
+    lines.push('STATUS:CONFIRMED');
+    lines.push('TRANSP:OPAQUE');
+    lines.push('SEQUENCE:0');
+    lines.push('END:VEVENT');
   });
 
-  const { error, value } = ics.createEvents(icsEvents);
-  if (error) {
-    console.error('ICS generation error:', error);
-    return '';
-  }
-  return value || '';
+  lines.push('END:VCALENDAR');
+  return lines.join('\r\n') + '\r\n';
 }
 
 // Helper function to generate ICS content for personal schedule subscriptions
@@ -570,8 +647,8 @@ function generatePersonalScheduleICSSubscriptionContent(events: any[], project: 
 
   lines.push('END:VCALENDAR');
   
-  // RFC 5545 requires CRLF line endings
-  return lines.join('\r\n');
+  // RFC 5545 requires CRLF line endings and final CRLF
+  return lines.join('\r\n') + '\r\n';
 }
 
 // Helper function to generate ICS content for event type subscriptions
@@ -682,8 +759,8 @@ function generateEventTypeICSSubscriptionContent(events: any[], project: any, sh
 
   lines.push('END:VCALENDAR');
   
-  // RFC 5545 requires CRLF line endings
-  return lines.join('\r\n');
+  // RFC 5545 requires CRLF line endings and final CRLF
+  return lines.join('\r\n') + '\r\n';
 }
 
 // Configure multer for image uploads
