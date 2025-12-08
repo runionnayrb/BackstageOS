@@ -16829,13 +16829,13 @@ The Production Team`;
       const scheduleEvents = await storage.getScheduleEventsByProjectId(share.projectId);
       
       // Get project settings to determine enabled event types
-      const projectSettings = await storage.getProjectSettings(share.projectId);
+      const showSettings = await storage.getShowSettingsByProjectId(share.projectId);
       
       // Filter events by event type
       const filteredEvents = scheduleEvents.filter(event => {
         if (share.eventTypeCategory === 'show_schedule') {
           // Show schedule events - use enabled event types from project settings
-          const enabledEventTypes = projectSettings?.enabledEventTypes || [];
+          const enabledEventTypes = showSettings?.scheduleSettings?.enabledEventTypes || [];
           return enabledEventTypes.includes(event.type);
         } else {
           // Individual events - match by event type name
@@ -16890,13 +16890,13 @@ The Production Team`;
       const scheduleEvents = await storage.getScheduleEventsByProjectId(share.projectId);
       
       // Get project settings to determine enabled event types
-      const projectSettings = await storage.getProjectSettings(share.projectId);
+      const showSettings = await storage.getShowSettingsByProjectId(share.projectId);
       
       // Filter events by event type
       const filteredEvents = scheduleEvents.filter(event => {
         if (share.eventTypeCategory === 'show_schedule') {
           // Show schedule events - use enabled event types from project settings
-          const enabledEventTypes = projectSettings?.enabledEventTypes || [];
+          const enabledEventTypes = showSettings?.scheduleSettings?.enabledEventTypes || [];
           return enabledEventTypes.includes(event.type);
         } else {
           // Individual events - match by event type name
@@ -16916,8 +16916,9 @@ The Production Team`;
       res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
       res.setHeader('X-Published-TTL', 'PT1H'); // Refresh every hour
       res.send(icsContent);
-    } catch (error) {
-      res.status(500).send('Failed to generate calendar subscription');
+    } catch (error: any) {
+      console.error('Event type ICS generation error:', error);
+      res.status(500).send('Failed to generate calendar subscription: ' + (error.message || 'Unknown error'));
     }
   });
 
