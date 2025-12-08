@@ -20,7 +20,7 @@ interface PublicCalendarShare {
   id: number;
   projectId: number;
   contactId: number;
-  token: string;
+  accessToken: string;
   expiresAt: string | null;
   isActive: boolean;
   accessCount: number;
@@ -298,7 +298,7 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
     const share = shares.find((s: PublicCalendarShare) => s.contactId === parseInt(selectedShareContact));
     if (!share) return;
     
-    const link = `${window.location.origin}/personal-schedule/${share.token}`;
+    const link = `${window.location.origin}/personal-schedule/${share.accessToken}`;
     navigator.clipboard.writeText(link);
     toast({
       title: "Link Copied",
@@ -320,7 +320,7 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
     const contact = getContactById(parseInt(selectedShareContact));
     if (!share || !contact) return;
     
-    const link = `${window.location.origin}/api/schedule/${share.token}/subscribe.ics`;
+    const link = `${window.location.origin}/api/schedule/${share.accessToken}/subscribe.ics`;
     const anchor = document.createElement('a');
     anchor.href = link;
     anchor.download = `personal-schedule-${contact.firstName}-${contact.lastName}.ics`;
@@ -344,7 +344,7 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
     const share = shares.find((s: PublicCalendarShare) => s.contactId === parseInt(selectedShareContact));
     if (!share) return;
     
-    const subscriptionLink = `${window.location.origin}/api/schedule/${share.token}/subscribe.ics`;
+    const subscriptionLink = `${window.location.origin}/api/schedule/${share.accessToken}/subscribe.ics`;
     navigator.clipboard.writeText(subscriptionLink);
     toast({
       title: "Subscription Link Copied",
