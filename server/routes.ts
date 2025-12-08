@@ -358,7 +358,25 @@ function generateICSContent(events: any[], project: any, contact: any): string {
     'METHOD:PUBLISH',
     `X-WR-CALNAME:${calendarName}`,
     `X-WR-CALDESC:${calendarDesc}`,
-    'X-WR-TIMEZONE:America/New_York'
+    'X-WR-TIMEZONE:America/New_York',
+    'BEGIN:VTIMEZONE',
+    'TZID:America/New_York',
+    'X-LIC-LOCATION:America/New_York',
+    'BEGIN:DAYLIGHT',
+    'TZOFFSETFROM:-0500',
+    'TZOFFSETTO:-0400',
+    'TZNAME:EDT',
+    'DTSTART:19700308T020000',
+    'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU',
+    'END:DAYLIGHT',
+    'BEGIN:STANDARD',
+    'TZOFFSETFROM:-0400',
+    'TZOFFSETTO:-0500',
+    'TZNAME:EST',
+    'DTSTART:19701101T020000',
+    'RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU',
+    'END:STANDARD',
+    'END:VTIMEZONE'
   ];
 
   events.forEach(event => {
@@ -416,7 +434,25 @@ function generateICSSubscriptionContent(events: any[], project: any, contact: an
     `X-WR-CALDESC:${calendarDesc}`,
     'X-PUBLISHED-TTL:PT1H',
     'X-WR-TIMEZONE:America/New_York',
-    'REFRESH-INTERVAL;VALUE=DURATION:PT1H'
+    'REFRESH-INTERVAL;VALUE=DURATION:PT1H',
+    'BEGIN:VTIMEZONE',
+    'TZID:America/New_York',
+    'X-LIC-LOCATION:America/New_York',
+    'BEGIN:DAYLIGHT',
+    'TZOFFSETFROM:-0500',
+    'TZOFFSETTO:-0400',
+    'TZNAME:EDT',
+    'DTSTART:19700308T020000',
+    'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU',
+    'END:DAYLIGHT',
+    'BEGIN:STANDARD',
+    'TZOFFSETFROM:-0400',
+    'TZOFFSETTO:-0500',
+    'TZNAME:EST',
+    'DTSTART:19701101T020000',
+    'RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU',
+    'END:STANDARD',
+    'END:VTIMEZONE'
   ];
 
   events.forEach(event => {
@@ -501,7 +537,25 @@ function generatePersonalScheduleICSSubscriptionContent(events: any[], project: 
     `X-WR-CALDESC:${calendarDesc}`,
     'X-WR-TIMEZONE:America/New_York',
     'X-PUBLISHED-TTL:PT1H',
-    'REFRESH-INTERVAL;VALUE=DURATION:PT1H'
+    'REFRESH-INTERVAL;VALUE=DURATION:PT1H',
+    'BEGIN:VTIMEZONE',
+    'TZID:America/New_York',
+    'X-LIC-LOCATION:America/New_York',
+    'BEGIN:DAYLIGHT',
+    'TZOFFSETFROM:-0500',
+    'TZOFFSETTO:-0400',
+    'TZNAME:EDT',
+    'DTSTART:19700308T020000',
+    'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU',
+    'END:DAYLIGHT',
+    'BEGIN:STANDARD',
+    'TZOFFSETFROM:-0400',
+    'TZOFFSETTO:-0500',
+    'TZNAME:EST',
+    'DTSTART:19701101T020000',
+    'RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU',
+    'END:STANDARD',
+    'END:VTIMEZONE'
   ];
 
   events.forEach((event: any) => {
@@ -601,7 +655,25 @@ function generateEventTypeICSSubscriptionContent(events: any[], project: any, sh
     `X-WR-CALDESC:${calendarDesc}`,
     'X-PUBLISHED-TTL:PT1H',
     'X-WR-TIMEZONE:America/New_York',
-    'REFRESH-INTERVAL;VALUE=DURATION:PT1H'
+    'REFRESH-INTERVAL;VALUE=DURATION:PT1H',
+    'BEGIN:VTIMEZONE',
+    'TZID:America/New_York',
+    'X-LIC-LOCATION:America/New_York',
+    'BEGIN:DAYLIGHT',
+    'TZOFFSETFROM:-0500',
+    'TZOFFSETTO:-0400',
+    'TZNAME:EDT',
+    'DTSTART:19700308T020000',
+    'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU',
+    'END:DAYLIGHT',
+    'BEGIN:STANDARD',
+    'TZOFFSETFROM:-0400',
+    'TZOFFSETTO:-0500',
+    'TZNAME:EST',
+    'DTSTART:19701101T020000',
+    'RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU',
+    'END:STANDARD',
+    'END:VTIMEZONE'
   ];
 
   events.forEach(event => {
