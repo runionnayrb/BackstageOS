@@ -131,14 +131,14 @@ async function initializeDefaultAccountTypes() {
   const { startScheduledEmailProcessor } = await import('./services/scheduledEmailProcessor.js');
   startScheduledEmailProcessor();
 
-  // Initialize IMAP server for Apple Mail integration
-  try {
-    const { imapServerManager } = await import('./services/imapServerManager.js');
-    await imapServerManager.initialize();
-  } catch (error) {
-    console.error('Failed to initialize IMAP server:', error);
-    // Don't fail startup if IMAP server fails
-  }
+  // Self-hosted IMAP/SMTP email servers disabled - using Google/Outlook OAuth integration instead
+  // To re-enable, uncomment the following:
+  // try {
+  //   const { imapServerManager } = await import('./services/imapServerManager.js');
+  //   await imapServerManager.initialize();
+  // } catch (error) {
+  //   console.error('Failed to initialize IMAP server:', error);
+  // }
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
