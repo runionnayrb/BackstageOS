@@ -42,6 +42,7 @@ import { microsoftOAuthService } from "./services/microsoftOAuthService";
 import { oauthTokenService } from "./services/oauthTokenService";
 import { gmailIntegrationService, setCurrentUserId as setGmailUserId } from "./services/gmailIntegrationService";
 import { outlookIntegrationService } from "./services/outlookIntegrationService";
+import * as ics from 'ics';
 
 // Function to generate HTML for daily call PDF
 function generateDailyCallHTML(callData: any, projectName: string, date: string): string {
@@ -421,81 +422,35 @@ function generateICSContent(events: any[], project: any, contact: any): string {
 }
 
 function generateICSSubscriptionContent(events: any[], project: any, contact: any, hostname: string): string {
-  const formatDateTime = (date: string, time: string) => {
-    const d = new Date(date);
-    const [hours, minutes] = time.split(':');
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    const hr = String(hours).padStart(2, '0');
-    const min = String(minutes).padStart(2, '0');
-    return `${year}${month}${day}T${hr}${min}00`;
-  };
-
-  const escapeText = (text: string) => {
-    if (!text) return '';
-    return text.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
-  };
-
-  const now = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-  const calendarName = escapeText(`${project.name} - ${contact.firstName} ${contact.lastName}`);
-  const calendarDesc = escapeText(`Live schedule for ${contact.firstName} ${contact.lastName} in ${project.name} - Updates automatically`);
+  const calendarName = `${project.name} - ${contact.firstName} ${contact.lastName}`;
   
-  const lines: string[] = [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'PRODID:-//BackstageOS//Dynamic Schedule Subscription//EN',
-    'CALSCALE:GREGORIAN',
-    'METHOD:PUBLISH',
-    `X-WR-CALNAME:${calendarName}`,
-    `X-WR-CALDESC:${calendarDesc}`,
-    'X-PUBLISHED-TTL:PT1H',
-    'X-WR-TIMEZONE:America/New_York',
-    'REFRESH-INTERVAL;VALUE=DURATION:PT1H',
-    'BEGIN:VTIMEZONE',
-    'TZID:America/New_York',
-    'X-LIC-LOCATION:America/New_York',
-    'BEGIN:DAYLIGHT',
-    'TZOFFSETFROM:-0500',
-    'TZOFFSETTO:-0400',
-    'TZNAME:EDT',
-    'DTSTART:19700308T020000',
-    'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU',
-    'END:DAYLIGHT',
-    'BEGIN:STANDARD',
-    'TZOFFSETFROM:-0400',
-    'TZOFFSETTO:-0500',
-    'TZNAME:EST',
-    'DTSTART:19701101T020000',
-    'RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU',
-    'END:STANDARD',
-    'END:VTIMEZONE'
-  ];
-
-  events.forEach(event => {
+  const icsEvents: ics.EventAttributes[] = events.map(event => {
     const startTime = event.startTime || '09:00';
     const endTime = event.endTime || '17:00';
-    const uid = `schedule-${event.id}-${project.id}@backstageos.com`;
+    const eventDate = new Date(event.date);
+    const [startHour, startMin] = startTime.split(':').map(Number);
+    const [endHour, endMin] = endTime.split(':').map(Number);
     
-    lines.push('BEGIN:VEVENT');
-    lines.push(`UID:${uid}`);
-    lines.push(`DTSTAMP:${now}`);
-    lines.push(`LAST-MODIFIED:${now}`);
-    lines.push(`DTSTART;TZID=America/New_York:${formatDateTime(event.date, startTime)}`);
-    lines.push(`DTEND;TZID=America/New_York:${formatDateTime(event.date, endTime)}`);
-    lines.push(foldICSLine(`SUMMARY:${escapeText(event.title)}`));
-    lines.push(foldICSLine(`DESCRIPTION:${escapeText(event.description || '')}`));
-    if (event.location) {
-      lines.push(foldICSLine(`LOCATION:${escapeText(event.location)}`));
-    }
-    lines.push('STATUS:CONFIRMED');
-    lines.push('TRANSP:OPAQUE');
-    lines.push('SEQUENCE:0');
-    lines.push('END:VEVENT');
+    return {
+      uid: `schedule-${event.id}-${project.id}@backstageos.com`,
+      start: [eventDate.getFullYear(), eventDate.getMonth() + 1, eventDate.getDate(), startHour, startMin] as [number, number, number, number, number],
+      end: [eventDate.getFullYear(), eventDate.getMonth() + 1, eventDate.getDate(), endHour, endMin] as [number, number, number, number, number],
+      title: event.title || 'Untitled Event',
+      description: event.description || '',
+      location: event.location || '',
+      status: 'CONFIRMED' as const,
+      busyStatus: 'BUSY' as const,
+      productId: '-//BackstageOS//Dynamic Schedule Subscription//EN',
+      calName: calendarName
+    };
   });
 
-  lines.push('END:VCALENDAR');
-  return lines.join('\r\n');
+  const { error, value } = ics.createEvents(icsEvents);
+  if (error) {
+    console.error('ICS generation error:', error);
+    return '';
+  }
+  return value || '';
 }
 
 // Helper function to generate ICS content for personal schedule subscriptions
