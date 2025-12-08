@@ -16886,23 +16886,84 @@ The Production Team`;
         return res.status(404).send('Project not found');
       }
 
-      // Get all schedule events for this project
-      const scheduleEvents = await storage.getScheduleEventsByProjectId(share.projectId);
-      
       // Get project settings to determine enabled event types
       const showSettings = await storage.getShowSettingsByProjectId(share.projectId);
       
-      // Filter events by event type
-      const filteredEvents = scheduleEvents.filter(event => {
-        if (share.eventTypeCategory === 'show_schedule') {
-          // Show schedule events - use enabled event types from project settings
-          const enabledEventTypes = showSettings?.scheduleSettings?.enabledEventTypes || [];
-          return enabledEventTypes.includes(event.type);
-        } else {
-          // Individual events - match by event type name
-          return event.type === share.eventTypeName.toLowerCase().replace(/\s+/g, '_');
+      // Fetch published schedule versions (same pattern as personal schedule ICS)
+      const allVersions = await storage.getScheduleVersionsByProjectId(share.projectId);
+      
+      // Calculate current week start for filtering (only include current week and future)
+      const now = new Date();
+      const dayOfWeek = now.getDay();
+      const currentWeekStart = new Date(now);
+      currentWeekStart.setDate(now.getDate() - dayOfWeek);
+      currentWeekStart.setHours(0, 0, 0, 0);
+      const currentWeekStartTime = currentWeekStart.getTime();
+      
+      // Helper to parse week start date
+      const parseWeekStartDate = (weekStartStr: string): Date => {
+        const parts = weekStartStr.split('-');
+        if (parts.length === 3) {
+          const year = parseInt(parts[0], 10);
+          const month = parseInt(parts[1], 10) - 1;
+          const day = parseInt(parts[2], 10);
+          if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+            return new Date(year, month, day, 0, 0, 0, 0);
+          }
         }
-      });
+        const date = new Date(weekStartStr);
+        date.setHours(0, 0, 0, 0);
+        return date;
+      };
+      
+      // Helper to check if a week is current or future
+      const isCurrentOrFutureWeek = (weekStartStr: string): boolean => {
+        const weekDate = parseWeekStartDate(weekStartStr);
+        return weekDate.getTime() >= currentWeekStartTime;
+      };
+      
+      // Group versions by weekStart and get the latest version for each week
+      const latestVersionsByWeek: Record<string, any> = {};
+      for (const version of allVersions) {
+        if (version.weekStart) {
+          const existing = latestVersionsByWeek[version.weekStart];
+          if (!existing || new Date(version.publishedAt) > new Date(existing.publishedAt)) {
+            latestVersionsByWeek[version.weekStart] = version;
+          }
+        }
+      }
+      
+      // Collect and filter events from published schedule versions
+      const filteredEvents: any[] = [];
+      const seenEventIds = new Set<number>();
+      
+      for (const [weekStart, version] of Object.entries(latestVersionsByWeek)) {
+        // Only include current week and future weeks
+        if (isCurrentOrFutureWeek(weekStart)) {
+          const versionEvents = version.scheduleData?.events || [];
+          for (const event of versionEvents) {
+            if (!seenEventIds.has(event.id)) {
+              // Filter by event type based on share settings
+              let includeEvent = false;
+              
+              if (share.eventTypeCategory === 'show_schedule') {
+                // Show schedule events - use enabled event types from project settings
+                const enabledEventTypes = showSettings?.scheduleSettings?.enabledEventTypes || [];
+                includeEvent = enabledEventTypes.includes(event.type);
+              } else {
+                // Individual events - match by event type name
+                const normalizedEventType = share.eventTypeName.toLowerCase().replace(/\s+/g, '_');
+                includeEvent = event.type === normalizedEventType || event.type === share.eventTypeName;
+              }
+              
+              if (includeEvent) {
+                seenEventIds.add(event.id);
+                filteredEvents.push(event);
+              }
+            }
+          }
+        }
+      }
 
       // Generate ICS file content with calendar subscription headers
       const icsContent = generateEventTypeICSSubscriptionContent(filteredEvents, project, share, req.get('host'));
