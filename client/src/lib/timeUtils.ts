@@ -1,35 +1,45 @@
 // Time formatting utilities that respect user's time format preference
 
-export function formatTimeDisplay(timeString: string, timeFormat: '12' | '24' = '12'): string {
+export function formatTimeDisplay(timeString: string, timeFormat: '12' | '24' = '12', showNextDay: boolean = false): string {
   if (!timeString || typeof timeString !== 'string') return '';
   
   const timeParts = timeString.split(':');
   if (timeParts.length !== 2) return timeString; // Return original if not in expected format
   
-  const [hours, minutes] = timeParts.map(Number);
+  let [hours, minutes] = timeParts.map(Number);
+  
+  // Handle extended hours (24-28 representing next day 12AM-4AM)
+  const isNextDay = hours >= 24;
+  if (isNextDay) {
+    hours = hours - 24; // Convert 24->0, 25->1, etc.
+  }
+  
+  const nextDaySuffix = (isNextDay && showNextDay) ? ' +1' : '';
   
   if (timeFormat === '24') {
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}${nextDaySuffix}`;
   }
   
   // 12-hour format
   if (hours === 0) {
-    return `12:${minutes.toString().padStart(2, '0')} AM`;
+    return `12:${minutes.toString().padStart(2, '0')} AM${nextDaySuffix}`;
   } else if (hours < 12) {
-    return `${hours}:${minutes.toString().padStart(2, '0')} AM`;
+    return `${hours}:${minutes.toString().padStart(2, '0')} AM${nextDaySuffix}`;
   } else if (hours === 12) {
-    return `12:${minutes.toString().padStart(2, '0')} PM`;
+    return `12:${minutes.toString().padStart(2, '0')} PM${nextDaySuffix}`;
   } else {
-    return `${hours - 12}:${minutes.toString().padStart(2, '0')} PM`;
+    return `${hours - 12}:${minutes.toString().padStart(2, '0')} PM${nextDaySuffix}`;
   }
 }
 
-export function formatTimeFromMinutes(totalMinutes: number, timeFormat: '12' | '24' | string = '12'): string {
+export function formatTimeFromMinutes(totalMinutes: number, timeFormat: '12' | '24' | string = '12', showNextDay: boolean = false): string {
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
   const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
   const format = timeFormat === '24' ? '24' : '12';
-  return formatTimeDisplay(timeString, format);
+  // Auto-detect if this is an extended hour (24+) and show next day indicator
+  const isExtendedHour = hours >= 24;
+  return formatTimeDisplay(timeString, format, showNextDay || isExtendedHour);
 }
 
 export function getTimeGridLabels(startHour: number, endHour: number, timeFormat: '12' | '24' = '12'): { hour: number; label: string; position: number }[] {
@@ -38,8 +48,10 @@ export function getTimeGridLabels(startHour: number, endHour: number, timeFormat
   
   for (let i = 0; i <= totalHours; i++) {
     const hour = startHour + i;
+    // For extended hours (24+), pass the hour as-is and let formatTimeDisplay handle conversion
     const timeString = `${hour.toString().padStart(2, '0')}:00`;
-    const label = formatTimeDisplay(timeString, timeFormat);
+    // Show +1 indicator for hours >= 24 (next day)
+    const label = formatTimeDisplay(timeString, timeFormat, hour >= 24);
     const position = (i / totalHours) * 100; // Percentage position
     
     labels.push({ hour, label, position });
