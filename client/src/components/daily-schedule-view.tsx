@@ -1257,6 +1257,9 @@ export default function DailyScheduleView({
                 // Handle cross-midnight events: add 24 hours to endMinutes
                 if (isCrossMidnightEvent(event)) {
                   endMinutes += 1440;
+                } else {
+                  // For events entirely in the "after midnight" portion, also adjust end minutes
+                  endMinutes = adjustMinutesForExtendedDay(endMinutes);
                 }
                 
                 const top = minutesToPosition(startMinutes);
@@ -1299,11 +1302,15 @@ export default function DailyScheduleView({
                 // Use resized dimensions if this event is being resized
                 let displayHeight = height;
                 if (isCurrentlyResizing) {
-                  const resizeStartMins = timeToMinutes(resizingEvent.event.startTime);
+                  let resizeStartMins = timeToMinutes(resizingEvent.event.startTime);
                   let resizeEndMins = timeToMinutes(resizingEvent.event.endTime);
                   // Handle cross-midnight: if end < start, it crosses midnight
                   if (resizeEndMins < resizeStartMins) {
                     resizeEndMins += 1440;
+                  } else {
+                    // For events entirely in the "after midnight" portion, adjust both times
+                    resizeStartMins = adjustMinutesForExtendedDay(resizeStartMins);
+                    resizeEndMins = adjustMinutesForExtendedDay(resizeEndMins);
                   }
                   displayHeight = resizeEndMins - resizeStartMins;
                 }

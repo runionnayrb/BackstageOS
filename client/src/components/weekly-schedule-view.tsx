@@ -1760,6 +1760,9 @@ export default function WeeklyScheduleView({
                   // Handle cross-midnight events: if endDate is after start date, add 24 hours to endMinutes
                   if (isCrossMidnightEvent(event)) {
                     endMinutes += 1440; // Add 24 hours (1440 minutes)
+                  } else {
+                    // For events entirely in the "after midnight" portion, also adjust end minutes
+                    endMinutes = adjustMinutesForExtendedDay(endMinutes);
                   }
                   
                   const top = minutesToPosition(startMinutes);
@@ -1778,12 +1781,17 @@ export default function WeeklyScheduleView({
 
                   // Use resized dimensions if this event is being resized
                   let resizingEndMinutes = resizingEvent?.event.id === event.id ? timeToMinutes(resizingEvent.event.endTime) : 0;
+                  let resizingStartMinutes = resizingEvent?.event.id === event.id ? timeToMinutes(resizingEvent.event.startTime) : 0;
                   // Handle cross-midnight for resizing event
                   if (resizingEvent?.event.id === event.id && isCrossMidnightEvent(resizingEvent.event)) {
                     resizingEndMinutes += 1440;
+                  } else if (resizingEvent?.event.id === event.id) {
+                    // For events entirely in the "after midnight" portion, adjust both times
+                    resizingEndMinutes = adjustMinutesForExtendedDay(resizingEndMinutes);
+                    resizingStartMinutes = adjustMinutesForExtendedDay(resizingStartMinutes);
                   }
                   const displayHeight = resizingEvent?.event.id === event.id ?
-                    resizingEndMinutes - timeToMinutes(resizingEvent.event.startTime) : height;
+                    resizingEndMinutes - resizingStartMinutes : height;
                   const resizedTop = resizingEvent?.event.id === event.id ?
                     minutesToPosition(adjustMinutesForExtendedDay(timeToMinutes(resizingEvent.event.startTime))) : displayTop;
 
