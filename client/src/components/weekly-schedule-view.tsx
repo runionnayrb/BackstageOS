@@ -1147,10 +1147,17 @@ export default function WeeklyScheduleView({
       currentEndMinutes = newEndMinutes;
 
       const newStartTime = formatTime(newStartMinutes);
-      const newEndTime = formatTime(newEndMinutes);
+      
+      // Calculate endDate and normalized endTime for cross-midnight support
+      const endDateAndTime = calculateEndDateAndTime(event.date, newEndMinutes);
 
-      // Update the event optimistically
-      const updatedEvent = { ...resizingEventRef.current!.event, startTime: newStartTime, endTime: newEndTime };
+      // Update the event optimistically - include endDate for proper height calculation
+      const updatedEvent = { 
+        ...resizingEventRef.current!.event, 
+        startTime: newStartTime, 
+        endTime: endDateAndTime.endTime.replace(':00', ''), // Store without seconds for display
+        endDate: endDateAndTime.endDate
+      };
       setResizingEvent(prev => prev ? {
         ...prev,
         event: updatedEvent,
