@@ -408,26 +408,13 @@ export default function DailyScheduleView({
       currentDragPosition = { startMinutes: newStartMinutes };
 
       // Update the dragged event position for visual feedback
+      // Note: We only update the draggedEvent state, NOT the cache, because
+      // formatTime normalizes minutes (e.g., 1500 -> "01:00") which would cause
+      // the event to render at the wrong position in cross-midnight schedules
       setDraggedEvent(prev => prev ? {
         ...prev,
         currentPosition: currentDragPosition,
       } : null);
-
-      // Optimistically update the event in the cache for instant visual feedback
-      const newEndMinutes = currentDragPosition.startMinutes + eventDuration;
-      const endDateAndTime = calculateEndDateAndTime(event.date, newEndMinutes);
-      const startTime = formatTime(currentDragPosition.startMinutes) + ':00';
-      const endTime = endDateAndTime.endTime;
-      const endDate = endDateAndTime.endDate;
-
-      queryClient.setQueriesData(
-        { queryKey: ['/api/projects', projectId, 'schedule-events'] },
-        (old: ScheduleEvent[] | undefined) => {
-          return old?.map((e: ScheduleEvent) => 
-            e.id === event.id ? { ...e, startTime, endTime, endDate } : e
-          ) || [];
-        }
-      );
     };
 
     const handleMouseUp = () => {
