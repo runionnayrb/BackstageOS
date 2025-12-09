@@ -1088,14 +1088,13 @@ export default function WeeklyScheduleView({
             const duration = eventEndMinutes - timeToMinutes(event.startTime);
             const newEndMinutes = currentDragPosition.startMinutes + duration;
             
-            // Calculate start date/time (handles times past midnight in 28-hour schedule)
-            const startDateAndTime = calculateStartDateAndTime(newDate, currentDragPosition.startMinutes);
-            eventDate = startDateAndTime.date;
-            startTime = startDateAndTime.startTime;
+            // Keep the event on the dragged-to date - only use formatTime to normalize the time
+            // The date is determined by the column (dayIndex), NOT by the time value
+            eventDate = newDate;
+            startTime = formatTime(currentDragPosition.startMinutes) + ':00';
             
-            // Calculate end date/time based on the new start date
-            const adjustedEndMinutes = newEndMinutes >= 1440 ? newEndMinutes - 1440 : newEndMinutes;
-            const endDateAndTime = calculateEndDateAndTime(eventDate, adjustedEndMinutes);
+            // Calculate end date/time - this CAN cross midnight (endDate may be different)
+            const endDateAndTime = calculateEndDateAndTime(eventDate, newEndMinutes);
             endTime = endDateAndTime.endTime;
             endDate = endDateAndTime.endDate;
           }

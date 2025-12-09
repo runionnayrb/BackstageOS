@@ -431,14 +431,16 @@ export default function DailyScheduleView({
         const duration = eventEndMinutes - timeToMinutes(event.startTime);
         const newEndMinutes = currentDragPosition.startMinutes + duration;
         
-        // Calculate start date/time (handles times past midnight in 28-hour schedule)
-        const startDateAndTime = calculateStartDateAndTime(event.date, currentDragPosition.startMinutes);
-        // Calculate end date/time based on the new start date
-        const endDateAndTime = calculateEndDateAndTime(startDateAndTime.date, newEndMinutes >= 1440 ? newEndMinutes - 1440 : newEndMinutes);
+        // Keep the event on the same date - only use formatTime to normalize the time
+        // The date should NOT change based on time value, only endDate can cross midnight
+        const startTime = formatTime(currentDragPosition.startMinutes) + ':00';
+        
+        // Calculate end date/time - this CAN cross midnight (endDate may be different)
+        const endDateAndTime = calculateEndDateAndTime(event.date, newEndMinutes);
 
         const eventData = {
-          date: startDateAndTime.date,
-          startTime: startDateAndTime.startTime,
+          date: event.date,
+          startTime: startTime,
           endTime: endDateAndTime.endTime,
           endDate: endDateAndTime.endDate,
           fromDrag: true,
