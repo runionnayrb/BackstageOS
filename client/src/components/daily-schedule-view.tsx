@@ -703,14 +703,14 @@ export default function DailyScheduleView({
     document.addEventListener('keydown', handleKeyDown);
   };
 
-  // Fetch project settings
-  const { data: projectSettings } = useQuery<ProjectSettings>({
-    queryKey: ['/api/projects', projectId, 'settings'],
+  // Fetch project settings (matching weekly view query key format)
+  const { data: projectSettings } = useQuery({
+    queryKey: [`/api/projects/${projectId}/settings`],
   });
 
   // Extract timezone and time format from settings using utility function
-  const scheduleSettings = parseScheduleSettings(projectSettings?.scheduleSettings);
-  const { timeFormat, timezone, dayStartHour, dayEndHour } = scheduleSettings;
+  const scheduleSettings = parseScheduleSettings((projectSettings as any)?.scheduleSettings);
+  const { timeFormat = '12', timezone, dayStartHour, dayEndHour } = scheduleSettings;
 
   // Calculate dynamic time range based on settings (supports 28-hour day for theater)
   const START_HOUR = dayStartHour ?? DEFAULT_START_HOUR;
