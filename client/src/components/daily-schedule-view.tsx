@@ -430,13 +430,16 @@ export default function DailyScheduleView({
         }
         const duration = eventEndMinutes - timeToMinutes(event.startTime);
         const newEndMinutes = currentDragPosition.startMinutes + duration;
-        const endDateAndTime = calculateEndDateAndTime(event.date, newEndMinutes);
-        const startTime = formatTime(currentDragPosition.startMinutes) + ':00';
-        const endTime = endDateAndTime.endTime;
+        
+        // Calculate start date/time (handles times past midnight in 28-hour schedule)
+        const startDateAndTime = calculateStartDateAndTime(event.date, currentDragPosition.startMinutes);
+        // Calculate end date/time based on the new start date
+        const endDateAndTime = calculateEndDateAndTime(startDateAndTime.date, newEndMinutes >= 1440 ? newEndMinutes - 1440 : newEndMinutes);
 
         const eventData = {
-          startTime,
-          endTime,
+          date: startDateAndTime.date,
+          startTime: startDateAndTime.startTime,
+          endTime: endDateAndTime.endTime,
           endDate: endDateAndTime.endDate,
           fromDrag: true,
         };
@@ -581,6 +584,23 @@ export default function DailyScheduleView({
     return {
       endDate: baseDate,
       endTime: formatTime(endMinutes) + ':00'
+    };
+  };
+  
+  // Helper to calculate start date and time (handles times past midnight in 28-hour schedule)
+  const calculateStartDateAndTime = (baseDate: string, startMinutes: number) => {
+    if (startMinutes >= 1440) {
+      // Past midnight - calculate next day
+      const baseDateObj = new Date(baseDate + 'T00:00:00');
+      baseDateObj.setDate(baseDateObj.getDate() + 1);
+      return {
+        date: formatAsCalendarDate(baseDateObj),
+        startTime: formatTime(startMinutes - 1440) + ':00'
+      };
+    }
+    return {
+      date: baseDate,
+      startTime: formatTime(startMinutes) + ':00'
     };
   };
   

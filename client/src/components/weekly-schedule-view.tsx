@@ -385,6 +385,23 @@ export default function WeeklyScheduleView({
       endTime: formatTime(endMinutes) + ':00'
     };
   };
+  
+  // Helper to calculate start date and time (handles times past midnight in 28-hour schedule)
+  const calculateStartDateAndTime = (baseDate: string, startMinutes: number) => {
+    if (startMinutes >= 1440) {
+      // Past midnight - calculate next day
+      const baseDateObj = new Date(baseDate + 'T00:00:00');
+      baseDateObj.setDate(baseDateObj.getDate() + 1);
+      return {
+        date: formatAsCalendarDate(baseDateObj),
+        startTime: formatTime(startMinutes - 1440) + ':00'
+      };
+    }
+    return {
+      date: baseDate,
+      startTime: formatTime(startMinutes) + ':00'
+    };
+  };
 
   const timeToMinutes = (timeString: string) => {
     if (!timeString) return 0;
@@ -1056,14 +1073,13 @@ export default function WeeklyScheduleView({
           const newDate = formatAsCalendarDate(weekDates[currentDragPosition.dayIndex]);
           
           // For all-day events, keep original times and only update the date
-          let startTime: string, endTime: string, endDate: string;
+          let eventDate: string, startTime: string, endTime: string, endDate: string;
           if (event.isAllDay) {
+            eventDate = newDate;
             startTime = event.startTime;
             endTime = event.endTime;
             endDate = newDate;
           } else {
-            // Format time with seconds for database storage
-            startTime = formatTime(currentDragPosition.startMinutes) + ':00';
             // Calculate duration, accounting for cross-midnight events
             let eventEndMinutes = timeToMinutes(event.endTime);
             if (isCrossMidnightEvent(event)) {
@@ -1072,14 +1088,20 @@ export default function WeeklyScheduleView({
             const duration = eventEndMinutes - timeToMinutes(event.startTime);
             const newEndMinutes = currentDragPosition.startMinutes + duration;
             
-            // Use helper to properly handle cross-midnight
-            const endDateAndTime = calculateEndDateAndTime(newDate, newEndMinutes);
+            // Calculate start date/time (handles times past midnight in 28-hour schedule)
+            const startDateAndTime = calculateStartDateAndTime(newDate, currentDragPosition.startMinutes);
+            eventDate = startDateAndTime.date;
+            startTime = startDateAndTime.startTime;
+            
+            // Calculate end date/time based on the new start date
+            const adjustedEndMinutes = newEndMinutes >= 1440 ? newEndMinutes - 1440 : newEndMinutes;
+            const endDateAndTime = calculateEndDateAndTime(eventDate, adjustedEndMinutes);
             endTime = endDateAndTime.endTime;
             endDate = endDateAndTime.endDate;
           }
 
           const eventData = {
-            date: newDate,
+            date: eventDate,
             endDate,
             startTime,
             endTime,
