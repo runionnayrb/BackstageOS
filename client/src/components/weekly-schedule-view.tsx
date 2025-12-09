@@ -969,7 +969,12 @@ export default function WeeklyScheduleView({
           endTime = event.endTime;
         } else {
           startTime = formatTime(currentDragPosition.startMinutes) + ':00';
-          const duration = timeToMinutes(event.endTime) - timeToMinutes(event.startTime);
+          // Calculate duration, accounting for cross-midnight events
+          let eventEndMinutes = timeToMinutes(event.endTime);
+          if (event.endDate && event.endDate !== event.date) {
+            eventEndMinutes += 1440; // Add 24 hours for cross-midnight
+          }
+          const duration = eventEndMinutes - timeToMinutes(event.startTime);
           endTime = formatTime(currentDragPosition.startMinutes + duration) + ':00';
         }
 
@@ -1009,7 +1014,12 @@ export default function WeeklyScheduleView({
           } else {
             // Format time with seconds for database storage
             startTime = formatTime(currentDragPosition.startMinutes) + ':00';
-            const duration = timeToMinutes(event.endTime) - timeToMinutes(event.startTime);
+            // Calculate duration, accounting for cross-midnight events
+            let eventEndMinutes = timeToMinutes(event.endTime);
+            if (event.endDate && event.endDate !== event.date) {
+              eventEndMinutes += 1440; // Add 24 hours for cross-midnight
+            }
+            const duration = eventEndMinutes - timeToMinutes(event.startTime);
             endTime = formatTime(currentDragPosition.startMinutes + duration) + ':00';
           }
 
@@ -1065,7 +1075,11 @@ export default function WeeklyScheduleView({
     e.stopPropagation();
 
     const originalStartMinutes = timeToMinutes(event.startTime);
-    const originalEndMinutes = timeToMinutes(event.endTime);
+    let originalEndMinutes = timeToMinutes(event.endTime);
+    // Account for cross-midnight events
+    if (event.endDate && event.endDate !== event.date) {
+      originalEndMinutes += 1440;
+    }
 
     const resizingData = {
       event,
@@ -1644,8 +1658,13 @@ export default function WeeklyScheduleView({
                     minutesToPosition(timeToMinutes(event.startTime));
 
                   // Use resized dimensions if this event is being resized
+                  let resizingEndMinutes = resizingEvent?.event.id === event.id ? timeToMinutes(resizingEvent.event.endTime) : 0;
+                  // Handle cross-midnight for resizing event
+                  if (resizingEvent?.event.id === event.id && resizingEvent.event.endDate && resizingEvent.event.endDate !== resizingEvent.event.date) {
+                    resizingEndMinutes += 1440;
+                  }
                   const displayHeight = resizingEvent?.event.id === event.id ?
-                    timeToMinutes(resizingEvent.event.endTime) - timeToMinutes(resizingEvent.event.startTime) : height;
+                    resizingEndMinutes - timeToMinutes(resizingEvent.event.startTime) : height;
                   const resizedTop = resizingEvent?.event.id === event.id ?
                     minutesToPosition(timeToMinutes(resizingEvent.event.startTime)) : displayTop;
 
