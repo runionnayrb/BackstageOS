@@ -129,6 +129,13 @@ export function WeeklyAvailabilityEditor({ contact, isOpen: externalIsOpen, onOp
   const scheduleSettings = parseScheduleSettings((showSettings as any)?.scheduleSettings);
   const { timeFormat, timezone: timeZone, weekStartDay, workStartTime, workEndTime } = scheduleSettings;
   
+  // Use configurable time range from project settings (must be defined before functions that use them)
+  const START_HOUR = scheduleSettings.dayStartHour;
+  const END_HOUR = scheduleSettings.dayEndHour;
+  const START_MINUTES = START_HOUR * 60;
+  const END_MINUTES = END_HOUR * 60;
+  const TOTAL_HOURS = END_HOUR - START_HOUR;
+  
   // Provide defaults for working hours if not set
   const workingHours = { 
     start: workStartTime || '09:00', 
@@ -292,16 +299,13 @@ export function WeeklyAvailabilityEditor({ contact, isOpen: externalIsOpen, onOp
   };
 
   const minutesToTime = (minutes: number): string => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    const timeString = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-    // Use the same formatTimeDisplay function as weekly and daily schedule views
-    return formatTimeDisplay(timeString, timeFormat);
+    // Use formatTimeFromMinutes which handles extended hours (24+) with +1 suffix
+    const isExtendedHour = Math.floor(minutes / 60) >= 24;
+    return formatTimeFromMinutes(minutes, timeFormat, isExtendedHour);
   };
 
   const minutesToPosition = (minutes: number): number => {
-    // Calendar now shows 8 AM to midnight (16 hours = 960 pixels)
-    // Offset by START_MINUTES to position relative to 8 AM
+    // Offset by START_MINUTES to position relative to configured start hour
     return Math.max(0, minutes - START_MINUTES);
   };
 
@@ -759,12 +763,7 @@ export function WeeklyAvailabilityEditor({ contact, isOpen: externalIsOpen, onOp
     };
   }, [isOpen, isDragCreating, draggedItem, isResizing]);
 
-  // Use configurable time range from project settings
-  const START_HOUR = scheduleSettings.dayStartHour;
-  const END_HOUR = scheduleSettings.dayEndHour;
-  const START_MINUTES = START_HOUR * 60;
-  const END_MINUTES = END_HOUR * 60;
-  const TOTAL_HOURS = END_HOUR - START_HOUR;
+  // Generate time labels based on configurable time range
   const timeLabels = [];
   
   // Generate labels based on time increment, but only show hour labels

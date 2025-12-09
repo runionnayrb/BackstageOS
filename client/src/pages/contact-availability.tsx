@@ -264,7 +264,9 @@ function WeeklyAvailabilityEditorPage({
   };
 
   const minutesToTime = (minutes: number): string => {
-    return formatTimeFromMinutes(minutes, timeFormat);
+    // Use formatTimeFromMinutes with extended hour detection for +1 suffix
+    const isExtendedHour = Math.floor(minutes / 60) >= 24;
+    return formatTimeFromMinutes(minutes, timeFormat, isExtendedHour);
   };
 
   const minutesToPosition = (minutes: number): number => {
