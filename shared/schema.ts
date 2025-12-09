@@ -675,6 +675,7 @@ export const scheduleEvents = pgTable("schedule_events", {
   title: varchar("title").notNull(),
   description: text("description"),
   date: date("date").notNull(), // Date type to match database
+  endDate: date("end_date"), // End date for cross-midnight events (null means same as date)
   startTime: time("start_time").notNull(), // Time type to match database  
   endTime: time("end_time").notNull(), // Time type to match database
   type: varchar("type").notNull().default("rehearsal"), // rehearsal, performance, meeting, tech, other

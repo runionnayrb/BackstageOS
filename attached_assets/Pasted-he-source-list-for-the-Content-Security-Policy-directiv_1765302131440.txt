@@ -1,0 +1,92 @@
+he source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.Understand this error
+BackstageOS:1 The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?Understand this error
+BackstageOS:1 The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.Understand this error
+weekly-schedule-view.tsx:1106 🎯 Resize started: {eventId: 542, edge: 'end', startTime: '22:30:00', endTime: '01:00:00'}
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:1169 🎯 Resize mouse up, resizingEventRef.current: {event: {…}, edge: 'end', originalStartMinutes: 1350, originalEndMinutes: 60}
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:1202 🚀 Calling resize mutation with data: {eventId: 542, eventData: {…}}
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:227 Events array changed: 9 events
+weekly-schedule-view.tsx:228 Event #25 current data: undefined
+weekly-schedule-view.tsx:515 🚀 Starting update mutation for event: 542
+weekly-schedule-view.tsx:516 📝 Event data being sent: {
+  "startTime": "22:30:00",
+  "endTime": "01:00:00",
+  "endDate": "2025-12-11"
+}
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:525 📨 Response status: 200
+weekly-schedule-view.tsx:526 📨 Response text: {"id":542,"projectId":3,"title":"Another Super Long Event","description":null,"date":"2025-12-10","startTime":"22:30:00","endTime":"01:00:00","type":"performance","eventTypeId":null,"location":null,"notes":null,"isAllDay":false,"parentEventId":null,"isProductionLevel":false,"createdBy":2,"updatedBy":2,"createdAt":"2025-12-09T17:38:38.401Z","updatedAt":"2025-12-09T17:41:59.713Z","participants":[]}
+weekly-schedule-view.tsx:553 ✅ Update success, returned data: {id: 542, projectId: 3, title: 'Another Super Long Event', description: null, date: '2025-12-10', …}
+weekly-schedule-view.tsx:557 Update mutation succeeded: {id: 542, projectId: 3, title: 'Another Super Long Event', description: null, date: '2025-12-10', …}
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:214 📅 Weekly view - All events: (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:227 Events array changed: 9 events
+weekly-schedule-view.tsx:228 
