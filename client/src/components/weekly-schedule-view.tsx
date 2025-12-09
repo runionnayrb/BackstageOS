@@ -967,8 +967,18 @@ export default function WeeklyScheduleView({
         const newDayIndex = Math.round((eventX - 64) / ((newRect.width - 64) / 7));
         const constrainedDayIndex = Math.max(0, Math.min(6, newDayIndex));
         
-        // Calculate time position from event position
-        const newStartMinutes = snapToIncrement(positionToMinutes(eventY));
+        // Calculate event duration to constrain end position
+        let eventEndMinutes = timeToMinutes(event.endTime);
+        if (isCrossMidnightEvent(event)) {
+          eventEndMinutes += 1440;
+        }
+        const eventDuration = eventEndMinutes - timeToMinutes(event.startTime);
+        
+        // Calculate time position from event position, constrained so event doesn't go past schedule end
+        const rawStartMinutes = snapToIncrement(positionToMinutes(eventY));
+        // Constrain: start must be >= START_MINUTES and end (start + duration) must be <= END_MINUTES
+        const maxStartMinutes = END_MINUTES - eventDuration;
+        const newStartMinutes = Math.max(START_MINUTES, Math.min(maxStartMinutes, rawStartMinutes));
 
         // Update local position tracker
         currentDragPosition = { dayIndex: constrainedDayIndex, startMinutes: newStartMinutes };
@@ -1151,9 +1161,11 @@ export default function WeeklyScheduleView({
       let newEndMinutes = originalEndMinutes;
 
       if (edge === 'start') {
-        newStartMinutes = Math.min(minutes, originalEndMinutes - timeIncrement);
+        // Constrain start edge: can't go before schedule start, and must be at least timeIncrement before end
+        newStartMinutes = Math.max(START_MINUTES, Math.min(minutes, originalEndMinutes - timeIncrement));
       } else {
-        newEndMinutes = Math.max(minutes, originalStartMinutes + timeIncrement);
+        // Constrain end edge: can't go past schedule end, and must be at least timeIncrement after start
+        newEndMinutes = Math.min(END_MINUTES, Math.max(minutes, originalStartMinutes + timeIncrement));
       }
 
       // Track the actual end minutes (could be > 1440)
