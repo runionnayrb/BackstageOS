@@ -1004,7 +1004,7 @@ export default function WeeklyScheduleView({
           startTime = formatTime(currentDragPosition.startMinutes) + ':00';
           // Calculate duration, accounting for cross-midnight events
           let eventEndMinutes = timeToMinutes(event.endTime);
-          if (event.endDate && event.endDate !== event.date) {
+          if (isCrossMidnightEvent(event)) {
             eventEndMinutes += 1440; // Add 24 hours for cross-midnight
           }
           const duration = eventEndMinutes - timeToMinutes(event.startTime);
@@ -1056,7 +1056,7 @@ export default function WeeklyScheduleView({
             startTime = formatTime(currentDragPosition.startMinutes) + ':00';
             // Calculate duration, accounting for cross-midnight events
             let eventEndMinutes = timeToMinutes(event.endTime);
-            if (event.endDate && event.endDate !== event.date) {
+            if (isCrossMidnightEvent(event)) {
               eventEndMinutes += 1440; // Add 24 hours for cross-midnight
             }
             const duration = eventEndMinutes - timeToMinutes(event.startTime);
@@ -1123,7 +1123,7 @@ export default function WeeklyScheduleView({
     const originalStartMinutes = timeToMinutes(event.startTime);
     let originalEndMinutes = timeToMinutes(event.endTime);
     // Account for cross-midnight events
-    if (event.endDate && event.endDate !== event.date) {
+    if (isCrossMidnightEvent(event)) {
       originalEndMinutes += 1440;
     }
 
@@ -1710,7 +1710,7 @@ export default function WeeklyScheduleView({
                   let endMinutes = timeToMinutes(event.endTime);
                   
                   // Handle cross-midnight events: if endDate is after start date, add 24 hours to endMinutes
-                  if (event.endDate && event.endDate !== event.date) {
+                  if (isCrossMidnightEvent(event)) {
                     endMinutes += 1440; // Add 24 hours (1440 minutes)
                   }
                   
@@ -1731,7 +1731,7 @@ export default function WeeklyScheduleView({
                   // Use resized dimensions if this event is being resized
                   let resizingEndMinutes = resizingEvent?.event.id === event.id ? timeToMinutes(resizingEvent.event.endTime) : 0;
                   // Handle cross-midnight for resizing event
-                  if (resizingEvent?.event.id === event.id && resizingEvent.event.endDate && resizingEvent.event.endDate !== resizingEvent.event.date) {
+                  if (resizingEvent?.event.id === event.id && isCrossMidnightEvent(resizingEvent.event)) {
                     resizingEndMinutes += 1440;
                   }
                   const displayHeight = resizingEvent?.event.id === event.id ?
