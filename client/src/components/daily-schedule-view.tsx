@@ -12,13 +12,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import ScheduleFilter from "@/components/schedule-filter";
 import { useToast } from "@/hooks/use-toast";
 
-// Constants for time grid (8 AM to midnight = 16 hours)
-const START_HOUR = 8;
-const END_HOUR = 24;
-const TOTAL_HOURS = END_HOUR - START_HOUR;
-const START_MINUTES = START_HOUR * 60;
-const END_MINUTES = END_HOUR * 60;
-const TOTAL_MINUTES = END_MINUTES - START_MINUTES;
+// Default time range constants (will be overridden by scheduleSettings)
+const DEFAULT_START_HOUR = 8;
+const DEFAULT_END_HOUR = 24;
 
 interface DailyScheduleViewProps {
   projectId: number;
@@ -653,7 +649,15 @@ export default function DailyScheduleView({
 
   // Extract timezone and time format from settings using utility function
   const scheduleSettings = parseScheduleSettings(projectSettings?.scheduleSettings);
-  const { timeFormat, timezone } = scheduleSettings;
+  const { timeFormat, timezone, dayStartHour, dayEndHour } = scheduleSettings;
+
+  // Calculate dynamic time range based on settings (supports 28-hour day for theater)
+  const START_HOUR = dayStartHour ?? DEFAULT_START_HOUR;
+  const END_HOUR = dayEndHour ?? DEFAULT_END_HOUR;
+  const START_MINUTES = START_HOUR * 60;
+  const END_MINUTES = END_HOUR * 60;
+  const TOTAL_MINUTES = END_MINUTES - START_MINUTES;
+  const TOTAL_HOURS = END_HOUR - START_HOUR;
 
   // Fetch events
   const { data: events = [] } = useQuery<ScheduleEvent[]>({

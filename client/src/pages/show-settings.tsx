@@ -4024,6 +4024,75 @@ The Production Team`
                 </div>
               </div>
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t">
+                <div className="space-y-2">
+                  <Label htmlFor="dayStartHour">Day Start Time</Label>
+                  <Select
+                    value={(() => {
+                      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                        ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                        : ((settings as any)?.scheduleSettings || {});
+                      return String(scheduleSettings?.dayStartHour ?? 8);
+                    })()}
+                    onValueChange={(value) =>
+                      handleSettingsUpdate("scheduleSettings", { dayStartHour: parseInt(value) })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">12:00 AM (Midnight)</SelectItem>
+                      <SelectItem value="1">1:00 AM</SelectItem>
+                      <SelectItem value="2">2:00 AM</SelectItem>
+                      <SelectItem value="3">3:00 AM</SelectItem>
+                      <SelectItem value="4">4:00 AM</SelectItem>
+                      <SelectItem value="5">5:00 AM</SelectItem>
+                      <SelectItem value="6">6:00 AM</SelectItem>
+                      <SelectItem value="7">7:00 AM</SelectItem>
+                      <SelectItem value="8">8:00 AM</SelectItem>
+                      <SelectItem value="9">9:00 AM</SelectItem>
+                      <SelectItem value="10">10:00 AM</SelectItem>
+                      <SelectItem value="11">11:00 AM</SelectItem>
+                      <SelectItem value="12">12:00 PM (Noon)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">When the schedule day begins</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="dayEndHour">Day End Time</Label>
+                  <Select
+                    value={(() => {
+                      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                        ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                        : ((settings as any)?.scheduleSettings || {});
+                      return String(scheduleSettings?.dayEndHour ?? 24);
+                    })()}
+                    onValueChange={(value) =>
+                      handleSettingsUpdate("scheduleSettings", { dayEndHour: parseInt(value) })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="18">6:00 PM</SelectItem>
+                      <SelectItem value="19">7:00 PM</SelectItem>
+                      <SelectItem value="20">8:00 PM</SelectItem>
+                      <SelectItem value="21">9:00 PM</SelectItem>
+                      <SelectItem value="22">10:00 PM</SelectItem>
+                      <SelectItem value="23">11:00 PM</SelectItem>
+                      <SelectItem value="24">12:00 AM (Midnight)</SelectItem>
+                      <SelectItem value="25">1:00 AM +1</SelectItem>
+                      <SelectItem value="26">2:00 AM +1</SelectItem>
+                      <SelectItem value="27">3:00 AM +1</SelectItem>
+                      <SelectItem value="28">4:00 AM +1</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">When the schedule day ends (+1 means next calendar day)</p>
+                </div>
+              </div>
 
             </CardContent>
           </Card>

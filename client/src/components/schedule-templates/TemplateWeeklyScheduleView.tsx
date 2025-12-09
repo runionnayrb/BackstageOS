@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Clock, MapPin, Edit, Trash2 } from "lucide-react";
-import { formatTimeDisplay } from "@/lib/timeUtils";
+import { formatTimeDisplay, parseScheduleSettings } from "@/lib/timeUtils";
 import { getEventTypeColorFromDatabase, isLightColor, darkenColor } from "@/lib/eventUtils";
 import { calculateEventLayouts } from "@/lib/scheduleUtils";
 import TemplateEventForm from "./TemplateEventForm";
@@ -62,11 +62,9 @@ interface TemplateWeeklyScheduleViewProps {
   timeFormat?: '12' | '24';
 }
 
-const START_HOUR = 8;
-const END_HOUR = 24;
-const START_MINUTES = START_HOUR * 60;
-const END_MINUTES = END_HOUR * 60;
-const TOTAL_MINUTES = END_MINUTES - START_MINUTES;
+// Default time range constants (will be overridden by scheduleSettings)
+const DEFAULT_START_HOUR = 8;
+const DEFAULT_END_HOUR = 24;
 
 const DEFAULT_DAY_ORDER = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -132,6 +130,22 @@ export function TemplateWeeklyScheduleView({
   const { data: contacts = [] } = useQuery<Contact[]>({
     queryKey: [`/api/projects/${projectId}/contacts`],
   });
+
+  // Fetch project settings for time range configuration
+  const { data: projectSettings } = useQuery({
+    queryKey: [`/api/projects/${projectId}/settings`],
+  });
+
+  // Parse schedule settings for time range
+  const scheduleSettings = parseScheduleSettings((projectSettings as any)?.scheduleSettings);
+  const { dayStartHour, dayEndHour } = scheduleSettings;
+
+  // Calculate dynamic time range based on settings (supports 28-hour day for theater)
+  const START_HOUR = dayStartHour ?? DEFAULT_START_HOUR;
+  const END_HOUR = dayEndHour ?? DEFAULT_END_HOUR;
+  const START_MINUTES = START_HOUR * 60;
+  const END_MINUTES = END_HOUR * 60;
+  const TOTAL_MINUTES = END_MINUTES - START_MINUTES;
 
   const orderedDays = useMemo(() => {
     const days = [];

@@ -56,6 +56,8 @@ export function parseScheduleSettings(settings: any) {
     weekStartDay: 'sunday',
     workStartTime: '09:00',
     workEndTime: '18:00',
+    dayStartHour: 8,  // 8 AM default
+    dayEndHour: 24,   // Midnight default (can go up to 28 for 4 AM next day)
   };
   
   if (!settings) return defaultSettings;
@@ -71,6 +73,8 @@ export function parseScheduleSettings(settings: any) {
     weekStartDay: scheduleSettings.weekStartDay || defaultSettings.weekStartDay,
     workStartTime: scheduleSettings.workStartTime || defaultSettings.workStartTime,
     workEndTime: scheduleSettings.workEndTime || defaultSettings.workEndTime,
+    dayStartHour: scheduleSettings.dayStartHour ?? defaultSettings.dayStartHour,
+    dayEndHour: scheduleSettings.dayEndHour ?? defaultSettings.dayEndHour,
   };
 }
 

@@ -68,12 +68,9 @@ interface Contact {
   role?: string;
 }
 
-// Constants for time range (8 AM to midnight)
-const START_HOUR = 8;
-const END_HOUR = 24;
-const START_MINUTES = START_HOUR * 60;
-const END_MINUTES = END_HOUR * 60;
-const TOTAL_MINUTES = END_MINUTES - START_MINUTES;
+// Default time range constants (will be overridden by scheduleSettings)
+const DEFAULT_START_HOUR = 8;
+const DEFAULT_END_HOUR = 24;
 
 export default function MobileWeeklyScheduleView({ 
   projectId, 
@@ -133,7 +130,14 @@ export default function MobileWeeklyScheduleView({
 
   // Parse schedule settings with time format preference
   const scheduleSettings = parseScheduleSettings((showSettings as any)?.scheduleSettings);
-  const { timeFormat = '12', timezone, weekStartDay, workStartTime, workEndTime } = scheduleSettings;
+  const { timeFormat = '12', timezone, weekStartDay, workStartTime, workEndTime, dayStartHour, dayEndHour } = scheduleSettings;
+
+  // Calculate dynamic time range based on settings (supports 28-hour day for theater)
+  const START_HOUR = dayStartHour ?? DEFAULT_START_HOUR;
+  const END_HOUR = dayEndHour ?? DEFAULT_END_HOUR;
+  const START_MINUTES = START_HOUR * 60;
+  const END_MINUTES = END_HOUR * 60;
+  const TOTAL_MINUTES = END_MINUTES - START_MINUTES;
 
   // Fetch schedule events
   const { data: events = [], isLoading } = useQuery<ScheduleEvent[]>({
