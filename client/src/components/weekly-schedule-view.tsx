@@ -391,6 +391,19 @@ export default function WeeklyScheduleView({
     const [hours, minutes] = timeString.split(':').map(Number);
     return hours * 60 + minutes;
   };
+  
+  // Helper to detect if an event crosses midnight
+  // Works even when endDate is null (legacy data) by comparing times
+  const isCrossMidnightEvent = (event: { date: string; endDate?: string | null; startTime: string; endTime: string }) => {
+    // Explicit endDate check
+    if (event.endDate && event.endDate !== event.date) {
+      return true;
+    }
+    // Implicit check: if endTime < startTime, it crosses midnight
+    const startMins = timeToMinutes(event.startTime);
+    const endMins = timeToMinutes(event.endTime);
+    return endMins < startMins;
+  };
 
   const minutesToPosition = (minutes: number) => {
     // Match weekly availability editor: 1:1 pixel-to-minute ratio
