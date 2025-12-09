@@ -36,7 +36,7 @@ interface WeeklyScheduleViewProps {
   setShowAllDayEvents?: (show: boolean) => void;
   createEventDialog: boolean;
   setCreateEventDialog: (open: boolean) => void;
-  setCreateEventData: (data: { date?: string; startTime?: string; endTime?: string }) => void;
+  setCreateEventData: (data: { date?: string; endDate?: string; startTime?: string; endTime?: string }) => void;
   viewMode: 'monthly' | 'weekly' | 'daily';
   setViewMode: (mode: 'monthly' | 'weekly' | 'daily') => void;
 }
@@ -790,10 +790,25 @@ export default function WeeklyScheduleView({
         
         if (endTime - startTime >= timeIncrement) {
           const date = formatAsCalendarDate(weekDates[dragState.startDay]);
+          
+          // Check if endTime goes past midnight (>= 1440 minutes = 24 hours)
+          const isCrossMidnight = endTime >= 1440;
+          let normalizedEndTime = endTime;
+          let endDate = date;
+          
+          if (isCrossMidnight) {
+            // Normalize endTime to 0-1439 range and calculate next day
+            normalizedEndTime = endTime - 1440;
+            const nextDay = new Date(weekDates[dragState.startDay]);
+            nextDay.setDate(nextDay.getDate() + 1);
+            endDate = formatAsCalendarDate(nextDay);
+          }
+          
           setCreateEventData({
             date,
+            endDate,
             startTime: formatTimeFromMinutes(startTime),
-            endTime: formatTimeFromMinutes(endTime),
+            endTime: formatTimeFromMinutes(normalizedEndTime),
           });
           setCreateEventDialog(true);
         } else {

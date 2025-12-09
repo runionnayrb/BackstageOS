@@ -72,6 +72,7 @@ export default function Schedule() {
   const [createEventDialog, setCreateEventDialog] = useState(false);
   const [createEventData, setCreateEventData] = useState<{
     date?: string;
+    endDate?: string;
     startTime?: string;
     endTime?: string;
   }>({});
@@ -1609,7 +1610,7 @@ The Production Team`
               showButtons={false}
               initialValues={{
                 startDate: createEventData.date,
-                endDate: createEventData.date,
+                endDate: createEventData.endDate || createEventData.date,
                 startTime: createEventData.startTime,
                 endTime: createEventData.endTime,
               }}
