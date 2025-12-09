@@ -476,7 +476,11 @@ export default function DailyScheduleView({
     e.stopPropagation();
 
     const originalStartMinutes = timeToMinutes(event.startTime);
-    const originalEndMinutes = timeToMinutes(event.endTime);
+    let originalEndMinutes = timeToMinutes(event.endTime);
+    // Account for cross-midnight events
+    if (isCrossMidnightEvent(event)) {
+      originalEndMinutes += 1440;
+    }
 
     const resizingData = {
       event,
@@ -488,6 +492,10 @@ export default function DailyScheduleView({
     setResizingEvent(resizingData);
     resizingEventRef.current = resizingData;
 
+    // Track current values for visual feedback and final update
+    let currentStartMinutes = originalStartMinutes;
+    let currentEndMinutes = originalEndMinutes;
+
     const handleMouseMove = (moveEvent: MouseEvent) => {
       if (!calendarRef.current || !scrollContainerRef.current) return;
 
@@ -496,19 +504,16 @@ export default function DailyScheduleView({
       const y = moveEvent.clientY - rect.top + scrollTop;
       const minutes = snapToIncrement(positionToMinutes(y));
 
-      let newStartMinutes = originalStartMinutes;
-      let newEndMinutes = originalEndMinutes;
-
       if (edge === 'start') {
         // Constrain start edge: can't go before schedule start, and must be at least timeIncrement before end
-        newStartMinutes = Math.max(START_MINUTES, Math.min(minutes, originalEndMinutes - timeIncrement));
+        currentStartMinutes = Math.max(START_MINUTES, Math.min(minutes, currentEndMinutes - timeIncrement));
       } else {
         // Constrain end edge: can't go past schedule end, and must be at least timeIncrement after start
-        newEndMinutes = Math.min(END_MINUTES, Math.max(minutes, originalStartMinutes + timeIncrement));
+        currentEndMinutes = Math.min(END_MINUTES, Math.max(minutes, currentStartMinutes + timeIncrement));
       }
 
-      const newStartTime = formatTime(newStartMinutes);
-      const newEndTime = formatTime(newEndMinutes);
+      const newStartTime = formatTime(currentStartMinutes);
+      const newEndTime = formatTime(currentEndMinutes);
 
       // Update the event optimistically for visual feedback
       const updatedEvent = { ...resizingEventRef.current!.event, startTime: newStartTime, endTime: newEndTime };
@@ -525,9 +530,13 @@ export default function DailyScheduleView({
         setJustResized(event.id);
         setTimeout(() => setJustResized(null), 200);
         
+        // Calculate end date/time properly for cross-midnight events
+        const endDateAndTime = calculateEndDateAndTime(event.date, currentEndMinutes);
+        
         const eventData = {
-          startTime: resizingEventRef.current.event.startTime + ':00',
-          endTime: resizingEventRef.current.event.endTime + ':00',
+          startTime: formatTime(currentStartMinutes) + ':00',
+          endTime: endDateAndTime.endTime,
+          endDate: endDateAndTime.endDate,
         };
 
         // Optimistically update the cache for instant visual feedback
@@ -535,7 +544,7 @@ export default function DailyScheduleView({
           { queryKey: ['/api/projects', projectId, 'schedule-events'] },
           (old: ScheduleEvent[] | undefined) => {
             return old?.map((e: ScheduleEvent) => 
-              e.id === event.id ? { ...e, startTime: eventData.startTime, endTime: eventData.endTime } : e
+              e.id === event.id ? { ...e, startTime: eventData.startTime, endTime: eventData.endTime, endDate: eventData.endDate } : e
             ) || [];
           }
         );
@@ -1202,7 +1211,13 @@ export default function DailyScheduleView({
                 .filter(event => !event.isAllDay)
                 .map((event) => {
                 const startMinutes = timeToMinutes(event.startTime);
-                const endMinutes = timeToMinutes(event.endTime);
+                let endMinutes = timeToMinutes(event.endTime);
+                
+                // Handle cross-midnight events: add 24 hours to endMinutes
+                if (isCrossMidnightEvent(event)) {
+                  endMinutes += 1440;
+                }
+                
                 const top = minutesToPosition(startMinutes);
                 const durationMinutes = endMinutes - startMinutes;
                 const height = endMinutes - startMinutes;
