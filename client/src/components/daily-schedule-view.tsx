@@ -350,7 +350,8 @@ export default function DailyScheduleView({
     // Don't start drag if we just finished dragging
     if (justDragged === eventId) return;
 
-    const startMinutes = timeToMinutes(event.startTime);
+    // Apply adjustMinutesForExtendedDay so events in the "after midnight" portion stay at bottom
+    const startMinutes = adjustMinutesForExtendedDay(timeToMinutes(event.startTime));
     const rect = calendarRef.current?.getBoundingClientRect();
     if (!rect) return;
 

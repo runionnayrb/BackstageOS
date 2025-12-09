@@ -935,7 +935,8 @@ export default function WeeklyScheduleView({
     
     if (dayIndex === -1) return;
 
-    const startMinutes = timeToMinutes(event.startTime);
+    // Apply adjustMinutesForExtendedDay so events in the "after midnight" portion stay at bottom
+    const startMinutes = adjustMinutesForExtendedDay(timeToMinutes(event.startTime));
     const rect = calendarRef.current?.getBoundingClientRect();
     if (!rect) return;
 
