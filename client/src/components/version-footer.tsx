@@ -6,9 +6,20 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, CheckCircle, Archive } from "lucide-react";
 import { Link } from "wouter";
 
-const CURRENT_VERSION = "26.6.0";
+const CURRENT_VERSION = "26.7.0";
 
 const RELEASE_NOTES = [
+  {
+    version: "26.7.0",
+    date: "December 9, 2025",
+    type: "Bugfix",
+    features: [
+      "<strong><u>28-HOUR SCHEDULE FIX:</u></strong>",
+      "Fixed events in extended schedules (e.g., 7 AM - 2 AM next day) not displaying correctly - events in the 'after midnight' portion now render at the correct position with proper height",
+      "Fixed issue where clicking on events at the bottom of extended schedules caused them to jump to the top",
+      "Events can now be properly dragged to the bottom of extended schedules without jumping to the top"
+    ]
+  },
   {
     version: "26.6.0",
     date: "December 4, 2025",
