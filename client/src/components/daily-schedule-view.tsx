@@ -45,6 +45,7 @@ interface ScheduleEvent {
   title: string;
   description?: string;
   date: string;
+  endDate?: string;
   startTime: string;
   endTime: string;
   type: string;
@@ -390,8 +391,18 @@ export default function DailyScheduleView({
       // Subtract the offset to get the event's new top position
       const eventY = mouseY - draggedEventData.offset.y;
 
-      // Calculate time position from event position
-      const newStartMinutes = snapToIncrement(positionToMinutes(eventY));
+      // Calculate event duration to constrain end position
+      let eventEndMinutes = timeToMinutes(event.endTime);
+      if (isCrossMidnightEvent(event)) {
+        eventEndMinutes += 1440;
+      }
+      const eventDuration = eventEndMinutes - timeToMinutes(event.startTime);
+      
+      // Calculate time position from event position, constrained so event doesn't go past schedule end
+      const rawStartMinutes = snapToIncrement(positionToMinutes(eventY));
+      // Constrain: start must be >= START_MINUTES and end (start + duration) must be <= END_MINUTES
+      const maxStartMinutes = END_MINUTES - eventDuration;
+      const newStartMinutes = Math.max(START_MINUTES, Math.min(maxStartMinutes, rawStartMinutes));
 
       // Update local position tracker
       currentDragPosition = { startMinutes: newStartMinutes };
@@ -403,15 +414,17 @@ export default function DailyScheduleView({
       } : null);
 
       // Optimistically update the event in the cache for instant visual feedback
-      const duration = timeToMinutes(event.endTime) - timeToMinutes(event.startTime);
+      const newEndMinutes = currentDragPosition.startMinutes + eventDuration;
+      const endDateAndTime = calculateEndDateAndTime(event.date, newEndMinutes);
       const startTime = formatTime(currentDragPosition.startMinutes) + ':00';
-      const endTime = formatTime(currentDragPosition.startMinutes + duration) + ':00';
+      const endTime = endDateAndTime.endTime;
+      const endDate = endDateAndTime.endDate;
 
       queryClient.setQueriesData(
         { queryKey: ['/api/projects', projectId, 'schedule-events'] },
         (old: ScheduleEvent[] | undefined) => {
           return old?.map((e: ScheduleEvent) => 
-            e.id === event.id ? { ...e, startTime, endTime } : e
+            e.id === event.id ? { ...e, startTime, endTime, endDate } : e
           ) || [];
         }
       );
@@ -424,13 +437,20 @@ export default function DailyScheduleView({
         setTimeout(() => setJustDragged(null), 200);
         
         // Update event position using the current drag position
-        const duration = timeToMinutes(event.endTime) - timeToMinutes(event.startTime);
+        let eventEndMinutes = timeToMinutes(event.endTime);
+        if (isCrossMidnightEvent(event)) {
+          eventEndMinutes += 1440;
+        }
+        const duration = eventEndMinutes - timeToMinutes(event.startTime);
+        const newEndMinutes = currentDragPosition.startMinutes + duration;
+        const endDateAndTime = calculateEndDateAndTime(event.date, newEndMinutes);
         const startTime = formatTime(currentDragPosition.startMinutes) + ':00';
-        const endTime = formatTime(currentDragPosition.startMinutes + duration) + ':00';
+        const endTime = endDateAndTime.endTime;
 
         const eventData = {
           startTime,
           endTime,
+          endDate: endDateAndTime.endDate,
           fromDrag: true,
         };
 
@@ -480,11 +500,11 @@ export default function DailyScheduleView({
       let newEndMinutes = originalEndMinutes;
 
       if (edge === 'start') {
-        // Dragging top edge - can't go past end time minus minimum duration
-        newStartMinutes = Math.min(minutes, originalEndMinutes - timeIncrement);
+        // Constrain start edge: can't go before schedule start, and must be at least timeIncrement before end
+        newStartMinutes = Math.max(START_MINUTES, Math.min(minutes, originalEndMinutes - timeIncrement));
       } else {
-        // Dragging bottom edge - can't go before start time plus minimum duration
-        newEndMinutes = Math.max(minutes, originalStartMinutes + timeIncrement);
+        // Constrain end edge: can't go past schedule end, and must be at least timeIncrement after start
+        newEndMinutes = Math.min(END_MINUTES, Math.max(minutes, originalStartMinutes + timeIncrement));
       }
 
       const newStartTime = formatTime(newStartMinutes);
@@ -544,9 +564,41 @@ export default function DailyScheduleView({
   };
 
   const formatTime = (minutes: number): string => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
+    // Normalize minutes to 0-1439 range for valid time strings
+    const normalizedMinutes = ((minutes % 1440) + 1440) % 1440;
+    const hours = Math.floor(normalizedMinutes / 60);
+    const mins = normalizedMinutes % 60;
     return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+  };
+  
+  // Helper to calculate if time crosses midnight and get the new end date
+  const calculateEndDateAndTime = (baseDate: string, endMinutes: number) => {
+    if (endMinutes >= 1440) {
+      // Crosses midnight - calculate next day
+      const baseDateObj = new Date(baseDate + 'T00:00:00');
+      baseDateObj.setDate(baseDateObj.getDate() + 1);
+      return {
+        endDate: formatAsCalendarDate(baseDateObj),
+        endTime: formatTime(endMinutes - 1440) + ':00'
+      };
+    }
+    return {
+      endDate: baseDate,
+      endTime: formatTime(endMinutes) + ':00'
+    };
+  };
+  
+  // Helper to detect if an event crosses midnight
+  // Works even when endDate is null (legacy data) by comparing times
+  const isCrossMidnightEvent = (event: { date: string; endDate?: string | null; startTime: string; endTime: string }) => {
+    // Explicit endDate check
+    if (event.endDate && event.endDate !== event.date) {
+      return true;
+    }
+    // Implicit check: if endTime < startTime, it crosses midnight
+    const startMins = timeToMinutes(event.startTime);
+    const endMins = timeToMinutes(event.endTime);
+    return endMins < startMins;
   };
 
   const minutesToPosition = (minutes: number): number => {
@@ -554,7 +606,7 @@ export default function DailyScheduleView({
   };
 
   const positionToMinutes = (position: number): number => {
-    return position + START_MINUTES;
+    return Math.max(START_MINUTES, Math.min(END_MINUTES - 1, Math.round(position + START_MINUTES)));
   };
 
   const snapToIncrement = (minutes: number): number => {
