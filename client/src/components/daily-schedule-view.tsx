@@ -640,6 +640,19 @@ export default function DailyScheduleView({
     return Math.max(0, minutes - START_MINUTES);
   };
 
+  // Adjust start minutes for rendering in a 28-hour schedule
+  // When schedule extends past midnight (END_HOUR > 24), times before START_HOUR
+  // but within the extended range should be positioned as "after midnight" (add 1440)
+  const adjustMinutesForExtendedDay = (minutes: number): number => {
+    // Only apply adjustment if schedule extends past midnight (END_MINUTES > 1440)
+    // and the time is before START_MINUTES (e.g., 1 AM is before 7 AM start)
+    // and the time is within the extended portion (e.g., 1 AM is part of 7 AM - 2 AM schedule)
+    if (END_MINUTES > 1440 && minutes < START_MINUTES && minutes < (END_MINUTES - 1440)) {
+      return minutes + 1440;
+    }
+    return minutes;
+  };
+
   const positionToMinutes = (position: number): number => {
     return Math.max(START_MINUTES, Math.min(END_MINUTES - 1, Math.round(position + START_MINUTES)));
   };
@@ -1236,7 +1249,9 @@ export default function DailyScheduleView({
               {getEventsForDate(selectedDate)
                 .filter(event => !event.isAllDay)
                 .map((event) => {
-                const startMinutes = timeToMinutes(event.startTime);
+                // Adjust start minutes for 28-hour schedule (times after midnight render at bottom)
+                const rawStartMinutes = timeToMinutes(event.startTime);
+                const startMinutes = adjustMinutesForExtendedDay(rawStartMinutes);
                 let endMinutes = timeToMinutes(event.endTime);
                 
                 // Handle cross-midnight events: add 24 hours to endMinutes
@@ -1293,7 +1308,7 @@ export default function DailyScheduleView({
                   displayHeight = resizeEndMins - resizeStartMins;
                 }
                 const resizedTop = isCurrentlyResizing ?
-                  minutesToPosition(timeToMinutes(resizingEvent.event.startTime)) : top;
+                  minutesToPosition(adjustMinutesForExtendedDay(timeToMinutes(resizingEvent.event.startTime))) : top;
                 
                 // Use dragged position if this event is being dragged (takes priority over resize)
                 const displayTop = draggedEvent?.event.id === event.id ? 
