@@ -362,9 +362,28 @@ export default function WeeklyScheduleView({
 
   // Time formatting functions
   const formatTime = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
+    // Normalize minutes to 0-1439 range for valid time strings
+    const normalizedMinutes = ((minutes % 1440) + 1440) % 1440;
+    const hours = Math.floor(normalizedMinutes / 60);
+    const mins = normalizedMinutes % 60;
     return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+  };
+  
+  // Helper to calculate if time crosses midnight and get the new end date
+  const calculateEndDateAndTime = (baseDate: string, endMinutes: number) => {
+    if (endMinutes >= 1440) {
+      // Crosses midnight - calculate next day
+      const baseDateObj = new Date(baseDate + 'T00:00:00');
+      baseDateObj.setDate(baseDateObj.getDate() + 1);
+      return {
+        endDate: formatAsCalendarDate(baseDateObj),
+        endTime: formatTime(endMinutes - 1440) + ':00'
+      };
+    }
+    return {
+      endDate: baseDate,
+      endTime: formatTime(endMinutes) + ':00'
+    };
   };
 
   const timeToMinutes = (timeString: string) => {
@@ -963,10 +982,11 @@ export default function WeeklyScheduleView({
         const newDate = formatAsCalendarDate(weekDates[currentDragPosition.dayIndex]);
         
         // For all-day events, only update the date, keep times as-is
-        let startTime, endTime;
+        let startTime: string, endTime: string, endDate: string;
         if (event.isAllDay) {
           startTime = event.startTime;
           endTime = event.endTime;
+          endDate = newDate;
         } else {
           startTime = formatTime(currentDragPosition.startMinutes) + ':00';
           // Calculate duration, accounting for cross-midnight events
@@ -975,7 +995,12 @@ export default function WeeklyScheduleView({
             eventEndMinutes += 1440; // Add 24 hours for cross-midnight
           }
           const duration = eventEndMinutes - timeToMinutes(event.startTime);
-          endTime = formatTime(currentDragPosition.startMinutes + duration) + ':00';
+          const newEndMinutes = currentDragPosition.startMinutes + duration;
+          
+          // Use helper to properly handle cross-midnight
+          const endDateAndTime = calculateEndDateAndTime(newDate, newEndMinutes);
+          endTime = endDateAndTime.endTime;
+          endDate = endDateAndTime.endDate;
         }
 
         queryClient.setQueriesData(
@@ -985,6 +1010,7 @@ export default function WeeklyScheduleView({
               e.id === event.id ? { 
                 ...e, 
                 date: newDate,
+                endDate,
                 startTime,
                 endTime
               } : e
@@ -1007,10 +1033,11 @@ export default function WeeklyScheduleView({
           const newDate = formatAsCalendarDate(weekDates[currentDragPosition.dayIndex]);
           
           // For all-day events, keep original times and only update the date
-          let startTime, endTime;
+          let startTime: string, endTime: string, endDate: string;
           if (event.isAllDay) {
             startTime = event.startTime;
             endTime = event.endTime;
+            endDate = newDate;
           } else {
             // Format time with seconds for database storage
             startTime = formatTime(currentDragPosition.startMinutes) + ':00';
@@ -1020,11 +1047,17 @@ export default function WeeklyScheduleView({
               eventEndMinutes += 1440; // Add 24 hours for cross-midnight
             }
             const duration = eventEndMinutes - timeToMinutes(event.startTime);
-            endTime = formatTime(currentDragPosition.startMinutes + duration) + ':00';
+            const newEndMinutes = currentDragPosition.startMinutes + duration;
+            
+            // Use helper to properly handle cross-midnight
+            const endDateAndTime = calculateEndDateAndTime(newDate, newEndMinutes);
+            endTime = endDateAndTime.endTime;
+            endDate = endDateAndTime.endDate;
           }
 
           const eventData = {
             date: newDate,
+            endDate,
             startTime,
             endTime,
             fromDrag: true, // Flag to indicate this is a drag operation
@@ -1091,6 +1124,9 @@ export default function WeeklyScheduleView({
     setResizingEvent(resizingData);
     resizingEventRef.current = resizingData;
 
+    // Track current end minutes for cross-midnight handling
+    let currentEndMinutes = originalEndMinutes;
+    
     const handleMouseMove = (e: MouseEvent) => {
       if (!calendarRef.current) return;
 
@@ -1106,6 +1142,9 @@ export default function WeeklyScheduleView({
       } else {
         newEndMinutes = Math.max(minutes, originalStartMinutes + timeIncrement);
       }
+
+      // Track the actual end minutes (could be > 1440)
+      currentEndMinutes = newEndMinutes;
 
       const newStartTime = formatTime(newStartMinutes);
       const newEndTime = formatTime(newEndMinutes);
@@ -1126,9 +1165,16 @@ export default function WeeklyScheduleView({
         setJustResized(event.id);
         setTimeout(() => setJustResized(null), 200);
         
+        // Get current start time
+        const startTimeStr = resizingEventRef.current.event.startTime + ':00';
+        
+        // Calculate endDate and endTime properly for cross-midnight
+        const endDateAndTime = calculateEndDateAndTime(event.date, currentEndMinutes);
+        
         const eventData = {
-          startTime: resizingEventRef.current.event.startTime + ':00',
-          endTime: resizingEventRef.current.event.endTime + ':00',
+          startTime: startTimeStr,
+          endTime: endDateAndTime.endTime,
+          endDate: endDateAndTime.endDate,
         };
 
         // Optimistically update the cache immediately for instant visual feedback
@@ -1136,7 +1182,12 @@ export default function WeeklyScheduleView({
           { queryKey: ['/api/projects', projectId, 'schedule-events'] },
           (old: ScheduleEvent[] | undefined) => {
             return old?.map((e: ScheduleEvent) => 
-              e.id === event.id ? { ...e, startTime: eventData.startTime, endTime: eventData.endTime } : e
+              e.id === event.id ? { 
+                ...e, 
+                startTime: eventData.startTime, 
+                endTime: eventData.endTime,
+                endDate: eventData.endDate
+              } : e
             ) || [];
           }
         );
