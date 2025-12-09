@@ -47,6 +47,7 @@ interface ScheduleEvent {
   title: string;
   description?: string;
   date: string;
+  endDate?: string;
   startTime: string;
   endTime: string;
   type: string;
@@ -1621,7 +1622,13 @@ export default function WeeklyScheduleView({
                   if (dayIndex === -1) return null;
 
                   const startMinutes = timeToMinutes(event.startTime);
-                  const endMinutes = timeToMinutes(event.endTime);
+                  let endMinutes = timeToMinutes(event.endTime);
+                  
+                  // Handle cross-midnight events: if endDate is after start date, add 24 hours to endMinutes
+                  if (event.endDate && event.endDate !== event.date) {
+                    endMinutes += 1440; // Add 24 hours (1440 minutes)
+                  }
+                  
                   const top = minutesToPosition(startMinutes);
                   const height = endMinutes - startMinutes;
 
