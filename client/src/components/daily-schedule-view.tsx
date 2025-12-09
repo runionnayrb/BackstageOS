@@ -1256,8 +1256,16 @@ export default function DailyScheduleView({
                 const isCurrentlyResizing = resizingEvent?.event.id === event.id;
                 
                 // Use resized dimensions if this event is being resized
-                const displayHeight = isCurrentlyResizing ?
-                  timeToMinutes(resizingEvent.event.endTime) - timeToMinutes(resizingEvent.event.startTime) : height;
+                let displayHeight = height;
+                if (isCurrentlyResizing) {
+                  const resizeStartMins = timeToMinutes(resizingEvent.event.startTime);
+                  let resizeEndMins = timeToMinutes(resizingEvent.event.endTime);
+                  // Handle cross-midnight: if end < start, it crosses midnight
+                  if (resizeEndMins < resizeStartMins) {
+                    resizeEndMins += 1440;
+                  }
+                  displayHeight = resizeEndMins - resizeStartMins;
+                }
                 const resizedTop = isCurrentlyResizing ?
                   minutesToPosition(timeToMinutes(resizingEvent.event.startTime)) : top;
                 
