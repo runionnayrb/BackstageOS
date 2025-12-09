@@ -759,11 +759,12 @@ export function WeeklyAvailabilityEditor({ contact, isOpen: externalIsOpen, onOp
     };
   }, [isOpen, isDragCreating, draggedItem, isResizing]);
 
-  // Generate time labels based on time increment starting from 8 AM using show's time format
-  const START_HOUR = 8; // 8 AM
-  const END_HOUR = 24; // Midnight
-  const START_MINUTES = START_HOUR * 60; // 8 AM = 480 minutes
-  const END_MINUTES = END_HOUR * 60; // Midnight = 1440 minutes
+  // Use configurable time range from project settings
+  const START_HOUR = scheduleSettings.dayStartHour;
+  const END_HOUR = scheduleSettings.dayEndHour;
+  const START_MINUTES = START_HOUR * 60;
+  const END_MINUTES = END_HOUR * 60;
+  const TOTAL_HOURS = END_HOUR - START_HOUR;
   const timeLabels = [];
   
   // Generate labels based on time increment, but only show hour labels
@@ -1076,7 +1077,7 @@ export function WeeklyAvailabilityEditor({ contact, isOpen: externalIsOpen, onOp
                 setScrollPosition(scrollTop);
               }}
             >
-              <div className="flex" style={{ height: '960px', boxSizing: 'border-box' }}> {/* 8 AM to midnight (16 hours) */}
+              <div className="flex" style={{ height: `${TOTAL_HOURS * 60}px`, boxSizing: 'border-box' }}>
                 {/* Time column */}
                 <div className="border-r bg-gray-50" style={{ width: '60px', flexShrink: 0, boxSizing: 'border-box', position: 'relative', zIndex: 20 }}>
                   <div className="relative h-full">

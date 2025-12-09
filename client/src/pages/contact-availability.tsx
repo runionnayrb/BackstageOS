@@ -203,17 +203,17 @@ function WeeklyAvailabilityEditorPage({
     queryKey: [`/api/projects/${contact.projectId}/contacts/${contact.id}/availability`],
   });
 
-  const scheduleSettings = parseScheduleSettings(showSettings);
-  const timeFormat = scheduleSettings.timeFormat || '12h';
-  const timeZone = scheduleSettings.timeZone || 'America/New_York';
+  const scheduleSettings = parseScheduleSettings((showSettings as any)?.scheduleSettings);
+  const timeFormat = scheduleSettings.timeFormat || '12';
+  const timeZone = scheduleSettings.timezone || 'America/New_York';
   const weekStartDay = scheduleSettings.weekStartDay || 'sunday';
-  const startHour = scheduleSettings.startHour || 9;
 
-  // Time constants
-  const START_HOUR = 8;
-  const END_HOUR = 24;
+  // Use configurable time range from project settings
+  const START_HOUR = scheduleSettings.dayStartHour;
+  const END_HOUR = scheduleSettings.dayEndHour;
   const START_MINUTES = START_HOUR * 60;
   const END_MINUTES = END_HOUR * 60;
+  const TOTAL_HOURS = END_HOUR - START_HOUR;
 
   // Calculate week dates
   const getWeekDates = useCallback((weekStart: Date) => {
@@ -333,7 +333,7 @@ function WeeklyAvailabilityEditorPage({
             position: 'relative'
           }}
         >
-          <div style={{ height: '960px', position: 'relative' }}>
+          <div style={{ height: `${TOTAL_HOURS * 60}px`, position: 'relative' }}>
             <div className="grid grid-cols-8 h-full">
               {/* Time column */}
               <div className="border-r bg-gray-50">
