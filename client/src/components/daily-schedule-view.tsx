@@ -647,7 +647,8 @@ export default function DailyScheduleView({
     // Only apply adjustment if schedule extends past midnight (END_MINUTES > 1440)
     // and the time is before START_MINUTES (e.g., 1 AM is before 7 AM start)
     // and the time is within the extended portion (e.g., 1 AM is part of 7 AM - 2 AM schedule)
-    if (END_MINUTES > 1440 && minutes < START_MINUTES && minutes < (END_MINUTES - 1440)) {
+    // Use <= to include the exact end time (e.g., 2 AM in a 7 AM - 2 AM schedule)
+    if (END_MINUTES > 1440 && minutes < START_MINUTES && minutes <= (END_MINUTES - 1440)) {
       return minutes + 1440;
     }
     return minutes;
