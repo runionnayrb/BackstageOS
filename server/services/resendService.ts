@@ -54,8 +54,14 @@ export async function sendEmailWithResend(emailData: EmailData): Promise<any> {
   
   console.log('📧 Resend fromEmail from connector:', fromEmail);
   
-  // Use provided from address, connector's email, or default to verified domain
-  const senderEmail = emailData.from || fromEmail || 'noreply@reset.backstageos.com';
+  // Use provided from address or replace with verified domain
+  let senderEmail = emailData.from;
+  if (!senderEmail && fromEmail) {
+    // Replace the domain with the verified one
+    senderEmail = fromEmail.replace(/backstageos\.com/, 'reset.backstageos.com');
+  }
+  senderEmail = senderEmail || 'noreply@reset.backstageos.com';
+  
   const senderName = emailData.fromName || 'BackstageOS';
   console.log('📧 Using sender email:', senderEmail);
   
