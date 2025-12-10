@@ -66,6 +66,7 @@ export function TeamMembersList({ accessLevel, isActive = true }: TeamMembersLis
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "team-members"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/editor-count`] });
       toast({
         title: "Team member removed",
         description: "The team member has been removed from the production.",
