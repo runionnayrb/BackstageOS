@@ -92,6 +92,17 @@ async function getGmailClient() {
   return google.gmail({ version: 'v1', auth: oauth2Client });
 }
 
+async function getAuthenticatedGmailEmail(): Promise<string> {
+  try {
+    const gmail = await getGmailClient();
+    const profile = await gmail.users.getProfile({ userId: 'me' });
+    return profile.data.emailAddress || '';
+  } catch (error) {
+    console.error('Failed to get authenticated Gmail email:', error);
+    return '';
+  }
+}
+
 function createMimeMessage(emailData: EmailData): string {
   const from = emailData.from?.name 
     ? `${emailData.from.name} <${emailData.from.email}>`
@@ -131,6 +142,15 @@ export class GmailService {
     try {
       console.log('🚀 Attempting to send email via Gmail to:', emailData.to);
       console.log('📧 Email subject:', emailData.subject);
+
+      // Get the authenticated Gmail account's email address
+      const authenticatedEmail = await getAuthenticatedGmailEmail();
+      console.log('📧 Authenticated Gmail account:', authenticatedEmail);
+
+      // Use the authenticated email with the display name from the from parameter
+      if (emailData.from && authenticatedEmail) {
+        emailData.from.email = authenticatedEmail;
+      }
 
       const gmail = await getGmailClient();
       const mimeMessage = createMimeMessage(emailData);
