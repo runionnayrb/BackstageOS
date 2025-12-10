@@ -94,7 +94,7 @@ async function getGmailClient() {
 
 function createMimeMessage(emailData: EmailData): string {
   const from = emailData.from?.name 
-    ? `"${emailData.from.name}" <${emailData.from.email}>`
+    ? `${emailData.from.name} <${emailData.from.email}>`
     : emailData.from?.email;
 
   const to = emailData.to.join(', ');
@@ -105,6 +105,8 @@ function createMimeMessage(emailData: EmailData): string {
 
   const boundary = 'boundary_' + Math.random().toString(36).substr(2, 9);
 
+  console.log('📧 Creating MIME message with From:', from);
+  
   let mime = `From: ${from}\r\n`;
   mime += `To: ${to}\r\n`;
   if (cc) mime += `Cc: ${cc}\r\n`;
