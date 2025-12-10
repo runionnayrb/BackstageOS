@@ -13486,7 +13486,7 @@ Best regards,
 
       // Send invitation email
       try {
-        const { sendEmailWithResend } = await import('./services/resendService.js');
+        const { sendEmail } = await import('./services/gmailService.js');
         const host = req.get('x-forwarded-host') || req.get('host') || '';
         const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
         const isDevEnvironment = host.includes('replit.dev') || host.includes('localhost') || host.includes('spock.replit.dev');
@@ -13515,11 +13515,15 @@ Best regards,
         const firstName = user.firstName || '';
         const senderName = firstName ? `${firstName} at BackstageOS` : 'BackstageOS';
 
-        await sendEmailWithResend({
+        await sendEmail({
           to: [email],
           subject: `You're invited to ${project.name}`,
           html: emailHtml,
-          fromName: senderName
+          from: {
+            email: user.email,
+            name: senderName
+          },
+          authenticatedEmail: user.email
         });
 
         console.log(`✅ Sent invitation email to ${email}`);
@@ -13551,7 +13555,7 @@ Best regards,
       const project = await storage.getProjectById(teamMember.projectId);
 
       // Send invitation email
-      const { sendEmailWithResend } = await import('./services/resendService.js');
+      const { sendEmail } = await import('./services/gmailService.js');
       const host = req.get('x-forwarded-host') || req.get('host') || '';
       const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
       const isDevEnvironment = host.includes('replit.dev') || host.includes('localhost') || host.includes('spock.replit.dev');
@@ -13580,11 +13584,15 @@ Best regards,
       const firstName = user.firstName || '';
       const senderName = firstName ? `${firstName} at BackstageOS` : 'BackstageOS';
 
-      await sendEmailWithResend({
+      await sendEmail({
         to: [teamMember.email],
         subject: `Reminder: You're invited to ${project.name}`,
         html: emailHtml,
-        fromName: senderName
+        from: {
+          email: user.email,
+          name: senderName
+        },
+        authenticatedEmail: user.email
       });
 
       res.json({ message: "Invitation resent successfully" });
