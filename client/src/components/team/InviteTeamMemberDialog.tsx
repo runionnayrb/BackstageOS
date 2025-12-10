@@ -61,6 +61,12 @@ export function InviteTeamMemberDialog({ variant, trigger }: InviteTeamMemberDia
     enabled: !!projectId,
   });
 
+  // Fetch editor count for this project
+  const { data: editorCountData } = useQuery({
+    queryKey: [`/api/projects/${projectId}/editor-count`],
+    enabled: !!projectId && variant === "editor",
+  });
+
   // Get default roles if no custom roles exist
   const defaultRoles = [
     "Production Stage Manager",
@@ -264,6 +270,19 @@ export function InviteTeamMemberDialog({ variant, trigger }: InviteTeamMemberDia
               )}
             />
 
+            {/* Editor Limits Info */}
+            {variant === "editor" && editorCountData && (
+              <Alert className={editorCountData.editorCount >= editorCountData.maxEditors ? "bg-red-50 border-red-200" : "bg-blue-50 border-blue-200"}>
+                <Shield className="h-4 w-4" />
+                <AlertDescription>
+                  Current editors assigned: <span className="font-semibold">{editorCountData.editorCount}/{editorCountData.maxEditors}</span>
+                  {editorCountData.editorCount >= editorCountData.maxEditors && (
+                    <div className="text-red-700 font-semibold mt-1">Maximum editor limit reached. Please remove an editor before inviting a new one.</div>
+                  )}
+                </AlertDescription>
+              </Alert>
+            )}
+
             {/* Editor Limits Warning */}
             {variant === "editor" && emailValue && checkLimitsMutation.isLoading && (
               <Alert>
@@ -310,7 +329,7 @@ export function InviteTeamMemberDialog({ variant, trigger }: InviteTeamMemberDia
               </Button>
               <Button 
                 type="submit" 
-                disabled={inviteTeamMemberMutation.isPending || showLimitWarning}
+                disabled={inviteTeamMemberMutation.isPending || showLimitWarning || (variant === "editor" && editorCountData?.editorCount >= editorCountData?.maxEditors)}
               >
                 {inviteTeamMemberMutation.isPending ? "Inviting..." : "Send Invitation"}
               </Button>

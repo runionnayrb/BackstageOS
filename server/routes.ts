@@ -13433,6 +13433,24 @@ Best regards,
     }
   });
 
+  // Get editor count for a project
+  app.get('/api/projects/:id/editor-count', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      
+      // Check if user has access to this project
+      const hasAccess = await storage.getUserProjectAccess(req.user.id, projectId);
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const editorCount = await storage.getEditorCountByProject(projectId);
+      res.json({ editorCount, maxEditors: 3 });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch editor count" });
+    }
+  });
+
   // Invite team member to project
   app.post('/api/projects/:id/team-members', isAuthenticated, async (req: any, res) => {
     try {
