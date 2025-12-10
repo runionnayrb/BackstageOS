@@ -82,15 +82,36 @@ export function EditTeamMemberDialog({
     mutationFn: async (data: EditTeamMemberForm) => {
       return apiRequest("PUT", `/api/team-members/${teamMember.id}`, data);
     },
+    onMutate: async (data: EditTeamMemberForm) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["/api/projects", projectId, "team-members"] });
+      
+      // Snapshot previous data
+      const previousMembers = queryClient.getQueryData(["/api/projects", projectId, "team-members"]);
+      
+      // Optimistically update cache
+      queryClient.setQueryData(["/api/projects", projectId, "team-members"], (old: any[] = []) => 
+        old.map((member: any) => 
+          member.id === teamMember.id 
+            ? { ...member, ...data }
+            : member
+        )
+      );
+      
+      return { previousMembers };
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "team-members"] });
       toast({
         title: "Team member updated",
         description: "Changes have been saved successfully.",
       });
       onOpenChange(false);
     },
-    onError: (error: any) => {
+    onError: (error: any, variables, context) => {
+      // Rollback on error
+      if (context?.previousMembers) {
+        queryClient.setQueryData(["/api/projects", projectId, "team-members"], context.previousMembers);
+      }
       toast({
         title: "Error",
         description: error.message || "Failed to update team member",
