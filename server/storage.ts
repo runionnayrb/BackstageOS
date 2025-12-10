@@ -5618,7 +5618,8 @@ export class DatabaseStorage implements IStorage {
       .from(teamMembers)
       .where(and(
         eq(teamMembers.projectId, projectId),
-        eq(teamMembers.accessLevel, 'editor')
+        eq(teamMembers.accessLevel, 'editor'),
+        eq(teamMembers.isArchived, false)
       ));
     
     return result[0]?.count || 0;
