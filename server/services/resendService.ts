@@ -54,8 +54,8 @@ export async function sendEmailWithResend(emailData: EmailData): Promise<any> {
   
   console.log('📧 Resend fromEmail from connector:', fromEmail);
   
-  // Use provided from address or default to noreply
-  const senderEmail = emailData.from || 'noreply@reset.backstageos.com';
+  // Use provided from address, connector's email, or default
+  const senderEmail = emailData.from || fromEmail || 'noreply@backstageos.com';
   const senderName = emailData.fromName || 'BackstageOS';
   console.log('📧 Using sender email:', senderEmail);
   
