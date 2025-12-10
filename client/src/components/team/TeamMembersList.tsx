@@ -7,28 +7,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { MoreVertical, Mail, Shield, Eye, Edit3, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { EditTeamMemberDialog } from "./EditTeamMemberDialog";
 
 interface TeamMember {
   id: number;
@@ -56,8 +43,8 @@ export function TeamMembersList({ accessLevel, isActive = true }: TeamMembersLis
   const { id: projectId } = useParams();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [editingMemberId, setEditingMemberId] = useState<number | null>(null);
-  const [selectedRole, setSelectedRole] = useState<string>("");
+  const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const { data: teamMembers = [], isLoading } = useQuery({
     queryKey: ["/api/projects", projectId, "team-members"],
@@ -93,27 +80,6 @@ export function TeamMembersList({ accessLevel, isActive = true }: TeamMembersLis
     },
   });
 
-  const updateTeamMemberMutation = useMutation({
-    mutationFn: async ({ memberId, role }: { memberId: number; role: string }) => {
-      return apiRequest("PUT", `/api/team-members/${memberId}`, { role });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "team-members"] });
-      toast({
-        title: "Role updated",
-        description: "Team member role has been updated.",
-      });
-      setEditingMemberId(null);
-      setSelectedRole("");
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update team member",
-        variant: "destructive",
-      });
-    },
-  });
 
   const filteredMembers = (teamMembers as TeamMember[]).filter((member: TeamMember) => member.accessLevel === accessLevel);
 
@@ -124,14 +90,8 @@ export function TeamMembersList({ accessLevel, isActive = true }: TeamMembersLis
   };
 
   const handleEditMember = (member: TeamMember) => {
-    setEditingMemberId(member.id);
-    setSelectedRole(member.role);
-  };
-
-  const handleSaveRole = () => {
-    if (editingMemberId && selectedRole) {
-      updateTeamMemberMutation.mutate({ memberId: editingMemberId, role: selectedRole });
-    }
+    setEditingMember(member);
+    setEditDialogOpen(true);
   };
 
   const resendInvitationMutation = useMutation({
@@ -301,58 +261,14 @@ export function TeamMembersList({ accessLevel, isActive = true }: TeamMembersLis
         ))}
       </div>
 
-      {/* Edit Role Dialog */}
-      <Dialog open={editingMemberId !== null} onOpenChange={(open) => {
-        if (!open) {
-          setEditingMemberId(null);
-          setSelectedRole("");
-        }
-      }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Team Member Role</DialogTitle>
-            <DialogDescription>
-              Select a new production role for this team member
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Production Role</label>
-              <Select value={selectedRole} onValueChange={setSelectedRole}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a role" />
-                </SelectTrigger>
-                <SelectContent>
-                  {roles.map((roleName) => (
-                    <SelectItem key={roleName} value={roleName}>
-                      {roleName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex justify-end space-x-2">
-              <Button 
-                variant="outline"
-                onClick={() => {
-                  setEditingMemberId(null);
-                  setSelectedRole("");
-                }}
-              >
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleSaveRole}
-                disabled={updateTeamMemberMutation.isPending}
-              >
-                {updateTeamMemberMutation.isPending ? "Saving..." : "Save Role"}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {editingMember && (
+        <EditTeamMemberDialog
+          teamMember={editingMember}
+          projectId={parseInt(projectId || "")}
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+        />
+      )}
     </>
   );
 }
