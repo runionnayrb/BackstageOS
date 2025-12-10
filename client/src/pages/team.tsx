@@ -6,42 +6,47 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useLocation } from "wouter";
 import { UserPlus, Users, MoreVertical } from "lucide-react";
 import { useState } from "react";
+import { EditTeamMemberDialog } from "@/components/team/EditTeamMemberDialog";
 
 export default function Team() {
   const [, setLocation] = useLocation();
   const [selectedProject, setSelectedProject] = useState<string>("all");
+  const [editingMember, setEditingMember] = useState<any>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const { data: projects = [] } = useQuery({
     queryKey: ["/api/projects"],
   });
 
-  // Mock team data since we don't have team member endpoints implemented
-  const mockTeamMembers = [
-    {
-      id: 1,
-      name: "Jane Smith",
-      email: "jane@email.com",
-      role: "Stage Manager",
-      status: "accepted",
-      initials: "JS",
+  // Fetch team members for the selected project
+  const { data: teamMembers = [] } = useQuery({
+    queryKey: ["/api/projects", selectedProject === "all" ? null : selectedProject, "team-members"],
+    enabled: selectedProject !== "all",
+  });
+
+  // If "all" is selected, fetch team members from all projects
+  const { data: allProjectTeamMembers = [] } = useQuery({
+    queryKey: ["/api/projects", "all", "team-members"],
+    enabled: selectedProject === "all",
+    queryFn: async () => {
+      // Fetch team members from all projects
+      const members: any[] = [];
+      for (const project of projects) {
+        try {
+          const response = await fetch(`/api/projects/${project.id}/team-members`);
+          if (response.ok) {
+            const projectMembers = await response.json();
+            members.push(...projectMembers);
+          }
+        } catch (error) {
+          console.error(`Failed to fetch team members for project ${project.id}:`, error);
+        }
+      }
+      return members;
     },
-    {
-      id: 2,
-      name: "Mike Davis",
-      email: "mike@email.com",
-      role: "Director",
-      status: "accepted",
-      initials: "MD",
-    },
-    {
-      id: 3,
-      name: "Lisa Johnson",
-      email: "lisa@email.com",
-      role: "Sound Designer",
-      status: "pending",
-      initials: "LJ",
-    },
-  ];
+  });
+
+  const displayedMembers = selectedProject === "all" ? allProjectTeamMembers : teamMembers;
 
   const getRoleColor = (role: string) => {
     switch (role.toLowerCase()) {
@@ -61,6 +66,14 @@ export default function Team() {
       case "declined": return "bg-red-500";
       default: return "bg-gray-500";
     }
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase();
   };
 
   return (
@@ -96,7 +109,7 @@ export default function Team() {
           </div>
         </CardHeader>
         <CardContent>
-          {mockTeamMembers.length === 0 ? (
+          {displayedMembers.length === 0 ? (
             <div className="text-center py-12">
               <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No team members yet</h3>
@@ -108,12 +121,12 @@ export default function Team() {
             </div>
           ) : (
             <div className="divide-y divide-gray-200">
-              {mockTeamMembers.map((member) => (
+              {displayedMembers.map((member) => (
                 <div key={member.id} className="py-4 flex items-center justify-between">
                   <div className="flex items-center space-x-4">
                     <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
                       <span className="text-white font-medium text-sm">
-                        {member.initials}
+                        {getInitials(member.name || "")}
                       </span>
                     </div>
                     <div>
@@ -131,7 +144,14 @@ export default function Team() {
                     >
                       {member.status}
                     </Badge>
-                    <Button variant="ghost" size="sm">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => {
+                        setEditingMember(member);
+                        setEditDialogOpen(true);
+                      }}
+                    >
                       <MoreVertical className="w-4 h-4" />
                     </Button>
                   </div>
@@ -141,6 +161,15 @@ export default function Team() {
           )}
         </CardContent>
       </Card>
+
+      {editingMember && (
+        <EditTeamMemberDialog
+          teamMember={editingMember}
+          projectId={editingMember.projectId}
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+        />
+      )}
     </div>
   );
 }

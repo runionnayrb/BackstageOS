@@ -13604,9 +13604,11 @@ Best regards,
   app.put('/api/team-members/:id', isAuthenticated, async (req: any, res) => {
     try {
       const memberId = parseInt(req.params.id);
-      const { role, roleType, accessLevel } = req.body;
+      const { name, email, role, roleType, accessLevel } = req.body;
 
       const teamMember = await storage.updateTeamMember(memberId, {
+        name,
+        email,
         role,
         roleType,
         accessLevel,
