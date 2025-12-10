@@ -11,26 +11,52 @@ async function getCredentials() {
     : null;
 
   if (!xReplitToken) {
+    console.error('❌ X_REPLIT_TOKEN not found - REPL_IDENTITY:', !!process.env.REPL_IDENTITY, 'WEB_REPL_RENEWAL:', !!process.env.WEB_REPL_RENEWAL);
     throw new Error('X_REPLIT_TOKEN not found for repl/depl');
   }
 
-  connectionSettings = await fetch(
-    'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=resend',
-    {
-      headers: {
-        'Accept': 'application/json',
-        'X_REPLIT_TOKEN': xReplitToken
+  console.log('🔐 Fetching Resend credentials from connector hostname:', hostname);
+  
+  try {
+    const response = await fetch(
+      'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=resend',
+      {
+        headers: {
+          'Accept': 'application/json',
+          'X_REPLIT_TOKEN': xReplitToken
+        }
       }
+    );
+    
+    if (!response.ok) {
+      console.error('❌ Failed to fetch Resend credentials:', response.status, response.statusText);
+      throw new Error(`Connector request failed: ${response.status}`);
     }
-  ).then(res => res.json()).then(data => data.items?.[0]);
+    
+    const data = await response.json();
+    console.log('📋 Connector response:', data.items?.length, 'items found');
+    
+    connectionSettings = data.items?.[0];
 
-  if (!connectionSettings || (!connectionSettings.settings.api_key)) {
-    throw new Error('Resend not connected');
+    if (!connectionSettings) {
+      console.error('❌ No Resend connection found in response');
+      throw new Error('Resend not connected');
+    }
+    
+    if (!connectionSettings.settings?.api_key) {
+      console.error('❌ Resend connection has no API key - settings:', Object.keys(connectionSettings.settings || {}));
+      throw new Error('Resend API key not configured');
+    }
+    
+    console.log('✅ Resend credentials retrieved successfully');
+    return {
+      apiKey: connectionSettings.settings.api_key, 
+      fromEmail: connectionSettings.settings.from_email
+    };
+  } catch (error) {
+    console.error('❌ Error fetching Resend credentials:', error instanceof Error ? error.message : error);
+    throw error;
   }
-  return {
-    apiKey: connectionSettings.settings.api_key, 
-    fromEmail: connectionSettings.settings.from_email
-  };
 }
 
 export async function getResendClient() {

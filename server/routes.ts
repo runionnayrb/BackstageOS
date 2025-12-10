@@ -13542,7 +13542,10 @@ Best regards,
 
         console.log(`✅ Sent invitation email to ${email}`);
       } catch (emailError) {
-        console.error('Failed to send invitation email:', emailError);
+        console.error('❌ Failed to send invitation email:', emailError instanceof Error ? emailError.message : emailError);
+        if (emailError instanceof Error) {
+          console.error('Stack trace:', emailError.stack);
+        }
         // Don't fail the request if email fails, just log it
       }
 
