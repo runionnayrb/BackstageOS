@@ -13487,7 +13487,13 @@ Best regards,
       // Send invitation email
       try {
         const { sendEmail } = await import('./services/gmailService.js');
-        const invitationLink = `${process.env.APP_URL || 'https://backstageos.com'}/join/${projectId}`;
+        const host = req.get('x-forwarded-host') || req.get('host') || '';
+        const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
+        const isDevEnvironment = host.includes('replit.dev') || host.includes('localhost') || host.includes('spock.replit.dev');
+        const baseUrl = isDevEnvironment 
+          ? `${protocol}://${host}`
+          : (process.env.APP_URL || 'https://backstageos.com');
+        const invitationLink = `${baseUrl}/join/${projectId}`;
         
         const emailHtml = `
           <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
@@ -13545,7 +13551,13 @@ Best regards,
 
       // Send invitation email
       const { sendEmail } = await import('./services/gmailService.js');
-      const invitationLink = `${process.env.APP_URL || 'https://backstageos.com'}/join/${teamMember.projectId}`;
+      const host = req.get('x-forwarded-host') || req.get('host') || '';
+      const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
+      const isDevEnvironment = host.includes('replit.dev') || host.includes('localhost') || host.includes('spock.replit.dev');
+      const baseUrl = isDevEnvironment 
+        ? `${protocol}://${host}`
+        : (process.env.APP_URL || 'https://backstageos.com');
+      const invitationLink = `${baseUrl}/join/${teamMember.projectId}`;
       
       const emailHtml = `
         <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
