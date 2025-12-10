@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
@@ -10,8 +10,10 @@ import { Loader2, CheckCircle2, UserPlus, LogIn, Theater, AlertCircle } from "lu
 import type { Project } from "@shared/schema";
 
 export default function JoinProject() {
-  const { projectId } = useParams<{ projectId: string }>();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
+  
+  // Extract projectId from URL path since we're not using Route component
+  const projectId = location.startsWith('/join/') ? location.split('/join/')[1]?.split('/')[0] : undefined;
   const { user, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
