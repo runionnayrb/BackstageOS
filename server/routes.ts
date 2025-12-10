@@ -13542,6 +13542,7 @@ Best regards,
   app.post('/api/team-members/:id/resend-invitation', isAuthenticated, async (req: any, res) => {
     try {
       const memberId = parseInt(req.params.id);
+      const user = req.user;
       
       // Get team member
       const teamMember = await storage.getTeamMemberById(memberId);
