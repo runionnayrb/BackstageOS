@@ -13522,7 +13522,8 @@ Best regards,
           from: {
             email: user.email,
             name: senderName
-          }
+          },
+          authenticatedEmail: user.email
         });
 
         console.log(`✅ Sent invitation email to ${email}`);
@@ -13590,7 +13591,8 @@ Best regards,
         from: {
           email: user.email,
           name: senderName
-        }
+        },
+        authenticatedEmail: user.email
       });
 
       res.json({ message: "Invitation resent successfully" });
