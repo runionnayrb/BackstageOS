@@ -13486,7 +13486,7 @@ Best regards,
 
       // Send invitation email
       try {
-        const { sendEmail } = await import('./services/gmailService.js');
+        const { sendEmailWithResend } = await import('./services/resendService.js');
         const host = req.get('x-forwarded-host') || req.get('host') || '';
         const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
         const isDevEnvironment = host.includes('replit.dev') || host.includes('localhost') || host.includes('spock.replit.dev');
@@ -13508,18 +13508,20 @@ Best regards,
             <p style="margin-top: 24px; font-size: 14px; color: #666;">
               Or copy this link: ${invitationLink}
             </p>
-            <p>Best regards,<br>BackstageOS Team</p>
+            <p>Best regards,<br>${user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.email}</p>
           </div>
         `;
 
-        await sendEmail({
+        const senderName = user.firstName && user.lastName 
+          ? `${user.firstName} ${user.lastName}`
+          : user.firstName || user.lastName || 'BackstageOS';
+
+        await sendEmailWithResend({
           to: [email],
           subject: `You're invited to ${project.name}`,
           html: emailHtml,
-          from: {
-            email: 'hello@backstageos.com',
-            name: 'BackstageOS'
-          }
+          from: 'hello@backstageos.com',
+          fromName: senderName
         });
 
         console.log(`✅ Sent invitation email to ${email}`);
@@ -13550,7 +13552,7 @@ Best regards,
       const project = await storage.getProjectById(teamMember.projectId);
 
       // Send invitation email
-      const { sendEmail } = await import('./services/gmailService.js');
+      const { sendEmailWithResend } = await import('./services/resendService.js');
       const host = req.get('x-forwarded-host') || req.get('host') || '';
       const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
       const isDevEnvironment = host.includes('replit.dev') || host.includes('localhost') || host.includes('spock.replit.dev');
@@ -13572,18 +13574,20 @@ Best regards,
           <p style="margin-top: 24px; font-size: 14px; color: #666;">
             Or copy this link: ${invitationLink}
           </p>
-          <p>Best regards,<br>BackstageOS Team</p>
+          <p>Best regards,<br>${user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.email}</p>
         </div>
       `;
 
-      await sendEmail({
+      const senderName = user.firstName && user.lastName 
+        ? `${user.firstName} ${user.lastName}`
+        : user.firstName || user.lastName || 'BackstageOS';
+
+      await sendEmailWithResend({
         to: [teamMember.email],
         subject: `Reminder: You're invited to ${project.name}`,
         html: emailHtml,
-        from: {
-          email: 'hello@backstageos.com',
-          name: 'BackstageOS'
-        }
+        from: 'hello@backstageos.com',
+        fromName: senderName
       });
 
       res.json({ message: "Invitation resent successfully" });

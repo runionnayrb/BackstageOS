@@ -46,6 +46,7 @@ interface EmailData {
   subject: string;
   html: string;
   from?: string;
+  fromName?: string;
 }
 
 export async function sendEmailWithResend(emailData: EmailData): Promise<any> {
@@ -53,12 +54,13 @@ export async function sendEmailWithResend(emailData: EmailData): Promise<any> {
   
   console.log('📧 Resend fromEmail from connector:', fromEmail);
   
-  // Always use the verified subdomain for password reset emails
-  const senderEmail = 'noreply@reset.backstageos.com';
+  // Use provided from address or default to noreply
+  const senderEmail = emailData.from || 'noreply@reset.backstageos.com';
+  const senderName = emailData.fromName || 'BackstageOS';
   console.log('📧 Using sender email:', senderEmail);
   
   const response = await client.emails.send({
-    from: `BackstageOS <${senderEmail}>`,
+    from: `${senderName} <${senderEmail}>`,
     to: emailData.to,
     subject: emailData.subject,
     html: emailData.html,
