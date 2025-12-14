@@ -366,7 +366,8 @@ function renderReportContent(
   contentRef: React.MutableRefObject<Record<string, any>>,
   initializedFieldsRef: React.MutableRefObject<Set<number>>
 ) {
-  const content = form.watch("content") || {};
+  // Use contentRef directly for richtext - do NOT use form.watch() as it causes re-renders
+  const currentContent = contentRef.current;
 
   if (!template?.sections) {
     return <div className="text-center py-8 text-muted-foreground">Template not found</div>;
@@ -402,33 +403,28 @@ function renderReportContent(
                         suppressContentEditableWarning
                         ref={(el) => {
                           if (el && !initializedFieldsRef.current.has(field.id)) {
-                            el.innerHTML = contentRef.current[field.label] || content[field.label] || field.defaultValue || "";
+                            el.innerHTML = currentContent[field.label] || field.defaultValue || "";
                             initializedFieldsRef.current.add(field.id);
                           }
                         }}
                         onBlur={(e) => {
                           const newValue = e.currentTarget.innerHTML;
                           contentRef.current[field.label] = newValue;
-                          const newContent = {...content};
-                          newContent[field.label] = newValue;
-                          form.setValue("content", newContent);
                         }}
                         className="text-sm whitespace-pre-wrap outline-none [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4"
                       />
                     )}
                     {field.type === "richtext" && !isEditing && (
                       <div 
-                        dangerouslySetInnerHTML={{__html: content[field.label] || field.defaultValue || ""}}
+                        dangerouslySetInnerHTML={{__html: currentContent[field.label] || field.defaultValue || ""}}
                         className="text-sm whitespace-pre-wrap [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4"
                       />
                     )}
                     {field.type === "text" && (
                       <Input
-                        value={content[field.label] || field.defaultValue || ""}
+                        defaultValue={currentContent[field.label] || field.defaultValue || ""}
                         onChange={(e) => {
-                          const newContent = {...content};
-                          newContent[field.label] = e.target.value;
-                          form.setValue("content", newContent);
+                          contentRef.current[field.label] = e.target.value;
                         }}
                         disabled={!isEditing}
                         placeholder={field.placeholder || ""}
@@ -438,11 +434,9 @@ function renderReportContent(
                     {field.type === "number" && (
                       <Input
                         type="number"
-                        value={content[field.label] || field.defaultValue || ""}
+                        defaultValue={currentContent[field.label] || field.defaultValue || ""}
                         onChange={(e) => {
-                          const newContent = {...content};
-                          newContent[field.label] = e.target.value;
-                          form.setValue("content", newContent);
+                          contentRef.current[field.label] = e.target.value;
                         }}
                         disabled={!isEditing}
                         placeholder={field.placeholder || ""}
@@ -452,11 +446,9 @@ function renderReportContent(
                     {field.type === "date" && (
                       <Input
                         type="date"
-                        value={content[field.label] || field.defaultValue || ""}
+                        defaultValue={currentContent[field.label] || field.defaultValue || ""}
                         onChange={(e) => {
-                          const newContent = {...content};
-                          newContent[field.label] = e.target.value;
-                          form.setValue("content", newContent);
+                          contentRef.current[field.label] = e.target.value;
                         }}
                         disabled={!isEditing}
                         className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
@@ -465,11 +457,9 @@ function renderReportContent(
                     {field.type === "checkbox" && (
                       <div className="flex items-center space-x-2">
                         <Checkbox
-                          checked={content[field.label] === "true" || field.defaultValue === "true"}
+                          defaultChecked={currentContent[field.label] === "true" || field.defaultValue === "true"}
                           onCheckedChange={(checked) => {
-                            const newContent = {...content};
-                            newContent[field.label] = checked ? "true" : "false";
-                            form.setValue("content", newContent);
+                            contentRef.current[field.label] = checked ? "true" : "false";
                           }}
                           disabled={!isEditing}
                         />
@@ -480,11 +470,9 @@ function renderReportContent(
                     )}
                     {field.type === "select" && (
                       <Select 
-                        value={content[field.label] || field.defaultValue || ""} 
+                        defaultValue={currentContent[field.label] || field.defaultValue || ""} 
                         onValueChange={(value) => {
-                          const newContent = {...content};
-                          newContent[field.label] = value;
-                          form.setValue("content", newContent);
+                          contentRef.current[field.label] = value;
                         }}
                         disabled={!isEditing}
                       >
