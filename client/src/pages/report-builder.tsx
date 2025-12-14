@@ -682,14 +682,17 @@ export default function ReportBuilder() {
                                 const content = e.currentTarget.innerHTML.trim();
                                 const defaultValue = defaultValuesRef.current[field.id] || "";
                                 
+                                // Get the actual text content without HTML tags
+                                const textContent = e.currentTarget.textContent?.trim() || "";
+                                
                                 // Check if content is empty or just the default value
                                 const isDefaultListStructure = content === defaultValue || 
                                   (content.includes("<li></li>") || 
-                                   content.match(/<ol>\s*<li>\s*<\/li>\s*<\/ol>/) ||
-                                   content.match(/<ul>\s*<li>\s*<\/li>\s*<\/ul>/));
+                                   content.match(/<ol[^>]*>\s*<li[^>]*>\s*<\/li>\s*<\/ol>/) ||
+                                   content.match(/<ul[^>]*>\s*<li[^>]*>\s*<\/li>\s*<\/ul>/));
                                 
-                                // If field is empty or matches default, restore default
-                                if (!content || isDefaultListStructure) {
+                                // If field is empty (no text content) or matches default, restore default
+                                if (!content || !textContent || isDefaultListStructure) {
                                   e.currentTarget.innerHTML = defaultValue;
                                   contentRef.current[field.label] = defaultValue;
                                 } else {
