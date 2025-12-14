@@ -4748,10 +4748,23 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
 
-      // Check ownership - use effective user ID to respect admin "view as" feature
+      // Check ownership or team membership - use effective user ID to respect admin "view as" feature
       const effectiveUserId = getEffectiveUserId(req);
-      if (project.ownerId != effectiveUserId) {
-        return res.status(403).json({ message: "Access denied" });
+      const isOwner = project.ownerId == effectiveUserId;
+      
+      if (!isOwner) {
+        const teamMembership = await db.select()
+          .from(teamMembers)
+          .where(and(
+            eq(teamMembers.projectId, projectId),
+            eq(teamMembers.userId, parseInt(effectiveUserId)),
+            eq(teamMembers.isArchived, false)
+          ))
+          .limit(1);
+        
+        if (teamMembership.length === 0) {
+          return res.status(403).json({ message: "Access denied" });
+        }
       }
 
       let settings = await storage.getShowSettingsByProjectId(projectId);
@@ -7467,9 +7480,22 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
 
-      // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
-        return res.status(403).json({ message: "Access denied" });
+      // Check ownership or team membership
+      const isOwner = project.ownerId == req.user.id.toString();
+      
+      if (!isOwner) {
+        const teamMembership = await db.select()
+          .from(teamMembers)
+          .where(and(
+            eq(teamMembers.projectId, projectId),
+            eq(teamMembers.userId, req.user.id),
+            eq(teamMembers.isArchived, false)
+          ))
+          .limit(1);
+        
+        if (teamMembership.length === 0) {
+          return res.status(403).json({ message: "Access denied" });
+        }
       }
 
       const contacts = await storage.getContactsByProjectId(projectId);
@@ -8519,9 +8545,22 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
 
-      // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
-        return res.status(403).json({ message: "Access denied" });
+      // Check ownership or team membership
+      const isOwner = project.ownerId == req.user.id.toString();
+      
+      if (!isOwner) {
+        const teamMembership = await db.select()
+          .from(teamMembers)
+          .where(and(
+            eq(teamMembers.projectId, projectId),
+            eq(teamMembers.userId, req.user.id),
+            eq(teamMembers.isArchived, false)
+          ))
+          .limit(1);
+        
+        if (teamMembership.length === 0) {
+          return res.status(403).json({ message: "Access denied" });
+        }
       }
 
       const changesSummary = await scheduleChangeDetectionService.generateChangesSummary(projectId);
