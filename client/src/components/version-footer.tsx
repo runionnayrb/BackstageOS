@@ -222,6 +222,10 @@ export default function VersionFooter() {
               <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-foreground cursor-pointer">
                 Terms
               </a>
+              <span className="text-xs text-muted-foreground">|</span>
+              <a href="/faq" target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-foreground cursor-pointer">
+                FAQ
+              </a>
             </div>
             <Button asChild variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground">
               <Link to="/projects/archived" className="flex items-center gap-1">

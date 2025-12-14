@@ -5,7 +5,7 @@ const root = createRoot(document.getElementById("root")!);
 const path = window.location.pathname;
 
 // Policy pages load instantly without AuthProvider or query dependencies
-if (path === '/security' || path === '/privacy' || path === '/terms') {
+if (path === '/security' || path === '/privacy' || path === '/terms' || path === '/faq') {
   // Dynamic import to avoid loading App bundle
   const loadPolicyPage = async () => {
     if (path === '/security') {
@@ -17,6 +17,9 @@ if (path === '/security' || path === '/privacy' || path === '/terms') {
     } else if (path === '/terms') {
       const { default: TermsPage } = await import("./pages/terms");
       root.render(<TermsPage />);
+    } else if (path === '/faq') {
+      const { default: FAQPage } = await import("./pages/faq");
+      root.render(<FAQPage />);
     }
   };
   loadPolicyPage();
