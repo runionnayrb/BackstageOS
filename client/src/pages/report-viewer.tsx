@@ -378,11 +378,6 @@ function renderReportContent(report: any, template: any, isEditing: boolean, for
                           newContent[field.label] = e.currentTarget.innerHTML;
                           form.setValue("content", newContent);
                         }}
-                        onInput={(e) => {
-                          const newContent = {...content};
-                          newContent[field.label] = e.currentTarget.innerHTML;
-                          form.setValue("content", newContent);
-                        }}
                         dangerouslySetInnerHTML={{__html: content[field.label] || field.defaultValue || ""}}
                         className="text-sm whitespace-pre-wrap outline-none [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4"
                       />
