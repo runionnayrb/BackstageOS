@@ -1099,10 +1099,11 @@ export default function ReportBuilder() {
   };
 
   return (
-    <div>
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">{generatePageTitle(reportType || "", isEditMode)}</h2>
-      </div>
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto p-6">
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">{generatePageTitle(reportType || "", isEditMode)}</h2>
+        </div>
 
       {/* Template Selection - Hidden since template is auto-selected based on report type */}
 
@@ -1175,6 +1176,7 @@ export default function ReportBuilder() {
           </Button>
         </div>
       </form>
+      </div>
     </div>
   );
 }
