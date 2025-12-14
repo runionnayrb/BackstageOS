@@ -1104,8 +1104,32 @@ export default function ReportBuilder() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">{generatePageTitle(reportType || "", isEditMode)}</h2>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">{generatePageTitle(reportType || "", isEditMode)}</h1>
+            <p className="text-gray-600">{project?.name}</p>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}`)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="button"
+              variant="default"
+              size="sm"
+              onClick={form.handleSubmit(onSubmit)}
+              disabled={mutation.isPending || (!selectedTemplate && !isEditMode)}
+            >
+              {mutation.isPending ? (isEditMode ? "Updating..." : "Creating...") : (isEditMode ? "Save" : "Save Report")}
+            </Button>
+          </div>
         </div>
 
       {/* Template Selection - Hidden since template is auto-selected based on report type */}
@@ -1162,22 +1186,6 @@ export default function ReportBuilder() {
           </div>
         )}
 
-        {/* Action Buttons - Fixed at bottom */}
-        <div className="fixed bottom-6 right-6 flex space-x-2 bg-white shadow-lg rounded-lg p-4 border">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}`)}
-          >
-            Cancel
-          </Button>
-          <Button 
-            type="submit" 
-            disabled={mutation.isPending || (!selectedTemplate && !isEditMode)}
-          >
-            {mutation.isPending ? (isEditMode ? "Updating..." : "Creating...") : (isEditMode ? "Update Report" : "Save Report")}
-          </Button>
-        </div>
       </form>
       </div>
     </div>
