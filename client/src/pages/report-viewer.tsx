@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, memo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -358,6 +358,49 @@ export default function ReportViewer() {
   );
 }
 
+// Memoized RichTextField component to prevent cursor jumping
+const RichTextField = memo(function RichTextField({ 
+  fieldId,
+  fieldLabel, 
+  defaultValue,
+  onContentChange 
+}: { 
+  fieldId: number;
+  fieldLabel: string;
+  defaultValue: string;
+  onContentChange: (label: string, value: string) => void;
+}) {
+  const editorRef = useRef<HTMLDivElement>(null);
+  const initializedRef = useRef(false);
+  const callbackRef = useRef(onContentChange);
+  
+  // Keep callback ref up to date without triggering re-renders
+  callbackRef.current = onContentChange;
+
+  useEffect(() => {
+    if (editorRef.current && !initializedRef.current) {
+      editorRef.current.innerHTML = defaultValue;
+      initializedRef.current = true;
+    }
+  }, [defaultValue]);
+
+  return (
+    <div
+      ref={editorRef}
+      contentEditable
+      suppressContentEditableWarning
+      onBlur={(e) => {
+        callbackRef.current(fieldLabel, e.currentTarget.innerHTML);
+      }}
+      className="text-sm whitespace-pre-wrap outline-none [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4"
+    />
+  );
+}, (prevProps, nextProps) => {
+  // Only re-render if fieldId or fieldLabel changes, ignore onContentChange
+  return prevProps.fieldId === nextProps.fieldId && 
+         prevProps.fieldLabel === nextProps.fieldLabel;
+});
+
 function renderReportContent(
   report: any, 
   template: any, 
@@ -366,12 +409,15 @@ function renderReportContent(
   contentRef: React.MutableRefObject<Record<string, any>>,
   initializedFieldsRef: React.MutableRefObject<Set<number>>
 ) {
-  // Use contentRef directly for richtext - do NOT use form.watch() as it causes re-renders
   const currentContent = contentRef.current;
 
   if (!template?.sections) {
     return <div className="text-center py-8 text-muted-foreground">Template not found</div>;
   }
+
+  const handleContentChange = (label: string, value: string) => {
+    contentRef.current[label] = value;
+  };
 
   return (
     <div className="space-y-6">
@@ -398,20 +444,11 @@ function renderReportContent(
                     )}
                     
                     {field.type === "richtext" && isEditing && (
-                      <div
-                        contentEditable
-                        suppressContentEditableWarning
-                        ref={(el) => {
-                          if (el && !initializedFieldsRef.current.has(field.id)) {
-                            el.innerHTML = currentContent[field.label] || field.defaultValue || "";
-                            initializedFieldsRef.current.add(field.id);
-                          }
-                        }}
-                        onBlur={(e) => {
-                          const newValue = e.currentTarget.innerHTML;
-                          contentRef.current[field.label] = newValue;
-                        }}
-                        className="text-sm whitespace-pre-wrap outline-none [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4"
+                      <RichTextField
+                        fieldId={field.id}
+                        fieldLabel={field.label}
+                        defaultValue={currentContent[field.label] || field.defaultValue || ""}
+                        onContentChange={handleContentChange}
                       />
                     )}
                     {field.type === "richtext" && !isEditing && (
