@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
-import { useState, useEffect, useRef, memo, useLayoutEffect } from "react";
+import { useState, useEffect, useRef, useCallback, useLayoutEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -46,28 +46,21 @@ interface ReportViewerParams {
   reportId: string;
 }
 
-// Dedicated RichTextField component - defined before ReportViewer to ensure stable identity
-const RichTextField = memo(function RichTextField({ 
-  fieldKey,
-  fieldLabel, 
-  initialValue,
-  onContentChange 
-}: { 
+interface RichTextFieldProps {
   fieldKey: string;
   fieldLabel: string;
   initialValue: string;
-  onContentChange: (label: string, value: string) => void;
-}) {
-  const editorRef = useRef<HTMLDivElement>(null);
-  const callbackRef = useRef(onContentChange);
-  
-  // Keep callback ref up to date without triggering re-renders
-  callbackRef.current = onContentChange;
+  contentRef: React.MutableRefObject<Record<string, any>>;
+}
 
-  // Set innerHTML only ONCE on mount using useLayoutEffect
+function RichTextFieldInline({ fieldKey, fieldLabel, initialValue, contentRef }: RichTextFieldProps) {
+  const editorRef = useRef<HTMLDivElement>(null);
+  const isInitializedRef = useRef(false);
+
   useLayoutEffect(() => {
-    if (editorRef.current) {
+    if (editorRef.current && !isInitializedRef.current) {
       editorRef.current.innerHTML = initialValue;
+      isInitializedRef.current = true;
     }
   }, []);
 
@@ -77,13 +70,12 @@ const RichTextField = memo(function RichTextField({
       contentEditable
       suppressContentEditableWarning
       onInput={(e) => {
-        // Update backing store on input without writing innerHTML
-        callbackRef.current(fieldLabel, e.currentTarget.innerHTML);
+        contentRef.current[fieldLabel] = e.currentTarget.innerHTML;
       }}
       className="text-sm whitespace-pre-wrap outline-none [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4"
     />
   );
-});
+}
 
 export default function ReportViewer() {
   const [, setLocation] = useLocation();
@@ -95,9 +87,8 @@ export default function ReportViewer() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Refs for content tracking without re-rendering (prevents cursor jumping)
+  // Ref for content tracking without re-rendering (prevents cursor jumping)
   const contentRef = useRef<Record<string, any>>({});
-  const initializedFieldsRef = useRef<Set<number>>(new Set());
   
   // Always-editable report viewer - no lock/unlock functionality
 
@@ -146,9 +137,8 @@ export default function ReportViewer() {
           date: report.date ? new Date(report.date).toISOString().split('T')[0] : "",
           content: report.content || {},
         });
-        // Initialize contentRef and reset initialized fields
+        // Initialize contentRef
         contentRef.current = { ...(report.content || {}) };
-        initializedFieldsRef.current.clear();
         lastReportIdRef.current = report.id;
         lastReportContentRef.current = reportContentSignature;
       }
@@ -362,10 +352,118 @@ export default function ReportViewer() {
           </div>
         </div>
 
-        {/* Report Content */}
+        {/* Report Content - rendered inline to prevent cursor jumping */}
         <div data-pdf-content>
           <form onSubmit={form.handleSubmit(handleSave)} className="space-y-6">
-            {renderReportContent(report, template, true, form, contentRef, initializedFieldsRef)}
+            {template?.sections ? (
+              <div className="space-y-6">
+                {template.sections.map((section: any) => (
+                  <div key={section.id} className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-semibold">{section.title}</h3>
+                      {section.departmentKey && (
+                        <p className="text-sm text-muted-foreground">{section.departmentKey}</p>
+                      )}
+                    </div>
+
+                    {section.fields && section.fields.length > 0 ? (
+                      <div className="space-y-4 pl-4">
+                        {section.fields.map((field: any) => (
+                          <div key={field.id} className="space-y-2">
+                            <Label className="font-bold">
+                              {field.label}
+                              {field.required && <span className="text-destructive ml-1">*</span>}
+                            </Label>
+                            <div className="pl-4">
+                              {field.helperText && (
+                                <p className="text-sm text-muted-foreground">{field.helperText}</p>
+                              )}
+                              
+                              {field.type === "richtext" && (
+                                <RichTextFieldInline
+                                  key={`${section.id}:${field.id}`}
+                                  fieldKey={`${section.id}:${field.id}`}
+                                  fieldLabel={field.label}
+                                  initialValue={contentRef.current[field.label] || field.defaultValue || ""}
+                                  contentRef={contentRef}
+                                />
+                              )}
+                              {field.type === "text" && (
+                                <Input
+                                  defaultValue={contentRef.current[field.label] || field.defaultValue || ""}
+                                  onChange={(e) => {
+                                    contentRef.current[field.label] = e.target.value;
+                                  }}
+                                  placeholder={field.placeholder || ""}
+                                  className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
+                                />
+                              )}
+                              {field.type === "number" && (
+                                <Input
+                                  type="number"
+                                  defaultValue={contentRef.current[field.label] || field.defaultValue || ""}
+                                  onChange={(e) => {
+                                    contentRef.current[field.label] = e.target.value;
+                                  }}
+                                  placeholder={field.placeholder || ""}
+                                  className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
+                                />
+                              )}
+                              {field.type === "date" && (
+                                <Input
+                                  type="date"
+                                  defaultValue={contentRef.current[field.label] || field.defaultValue || ""}
+                                  onChange={(e) => {
+                                    contentRef.current[field.label] = e.target.value;
+                                  }}
+                                  className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
+                                />
+                              )}
+                              {field.type === "checkbox" && (
+                                <div className="flex items-center space-x-2">
+                                  <Checkbox
+                                    defaultChecked={contentRef.current[field.label] === "true" || field.defaultValue === "true"}
+                                    onCheckedChange={(checked) => {
+                                      contentRef.current[field.label] = checked ? "true" : "false";
+                                    }}
+                                  />
+                                  <label className="text-sm text-muted-foreground">
+                                    {field.placeholder || "Check this option"}
+                                  </label>
+                                </div>
+                              )}
+                              {field.type === "select" && (
+                                <Select 
+                                  defaultValue={contentRef.current[field.label] || field.defaultValue || ""} 
+                                  onValueChange={(value) => {
+                                    contentRef.current[field.label] = value;
+                                  }}
+                                >
+                                  <SelectTrigger className="border-0 bg-transparent p-0 focus:ring-0">
+                                    <SelectValue placeholder={field.placeholder || "Select an option"} />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {field.options?.values && field.options.values.map((option: string) => (
+                                      <SelectItem key={option} value={option}>
+                                        {option}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground italic pl-4">No fields in this section</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">Template not found</div>
+            )}
           </form>
         </div>
 
@@ -394,146 +492,6 @@ export default function ReportViewer() {
           </AlertDialogContent>
         </AlertDialog>
       </div>
-    </div>
-  );
-}
-
-function renderReportContent(
-  report: any, 
-  template: any, 
-  isEditing: boolean, 
-  form: any,
-  contentRef: React.MutableRefObject<Record<string, any>>,
-  initializedFieldsRef: React.MutableRefObject<Set<number>>
-) {
-  const currentContent = contentRef.current;
-
-  if (!template?.sections) {
-    return <div className="text-center py-8 text-muted-foreground">Template not found</div>;
-  }
-
-  const handleContentChange = (label: string, value: string) => {
-    contentRef.current[label] = value;
-  };
-
-  return (
-    <div className="space-y-6">
-      {template.sections.map((section: any) => (
-        <div key={section.id} className="space-y-4">
-          <div>
-            <h3 className="text-lg font-semibold">{section.title}</h3>
-            {section.departmentKey && (
-              <p className="text-sm text-muted-foreground">{section.departmentKey}</p>
-            )}
-          </div>
-
-          {section.fields && section.fields.length > 0 ? (
-            <div className="space-y-4 pl-4">
-              {section.fields.map((field: any) => (
-                <div key={field.id} className="space-y-2">
-                  <Label className="font-bold">
-                    {field.label}
-                    {field.required && <span className="text-destructive ml-1">*</span>}
-                  </Label>
-                  <div className="pl-4">
-                    {field.helperText && (
-                      <p className="text-sm text-muted-foreground">{field.helperText}</p>
-                    )}
-                    
-                    {field.type === "richtext" && isEditing && (
-                      <RichTextField
-                        key={`${section.id}:${field.id}`}
-                        fieldKey={`${section.id}:${field.id}`}
-                        fieldLabel={field.label}
-                        initialValue={currentContent[field.label] || field.defaultValue || ""}
-                        onContentChange={handleContentChange}
-                      />
-                    )}
-                    {field.type === "richtext" && !isEditing && (
-                      <div 
-                        dangerouslySetInnerHTML={{__html: currentContent[field.label] || field.defaultValue || ""}}
-                        className="text-sm whitespace-pre-wrap [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4"
-                      />
-                    )}
-                    {field.type === "text" && (
-                      <Input
-                        defaultValue={currentContent[field.label] || field.defaultValue || ""}
-                        onChange={(e) => {
-                          contentRef.current[field.label] = e.target.value;
-                        }}
-                        disabled={!isEditing}
-                        placeholder={field.placeholder || ""}
-                        className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
-                      />
-                    )}
-                    {field.type === "number" && (
-                      <Input
-                        type="number"
-                        defaultValue={currentContent[field.label] || field.defaultValue || ""}
-                        onChange={(e) => {
-                          contentRef.current[field.label] = e.target.value;
-                        }}
-                        disabled={!isEditing}
-                        placeholder={field.placeholder || ""}
-                        className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
-                      />
-                    )}
-                    {field.type === "date" && (
-                      <Input
-                        type="date"
-                        defaultValue={currentContent[field.label] || field.defaultValue || ""}
-                        onChange={(e) => {
-                          contentRef.current[field.label] = e.target.value;
-                        }}
-                        disabled={!isEditing}
-                        className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
-                      />
-                    )}
-                    {field.type === "checkbox" && (
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          defaultChecked={currentContent[field.label] === "true" || field.defaultValue === "true"}
-                          onCheckedChange={(checked) => {
-                            contentRef.current[field.label] = checked ? "true" : "false";
-                          }}
-                          disabled={!isEditing}
-                        />
-                        <label className="text-sm text-muted-foreground">
-                          {field.placeholder || "Check this option"}
-                        </label>
-                      </div>
-                    )}
-                    {field.type === "select" && (
-                      <Select 
-                        defaultValue={currentContent[field.label] || field.defaultValue || ""} 
-                        onValueChange={(value) => {
-                          contentRef.current[field.label] = value;
-                        }}
-                        disabled={!isEditing}
-                      >
-                        <SelectTrigger className="border-0 bg-transparent p-0 focus:ring-0">
-                          <SelectValue placeholder={field.placeholder || "Select an option"} />
-                        </SelectTrigger>
-                        {isEditing && (
-                          <SelectContent>
-                            {field.options?.values && field.options.values.map((option: string) => (
-                              <SelectItem key={option} value={option}>
-                                {option}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        )}
-                      </Select>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground italic pl-4">No fields in this section</p>
-          )}
-        </div>
-      ))}
     </div>
   );
 }
