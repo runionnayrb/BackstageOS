@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
-import { useState, useEffect, useRef, memo } from "react";
+import { useState, useEffect, useRef, memo, useLayoutEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -68,6 +68,7 @@ export default function ReportViewer() {
 
   const { data: report } = useQuery<any>({
     queryKey: [`/api/projects/${projectId}/reports/${reportId}`],
+    refetchOnWindowFocus: false, // Prevent refetch while editing to avoid cursor jumps
   });
 
   const { data: projectSettings } = useQuery<any>({
@@ -358,47 +359,44 @@ export default function ReportViewer() {
   );
 }
 
-// Memoized RichTextField component to prevent cursor jumping
+// Dedicated RichTextField component that sets innerHTML only on mount
 const RichTextField = memo(function RichTextField({ 
-  fieldId,
+  fieldKey,
   fieldLabel, 
-  defaultValue,
+  initialValue,
   onContentChange 
 }: { 
-  fieldId: number;
+  fieldKey: string;
   fieldLabel: string;
-  defaultValue: string;
+  initialValue: string;
   onContentChange: (label: string, value: string) => void;
 }) {
   const editorRef = useRef<HTMLDivElement>(null);
-  const initializedRef = useRef(false);
   const callbackRef = useRef(onContentChange);
   
   // Keep callback ref up to date without triggering re-renders
   callbackRef.current = onContentChange;
 
-  useEffect(() => {
-    if (editorRef.current && !initializedRef.current) {
-      editorRef.current.innerHTML = defaultValue;
-      initializedRef.current = true;
+  // Set innerHTML only ONCE on mount using useLayoutEffect
+  useLayoutEffect(() => {
+    if (editorRef.current) {
+      editorRef.current.innerHTML = initialValue;
     }
-  }, [defaultValue]);
+    // Empty dependency array - only run on mount
+  }, []);
 
   return (
     <div
       ref={editorRef}
       contentEditable
       suppressContentEditableWarning
-      onBlur={(e) => {
+      onInput={(e) => {
+        // Update backing store on input without writing innerHTML
         callbackRef.current(fieldLabel, e.currentTarget.innerHTML);
       }}
       className="text-sm whitespace-pre-wrap outline-none [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4"
     />
   );
-}, (prevProps, nextProps) => {
-  // Only re-render if fieldId or fieldLabel changes, ignore onContentChange
-  return prevProps.fieldId === nextProps.fieldId && 
-         prevProps.fieldLabel === nextProps.fieldLabel;
 });
 
 function renderReportContent(
@@ -445,9 +443,10 @@ function renderReportContent(
                     
                     {field.type === "richtext" && isEditing && (
                       <RichTextField
-                        fieldId={field.id}
+                        key={`${section.id}:${field.id}`}
+                        fieldKey={`${section.id}:${field.id}`}
                         fieldLabel={field.label}
-                        defaultValue={currentContent[field.label] || field.defaultValue || ""}
+                        initialValue={currentContent[field.label] || field.defaultValue || ""}
                         onContentChange={handleContentChange}
                       />
                     )}
