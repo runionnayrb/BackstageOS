@@ -169,7 +169,6 @@ export default function FAQPage() {
           <p className="text-xl opacity-90">Find answers to common questions about BackstageOS</p>
         </div>
       </div>
-
       {/* Search */}
       <div className="max-w-4xl mx-auto px-4 -mt-6">
         <div className="relative">
@@ -188,7 +187,6 @@ export default function FAQPage() {
           </p>
         )}
       </div>
-
       {/* FAQ Content */}
       <div className="max-w-4xl mx-auto py-12 px-4">
         {filteredData.length === 0 ? (
@@ -271,11 +269,10 @@ export default function FAQPage() {
           </a>
         </div>
       </div>
-
       {/* Footer */}
       <footer className="border-t border-gray-200 dark:border-slate-800 py-8 px-4 mt-12">
         <div className="max-w-4xl mx-auto text-center text-sm text-gray-500 dark:text-gray-400">
-          <p>© 2025 BackstageOS. All rights reserved.</p>
+          <p>© 2025 BackstageOS. All rights reserved. Created by Bryan Runion</p>
         </div>
       </footer>
     </div>
