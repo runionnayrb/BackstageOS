@@ -354,10 +354,12 @@ export default function ReportViewer() {
                                 <div
                                   ref={(el) => {
                                     if (!el) return;
+                                    console.log('🔄 Ref callback for field:', field.label, 'initialized:', initializedFieldsRef.current.has(field.id));
                                     // Initialize only once with content or default value
                                     if (!initializedFieldsRef.current.has(field.id)) {
                                       initializedFieldsRef.current.add(field.id);
                                       const content = contentRef.current[field.label];
+                                      console.log('📝 Setting initial content for:', field.label);
                                       el.innerHTML = (content && content.trim()) ? content : (field.defaultValue || "");
                                     }
                                   }}
