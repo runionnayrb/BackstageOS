@@ -1,40 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-
-// Rich text field component that properly handles contentEditable without cursor issues
-function RichTextField({ 
-  initialValue, 
-  onSave, 
-  className 
-}: { 
-  initialValue: string; 
-  onSave: (value: string) => void; 
-  className?: string;
-}) {
-  const editorRef = useRef<HTMLDivElement>(null);
-
-  // Use callback ref to set initial content only once when mounted
-  const setRef = (el: HTMLDivElement | null) => {
-    if (el && !editorRef.current) {
-      el.innerHTML = initialValue || "";
-      editorRef.current = el;
-    }
-  };
-
-  return (
-    <div
-      ref={setRef}
-      contentEditable
-      suppressContentEditableWarning
-      onBlur={(e) => {
-        onSave(e.currentTarget.innerHTML);
-      }}
-      className={className}
-    />
-  );
-}
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -403,14 +370,20 @@ function renderReportContent(report: any, template: any, isEditing: boolean, for
                     )}
                     
                     {field.type === "richtext" && isEditing && (
-                      <RichTextField
-                        key={field.id}
-                        initialValue={content[field.label] || field.defaultValue || ""}
-                        onSave={(value) => {
+                      <div
+                        contentEditable
+                        suppressContentEditableWarning
+                        onBlur={(e) => {
                           const newContent = {...content};
-                          newContent[field.label] = value;
+                          newContent[field.label] = e.currentTarget.innerHTML;
                           form.setValue("content", newContent);
                         }}
+                        onInput={(e) => {
+                          const newContent = {...content};
+                          newContent[field.label] = e.currentTarget.innerHTML;
+                          form.setValue("content", newContent);
+                        }}
+                        dangerouslySetInnerHTML={{__html: content[field.label] || field.defaultValue || ""}}
                         className="text-sm whitespace-pre-wrap outline-none [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4"
                       />
                     )}
