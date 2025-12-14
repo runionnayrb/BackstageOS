@@ -8,7 +8,7 @@ import { storage } from "./storage";
 import { User } from "@shared/schema";
 import connectPg from "connect-pg-simple";
 import { pool, db } from "./db";
-import { users } from "@shared/schema";
+import { users, teamMembers } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { sendEmailWithResend } from "./services/resendService";
 
@@ -183,6 +183,33 @@ export function setupAuth(app: Express) {
         defaultReplyToEmail: email, // Auto-populate with their registration email
         emailDisplayName: `${firstName} ${lastName}`.trim() || null, // Auto-populate with their name
       });
+
+      // Check if this email has pending team invitations and auto-assign profileType from project owner
+      try {
+        const pendingInvitations = await db.select()
+          .from(teamMembers)
+          .where(eq(teamMembers.email, email));
+        
+        if (pendingInvitations.length > 0) {
+          // Get the first pending invitation's project
+          const firstInvitation = pendingInvitations[0];
+          const project = await storage.getProjectById(firstInvitation.projectId);
+          
+          if (project) {
+            // Get the project owner's profileType
+            const projectOwner = await storage.getUser(project.ownerId.toString());
+            
+            if (projectOwner && projectOwner.profileType) {
+              // Auto-assign the owner's profileType to the new team member
+              await storage.updateUser(user.id, { profileType: projectOwner.profileType });
+              console.log(`Auto-assigned profileType "${projectOwner.profileType}" to ${email} from project owner`);
+            }
+          }
+        }
+      } catch (invitationError) {
+        // Log but don't fail registration if invitation check fails
+        console.error('Error checking team invitations:', invitationError);
+      }
 
       // Check if this email was on the waitlist and convert it to "converted" status
       try {
