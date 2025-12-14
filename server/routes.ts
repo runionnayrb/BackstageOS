@@ -3981,9 +3981,22 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
 
-      // Check access (owner or team member) - use loose equality to handle type conversion
-      if (project.ownerId != req.user.id.toString()) {
-        return res.status(403).json({ message: "Access denied" });
+      // Check ownership or team membership
+      const isOwner = project.ownerId == req.user.id.toString();
+      
+      if (!isOwner) {
+        const teamMembership = await db.select()
+          .from(teamMembers)
+          .where(and(
+            eq(teamMembers.projectId, projectId),
+            eq(teamMembers.userId, req.user.id),
+            eq(teamMembers.isArchived, false)
+          ))
+          .limit(1);
+        
+        if (teamMembership.length === 0) {
+          return res.status(403).json({ message: "Access denied" });
+        }
       }
 
       const reports = await storage.getReportsByProjectId(projectId);
@@ -4003,9 +4016,22 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
 
-      // Check access (owner or team member)
-      if (project.ownerId != req.user.id.toString()) {
-        return res.status(403).json({ message: "Access denied" });
+      // Check ownership or team membership
+      const isOwner = project.ownerId == req.user.id.toString();
+      
+      if (!isOwner) {
+        const teamMembership = await db.select()
+          .from(teamMembers)
+          .where(and(
+            eq(teamMembers.projectId, projectId),
+            eq(teamMembers.userId, req.user.id),
+            eq(teamMembers.isArchived, false)
+          ))
+          .limit(1);
+        
+        if (teamMembership.length === 0) {
+          return res.status(403).json({ message: "Access denied" });
+        }
       }
 
       const report = await storage.getReportById(reportId);
@@ -4435,9 +4461,22 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
 
-      // Check access (owner or team member)
-      if (project.ownerId != req.user.id.toString()) {
-        return res.status(403).json({ message: "Access denied" });
+      // Check ownership or team membership
+      const isOwner = project.ownerId == req.user.id.toString();
+      
+      if (!isOwner) {
+        const teamMembership = await db.select()
+          .from(teamMembers)
+          .where(and(
+            eq(teamMembers.projectId, projectId),
+            eq(teamMembers.userId, req.user.id),
+            eq(teamMembers.isArchived, false)
+          ))
+          .limit(1);
+        
+        if (teamMembership.length === 0) {
+          return res.status(403).json({ message: "Access denied" });
+        }
       }
 
       const report = await storage.getReportById(reportId);
