@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -56,6 +56,10 @@ export default function ReportViewer() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
+  // Refs for content tracking without re-rendering (prevents cursor jumping)
+  const contentRef = useRef<Record<string, any>>({});
+  const initializedFieldsRef = useRef<Set<number>>(new Set());
+  
   // Always-editable report viewer - no lock/unlock functionality
 
   const { data: project } = useQuery<any>({
@@ -94,6 +98,9 @@ export default function ReportViewer() {
         date: report.date ? new Date(report.date).toISOString().split('T')[0] : "",
         content: report.content || {},
       });
+      // Initialize contentRef and reset initialized fields
+      contentRef.current = { ...(report.content || {}) };
+      initializedFieldsRef.current.clear();
     }
   }, [report, form]);
 
@@ -143,6 +150,8 @@ export default function ReportViewer() {
   });
 
   const handleSave = (data: z.infer<typeof reportSchema>) => {
+    // Merge contentRef into form data (preserves non-richtext field values while adding richtext values)
+    data.content = { ...data.content, ...contentRef.current };
     updateMutation.mutate(data);
   };
 
@@ -305,7 +314,7 @@ export default function ReportViewer() {
         {/* Report Content */}
         <div data-pdf-content>
           <form onSubmit={form.handleSubmit(handleSave)} className="space-y-6">
-            {renderReportContent(report, template, true, form)}
+            {renderReportContent(report, template, true, form, contentRef, initializedFieldsRef)}
           </form>
         </div>
 
@@ -338,7 +347,14 @@ export default function ReportViewer() {
   );
 }
 
-function renderReportContent(report: any, template: any, isEditing: boolean, form: any) {
+function renderReportContent(
+  report: any, 
+  template: any, 
+  isEditing: boolean, 
+  form: any,
+  contentRef: React.MutableRefObject<Record<string, any>>,
+  initializedFieldsRef: React.MutableRefObject<Set<number>>
+) {
   const content = form.watch("content") || {};
 
   if (!template?.sections) {
@@ -373,17 +389,19 @@ function renderReportContent(report: any, template: any, isEditing: boolean, for
                       <div
                         contentEditable
                         suppressContentEditableWarning
+                        ref={(el) => {
+                          if (el && !initializedFieldsRef.current.has(field.id)) {
+                            el.innerHTML = contentRef.current[field.label] || content[field.label] || field.defaultValue || "";
+                            initializedFieldsRef.current.add(field.id);
+                          }
+                        }}
                         onBlur={(e) => {
+                          const newValue = e.currentTarget.innerHTML;
+                          contentRef.current[field.label] = newValue;
                           const newContent = {...content};
-                          newContent[field.label] = e.currentTarget.innerHTML;
+                          newContent[field.label] = newValue;
                           form.setValue("content", newContent);
                         }}
-                        onInput={(e) => {
-                          const newContent = {...content};
-                          newContent[field.label] = e.currentTarget.innerHTML;
-                          form.setValue("content", newContent);
-                        }}
-                        dangerouslySetInnerHTML={{__html: content[field.label] || field.defaultValue || ""}}
                         className="text-sm whitespace-pre-wrap outline-none [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4"
                       />
                     )}
