@@ -13,10 +13,10 @@ const RELEASE_NOTES = [
     version: "26.8.0",
     date: "December 14, 2025",
     features: [
-      "<strong><u>TEAM MEMBER ACCESS:</u></strong>",
-      "Invited team members can now fully access notes in shared projects",
-      "Editors can create, edit, delete, and reorder notes in projects they're invited to",
-      "All project features now work seamlessly for both owners and team members"
+      "<strong><u>COLLABORATE WITH YOUR TEAM:</u></strong>",
+      "Invite editors to work on your shows together",
+      "Team members can view and manage notes, reports, contacts, and schedules",
+      "Share the workload while keeping full control of your productions"
     ]
   },
   {
