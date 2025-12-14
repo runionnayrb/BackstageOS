@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename);
 import { storage } from "./storage";
 import { db } from "./db";
 import { sql, and, eq } from "drizzle-orm";
-import { scheduledEmails, scheduleTemplateEvents } from "@shared/schema";
+import { scheduledEmails, scheduleTemplateEvents, teamMembers } from "@shared/schema";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
@@ -3141,8 +3141,44 @@ Respond with valid JSON only.`;
     try {
       // Use effective user ID to respect admin "view as" feature
       const userId = getEffectiveUserId(req);
-      const projects = await storage.getProjectsByUserId(userId);
-      res.json(projects);
+      
+      // Get projects owned by the user
+      const ownedProjects = await storage.getProjectsByUserId(userId);
+      
+      // Get projects where user is an invited team member
+      const teamMemberships = await db.select()
+        .from(teamMembers)
+        .where(and(
+          eq(teamMembers.userId, parseInt(userId)),
+          eq(teamMembers.isArchived, false)
+        ));
+      
+      // Fetch the projects for team memberships
+      const invitedProjectIds = teamMemberships.map(tm => tm.projectId);
+      let invitedProjects: any[] = [];
+      
+      if (invitedProjectIds.length > 0) {
+        invitedProjects = await Promise.all(
+          invitedProjectIds.map(async (projectId) => {
+            const project = await storage.getProjectById(projectId);
+            if (project && !project.isArchived) {
+              return { ...project, isInvited: true };
+            }
+            return null;
+          })
+        );
+        invitedProjects = invitedProjects.filter(p => p !== null);
+      }
+      
+      // Mark owned projects and combine
+      const ownedWithFlag = ownedProjects.map(p => ({ ...p, isInvited: false }));
+      
+      // Remove duplicates (if user owns and is invited to same project)
+      const ownedIds = new Set(ownedProjects.map(p => p.id));
+      const uniqueInvited = invitedProjects.filter(p => !ownedIds.has(p.id));
+      
+      const allProjects = [...ownedWithFlag, ...uniqueInvited];
+      res.json(allProjects);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch projects" });
     }
@@ -3169,10 +3205,24 @@ Respond with valid JSON only.`;
         return res.status(404).json({ message: "Project not found" });
       }
 
-      // Check ownership - use effective user ID to respect admin "view as" feature
+      // Check ownership or team membership - use effective user ID to respect admin "view as" feature
       const effectiveUserId = getEffectiveUserId(req);
-      if (project.ownerId != effectiveUserId) {
-        return res.status(403).json({ message: "Access denied" });
+      const isOwner = project.ownerId == effectiveUserId;
+      
+      if (!isOwner) {
+        // Check if user is a team member
+        const teamMembership = await db.select()
+          .from(teamMembers)
+          .where(and(
+            eq(teamMembers.projectId, projectId),
+            eq(teamMembers.userId, parseInt(effectiveUserId)),
+            eq(teamMembers.isArchived, false)
+          ))
+          .limit(1);
+        
+        if (teamMembership.length === 0) {
+          return res.status(403).json({ message: "Access denied" });
+        }
       }
 
       res.json(project);
