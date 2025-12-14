@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
-import { useState, useEffect, useRef, useCallback, useLayoutEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -46,37 +46,6 @@ interface ReportViewerParams {
   reportId: string;
 }
 
-interface RichTextFieldProps {
-  fieldKey: string;
-  fieldLabel: string;
-  initialValue: string;
-  contentRef: React.MutableRefObject<Record<string, any>>;
-}
-
-function RichTextFieldInline({ fieldKey, fieldLabel, initialValue, contentRef }: RichTextFieldProps) {
-  const editorRef = useRef<HTMLDivElement>(null);
-  const isInitializedRef = useRef(false);
-
-  useLayoutEffect(() => {
-    if (editorRef.current && !isInitializedRef.current) {
-      editorRef.current.innerHTML = initialValue;
-      isInitializedRef.current = true;
-    }
-  }, []);
-
-  return (
-    <div
-      ref={editorRef}
-      contentEditable
-      suppressContentEditableWarning
-      onInput={(e) => {
-        contentRef.current[fieldLabel] = e.currentTarget.innerHTML;
-      }}
-      className="text-sm whitespace-pre-wrap outline-none [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4"
-    />
-  );
-}
-
 export default function ReportViewer() {
   const [, setLocation] = useLocation();
   const params = useParams<ReportViewerParams>();
@@ -87,8 +56,9 @@ export default function ReportViewer() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Ref for content tracking without re-rendering (prevents cursor jumping)
+  // Refs for content tracking without re-rendering (prevents cursor jumping)
   const contentRef = useRef<Record<string, any>>({});
+  const initializedFieldsRef = useRef<Set<number>>(new Set());
   
   // Always-editable report viewer - no lock/unlock functionality
 
@@ -137,8 +107,9 @@ export default function ReportViewer() {
           date: report.date ? new Date(report.date).toISOString().split('T')[0] : "",
           content: report.content || {},
         });
-        // Initialize contentRef
+        // Initialize contentRef and reset initialized fields for new report
         contentRef.current = { ...(report.content || {}) };
+        initializedFieldsRef.current.clear();
         lastReportIdRef.current = report.id;
         lastReportContentRef.current = reportContentSignature;
       }
@@ -380,12 +351,22 @@ export default function ReportViewer() {
                               )}
                               
                               {field.type === "richtext" && (
-                                <RichTextFieldInline
-                                  key={`${section.id}:${field.id}`}
-                                  fieldKey={`${section.id}:${field.id}`}
-                                  fieldLabel={field.label}
-                                  initialValue={contentRef.current[field.label] || field.defaultValue || ""}
-                                  contentRef={contentRef}
+                                <div
+                                  ref={(el) => {
+                                    if (!el) return;
+                                    // Initialize only once with content or default value
+                                    if (!initializedFieldsRef.current.has(field.id)) {
+                                      initializedFieldsRef.current.add(field.id);
+                                      const content = contentRef.current[field.label];
+                                      el.innerHTML = (content && content.trim()) ? content : (field.defaultValue || "");
+                                    }
+                                  }}
+                                  contentEditable
+                                  suppressContentEditableWarning
+                                  onBlur={(e) => {
+                                    contentRef.current[field.label] = e.currentTarget.innerHTML;
+                                  }}
+                                  className="text-sm whitespace-pre-wrap outline-none [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4"
                                 />
                               )}
                               {field.type === "text" && (
