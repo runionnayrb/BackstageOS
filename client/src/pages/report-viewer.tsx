@@ -90,19 +90,30 @@ export default function ReportViewer() {
     },
   });
 
-  // Update form when report data changes
+  // Track stable report identity to prevent mid-typing resets
+  const lastReportIdRef = useRef<number | null>(null);
+  const lastReportContentRef = useRef<string | null>(null);
+
+  // Update form when report data actually changes (not on every cache refresh)
   useEffect(() => {
     if (report) {
-      form.reset({
-        title: report.title || "",
-        date: report.date ? new Date(report.date).toISOString().split('T')[0] : "",
-        content: report.content || {},
-      });
-      // Initialize contentRef and reset initialized fields
-      contentRef.current = { ...(report.content || {}) };
-      initializedFieldsRef.current.clear();
+      const reportContentSignature = JSON.stringify(report.content || {});
+      
+      // Only reset if this is a different report or initial load
+      if (lastReportIdRef.current !== report.id) {
+        form.reset({
+          title: report.title || "",
+          date: report.date ? new Date(report.date).toISOString().split('T')[0] : "",
+          content: report.content || {},
+        });
+        // Initialize contentRef and reset initialized fields
+        contentRef.current = { ...(report.content || {}) };
+        initializedFieldsRef.current.clear();
+        lastReportIdRef.current = report.id;
+        lastReportContentRef.current = reportContentSignature;
+      }
     }
-  }, [report, form]);
+  }, [report?.id, form]);
 
 
   const updateMutation = useMutation({
