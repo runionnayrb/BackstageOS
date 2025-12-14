@@ -46,6 +46,45 @@ interface ReportViewerParams {
   reportId: string;
 }
 
+// Dedicated RichTextField component - defined before ReportViewer to ensure stable identity
+const RichTextField = memo(function RichTextField({ 
+  fieldKey,
+  fieldLabel, 
+  initialValue,
+  onContentChange 
+}: { 
+  fieldKey: string;
+  fieldLabel: string;
+  initialValue: string;
+  onContentChange: (label: string, value: string) => void;
+}) {
+  const editorRef = useRef<HTMLDivElement>(null);
+  const callbackRef = useRef(onContentChange);
+  
+  // Keep callback ref up to date without triggering re-renders
+  callbackRef.current = onContentChange;
+
+  // Set innerHTML only ONCE on mount using useLayoutEffect
+  useLayoutEffect(() => {
+    if (editorRef.current) {
+      editorRef.current.innerHTML = initialValue;
+    }
+  }, []);
+
+  return (
+    <div
+      ref={editorRef}
+      contentEditable
+      suppressContentEditableWarning
+      onInput={(e) => {
+        // Update backing store on input without writing innerHTML
+        callbackRef.current(fieldLabel, e.currentTarget.innerHTML);
+      }}
+      className="text-sm whitespace-pre-wrap outline-none [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4"
+    />
+  );
+});
+
 export default function ReportViewer() {
   const [, setLocation] = useLocation();
   const params = useParams<ReportViewerParams>();
@@ -358,46 +397,6 @@ export default function ReportViewer() {
     </div>
   );
 }
-
-// Dedicated RichTextField component that sets innerHTML only on mount
-const RichTextField = memo(function RichTextField({ 
-  fieldKey,
-  fieldLabel, 
-  initialValue,
-  onContentChange 
-}: { 
-  fieldKey: string;
-  fieldLabel: string;
-  initialValue: string;
-  onContentChange: (label: string, value: string) => void;
-}) {
-  const editorRef = useRef<HTMLDivElement>(null);
-  const callbackRef = useRef(onContentChange);
-  
-  // Keep callback ref up to date without triggering re-renders
-  callbackRef.current = onContentChange;
-
-  // Set innerHTML only ONCE on mount using useLayoutEffect
-  useLayoutEffect(() => {
-    if (editorRef.current) {
-      editorRef.current.innerHTML = initialValue;
-    }
-    // Empty dependency array - only run on mount
-  }, []);
-
-  return (
-    <div
-      ref={editorRef}
-      contentEditable
-      suppressContentEditableWarning
-      onInput={(e) => {
-        // Update backing store on input without writing innerHTML
-        callbackRef.current(fieldLabel, e.currentTarget.innerHTML);
-      }}
-      className="text-sm whitespace-pre-wrap outline-none [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4"
-    />
-  );
-});
 
 function renderReportContent(
   report: any, 
