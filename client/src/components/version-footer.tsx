@@ -6,9 +6,19 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, CheckCircle, Archive } from "lucide-react";
 import { Link } from "wouter";
 
-const CURRENT_VERSION = "26.7.0";
+const CURRENT_VERSION = "26.8.0";
 
 const RELEASE_NOTES = [
+  {
+    version: "26.8.0",
+    date: "December 14, 2025",
+    features: [
+      "<strong><u>TEAM MEMBER ACCESS:</u></strong>",
+      "Invited team members can now fully access notes in shared projects",
+      "Editors can create, edit, delete, and reorder notes in projects they're invited to",
+      "All project features now work seamlessly for both owners and team members"
+    ]
+  },
   {
     version: "26.7.0",
     date: "December 9, 2025",
