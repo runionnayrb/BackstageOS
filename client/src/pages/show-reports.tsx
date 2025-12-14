@@ -6,8 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Plus, FileText } from "lucide-react";
-import ContextAwareBackButton from "@/components/navigation/context-aware-back-button";
+import { Plus, FileText } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ShowReportsParams {
@@ -106,10 +105,8 @@ export default function ShowReports() {
     <div className="w-full">
       {/* Header with title - shown on all devices */}
       <div className="px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex items-center justify-between mb-4">
-          <ContextAwareBackButton 
-            showName={project?.name}
-          />
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-gray-900">{pageTitle}</h1>
           
           <Button onClick={() => {
             const url = currentTemplate 
@@ -120,11 +117,6 @@ export default function ShowReports() {
             <Plus className="h-4 w-4 mr-2" />
             New Report
           </Button>
-        </div>
-        
-        {/* Page title - show immediately without loading state */}
-        <div className="mb-2">
-          <h1 className="text-3xl font-bold text-gray-900">{pageTitle}</h1>
         </div>
       </div>
 
