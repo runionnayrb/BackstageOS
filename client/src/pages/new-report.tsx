@@ -243,7 +243,7 @@ export default function NewReport() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto">
+      <div className="container mx-auto p-6">
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-3xl font-bold">New {reportTypeName}</h1>
