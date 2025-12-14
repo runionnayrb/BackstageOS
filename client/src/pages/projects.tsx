@@ -18,6 +18,15 @@ export default function Projects() {
   // Check if user is full-time either by their actual profile type OR if admin has selected full-time view
   const isFullTime = (user as any)?.profileType === "fulltime" || 
     (isAdmin(user) && selectedProfileType === "fulltime");
+  
+  // User can create shows if they are a USER (not just an invited editor) with fulltime profile AND active subscription
+  // Editors invited to productions cannot create shows unless they're also a user with their own subscription
+  const isUserRole = (user as any)?.userRole === "user" || (user as any)?.userRole === "admin";
+  const hasActiveSubscription = (user as any)?.subscriptionStatus === "active" || 
+     (user as any)?.subscriptionStatus === "trialing" ||
+     (user as any)?.grandfatheredFree === true;
+  const canCreateShow = isFullTime && isUserRole && hasActiveSubscription;
+  
   const projectLabel = "Shows";
   const projectSingle = "Show";
 
@@ -123,14 +132,17 @@ export default function Projects() {
                   Settings
                 </Button>
               )}
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={() => setLocation("/create-project")}
-                className="hover:bg-transparent hover:text-blue-600 transition-colors p-1"
-              >
-                <Plus className="w-5 h-5" />
-              </Button>
+              {canCreateShow && (
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => setLocation("/create-project")}
+                  className="hover:bg-transparent hover:text-blue-600 transition-colors p-1"
+                  data-testid="button-create-show"
+                >
+                  <Plus className="w-5 h-5" />
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -140,11 +152,17 @@ export default function Projects() {
             <div className="text-center py-12">
               <FolderOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No {projectLabel.toLowerCase()} yet</h3>
-              <p className="text-gray-500 mb-6">Get started by creating your first {projectSingle.toLowerCase()}</p>
-              <Button onClick={() => setLocation("/create-project")}>
-                <Plus className="w-5 h-5 mr-2" />
-                Create {projectSingle}
-              </Button>
+              {canCreateShow ? (
+                <>
+                  <p className="text-gray-500 mb-6">Get started by creating your first {projectSingle.toLowerCase()}</p>
+                  <Button onClick={() => setLocation("/create-project")} data-testid="button-create-show-empty">
+                    <Plus className="w-5 h-5 mr-2" />
+                    Create {projectSingle}
+                  </Button>
+                </>
+              ) : (
+                <p className="text-gray-500 mb-6">You don't have any shows yet. Ask a producer to invite you to a production.</p>
+              )}
             </div>
           ) : (
             <div className="space-y-1">
@@ -173,7 +191,7 @@ export default function Projects() {
       </div>
       
       {/* Floating Action Button - Mobile Only */}
-      <FloatingActionButton onClick={() => setLocation("/create-project")} />
+      {canCreateShow && <FloatingActionButton onClick={() => setLocation("/create-project")} />}
     </div>
   );
 }
