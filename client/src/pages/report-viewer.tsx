@@ -14,18 +14,18 @@ function RichTextField({
   className?: string;
 }) {
   const editorRef = useRef<HTMLDivElement>(null);
-  const initializedRef = useRef(false);
 
-  useEffect(() => {
-    if (editorRef.current && !initializedRef.current) {
-      editorRef.current.innerHTML = initialValue || "";
-      initializedRef.current = true;
+  // Use callback ref to set initial content only once when mounted
+  const setRef = (el: HTMLDivElement | null) => {
+    if (el && !editorRef.current) {
+      el.innerHTML = initialValue || "";
+      editorRef.current = el;
     }
-  }, [initialValue]);
+  };
 
   return (
     <div
-      ref={editorRef}
+      ref={setRef}
       contentEditable
       suppressContentEditableWarning
       onBlur={(e) => {
