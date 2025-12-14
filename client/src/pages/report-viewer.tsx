@@ -1,7 +1,40 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
+
+// Rich text field component that properly handles contentEditable without cursor issues
+function RichTextField({ 
+  initialValue, 
+  onSave, 
+  className 
+}: { 
+  initialValue: string; 
+  onSave: (value: string) => void; 
+  className?: string;
+}) {
+  const editorRef = useRef<HTMLDivElement>(null);
+  const initializedRef = useRef(false);
+
+  useEffect(() => {
+    if (editorRef.current && !initializedRef.current) {
+      editorRef.current.innerHTML = initialValue || "";
+      initializedRef.current = true;
+    }
+  }, [initialValue]);
+
+  return (
+    <div
+      ref={editorRef}
+      contentEditable
+      suppressContentEditableWarning
+      onBlur={(e) => {
+        onSave(e.currentTarget.innerHTML);
+      }}
+      className={className}
+    />
+  );
+}
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -370,15 +403,14 @@ function renderReportContent(report: any, template: any, isEditing: boolean, for
                     )}
                     
                     {field.type === "richtext" && isEditing && (
-                      <div
-                        contentEditable
-                        suppressContentEditableWarning
-                        onBlur={(e) => {
+                      <RichTextField
+                        key={field.id}
+                        initialValue={content[field.label] || field.defaultValue || ""}
+                        onSave={(value) => {
                           const newContent = {...content};
-                          newContent[field.label] = e.currentTarget.innerHTML;
+                          newContent[field.label] = value;
                           form.setValue("content", newContent);
                         }}
-                        dangerouslySetInnerHTML={{__html: content[field.label] || field.defaultValue || ""}}
                         className="text-sm whitespace-pre-wrap outline-none [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4"
                       />
                     )}
