@@ -1929,6 +1929,24 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async getAllDistroReportTypeMappings(projectId: number): Promise<Record<number, number[]>> {
+    const result = await db.select({
+      distributionListId: reportTypeDistributionLists.distributionListId,
+      reportTypeId: reportTypeDistributionLists.reportTypeId,
+    })
+      .from(reportTypeDistributionLists)
+      .where(eq(reportTypeDistributionLists.projectId, projectId));
+    
+    const mappings: Record<number, number[]> = {};
+    for (const row of result) {
+      if (!mappings[row.distributionListId]) {
+        mappings[row.distributionListId] = [];
+      }
+      mappings[row.distributionListId].push(row.reportTypeId);
+    }
+    return mappings;
+  }
+
   async syncShowContactsToEmailContacts(userId: number, projectId: number): Promise<void> {
     // Get all contacts for this project
     const showContacts = await this.getContactsByProjectId(projectId);

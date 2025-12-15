@@ -86,6 +86,11 @@ export function DistroManager({ projectId }: DistroManagerProps) {
     enabled: !!projectId,
   });
 
+  const { data: distroMappings = {} } = useQuery<Record<number, number[]>>({
+    queryKey: [`/api/projects/${projectId}/distros/report-type-mappings`],
+    enabled: !!projectId,
+  });
+
   const { data: assignedReportTypes = [] } = useQuery<number[]>({
     queryKey: ['/api/projects', projectId, 'distros', editingDistro?.id, 'report-types'],
     enabled: !!editingDistro?.id,
@@ -184,6 +189,7 @@ export function DistroManager({ projectId }: DistroManagerProps) {
         await syncReportTypesMutation.mutateAsync({ distroId, reportTypeIds });
         
         queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/distros`] });
+        queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/distros/report-type-mappings`] });
         queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'distros', distroId, 'report-types'] });
         
         toast({ title: "Success", description: "Distribution list updated successfully" });
@@ -199,6 +205,7 @@ export function DistroManager({ projectId }: DistroManagerProps) {
         }
         
         queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/distros`] });
+        queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/distros/report-type-mappings`] });
         
         toast({ title: "Success", description: "Distribution list created successfully" });
         setIsCreateOpen(false);
@@ -242,6 +249,18 @@ export function DistroManager({ projectId }: DistroManagerProps) {
     return (distro.toRecipients?.length || 0) + 
            (distro.ccRecipients?.length || 0) + 
            (distro.bccRecipients?.length || 0);
+  };
+
+  const getReportTypesLabel = (distroId: number) => {
+    const assignedIds = distroMappings[distroId] || [];
+    if (assignedIds.length === 0) return null;
+    if (assignedIds.length === reportTypes.length && reportTypes.length > 0) {
+      return "All Reports";
+    }
+    const names = assignedIds
+      .map(id => reportTypes.find(rt => rt.id === id)?.name)
+      .filter(Boolean);
+    return names.join(", ");
   };
 
   if (isLoading) {
@@ -494,7 +513,7 @@ export function DistroManager({ projectId }: DistroManagerProps) {
                 <div className="flex-1 min-w-0">
                   <h4 className="font-medium truncate">{distro.name}</h4>
                   <p className="text-sm text-muted-foreground truncate">
-                    {distro.description || `${getTotalRecipients(distro)} recipients`}
+                    {getTotalRecipients(distro)} recipients{getReportTypesLabel(distro.id) ? ` | ${getReportTypesLabel(distro.id)}` : ""}
                   </p>
                 </div>
               </CardContent>
