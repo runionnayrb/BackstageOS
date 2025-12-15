@@ -14,6 +14,7 @@ import {
   Mail,
   Download
 } from "lucide-react";
+import { DistroManager } from "./DistroManager";
 
 interface GlobalTemplateSettings {
   id?: string;
@@ -539,104 +540,7 @@ export const GlobalTemplateSettingsContent = forwardRef<GlobalTemplateSettingsRe
         </TabsContent>
 
         <TabsContent value="email" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Mail className="h-5 w-5" />
-                Email Distribution & Templates
-              </CardTitle>
-              <CardDescription>Configure email settings for sending reports</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {["to", "cc", "bcc"].map((listType) => (
-                <div key={listType} className="space-y-2">
-                  <Label className="text-base font-medium">
-                    {listType.toUpperCase()} Recipients
-                  </Label>
-                  <div className="space-y-2">
-                    {settings.email.distributionLists[listType as keyof typeof settings.email.distributionLists].map((email, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <Input value={email} readOnly className="flex-1" />
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => removeEmailAddress(listType as "to" | "cc" | "bcc", index)}
-                        >
-                          Remove
-                        </Button>
-                      </div>
-                    ))}
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder={`Add ${listType.toUpperCase()} email address`}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            const target = e.target as HTMLInputElement;
-                            addEmailAddress(listType as "to" | "cc" | "bcc", target.value);
-                            target.value = "";
-                          }
-                        }}
-                      />
-                      <Button
-                        variant="outline"
-                        onClick={(e) => {
-                          const input = e.currentTarget.previousElementSibling as HTMLInputElement;
-                          addEmailAddress(listType as "to" | "cc" | "bcc", input.value);
-                          input.value = "";
-                        }}
-                      >
-                        Add
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              <div className="space-y-2">
-                <Label htmlFor="email-subject">Subject Line Template</Label>
-                <Input
-                  id="email-subject"
-                  name="email-subject"
-                  value={settings.email.subjectTemplate}
-                  onChange={(e) => setSettings(prev => ({
-                    ...prev,
-                    email: { ...prev.email, subjectTemplate: e.target.value }
-                  }))}
-                  placeholder="{{showName}} - {{reportType}} - {{date}}"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email-body">Email Body Template</Label>
-                <Textarea
-                  id="email-body"
-                  name="email-body"
-                  value={settings.email.bodyTemplate}
-                  onChange={(e) => setSettings(prev => ({
-                    ...prev,
-                    email: { ...prev.email, bodyTemplate: e.target.value }
-                  }))}
-                  placeholder="Please find attached the {{reportType}} for {{showName}}.&#10;&#10;Best regards,&#10;{{stageManager}}"
-                  className="min-h-[100px]"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email-signature">Email Signature</Label>
-                <Textarea
-                  id="email-signature"
-                  name="email-signature"
-                  value={settings.email.signature}
-                  onChange={(e) => setSettings(prev => ({
-                    ...prev,
-                    email: { ...prev.email, signature: e.target.value }
-                  }))}
-                  placeholder="Your signature here..."
-                  className="min-h-[80px]"
-                />
-              </div>
-            </CardContent>
-          </Card>
+          <DistroManager projectId={projectId} />
         </TabsContent>
       </Tabs>
     </div>
