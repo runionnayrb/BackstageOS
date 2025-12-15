@@ -13,6 +13,12 @@ const RELEASE_NOTES = [
     version: "26.8.0",
     date: "December 14, 2025",
     features: [
+      "<strong><u>POWERFUL REPORT SYSTEM:</u></strong>",
+      "Create and customize report templates with sections and fields",
+      "Write reports using a clean, document-style editor",
+      "Assign fields to departments for automatic note tracking",
+      "Notes from reports sync automatically—no duplicate entry needed",
+      "Edit and update notes inline while preserving status and assignments",
       "<strong><u>COLLABORATE WITH YOUR TEAM:</u></strong>",
       "Invite editors to work on your shows together",
       "Team members can view and manage notes, reports, contacts, and schedules",
