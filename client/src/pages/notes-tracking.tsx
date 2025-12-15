@@ -71,6 +71,11 @@ const NotesTracking: React.FC = () => {
     queryKey: [`/api/projects/${projectId}/reports`],
   });
 
+  // Fetch project settings for department names mapping
+  const { data: showSettings } = useQuery<{ departmentNames?: Record<string, string> }>({
+    queryKey: [`/api/projects/${projectId}/settings`],
+  });
+
   // Update note status mutation with optimistic updates
   const updateNoteMutation = useMutation({
     mutationFn: async ({ noteId, data }: { noteId: number; data: Partial<ReportNote> }) => {
@@ -130,6 +135,22 @@ const NotesTracking: React.FC = () => {
     return reports.find((r: any) => r.id === reportId);
   };
 
+  // Helper function to get department display name from department key
+  const getDepartmentDisplayName = (departmentKey: string | null | undefined): string => {
+    if (!departmentKey) return '';
+    // Look up the display name from showSettings.departmentNames
+    const displayName = showSettings?.departmentNames?.[departmentKey];
+    if (displayName) {
+      return displayName;
+    }
+    // Fallback: if it's a "New-dept-" key without a mapping, return a generic name
+    if (departmentKey.startsWith('New-dept-')) {
+      return 'Department';
+    }
+    // Otherwise format the key itself (for legacy department names like "lighting", "audio", etc.)
+    return departmentKey.charAt(0).toUpperCase() + departmentKey.slice(1).toLowerCase();
+  };
+
   // Helper function to sort notes - defined before use
   const sortNotes = (notes: ReportNote[]) => {
     const sorted = [...notes];
@@ -173,7 +194,7 @@ const NotesTracking: React.FC = () => {
       case 'reportType':
         return getReport(note.reportId)?.phase || 'Unknown';
       case 'department':
-        return note.department ? (note.department.charAt(0).toUpperCase() + note.department.slice(1).toLowerCase()) : 'No Department';
+        return note.department ? getDepartmentDisplayName(note.department) : 'No Department';
       case 'priority':
         return note.priority?.charAt(0).toUpperCase() + note.priority?.slice(1) || 'Medium';
       default:
@@ -302,7 +323,7 @@ const NotesTracking: React.FC = () => {
                 
                 {note.department && (
                   <Badge variant="outline" className="text-xs">
-                    {note.department.charAt(0).toUpperCase() + note.department.slice(1).toLowerCase()}
+                    {getDepartmentDisplayName(note.department)}
                   </Badge>
                 )}
               </div>
@@ -585,7 +606,7 @@ const NotesTracking: React.FC = () => {
                   <SelectContent>
                     <SelectItem value="all">All departments</SelectItem>
                     {departments.map(dept => (
-                      <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                      <SelectItem key={dept} value={dept}>{getDepartmentDisplayName(dept)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
