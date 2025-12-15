@@ -66,7 +66,7 @@ export default function ShowReports() {
     enabled: !!projectId && isAuthenticated,
   });
 
-  if (isLoading || projectsLoading) return <div>Loading...</div>;
+  if (isLoading || projectsLoading || reportTypesLoading) return <div>Loading...</div>;
   if (!project) return <div>Show not found</div>;
 
   // Get report type name from fetched report types
