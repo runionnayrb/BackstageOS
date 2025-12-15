@@ -87,7 +87,7 @@ export function DistroManager({ projectId }: DistroManagerProps) {
   });
 
   const { data: distroMappings = {} } = useQuery<Record<number, number[]>>({
-    queryKey: [`/api/projects/${projectId}/distros/report-type-mappings`],
+    queryKey: [`/api/projects/${projectId}/distro-report-type-mappings`],
     enabled: !!projectId,
   });
 
@@ -189,7 +189,7 @@ export function DistroManager({ projectId }: DistroManagerProps) {
         await syncReportTypesMutation.mutateAsync({ distroId, reportTypeIds });
         
         queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/distros`] });
-        queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/distros/report-type-mappings`] });
+        queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/distro-report-type-mappings`] });
         queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'distros', distroId, 'report-types'] });
         
         toast({ title: "Success", description: "Distribution list updated successfully" });
@@ -205,7 +205,7 @@ export function DistroManager({ projectId }: DistroManagerProps) {
         }
         
         queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/distros`] });
-        queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/distros/report-type-mappings`] });
+        queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/distro-report-type-mappings`] });
         
         toast({ title: "Success", description: "Distribution list created successfully" });
         setIsCreateOpen(false);

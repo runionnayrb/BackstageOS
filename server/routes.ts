@@ -8421,7 +8421,7 @@ Best regards,
   });
 
   // Get all distro-to-report-type mappings for a project
-  app.get('/api/projects/:projectId/distros/report-type-mappings', isAuthenticated, async (req: any, res) => {
+  app.get('/api/projects/:projectId/distro-report-type-mappings', isAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.projectId);
       const userId = parseInt(req.user.id.toString());
