@@ -191,9 +191,6 @@ export function ReportEmailModal({
     if (!template?.sections) return "";
     
     let html = "<hr><div style=\"font-family: Arial, sans-serif; max-width: 800px;\">";
-    html += `<h2 style="margin-bottom: 8px;">${report.title}</h2>`;
-    html += `<p style="color: #666; margin-bottom: 16px;">${project.name} - ${new Date(report.date).toLocaleDateString()}</p>`;
-    html += "<hr style=\"border: 0; border-top: 1px solid #ddd; margin: 16px 0;\" />";
     
     for (const section of template.sections) {
       html += `<h3 style="margin-top: 24px; margin-bottom: 12px; color: #333;">${section.title}</h3>`;
