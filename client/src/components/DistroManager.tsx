@@ -521,7 +521,7 @@ export function DistroManager({ projectId }: DistroManagerProps) {
       )}
 
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="max-w-xl">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Create Distribution List</DialogTitle>
             <DialogDescription>
@@ -545,7 +545,7 @@ export function DistroManager({ projectId }: DistroManagerProps) {
       </Dialog>
 
       <Dialog open={!!editingDistro} onOpenChange={(open) => !open && setEditingDistro(null)}>
-        <DialogContent className="max-w-xl">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Edit Distribution List</DialogTitle>
             <DialogDescription>
