@@ -227,29 +227,42 @@ export function ReportEmailModal({
   };
 
   useEffect(() => {
-    if (isOpen && assignedDistro && editor && !hasInitializedRef.current) {
+    if (isOpen && editor && !hasInitializedRef.current) {
       hasInitializedRef.current = true;
       
-      setToAddresses(assignedDistro.toRecipients || []);
-      setCcAddresses(assignedDistro.ccRecipients || []);
-      setBccAddresses(assignedDistro.bccRecipients || []);
-      setShowCc((assignedDistro.ccRecipients?.length || 0) > 0);
-      setShowBcc((assignedDistro.bccRecipients?.length || 0) > 0);
-      
-      const subjectText = replaceTemplateVariables(assignedDistro.subjectTemplate || "{{Report Title}} - {{Show Name}}");
-      setSubject(subjectText);
-      
-      let bodyText = replaceTemplateVariables(assignedDistro.bodyTemplate || "");
-      if (assignedDistro.signature) {
-        bodyText += "\n\n" + assignedDistro.signature;
+      if (assignedDistro) {
+        setToAddresses(assignedDistro.toRecipients || []);
+        setCcAddresses(assignedDistro.ccRecipients || []);
+        setBccAddresses(assignedDistro.bccRecipients || []);
+        setShowCc((assignedDistro.ccRecipients?.length || 0) > 0);
+        setShowBcc((assignedDistro.bccRecipients?.length || 0) > 0);
+        
+        const subjectText = replaceTemplateVariables(assignedDistro.subjectTemplate || "{{Report Title}} - {{Show Name}}");
+        setSubject(subjectText);
+        
+        let bodyText = replaceTemplateVariables(assignedDistro.bodyTemplate || "");
+        if (assignedDistro.signature) {
+          bodyText += "\n\n" + assignedDistro.signature;
+        }
+        setBody(bodyText);
+        editor.commands.setContent(bodyText.replace(/\n/g, "<br>"));
+      } else {
+        const defaultSubject = replaceTemplateVariables("{{Report Title}} - {{Show Name}}");
+        setSubject(defaultSubject);
+        setBody("");
+        editor.commands.setContent("");
       }
-      setBody(bodyText);
-      
-      editor.commands.setContent(bodyText.replace(/\n/g, "<br>"));
     }
     
     if (!isOpen) {
       hasInitializedRef.current = false;
+      setToAddresses([]);
+      setCcAddresses([]);
+      setBccAddresses([]);
+      setSubject("");
+      setBody("");
+      setShowCc(false);
+      setShowBcc(false);
       if (editor) {
         editor.commands.setContent('');
       }
