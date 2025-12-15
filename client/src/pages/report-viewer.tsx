@@ -228,18 +228,33 @@ export default function ReportViewer() {
         return lines;
       };
 
-      // Add report title
-      pdf.setFontSize(16);
+      const centerX = pageWidth / 2;
+
+      // Add report title (18pt, bold, centered)
+      pdf.setFontSize(18);
       pdf.setFont('helvetica', 'bold');
-      const titleLines = wrapText(report.title || 'Report', contentWidth, 16);
+      const titleLines = wrapText(report.title || 'Report', contentWidth, 18);
       titleLines.forEach((line: string) => {
-        checkNewPage(20);
-        pdf.text(line, marginLeft, yPosition);
-        yPosition += 20;
+        checkNewPage(22);
+        pdf.text(line, centerX, yPosition, { align: 'center' });
+        yPosition += 22;
       });
 
-      // Add date
-      pdf.setFontSize(11);
+      // Add show name (16pt, regular, centered)
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'normal');
+      const projectName = project?.name || '';
+      if (projectName) {
+        const projectLines = wrapText(projectName, contentWidth, 16);
+        projectLines.forEach((line: string) => {
+          checkNewPage(20);
+          pdf.text(line, centerX, yPosition, { align: 'center' });
+          yPosition += 20;
+        });
+      }
+
+      // Add date (16pt, regular, centered)
+      pdf.setFontSize(16);
       pdf.setFont('helvetica', 'normal');
       const dateStr = new Date(report.date).toLocaleDateString('en-US', { 
         weekday: 'long', 
@@ -247,8 +262,8 @@ export default function ReportViewer() {
         month: 'long', 
         day: 'numeric' 
       });
-      pdf.text(dateStr, marginLeft, yPosition);
-      yPosition += 24;
+      pdf.text(dateStr, centerX, yPosition, { align: 'center' });
+      yPosition += 30;
 
       // Process each section from the template
       if (stableTemplate?.sections) {
