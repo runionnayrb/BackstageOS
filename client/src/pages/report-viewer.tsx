@@ -28,7 +28,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -179,66 +178,133 @@ export default function ReportViewer() {
 
   const handleDownloadPDF = async () => {
     try {
-      const element = document.querySelector('[data-pdf-content]');
-      if (!element) {
-        toast({
-          title: "Error",
-          description: "Could not find report content to download",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Capture the HTML element as canvas
-      const canvas = await html2canvas(element as HTMLElement, {
-        scale: 2,
-        backgroundColor: '#ffffff',
-      });
-
       // Create PDF with letter size (8.5 x 11 inches)
       const pdf = new jsPDF({
         orientation: 'portrait',
-        unit: 'in',
+        unit: 'pt',
         format: 'letter',
       });
 
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
+      const pageWidth = pdf.internal.pageSize.getWidth(); // 612pt
+      const pageHeight = pdf.internal.pageSize.getHeight(); // 792pt
       
-      // Available content area with 1 inch margins
-      const marginLeft = 1;
-      const marginTop = 1;
-      const contentWidth = pageWidth - 2; // 1 inch margins on each side
-      const contentHeight = pageHeight - 2; // 1 inch margins on top and bottom
+      // Margins: 1" left/right (72pt), 0.5" top/bottom (36pt)
+      const marginLeft = 72;
+      const marginRight = 72;
+      const marginTop = 36;
+      const marginBottom = 36;
+      const contentWidth = pageWidth - marginLeft - marginRight;
 
-      // Calculate image dimensions to fit within margins
-      const imgWidth = contentWidth;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      // Font sizes
+      const sectionTitleSize = 13;
+      const fieldTitleSize = 12;
+      const contentSize = 11;
+      const lineHeight = 1.4;
 
       let yPosition = marginTop;
-      let remainingHeight = imgHeight;
 
-      // Add image to PDF, handling multiple pages if needed
-      const imgData = canvas.toDataURL('image/png');
-      
-      while (remainingHeight > 0) {
-        if (yPosition + remainingHeight > pageHeight - marginTop) {
-          // Need a new page
-          const heightThatFits = pageHeight - marginTop - yPosition;
-          pdf.addImage(imgData, 'PNG', marginLeft, yPosition, imgWidth, (heightThatFits * imgHeight) / remainingHeight);
-          remainingHeight -= heightThatFits;
+      // Helper to add new page if needed
+      const checkNewPage = (requiredHeight: number) => {
+        if (yPosition + requiredHeight > pageHeight - marginBottom) {
+          pdf.addPage();
           yPosition = marginTop;
-          if (remainingHeight > 0) {
-            pdf.addPage();
+          return true;
+        }
+        return false;
+      };
+
+      // Helper to strip HTML tags and decode entities
+      const stripHtml = (html: string): string => {
+        if (!html) return '';
+        const temp = document.createElement('div');
+        temp.innerHTML = html;
+        return temp.textContent || temp.innerText || '';
+      };
+
+      // Helper to wrap text and return lines
+      const wrapText = (text: string, maxWidth: number, fontSize: number): string[] => {
+        pdf.setFontSize(fontSize);
+        const lines = pdf.splitTextToSize(text, maxWidth);
+        return lines;
+      };
+
+      // Add report title
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'bold');
+      const titleLines = wrapText(report.title || 'Report', contentWidth, 16);
+      titleLines.forEach((line: string) => {
+        checkNewPage(20);
+        pdf.text(line, marginLeft, yPosition);
+        yPosition += 20;
+      });
+
+      // Add date
+      pdf.setFontSize(11);
+      pdf.setFont('helvetica', 'normal');
+      const dateStr = new Date(report.date).toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+      pdf.text(dateStr, marginLeft, yPosition);
+      yPosition += 24;
+
+      // Process each section from the template
+      if (stableTemplate?.sections) {
+        for (const section of stableTemplate.sections) {
+          // Check if we need a new page for section header
+          checkNewPage(sectionTitleSize * lineHeight + 20);
+
+          // Section title (13pt, bold)
+          pdf.setFontSize(sectionTitleSize);
+          pdf.setFont('helvetica', 'bold');
+          const sectionLines = wrapText(section.title || '', contentWidth, sectionTitleSize);
+          sectionLines.forEach((line: string) => {
+            checkNewPage(sectionTitleSize * lineHeight);
+            pdf.text(line, marginLeft, yPosition);
+            yPosition += sectionTitleSize * lineHeight;
+          });
+          yPosition += 6;
+
+          // Process fields in this section
+          if (section.fields && section.fields.length > 0) {
+            for (const field of section.fields) {
+              // Field title (12pt, bold)
+              checkNewPage(fieldTitleSize * lineHeight + 10);
+              pdf.setFontSize(fieldTitleSize);
+              pdf.setFont('helvetica', 'bold');
+              const fieldLines = wrapText(field.label || '', contentWidth - 20, fieldTitleSize);
+              fieldLines.forEach((line: string) => {
+                checkNewPage(fieldTitleSize * lineHeight);
+                pdf.text(line, marginLeft + 10, yPosition);
+                yPosition += fieldTitleSize * lineHeight;
+              });
+              yPosition += 2;
+
+              // Field content (11pt, normal)
+              const fieldContent = contentRef.current[field.label] || field.defaultValue || '';
+              const plainContent = stripHtml(fieldContent);
+              
+              if (plainContent.trim()) {
+                pdf.setFontSize(contentSize);
+                pdf.setFont('helvetica', 'normal');
+                const contentLines = wrapText(plainContent, contentWidth - 30, contentSize);
+                contentLines.forEach((line: string) => {
+                  checkNewPage(contentSize * lineHeight);
+                  pdf.text(line, marginLeft + 20, yPosition);
+                  yPosition += contentSize * lineHeight;
+                });
+              }
+              yPosition += 8;
+            }
           }
-        } else {
-          pdf.addImage(imgData, 'PNG', marginLeft, yPosition, imgWidth, remainingHeight);
-          remainingHeight = 0;
+          yPosition += 12;
         }
       }
 
       // Download the PDF
-      const fileName = `${report.title || 'Report'}-${new Date().toLocaleDateString()}.pdf`;
+      const fileName = `${report.title || 'Report'}-${new Date().toLocaleDateString().replace(/\//g, '-')}.pdf`;
       pdf.save(fileName);
 
       toast({
@@ -246,6 +312,7 @@ export default function ReportViewer() {
         description: "Report downloaded as PDF",
       });
     } catch (error) {
+      console.error('PDF generation error:', error);
       toast({
         title: "Error",
         description: "Failed to generate PDF. Please try again.",
