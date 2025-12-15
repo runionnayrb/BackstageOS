@@ -353,7 +353,6 @@ export default function ReportViewer() {
                           <div key={field.id} className="space-y-2">
                             <Label className="font-bold">
                               {field.label}
-                              {field.required && <span className="text-destructive ml-1">*</span>}
                             </Label>
                             <div className="pl-4">
                               {field.helperText && (
