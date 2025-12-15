@@ -46,13 +46,7 @@ interface ReportViewerParams {
   reportId: string;
 }
 
-// Debug counter to track re-renders
-let renderCount = 0;
-
 export default function ReportViewer() {
-  renderCount++;
-  console.log('🔴 ReportViewer RENDER #', renderCount);
-  
   const [, setLocation] = useLocation();
   const params = useParams<ReportViewerParams>();
   const projectId = parseInt(params.id!);
