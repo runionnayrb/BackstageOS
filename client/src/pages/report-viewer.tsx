@@ -263,7 +263,12 @@ export default function ReportViewer() {
         day: 'numeric' 
       });
       pdf.text(dateStr, centerX, yPosition, { align: 'center' });
-      yPosition += 30;
+      yPosition += 15;
+
+      // Add horizontal line from left margin to right margin
+      pdf.setLineWidth(0.5);
+      pdf.line(marginLeft, yPosition, pageWidth - marginRight, yPosition);
+      yPosition += 20;
 
       // Process each section from the template
       if (stableTemplate?.sections) {
