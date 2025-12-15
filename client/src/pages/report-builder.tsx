@@ -17,6 +17,7 @@ import { Clock, Settings, Star, Users, FileText, ArrowLeft, Bold, Italic, Underl
 import ReportNotesManager from "@/components/report-notes-manager";
 import ReportNotesFilter from "@/components/report-notes-filter";
 import { NoteStatusPopup } from "@/components/note-status-popup";
+import { NoteContextMenu } from "@/components/note-context-menu";
 
 const reportSchema = z.object({
   projectId: z.number(),
@@ -702,14 +703,23 @@ export default function ReportBuilder() {
                               className="text-sm outline-none whitespace-normal [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:ml-0"
                             />
                             {field.departmentKey && isEditMode && reportId && departmentFieldRefs.current[field.id] && (
-                              <NoteStatusPopup
-                                reportId={reportId}
-                                projectId={projectId}
-                                fieldId={field.id}
-                                departmentKey={field.departmentKey}
-                                containerRef={departmentFieldRefs.current[field.id]}
-                                teamMembers={teamMembers}
-                              />
+                              <>
+                                <NoteStatusPopup
+                                  reportId={reportId}
+                                  projectId={projectId}
+                                  fieldId={field.id}
+                                  departmentKey={field.departmentKey}
+                                  containerRef={departmentFieldRefs.current[field.id]}
+                                  teamMembers={teamMembers}
+                                />
+                                <NoteContextMenu
+                                  reportId={reportId}
+                                  projectId={projectId}
+                                  fieldId={field.id}
+                                  departmentKey={field.departmentKey}
+                                  containerRef={departmentFieldRefs.current[field.id]}
+                                />
+                              </>
                             )}
                           </div>
                         )}

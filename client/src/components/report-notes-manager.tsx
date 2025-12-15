@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { NoteContextMenu } from '@/components/note-context-menu';
 import type { ReportNote, InsertReportNote } from '@shared/schema';
 
 interface ReportNotesManagerProps {
@@ -45,6 +46,7 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
   const [editContent, setEditContent] = useState('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const notesContainerRef = useRef<HTMLDivElement>(null);
 
   // Query to fetch notes for this report
   const { data: notes = [], isLoading } = useQuery<ReportNote[]>({
@@ -338,7 +340,16 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
   }
 
   return (
-    <div>
+    <div className="relative" ref={notesContainerRef}>
+      {/* Context menu for right-click status assignment */}
+      {projectId && (
+        <NoteContextMenu
+          reportId={reportId}
+          projectId={projectId}
+          departmentKey={department}
+          containerRef={notesContainerRef}
+        />
+      )}
       {/* Notes list */}
       <div>
         {filteredNotes.map((note, index) => (
