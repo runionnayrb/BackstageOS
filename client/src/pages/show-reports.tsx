@@ -61,12 +61,12 @@ export default function ShowReports() {
     enabled: !!projectId && isAuthenticated,
   });
 
-  const { data: templatesV2 = [] } = useQuery({
+  const { data: templatesV2 = [], isLoading: templatesLoading } = useQuery({
     queryKey: [`/api/projects/${projectId}/templates-v2`],
     enabled: !!projectId && isAuthenticated,
   });
 
-  if (isLoading || projectsLoading || reportTypesLoading) return <div>Loading...</div>;
+  if (isLoading || projectsLoading || reportTypesLoading || templatesLoading) return <div>Loading...</div>;
   if (!project) return <div>Show not found</div>;
 
   // Get report type name from fetched report types
