@@ -319,19 +319,6 @@ export const GlobalTemplateSettingsContent = forwardRef<GlobalTemplateSettingsRe
 
   return (
     <div className="space-y-6">
-      {showSaveButton && (
-        <div className="flex justify-end">
-          <Button
-            onClick={() => saveSettings.mutate({ settingsData: settings, showToast: true })}
-            disabled={saveSettings.isPending}
-            className="flex items-center gap-2"
-          >
-            <Save className="h-4 w-4" />
-            Save Settings
-          </Button>
-        </div>
-      )}
-
       <Tabs defaultValue="pdf" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="pdf">PDF Export</TabsTrigger>
@@ -532,11 +519,24 @@ export const GlobalTemplateSettingsContent = forwardRef<GlobalTemplateSettingsRe
 
               <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
                 <p className="text-sm text-blue-700 dark:text-blue-300">
-                  💡 These settings control how your reports appear when downloaded as PDF. The default values are optimized for professional stage management reports.
+                  These settings control how your reports appear when downloaded as PDF. The default values are optimized for professional stage management reports.
                 </p>
               </div>
             </CardContent>
           </Card>
+          {showSaveButton && (
+            <div className="flex justify-end">
+              <Button
+                onClick={() => saveSettings.mutate({ settingsData: settings, showToast: true })}
+                disabled={saveSettings.isPending}
+                className="flex items-center gap-2"
+                data-testid="btn-save-pdf-settings"
+              >
+                <Save className="h-4 w-4" />
+                Save PDF Settings
+              </Button>
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="email" className="space-y-6">
