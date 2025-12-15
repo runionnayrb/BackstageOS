@@ -1907,6 +1907,28 @@ export class DatabaseStorage implements IStorage {
     await db.delete(reportTypeDistributionLists).where(eq(reportTypeDistributionLists.reportTypeId, reportTypeId));
   }
 
+  async getReportTypesByDistributionListId(distributionListId: number): Promise<number[]> {
+    const result = await db.select({ reportTypeId: reportTypeDistributionLists.reportTypeId })
+      .from(reportTypeDistributionLists)
+      .where(eq(reportTypeDistributionLists.distributionListId, distributionListId));
+    return result.map(r => r.reportTypeId);
+  }
+
+  async syncDistributionListReportTypes(projectId: number, distributionListId: number, reportTypeIds: number[]): Promise<void> {
+    // Remove all existing assignments for this distro
+    await db.delete(reportTypeDistributionLists).where(eq(reportTypeDistributionLists.distributionListId, distributionListId));
+    
+    // Add new assignments
+    for (const reportTypeId of reportTypeIds) {
+      await db.insert(reportTypeDistributionLists).values({
+        projectId,
+        reportTypeId,
+        distributionListId,
+        isDefault: true,
+      });
+    }
+  }
+
   async syncShowContactsToEmailContacts(userId: number, projectId: number): Promise<void> {
     // Get all contacts for this project
     const showContacts = await this.getContactsByProjectId(projectId);

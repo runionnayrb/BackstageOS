@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -45,6 +46,12 @@ interface DistributionList {
   updatedAt: string;
 }
 
+interface ReportType {
+  id: number;
+  name: string;
+  projectId: number;
+}
+
 interface DistroManagerProps {
   projectId: string;
 }
@@ -67,48 +74,39 @@ export function DistroManager({ projectId }: DistroManagerProps) {
   });
   
   const [newEmail, setNewEmail] = useState({ to: "", cc: "", bcc: "" });
+  const [selectedReportTypes, setSelectedReportTypes] = useState<number[]>([]);
 
   const { data: distros = [], isLoading } = useQuery<DistributionList[]>({
     queryKey: [`/api/projects/${projectId}/distros`],
     enabled: !!projectId,
   });
 
+  const { data: reportTypes = [] } = useQuery<ReportType[]>({
+    queryKey: [`/api/projects/${projectId}/report-types`],
+    enabled: !!projectId,
+  });
+
+  const { data: assignedReportTypes = [] } = useQuery<number[]>({
+    queryKey: ['/api/projects', projectId, 'distros', editingDistro?.id, 'report-types'],
+    enabled: !!editingDistro?.id,
+  });
+
+  useEffect(() => {
+    if (editingDistro && assignedReportTypes) {
+      setSelectedReportTypes(assignedReportTypes);
+    }
+  }, [editingDistro, assignedReportTypes]);
+
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       return apiRequest("POST", `/api/projects/${projectId}/distros`, data);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/distros`] });
-      toast({ title: "Success", description: "Distribution list created successfully" });
-      setIsCreateOpen(false);
-      resetForm();
-    },
-    onError: (error: any) => {
-      toast({ 
-        title: "Error", 
-        description: error?.message || "Failed to create distribution list",
-        variant: "destructive"
-      });
-    }
   });
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: typeof formData }) => {
       return apiRequest("PUT", `/api/projects/${projectId}/distros/${id}`, data);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/distros`] });
-      toast({ title: "Success", description: "Distribution list updated successfully" });
-      setEditingDistro(null);
-      resetForm();
-    },
-    onError: (error: any) => {
-      toast({ 
-        title: "Error", 
-        description: error?.message || "Failed to update distribution list",
-        variant: "destructive"
-      });
-    }
   });
 
   const deleteMutation = useMutation({
@@ -130,6 +128,12 @@ export function DistroManager({ projectId }: DistroManagerProps) {
     }
   });
 
+  const syncReportTypesMutation = useMutation({
+    mutationFn: async ({ distroId, reportTypeIds }: { distroId: number; reportTypeIds: number[] }) => {
+      return apiRequest("PUT", `/api/projects/${projectId}/distros/${distroId}/report-types`, { reportTypeIds });
+    },
+  });
+
   const resetForm = () => {
     setFormData({
       name: "",
@@ -142,6 +146,7 @@ export function DistroManager({ projectId }: DistroManagerProps) {
       signature: "",
     });
     setNewEmail({ to: "", cc: "", bcc: "" });
+    setSelectedReportTypes([]);
   };
 
   const openEdit = (distro: DistributionList) => {
@@ -160,19 +165,52 @@ export function DistroManager({ projectId }: DistroManagerProps) {
 
   const openCreate = () => {
     resetForm();
+    setSelectedReportTypes([]);
     setIsCreateOpen(true);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.name.trim()) {
       toast({ title: "Error", description: "Name is required", variant: "destructive" });
       return;
     }
 
-    if (editingDistro) {
-      updateMutation.mutate({ id: editingDistro.id, data: formData });
-    } else {
-      createMutation.mutate(formData);
+    try {
+      if (editingDistro) {
+        const distroId = editingDistro.id;
+        const reportTypeIds = [...selectedReportTypes];
+        
+        await updateMutation.mutateAsync({ id: distroId, data: formData });
+        await syncReportTypesMutation.mutateAsync({ distroId, reportTypeIds });
+        
+        queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/distros`] });
+        queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'distros', distroId, 'report-types'] });
+        
+        toast({ title: "Success", description: "Distribution list updated successfully" });
+        setEditingDistro(null);
+        resetForm();
+      } else {
+        const reportTypeIds = [...selectedReportTypes];
+        
+        const response = await createMutation.mutateAsync(formData);
+        const data = await response.json();
+        
+        if (data.id && reportTypeIds.length > 0) {
+          await syncReportTypesMutation.mutateAsync({ distroId: data.id, reportTypeIds });
+        }
+        
+        queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/distros`] });
+        
+        toast({ title: "Success", description: "Distribution list created successfully" });
+        setIsCreateOpen(false);
+        resetForm();
+      }
+    } catch (error: any) {
+      toast({ 
+        title: "Error", 
+        description: error?.message || "Failed to save distribution list",
+        variant: "destructive"
+      });
     }
   };
 
@@ -351,6 +389,32 @@ export function DistroManager({ projectId }: DistroManagerProps) {
           />
         </div>
       </div>
+
+      {reportTypes.length > 0 && (
+        <div className="border-t pt-4 space-y-4">
+          <h4 className="text-sm font-medium">Assigned Reports</h4>
+          <p className="text-xs text-muted-foreground">Select which report types will use this distribution list when sending.</p>
+          <div className="space-y-2">
+            {reportTypes.map((rt) => (
+              <div key={rt.id} className="flex items-center gap-2">
+                <Checkbox
+                  id={`report-type-${rt.id}`}
+                  checked={selectedReportTypes.includes(rt.id)}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setSelectedReportTypes(prev => [...prev, rt.id]);
+                    } else {
+                      setSelectedReportTypes(prev => prev.filter(id => id !== rt.id));
+                    }
+                  }}
+                  data-testid={`checkbox-report-type-${rt.id}`}
+                />
+                <Label htmlFor={`report-type-${rt.id}`} className="text-sm cursor-pointer">{rt.name}</Label>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 

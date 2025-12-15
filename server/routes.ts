@@ -8363,6 +8363,63 @@ Best regards,
     }
   });
 
+  // Get report types assigned to a distro
+  app.get('/api/projects/:projectId/distros/:distroId/report-types', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const distroId = parseInt(req.params.distroId);
+      const userId = parseInt(req.user.id.toString());
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === userId);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+      
+      const reportTypeIds = await storage.getReportTypesByDistributionListId(distroId);
+      res.json(reportTypeIds);
+    } catch (error) {
+      console.error("Error fetching distro report types:", error);
+      res.status(500).json({ message: "Failed to fetch assigned report types" });
+    }
+  });
+
+  // Sync report types for a distro
+  app.put('/api/projects/:projectId/distros/:distroId/report-types', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const distroId = parseInt(req.params.distroId);
+      const { reportTypeIds } = req.body;
+      const userId = parseInt(req.user.id.toString());
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === userId);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+      
+      await storage.syncDistributionListReportTypes(projectId, distroId, reportTypeIds || []);
+      res.json({ message: "Report types synced successfully" });
+    } catch (error) {
+      console.error("Error syncing distro report types:", error);
+      res.status(500).json({ message: "Failed to sync report types" });
+    }
+  });
+
   // Report Type Distribution List Assignment Routes
   app.get('/api/projects/:projectId/report-types/:reportTypeId/distro', isAuthenticated, async (req: any, res) => {
     try {
