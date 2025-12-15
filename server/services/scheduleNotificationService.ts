@@ -71,7 +71,7 @@ export class ScheduleNotificationService {
       template = {
         projectId,
         templateType,
-        templateName: `${templateType === 'major' ? 'Major' : 'Minor'} Schedule Update`,
+        name: `${templateType === 'major' ? 'Major' : 'Minor'} Schedule Update`,
         subject: templateType === 'major' 
           ? '🎭 Major Schedule Update: {{showName}} v{{version}}'
           : '📅 Minor Schedule Update: {{showName}} v{{version}}',

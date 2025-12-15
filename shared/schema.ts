@@ -861,10 +861,11 @@ export const scheduleTemplateEventParticipants = pgTable("schedule_template_even
 export const scheduleEmailTemplates = pgTable("schedule_email_templates", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
-  templateName: varchar("template_name").notNull(), // "Default", "Tech Week", "Performance", etc.
+  name: varchar("name").notNull(), // "Default", "Tech Week", "Performance", etc.
   templateType: varchar("template_type").notNull(), // 'major_version' | 'minor_version' | 'custom'
   subjectTemplate: text("subject_template").notNull(), // with variables like {{showName}}, {{version}}
   bodyTemplate: text("body_template").notNull(), // rich text with variable placeholders
+  variables: jsonb("variables"), // template variables
   isDefault: boolean("is_default").default(false), // default template for this project
   createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
