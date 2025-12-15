@@ -22,6 +22,7 @@ import {
   emailContacts,
   distributionLists,
   distributionListMembers,
+  reportTypeDistributionLists,
   contactGroups,
   contactAvailability,
   scheduleEvents,
@@ -1871,6 +1872,39 @@ export class DatabaseStorage implements IStorage {
         eq(distributionListMembers.distributionListId, distributionListId)
       )
     );
+  }
+
+  async getDistributionListById(id: number): Promise<DistributionList | null> {
+    const result = await db.select().from(distributionLists).where(eq(distributionLists.id, id));
+    return result[0] || null;
+  }
+
+  async getDistributionListsByProjectId(projectId: number): Promise<DistributionList[]> {
+    const result = await db.select().from(distributionLists).where(eq(distributionLists.projectId, projectId));
+    return result;
+  }
+
+  async getReportTypeDistributionList(reportTypeId: number): Promise<{ distributionListId: number } | null> {
+    const result = await db.select().from(reportTypeDistributionLists).where(eq(reportTypeDistributionLists.reportTypeId, reportTypeId));
+    return result[0] || null;
+  }
+
+  async assignDistributionListToReportType(projectId: number, reportTypeId: number, distributionListId: number): Promise<any> {
+    // Remove existing assignment first
+    await db.delete(reportTypeDistributionLists).where(eq(reportTypeDistributionLists.reportTypeId, reportTypeId));
+    
+    // Create new assignment
+    const result = await db.insert(reportTypeDistributionLists).values({
+      projectId,
+      reportTypeId,
+      distributionListId,
+      isDefault: true,
+    }).returning();
+    return result[0];
+  }
+
+  async removeDistributionListFromReportType(reportTypeId: number): Promise<void> {
+    await db.delete(reportTypeDistributionLists).where(eq(reportTypeDistributionLists.reportTypeId, reportTypeId));
   }
 
   async syncShowContactsToEmailContacts(userId: number, projectId: number): Promise<void> {

@@ -8207,6 +8207,254 @@ Best regards,
     }
   });
 
+  // Project-scoped Distribution Lists (Distros) Routes
+  app.get('/api/projects/:projectId/distros', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const userId = parseInt(req.user.id.toString());
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === userId);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+      
+      const distros = await storage.getDistributionListsByProjectId(projectId);
+      res.json(distros);
+    } catch (error) {
+      console.error("Error fetching project distros:", error);
+      res.status(500).json({ message: "Failed to fetch distribution lists" });
+    }
+  });
+
+  app.post('/api/projects/:projectId/distros', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const userId = parseInt(req.user.id.toString());
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === userId);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+      
+      const distroData = insertDistributionListSchema.parse({
+        ...req.body,
+        userId,
+        projectId,
+        createdBy: userId,
+      });
+      
+      const distro = await storage.createDistributionList(distroData);
+      res.json(distro);
+    } catch (error) {
+      console.error("Error creating distro:", error);
+      res.status(500).json({ message: "Failed to create distribution list" });
+    }
+  });
+
+  app.get('/api/projects/:projectId/distros/:distroId', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const distroId = parseInt(req.params.distroId);
+      const userId = parseInt(req.user.id.toString());
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === userId);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+      
+      const distro = await storage.getDistributionListById(distroId);
+      if (!distro || distro.projectId !== projectId) {
+        return res.status(404).json({ message: "Distribution list not found" });
+      }
+      
+      res.json(distro);
+    } catch (error) {
+      console.error("Error fetching distro:", error);
+      res.status(500).json({ message: "Failed to fetch distribution list" });
+    }
+  });
+
+  app.put('/api/projects/:projectId/distros/:distroId', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const distroId = parseInt(req.params.distroId);
+      const userId = parseInt(req.user.id.toString());
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === userId);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+      
+      const existingDistro = await storage.getDistributionListById(distroId);
+      if (!existingDistro || existingDistro.projectId !== projectId) {
+        return res.status(404).json({ message: "Distribution list not found" });
+      }
+      
+      const updateData = insertDistributionListSchema.partial().parse(req.body);
+      const distro = await storage.updateDistributionList(distroId, updateData);
+      res.json(distro);
+    } catch (error) {
+      console.error("Error updating distro:", error);
+      res.status(500).json({ message: "Failed to update distribution list" });
+    }
+  });
+
+  app.delete('/api/projects/:projectId/distros/:distroId', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const distroId = parseInt(req.params.distroId);
+      const userId = parseInt(req.user.id.toString());
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === userId);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+      
+      const existingDistro = await storage.getDistributionListById(distroId);
+      if (!existingDistro || existingDistro.projectId !== projectId) {
+        return res.status(404).json({ message: "Distribution list not found" });
+      }
+      
+      await storage.deleteDistributionList(distroId);
+      res.json({ message: "Distribution list deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting distro:", error);
+      res.status(500).json({ message: "Failed to delete distribution list" });
+    }
+  });
+
+  // Report Type Distribution List Assignment Routes
+  app.get('/api/projects/:projectId/report-types/:reportTypeId/distro', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const reportTypeId = parseInt(req.params.reportTypeId);
+      const userId = parseInt(req.user.id.toString());
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === userId);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+      
+      const assignment = await storage.getReportTypeDistributionList(reportTypeId);
+      if (!assignment) {
+        return res.json(null);
+      }
+      
+      const distro = await storage.getDistributionListById(assignment.distributionListId);
+      res.json(distro);
+    } catch (error) {
+      console.error("Error fetching report type distro:", error);
+      res.status(500).json({ message: "Failed to fetch assigned distribution list" });
+    }
+  });
+
+  app.post('/api/projects/:projectId/report-types/:reportTypeId/distro', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const reportTypeId = parseInt(req.params.reportTypeId);
+      const { distributionListId } = req.body;
+      const userId = parseInt(req.user.id.toString());
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === userId);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+      
+      const assignment = await storage.assignDistributionListToReportType(
+        projectId,
+        reportTypeId,
+        distributionListId
+      );
+      res.json(assignment);
+    } catch (error) {
+      console.error("Error assigning distro to report type:", error);
+      res.status(500).json({ message: "Failed to assign distribution list to report type" });
+    }
+  });
+
+  app.delete('/api/projects/:projectId/report-types/:reportTypeId/distro', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const reportTypeId = parseInt(req.params.reportTypeId);
+      const userId = parseInt(req.user.id.toString());
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === userId);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+      
+      await storage.removeDistributionListFromReportType(reportTypeId);
+      res.json({ message: "Distribution list removed from report type" });
+    } catch (error) {
+      console.error("Error removing distro from report type:", error);
+      res.status(500).json({ message: "Failed to remove distribution list from report type" });
+    }
+  });
+
   // Schedule Events Routes
   app.get('/api/projects/:id/schedule-events', isAuthenticated, async (req: any, res) => {
     try {
