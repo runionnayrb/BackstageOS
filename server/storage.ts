@@ -2930,15 +2930,41 @@ export class DatabaseStorage implements IStorage {
 
   // Event types management
   async getEventTypesByProjectId(projectId: number): Promise<any[]> {
-    // Simply return all event types from the database for this project
+    // Simply return all event types from the database for this project, ordered by sortOrder
     // These are managed through the Show Settings page in the Schedule tab
-    const allEventTypes = await db.select().from(eventTypes).where(eq(eventTypes.projectId, projectId));
+    const allEventTypes = await db.select().from(eventTypes)
+      .where(eq(eventTypes.projectId, projectId))
+      .orderBy(eventTypes.sortOrder, eventTypes.name);
     return allEventTypes;
   }
 
   async createEventType(eventType: any): Promise<any> {
-    const result = await db.insert(eventTypes).values(eventType).returning();
+    // Get the highest sortOrder for this project
+    const maxOrder = await db.select({ maxOrder: max(eventTypes.sortOrder) })
+      .from(eventTypes)
+      .where(eq(eventTypes.projectId, eventType.projectId));
+    
+    const nextOrder = (maxOrder[0]?.maxOrder || 0) + 1;
+    
+    const result = await db.insert(eventTypes).values({
+      ...eventType,
+      sortOrder: nextOrder
+    }).returning();
     return result[0];
+  }
+
+  async reorderEventTypes(projectId: number, eventTypeIds: number[]): Promise<void> {
+    // Update sortOrder for each event type based on its new position
+    const updatePromises = eventTypeIds.map((eventTypeId, index) =>
+      db.update(eventTypes)
+        .set({ sortOrder: index + 1, updatedAt: new Date() })
+        .where(and(
+          eq(eventTypes.id, eventTypeId),
+          eq(eventTypes.projectId, projectId)
+        ))
+    );
+    
+    await Promise.all(updatePromises);
   }
 
   async updateEventType(eventTypeId: number, updates: any): Promise<any> {
