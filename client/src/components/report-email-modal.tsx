@@ -226,67 +226,80 @@ export function ReportEmailModal({
     return html;
   };
 
+  // Track if we've already initialized with distros to avoid re-initialization
+  const initializedWithDistrosRef = useRef(false);
+
   // Initialize form when modal opens and data is ready
   useEffect(() => {
-    if (isOpen && editor && distroDataReady && !hasInitializedRef.current) {
-      hasInitializedRef.current = true;
-      
-      const defaultSubject = replaceTemplateVariables("{{Report Title}} - {{Show Name}}");
-      const reportContentHtml = generateReportContentHtml();
-      
-      if (assignedDistros.length > 0) {
-        const allToEmails = new Set<string>();
-        const allCcEmails = new Set<string>();
-        const allBccEmails = new Set<string>();
-        
-        for (const distro of assignedDistros) {
-          (distro.toRecipients || []).forEach(email => allToEmails.add(email));
-          (distro.ccRecipients || []).forEach(email => allCcEmails.add(email));
-          (distro.bccRecipients || []).forEach(email => allBccEmails.add(email));
-        }
-        
-        const toEmailsStr = Array.from(allToEmails).join(', ');
-        const ccEmailsStr = Array.from(allCcEmails).join(', ');
-        const bccEmailsStr = Array.from(allBccEmails).join(', ');
-        
-        setShowCCField(ccEmailsStr.length > 0);
-        setShowBCCField(bccEmailsStr.length > 0);
-        
-        const firstDistro = assignedDistros[0];
-        const subjectText = replaceTemplateVariables(firstDistro.subjectTemplate || "{{Report Title}} - {{Show Name}}");
-        let bodyText = replaceTemplateVariables(firstDistro.bodyTemplate || "");
-        if (firstDistro.signature) {
-          bodyText += "\n\n" + firstDistro.signature;
-        }
-        
-        setEmailForm({
-          to: toEmailsStr,
-          cc: ccEmailsStr,
-          bcc: bccEmailsStr,
-          subject: subjectText,
-          body: bodyText,
-        });
-        
-        // Include both the message and the report content in the editor
-        const fullContent = bodyText.replace(/\n/g, "<br>") + "<br><br>" + reportContentHtml;
-        editor.commands.setContent(fullContent);
-      } else {
-        setEmailForm({
-          to: '',
-          cc: '',
-          bcc: '',
-          subject: defaultSubject,
-          body: '',
-        });
-        // Show report content even without a distro
-        editor.commands.setContent(reportContentHtml);
-      }
-    }
-    
     if (!isOpen) {
       hasInitializedRef.current = false;
+      initializedWithDistrosRef.current = false;
+      return;
     }
-  }, [isOpen, assignedDistros, editor, distroDataReady]);
+    
+    if (!editor || !distroDataReady) return;
+    
+    // If we haven't initialized at all, or we previously initialized without distros but now have them
+    const shouldInitialize = !hasInitializedRef.current || 
+      (!initializedWithDistrosRef.current && assignedDistros.length > 0);
+    
+    if (!shouldInitialize) return;
+    
+    hasInitializedRef.current = true;
+    
+    const defaultSubject = replaceTemplateVariables("{{Report Title}} - {{Show Name}}");
+    const reportContentHtml = generateReportContentHtml();
+    
+    if (assignedDistros.length > 0) {
+      initializedWithDistrosRef.current = true;
+      
+      const allToEmails = new Set<string>();
+      const allCcEmails = new Set<string>();
+      const allBccEmails = new Set<string>();
+      
+      for (const distro of assignedDistros) {
+        (distro.toRecipients || []).forEach(email => allToEmails.add(email));
+        (distro.ccRecipients || []).forEach(email => allCcEmails.add(email));
+        (distro.bccRecipients || []).forEach(email => allBccEmails.add(email));
+      }
+      
+      const toEmailsStr = Array.from(allToEmails).join(', ');
+      const ccEmailsStr = Array.from(allCcEmails).join(', ');
+      const bccEmailsStr = Array.from(allBccEmails).join(', ');
+      
+      setShowCCField(ccEmailsStr.length > 0);
+      setShowBCCField(bccEmailsStr.length > 0);
+      
+      const firstDistro = assignedDistros[0];
+      const subjectText = replaceTemplateVariables(firstDistro.subjectTemplate || "{{Report Title}} - {{Show Name}}");
+      let bodyText = replaceTemplateVariables(firstDistro.bodyTemplate || "");
+      if (firstDistro.signature) {
+        bodyText += "\n\n" + firstDistro.signature;
+      }
+      
+      setEmailForm({
+        to: toEmailsStr,
+        cc: ccEmailsStr,
+        bcc: bccEmailsStr,
+        subject: subjectText,
+        body: bodyText,
+      });
+      
+      // Include both the message and the report content in the editor
+      const fullContent = bodyText.replace(/\n/g, "<br>") + "<br><br>" + reportContentHtml;
+      editor.commands.setContent(fullContent);
+    } else {
+      setEmailForm({
+        to: '',
+        cc: '',
+        bcc: '',
+        subject: defaultSubject,
+        body: '',
+      });
+      // Show report content even without a distro
+      editor.commands.setContent(reportContentHtml);
+    }
+  }, [isOpen, assignedDistros, editor, distroDataReady, allDistros, distroMappings, reportTypeId]);
 
   const generatePdfBlob = async (): Promise<Blob> => {
     const pdfSettings = globalTemplateSettings?.pdfExport || {
