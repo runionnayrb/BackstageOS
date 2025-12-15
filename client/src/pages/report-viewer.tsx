@@ -451,7 +451,7 @@ export default function ReportViewer() {
       }
 
       // Download the PDF
-      const fileName = `${report.title || 'Report'}-${new Date(report.date).toLocaleDateString().replace(/\//g, '-')}.pdf`;
+      const fileName = `${project?.name || 'Show'} | ${report.title || 'Report'} | ${new Date(report.date).toLocaleDateString().replace(/\//g, '-')}.pdf`;
       pdf.save(fileName);
 
       toast({
