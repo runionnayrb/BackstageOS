@@ -1,6 +1,8 @@
-import { scheduleEmailTemplatesTable, personalSchedulesTable, schedule_versions } from '../../shared/schema';
 import { storage } from '../storage';
-import { standaloneEmailService } from './standaloneEmailService';
+import { sendEmail } from './sendgridService';
+import { oauthTokenService } from './oauthTokenService';
+import { googleOAuthService } from './googleOAuthService';
+import { microsoftOAuthService } from './microsoftOAuthService';
 import { nanoid } from 'nanoid';
 
 interface ScheduleNotificationData {
@@ -22,6 +24,8 @@ interface ScheduleNotificationData {
     email: string;
     firstName?: string;
     lastName?: string;
+    connectedEmailProvider?: string | null;
+    connectedEmailAddress?: string | null;
   };
 }
 
@@ -60,23 +64,24 @@ export class ScheduleNotificationService {
    */
   private async getEmailTemplate(projectId: number, templateType: 'major' | 'minor' = 'major') {
     const templates = await storage.getScheduleEmailTemplatesByProjectId(projectId);
-    let template = templates.find(t => t.templateType === templateType);
+    let template = templates.find((t: any) => t.templateType === templateType);
     
     if (!template) {
-      // Create default template
-      const defaultTemplate = {
+      // Return default template structure without creating in database
+      template = {
         projectId,
         templateType,
         templateName: `${templateType === 'major' ? 'Major' : 'Minor'} Schedule Update`,
         subject: templateType === 'major' 
           ? '🎭 Major Schedule Update: {{showName}} v{{version}}'
           : '📅 Minor Schedule Update: {{showName}} v{{version}}',
+        subjectTemplate: templateType === 'major' 
+          ? '🎭 Major Schedule Update: {{showName}} v{{version}}'
+          : '📅 Minor Schedule Update: {{showName}} v{{version}}',
         htmlContent: this.getDefaultHtmlTemplate(templateType),
+        bodyTemplate: this.getDefaultHtmlTemplate(templateType),
         textContent: this.getDefaultTextTemplate(templateType),
-        variables: ['showName', 'version', 'contactName', 'publishedBy', 'title', 'description', 'changelog', 'personalScheduleUrl', 'publishedDate']
       };
-      
-      template = await storage.createScheduleEmailTemplate(defaultTemplate);
     }
     
     return template;
@@ -258,7 +263,7 @@ BackstageOS • Professional Stage Management
 
     // Get schedule settings for week calculations
     const showSettings = await storage.getShowSettingsByProjectId(data.project.id);
-    const scheduleSettings = showSettings?.scheduleSettings || {};
+    const scheduleSettings = (showSettings as any)?.scheduleSettings || {};
     const timezone = scheduleSettings.timezone || 'America/New_York';
     
     // Calculate current week range
@@ -276,7 +281,7 @@ BackstageOS • Professional Stage Management
       console.error('Error fetching structured changes for email:', error);
     }
 
-    const variables = {
+    const variables: Record<string, string> = {
       showName: data.project.name,
       version: data.version.version,
       contactName,
@@ -306,7 +311,7 @@ BackstageOS • Professional Stage Management
     });
 
     // Handle conditional blocks (simple {{#if description}} logic)
-    result = result.replace(/{{#if description}}(.*?){{\/if}}/gs, (match, content) => {
+    result = result.replace(/\{\{#if description\}\}([\s\S]*?)\{\{\/if\}\}/g, (_match, content) => {
       return data.version.description ? content : '';
     });
 
@@ -314,120 +319,144 @@ BackstageOS • Professional Stage Management
   }
 
   /**
-   * Send schedule update notification to a single contact
+   * Send email using the user's connected email provider (Gmail/Outlook) or fall back to SendGrid
    */
-  private async sendNotificationToContact(
-    data: ScheduleNotificationData,
-    contact: ContactNotificationData,
-    template: any,
-    personalScheduleUrl: string
-  ) {
+  private async sendEmailViaProvider(
+    userId: number,
+    userEmailProvider: string | null | undefined,
+    userEmailAddress: string | null | undefined,
+    userName: string,
+    toEmail: string,
+    subject: string,
+    htmlContent: string,
+    textContent: string
+  ): Promise<{ success: boolean; error?: string }> {
     try {
-      const subject = await this.replaceTemplateVariables(template.subject, data, contact, personalScheduleUrl);
-      const htmlContent = await this.replaceTemplateVariables(template.htmlContent, data, contact, personalScheduleUrl);
-      const textContent = await this.replaceTemplateVariables(template.textContent, data, contact, personalScheduleUrl);
-
-      // Get sender configuration from schedule settings
-      const scheduleSettings = await storage.getShowSettings(data.project.id);
-      const emailSenderConfig = scheduleSettings?.scheduleSettings?.emailSender || {};
-      
-      // Dynamic sender name with fallback to show name SM format
-      const senderName = emailSenderConfig.senderName || `${data.project.name} SM`;
-      
-      // All emails send from schedules@backstageos.com
-      const fromEmail = 'schedules@backstageos.com';
-      
-      // Determine reply-to email based on reply-to type
-      let replyToEmail = data.publishedBy.email; // Default fallback
-      if (emailSenderConfig.replyToType === 'backstage_email') {
-        // Get BackstageOS email from email accounts
-        const emailAccounts = await storage.getEmailAccountsByUserId(data.publishedBy.id);
-        const backstageAccount = emailAccounts.find((account: any) => account.emailAddress?.includes('@backstageos.com'));
-        replyToEmail = backstageAccount?.emailAddress || data.publishedBy.email;
-      } else if (emailSenderConfig.replyToType === 'account') {
-        const user = await storage.getUser(data.publishedBy.id.toString());
-        replyToEmail = user?.email || data.publishedBy.email;
-      } else if (emailSenderConfig.replyToType === 'external' && emailSenderConfig.replyToEmail) {
-        replyToEmail = emailSenderConfig.replyToEmail;
+      // Try to use user's connected email provider first
+      if (userEmailProvider === 'gmail' && userEmailAddress) {
+        console.log(`📧 Sending schedule notification via Gmail (${userEmailAddress})`);
+        const accessToken = await oauthTokenService.getValidGmailAccessToken(userId.toString());
+        
+        if (accessToken) {
+          const result = await googleOAuthService.sendEmail(accessToken, {
+            to: [toEmail],
+            subject,
+            body: htmlContent,
+            isHtml: true,
+            fromEmail: userEmailAddress,
+            fromName: userName
+          });
+          
+          if (result.success) {
+            console.log(`✅ Email sent via Gmail to ${toEmail}`);
+            return { success: true };
+          } else {
+            console.warn(`⚠️ Gmail send failed, falling back to SendGrid: ${result.error}`);
+          }
+        } else {
+          console.warn(`⚠️ Gmail token expired or invalid, falling back to SendGrid`);
+        }
+      } else if (userEmailProvider === 'outlook' && userEmailAddress) {
+        console.log(`📧 Sending schedule notification via Outlook (${userEmailAddress})`);
+        const accessToken = await oauthTokenService.getValidOutlookAccessToken(userId.toString());
+        
+        if (accessToken) {
+          const result = await microsoftOAuthService.sendEmail(accessToken, {
+            to: [toEmail],
+            subject,
+            body: htmlContent,
+            isHtml: true
+          });
+          
+          if (result.success) {
+            console.log(`✅ Email sent via Outlook to ${toEmail}`);
+            return { success: true };
+          } else {
+            console.warn(`⚠️ Outlook send failed, falling back to SendGrid: ${result.error}`);
+          }
+        } else {
+          console.warn(`⚠️ Outlook token expired or invalid, falling back to SendGrid`);
+        }
       }
 
-      await standaloneEmailService.sendEmail({
-        to: contact.email,
+      // Fall back to SendGrid if no provider connected or provider failed
+      console.log(`📧 Sending schedule notification via SendGrid to ${toEmail}`);
+      await sendEmail({
+        to: [toEmail],
         subject,
         html: htmlContent,
         text: textContent,
         from: {
-          name: senderName,
-          email: fromEmail
-        },
-        replyTo: replyToEmail
+          email: 'schedules@backstageos.com',
+          name: userName
+        }
       });
-
-      // Log notification sent
-      await storage.createScheduleVersionNotification({
-        versionId: data.version.id,
-        contactId: contact.id,
-        emailAddress: contact.email,
-        sentAt: new Date(),
-        status: 'sent'
-      });
-
-      console.log(`✅ Schedule notification sent to ${contact.email} for ${data.project.name} v${data.version.version}`);
+      
+      console.log(`✅ Email sent via SendGrid to ${toEmail}`);
+      return { success: true };
       
     } catch (error) {
-      console.error(`❌ Failed to send schedule notification to ${contact.email}:`, error);
-      
-      // Log failed notification
-      await storage.createScheduleVersionNotification({
-        versionId: data.version.id,
-        contactId: contact.id,
-        emailAddress: contact.email,
-        sentAt: new Date(),
-        status: 'failed',
-        errorMessage: error instanceof Error ? error.message : 'Unknown error'
-      });
+      console.error(`❌ Failed to send email to ${toEmail}:`, error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      };
     }
   }
 
   /**
-   * Optimized send notification method that uses pre-computed sender config
+   * Send schedule update notification to a single contact using user's connected provider
    */
   private async sendOptimizedNotificationToContact(
     data: ScheduleNotificationData,
     contact: ContactNotificationData,
     template: any,
     personalScheduleUrl: string,
-    senderName: string,
-    fromEmail: string,
-    replyToEmail: string
+    senderName: string
   ) {
     try {
-      const subject = await this.replaceTemplateVariables(template.subject, data, contact, personalScheduleUrl);
-      const htmlContent = await this.replaceTemplateVariables(template.htmlContent, data, contact, personalScheduleUrl);
-      const textContent = await this.replaceTemplateVariables(template.textContent, data, contact, personalScheduleUrl);
+      // Get the subject template from either field name
+      const subjectTemplate = template.subject || template.subjectTemplate || 
+        `Schedule Update: {{showName}} v{{version}}`;
+      
+      // Get the HTML content from either field name
+      const htmlTemplate = template.htmlContent || template.bodyTemplate || 
+        this.getDefaultHtmlTemplate(data.version.versionType);
+      
+      // Get the text content
+      const textTemplate = template.textContent || 
+        this.getDefaultTextTemplate(data.version.versionType);
 
-      await standaloneEmailService.sendEmail({
-        to: contact.email,
+      const subject = await this.replaceTemplateVariables(subjectTemplate, data, contact, personalScheduleUrl);
+      const htmlContent = await this.replaceTemplateVariables(htmlTemplate, data, contact, personalScheduleUrl);
+      const textContent = await this.replaceTemplateVariables(textTemplate, data, contact, personalScheduleUrl);
+
+      // Send using the user's connected email provider or SendGrid fallback
+      const result = await this.sendEmailViaProvider(
+        data.publishedBy.id,
+        data.publishedBy.connectedEmailProvider,
+        data.publishedBy.connectedEmailAddress,
+        senderName,
+        contact.email,
         subject,
-        html: htmlContent,
-        text: textContent,
-        from: {
-          name: senderName,
-          email: fromEmail
-        },
-        replyTo: replyToEmail
-      });
+        htmlContent,
+        textContent
+      );
 
-      // Log notification sent
-      await storage.createScheduleVersionNotification({
-        versionId: data.version.id,
-        contactId: contact.id,
-        emailAddress: contact.email,
-        sentAt: new Date(),
-        status: 'sent'
-      });
+      if (result.success) {
+        // Log notification sent
+        await storage.createScheduleVersionNotification({
+          versionId: data.version.id,
+          contactId: contact.id,
+          emailAddress: contact.email,
+          sentAt: new Date(),
+          status: 'sent'
+        });
 
-      console.log(`✅ Schedule notification sent to ${contact.email} for ${data.project.name} v${data.version.version}`);
+        console.log(`✅ Schedule notification sent to ${contact.email} for ${data.project.name} v${data.version.version}`);
+      } else {
+        throw new Error(result.error || 'Email send failed');
+      }
       
     } catch (error) {
       console.error(`❌ Failed to send schedule notification to ${contact.email}:`, error);
@@ -457,8 +486,8 @@ BackstageOS • Professional Stage Management
       console.log(`📧 Starting schedule notification process for version ${versionId}`);
 
       // Get version details
-      const versions = await storage.getScheduleVersionsByProject(projectId);
-      const version = versions.find(v => v.id === versionId);
+      const versions = await storage.getScheduleVersionsByProjectId(projectId);
+      const version = versions.find((v: any) => v.id === versionId);
       if (!version) {
         throw new Error(`Schedule version ${versionId} not found`);
       }
@@ -469,10 +498,17 @@ BackstageOS • Professional Stage Management
         throw new Error(`Project ${projectId} not found`);
       }
 
-      // Get publisher details
+      // Get publisher details (includes connected email provider info)
       const publishedBy = await storage.getUser(publishedByUserId.toString());
       if (!publishedBy) {
         throw new Error(`User ${publishedByUserId} not found`);
+      }
+
+      // Log email provider status
+      if (publishedBy.connectedEmailProvider && publishedBy.connectedEmailAddress) {
+        console.log(`📧 User has connected ${publishedBy.connectedEmailProvider} account: ${publishedBy.connectedEmailAddress}`);
+      } else {
+        console.log(`📧 User has no connected email provider, will use SendGrid`);
       }
 
       // Get project contacts
@@ -489,35 +525,24 @@ BackstageOS • Professional Stage Management
         return;
       }
 
-      // Get email template and shared data once (optimization to reduce DB calls)
-      const [template, scheduleSettings, emailAccounts] = await Promise.all([
-        this.getEmailTemplate(projectId, version.versionType),
-        storage.getShowSettings(projectId),
-        storage.getEmailAccountsByUserId(publishedByUserId)
-      ]);
+      // Get email template
+      const template = await this.getEmailTemplate(projectId, version.versionType);
 
-      // Prepare common sender configuration
-      const emailSenderConfig = scheduleSettings?.scheduleSettings?.emailSender || {};
-      const senderName = emailSenderConfig.senderName || `${project.name} SM`;
-      const fromEmail = 'schedules@backstageos.com';
-      
-      // Determine reply-to email once
-      let replyToEmail = publishedBy.email; // Default fallback
-      if (emailSenderConfig.replyToType === 'backstage_email') {
-        const backstageAccount = emailAccounts.find((account: any) => account.emailAddress?.includes('@backstageos.com'));
-        replyToEmail = backstageAccount?.emailAddress || publishedBy.email;
-      } else if (emailSenderConfig.replyToType === 'external' && emailSenderConfig.replyToEmail) {
-        replyToEmail = emailSenderConfig.replyToEmail;
-      }
+      // Get show settings for sender name
+      const showSettings = await storage.getShowSettingsByProjectId(projectId);
+      const emailSenderConfig = (showSettings as any)?.scheduleSettings?.emailSender || {};
+      const senderName = emailSenderConfig.senderName || 
+        (publishedBy.firstName ? `${publishedBy.firstName} ${publishedBy.lastName || ''}`.trim() : publishedBy.email) ||
+        `${project.name} SM`;
 
-      // Prepare notification data
+      // Prepare notification data with connected email provider info
       const notificationData: ScheduleNotificationData = {
         version: {
           id: version.id,
           version: version.version,
           versionType: version.versionType,
           title: version.title,
-          description: version.description,
+          description: version.description || undefined,
           changelog: version.changelog,
           publishedAt: version.publishedAt
         },
@@ -528,21 +553,23 @@ BackstageOS • Professional Stage Management
         publishedBy: {
           id: publishedBy.id,
           email: publishedBy.email,
-          firstName: publishedBy.firstName,
-          lastName: publishedBy.lastName
+          firstName: publishedBy.firstName || undefined,
+          lastName: publishedBy.lastName || undefined,
+          connectedEmailProvider: publishedBy.connectedEmailProvider,
+          connectedEmailAddress: publishedBy.connectedEmailAddress
         }
       };
 
       console.log(`📬 Sending notifications to ${contacts.length} contacts...`);
 
-      // Send notifications to all contacts with optimized DB usage
+      // Send notifications to all contacts
       for (const contact of contacts) {
         try {
           // Generate personal schedule access token
           const accessToken = await this.generatePersonalSchedule(projectId, contact.id, versionId);
           const personalScheduleUrl = `${process.env.REPLIT_HOST || 'https://backstageos.com'}/personal-schedule/${accessToken}`;
 
-          // Send notification with pre-computed sender config
+          // Send notification using user's connected email provider
           await this.sendOptimizedNotificationToContact(
             notificationData,
             {
@@ -554,9 +581,7 @@ BackstageOS • Professional Stage Management
             },
             template,
             personalScheduleUrl,
-            senderName,
-            fromEmail,
-            replyToEmail
+            senderName
           );
 
           // Small delay to avoid overwhelming email service
