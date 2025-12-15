@@ -28,7 +28,6 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Mail, Users, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { TokenizedInput } from "@/components/TokenizedInput";
 
 interface DistributionList {
   id: number;
@@ -353,36 +352,68 @@ export function DistroManager({ projectId }: DistroManagerProps) {
         <h4 className="text-sm font-medium">Email Templates</h4>
         
         <div className="space-y-2">
-          <Label>Subject Template</Label>
-          <TokenizedInput
+          <Label htmlFor="subject-template">Subject Template</Label>
+          <Input
+            id="subject-template"
             value={formData.subjectTemplate}
-            onChange={(value) => setFormData(prev => ({ ...prev, subjectTemplate: value }))}
-            variables={[
+            onChange={(e) => setFormData(prev => ({ ...prev, subjectTemplate: e.target.value }))}
+            placeholder="Enter subject template..."
+            data-testid="input-subject-template"
+          />
+          <div className="flex flex-wrap gap-1.5">
+            {[
               { label: "Report Name", value: "{{Report Name}}" },
               { label: "Show Name", value: "{{Show Name}}" },
               { label: "Report Title", value: "{{Report Title}}" },
               { label: "Report Date", value: "{{Report Date}}" },
-            ]}
-            placeholder="Type your subject or click variables below..."
-            data-testid="input-subject-template"
-          />
+            ].map((variable) => (
+              <Badge 
+                key={variable.value}
+                variant="outline" 
+                className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors text-xs"
+                onClick={() => setFormData(prev => ({ 
+                  ...prev, 
+                  subjectTemplate: prev.subjectTemplate + variable.value 
+                }))}
+                data-testid={`btn-insert-subject-${variable.label.toLowerCase().replace(/\s/g, '-')}`}
+              >
+                {variable.label}
+              </Badge>
+            ))}
+          </div>
         </div>
         
         <div className="space-y-2">
-          <Label>Body Template</Label>
-          <TokenizedInput
+          <Label htmlFor="body-template">Body Template</Label>
+          <Textarea
+            id="body-template"
             value={formData.bodyTemplate}
-            onChange={(value) => setFormData(prev => ({ ...prev, bodyTemplate: value }))}
-            variables={[
+            onChange={(e) => setFormData(prev => ({ ...prev, bodyTemplate: e.target.value }))}
+            placeholder="Enter body template..."
+            className="min-h-[100px]"
+            data-testid="input-body-template"
+          />
+          <div className="flex flex-wrap gap-1.5">
+            {[
               { label: "Report Name", value: "{{Report Name}}" },
               { label: "Show Name", value: "{{Show Name}}" },
               { label: "Report Title", value: "{{Report Title}}" },
               { label: "Report Date", value: "{{Report Date}}" },
-            ]}
-            placeholder="Type your message or click variables below..."
-            multiline
-            data-testid="input-body-template"
-          />
+            ].map((variable) => (
+              <Badge 
+                key={variable.value}
+                variant="outline" 
+                className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors text-xs"
+                onClick={() => setFormData(prev => ({ 
+                  ...prev, 
+                  bodyTemplate: prev.bodyTemplate + variable.value 
+                }))}
+                data-testid={`btn-insert-body-${variable.label.toLowerCase().replace(/\s/g, '-')}`}
+              >
+                {variable.label}
+              </Badge>
+            ))}
+          </div>
         </div>
         
         <div className="space-y-2">
