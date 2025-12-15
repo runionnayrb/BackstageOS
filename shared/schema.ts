@@ -663,6 +663,7 @@ export const eventTypes = pgTable("event_types", {
   description: text("description"),
   color: varchar("color").default("#3b82f6"), // Default blue color
   isDefault: boolean("is_default").default(false), // System default types
+  sortOrder: integer("sort_order").default(0),
   createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
