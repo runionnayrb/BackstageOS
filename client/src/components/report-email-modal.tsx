@@ -114,9 +114,21 @@ export function ReportEmailModal({
     },
   });
 
-  const { data: assignedDistro } = useQuery<DistributionList>({
-    queryKey: [`/api/projects/${projectId}/report-types/${reportTypeId}/distro`],
-    enabled: isOpen && !!reportTypeId && reportTypeId > 0,
+  const { data: allDistros = [], isLoading: distrosLoading } = useQuery<DistributionList[]>({
+    queryKey: [`/api/projects/${projectId}/distros`],
+    enabled: isOpen && !!projectId,
+  });
+
+  const { data: distroMappings = {}, isLoading: mappingsLoading } = useQuery<Record<string, number[]>>({
+    queryKey: [`/api/projects/${projectId}/distro-report-type-mappings`],
+    enabled: isOpen && !!projectId,
+  });
+
+  const distroDataReady = !distrosLoading && !mappingsLoading;
+
+  const assignedDistros = allDistros.filter(distro => {
+    const assignedReportTypeIds = distroMappings[distro.id.toString()] || [];
+    return assignedReportTypeIds.includes(reportTypeId);
   });
 
   const { data: reportNotes = [] } = useQuery<ReportNote[]>({
@@ -216,31 +228,42 @@ export function ReportEmailModal({
     return html;
   };
 
-  // Initialize form when modal opens
+  // Initialize form when modal opens and data is ready
   useEffect(() => {
-    if (isOpen && editor && !hasInitializedRef.current) {
+    if (isOpen && editor && distroDataReady && !hasInitializedRef.current) {
       hasInitializedRef.current = true;
       
       const defaultSubject = replaceTemplateVariables("{{Report Title}} - {{Show Name}}");
       
-      if (assignedDistro) {
-        const toEmails = (assignedDistro.toRecipients || []).join(', ');
-        const ccEmails = (assignedDistro.ccRecipients || []).join(', ');
-        const bccEmails = (assignedDistro.bccRecipients || []).join(', ');
+      if (assignedDistros.length > 0) {
+        const allToEmails = new Set<string>();
+        const allCcEmails = new Set<string>();
+        const allBccEmails = new Set<string>();
         
-        setShowCCField(ccEmails.length > 0);
-        setShowBCCField(bccEmails.length > 0);
+        for (const distro of assignedDistros) {
+          (distro.toRecipients || []).forEach(email => allToEmails.add(email));
+          (distro.ccRecipients || []).forEach(email => allCcEmails.add(email));
+          (distro.bccRecipients || []).forEach(email => allBccEmails.add(email));
+        }
         
-        const subjectText = replaceTemplateVariables(assignedDistro.subjectTemplate || "{{Report Title}} - {{Show Name}}");
-        let bodyText = replaceTemplateVariables(assignedDistro.bodyTemplate || "");
-        if (assignedDistro.signature) {
-          bodyText += "\n\n" + assignedDistro.signature;
+        const toEmailsStr = Array.from(allToEmails).join(', ');
+        const ccEmailsStr = Array.from(allCcEmails).join(', ');
+        const bccEmailsStr = Array.from(allBccEmails).join(', ');
+        
+        setShowCCField(ccEmailsStr.length > 0);
+        setShowBCCField(bccEmailsStr.length > 0);
+        
+        const firstDistro = assignedDistros[0];
+        const subjectText = replaceTemplateVariables(firstDistro.subjectTemplate || "{{Report Title}} - {{Show Name}}");
+        let bodyText = replaceTemplateVariables(firstDistro.bodyTemplate || "");
+        if (firstDistro.signature) {
+          bodyText += "\n\n" + firstDistro.signature;
         }
         
         setEmailForm({
-          to: toEmails,
-          cc: ccEmails,
-          bcc: bccEmails,
+          to: toEmailsStr,
+          cc: ccEmailsStr,
+          bcc: bccEmailsStr,
           subject: subjectText,
           body: bodyText,
         });
@@ -261,7 +284,7 @@ export function ReportEmailModal({
     if (!isOpen) {
       hasInitializedRef.current = false;
     }
-  }, [isOpen, assignedDistro, editor]);
+  }, [isOpen, assignedDistros, editor, distroDataReady]);
 
   const generatePdfBlob = async (): Promise<Blob> => {
     const pdfSettings = globalTemplateSettings?.pdfExport || {
@@ -633,9 +656,9 @@ export function ReportEmailModal({
             📎 Report PDF will be attached to this email. Report content will be included in the email body.
           </div>
 
-          {assignedDistro && (
+          {assignedDistros.length > 0 && (
             <p className="text-xs text-muted-foreground">
-              Pre-populated from distribution list: <strong>{assignedDistro.name}</strong>
+              Pre-populated from distribution {assignedDistros.length === 1 ? 'list' : 'lists'}: <strong>{assignedDistros.map(d => d.name).join(', ')}</strong>
             </p>
           )}
         </div>

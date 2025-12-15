@@ -486,7 +486,7 @@ export function DistroManager({ projectId }: DistroManagerProps) {
         </div>
         <Button onClick={openCreate} data-testid="btn-create-distro">
           <Plus className="h-4 w-4 mr-2" />
-          New List
+          Create Distro
         </Button>
       </div>
 
