@@ -305,7 +305,7 @@ export default function ReportViewer() {
       // Add horizontal line from left margin to right margin
       pdf.setLineWidth(0.5);
       pdf.line(marginLeft, yPosition, pageWidth - marginRight, yPosition);
-      yPosition += contentSize * lineHeight;
+      yPosition += contentSize * lineHeight + 12; // Extra padding under the line
 
       // Process each section from the template
       if (stableTemplate?.sections) {
@@ -358,6 +358,16 @@ export default function ReportViewer() {
           }
           yPosition += 12;
         }
+      }
+
+      // Add page numbers to all pages
+      const totalPages = pdf.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(11);
+        pdf.setFont(fontFamily, 'normal');
+        const pageText = `Page ${i} of ${totalPages}`;
+        pdf.text(pageText, centerX, pageHeight - marginBottom + 20, { align: 'center' });
       }
 
       // Download the PDF
