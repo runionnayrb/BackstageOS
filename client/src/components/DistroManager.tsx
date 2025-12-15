@@ -361,7 +361,6 @@ export function DistroManager({ projectId }: DistroManagerProps) {
             data-testid="input-subject-template"
           />
           <div className="flex flex-wrap gap-1.5">
-            <span className="text-xs text-muted-foreground mr-1">Insert:</span>
             {[
               { label: "Report Name", value: "{{Report Name}}" },
               { label: "Show Name", value: "{{Show Name}}" },
@@ -395,7 +394,6 @@ export function DistroManager({ projectId }: DistroManagerProps) {
             data-testid="input-body-template"
           />
           <div className="flex flex-wrap gap-1.5">
-            <span className="text-xs text-muted-foreground mr-1">Insert:</span>
             {[
               { label: "Report Name", value: "{{Report Name}}" },
               { label: "Show Name", value: "{{Show Name}}" },
