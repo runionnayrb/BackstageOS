@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename);
 import { storage } from "./storage";
 import { db } from "./db";
 import { sql, and, eq } from "drizzle-orm";
-import { scheduledEmails, scheduleTemplateEvents, teamMembers } from "@shared/schema";
+import { scheduledEmails, scheduleTemplateEvents, teamMembers, noteStatuses } from "@shared/schema";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
@@ -4775,6 +4775,235 @@ Best regards,
       res.json(updatedNote);
     } catch (error) {
       res.status(500).json({ message: "Failed to update note" });
+    }
+  });
+
+  // Note statuses routes (CRUD for custom note statuses)
+  app.get('/api/projects/:projectId/note-statuses', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      const isOwner = project.ownerId == req.user.id.toString();
+      
+      if (!isOwner) {
+        const teamMembership = await db.select()
+          .from(teamMembers)
+          .where(and(
+            eq(teamMembers.projectId, projectId),
+            eq(teamMembers.userId, req.user.id),
+            eq(teamMembers.isArchived, false)
+          ))
+          .limit(1);
+        
+        if (teamMembership.length === 0) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const statuses = await db.select()
+        .from(noteStatuses)
+        .where(eq(noteStatuses.projectId, projectId))
+        .orderBy(noteStatuses.displayOrder);
+      
+      res.json(statuses);
+    } catch (error) {
+      console.error("Error fetching note statuses:", error);
+      res.status(500).json({ message: "Failed to fetch note statuses" });
+    }
+  });
+
+  app.post('/api/projects/:projectId/note-statuses', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      const isOwner = project.ownerId == req.user.id.toString();
+      
+      if (!isOwner) {
+        const teamMembership = await db.select()
+          .from(teamMembers)
+          .where(and(
+            eq(teamMembers.projectId, projectId),
+            eq(teamMembers.userId, req.user.id),
+            eq(teamMembers.isArchived, false)
+          ))
+          .limit(1);
+        
+        if (teamMembership.length === 0) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      // Get max display order
+      const maxOrderResult = await db.select({ maxOrder: sql<number>`COALESCE(MAX(display_order), -1)` })
+        .from(noteStatuses)
+        .where(eq(noteStatuses.projectId, projectId));
+      
+      const newOrder = (maxOrderResult[0]?.maxOrder ?? -1) + 1;
+
+      const [newStatus] = await db.insert(noteStatuses)
+        .values({
+          projectId,
+          name: req.body.name,
+          color: req.body.color || '#6b7280',
+          displayOrder: newOrder,
+          isDefault: req.body.isDefault || false,
+          isCompleted: req.body.isCompleted || false,
+        })
+        .returning();
+      
+      res.json(newStatus);
+    } catch (error) {
+      console.error("Error creating note status:", error);
+      res.status(500).json({ message: "Failed to create note status" });
+    }
+  });
+
+  app.patch('/api/projects/:projectId/note-statuses/:statusId', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const statusId = parseInt(req.params.statusId);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      const isOwner = project.ownerId == req.user.id.toString();
+      
+      if (!isOwner) {
+        const teamMembership = await db.select()
+          .from(teamMembers)
+          .where(and(
+            eq(teamMembers.projectId, projectId),
+            eq(teamMembers.userId, req.user.id),
+            eq(teamMembers.isArchived, false)
+          ))
+          .limit(1);
+        
+        if (teamMembership.length === 0) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const [updatedStatus] = await db.update(noteStatuses)
+        .set({
+          ...req.body,
+          updatedAt: new Date(),
+        })
+        .where(and(
+          eq(noteStatuses.id, statusId),
+          eq(noteStatuses.projectId, projectId)
+        ))
+        .returning();
+      
+      if (!updatedStatus) {
+        return res.status(404).json({ message: "Status not found" });
+      }
+      
+      res.json(updatedStatus);
+    } catch (error) {
+      console.error("Error updating note status:", error);
+      res.status(500).json({ message: "Failed to update note status" });
+    }
+  });
+
+  app.patch('/api/projects/:projectId/note-statuses/reorder', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const { statusIds } = req.body; // Array of status IDs in new order
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      const isOwner = project.ownerId == req.user.id.toString();
+      
+      if (!isOwner) {
+        const teamMembership = await db.select()
+          .from(teamMembers)
+          .where(and(
+            eq(teamMembers.projectId, projectId),
+            eq(teamMembers.userId, req.user.id),
+            eq(teamMembers.isArchived, false)
+          ))
+          .limit(1);
+        
+        if (teamMembership.length === 0) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      // Update display order for each status
+      for (let i = 0; i < statusIds.length; i++) {
+        await db.update(noteStatuses)
+          .set({ displayOrder: i, updatedAt: new Date() })
+          .where(and(
+            eq(noteStatuses.id, statusIds[i]),
+            eq(noteStatuses.projectId, projectId)
+          ));
+      }
+
+      const statuses = await db.select()
+        .from(noteStatuses)
+        .where(eq(noteStatuses.projectId, projectId))
+        .orderBy(noteStatuses.displayOrder);
+      
+      res.json(statuses);
+    } catch (error) {
+      console.error("Error reordering note statuses:", error);
+      res.status(500).json({ message: "Failed to reorder note statuses" });
+    }
+  });
+
+  app.delete('/api/projects/:projectId/note-statuses/:statusId', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const statusId = parseInt(req.params.statusId);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      const isOwner = project.ownerId == req.user.id.toString();
+      
+      if (!isOwner) {
+        const teamMembership = await db.select()
+          .from(teamMembers)
+          .where(and(
+            eq(teamMembers.projectId, projectId),
+            eq(teamMembers.userId, req.user.id),
+            eq(teamMembers.isArchived, false)
+          ))
+          .limit(1);
+        
+        if (teamMembership.length === 0) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      // Delete the status (notes will have statusId set to null due to ON DELETE SET NULL)
+      await db.delete(noteStatuses)
+        .where(and(
+          eq(noteStatuses.id, statusId),
+          eq(noteStatuses.projectId, projectId)
+        ));
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting note status:", error);
+      res.status(500).json({ message: "Failed to delete note status" });
     }
   });
 
