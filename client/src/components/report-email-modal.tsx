@@ -189,7 +189,7 @@ export function ReportEmailModal({
 
   const normalizeListHtml = (html: string): string => {
     if (!html) return "";
-    const listStyle = "list-style-type: decimal; padding-left: 0; margin: 0 0 0 20px;";
+    const listStyle = "list-style-type: decimal; padding-left: 0; margin: 0;";
     const listItemStyle = "margin: 0; padding: 0;";
     let result = html
       .replace(/<p><\/p>/gi, '')
@@ -219,7 +219,7 @@ export function ReportEmailModal({
           if (plainContent.trim()) {
             html += `<div style="margin-bottom: 8px;">`;
             html += `<strong style="display: block; margin-bottom: 2px;">${field.label}</strong>`;
-            html += `<div style="padding-left: 16px;">${normalizeListHtml(fieldHtml)}</div>`;
+            html += `<div>${normalizeListHtml(fieldHtml)}</div>`;
             html += `</div>`;
           }
         }
