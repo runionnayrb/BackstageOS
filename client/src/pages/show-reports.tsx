@@ -53,17 +53,13 @@ export default function ShowReports() {
   const { data: reportTypes = [], isLoading: reportTypesLoading } = useQuery({
     queryKey: [`/api/projects/${projectId}/report-types`],
     enabled: !!projectId && isAuthenticated,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-  });
-
-  const { data: reportTypesData = [] } = useQuery({
-    queryKey: [`/api/projects/${projectId}/report-types`],
-    enabled: !!projectId && isAuthenticated,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes - serves cached data instantly
   });
 
   const { data: templatesV2 = [], isLoading: templatesLoading } = useQuery({
     queryKey: [`/api/projects/${projectId}/templates-v2`],
     enabled: !!projectId && isAuthenticated,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes - serves cached data instantly
   });
 
   if (isLoading || projectsLoading || reportTypesLoading || templatesLoading) return <div>Loading...</div>;
