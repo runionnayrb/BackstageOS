@@ -71,10 +71,20 @@ export function TokenizedInput({
   const [cursorPosition, setCursorPosition] = useState<number>(0);
   const inputRefs = useRef<Map<number, HTMLInputElement | HTMLTextAreaElement>>(new Map());
   const containerRef = useRef<HTMLDivElement>(null);
+  const isInternalChange = useRef(false);
+  const lastValueRef = useRef(value);
 
   useEffect(() => {
-    const newSegments = parseValueToSegments(value, variables);
-    setSegments(newSegments);
+    if (isInternalChange.current) {
+      isInternalChange.current = false;
+      lastValueRef.current = value;
+      return;
+    }
+    if (value !== lastValueRef.current) {
+      const newSegments = parseValueToSegments(value, variables);
+      setSegments(newSegments);
+      lastValueRef.current = value;
+    }
   }, [value, variables]);
 
   const updateValue = useCallback((newSegments: Segment[]) => {
@@ -89,6 +99,7 @@ export function TokenizedInput({
       }
     }
     setSegments(consolidated.length === 0 ? [] : consolidated);
+    isInternalChange.current = true;
     onChange(segmentsToValue(consolidated));
   }, [onChange]);
 
