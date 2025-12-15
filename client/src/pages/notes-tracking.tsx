@@ -29,7 +29,7 @@ import {
   Check,
   Settings2
 } from 'lucide-react';
-import type { ReportNote } from '@shared/schema';
+import type { ReportNote, NoteStatus } from '@shared/schema';
 import { ManageStatusModal } from '@/components/manage-status-modal';
 
 interface NotesTrackingParams {
@@ -77,6 +77,16 @@ const NotesTracking: React.FC = () => {
   // Fetch project settings for department names mapping
   const { data: showSettings } = useQuery<{ departmentNames?: Record<string, string> }>({
     queryKey: [`/api/projects/${projectId}/settings`],
+  });
+
+  // Fetch note statuses for the project
+  const { data: noteStatuses = [] } = useQuery<NoteStatus[]>({
+    queryKey: ['/api/projects', projectId, 'note-statuses'],
+    queryFn: async () => {
+      const response = await fetch(`/api/projects/${projectId}/note-statuses`);
+      if (!response.ok) throw new Error('Failed to fetch note statuses');
+      return response.json();
+    },
   });
 
   // Update note status mutation with optimistic updates
@@ -246,6 +256,18 @@ const NotesTracking: React.FC = () => {
     });
   };
 
+  const handleStatusChange = (note: ReportNote, statusId: string) => {
+    const newStatusId = statusId === 'none' ? null : parseInt(statusId);
+    const status = noteStatuses.find(s => s.id === newStatusId);
+    updateNoteMutation.mutate({
+      noteId: note.id,
+      data: { 
+        statusId: newStatusId,
+        isCompleted: status?.isCompleted || false
+      }
+    });
+  };
+
   const handleResetFilters = () => {
     setSelectedDepartment('all');
     setSelectedStatus('all');
@@ -298,19 +320,58 @@ const NotesTracking: React.FC = () => {
                   {note.content}
                 </p>
                 
-                <Select 
-                  value={note.priority} 
-                  onValueChange={(value) => handlePriorityChange(note, value)}
-                >
-                  <SelectTrigger className="w-24 h-6 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {noteStatuses.length > 0 && (
+                    <Select 
+                      value={note.statusId?.toString() || 'none'} 
+                      onValueChange={(value) => handleStatusChange(note, value)}
+                    >
+                      <SelectTrigger className="w-28 h-6 text-xs" data-testid={`status-select-${note.id}`}>
+                        <SelectValue placeholder="Status">
+                          {note.statusId ? (
+                            <div className="flex items-center gap-1">
+                              <div 
+                                className="w-2 h-2 rounded-full" 
+                                style={{ backgroundColor: noteStatuses.find(s => s.id === note.statusId)?.color || '#6b7280' }}
+                              />
+                              <span>{noteStatuses.find(s => s.id === note.statusId)?.name || 'None'}</span>
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">None</span>
+                          )}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        {noteStatuses.map(status => (
+                          <SelectItem key={status.id} value={status.id.toString()}>
+                            <div className="flex items-center gap-2">
+                              <div 
+                                className="w-2 h-2 rounded-full" 
+                                style={{ backgroundColor: status.color }}
+                              />
+                              {status.name}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+
+                  <Select 
+                    value={note.priority} 
+                    onValueChange={(value) => handlePriorityChange(note, value)}
+                  >
+                    <SelectTrigger className="w-24 h-6 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
