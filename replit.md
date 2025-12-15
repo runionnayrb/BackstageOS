@@ -73,6 +73,7 @@ BackstageOS is built with a show-centric design, ensuring complete data isolatio
 - **28-Hour Schedule Fix**: Fixed events in extended schedules (e.g., 7 AM - 2 AM next day) not displaying correctly. Events in the "after midnight" portion now render at the correct position with proper height. Fixed clicking on events at the bottom of extended schedules causing them to jump to the top. Events can now be properly dragged to the bottom of extended schedules.
 - **Schedule Template Duplicate Fix**: Fixed issue where events marked as "production level" in templates were creating duplicate events. Now the `isProductionLevel` flag is applied to the single created event instead of creating a separate copy.
 - **Event Card Title Visibility**: Fixed event cards cutting off titles when events overlap. Disabled vertical centering for overlapping events so titles always start from the beginning (top-aligned). For compact overlapping events, layout now stacks title above time with word-break for narrow cards.
+- **Note Status Context Menu**: Added right-click context menu for notes in report edit mode. Users can now select note text and right-click to assign custom statuses from the project's Note Status settings. The context menu displays all configured statuses with their colors and includes a "Clear status" option. Available in both the rich text editor fields and the ReportNotesManager list views.
 
 ## External Dependencies
 - **OpenID Connect**
