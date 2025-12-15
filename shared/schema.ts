@@ -614,6 +614,12 @@ export const distributionLists = pgTable("distribution_lists", {
   projectId: integer("project_id").references(() => projects.id, { onDelete: "cascade" }), // null for personal lists
   name: varchar("name").notNull(), // e.g., "Cast", "Crew", "Creative Team"
   description: text("description"),
+  toRecipients: text("to_recipients").array(), // Array of email addresses for TO field
+  ccRecipients: text("cc_recipients").array(), // Array of email addresses for CC field
+  bccRecipients: text("bcc_recipients").array(), // Array of email addresses for BCC field
+  subjectTemplate: varchar("subject_template"), // Email subject template with variables like {{showName}}
+  bodyTemplate: text("body_template"), // Email body template with variables
+  signature: text("signature"), // Email signature
   createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -627,6 +633,19 @@ export const distributionListMembers = pgTable("distribution_list_members", {
   listType: varchar("list_type").notNull(), // "to", "cc", "bcc"
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+// Links distribution lists to report types - allows assigning a default distro for each report type
+export const reportTypeDistributionLists = pgTable("report_type_distribution_lists", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  reportTypeId: integer("report_type_id").notNull().references(() => reportTypes.id, { onDelete: "cascade" }),
+  distributionListId: integer("distribution_list_id").notNull().references(() => distributionLists.id, { onDelete: "cascade" }),
+  isDefault: boolean("is_default").default(true), // If true, this is the default distro for this report type
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  unique().on(table.reportTypeId, table.distributionListId), // Each report type can only have each distro assigned once
+]);
 
 // Contact groups for flexible group management
 export const contactGroups = pgTable("contact_groups", {
@@ -2666,6 +2685,12 @@ export const insertDistributionListSchema = createInsertSchema(distributionLists
 export const insertDistributionListMemberSchema = createInsertSchema(distributionListMembers).omit({
   id: true,
   createdAt: true,
+});
+
+export const insertReportTypeDistributionListSchema = createInsertSchema(reportTypeDistributionLists).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 export const insertContactGroupSchema = createInsertSchema(contactGroups).omit({
