@@ -189,13 +189,14 @@ export function ReportEmailModal({
 
   const normalizeListHtml = (html: string): string => {
     if (!html) return "";
-    const listStyle = "list-style-type: decimal; padding-left: 0; margin: 0;";
+    // Match BackstageOS app indentation: ~20px padding-left for lists
+    const listStyle = "list-style-type: decimal; padding-left: 20px; margin: 0 0 0 0;";
     const listItemStyle = "margin: 0; padding: 0;";
     let result = html
       .replace(/<p><\/p>/gi, '')
       .replace(/<p>\s*<\/p>/gi, '')
       .replace(/<ol[^>]*>/gi, `<ol style="${listStyle}">`)
-      .replace(/<ul[^>]*>/gi, `<ul style="${listStyle}">`)
+      .replace(/<ul[^>]*>/gi, `<ul style="list-style-type: disc; padding-left: 20px; margin: 0 0 0 0;">`)
       .replace(/<li[^>]*>/gi, `<li style="${listItemStyle}">`)
       .replace(/<p[^>]*>/gi, '<span>')
       .replace(/<\/p>/gi, '</span>');
