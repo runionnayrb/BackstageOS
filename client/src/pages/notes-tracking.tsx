@@ -26,9 +26,11 @@ import {
   Layers,
   RotateCcw,
   ArrowUpDown,
-  Check
+  Check,
+  Settings2
 } from 'lucide-react';
 import type { ReportNote } from '@shared/schema';
+import { ManageStatusModal } from '@/components/manage-status-modal';
 
 interface NotesTrackingParams {
   id: string; // project ID
@@ -50,6 +52,7 @@ const NotesTracking: React.FC = () => {
   const [groupOpen, setGroupOpen] = useState(false);
   const [sortBy, setSortBy] = useState<string>('date-desc');
   const [sortOpen, setSortOpen] = useState(false);
+  const [manageStatusOpen, setManageStatusOpen] = useState(false);
 
   // Fetch all notes for the project
   const { data: allNotes = [], isLoading } = useQuery<ReportNote[]>({
@@ -643,6 +646,18 @@ const NotesTracking: React.FC = () => {
             </div>
             </PopoverContent>
           </Popover>
+
+          {/* Manage Status Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs"
+            onClick={() => setManageStatusOpen(true)}
+            data-testid="button-manage-status"
+          >
+            <Settings2 className="h-4 w-4 mr-1" />
+            Manage Status
+          </Button>
         </div>
       </div>
       {/* Notes Display */}
@@ -705,6 +720,13 @@ const NotesTracking: React.FC = () => {
           ))}
         </div>
       )}
+
+      {/* Manage Status Modal */}
+      <ManageStatusModal
+        projectId={projectId || ''}
+        isOpen={manageStatusOpen}
+        onClose={() => setManageStatusOpen(false)}
+      />
     </div>
   );
 };
