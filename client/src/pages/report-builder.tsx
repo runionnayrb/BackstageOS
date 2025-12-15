@@ -580,7 +580,6 @@ export default function ReportBuilder() {
                       <div className="flex items-center gap-2">
                         <Label className="font-bold">
                           {field.label}
-                          {field.required && <span className="text-destructive ml-1">*</span>}
                         </Label>
                       </div>
                       <div className="pl-4">
