@@ -234,24 +234,23 @@ export function DistroManager({ projectId }: DistroManagerProps) {
     return (
       <div className="space-y-2">
         <Label className="text-sm font-medium">{label} Recipients</Label>
-        <div className="flex flex-wrap gap-2 min-h-[32px] p-2 border rounded-md bg-muted/50">
-          {emails.map((email, index) => (
-            <Badge key={index} variant="secondary" className="flex items-center gap-1">
-              {email}
-              <button
-                type="button"
-                onClick={() => removeEmail(type, index)}
-                className="ml-1 hover:text-destructive"
-                data-testid={`btn-remove-${type}-email-${index}`}
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
-          ))}
-          {emails.length === 0 && (
-            <span className="text-sm text-muted-foreground">No {label.toLowerCase()} recipients</span>
-          )}
-        </div>
+        {emails.length > 0 && (
+          <div className="flex flex-wrap gap-2 p-2 border rounded-md bg-muted/50">
+            {emails.map((email, index) => (
+              <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                {email}
+                <button
+                  type="button"
+                  onClick={() => removeEmail(type, index)}
+                  className="ml-1 hover:text-destructive"
+                  data-testid={`btn-remove-${type}-email-${index}`}
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            ))}
+          </div>
+        )}
         <div className="flex gap-2">
           <Input
             type="email"
