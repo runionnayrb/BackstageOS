@@ -383,11 +383,8 @@ export default function ReportViewer() {
   };
 
   // Find the report type ID for this report based on template
-  // Use report.templateId directly instead of waiting for stableTemplate
-  const currentReportType = reportTypes.find((rt: any) => 
-    report?.templateId && rt.templateId === report.templateId
-  );
-  const currentReportTypeId = currentReportType?.id || 0;
+  // The template has a reportTypeId field that points to the report type
+  const currentReportTypeId = foundTemplate?.reportTypeId || 0;
 
   if (!project || !report) {
     return (
