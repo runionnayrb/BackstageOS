@@ -303,9 +303,17 @@ const NotesTracking: React.FC = () => {
 
   const NoteCard = ({ note }: { note: ReportNote }) => {
     const report = getReport(note.reportId);
+    const noteStatus = note.statusId ? noteStatuses.find(s => s.id === note.statusId) : null;
     
     return (
-      <Card className={`transition-all duration-200 ${note.isCompleted ? 'opacity-75' : ''}`}>
+      <Card 
+        className={`transition-all duration-200 ${note.isCompleted ? 'opacity-75' : ''}`}
+        style={noteStatus ? { 
+          backgroundColor: `${noteStatus.color}15`,
+          borderLeftColor: noteStatus.color,
+          borderLeftWidth: '4px'
+        } : undefined}
+      >
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
             <Checkbox 
