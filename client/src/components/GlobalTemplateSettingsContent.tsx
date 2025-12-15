@@ -327,12 +327,26 @@ export const GlobalTemplateSettingsContent = forwardRef<GlobalTemplateSettingsRe
 
         <TabsContent value="pdf" className="space-y-6">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Download className="h-5 w-5" />
-                PDF Export Settings
-              </CardTitle>
-              <CardDescription>Configure how reports are exported to PDF</CardDescription>
+            <CardHeader className="flex flex-row items-start justify-between space-y-0">
+              <div className="space-y-1.5">
+                <CardTitle className="flex items-center gap-2">
+                  <Download className="h-5 w-5" />
+                  PDF Export Settings
+                </CardTitle>
+                <CardDescription>Configure how reports are exported to PDF</CardDescription>
+              </div>
+              {showSaveButton && (
+                <Button
+                  onClick={() => saveSettings.mutate({ settingsData: settings, showToast: true })}
+                  disabled={saveSettings.isPending}
+                  size="sm"
+                  className="flex items-center gap-2"
+                  data-testid="btn-save-pdf-settings"
+                >
+                  <Save className="h-4 w-4" />
+                  Save
+                </Button>
+              )}
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
@@ -524,19 +538,6 @@ export const GlobalTemplateSettingsContent = forwardRef<GlobalTemplateSettingsRe
               </div>
             </CardContent>
           </Card>
-          {showSaveButton && (
-            <div className="flex justify-end">
-              <Button
-                onClick={() => saveSettings.mutate({ settingsData: settings, showToast: true })}
-                disabled={saveSettings.isPending}
-                className="flex items-center gap-2"
-                data-testid="btn-save-pdf-settings"
-              >
-                <Save className="h-4 w-4" />
-                Save PDF Settings
-              </Button>
-            </div>
-          )}
         </TabsContent>
 
         <TabsContent value="email" className="space-y-6">
