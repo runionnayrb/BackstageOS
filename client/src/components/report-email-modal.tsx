@@ -190,7 +190,7 @@ export function ReportEmailModal({
   const generateReportContentHtml = (): string => {
     if (!template?.sections) return "";
     
-    let html = "<div style=\"font-family: Arial, sans-serif; max-width: 800px;\">";
+    let html = "<hr><div style=\"font-family: Arial, sans-serif; max-width: 800px;\">";
     html += `<h2 style="margin-bottom: 8px;">${report.title}</h2>`;
     html += `<p style="color: #666; margin-bottom: 16px;">${project.name} - ${new Date(report.date).toLocaleDateString()}</p>`;
     html += "<hr style=\"border: 0; border-top: 1px solid #ddd; margin: 16px 0;\" />";
@@ -201,12 +201,13 @@ export function ReportEmailModal({
       if (section.fields?.length > 0) {
         for (const field of section.fields) {
           const fieldContent = contentRef.current[field.label] || field.defaultValue || "";
-          const plainContent = stripHtml(fieldContent);
+          const fieldHtml = typeof fieldContent === 'string' ? fieldContent : '';
+          const plainContent = stripHtml(fieldHtml);
           
           if (plainContent.trim()) {
             html += `<div style="margin-bottom: 16px;">`;
             html += `<strong style="display: block; margin-bottom: 4px;">${field.label}</strong>`;
-            html += `<div style="padding-left: 16px; white-space: pre-wrap;">${plainContent}</div>`;
+            html += `<div style="padding-left: 16px;">${fieldHtml}</div>`;
             html += `</div>`;
           }
         }
@@ -234,6 +235,7 @@ export function ReportEmailModal({
       hasInitializedRef.current = true;
       
       const defaultSubject = replaceTemplateVariables("{{Report Title}} - {{Show Name}}");
+      const reportContentHtml = generateReportContentHtml();
       
       if (assignedDistros.length > 0) {
         const allToEmails = new Set<string>();
@@ -268,7 +270,9 @@ export function ReportEmailModal({
           body: bodyText,
         });
         
-        editor.commands.setContent(bodyText.replace(/\n/g, "<br>"));
+        // Include both the message and the report content in the editor
+        const fullContent = bodyText.replace(/\n/g, "<br>") + "<br><br>" + reportContentHtml;
+        editor.commands.setContent(fullContent);
       } else {
         setEmailForm({
           to: '',
@@ -277,7 +281,8 @@ export function ReportEmailModal({
           subject: defaultSubject,
           body: '',
         });
-        editor.commands.setContent('');
+        // Show report content even without a distro
+        editor.commands.setContent(reportContentHtml);
       }
     }
     
@@ -440,9 +445,8 @@ export function ReportEmailModal({
       const pdfBlob = await generatePdfBlob();
       const pdfFileName = `${report.title || "Report"}-${new Date().toLocaleDateString().replace(/\//g, "-")}.pdf`;
 
-      // Get email body from editor and append report content
-      let htmlContent = editor?.getHTML() || emailForm.body.replace(/\n/g, "<br>");
-      htmlContent += "<br><br>" + generateReportContentHtml();
+      // Get email body from editor - report content is already included
+      const htmlContent = editor?.getHTML() || emailForm.body.replace(/\n/g, "<br>");
 
       // Parse email addresses (handle comma-separated values)
       const parseEmails = (str: string) => str.split(',').map(e => e.trim()).filter(e => e);
@@ -646,14 +650,14 @@ export function ReportEmailModal({
                 <EditorContent 
                   editor={editor}
                   data-testid="editor-email-body"
-                  className="[&_.ProseMirror]:outline-none [&_.ProseMirror]:p-3 [&_.ProseMirror]:min-h-[120px]"
+                  className="[&_.ProseMirror]:outline-none [&_.ProseMirror]:p-3 [&_.ProseMirror]:min-h-[300px] max-h-[400px] overflow-y-auto"
                 />
               </div>
             )}
           </div>
 
           <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded text-sm text-blue-900 dark:text-blue-100">
-            📎 Report PDF will be attached to this email. Report content will be included in the email body.
+            📎 Report PDF will also be attached to this email.
           </div>
 
           {assignedDistros.length > 0 && (
@@ -661,40 +665,6 @@ export function ReportEmailModal({
               Pre-populated from distribution {assignedDistros.length === 1 ? 'list' : 'lists'}: <strong>{assignedDistros.map(d => d.name).join(', ')}</strong>
             </p>
           )}
-
-          <div className="border-t pt-4 mt-4">
-            <h4 className="text-sm font-medium mb-3">Email Preview</h4>
-            <div className="border rounded-lg bg-white dark:bg-gray-900 p-4 space-y-3 text-sm">
-              <div className="flex gap-2">
-                <span className="font-medium text-muted-foreground w-16">To:</span>
-                <span className="flex-1">{emailForm.to || <span className="text-muted-foreground italic">No recipients</span>}</span>
-              </div>
-              {emailForm.cc && (
-                <div className="flex gap-2">
-                  <span className="font-medium text-muted-foreground w-16">CC:</span>
-                  <span className="flex-1">{emailForm.cc}</span>
-                </div>
-              )}
-              {emailForm.bcc && (
-                <div className="flex gap-2">
-                  <span className="font-medium text-muted-foreground w-16">BCC:</span>
-                  <span className="flex-1">{emailForm.bcc}</span>
-                </div>
-              )}
-              <div className="flex gap-2 border-b pb-3">
-                <span className="font-medium text-muted-foreground w-16">Subject:</span>
-                <span className="flex-1 font-medium">{emailForm.subject || <span className="text-muted-foreground italic">No subject</span>}</span>
-              </div>
-              <div className="pt-2">
-                <div 
-                  className="prose prose-sm max-w-none dark:prose-invert"
-                  dangerouslySetInnerHTML={{ 
-                    __html: (editor?.getHTML() || '') + '<br><br>' + generateReportContentHtml() 
-                  }}
-                />
-              </div>
-            </div>
-          </div>
         </div>
 
         <DialogFooter>
