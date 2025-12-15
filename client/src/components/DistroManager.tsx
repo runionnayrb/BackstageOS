@@ -501,9 +501,6 @@ export function DistroManager({ projectId }: DistroManagerProps) {
                       {distro.description || `${getTotalRecipients(distro)} recipients`}
                     </p>
                   </div>
-                  <Badge variant="secondary">
-                    {getTotalRecipients(distro)} recipients
-                  </Badge>
                 </div>
               </CardContent>
             </Card>
