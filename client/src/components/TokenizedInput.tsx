@@ -74,18 +74,6 @@ export function TokenizedInput({
 
   useEffect(() => {
     if (editorRef.current && !isInternalChange.current) {
-      const selection = window.getSelection();
-      const hadFocus = document.activeElement === editorRef.current;
-      
-      let cursorOffset = 0;
-      if (hadFocus && selection && selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0);
-        const preCaretRange = range.cloneRange();
-        preCaretRange.selectNodeContents(editorRef.current);
-        preCaretRange.setEnd(range.startContainer, range.startOffset);
-        cursorOffset = preCaretRange.toString().length;
-      }
-      
       const html = parseContentToHTML(value);
       if (editorRef.current.innerHTML !== html) {
         editorRef.current.innerHTML = html;
@@ -105,6 +93,71 @@ export function TokenizedInput({
   const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     if (!multiline && e.key === "Enter") {
       e.preventDefault();
+      return;
+    }
+
+    if (e.key === "Backspace" || e.key === "Delete") {
+      const selection = window.getSelection();
+      if (!selection || selection.rangeCount === 0) return;
+
+      const range = selection.getRangeAt(0);
+      
+      if (range.collapsed) {
+        const container = range.startContainer;
+        const offset = range.startOffset;
+
+        if (e.key === "Backspace") {
+          if (container.nodeType === Node.TEXT_NODE && offset === 0) {
+            const prevSibling = container.previousSibling;
+            if (prevSibling && (prevSibling as HTMLElement).classList?.contains("variable-badge")) {
+              e.preventDefault();
+              prevSibling.remove();
+              handleInput();
+              return;
+            }
+          }
+          
+          if (container.nodeType === Node.ELEMENT_NODE) {
+            const element = container as HTMLElement;
+            const childNodes = Array.from(element.childNodes);
+            if (offset > 0 && childNodes[offset - 1]) {
+              const prevNode = childNodes[offset - 1] as HTMLElement;
+              if (prevNode.classList?.contains("variable-badge")) {
+                e.preventDefault();
+                prevNode.remove();
+                handleInput();
+                return;
+              }
+            }
+          }
+        }
+
+        if (e.key === "Delete") {
+          if (container.nodeType === Node.TEXT_NODE && offset === (container.textContent?.length || 0)) {
+            const nextSibling = container.nextSibling;
+            if (nextSibling && (nextSibling as HTMLElement).classList?.contains("variable-badge")) {
+              e.preventDefault();
+              nextSibling.remove();
+              handleInput();
+              return;
+            }
+          }
+          
+          if (container.nodeType === Node.ELEMENT_NODE) {
+            const element = container as HTMLElement;
+            const childNodes = Array.from(element.childNodes);
+            if (childNodes[offset]) {
+              const nextNode = childNodes[offset] as HTMLElement;
+              if (nextNode.classList?.contains("variable-badge")) {
+                e.preventDefault();
+                nextNode.remove();
+                handleInput();
+                return;
+              }
+            }
+          }
+        }
+      }
     }
   };
 
@@ -186,8 +239,9 @@ export function TokenizedInput({
           font-size: 0.75rem;
           font-weight: 500;
           border-radius: 9999px;
-          background-color: hsl(var(--primary));
-          color: hsl(var(--primary-foreground));
+          border: 1px solid hsl(var(--input));
+          background-color: transparent;
+          color: hsl(var(--foreground));
           cursor: default;
           user-select: none;
           margin: 0 0.125rem;
