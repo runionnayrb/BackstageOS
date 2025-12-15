@@ -68,6 +68,7 @@ export function TokenizedInput({
 }: TokenizedInputProps) {
   const [segments, setSegments] = useState<Segment[]>(() => parseValueToSegments(value, variables));
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+  const [cursorPosition, setCursorPosition] = useState<number>(0);
   const inputRefs = useRef<Map<number, HTMLInputElement | HTMLTextAreaElement>>(new Map());
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -145,26 +146,53 @@ export function TokenizedInput({
     
     if (segments.length === 0) {
       updateValue([newToken, { type: "text", content: "" }]);
-    } else {
-      const lastIndex = segments.length - 1;
-      const lastSeg = segments[lastIndex];
-      
-      if (lastSeg.type === "text") {
-        const newSegments = [...segments, newToken, { type: "text", content: "" }];
-        updateValue(newSegments);
-      } else {
-        const newSegments = [...segments, newToken, { type: "text", content: "" }];
-        updateValue(newSegments);
-      }
+      setTimeout(() => {
+        const input = inputRefs.current.get(1);
+        if (input) input.focus();
+      }, 0);
+      return;
     }
     
-    setTimeout(() => {
-      const lastTextIndex = segments.length + 1;
-      const input = inputRefs.current.get(lastTextIndex);
-      if (input) {
-        input.focus();
-      }
-    }, 0);
+    if (focusedIndex !== null && segments[focusedIndex]?.type === "text") {
+      const textSeg = segments[focusedIndex] as { type: "text"; content: string };
+      const beforeCursor = textSeg.content.slice(0, cursorPosition);
+      const afterCursor = textSeg.content.slice(cursorPosition);
+      
+      const newSegments: Segment[] = [
+        ...segments.slice(0, focusedIndex),
+        { type: "text", content: beforeCursor },
+        newToken,
+        { type: "text", content: afterCursor },
+        ...segments.slice(focusedIndex + 1),
+      ];
+      
+      updateValue(newSegments);
+      
+      setTimeout(() => {
+        const newTextIndex = focusedIndex + 2;
+        const input = inputRefs.current.get(newTextIndex);
+        if (input) {
+          input.focus();
+          (input as HTMLInputElement).setSelectionRange(0, 0);
+        }
+      }, 0);
+    } else {
+      const newSegments = [...segments, newToken, { type: "text", content: "" }];
+      updateValue(newSegments);
+      
+      setTimeout(() => {
+        const lastIndex = newSegments.length - 1;
+        const input = inputRefs.current.get(lastIndex);
+        if (input) input.focus();
+      }, 0);
+    }
+  };
+
+  const trackCursorPosition = (index: number) => {
+    const input = inputRefs.current.get(index);
+    if (input) {
+      setCursorPosition((input as HTMLInputElement).selectionStart ?? 0);
+    }
   };
 
   const handleContainerClick = (e: React.MouseEvent) => {
@@ -246,7 +274,13 @@ export function TokenizedInput({
                 value={segment.content}
                 onChange={(e) => handleTextChange(index, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(e, index)}
-                onFocus={() => setFocusedIndex(index)}
+                onKeyUp={() => trackCursorPosition(index)}
+                onClick={() => trackCursorPosition(index)}
+                onSelect={() => trackCursorPosition(index)}
+                onFocus={() => {
+                  setFocusedIndex(index);
+                  trackCursorPosition(index);
+                }}
                 onBlur={() => setFocusedIndex(null)}
                 className={cn(
                   "flex-1 min-w-[20px] bg-transparent border-none outline-none text-sm p-0 focus:ring-0",
@@ -273,7 +307,10 @@ export function TokenizedInput({
                 updateValue([{ type: "text", content: e.target.value }]);
               }
             }}
-            onFocus={() => setFocusedIndex(0)}
+            onFocus={() => {
+              setFocusedIndex(0);
+              setCursorPosition(0);
+            }}
             onBlur={() => setFocusedIndex(null)}
             className="flex-1 min-w-[20px] bg-transparent border-none outline-none text-sm p-0 focus:ring-0"
             data-testid="input-text-segment-empty"
