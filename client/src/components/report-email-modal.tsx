@@ -463,16 +463,13 @@ export function ReportEmailModal({
       // Get email body from editor - report content is already included
       const htmlContent = editor?.getHTML() || emailForm.body.replace(/\n/g, "<br>");
 
-      // Parse email addresses (handle comma-separated values)
-      const parseEmails = (str: string) => str.split(',').map(e => e.trim()).filter(e => e);
-
       const formData = new FormData();
-      formData.append("toAddresses", JSON.stringify(parseEmails(emailForm.to)));
+      formData.append("toAddresses", emailForm.to.trim());
       if (emailForm.cc) {
-        formData.append("ccAddresses", JSON.stringify(parseEmails(emailForm.cc)));
+        formData.append("ccAddresses", emailForm.cc.trim());
       }
       if (emailForm.bcc) {
-        formData.append("bccAddresses", JSON.stringify(parseEmails(emailForm.bcc)));
+        formData.append("bccAddresses", emailForm.bcc.trim());
       }
       formData.append("subject", emailForm.subject);
       formData.append("content", stripHtml(htmlContent));
