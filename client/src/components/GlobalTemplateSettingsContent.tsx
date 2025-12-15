@@ -18,7 +18,8 @@ import {
   Layout,
   Mail,
   ChevronUp,
-  ChevronDown
+  ChevronDown,
+  Download
 } from "lucide-react";
 
 interface GlobalTemplateSettings {
@@ -94,6 +95,20 @@ interface GlobalTemplateSettings {
     bodyTemplate: string;
     signature: string;
   };
+  
+  pdfExport: {
+    fontFamily: "helvetica" | "times" | "courier";
+    titleSize: number;
+    showNameSize: number;
+    sectionTitleSize: number;
+    fieldTitleSize: number;
+    contentSize: number;
+    lineHeight: number;
+    marginTop: number;
+    marginBottom: number;
+    marginLeft: number;
+    marginRight: number;
+  };
 }
 
 const defaultGlobalSettings: Omit<GlobalTemplateSettings, "id" | "projectId"> = {
@@ -157,6 +172,19 @@ const defaultGlobalSettings: Omit<GlobalTemplateSettings, "id" | "projectId"> = 
     subjectTemplate: "{{showName}} - {{reportType}} - {{date}}",
     bodyTemplate: "Please find attached the {{reportType}} for {{showName}}.\n\nBest regards,\n{{stageManager}}",
     signature: ""
+  },
+  pdfExport: {
+    fontFamily: "helvetica",
+    titleSize: 18,
+    showNameSize: 16,
+    sectionTitleSize: 13,
+    fieldTitleSize: 12,
+    contentSize: 11,
+    lineHeight: 1.4,
+    marginTop: 0.5,
+    marginBottom: 0.5,
+    marginLeft: 1,
+    marginRight: 1
   }
 };
 
@@ -195,6 +223,7 @@ export const GlobalTemplateSettingsContent = forwardRef<GlobalTemplateSettingsRe
         fonts: globalSettings.fonts || prev.fonts,
         lists: globalSettings.lists || prev.lists,
         email: globalSettings.email || prev.email,
+        pdfExport: globalSettings.pdfExport || prev.pdfExport,
         headerSpacing: globalSettings.headerSpacing || prev.headerSpacing,
         footerSpacing: globalSettings.footerSpacing || prev.footerSpacing,
         headerHorizontalLine: globalSettings.headerHorizontalLine !== undefined ? globalSettings.headerHorizontalLine : prev.headerHorizontalLine,
@@ -224,6 +253,7 @@ export const GlobalTemplateSettingsContent = forwardRef<GlobalTemplateSettingsRe
         headerHorizontalLine: cleanData.headerHorizontalLine,
         footerHorizontalLine: cleanData.footerHorizontalLine,
         email: cleanData.email,
+        pdfExport: cleanData.pdfExport,
         productionLogo: cleanData.branding?.productionLogo || null,
         productionPhoto: cleanData.branding?.productionPhoto || null,
       };
@@ -309,12 +339,13 @@ export const GlobalTemplateSettingsContent = forwardRef<GlobalTemplateSettingsRe
       )}
 
       <Tabs defaultValue="branding" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="branding">Branding</TabsTrigger>
           <TabsTrigger value="layout">Layout</TabsTrigger>
           <TabsTrigger value="typography">Typography</TabsTrigger>
           <TabsTrigger value="formatting">Formatting</TabsTrigger>
           <TabsTrigger value="headers">Header & Footer</TabsTrigger>
+          <TabsTrigger value="pdf">PDF Export</TabsTrigger>
           <TabsTrigger value="email">Distro</TabsTrigger>
         </TabsList>
 
@@ -1111,6 +1142,207 @@ export const GlobalTemplateSettingsContent = forwardRef<GlobalTemplateSettingsRe
                   </div>
 
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="pdf" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Download className="h-5 w-5" />
+                PDF Export Settings
+              </CardTitle>
+              <CardDescription>Configure how reports are exported to PDF</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <Label className="text-base font-medium">Font Settings</Label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-2">
+                  <div className="space-y-2">
+                    <Label>Font Family</Label>
+                    <Select
+                      value={settings.pdfExport?.fontFamily || "helvetica"}
+                      onValueChange={(value: "helvetica" | "times" | "courier") => setSettings(prev => ({
+                        ...prev,
+                        pdfExport: { ...prev.pdfExport, fontFamily: value }
+                      }))}
+                    >
+                      <SelectTrigger data-testid="select-pdf-font-family">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="helvetica">Helvetica</SelectItem>
+                        <SelectItem value="times">Times New Roman</SelectItem>
+                        <SelectItem value="courier">Courier</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Line Height</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      min="1"
+                      max="3"
+                      value={settings.pdfExport?.lineHeight || 1.4}
+                      onChange={(e) => setSettings(prev => ({
+                        ...prev,
+                        pdfExport: { ...prev.pdfExport, lineHeight: parseFloat(e.target.value) || 1.4 }
+                      }))}
+                      data-testid="input-pdf-line-height"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-base font-medium">Font Sizes (points)</Label>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-2">
+                  <div className="space-y-2">
+                    <Label>Report Title</Label>
+                    <Input
+                      type="number"
+                      min="8"
+                      max="36"
+                      value={settings.pdfExport?.titleSize || 18}
+                      onChange={(e) => setSettings(prev => ({
+                        ...prev,
+                        pdfExport: { ...prev.pdfExport, titleSize: parseInt(e.target.value) || 18 }
+                      }))}
+                      data-testid="input-pdf-title-size"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Show Name</Label>
+                    <Input
+                      type="number"
+                      min="8"
+                      max="36"
+                      value={settings.pdfExport?.showNameSize || 16}
+                      onChange={(e) => setSettings(prev => ({
+                        ...prev,
+                        pdfExport: { ...prev.pdfExport, showNameSize: parseInt(e.target.value) || 16 }
+                      }))}
+                      data-testid="input-pdf-show-name-size"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Section Title</Label>
+                    <Input
+                      type="number"
+                      min="8"
+                      max="36"
+                      value={settings.pdfExport?.sectionTitleSize || 13}
+                      onChange={(e) => setSettings(prev => ({
+                        ...prev,
+                        pdfExport: { ...prev.pdfExport, sectionTitleSize: parseInt(e.target.value) || 13 }
+                      }))}
+                      data-testid="input-pdf-section-title-size"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Field Title</Label>
+                    <Input
+                      type="number"
+                      min="8"
+                      max="36"
+                      value={settings.pdfExport?.fieldTitleSize || 12}
+                      onChange={(e) => setSettings(prev => ({
+                        ...prev,
+                        pdfExport: { ...prev.pdfExport, fieldTitleSize: parseInt(e.target.value) || 12 }
+                      }))}
+                      data-testid="input-pdf-field-title-size"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Content</Label>
+                    <Input
+                      type="number"
+                      min="8"
+                      max="36"
+                      value={settings.pdfExport?.contentSize || 11}
+                      onChange={(e) => setSettings(prev => ({
+                        ...prev,
+                        pdfExport: { ...prev.pdfExport, contentSize: parseInt(e.target.value) || 11 }
+                      }))}
+                      data-testid="input-pdf-content-size"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-base font-medium">Page Margins (inches)</Label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
+                  <div className="space-y-2">
+                    <Label>Top</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      max="3"
+                      value={settings.pdfExport?.marginTop || 0.5}
+                      onChange={(e) => setSettings(prev => ({
+                        ...prev,
+                        pdfExport: { ...prev.pdfExport, marginTop: parseFloat(e.target.value) || 0.5 }
+                      }))}
+                      data-testid="input-pdf-margin-top"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Bottom</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      max="3"
+                      value={settings.pdfExport?.marginBottom || 0.5}
+                      onChange={(e) => setSettings(prev => ({
+                        ...prev,
+                        pdfExport: { ...prev.pdfExport, marginBottom: parseFloat(e.target.value) || 0.5 }
+                      }))}
+                      data-testid="input-pdf-margin-bottom"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Left</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      max="3"
+                      value={settings.pdfExport?.marginLeft || 1}
+                      onChange={(e) => setSettings(prev => ({
+                        ...prev,
+                        pdfExport: { ...prev.pdfExport, marginLeft: parseFloat(e.target.value) || 1 }
+                      }))}
+                      data-testid="input-pdf-margin-left"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Right</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      max="3"
+                      value={settings.pdfExport?.marginRight || 1}
+                      onChange={(e) => setSettings(prev => ({
+                        ...prev,
+                        pdfExport: { ...prev.pdfExport, marginRight: parseFloat(e.target.value) || 1 }
+                      }))}
+                      data-testid="input-pdf-margin-right"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  💡 These settings control how your reports appear when downloaded as PDF. The default values are optimized for professional stage management reports.
+                </p>
               </div>
             </CardContent>
           </Card>
