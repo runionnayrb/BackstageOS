@@ -47,34 +47,6 @@ export function NoteContextMenu({
 
   const sortedStatuses = [...noteStatuses].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
 
-  const handleContextMenu = useCallback((e: MouseEvent) => {
-    if (!containerRef.current) return;
-    
-    if (!containerRef.current.contains(e.target as Node)) {
-      setIsVisible(false);
-      return;
-    }
-
-    const selection = window.getSelection();
-    const text = selection?.toString().trim() || "";
-    
-    if (!text) {
-      return;
-    }
-
-    e.preventDefault();
-    
-    setSelectedText(text);
-    
-    const containerRect = containerRef.current.getBoundingClientRect();
-    
-    setPosition({
-      top: e.clientY - containerRect.top,
-      left: e.clientX - containerRect.left,
-    });
-    setIsVisible(true);
-  }, [containerRef]);
-
   const handleClickOutside = useCallback((e: MouseEvent) => {
     if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
       setIsVisible(false);
@@ -85,20 +57,48 @@ export function NoteContextMenu({
     setIsVisible(false);
   }, []);
 
+  // Use document-level listener to ensure we catch the event even if ref is set after mount
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
+    const handleDocumentContextMenu = (e: MouseEvent) => {
+      const container = containerRef.current;
+      if (!container) return;
+      
+      if (!container.contains(e.target as Node)) {
+        setIsVisible(false);
+        return;
+      }
 
-    container.addEventListener("contextmenu", handleContextMenu);
+      const selection = window.getSelection();
+      const text = selection?.toString().trim() || "";
+      
+      if (!text) {
+        return;
+      }
+
+      e.preventDefault();
+      e.stopPropagation();
+      
+      setSelectedText(text);
+      
+      const containerRect = container.getBoundingClientRect();
+      
+      setPosition({
+        top: e.clientY - containerRect.top,
+        left: e.clientX - containerRect.left,
+      });
+      setIsVisible(true);
+    };
+
+    document.addEventListener("contextmenu", handleDocumentContextMenu, true);
     document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("scroll", handleScroll, true);
 
     return () => {
-      container.removeEventListener("contextmenu", handleContextMenu);
+      document.removeEventListener("contextmenu", handleDocumentContextMenu, true);
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("scroll", handleScroll, true);
     };
-  }, [containerRef, handleContextMenu, handleClickOutside, handleScroll]);
+  }, [containerRef, handleClickOutside, handleScroll]);
 
   const findMatchingNote = useCallback(async (text: string): Promise<ReportNote | null> => {
     if (!reportId) return null;
