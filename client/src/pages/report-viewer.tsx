@@ -32,6 +32,7 @@ import jsPDF from "jspdf";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import ReportNotesManager from "@/components/report-notes-manager";
+import { ReportEmailModal } from "@/components/report-email-modal";
 
 const reportSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -52,6 +53,7 @@ export default function ReportViewer() {
   const reportType = params.type!;
   const reportId = parseInt(params.reportId!);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -83,6 +85,10 @@ export default function ReportViewer() {
 
   const { data: globalTemplateSettings, isLoading: isSettingsLoading } = useQuery<any>({
     queryKey: [`/api/projects/${projectId}/global-template-settings`],
+  });
+
+  const { data: reportTypes = [] } = useQuery<any[]>({
+    queryKey: [`/api/projects/${projectId}/report-types`],
   });
 
   // Find the V2 template for this report (used only to initialize stableTemplate)
@@ -373,11 +379,14 @@ export default function ReportViewer() {
   };
 
   const handleEmail = () => {
-    toast({
-      title: "Coming Soon",
-      description: "Email functionality will be available soon",
-    });
+    setShowEmailModal(true);
   };
+
+  // Find the report type ID for this report based on template
+  const currentReportType = reportTypes.find((rt: any) => 
+    stableTemplate && rt.templateId === stableTemplate.id
+  );
+  const currentReportTypeId = currentReportType?.id || 0;
 
   if (!project || !report) {
     return (
@@ -599,6 +608,19 @@ export default function ReportViewer() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Email Modal */}
+        <ReportEmailModal
+          isOpen={showEmailModal}
+          onClose={() => setShowEmailModal(false)}
+          projectId={projectId}
+          reportTypeId={currentReportTypeId}
+          report={report}
+          project={project}
+          template={stableTemplate}
+          contentRef={contentRef}
+          globalTemplateSettings={globalTemplateSettings}
+        />
       </div>
     </div>
   );
