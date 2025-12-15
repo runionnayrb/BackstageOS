@@ -6890,7 +6890,32 @@ Best regards,
       }
 
       const settings = await storage.getGlobalTemplateSettingsByProjectId(projectId);
-      res.json(settings);
+      
+      // Default PDF export settings
+      const defaultPdfExport = {
+        fontFamily: "helvetica",
+        titleSize: 18,
+        showNameSize: 16,
+        sectionTitleSize: 13,
+        fieldTitleSize: 12,
+        contentSize: 11,
+        lineHeight: 1.4,
+        marginTop: 0.5,
+        marginBottom: 0.5,
+        marginLeft: 1,
+        marginRight: 1
+      };
+      
+      // Handle null/undefined settings safely - return defaults merged with any saved settings
+      const responseSettings = settings ? {
+        ...settings,
+        pdfExport: { ...defaultPdfExport, ...(settings.pdfExport || {}) }
+      } : {
+        projectId,
+        pdfExport: defaultPdfExport
+      };
+      
+      res.json(responseSettings);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch global template settings" });
     }

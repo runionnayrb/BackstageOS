@@ -81,6 +81,10 @@ export default function ReportViewer() {
     queryKey: [`/api/projects/${projectId}/templates-v2`],
   });
 
+  const { data: globalTemplateSettings, isLoading: isSettingsLoading } = useQuery<any>({
+    queryKey: [`/api/projects/${projectId}/global-template-settings`],
+  });
+
   // Find the V2 template for this report (used only to initialize stableTemplate)
   const foundTemplate = templatesV2.find((t: any) => t.id === report?.templateId);
   
@@ -177,7 +181,31 @@ export default function ReportViewer() {
   };
 
   const handleDownloadPDF = async () => {
+    // Wait for settings to load before proceeding
+    if (isSettingsLoading) {
+      toast({
+        title: "Loading",
+        description: "Please wait for settings to load before downloading.",
+      });
+      return;
+    }
+    
     try {
+      // Get PDF settings from global template settings or use defaults
+      const pdfSettings = globalTemplateSettings?.pdfExport || {
+        fontFamily: "helvetica",
+        titleSize: 18,
+        showNameSize: 16,
+        sectionTitleSize: 13,
+        fieldTitleSize: 12,
+        contentSize: 11,
+        lineHeight: 1.4,
+        marginTop: 0.5,
+        marginBottom: 0.5,
+        marginLeft: 1,
+        marginRight: 1
+      };
+
       // Create PDF with letter size (8.5 x 11 inches)
       const pdf = new jsPDF({
         orientation: 'portrait',
@@ -188,18 +216,21 @@ export default function ReportViewer() {
       const pageWidth = pdf.internal.pageSize.getWidth(); // 612pt
       const pageHeight = pdf.internal.pageSize.getHeight(); // 792pt
       
-      // Margins: 1" left/right (72pt), 0.5" top/bottom (36pt)
-      const marginLeft = 72;
-      const marginRight = 72;
-      const marginTop = 36;
-      const marginBottom = 36;
+      // Convert margins from inches to points (1 inch = 72pt)
+      const marginLeft = pdfSettings.marginLeft * 72;
+      const marginRight = pdfSettings.marginRight * 72;
+      const marginTop = pdfSettings.marginTop * 72;
+      const marginBottom = pdfSettings.marginBottom * 72;
       const contentWidth = pageWidth - marginLeft - marginRight;
 
-      // Font sizes
-      const sectionTitleSize = 13;
-      const fieldTitleSize = 12;
-      const contentSize = 11;
-      const lineHeight = 1.4;
+      // Font sizes from settings
+      const titleSize = pdfSettings.titleSize;
+      const showNameSize = pdfSettings.showNameSize;
+      const sectionTitleSize = pdfSettings.sectionTitleSize;
+      const fieldTitleSize = pdfSettings.fieldTitleSize;
+      const contentSize = pdfSettings.contentSize;
+      const lineHeight = pdfSettings.lineHeight;
+      const fontFamily = pdfSettings.fontFamily;
 
       let yPosition = marginTop;
 
@@ -230,32 +261,32 @@ export default function ReportViewer() {
 
       const centerX = pageWidth / 2;
 
-      // Add report title (18pt, bold, centered)
-      pdf.setFontSize(18);
-      pdf.setFont('helvetica', 'bold');
-      const titleLines = wrapText(report.title || 'Report', contentWidth, 18);
+      // Add report title (bold, centered)
+      pdf.setFontSize(titleSize);
+      pdf.setFont(fontFamily, 'bold');
+      const titleLines = wrapText(report.title || 'Report', contentWidth, titleSize);
       titleLines.forEach((line: string) => {
-        checkNewPage(22);
+        checkNewPage(titleSize * lineHeight);
         pdf.text(line, centerX, yPosition, { align: 'center' });
-        yPosition += 22;
+        yPosition += titleSize * lineHeight;
       });
 
-      // Add show name (16pt, regular, centered)
-      pdf.setFontSize(16);
-      pdf.setFont('helvetica', 'normal');
+      // Add show name (regular, centered)
+      pdf.setFontSize(showNameSize);
+      pdf.setFont(fontFamily, 'normal');
       const projectName = project?.name || '';
       if (projectName) {
-        const projectLines = wrapText(projectName, contentWidth, 16);
+        const projectLines = wrapText(projectName, contentWidth, showNameSize);
         projectLines.forEach((line: string) => {
-          checkNewPage(20);
+          checkNewPage(showNameSize * lineHeight);
           pdf.text(line, centerX, yPosition, { align: 'center' });
-          yPosition += 20;
+          yPosition += showNameSize * lineHeight;
         });
       }
 
-      // Add date (16pt, regular, centered)
-      pdf.setFontSize(16);
-      pdf.setFont('helvetica', 'normal');
+      // Add date (regular, centered)
+      pdf.setFontSize(showNameSize);
+      pdf.setFont(fontFamily, 'normal');
       const dateStr = new Date(report.date).toLocaleDateString('en-US', { 
         weekday: 'long', 
         year: 'numeric', 
@@ -263,12 +294,12 @@ export default function ReportViewer() {
         day: 'numeric' 
       });
       pdf.text(dateStr, centerX, yPosition, { align: 'center' });
-      yPosition += 15;
+      yPosition += showNameSize * lineHeight;
 
       // Add horizontal line from left margin to right margin
       pdf.setLineWidth(0.5);
       pdf.line(marginLeft, yPosition, pageWidth - marginRight, yPosition);
-      yPosition += 20;
+      yPosition += contentSize * lineHeight;
 
       // Process each section from the template
       if (stableTemplate?.sections) {
@@ -276,9 +307,9 @@ export default function ReportViewer() {
           // Check if we need a new page for section header
           checkNewPage(sectionTitleSize * lineHeight + 20);
 
-          // Section title (13pt, bold)
+          // Section title (bold)
           pdf.setFontSize(sectionTitleSize);
-          pdf.setFont('helvetica', 'bold');
+          pdf.setFont(fontFamily, 'bold');
           const sectionLines = wrapText(section.title || '', contentWidth, sectionTitleSize);
           sectionLines.forEach((line: string) => {
             checkNewPage(sectionTitleSize * lineHeight);
@@ -290,10 +321,10 @@ export default function ReportViewer() {
           // Process fields in this section
           if (section.fields && section.fields.length > 0) {
             for (const field of section.fields) {
-              // Field title (12pt, bold)
+              // Field title (bold)
               checkNewPage(fieldTitleSize * lineHeight + 10);
               pdf.setFontSize(fieldTitleSize);
-              pdf.setFont('helvetica', 'bold');
+              pdf.setFont(fontFamily, 'bold');
               const fieldLines = wrapText(field.label || '', contentWidth - 20, fieldTitleSize);
               fieldLines.forEach((line: string) => {
                 checkNewPage(fieldTitleSize * lineHeight);
@@ -302,13 +333,13 @@ export default function ReportViewer() {
               });
               yPosition += 2;
 
-              // Field content (11pt, normal)
+              // Field content (normal)
               const fieldContent = contentRef.current[field.label] || field.defaultValue || '';
               const plainContent = stripHtml(fieldContent);
               
               if (plainContent.trim()) {
                 pdf.setFontSize(contentSize);
-                pdf.setFont('helvetica', 'normal');
+                pdf.setFont(fontFamily, 'normal');
                 const contentLines = wrapText(plainContent, contentWidth - 30, contentSize);
                 contentLines.forEach((line: string) => {
                   checkNewPage(contentSize * lineHeight);
@@ -392,9 +423,9 @@ export default function ReportViewer() {
                   <Mail className="h-4 w-4 mr-2" />
                   Email
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleDownloadPDF}>
+                <DropdownMenuItem onClick={handleDownloadPDF} disabled={isSettingsLoading}>
                   <Download className="h-4 w-4 mr-2" />
-                  Download PDF
+                  {isSettingsLoading ? "Loading..." : "Download PDF"}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
