@@ -6,7 +6,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -74,7 +80,7 @@ export function DistroManager({ projectId }: DistroManagerProps) {
   });
   
   const [newEmail, setNewEmail] = useState({ to: "", cc: "", bcc: "" });
-  const [selectedReportTypes, setSelectedReportTypes] = useState<number[]>([]);
+  const [selectedReportType, setSelectedReportType] = useState<number | null>(null);
 
   const { data: distros = [], isLoading } = useQuery<DistributionList[]>({
     queryKey: [`/api/projects/${projectId}/distros`],
@@ -98,7 +104,7 @@ export function DistroManager({ projectId }: DistroManagerProps) {
 
   useEffect(() => {
     if (editingDistro && assignedReportTypes) {
-      setSelectedReportTypes(assignedReportTypes);
+      setSelectedReportType(assignedReportTypes.length > 0 ? assignedReportTypes[0] : null);
     }
   }, [editingDistro, assignedReportTypes]);
 
@@ -151,7 +157,7 @@ export function DistroManager({ projectId }: DistroManagerProps) {
       signature: "",
     });
     setNewEmail({ to: "", cc: "", bcc: "" });
-    setSelectedReportTypes([]);
+    setSelectedReportType(null);
   };
 
   const openEdit = (distro: DistributionList) => {
@@ -170,7 +176,7 @@ export function DistroManager({ projectId }: DistroManagerProps) {
 
   const openCreate = () => {
     resetForm();
-    setSelectedReportTypes([]);
+    setSelectedReportType(null);
     setIsCreateOpen(true);
   };
 
@@ -183,7 +189,7 @@ export function DistroManager({ projectId }: DistroManagerProps) {
     try {
       if (editingDistro) {
         const distroId = editingDistro.id;
-        const reportTypeIds = [...selectedReportTypes];
+        const reportTypeIds = selectedReportType ? [selectedReportType] : [];
         
         await updateMutation.mutateAsync({ id: distroId, data: formData });
         await syncReportTypesMutation.mutateAsync({ distroId, reportTypeIds });
@@ -196,7 +202,7 @@ export function DistroManager({ projectId }: DistroManagerProps) {
         setEditingDistro(null);
         resetForm();
       } else {
-        const reportTypeIds = [...selectedReportTypes];
+        const reportTypeIds = selectedReportType ? [selectedReportType] : [];
         
         const data = await createMutation.mutateAsync(formData);
         
@@ -253,14 +259,10 @@ export function DistroManager({ projectId }: DistroManagerProps) {
 
   const getReportTypesLabel = (distroId: number) => {
     const assignedIds = distroMappings[distroId] || [];
-    if (assignedIds.length === 0) return "No Reports Assigned";
-    if (assignedIds.length === reportTypes.length && reportTypes.length > 0) {
-      return "All Reports";
-    }
-    const names = assignedIds
-      .map(id => reportTypes.find(rt => rt.id === id)?.name)
-      .filter(Boolean);
-    return names.join(", ");
+    if (assignedIds.length === 0) return "No Report Assigned";
+    const assignedId = assignedIds[0];
+    const reportType = reportTypes.find(rt => rt.id === assignedId);
+    return reportType?.name || "Unknown Report";
   };
 
   if (isLoading) {
@@ -449,27 +451,23 @@ export function DistroManager({ projectId }: DistroManagerProps) {
 
       {reportTypes.length > 0 && (
         <div className="border-t pt-4 space-y-4">
-          <h4 className="text-sm font-medium">Assigned Reports</h4>
-          <p className="text-xs text-muted-foreground">Select which report types will use this distribution list when sending.</p>
-          <div className="space-y-2">
-            {reportTypes.map((rt) => (
-              <div key={rt.id} className="flex items-center gap-2">
-                <Checkbox
-                  id={`report-type-${rt.id}`}
-                  checked={selectedReportTypes.includes(rt.id)}
-                  onCheckedChange={(checked) => {
-                    if (checked) {
-                      setSelectedReportTypes(prev => [...prev, rt.id]);
-                    } else {
-                      setSelectedReportTypes(prev => prev.filter(id => id !== rt.id));
-                    }
-                  }}
-                  data-testid={`checkbox-report-type-${rt.id}`}
-                />
-                <Label htmlFor={`report-type-${rt.id}`} className="text-sm cursor-pointer">{rt.name}</Label>
-              </div>
-            ))}
-          </div>
+          <h4 className="text-sm font-medium">Assigned Report</h4>
+          <p className="text-xs text-muted-foreground">Select which report type will use this distribution list when sending.</p>
+          <Select
+            value={selectedReportType?.toString() || ""}
+            onValueChange={(value) => setSelectedReportType(value ? parseInt(value) : null)}
+          >
+            <SelectTrigger data-testid="select-report-type">
+              <SelectValue placeholder="Select a report type..." />
+            </SelectTrigger>
+            <SelectContent>
+              {reportTypes.map((rt) => (
+                <SelectItem key={rt.id} value={rt.id.toString()} data-testid={`select-item-report-type-${rt.id}`}>
+                  {rt.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       )}
     </div>
