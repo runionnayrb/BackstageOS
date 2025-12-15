@@ -189,14 +189,20 @@ export function ReportEmailModal({
 
   const normalizeListHtml = (html: string): string => {
     if (!html) return "";
-    // Match BackstageOS app indentation: ~20px padding-left for lists
-    const listStyle = "list-style-type: decimal; padding-left: 20px; margin: 0 0 0 0;";
+    // Gmail strips padding/margin from ol/ul directly, so wrap in a div with padding
+    // and use list-style-position: inside so numbering stays visible
+    const olStyle = "list-style-type: decimal; list-style-position: inside; padding-left: 0; margin: 0;";
+    const ulStyle = "list-style-type: disc; list-style-position: inside; padding-left: 0; margin: 0;";
     const listItemStyle = "margin: 0; padding: 0;";
     let result = html
       .replace(/<p><\/p>/gi, '')
       .replace(/<p>\s*<\/p>/gi, '')
-      .replace(/<ol[^>]*>/gi, `<ol style="${listStyle}">`)
-      .replace(/<ul[^>]*>/gi, `<ul style="list-style-type: disc; padding-left: 20px; margin: 0 0 0 0;">`)
+      // Wrap ol in a div with padding that Gmail won't strip
+      .replace(/<ol[^>]*>/gi, `<div style="padding-left: 20px;"><ol style="${olStyle}">`)
+      .replace(/<\/ol>/gi, '</ol></div>')
+      // Wrap ul in a div with padding that Gmail won't strip
+      .replace(/<ul[^>]*>/gi, `<div style="padding-left: 20px;"><ul style="${ulStyle}">`)
+      .replace(/<\/ul>/gi, '</ul></div>')
       .replace(/<li[^>]*>/gi, `<li style="${listItemStyle}">`)
       .replace(/<p[^>]*>/gi, '<span>')
       .replace(/<\/p>/gi, '</span>');
