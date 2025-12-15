@@ -33,6 +33,8 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import ReportNotesManager from "@/components/report-notes-manager";
 import { ReportEmailModal } from "@/components/report-email-modal";
+import { NoteContextMenu } from "@/components/note-context-menu";
+import { createRef } from "react";
 
 const reportSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -60,6 +62,9 @@ export default function ReportViewer() {
   // Refs for content tracking without re-rendering (prevents cursor jumping)
   const contentRef = useRef<Record<string, any>>({});
   const initializedFieldsRef = useRef<Set<number>>(new Set());
+  
+  // Refs for department fields (for note context menu)
+  const departmentFieldRefs = useRef<Record<number, React.RefObject<HTMLDivElement>>>({});
   
   // Store template in state to prevent re-renders from causing contentEditable remounts
   const [stableTemplate, setStableTemplate] = useState<any>(null);
@@ -575,23 +580,44 @@ export default function ReportViewer() {
                               )}
                               
                               {field.type === "richtext" && (
-                                <div
-                                  ref={(el) => {
-                                    if (!el) return;
-                                    // Initialize only once with content or default value
-                                    if (!initializedFieldsRef.current.has(field.id)) {
-                                      initializedFieldsRef.current.add(field.id);
-                                      const content = contentRef.current[field.label];
-                                      el.innerHTML = (content && content.trim()) ? content : (field.defaultValue || "");
+                                <div className="relative">
+                                  {(() => {
+                                    if (!departmentFieldRefs.current[field.id]) {
+                                      departmentFieldRefs.current[field.id] = createRef();
                                     }
-                                  }}
-                                  contentEditable
-                                  suppressContentEditableWarning
-                                  onBlur={(e) => {
-                                    contentRef.current[field.label] = e.currentTarget.innerHTML;
-                                  }}
-                                  className="text-sm whitespace-pre-wrap outline-none [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4"
-                                />
+                                    return null;
+                                  })()}
+                                  <div
+                                    ref={(el) => {
+                                      if (!el) return;
+                                      // Update departmentFieldRefs for context menu
+                                      if (field.departmentKey && departmentFieldRefs.current[field.id]) {
+                                        (departmentFieldRefs.current[field.id] as any).current = el;
+                                      }
+                                      // Initialize only once with content or default value
+                                      if (!initializedFieldsRef.current.has(field.id)) {
+                                        initializedFieldsRef.current.add(field.id);
+                                        const content = contentRef.current[field.label];
+                                        el.innerHTML = (content && content.trim()) ? content : (field.defaultValue || "");
+                                      }
+                                    }}
+                                    contentEditable
+                                    suppressContentEditableWarning
+                                    onBlur={(e) => {
+                                      contentRef.current[field.label] = e.currentTarget.innerHTML;
+                                    }}
+                                    className="text-sm whitespace-pre-wrap outline-none [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4"
+                                  />
+                                  {field.departmentKey && departmentFieldRefs.current[field.id] && (
+                                    <NoteContextMenu
+                                      reportId={reportId}
+                                      projectId={projectId}
+                                      fieldId={field.id}
+                                      departmentKey={field.departmentKey}
+                                      containerRef={departmentFieldRefs.current[field.id]}
+                                    />
+                                  )}
+                                </div>
                               )}
                               {field.type === "text" && (
                                 <Input
