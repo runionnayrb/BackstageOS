@@ -661,6 +661,40 @@ export function ReportEmailModal({
               Pre-populated from distribution {assignedDistros.length === 1 ? 'list' : 'lists'}: <strong>{assignedDistros.map(d => d.name).join(', ')}</strong>
             </p>
           )}
+
+          <div className="border-t pt-4 mt-4">
+            <h4 className="text-sm font-medium mb-3">Email Preview</h4>
+            <div className="border rounded-lg bg-white dark:bg-gray-900 p-4 space-y-3 text-sm">
+              <div className="flex gap-2">
+                <span className="font-medium text-muted-foreground w-16">To:</span>
+                <span className="flex-1">{emailForm.to || <span className="text-muted-foreground italic">No recipients</span>}</span>
+              </div>
+              {emailForm.cc && (
+                <div className="flex gap-2">
+                  <span className="font-medium text-muted-foreground w-16">CC:</span>
+                  <span className="flex-1">{emailForm.cc}</span>
+                </div>
+              )}
+              {emailForm.bcc && (
+                <div className="flex gap-2">
+                  <span className="font-medium text-muted-foreground w-16">BCC:</span>
+                  <span className="flex-1">{emailForm.bcc}</span>
+                </div>
+              )}
+              <div className="flex gap-2 border-b pb-3">
+                <span className="font-medium text-muted-foreground w-16">Subject:</span>
+                <span className="flex-1 font-medium">{emailForm.subject || <span className="text-muted-foreground italic">No subject</span>}</span>
+              </div>
+              <div className="pt-2">
+                <div 
+                  className="prose prose-sm max-w-none dark:prose-invert"
+                  dangerouslySetInnerHTML={{ 
+                    __html: (editor?.getHTML() || '') + '<br><br>' + generateReportContentHtml() 
+                  }}
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
         <DialogFooter>
