@@ -521,7 +521,7 @@ export function ReportEmailModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="!w-[800px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="!w-[75vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Email Report</DialogTitle>
           <DialogDescription>
