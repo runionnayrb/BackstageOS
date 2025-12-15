@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -60,6 +60,9 @@ export default function ReportViewer() {
   const contentRef = useRef<Record<string, any>>({});
   const initializedFieldsRef = useRef<Set<number>>(new Set());
   
+  // Store template in state to prevent re-renders from causing contentEditable remounts
+  const [stableTemplate, setStableTemplate] = useState<any>(null);
+  
   // Always-editable report viewer - no lock/unlock functionality
 
   const { data: project } = useQuery<any>({
@@ -79,8 +82,15 @@ export default function ReportViewer() {
     queryKey: [`/api/projects/${projectId}/templates-v2`],
   });
 
-  // Get the V2 template for this report
-  const template = templatesV2.find((t: any) => t.id === report?.templateId);
+  // Find the V2 template for this report (used only to initialize stableTemplate)
+  const foundTemplate = templatesV2.find((t: any) => t.id === report?.templateId);
+  
+  // Set stableTemplate once when template is found (prevents re-renders from remounting contentEditable)
+  useEffect(() => {
+    if (foundTemplate && !stableTemplate) {
+      setStableTemplate(foundTemplate);
+    }
+  }, [foundTemplate, stableTemplate]);
 
   const form = useForm<z.infer<typeof reportSchema>>({
     resolver: zodResolver(reportSchema),
@@ -326,9 +336,9 @@ export default function ReportViewer() {
         {/* Report Content - rendered inline to prevent cursor jumping */}
         <div data-pdf-content>
           <form onSubmit={form.handleSubmit(handleSave)} className="space-y-6">
-            {template?.sections ? (
+            {stableTemplate?.sections ? (
               <div className="space-y-6">
-                {template.sections.map((section: any) => (
+                {stableTemplate.sections.map((section: any) => (
                   <div key={section.id} className="space-y-4">
                     <div>
                       <h3 className="text-lg font-semibold">{section.title}</h3>
@@ -354,12 +364,10 @@ export default function ReportViewer() {
                                 <div
                                   ref={(el) => {
                                     if (!el) return;
-                                    console.log('🔄 Ref callback for field:', field.label, 'initialized:', initializedFieldsRef.current.has(field.id));
                                     // Initialize only once with content or default value
                                     if (!initializedFieldsRef.current.has(field.id)) {
                                       initializedFieldsRef.current.add(field.id);
                                       const content = contentRef.current[field.label];
-                                      console.log('📝 Setting initial content for:', field.label);
                                       el.innerHTML = (content && content.trim()) ? content : (field.defaultValue || "");
                                     }
                                   }}
