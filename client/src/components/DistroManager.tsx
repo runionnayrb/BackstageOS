@@ -357,11 +357,11 @@ export function DistroManager({ projectId }: DistroManagerProps) {
             id="subject-template"
             value={formData.subjectTemplate}
             onChange={(e) => setFormData(prev => ({ ...prev, subjectTemplate: e.target.value }))}
-            placeholder="{{showName}} - {{reportType}} - {{date}}"
+            placeholder="{{Show Name}} - {{Report Name}} - {{Report Date}}"
             data-testid="input-subject-template"
           />
           <p className="text-xs text-muted-foreground">
-            Available variables: {"{{showName}}"}, {"{{reportType}}"}, {"{{date}}"}, {"{{stageManager}}"}
+            Available variables: {"{{Report Name}}"}, {"{{Show Name}}"}, {"{{Report Title}}"}, {"{{Report Date}}"}
           </p>
         </div>
         
@@ -371,7 +371,7 @@ export function DistroManager({ projectId }: DistroManagerProps) {
             id="body-template"
             value={formData.bodyTemplate}
             onChange={(e) => setFormData(prev => ({ ...prev, bodyTemplate: e.target.value }))}
-            placeholder="Please find attached the {{reportType}} for {{showName}}..."
+            placeholder="Please find attached the {{Report Name}} for {{Show Name}}..."
             className="min-h-[100px]"
             data-testid="input-body-template"
           />
