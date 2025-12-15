@@ -614,7 +614,7 @@ export default function ReportViewer() {
           isOpen={showEmailModal}
           onClose={() => setShowEmailModal(false)}
           projectId={projectId}
-          reportTypeId={currentReportTypeId}
+          reportTypeId={report.reportTypeId || currentReportTypeId}
           report={report}
           project={project}
           template={stableTemplate}

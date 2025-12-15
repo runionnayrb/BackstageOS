@@ -7,8 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { X, Send, Loader2, Paperclip } from "lucide-react";
+import { X, Send, Loader2, Paperclip, Bold, Italic, Underline as UnderlineIcon, List, ListOrdered } from "lucide-react";
 import jsPDF from "jspdf";
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Underline from '@tiptap/extension-underline';
 
 interface DistributionList {
   id: number;
@@ -92,9 +95,29 @@ export function ReportEmailModal({
   const [showBcc, setShowBcc] = useState(false);
   const [selectedAccountId, setSelectedAccountId] = useState<number | null>(null);
   const [isSending, setIsSending] = useState(false);
-  const [includeReportContent, setIncludeReportContent] = useState(true);
-  const editorRef = useRef<HTMLDivElement>(null);
   const hasInitializedRef = useRef(false);
+
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        heading: { levels: [2, 3] },
+        code: false,
+        codeBlock: false,
+        blockquote: false,
+        horizontalRule: false,
+        dropcursor: false,
+        gapcursor: false,
+        strike: false,
+      }),
+      Underline,
+    ],
+    content: '',
+    editorProps: {
+      attributes: {
+        class: 'prose prose-sm max-w-none focus:outline-none min-h-[120px] p-3 [&_ul]:text-inherit [&_li]:text-inherit [&_h3]:text-inherit',
+      },
+    },
+  });
 
   const { data: assignedDistro } = useQuery<DistributionList>({
     queryKey: [`/api/projects/${projectId}/report-types/${reportTypeId}/distro`],
@@ -203,14 +226,8 @@ export function ReportEmailModal({
     return html;
   };
 
-  const handleEditorInput = () => {
-    if (editorRef.current) {
-      setBody(editorRef.current.innerHTML);
-    }
-  };
-
   useEffect(() => {
-    if (isOpen && assignedDistro && !hasInitializedRef.current) {
+    if (isOpen && assignedDistro && editor && !hasInitializedRef.current) {
       hasInitializedRef.current = true;
       
       setToAddresses(assignedDistro.toRecipients || []);
@@ -228,15 +245,16 @@ export function ReportEmailModal({
       }
       setBody(bodyText);
       
-      if (editorRef.current) {
-        editorRef.current.innerHTML = bodyText.replace(/\n/g, "<br>");
-      }
+      editor.commands.setContent(bodyText.replace(/\n/g, "<br>"));
     }
     
     if (!isOpen) {
       hasInitializedRef.current = false;
+      if (editor) {
+        editor.commands.setContent('');
+      }
     }
-  }, [isOpen, assignedDistro]);
+  }, [isOpen, assignedDistro, editor]);
 
   useEffect(() => {
     if (isOpen && emailAccounts.length > 0 && !selectedAccountId) {
@@ -431,11 +449,9 @@ export function ReportEmailModal({
       const pdfBlob = await generatePdfBlob();
       const pdfFileName = `${report.title || "Report"}-${new Date().toLocaleDateString().replace(/\//g, "-")}.pdf`;
 
-      let htmlContent = editorRef.current?.innerHTML || body.replace(/\n/g, "<br>");
+      let htmlContent = editor?.getHTML() || body.replace(/\n/g, "<br>");
       
-      if (includeReportContent) {
-        htmlContent += "<br><br>" + generateReportContentHtml();
-      }
+      htmlContent += "<br><br>" + generateReportContentHtml();
 
       const formData = new FormData();
       formData.append("fromAccountId", selectedAccountId.toString());
@@ -591,29 +607,65 @@ export function ReportEmailModal({
 
           <div className="space-y-2">
             <Label className="text-sm font-medium">Message</Label>
-            <div
-              ref={editorRef}
-              contentEditable
-              suppressContentEditableWarning
-              onInput={(e) => setBody((e.target as HTMLDivElement).innerHTML)}
-              className="min-h-[150px] p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
-              style={{ whiteSpace: "pre-wrap" }}
-              data-testid="editor-body"
-            />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="include-report-content"
-              checked={includeReportContent}
-              onChange={(e) => setIncludeReportContent(e.target.checked)}
-              className="h-4 w-4"
-              data-testid="checkbox-include-report-content"
-            />
-            <Label htmlFor="include-report-content" className="text-sm cursor-pointer">
-              Include report content in email body
-            </Label>
+            <div className="border rounded-md">
+              <div className="flex items-center gap-1 p-2 border-b bg-gray-50 dark:bg-gray-900">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => editor?.chain().focus().toggleBold().run()}
+                  className={`h-8 w-8 p-0 ${editor?.isActive('bold') ? 'bg-gray-200 dark:bg-gray-700' : ''}`}
+                  data-testid="btn-bold"
+                >
+                  <Bold className="h-4 w-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => editor?.chain().focus().toggleItalic().run()}
+                  className={`h-8 w-8 p-0 ${editor?.isActive('italic') ? 'bg-gray-200 dark:bg-gray-700' : ''}`}
+                  data-testid="btn-italic"
+                >
+                  <Italic className="h-4 w-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => editor?.chain().focus().toggleUnderline().run()}
+                  className={`h-8 w-8 p-0 ${editor?.isActive('underline') ? 'bg-gray-200 dark:bg-gray-700' : ''}`}
+                  data-testid="btn-underline"
+                >
+                  <UnderlineIcon className="h-4 w-4" />
+                </Button>
+                <div className="w-px h-6 bg-gray-300 mx-1" />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => editor?.chain().focus().toggleBulletList().run()}
+                  className={`h-8 w-8 p-0 ${editor?.isActive('bulletList') ? 'bg-gray-200 dark:bg-gray-700' : ''}`}
+                  data-testid="btn-bullet-list"
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+                  className={`h-8 w-8 p-0 ${editor?.isActive('orderedList') ? 'bg-gray-200 dark:bg-gray-700' : ''}`}
+                  data-testid="btn-ordered-list"
+                >
+                  <ListOrdered className="h-4 w-4" />
+                </Button>
+              </div>
+              <EditorContent editor={editor} data-testid="editor-body" />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Report content will be automatically included below your message.
+            </p>
           </div>
 
           {assignedDistro && (
