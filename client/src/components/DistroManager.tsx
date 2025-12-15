@@ -253,7 +253,7 @@ export function DistroManager({ projectId }: DistroManagerProps) {
 
   const getReportTypesLabel = (distroId: number) => {
     const assignedIds = distroMappings[distroId] || [];
-    if (assignedIds.length === 0) return null;
+    if (assignedIds.length === 0) return "No Reports Assigned";
     if (assignedIds.length === reportTypes.length && reportTypes.length > 0) {
       return "All Reports";
     }
@@ -513,7 +513,7 @@ export function DistroManager({ projectId }: DistroManagerProps) {
                 <div className="flex-1 min-w-0">
                   <h4 className="font-medium truncate">{distro.name}</h4>
                   <p className="text-sm text-muted-foreground truncate">
-                    {getTotalRecipients(distro)} recipients{getReportTypesLabel(distro.id) ? ` | ${getReportTypesLabel(distro.id)}` : ""}
+                    {getTotalRecipients(distro)} recipients | {getReportTypesLabel(distro.id)}
                   </p>
                 </div>
               </CardContent>
