@@ -1,13 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { useQuery } from "@tanstack/react-query";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { X, Send, Loader2, Paperclip, Bold, Italic, Underline as UnderlineIcon, List, ListOrdered } from "lucide-react";
+import { Bold, Italic, Underline as UnderlineIcon, List, ListOrdered, Loader2 } from "lucide-react";
 import jsPDF from "jspdf";
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -85,15 +83,9 @@ export function ReportEmailModal({
   globalTemplateSettings,
 }: ReportEmailModalProps) {
   const { toast } = useToast();
-  const [toAddresses, setToAddresses] = useState<string[]>([]);
-  const [ccAddresses, setCcAddresses] = useState<string[]>([]);
-  const [bccAddresses, setBccAddresses] = useState<string[]>([]);
-  const [subject, setSubject] = useState("");
-  const [body, setBody] = useState("");
-  const [newEmail, setNewEmail] = useState({ to: "", cc: "", bcc: "" });
-  const [showCc, setShowCc] = useState(false);
-  const [showBcc, setShowBcc] = useState(false);
-  const [selectedAccountId, setSelectedAccountId] = useState<number | null>(null);
+  const [emailForm, setEmailForm] = useState({ to: '', cc: '', bcc: '', subject: '', body: '' });
+  const [showCCField, setShowCCField] = useState(false);
+  const [showBCCField, setShowBCCField] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const hasInitializedRef = useRef(false);
 
@@ -112,21 +104,19 @@ export function ReportEmailModal({
       Underline,
     ],
     content: '',
+    onUpdate: ({ editor }) => {
+      setEmailForm(prev => ({ ...prev, body: editor.getHTML() }));
+    },
     editorProps: {
       attributes: {
-        class: 'prose prose-sm max-w-none focus:outline-none min-h-[120px] p-3 [&_ul]:text-inherit [&_li]:text-inherit [&_h3]:text-inherit',
+        class: 'prose prose-sm max-w-none focus:outline-none min-h-[120px] p-3',
       },
     },
   });
 
   const { data: assignedDistro } = useQuery<DistributionList>({
     queryKey: [`/api/projects/${projectId}/report-types/${reportTypeId}/distro`],
-    enabled: isOpen && !!reportTypeId,
-  });
-
-  const { data: emailAccounts = [] } = useQuery<EmailAccount[]>({
-    queryKey: ["/api/email/accounts"],
-    enabled: isOpen,
+    enabled: isOpen && !!reportTypeId && reportTypeId > 0,
   });
 
   const { data: reportNotes = [] } = useQuery<ReportNote[]>({
@@ -226,83 +216,52 @@ export function ReportEmailModal({
     return html;
   };
 
+  // Initialize form when modal opens
   useEffect(() => {
     if (isOpen && editor && !hasInitializedRef.current) {
       hasInitializedRef.current = true;
       
+      const defaultSubject = replaceTemplateVariables("{{Report Title}} - {{Show Name}}");
+      
       if (assignedDistro) {
-        setToAddresses(assignedDistro.toRecipients || []);
-        setCcAddresses(assignedDistro.ccRecipients || []);
-        setBccAddresses(assignedDistro.bccRecipients || []);
-        setShowCc((assignedDistro.ccRecipients?.length || 0) > 0);
-        setShowBcc((assignedDistro.bccRecipients?.length || 0) > 0);
+        const toEmails = (assignedDistro.toRecipients || []).join(', ');
+        const ccEmails = (assignedDistro.ccRecipients || []).join(', ');
+        const bccEmails = (assignedDistro.bccRecipients || []).join(', ');
+        
+        setShowCCField(ccEmails.length > 0);
+        setShowBCCField(bccEmails.length > 0);
         
         const subjectText = replaceTemplateVariables(assignedDistro.subjectTemplate || "{{Report Title}} - {{Show Name}}");
-        setSubject(subjectText);
-        
         let bodyText = replaceTemplateVariables(assignedDistro.bodyTemplate || "");
         if (assignedDistro.signature) {
           bodyText += "\n\n" + assignedDistro.signature;
         }
-        setBody(bodyText);
+        
+        setEmailForm({
+          to: toEmails,
+          cc: ccEmails,
+          bcc: bccEmails,
+          subject: subjectText,
+          body: bodyText,
+        });
+        
         editor.commands.setContent(bodyText.replace(/\n/g, "<br>"));
       } else {
-        const defaultSubject = replaceTemplateVariables("{{Report Title}} - {{Show Name}}");
-        setSubject(defaultSubject);
-        setBody("");
-        editor.commands.setContent("");
+        setEmailForm({
+          to: '',
+          cc: '',
+          bcc: '',
+          subject: defaultSubject,
+          body: '',
+        });
+        editor.commands.setContent('');
       }
     }
     
     if (!isOpen) {
       hasInitializedRef.current = false;
-      setToAddresses([]);
-      setCcAddresses([]);
-      setBccAddresses([]);
-      setSubject("");
-      setBody("");
-      setShowCc(false);
-      setShowBcc(false);
-      if (editor) {
-        editor.commands.setContent('');
-      }
     }
   }, [isOpen, assignedDistro, editor]);
-
-  useEffect(() => {
-    if (isOpen && emailAccounts.length > 0 && !selectedAccountId) {
-      const primaryAccount = emailAccounts.find((acc) => acc.isPrimary);
-      setSelectedAccountId(primaryAccount?.id || emailAccounts[0]?.id || null);
-    }
-  }, [isOpen, emailAccounts, selectedAccountId]);
-
-  const addEmail = (type: "to" | "cc" | "bcc") => {
-    const email = newEmail[type].trim();
-    if (!email) return;
-    
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      toast({ title: "Invalid email", description: "Please enter a valid email address", variant: "destructive" });
-      return;
-    }
-    
-    const setter = type === "to" ? setToAddresses : type === "cc" ? setCcAddresses : setBccAddresses;
-    const current = type === "to" ? toAddresses : type === "cc" ? ccAddresses : bccAddresses;
-    
-    if (current.includes(email)) {
-      toast({ title: "Duplicate", description: "Email already added", variant: "destructive" });
-      return;
-    }
-    
-    setter([...current, email]);
-    setNewEmail((prev) => ({ ...prev, [type]: "" }));
-  };
-
-  const removeEmail = (type: "to" | "cc" | "bcc", index: number) => {
-    const setter = type === "to" ? setToAddresses : type === "cc" ? setCcAddresses : setBccAddresses;
-    const current = type === "to" ? toAddresses : type === "cc" ? ccAddresses : bccAddresses;
-    setter(current.filter((_, i) => i !== index));
-  };
 
   const generatePdfBlob = async (): Promise<Blob> => {
     const pdfSettings = globalTemplateSettings?.pdfExport || {
@@ -443,16 +402,12 @@ export function ReportEmailModal({
   };
 
   const handleSend = async () => {
-    if (toAddresses.length === 0) {
-      toast({ title: "Error", description: "Please add at least one recipient", variant: "destructive" });
+    if (!emailForm.to.trim()) {
+      toast({ title: "Missing recipient", description: "Please enter at least one email address in the 'To' field.", variant: "destructive" });
       return;
     }
-    if (!subject.trim()) {
-      toast({ title: "Error", description: "Please enter a subject", variant: "destructive" });
-      return;
-    }
-    if (!selectedAccountId) {
-      toast({ title: "Error", description: "Please select an email account", variant: "destructive" });
+    if (!emailForm.subject.trim()) {
+      toast({ title: "Missing subject", description: "Please enter a subject for the email.", variant: "destructive" });
       return;
     }
 
@@ -462,20 +417,22 @@ export function ReportEmailModal({
       const pdfBlob = await generatePdfBlob();
       const pdfFileName = `${report.title || "Report"}-${new Date().toLocaleDateString().replace(/\//g, "-")}.pdf`;
 
-      let htmlContent = editor?.getHTML() || body.replace(/\n/g, "<br>");
-      
+      // Get email body from editor and append report content
+      let htmlContent = editor?.getHTML() || emailForm.body.replace(/\n/g, "<br>");
       htmlContent += "<br><br>" + generateReportContentHtml();
 
+      // Parse email addresses (handle comma-separated values)
+      const parseEmails = (str: string) => str.split(',').map(e => e.trim()).filter(e => e);
+
       const formData = new FormData();
-      formData.append("fromAccountId", selectedAccountId.toString());
-      formData.append("toAddresses", JSON.stringify(toAddresses));
-      if (ccAddresses.length > 0) {
-        formData.append("ccAddresses", JSON.stringify(ccAddresses));
+      formData.append("toAddresses", JSON.stringify(parseEmails(emailForm.to)));
+      if (emailForm.cc) {
+        formData.append("ccAddresses", JSON.stringify(parseEmails(emailForm.cc)));
       }
-      if (bccAddresses.length > 0) {
-        formData.append("bccAddresses", JSON.stringify(bccAddresses));
+      if (emailForm.bcc) {
+        formData.append("bccAddresses", JSON.stringify(parseEmails(emailForm.bcc)));
       }
-      formData.append("subject", subject);
+      formData.append("subject", emailForm.subject);
       formData.append("content", stripHtml(htmlContent));
       formData.append("htmlContent", htmlContent);
       formData.append("attachments", new File([pdfBlob], pdfFileName, { type: "application/pdf" }));
@@ -506,179 +463,174 @@ export function ReportEmailModal({
   };
 
   const handleClose = () => {
-    setToAddresses([]);
-    setCcAddresses([]);
-    setBccAddresses([]);
-    setSubject("");
-    setBody("");
-    setNewEmail({ to: "", cc: "", bcc: "" });
-    setShowCc(false);
-    setShowBcc(false);
-    setSelectedAccountId(null);
+    setEmailForm({ to: '', cc: '', bcc: '', subject: '', body: '' });
+    setShowCCField(false);
+    setShowBCCField(false);
+    hasInitializedRef.current = false;
+    if (editor) {
+      editor.commands.setContent('');
+    }
     onClose();
   };
 
-  const renderEmailSection = (type: "to" | "cc" | "bcc", label: string) => {
-    const emails = type === "to" ? toAddresses : type === "cc" ? ccAddresses : bccAddresses;
-
-    return (
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <Label className="text-sm font-medium w-12">{label}</Label>
-          <div className="flex-1 flex flex-wrap gap-1 items-center min-h-[36px] p-1 border rounded-md bg-background">
-            {emails.map((email, index) => (
-              <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                {email}
-                <button
-                  type="button"
-                  onClick={() => removeEmail(type, index)}
-                  className="ml-1 hover:text-destructive"
-                  data-testid={`btn-remove-${type}-email-${index}`}
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </Badge>
-            ))}
-            <Input
-              type="email"
-              placeholder={`Add ${label.toLowerCase()} email...`}
-              value={newEmail[type]}
-              onChange={(e) => setNewEmail((prev) => ({ ...prev, [type]: e.target.value }))}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  addEmail(type);
-                }
-              }}
-              className="flex-1 min-w-[150px] border-0 p-0 h-8 focus-visible:ring-0"
-              data-testid={`input-${type}-email`}
-            />
-          </div>
-          {type === "to" && !showCc && (
-            <Button variant="ghost" size="sm" onClick={() => setShowCc(true)} data-testid="btn-show-cc">
-              Cc
-            </Button>
-          )}
-          {type === "to" && !showBcc && (
-            <Button variant="ghost" size="sm" onClick={() => setShowBcc(true)} data-testid="btn-show-bcc">
-              Bcc
-            </Button>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  const selectedAccount = emailAccounts.find((acc) => acc.id === selectedAccountId);
-
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            Send Report via Email
-            <Badge variant="outline" className="ml-2">
-              <Paperclip className="h-3 w-3 mr-1" />
-              PDF Attached
-            </Badge>
-          </DialogTitle>
+          <DialogTitle>Email Report</DialogTitle>
+          <DialogDescription>
+            Send the report PDF via email
+          </DialogDescription>
         </DialogHeader>
-
-        <div className="flex-1 overflow-y-auto space-y-4 py-4">
+        
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="email-to">To *</Label>
+            <Input
+              id="email-to"
+              placeholder="recipient@example.com"
+              value={emailForm.to}
+              onChange={(e) => setEmailForm({ ...emailForm, to: e.target.value })}
+              data-testid="input-email-to"
+            />
+          </div>
+          
           <div className="space-y-2">
-            <Label className="text-sm font-medium">From</Label>
-            <Select
-              value={selectedAccountId?.toString() || ""}
-              onValueChange={(val) => setSelectedAccountId(parseInt(val))}
-            >
-              <SelectTrigger data-testid="select-from-account">
-                <SelectValue placeholder="Select email account" />
-              </SelectTrigger>
-              <SelectContent>
-                {emailAccounts.map((account) => (
-                  <SelectItem key={account.id} value={account.id.toString()}>
-                    {account.email} {account.isPrimary && "(Primary)"}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex gap-6">
+              <button
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                onClick={() => setShowCCField(!showCCField)}
+                type="button"
+              >
+                {showCCField ? '▼' : '▶'} CC
+              </button>
+              {!showCCField && (
+                <button
+                  className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                  onClick={() => setShowBCCField(!showBCCField)}
+                  type="button"
+                >
+                  {showBCCField ? '▼' : '▶'} BCC
+                </button>
+              )}
+            </div>
+            {showCCField && (
+              <>
+                <Input
+                  placeholder="cc@example.com"
+                  value={emailForm.cc}
+                  onChange={(e) => setEmailForm({ ...emailForm, cc: e.target.value })}
+                  data-testid="input-email-cc"
+                />
+                <button
+                  className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                  onClick={() => setShowBCCField(!showBCCField)}
+                  type="button"
+                >
+                  {showBCCField ? '▼' : '▶'} BCC
+                </button>
+              </>
+            )}
+            {showBCCField && (
+              <Input
+                placeholder="bcc@example.com"
+                value={emailForm.bcc}
+                onChange={(e) => setEmailForm({ ...emailForm, bcc: e.target.value })}
+                data-testid="input-email-bcc"
+              />
+            )}
           </div>
 
-          {renderEmailSection("to", "To")}
-          {showCc && renderEmailSection("cc", "Cc")}
-          {showBcc && renderEmailSection("bcc", "Bcc")}
-
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Subject</Label>
+          <div>
+            <Label htmlFor="email-subject">Subject</Label>
             <Input
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              placeholder="Email subject..."
-              data-testid="input-subject"
+              id="email-subject"
+              placeholder="Email subject"
+              value={emailForm.subject}
+              onChange={(e) => setEmailForm({ ...emailForm, subject: e.target.value })}
+              data-testid="input-email-subject"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Message</Label>
-            <div className="border rounded-md">
-              <div className="flex items-center gap-1 p-2 border-b bg-gray-50 dark:bg-gray-900">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => editor?.chain().focus().toggleBold().run()}
-                  className={`h-8 w-8 p-0 ${editor?.isActive('bold') ? 'bg-gray-200 dark:bg-gray-700' : ''}`}
-                  data-testid="btn-bold"
-                >
-                  <Bold className="h-4 w-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => editor?.chain().focus().toggleItalic().run()}
-                  className={`h-8 w-8 p-0 ${editor?.isActive('italic') ? 'bg-gray-200 dark:bg-gray-700' : ''}`}
-                  data-testid="btn-italic"
-                >
-                  <Italic className="h-4 w-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => editor?.chain().focus().toggleUnderline().run()}
-                  className={`h-8 w-8 p-0 ${editor?.isActive('underline') ? 'bg-gray-200 dark:bg-gray-700' : ''}`}
-                  data-testid="btn-underline"
-                >
-                  <UnderlineIcon className="h-4 w-4" />
-                </Button>
-                <div className="w-px h-6 bg-gray-300 mx-1" />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => editor?.chain().focus().toggleBulletList().run()}
-                  className={`h-8 w-8 p-0 ${editor?.isActive('bulletList') ? 'bg-gray-200 dark:bg-gray-700' : ''}`}
-                  data-testid="btn-bullet-list"
-                >
-                  <List className="h-4 w-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-                  className={`h-8 w-8 p-0 ${editor?.isActive('orderedList') ? 'bg-gray-200 dark:bg-gray-700' : ''}`}
-                  data-testid="btn-ordered-list"
-                >
-                  <ListOrdered className="h-4 w-4" />
-                </Button>
+          <div>
+            <Label htmlFor="email-body">Message</Label>
+            {editor && (
+              <div className="border border-gray-200 dark:border-gray-700 rounded-md focus-within:ring-2 focus-within:ring-blue-500">
+                <div className="border-b border-gray-200 dark:border-gray-700 p-2 flex gap-1 bg-gray-50 dark:bg-gray-900">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => editor.chain().focus().toggleBold().run()}
+                    className={`h-8 w-8 p-0 ${editor.isActive('bold') ? 'bg-blue-200 dark:bg-blue-900' : ''}`}
+                    title="Bold"
+                    data-testid="button-email-bold"
+                  >
+                    <Bold className="h-4 w-4" />
+                  </Button>
+                  
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => editor.chain().focus().toggleItalic().run()}
+                    className={`h-8 w-8 p-0 ${editor.isActive('italic') ? 'bg-blue-200 dark:bg-blue-900' : ''}`}
+                    title="Italic"
+                    data-testid="button-email-italic"
+                  >
+                    <Italic className="h-4 w-4" />
+                  </Button>
+                  
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => editor.chain().focus().toggleUnderline().run()}
+                    className={`h-8 w-8 p-0 ${editor.isActive('underline') ? 'bg-blue-200 dark:bg-blue-900' : ''}`}
+                    title="Underline"
+                    data-testid="button-email-underline"
+                  >
+                    <UnderlineIcon className="h-4 w-4" />
+                  </Button>
+                  
+                  <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1" />
+                  
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => editor.chain().focus().toggleBulletList().run()}
+                    className={`h-8 w-8 p-0 ${editor.isActive('bulletList') ? 'bg-blue-200 dark:bg-blue-900' : ''}`}
+                    title="Bullet List"
+                    data-testid="button-email-bullet-list"
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                  
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => editor.chain().focus().toggleOrderedList().run()}
+                    className={`h-8 w-8 p-0 ${editor.isActive('orderedList') ? 'bg-blue-200 dark:bg-blue-900' : ''}`}
+                    title="Numbered List"
+                    data-testid="button-email-ordered-list"
+                  >
+                    <ListOrdered className="h-4 w-4" />
+                  </Button>
+                </div>
+                
+                <EditorContent 
+                  editor={editor}
+                  data-testid="editor-email-body"
+                  className="[&_.ProseMirror]:outline-none [&_.ProseMirror]:p-3 [&_.ProseMirror]:min-h-[120px]"
+                />
               </div>
-              <EditorContent editor={editor} data-testid="editor-body" />
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Report content will be automatically included below your message.
-            </p>
+            )}
+          </div>
+
+          <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded text-sm text-blue-900 dark:text-blue-100">
+            📎 Report PDF will be attached to this email. Report content will be included in the email body.
           </div>
 
           {assignedDistro && (
@@ -699,10 +651,7 @@ export function ReportEmailModal({
                 Sending...
               </>
             ) : (
-              <>
-                <Send className="h-4 w-4 mr-2" />
-                Send Email
-              </>
+              "Send Email"
             )}
           </Button>
         </DialogFooter>

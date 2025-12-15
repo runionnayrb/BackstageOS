@@ -540,7 +540,7 @@ export function DistroManager({ projectId }: DistroManagerProps) {
               disabled={createMutation.isPending}
               data-testid="btn-save-distro"
             >
-              {createMutation.isPending ? "Creating..." : "Create List"}
+              {createMutation.isPending ? "Creating..." : "Create Distro"}
             </Button>
           </DialogFooter>
         </DialogContent>
