@@ -109,7 +109,7 @@ export function ReportEmailModal({
     },
     editorProps: {
       attributes: {
-        class: 'prose prose-sm max-w-none focus:outline-none min-h-[120px] p-3',
+        class: 'prose prose-sm max-w-none focus:outline-none min-h-[120px] p-3 [&_ol]:list-decimal [&_ol]:pl-8 [&_ol]:ml-0 [&_ol]:my-1 [&_ul]:list-disc [&_ul]:pl-8 [&_ul]:ml-0 [&_ul]:my-1 [&_li]:my-0 [&_li]:pl-0 [&_h3]:mt-4 [&_h3]:mb-1 [&_p]:my-1',
       },
     },
   });
