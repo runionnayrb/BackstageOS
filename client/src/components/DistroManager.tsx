@@ -378,10 +378,6 @@ export function DistroManager({ projectId }: DistroManagerProps) {
             <p className="text-sm text-muted-foreground mb-4">
               Create distribution lists to easily send reports to groups of people.
             </p>
-            <Button onClick={openCreate} data-testid="btn-create-distro-empty">
-              <Plus className="h-4 w-4 mr-2" />
-              Create Your First List
-            </Button>
           </CardContent>
         </Card>
       ) : (
