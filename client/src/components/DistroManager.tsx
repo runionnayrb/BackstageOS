@@ -491,16 +491,11 @@ export function DistroManager({ projectId }: DistroManagerProps) {
               data-testid={`card-distro-${distro.id}`}
             >
               <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Users className="h-5 w-5 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium truncate">{distro.name}</h4>
-                    <p className="text-sm text-muted-foreground truncate">
-                      {distro.description || `${getTotalRecipients(distro)} recipients`}
-                    </p>
-                  </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-medium truncate">{distro.name}</h4>
+                  <p className="text-sm text-muted-foreground truncate">
+                    {distro.description || `${getTotalRecipients(distro)} recipients`}
+                  </p>
                 </div>
               </CardContent>
             </Card>
