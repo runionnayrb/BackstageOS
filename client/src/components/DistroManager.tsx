@@ -357,12 +357,31 @@ export function DistroManager({ projectId }: DistroManagerProps) {
             id="subject-template"
             value={formData.subjectTemplate}
             onChange={(e) => setFormData(prev => ({ ...prev, subjectTemplate: e.target.value }))}
-            placeholder="{{Show Name}} - {{Report Name}} - {{Report Date}}"
+            placeholder="Click variables below to insert..."
             data-testid="input-subject-template"
           />
-          <p className="text-xs text-muted-foreground">
-            Available variables: {"{{Report Name}}"}, {"{{Show Name}}"}, {"{{Report Title}}"}, {"{{Report Date}}"}
-          </p>
+          <div className="flex flex-wrap gap-1.5">
+            <span className="text-xs text-muted-foreground mr-1">Insert:</span>
+            {[
+              { label: "Report Name", value: "{{Report Name}}" },
+              { label: "Show Name", value: "{{Show Name}}" },
+              { label: "Report Title", value: "{{Report Title}}" },
+              { label: "Report Date", value: "{{Report Date}}" },
+            ].map((variable) => (
+              <Badge 
+                key={variable.value}
+                variant="outline" 
+                className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors text-xs"
+                onClick={() => setFormData(prev => ({ 
+                  ...prev, 
+                  subjectTemplate: prev.subjectTemplate + variable.value 
+                }))}
+                data-testid={`btn-insert-subject-${variable.label.toLowerCase().replace(/\s/g, '-')}`}
+              >
+                {variable.label}
+              </Badge>
+            ))}
+          </div>
         </div>
         
         <div className="space-y-2">
@@ -371,10 +390,32 @@ export function DistroManager({ projectId }: DistroManagerProps) {
             id="body-template"
             value={formData.bodyTemplate}
             onChange={(e) => setFormData(prev => ({ ...prev, bodyTemplate: e.target.value }))}
-            placeholder="Please find attached the {{Report Name}} for {{Show Name}}..."
+            placeholder="Click variables below to insert..."
             className="min-h-[100px]"
             data-testid="input-body-template"
           />
+          <div className="flex flex-wrap gap-1.5">
+            <span className="text-xs text-muted-foreground mr-1">Insert:</span>
+            {[
+              { label: "Report Name", value: "{{Report Name}}" },
+              { label: "Show Name", value: "{{Show Name}}" },
+              { label: "Report Title", value: "{{Report Title}}" },
+              { label: "Report Date", value: "{{Report Date}}" },
+            ].map((variable) => (
+              <Badge 
+                key={variable.value}
+                variant="outline" 
+                className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors text-xs"
+                onClick={() => setFormData(prev => ({ 
+                  ...prev, 
+                  bodyTemplate: prev.bodyTemplate + variable.value 
+                }))}
+                data-testid={`btn-insert-body-${variable.label.toLowerCase().replace(/\s/g, '-')}`}
+              >
+                {variable.label}
+              </Badge>
+            ))}
+          </div>
         </div>
         
         <div className="space-y-2">
