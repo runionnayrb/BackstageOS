@@ -192,9 +192,13 @@ export function ReportEmailModal({
     const listStyle = "list-style-type: decimal; padding-left: 20px; margin: 0 0 0 16px;";
     const listItemStyle = "margin: 0; padding: 0;";
     let result = html
+      .replace(/<p><\/p>/gi, '')
+      .replace(/<p>\s*<\/p>/gi, '')
       .replace(/<ol[^>]*>/gi, `<ol style="${listStyle}">`)
       .replace(/<ul[^>]*>/gi, `<ul style="${listStyle}">`)
-      .replace(/<li[^>]*>/gi, `<li style="${listItemStyle}">`);
+      .replace(/<li[^>]*>/gi, `<li style="${listItemStyle}">`)
+      .replace(/<p[^>]*>/gi, '<span>')
+      .replace(/<\/p>/gi, '</span>');
     return result;
   };
 
