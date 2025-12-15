@@ -258,6 +258,78 @@ export default function ReportViewer() {
         return temp.textContent || temp.innerText || '';
       };
 
+      // Helper to parse HTML and preserve list formatting
+      type TextSegment = { text: string; indent: number; isListItem: boolean };
+      const parseHtmlWithLists = (html: string): TextSegment[] => {
+        if (!html) return [];
+        const segments: TextSegment[] = [];
+        const temp = document.createElement('div');
+        temp.innerHTML = html;
+
+        const processNode = (node: Node, listCounter: number[] = [], listType: string[] = []) => {
+          if (node.nodeType === Node.TEXT_NODE) {
+            const text = node.textContent?.trim();
+            if (text) {
+              segments.push({ text, indent: listCounter.length, isListItem: false });
+            }
+            return;
+          }
+
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            const el = node as Element;
+            const tagName = el.tagName.toLowerCase();
+
+            if (tagName === 'ol') {
+              listCounter.push(0);
+              listType.push('ol');
+              el.childNodes.forEach(child => processNode(child, listCounter, listType));
+              listCounter.pop();
+              listType.pop();
+            } else if (tagName === 'ul') {
+              listCounter.push(0);
+              listType.push('ul');
+              el.childNodes.forEach(child => processNode(child, listCounter, listType));
+              listCounter.pop();
+              listType.pop();
+            } else if (tagName === 'li') {
+              if (listCounter.length > 0) {
+                listCounter[listCounter.length - 1]++;
+                const currentType = listType[listType.length - 1];
+                const num = listCounter[listCounter.length - 1];
+                const prefix = currentType === 'ol' ? `${num}. ` : '• ';
+                const text = el.textContent?.trim() || '';
+                if (text) {
+                  segments.push({ 
+                    text: prefix + text, 
+                    indent: listCounter.length, 
+                    isListItem: true 
+                  });
+                }
+              }
+            } else if (tagName === 'p' || tagName === 'div' || tagName === 'br') {
+              // Check if this element contains list children
+              const hasListChild = Array.from(el.children).some(
+                child => ['ol', 'ul'].includes(child.tagName.toLowerCase())
+              );
+              if (hasListChild) {
+                el.childNodes.forEach(child => processNode(child, listCounter, listType));
+              } else if (listCounter.length === 0) {
+                // Only add as plain text if not inside a list (list items handle their own text)
+                const text = el.textContent?.trim();
+                if (text) {
+                  segments.push({ text, indent: 0, isListItem: false });
+                }
+              }
+            } else {
+              el.childNodes.forEach(child => processNode(child, listCounter, listType));
+            }
+          }
+        };
+
+        temp.childNodes.forEach(child => processNode(child));
+        return segments;
+      };
+
       // Helper to wrap text and return lines
       const wrapText = (text: string, maxWidth: number, fontSize: number): string[] => {
         pdf.setFontSize(fontSize);
@@ -339,19 +411,27 @@ export default function ReportViewer() {
               });
               yPosition += 2;
 
-              // Field content (normal)
+              // Field content (normal) - with list support
               const fieldContent = contentRef.current[field.label] || field.defaultValue || '';
-              const plainContent = stripHtml(fieldContent);
+              const segments = parseHtmlWithLists(fieldContent);
               
-              if (plainContent.trim()) {
+              if (segments.length > 0) {
                 pdf.setFontSize(contentSize);
                 pdf.setFont(fontFamily, 'normal');
-                const contentLines = wrapText(plainContent, contentWidth - 30, contentSize);
-                contentLines.forEach((line: string) => {
-                  checkNewPage(contentSize * lineHeight);
-                  pdf.text(line, marginLeft + 20, yPosition);
-                  yPosition += contentSize * lineHeight;
-                });
+                
+                for (const segment of segments) {
+                  const indentOffset = segment.indent * 15;
+                  const baseIndent = marginLeft + 20;
+                  const segmentLines = wrapText(segment.text, contentWidth - 30 - indentOffset, contentSize);
+                  
+                  segmentLines.forEach((line: string, lineIndex: number) => {
+                    checkNewPage(contentSize * lineHeight);
+                    // For wrapped lines of list items, add extra indent to align with text after number
+                    const xPos = baseIndent + indentOffset + (segment.isListItem && lineIndex > 0 ? 15 : 0);
+                    pdf.text(line, xPos, yPosition);
+                    yPosition += contentSize * lineHeight;
+                  });
+                }
               }
               yPosition += 8;
             }
