@@ -187,13 +187,24 @@ export function ReportEmailModal({
     return temp.textContent || temp.innerText || "";
   };
 
+  const normalizeListHtml = (html: string): string => {
+    if (!html) return "";
+    const listStyle = "list-style-type: decimal; padding-left: 20px; margin: 0 0 0 16px;";
+    const listItemStyle = "margin: 0; padding: 0;";
+    let result = html
+      .replace(/<ol[^>]*>/gi, `<ol style="${listStyle}">`)
+      .replace(/<ul[^>]*>/gi, `<ul style="${listStyle}">`)
+      .replace(/<li[^>]*>/gi, `<li style="${listItemStyle}">`);
+    return result;
+  };
+
   const generateReportContentHtml = (): string => {
     if (!template?.sections) return "";
     
     let html = "<hr><div style=\"font-family: Arial, sans-serif; max-width: 800px;\">";
     
     for (const section of template.sections) {
-      html += `<h3 style="margin-top: 24px; margin-bottom: 12px; color: #333;">${section.title}</h3>`;
+      html += `<h3 style="margin-top: 16px; margin-bottom: 4px; color: #333;">${section.title}</h3>`;
       
       if (section.fields?.length > 0) {
         for (const field of section.fields) {
@@ -202,9 +213,9 @@ export function ReportEmailModal({
           const plainContent = stripHtml(fieldHtml);
           
           if (plainContent.trim()) {
-            html += `<div style="margin-bottom: 16px;">`;
-            html += `<strong style="display: block; margin-bottom: 4px;">${field.label}</strong>`;
-            html += `<div style="padding-left: 16px;">${fieldHtml}</div>`;
+            html += `<div style="margin-bottom: 8px;">`;
+            html += `<strong style="display: block; margin-bottom: 2px;">${field.label}</strong>`;
+            html += `<div style="padding-left: 16px;">${normalizeListHtml(fieldHtml)}</div>`;
             html += `</div>`;
           }
         }
@@ -212,14 +223,14 @@ export function ReportEmailModal({
     }
     
     if (reportNotes.length > 0) {
-      html += `<h3 style="margin-top: 24px; margin-bottom: 12px; color: #333;">Notes</h3>`;
-      html += `<ul style="margin: 0; padding-left: 20px;">`;
+      html += `<h3 style="margin-top: 16px; margin-bottom: 4px; color: #333;">Notes</h3>`;
+      html += `<ol style="margin: 0; padding-left: 36px;">`;
       for (const note of reportNotes) {
         const statusLabel = note.status !== "open" ? ` [${note.status}]` : "";
         const priorityLabel = note.priority === "high" ? " ⚠️" : note.priority === "urgent" ? " 🔴" : "";
-        html += `<li style="margin-bottom: 8px;">${note.content}${statusLabel}${priorityLabel}</li>`;
+        html += `<li style="margin: 0; padding: 0;">${note.content}${statusLabel}${priorityLabel}</li>`;
       }
-      html += `</ul>`;
+      html += `</ol>`;
     }
     
     html += "</div>";
