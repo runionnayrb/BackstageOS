@@ -197,6 +197,9 @@ export default function ShowSettings() {
   // Drag and drop state for locations
   const [draggedLocationId, setDraggedLocationId] = useState<number | null>(null);
   const [dragOverLocationId, setDragOverLocationId] = useState<number | null>(null);
+  // Drag and drop state for event types
+  const [draggedEventTypeId, setDraggedEventTypeId] = useState<number | null>(null);
+  const [dragOverEventTypeId, setDragOverEventTypeId] = useState<number | null>(null);
   const [eventTypeForm, setEventTypeForm] = useState({ name: '', description: '', color: '#3b82f6' });
   const [locationForm, setLocationForm] = useState({ name: '', address: '', description: '', capacity: '', notes: '', locationType: 'main' });
 
@@ -974,6 +977,78 @@ The Production Team`
   const handleLocationDragEnd = () => {
     setDraggedLocationId(null);
     setDragOverLocationId(null);
+  };
+
+  // Reorder event types mutation
+  const reorderEventTypesMutation = useMutation({
+    mutationFn: async (eventTypeIds: number[]) => {
+      return await apiRequest("PUT", `/api/projects/${params.id}/event-types/reorder`, {
+        eventTypeIds
+      });
+    },
+    onSuccess: () => {
+      refetchEventTypes();
+      toast({
+        title: "Event Types Reordered",
+        description: "Event type order has been updated successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to reorder event types. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Drag and drop handlers for event types
+  const handleEventTypeDragStart = (e: React.DragEvent, eventTypeId: number) => {
+    setDraggedEventTypeId(eventTypeId);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleEventTypeDragOver = (e: React.DragEvent, eventTypeId: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverEventTypeId(eventTypeId);
+  };
+
+  const handleEventTypeDragLeave = () => {
+    setDragOverEventTypeId(null);
+  };
+
+  const handleEventTypeDrop = (e: React.DragEvent, dropEventTypeId: number) => {
+    e.preventDefault();
+    
+    if (!draggedEventTypeId || draggedEventTypeId === dropEventTypeId) {
+      setDraggedEventTypeId(null);
+      setDragOverEventTypeId(null);
+      return;
+    }
+
+    // Create new order array
+    const eventTypesCopy = [...eventTypes];
+    const draggedIndex = eventTypesCopy.findIndex(et => et.id === draggedEventTypeId);
+    const dropIndex = eventTypesCopy.findIndex(et => et.id === dropEventTypeId);
+
+    if (draggedIndex === -1 || dropIndex === -1) return;
+
+    // Remove dragged item and insert at new position
+    const [draggedItem] = eventTypesCopy.splice(draggedIndex, 1);
+    eventTypesCopy.splice(dropIndex, 0, draggedItem);
+
+    // Update sort order and send to server
+    const eventTypeIds = eventTypesCopy.map(et => et.id);
+    reorderEventTypesMutation.mutate(eventTypeIds);
+
+    setDraggedEventTypeId(null);
+    setDragOverEventTypeId(null);
+  };
+
+  const handleEventTypeDragEnd = () => {
+    setDraggedEventTypeId(null);
+    setDragOverEventTypeId(null);
   };
 
   // Phase 5 mutations
@@ -4353,8 +4428,22 @@ The Production Team`
                   </p>
                 ) : (
                   eventTypes.map((eventType: any) => (
-                    <div key={eventType.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50/50">
-                      <div className="flex items-center gap-3">
+                    <div 
+                      key={eventType.id} 
+                      draggable
+                      onDragStart={(e) => handleEventTypeDragStart(e, eventType.id)}
+                      onDragOver={(e) => handleEventTypeDragOver(e, eventType.id)}
+                      onDragLeave={handleEventTypeDragLeave}
+                      onDrop={(e) => handleEventTypeDrop(e, eventType.id)}
+                      onDragEnd={handleEventTypeDragEnd}
+                      className={`flex items-center p-3 rounded-lg cursor-move transition-colors bg-gray-50/50 ${
+                        draggedEventTypeId === eventType.id ? 'opacity-50' : ''
+                      } ${
+                        dragOverEventTypeId === eventType.id ? 'bg-blue-50/50' : ''
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 flex-1">
+                        <GripVertical className="h-4 w-4 text-gray-400" />
                         <div
                           className="w-4 h-4 rounded-full"
                           style={{ backgroundColor: eventType.color }}
