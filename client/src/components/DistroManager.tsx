@@ -192,10 +192,9 @@ export function DistroManager({ projectId }: DistroManagerProps) {
       } else {
         const reportTypeIds = [...selectedReportTypes];
         
-        const response = await createMutation.mutateAsync(formData);
-        const data = await response.json();
+        const data = await createMutation.mutateAsync(formData);
         
-        if (data.id && reportTypeIds.length > 0) {
+        if (data?.id && reportTypeIds.length > 0) {
           await syncReportTypesMutation.mutateAsync({ distroId: data.id, reportTypeIds });
         }
         
