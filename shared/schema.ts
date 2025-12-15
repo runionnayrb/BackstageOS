@@ -262,6 +262,21 @@ export const reportTypes = pgTable("report_types", {
   unique().on(table.projectId, table.slug),
 ]);
 
+// Custom note statuses for tracking note progress
+export const noteStatuses = pgTable("note_statuses", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(), // Display name: "Pending", "In Progress", "Done", etc.
+  color: varchar("color").notNull().default("#6b7280"), // Hex color for UI display
+  displayOrder: integer("display_order").notNull().default(0), // Order in dropdown/list
+  isDefault: boolean("is_default").default(false), // If true, this status is assigned by default to new notes
+  isCompleted: boolean("is_completed").default(false), // If true, notes with this status are considered completed
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_note_statuses_project").on(table.projectId),
+]);
+
 // Individual report notes for tracking and follow-up
 export const reportNotes = pgTable("report_notes", {
   id: serial("id").primaryKey(),
@@ -271,6 +286,7 @@ export const reportNotes = pgTable("report_notes", {
   content: text("content").notNull(),
   noteOrder: integer("note_order").notNull(), // Order within the report for numbered list display
   isCompleted: boolean("is_completed").default(false),
+  statusId: integer("status_id").references(() => noteStatuses.id, { onDelete: "set null" }), // Custom status
   priority: varchar("priority").default("medium"), // low, medium, high
   assignedTo: integer("assigned_to").references(() => users.id),
   dueDate: timestamp("due_date"),
@@ -1507,6 +1523,14 @@ export const reportTemplatesRelations = relations(reportTemplates, ({ one, many 
   reports: many(reports),
 }));
 
+export const noteStatusesRelations = relations(noteStatuses, ({ one, many }) => ({
+  project: one(projects, {
+    fields: [noteStatuses.projectId],
+    references: [projects.id],
+  }),
+  notes: many(reportNotes),
+}));
+
 export const reportNotesRelations = relations(reportNotes, ({ one }) => ({
   report: one(reports, {
     fields: [reportNotes.reportId],
@@ -1523,6 +1547,10 @@ export const reportNotesRelations = relations(reportNotes, ({ one }) => ({
   assignedUser: one(users, {
     fields: [reportNotes.assignedTo],
     references: [users.id],
+  }),
+  status: one(noteStatuses, {
+    fields: [reportNotes.statusId],
+    references: [noteStatuses.id],
   }),
 }));
 
@@ -2574,6 +2602,12 @@ export const insertReportTypeSchema = createInsertSchema(reportTypes).omit({
   updatedAt: true,
 });
 
+export const insertNoteStatusSchema = createInsertSchema(noteStatuses).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertReportNoteSchema = createInsertSchema(reportNotes).omit({
   id: true,
   createdAt: true,
@@ -2830,6 +2864,8 @@ export type ScheduleEvent = typeof scheduleEvents.$inferSelect;
 export type InsertScheduleEvent = z.infer<typeof insertScheduleEventSchema>;
 export type ScheduleEventParticipant = typeof scheduleEventParticipants.$inferSelect;
 export type InsertScheduleEventParticipant = z.infer<typeof insertScheduleEventParticipantSchema>;
+export type NoteStatus = typeof noteStatuses.$inferSelect;
+export type InsertNoteStatus = z.infer<typeof insertNoteStatusSchema>;
 export type ReportNote = typeof reportNotes.$inferSelect;
 export type InsertReportNote = z.infer<typeof insertReportNoteSchema>;
 export type ScheduleTemplate = typeof scheduleTemplates.$inferSelect;
