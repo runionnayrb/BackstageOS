@@ -9800,6 +9800,32 @@ Best regards,
     }
   });
 
+  app.put('/api/projects/:id/event-types/reorder', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const { eventTypeIds } = req.body;
+      
+      // Check project access
+      const project = await storage.getProjectById(projectId);
+      if (!project || project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      if (!Array.isArray(eventTypeIds)) {
+        return res.status(400).json({ message: "eventTypeIds must be an array" });
+      }
+
+      await storage.reorderEventTypes(projectId, eventTypeIds);
+      res.json({ message: "Event types reordered successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to reorder event types" });
+    }
+  });
+
   // Contact groups routes
   app.get('/api/projects/:id/contact-groups', isAuthenticated, async (req: any, res) => {
     try {
