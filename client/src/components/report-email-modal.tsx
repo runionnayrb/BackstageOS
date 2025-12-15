@@ -226,16 +226,6 @@ export function ReportEmailModal({
       }
     }
     
-    if (reportNotes.length > 0) {
-      html += `<h3 style="margin-top: 16px; margin-bottom: 4px; color: #333;">Notes</h3>`;
-      html += `<ol style="margin: 0; padding-left: 36px;">`;
-      for (const note of reportNotes) {
-        const statusLabel = note.status !== "open" ? ` [${note.status}]` : "";
-        const priorityLabel = note.priority === "high" ? " ⚠️" : note.priority === "urgent" ? " 🔴" : "";
-        html += `<li style="margin: 0; padding: 0;">${note.content}${statusLabel}${priorityLabel}</li>`;
-      }
-      html += `</ol>`;
-    }
     
     html += "</div>";
     return html;
