@@ -1517,7 +1517,7 @@ export default function DailyCallSheet() {
                             {/* Left column (location 0) */}
                             <div className="col-span-4">
                               {loc0Event ? (
-                                <div className="flex items-start gap-4 py-2">
+                                <div className="flex items-start gap-6 py-2">
                                   <div className={`text-sm font-medium text-gray-700 flex-shrink-0 ${isEditing ? '' : 'w-20'}`}>
                                     {isEditing ? (
                                       <div className="flex flex-col gap-1">
@@ -1621,7 +1621,7 @@ export default function DailyCallSheet() {
                             {/* Right column (location 1) */}
                             <div className="col-span-3">
                               {loc1Event ? (
-                                <div className="flex items-start gap-4 py-2">
+                                <div className="flex items-start gap-6 py-2">
                                   <div className={`text-sm font-medium text-gray-700 flex-shrink-0 ${isEditing ? '' : 'w-20'}`}>
                                     {isEditing ? (
                                       <div className="flex flex-col gap-1">
