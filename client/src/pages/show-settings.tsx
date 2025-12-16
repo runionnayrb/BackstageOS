@@ -4587,10 +4587,6 @@ The Production Team`
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Email Template Section */}
-              <div>
-                <h4 className="font-medium text-sm text-gray-900 mb-4">Email Template</h4>
-                <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="emailSubject">Email Subject</Label>
                     <Input
@@ -4684,8 +4680,6 @@ The Production Team`}
                       </Button>
                     </div>
                   </div>
-                </div>
-              </div>
             </CardContent>
           </Card>
 
