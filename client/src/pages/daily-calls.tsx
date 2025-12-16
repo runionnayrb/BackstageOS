@@ -501,7 +501,7 @@ export default function DailyCallSheet() {
       endTime: formatTimeDisplay('11:00', timeFormat as '12' | '24'),
       cast: [],
       notes: '',
-      location: 'Fitting Room'
+      location: ''
     };
     
     setCallData(prev => ({
@@ -1929,8 +1929,8 @@ export default function DailyCallSheet() {
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           ) : (
-                            fittingsLocationName && 
-                            <div className="text-xs text-gray-600">{fittingsLocationName}</div>
+                            (event.location?.trim() || fittingsLocationName) && 
+                            <div className="text-xs text-gray-600">{event.location?.trim() || fittingsLocationName}</div>
                           )}
                         </div>
                         {isEditing ? (
@@ -2024,8 +2024,8 @@ export default function DailyCallSheet() {
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           ) : (
-                            appointmentsLocationName && 
-                            <div className="text-xs text-gray-600">{appointmentsLocationName}</div>
+                            (event.location?.trim() || appointmentsLocationName) && 
+                            <div className="text-xs text-gray-600">{event.location?.trim() || appointmentsLocationName}</div>
                           )}
                         </div>
                         {isEditing ? (
