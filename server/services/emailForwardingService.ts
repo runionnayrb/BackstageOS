@@ -1,8 +1,7 @@
 import { db } from '../db.js';
 import { emailAccounts, emailMessages, emailForwardingRules, users } from '../../shared/schema.js';
 import { eq, and, or } from 'drizzle-orm';
-// SendGrid email import
-import sgMail from '@sendgrid/mail';
+import { sendEmail } from './sendgridService.js';
 
 export interface ForwardingRule {
   id: number;
@@ -130,21 +129,14 @@ This email was automatically forwarded from your BackstageOS account.
 Reply directly to this email, and it will be sent from your BackstageOS address.
       `.trim();
 
-      // Send using SendGrid
-      if (process.env.SENDGRID_API_KEY) {
-        sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-        
-        const msg = {
-          to: forwardToEmail,
-          from: backstageAccount.emailAddress,
-          subject: forwardedSubject,
-          text: forwardedBody,
-          html: forwardedBody.replace(/\n/g, '<br>'),
-          replyTo: backstageAccount.emailAddress
-        };
-
-        await sgMail.send(msg);
-      }
+      // Send using Resend via sendEmail wrapper
+      await sendEmail({
+        to: [forwardToEmail],
+        from: backstageAccount.emailAddress,
+        subject: forwardedSubject,
+        html: forwardedBody.replace(/\n/g, '<br>'),
+        replyTo: backstageAccount.emailAddress
+      });
 
       console.log(`📧 Forwarded email from ${originalMessage.fromAddress} to ${forwardToEmail}`);
     } catch (error) {
@@ -186,20 +178,13 @@ Reply directly to this email, and it will be sent from your BackstageOS address.
       cleanSubject = `Re: ${cleanSubject}`;
     }
 
-    // Send email as BackstageOS user using SendGrid
-    if (process.env.SENDGRID_API_KEY) {
-      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-      
-      const msg = {
-        to: toEmail,
-        from: rule.backstageEmail,
-        subject: cleanSubject,
-        text: body,
-        html: body.replace(/\n/g, '<br>')
-      };
-
-      await sgMail.send(msg);
-    }
+    // Send email as BackstageOS user using Resend
+    await sendEmail({
+      to: [toEmail],
+      from: rule.backstageEmail,
+      subject: cleanSubject,
+      html: body.replace(/\n/g, '<br>')
+    });
 
     console.log(`📧 Sent reply from ${rule.backstageEmail} to ${toEmail}`);
   }

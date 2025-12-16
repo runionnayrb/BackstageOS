@@ -538,31 +538,33 @@ export default function WaitlistEmailSettings() {
 }
 
 function getDefaultHtmlBody(): string {
-  return `<h2>Welcome to the BackstageOS Waitlist!</h2>
+  return `<div style="font-family: Arial, sans-serif; font-size: 16px; line-height: 1.6; color: #333333;">
+<p style="font-size: 16px; margin-bottom: 16px;"><strong>Welcome to the BackstageOS Waitlist!</strong></p>
 
-<p>Hi {{firstName}},</p>
+<p style="font-size: 16px; margin-bottom: 16px;">Hi {{firstName}},</p>
 
-<p>Thank you for joining the BackstageOS waitlist! I'm excited to have you as part of our community of professional stage managers. I'm working hard to build the future of stage management technology.</p>
+<p style="font-size: 16px; margin-bottom: 16px;">Thank you for joining the BackstageOS waitlist! I'm excited to have you as part of our community of professional stage managers. I'm working hard to build the future of stage management technology.</p>
 
-<p><strong>Your waitlist position:</strong> #{{position}}</p>
+<p style="font-size: 16px; margin-bottom: 16px;"><strong>Your waitlist position:</strong> #{{position}}</p>
 
-<p>BackstageOS will revolutionize how you manage productions with:</p>
+<p style="font-size: 16px; margin-bottom: 16px;">BackstageOS will revolutionize how you manage productions with:</p>
 
-<ul>
-  <li>Comprehensive stage management tools</li>
-  <li>Advanced scheduling and availability management</li>
-  <li>Real-time collaboration features, including real-time document edits, file sharing, and team chatting features</li>
-  <li>Advanced script editing is directly integrated with calling script creation and management</li>
-  <li>Create a PDF, download it, attach it to an email, review it and then send it all from within the app</li>
-  <li>Props lists, scene breakdowns, french scene breakdowns, light cues, audio cues, video cues, lineset schedules, etc.</li>
-  <li>And so much more.</li>
+<ul style="font-size: 16px; margin-bottom: 16px; padding-left: 24px;">
+  <li style="margin-bottom: 8px;">Comprehensive stage management tools</li>
+  <li style="margin-bottom: 8px;">Advanced scheduling and availability management</li>
+  <li style="margin-bottom: 8px;">Real-time collaboration features, including real-time document edits, file sharing, and team chatting features</li>
+  <li style="margin-bottom: 8px;">Advanced script editing is directly integrated with calling script creation and management</li>
+  <li style="margin-bottom: 8px;">Create a PDF, download it, attach it to an email, review it and then send it all from within the app</li>
+  <li style="margin-bottom: 8px;">Props lists, scene breakdowns, french scene breakdowns, light cues, audio cues, video cues, lineset schedules, etc.</li>
+  <li style="margin-bottom: 8px;">And so much more.</li>
 </ul>
 
-<p>I'll continue to keep you updated on our progress and let you know as soon as beta access becomes available.</p>
+<p style="font-size: 16px; margin-bottom: 16px;">I'll continue to keep you updated on our progress and let you know as soon as beta access becomes available.</p>
 
-<p>Thank you for your patience and interest!</p>
+<p style="font-size: 16px; margin-bottom: 16px;">Thank you for your patience and interest!</p>
 
-<p>Best regards, Bryan at BackstageOS</p>`;
+<p style="font-size: 16px; margin-bottom: 0;">Best regards,<br>Bryan at BackstageOS</p>
+</div>`;
 }
 
 function getDefaultTextBody(): string {

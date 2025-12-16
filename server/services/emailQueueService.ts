@@ -154,8 +154,7 @@ export class EmailQueueService {
     message: string;
     replyTo?: string;
   }) {
-    const sgMail = require('@sendgrid/mail');
-    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    const { sendEmail } = await import('./sendgridService.js');
 
     // Get account details for sender information
     const account = await this.emailService.getEmailAccountById(emailData.accountId);
@@ -166,7 +165,7 @@ export class EmailQueueService {
     // Generate unique message ID for tracking
     const messageId = `<${Date.now()}.${Math.random().toString(36).substr(2, 9)}@backstageos.com>`;
 
-    const mailData = {
+    await sendEmail({
       to: emailData.to,
       cc: emailData.cc || [],
       bcc: emailData.bcc || [],
@@ -177,30 +176,10 @@ export class EmailQueueService {
       replyTo: emailData.replyTo || account.emailAddress,
       subject: emailData.subject,
       html: emailData.message,
-      headers: {
-        'Message-ID': messageId,
-        'X-BackstageOS-Account-ID': emailData.accountId.toString(),
-        'X-BackstageOS-Timestamp': new Date().toISOString(),
-      },
-      trackingSettings: {
-        clickTracking: {
-          enable: true,
-          enableText: false,
-        },
-        openTracking: {
-          enable: true,
-        },
-        subscriptionTracking: {
-          enable: false,
-        },
-      },
-    };
-
-    const response = await sgMail.send(mailData);
+    });
     
     return {
       messageId,
-      sendGridResponse: response,
     };
   }
 
