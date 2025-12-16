@@ -3170,13 +3170,40 @@ The Production Team`
                         return orderA - orderB;
                       });
                       
+                      // Helper function to calculate total duration for a group
+                      const calculateGroupTotal = (items: any[]): string => {
+                        let totalMinutes = 0;
+                        let totalSeconds = 0;
+                        items.forEach((item: any) => {
+                          if (item.duration) {
+                            const parts = item.duration.split(':').map(Number);
+                            if (parts.length === 2) {
+                              totalMinutes += parts[0] || 0;
+                              totalSeconds += parts[1] || 0;
+                            } else if (parts.length === 1) {
+                              totalMinutes += parts[0] || 0;
+                            }
+                          }
+                        });
+                        // Convert overflow seconds to minutes
+                        totalMinutes += Math.floor(totalSeconds / 60);
+                        totalSeconds = totalSeconds % 60;
+                        if (totalMinutes === 0 && totalSeconds === 0) return '';
+                        return `${totalMinutes}:${totalSeconds.toString().padStart(2, '0')}`;
+                      };
+                      
                       return inShowItems.length > 0 ? (
                         <div className="space-y-4">
                           <h2 className="text-xl font-bold">In-Show</h2>
                           <div className="space-y-4">
-                            {sortedGroups.map((groupName) => (
+                            {sortedGroups.map((groupName) => {
+                              const groupTotal = calculateGroupTotal(grouped[groupName]);
+                              return (
                               <div key={groupName} className="space-y-2">
-                                <h4 className="text-sm font-semibold text-muted-foreground px-2">{groupName}</h4>
+                                <div className="flex items-center justify-between px-2">
+                                  <h4 className="text-sm font-semibold text-muted-foreground">{groupName}</h4>
+                                  {groupTotal && <div className="text-sm text-muted-foreground flex" style={{gap: '1px', width: '140px'}}><span>Length:</span><span className="text-right flex-1">{groupTotal}</span></div>}
+                                </div>
                                 <div className="space-y-2">
                                   {grouped[groupName]
                                     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
@@ -3200,7 +3227,7 @@ The Production Team`
                                     ))}
                                 </div>
                               </div>
-                            ))}
+                            );})}
                           </div>
                         </div>
                       ) : null;
