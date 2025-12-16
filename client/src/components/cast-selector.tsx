@@ -38,6 +38,17 @@ export function CastSelector({
   const formatContactName = (contact: ContactWithGroup) => 
     `${contact.firstName.charAt(0)}. ${contact.lastName}`;
 
+  // Special group options
+  const specialOptions = [
+    { id: 'full-company', label: 'Full Company', description: 'Everyone in the show' },
+    { id: 'full-cast', label: 'Full Cast', description: 'All cast members' }
+  ];
+
+  // Filter available special options (not already selected)
+  const availableSpecialOptions = specialOptions.filter(option => 
+    !selectedCast.includes(option.label)
+  );
+
   // Filter available cast members (not already selected)
   const availableCastMembers = castMembers.filter(contact => {
     const displayName = formatContactName(contact);
@@ -51,6 +62,21 @@ export function CastSelector({
            contact.firstName.toLowerCase().includes(inputValue.toLowerCase()) ||
            contact.lastName.toLowerCase().includes(inputValue.toLowerCase());
   });
+
+  // Filter special options by search input
+  const filteredSpecialOptions = availableSpecialOptions.filter(option =>
+    option.label.toLowerCase().includes(inputValue.toLowerCase()) ||
+    option.description.toLowerCase().includes(inputValue.toLowerCase())
+  );
+
+  const handleSelectSpecialOption = (option: { id: string; label: string; description: string }) => {
+    if (!selectedCast.includes(option.label)) {
+      onChange([...selectedCast, option.label]);
+    }
+    setInputValue("");
+    setOpen(false);
+    setTimeout(() => inputRef.current?.focus(), 0);
+  };
 
   const handleSelectCast = (contact: ContactWithGroup) => {
     const displayName = formatContactName(contact);
@@ -76,9 +102,13 @@ export function CastSelector({
       newCast.pop();
       onChange(newCast);
       e.preventDefault();
-    } else if (e.key === "Enter" && filteredCastMembers.length > 0) {
-      // Select first filtered cast member on enter
-      handleSelectCast(filteredCastMembers[0]);
+    } else if (e.key === "Enter" && (filteredSpecialOptions.length > 0 || filteredCastMembers.length > 0)) {
+      // Select first filtered option (special options first, then cast members)
+      if (filteredSpecialOptions.length > 0) {
+        handleSelectSpecialOption(filteredSpecialOptions[0]);
+      } else {
+        handleSelectCast(filteredCastMembers[0]);
+      }
       e.preventDefault();
     } else if (e.key === "Escape") {
       setOpen(false);
@@ -88,7 +118,9 @@ export function CastSelector({
 
   const handleInputChange = (value: string) => {
     setInputValue(value);
-    setOpen(value.length > 0 && filteredCastMembers.length > 0);
+    // Show dropdown if there's input OR if there are special options/cast members available
+    const hasResults = availableSpecialOptions.length > 0 || availableCastMembers.length > 0;
+    setOpen(hasResults);
   };
 
   // Close dropdown when clicking outside
@@ -156,32 +188,59 @@ export function CastSelector({
         <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
           <Command>
             <CommandList>
-              {filteredCastMembers.length === 0 ? (
+              {filteredSpecialOptions.length === 0 && filteredCastMembers.length === 0 ? (
                 <CommandEmpty>
-                  {inputValue ? "No cast members found." : "No available cast members."}
+                  {inputValue ? "No options found." : "No available options."}
                 </CommandEmpty>
               ) : (
-                <CommandGroup>
-                  {filteredCastMembers.map((contact) => {
-                    const fullName = `${contact.firstName} ${contact.lastName}`;
-                    return (
-                      <CommandItem
-                        key={contact.id}
-                        onSelect={() => handleSelectCast(contact)}
-                        className="cursor-pointer"
-                      >
-                        <div className="flex flex-col">
-                          <span className="font-medium">{fullName}</span>
-                          {contact.role && (
-                            <span className="text-xs text-muted-foreground">
-                              {contact.role.toUpperCase()}
-                            </span>
-                          )}
-                        </div>
-                      </CommandItem>
-                    );
-                  })}
-                </CommandGroup>
+                <>
+                  {/* Special group options at the top */}
+                  {filteredSpecialOptions.length > 0 && (
+                    <CommandGroup heading="Groups">
+                      {filteredSpecialOptions.map((option) => (
+                        <CommandItem
+                          key={option.id}
+                          onSelect={() => handleSelectSpecialOption(option)}
+                          className="cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-muted-foreground" />
+                            <div className="flex flex-col">
+                              <span className="font-medium">{option.label}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {option.description}
+                              </span>
+                            </div>
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  )}
+                  {/* Individual cast members */}
+                  {filteredCastMembers.length > 0 && (
+                    <CommandGroup heading="Cast Members">
+                      {filteredCastMembers.map((contact) => {
+                        const fullName = `${contact.firstName} ${contact.lastName}`;
+                        return (
+                          <CommandItem
+                            key={contact.id}
+                            onSelect={() => handleSelectCast(contact)}
+                            className="cursor-pointer"
+                          >
+                            <div className="flex flex-col">
+                              <span className="font-medium">{fullName}</span>
+                              {contact.role && (
+                                <span className="text-xs text-muted-foreground">
+                                  {contact.role.toUpperCase()}
+                                </span>
+                              )}
+                            </div>
+                          </CommandItem>
+                        );
+                      })}
+                    </CommandGroup>
+                  )}
+                </>
               )}
             </CommandList>
           </Command>
