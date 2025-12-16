@@ -283,15 +283,38 @@ export default function DailyCallSheet() {
       locationTypeGroups[locationType].push(processedEvent);
     });
 
+    // Helper function to convert time string to minutes since midnight for proper comparison
+    const timeToMinutesLocal = (timeStr: string): number => {
+      if (!timeStr) return 0;
+      const cleanTime = timeStr.trim();
+      
+      // Handle 24-hour format (e.g., "14:30")
+      if (!cleanTime.includes('AM') && !cleanTime.includes('PM')) {
+        const [hours, minutes] = cleanTime.split(':').map(Number);
+        return (hours || 0) * 60 + (minutes || 0);
+      }
+      
+      // Handle 12-hour format (e.g., "2:30 PM")
+      const isPM = cleanTime.toUpperCase().includes('PM');
+      const timeWithoutAmPm = cleanTime.replace(/\s*(AM|PM)\s*/i, '').trim();
+      const [hours, minutes] = timeWithoutAmPm.split(':').map(Number);
+      
+      let hour24 = hours || 0;
+      if (isPM && hour24 !== 12) hour24 += 12;
+      if (!isPM && hour24 === 12) hour24 = 0;
+      
+      return hour24 * 60 + (minutes || 0);
+    };
+
     // Calculate single END-OF-DAY time for the entire day (latest end time across all events)
     let globalEndOfDayTime = formatTimeDisplay('23:59', timeFormat as '12' | '24'); // Default fallback
     const allEventsAcrossTypes = Object.values(locationTypeGroups).flat();
     if (allEventsAcrossTypes.length > 0) {
-      // Find the latest end time across all events on this day
-      const latestEndTime = allEventsAcrossTypes.reduce((latest, event) => {
-        return event.endTime > latest ? event.endTime : latest;
-      }, '00:00');
-      globalEndOfDayTime = latestEndTime;
+      // Find the latest end time across all events on this day using proper time comparison
+      const latestEvent = allEventsAcrossTypes.reduce((latest, event) => {
+        return timeToMinutesLocal(event.endTime) > timeToMinutesLocal(latest.endTime) ? event : latest;
+      }, allEventsAcrossTypes[0]);
+      globalEndOfDayTime = latestEvent.endTime;
     }
 
     // Group events by actual location names within each location type
@@ -768,12 +791,12 @@ export default function DailyCallSheet() {
     // Remove all existing END-OF-DAY events from all locations
     const locationsWithoutEndOfDay = locations.map(location => ({
       ...location,
-      events: location.events.filter(event => event.title !== 'END-OF-DAY')
+      events: (location.events || []).filter(event => event.title !== 'END-OF-DAY')
     }));
 
     // Calculate global end-of-day time across all locations
     let globalEndOfDayTime = formatTimeDisplay('23:59', timeFormat as '12' | '24');
-    const allEvents = locationsWithoutEndOfDay.flatMap(loc => loc.events);
+    const allEvents = locationsWithoutEndOfDay.flatMap(loc => loc.events || []);
     
     if (allEvents.length > 0) {
       // Find the event with the latest end time using proper time comparison
