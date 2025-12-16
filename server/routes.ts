@@ -11469,30 +11469,12 @@ Best regards,
             personalizedBodyHtml = personalizedBodyHtml.replace(new RegExp(variable, 'g'), value);
           });
 
-          // Wrap content in email-friendly HTML with consistent styling
-          const wrappedHtml = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    p { margin: 0 0 1em 0; }
-    ul, ol { margin: 0 0 1em 0; padding-left: 24px; }
-    li { margin-bottom: 0.25em; }
-  </style>
-</head>
-<body style="margin: 0; padding: 20px; font-family: Arial, sans-serif; font-size: 16px; line-height: 1.5; color: #333333;">
-  <div style="max-width: 600px; margin: 0 auto;">
-    ${personalizedBodyHtml}
-  </div>
-</body>
-</html>`;
           
           await sendEmailWithResend({
             to: [entry.email],
             bcc: ['bryan@backstageos.com'],
             subject: personalizedSubject,
-            html: wrappedHtml
+            html: personalizedBodyHtml
           });
           
           emailsSent++;
@@ -11573,30 +11555,12 @@ Best regards,
         testBody = testBody.replace(new RegExp(variable, 'g'), value);
       });
 
-      // Wrap content in email-friendly HTML with consistent styling
-      const wrappedHtml = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    p { margin: 0 0 1em 0; }
-    ul, ol { margin: 0 0 1em 0; padding-left: 24px; }
-    li { margin-bottom: 0.25em; }
-  </style>
-</head>
-<body style="margin: 0; padding: 20px; font-family: Arial, sans-serif; font-size: 16px; line-height: 1.5; color: #333333;">
-  <div style="max-width: 600px; margin: 0 auto;">
-    ${testBody}
-  </div>
-</body>
-</html>`;
       
       await sendEmailWithResend({
         to: [testEmail],
         bcc: ['bryan@backstageos.com'],
         subject: testSubject,
-        html: wrappedHtml
+        html: testBody
       });
       
       res.json({ 
