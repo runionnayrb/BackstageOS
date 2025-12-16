@@ -35,7 +35,6 @@ function getEffectiveUserId(req: any): string {
   // Otherwise use the logged-in user's ID
   return req.user.id.toString();
 }
-import sgMail from "@sendgrid/mail";
 import Stripe from "stripe";
 import { googleOAuthService } from "./services/googleOAuthService";
 import { microsoftOAuthService } from "./services/microsoftOAuthService";
@@ -11429,15 +11428,8 @@ Best regards,
         return res.status(400).json({ message: "Subject and email content are required" });
       }
 
-      // Get current API settings
-      const apiSettings = await storage.getApiSettings();
-      
-      if (!apiSettings?.sendgridApiKey) {
-        return res.status(400).json({ message: "SendGrid API key not configured. Please configure API settings first." });
-      }
-
-      // Configure SendGrid
-      sgMail.setApiKey(apiSettings.sendgridApiKey);
+      // Import Resend service
+      const { sendEmailWithResend } = await import('./services/resendService.js');
 
       // Get all waitlist entries (pending and contacted)
       const waitlistEntries = await storage.getWaitlistEntries();
@@ -11449,17 +11441,14 @@ Best regards,
         return res.status(400).json({ message: "No active waitlist members to send emails to" });
       }
 
-      const fromEmail = apiSettings.senderEmail || "hello@backstageos.com";
-      const fromName = apiSettings.senderName || "BackstageOS";
-      
       let emailsSent = 0;
-      let errors = [];
+      let errors: { email: string; error: string }[] = [];
 
       // Send emails to all active waitlist members
       for (const entry of activeEntries) {
         try {
           // Replace variables in subject and body
-          const variables = {
+          const variables: Record<string, string> = {
             '{{firstName}}': entry.firstName || '',
             '{{lastName}}': entry.lastName || '',
             '{{position}}': (entry.position || 1).toString(),
@@ -11473,33 +11462,20 @@ Best regards,
 
           let personalizedSubject = subject;
           let personalizedBodyHtml = bodyHtml;
-          let personalizedBodyText = bodyText;
 
           // Replace variables in subject and body
           Object.entries(variables).forEach(([variable, value]) => {
             personalizedSubject = personalizedSubject.replace(new RegExp(variable, 'g'), value);
             personalizedBodyHtml = personalizedBodyHtml.replace(new RegExp(variable, 'g'), value);
-            personalizedBodyText = personalizedBodyText.replace(new RegExp(variable, 'g'), value);
           });
 
-          const msg = {
-            to: entry.email,
-            bcc: 'bryan@backstageos.com', // BCC all bulk emails to Bryan
-            from: {
-              email: fromEmail,
-              name: fromName
-            },
+          await sendEmailWithResend({
+            to: [entry.email],
+            bcc: ['bryan@backstageos.com'],
             subject: personalizedSubject,
-            text: personalizedBodyText,
-            html: personalizedBodyHtml,
-            headers: {
-              'BIMI-Selector': 'default',
-              'X-BIMI-Selector': 'default',
-              'Authentication-Results': `mx.backstageos.com; dmarc=pass; spf=pass; dkim=pass`
-            }
-          };
-
-          await sgMail.send(msg);
+            html: personalizedBodyHtml
+          });
+          
           emailsSent++;
           
           // Update waitlist member status from "pending" to "contacted"
@@ -11510,6 +11486,7 @@ Best regards,
                 invitedAt: new Date()
               });
             } catch (updateError: any) {
+              console.error('Failed to update waitlist entry status:', updateError);
             }
           }
           
@@ -11521,31 +11498,18 @@ Best regards,
         }
       }
 
-      
-      if (errors.length > 0) {
-      }
-
       res.json({ 
         message: "Bulk email campaign completed",
         emailsSent,
         totalRecipients: activeEntries.length,
         errors: errors.length,
         errorDetails: errors,
-        statusUpdated: emailsSent // Number of members whose status was updated
+        statusUpdated: emailsSent
       });
 
     } catch (error: any) {
-      
-      // Handle specific SendGrid errors
-      if (error.response && error.response.body && error.response.body.errors) {
-        const sendgridError = error.response.body.errors[0];
-        return res.status(400).json({ 
-          message: `SendGrid Error: ${sendgridError.message}`,
-          details: sendgridError
-        });
-      }
-      
-      res.status(500).json({ message: "Failed to send bulk email" });
+      console.error('Bulk email error:', error);
+      res.status(500).json({ message: "Failed to send bulk email", error: error.message });
     }
   });
 
@@ -11558,15 +11522,8 @@ Best regards,
         return res.status(400).json({ message: "Test email address is required" });
       }
 
-      // Get current API settings
-      const apiSettings = await storage.getApiSettings();
-      
-      if (!apiSettings?.sendgridApiKey) {
-        return res.status(400).json({ message: "SendGrid API key not configured. Please configure API settings first." });
-      }
-
-      // Configure SendGrid
-      sgMail.setApiKey(apiSettings.sendgridApiKey);
+      // Import Resend service
+      const { sendEmailWithResend } = await import('./services/resendService.js');
 
       // Use email settings from request or get from database
       let currentEmailSettings = emailSettings;
@@ -11574,14 +11531,12 @@ Best regards,
         currentEmailSettings = await storage.getWaitlistEmailSettings();
       }
 
-      // Prepare test email content with variable replacement (like actual waitlist emails)
+      // Prepare test email content with variable replacement
       let testSubject = currentEmailSettings?.subject || "Welcome to the BackstageOS Waitlist!";
       let testBody = currentEmailSettings?.bodyHtml || "Thank you for joining our waitlist!";
-      const fromEmail = apiSettings.senderEmail || "hello@backstageos.com";
-      const fromName = apiSettings.senderName || "BackstageOS";
 
       // Sample test data for variable replacement
-      const testVariables = {
+      const testVariables: Record<string, string> = {
         '{{firstName}}': 'John',
         '{{lastName}}': 'Doe',
         '{{position}}': '42',
@@ -11593,112 +11548,26 @@ Best regards,
         })
       };
 
-      // Replace variables in subject and body (same as actual waitlist signup)
+      // Replace variables in subject and body
       Object.entries(testVariables).forEach(([variable, value]) => {
         testSubject = testSubject.replace(new RegExp(variable, 'g'), value);
         testBody = testBody.replace(new RegExp(variable, 'g'), value);
       });
 
-      // Simple HTML cleaning - keep original working approach  
-      testBody = testBody.replace(/style="[^"]*"/g, ''); // Remove style attributes
-
-      const msg = {
-        to: testEmail,
-        bcc: 'bryan@backstageos.com', // BCC all test emails to Bryan
-        from: {
-          email: fromEmail,
-          name: fromName
-        },
+      await sendEmailWithResend({
+        to: [testEmail],
+        bcc: ['bryan@backstageos.com'],
         subject: testSubject,
-        html: testBody,
-        text: testBody.replace(/<[^>]*>/g, ''), // Strip HTML for text version
-        headers: {
-          'BIMI-Selector': 'default',
-          'X-BIMI-Selector': 'default',
-          'Authentication-Results': `mx.backstageos.com; dmarc=pass; spf=pass; dkim=pass`
-        }
-      };
-
-      const response = await sgMail.send(msg);
-      
-      
-      // Check SendGrid account status and quotas
-      try {
-        const statsUrl = 'https://api.sendgrid.com/v3/user/account';
-        const statsResponse = await fetch(statsUrl, {
-          headers: {
-            'Authorization': `Bearer ${apiSettings.sendgridApiKey}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        if (statsResponse.ok) {
-          const accountData = await statsResponse.json();
-          
-          if (accountData.type === 'free') {
-          }
-        }
-        
-        // Check for any SendGrid suppressions/blocks
-        const suppressionUrl = 'https://api.sendgrid.com/v3/suppression/bounces';
-        const suppressionResponse = await fetch(suppressionUrl, {
-          headers: {
-            'Authorization': `Bearer ${apiSettings.sendgridApiKey}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        if (suppressionResponse.ok) {
-          const suppressionData = await suppressionResponse.json();
-          const isBlocked = suppressionData.some((item: any) => item.email === testEmail);
-        }
-      } catch (accountError) {
-      }
-      
-      // Check SendGrid sender verification status
-      try {
-        const verificationUrl = 'https://api.sendgrid.com/v3/verified_senders';
-        const verificationResponse = await fetch(verificationUrl, {
-          headers: {
-            'Authorization': `Bearer ${apiSettings.sendgridApiKey}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        if (verificationResponse.ok) {
-          const verificationData = await verificationResponse.json();
-          
-          const isVerified = verificationData.results?.some((sender: any) => 
-            sender.from_email === fromEmail && sender.verified === true
-          );
-          
-          if (!isVerified) {
-          } else {
-          }
-        } else {
-        }
-      } catch (verificationError) {
-      }
+        html: testBody
+      });
       
       res.json({ 
         message: "Test email sent successfully",
         sentTo: testEmail,
-        from: `${fromName} <${fromEmail}>`,
-        subject: testSubject,
-        sendgridResponse: response?.[0]?.statusCode
+        subject: testSubject
       });
     } catch (error: any) {
-      // Handle specific SendGrid errors
-      if (error.response && error.response.body && error.response.body.errors) {
-        const sendgridErrors = error.response.body.errors;
-        
-        return res.status(400).json({ 
-          message: `SendGrid Error: ${sendgridErrors[0].message}`,
-          details: sendgridErrors,
-          fullError: error.response.body
-        });
-      }
-      
+      console.error('Test email error:', error);
       res.status(500).json({ 
         message: "Failed to send test email",
         error: error.message 

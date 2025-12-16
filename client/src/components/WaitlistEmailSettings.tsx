@@ -11,8 +11,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { RichTextEditor } from "@/components/rich-text-editor";
-import { Mail, Eye, EyeOff, Save, Plus, Settings, Trash2, Send } from "lucide-react";
-import type { WaitlistEmailSettings, InsertWaitlistEmailSettings, ApiSettings, InsertApiSettings } from "@shared/schema";
+import { Mail, Eye, EyeOff, Save, Plus, Send } from "lucide-react";
+import type { WaitlistEmailSettings, InsertWaitlistEmailSettings } from "@shared/schema";
 
 interface Variable {
   name: string;
@@ -30,14 +30,8 @@ const AVAILABLE_VARIABLES: Variable[] = [
 
 export default function WaitlistEmailSettings() {
   const [showPreview, setShowPreview] = useState(false);
-  const [showApiSettings, setShowApiSettings] = useState(false);
   const [showTestEmail, setShowTestEmail] = useState(false);
   const [testEmailAddress, setTestEmailAddress] = useState("");
-  const [apiSettings, setApiSettings] = useState({
-    sendgridApiKey: "",
-    senderEmail: "",
-    senderName: ""
-  });
   const [previewData, setPreviewData] = useState({
     firstName: "John",
     lastName: "Doe",
@@ -63,10 +57,6 @@ export default function WaitlistEmailSettings() {
     queryKey: ["/api/domain-emails"],
   });
 
-  // Fetch current API settings
-  const { data: currentApiSettings } = useQuery<ApiSettings>({
-    queryKey: ["/api/api-settings"],
-  });
 
   // Save email settings mutation
   const saveSettingsMutation = useMutation({
@@ -94,32 +84,6 @@ export default function WaitlistEmailSettings() {
     },
   });
 
-  // Save API settings mutation
-  const saveApiSettingsMutation = useMutation({
-    mutationFn: async (data: InsertApiSettings) => {
-      if (currentApiSettings?.id) {
-        return await apiRequest("PUT", `/api/api-settings/${currentApiSettings.id}`, data);
-      } else {
-        return await apiRequest("POST", "/api/api-settings", data);
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/api-settings"] });
-      toast({
-        title: "API Settings Saved",
-        description: "API settings have been updated successfully.",
-      });
-      setShowApiSettings(false);
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to save API settings. Please try again.",
-        variant: "destructive",
-      });
-      console.error("API Settings save error:", error);
-    },
-  });
 
   // Send test email mutation
   const sendTestEmailMutation = useMutation({
@@ -147,16 +111,6 @@ export default function WaitlistEmailSettings() {
     },
   });
 
-  // Update API settings form when data loads
-  useEffect(() => {
-    if (currentApiSettings) {
-      setApiSettings({
-        sendgridApiKey: currentApiSettings.sendgridApiKey || "",
-        senderEmail: currentApiSettings.senderEmail || "",
-        senderName: currentApiSettings.senderName || ""
-      });
-    }
-  }, [currentApiSettings]);
 
   const [formData, setFormData] = useState<InsertWaitlistEmailSettings>({
     fromEmail: "hello@backstageos.com",
@@ -303,73 +257,6 @@ export default function WaitlistEmailSettings() {
                     </div>
                   </div>
                 </DialogContent>
-              </Dialog>
-              
-              <Dialog open={showApiSettings} onOpenChange={setShowApiSettings}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="flex items-center gap-2">
-                    <Settings className="h-4 w-4" />
-                    API Settings
-                  </Button>
-                </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>SendGrid API Settings</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="sendgrid-api-key">SendGrid API Key</Label>
-                      <Input
-                        id="sendgrid-api-key"
-                        type="password"
-                        value={apiSettings.sendgridApiKey}
-                        onChange={(e) => setApiSettings(prev => ({ ...prev, sendgridApiKey: e.target.value }))}
-                        placeholder="SG.xxxxxxxxxxxxxxxxxxxx"
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="sender-email">Sender Email</Label>
-                      <Input
-                        id="sender-email"
-                        type="email"
-                        value={apiSettings.senderEmail}
-                        onChange={(e) => setApiSettings(prev => ({ ...prev, senderEmail: e.target.value }))}
-                        placeholder="hello@backstageos.com"
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="sender-name">Sender Name</Label>
-                      <Input
-                        id="sender-name"
-                        value={apiSettings.senderName}
-                        onChange={(e) => setApiSettings(prev => ({ ...prev, senderName: e.target.value }))}
-                        placeholder="BackstageOS"
-                        className="mt-1"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex justify-end space-x-2">
-                    <Button variant="outline" onClick={() => setShowApiSettings(false)}>
-                      Cancel
-                    </Button>
-                    <Button 
-                      onClick={() => {
-                        saveApiSettingsMutation.mutate({
-                          sendgridApiKey: apiSettings.sendgridApiKey,
-                          senderEmail: apiSettings.senderEmail,
-                          senderName: apiSettings.senderName
-                        });
-                      }}
-                      disabled={saveApiSettingsMutation.isPending}
-                    >
-                      {saveApiSettingsMutation.isPending ? "Saving..." : "Save Settings"}
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
               </Dialog>
             </div>
           </div>
