@@ -433,13 +433,17 @@ export default function DailyCallSheet() {
     },
   });
 
-  const addLocation = () => {
+  const addLocation = (locationName?: string) => {
+    // Use provided name or first available event location, or default to 'New Location'
+    const defaultName = locationName || 
+      (eventLocations.length > 0 ? eventLocations[0].name : 'New Location');
+    
     const newLocation = {
-      name: 'New Location',
+      name: defaultName,
       events: [{
         id: -1,
         title: 'END-OF-DAY',
-        startTime: formatTimeDisplay('23:59', timeFormat as '12' | '24'), // Default when no events exist with proper formatting
+        startTime: formatTimeDisplay('23:59', timeFormat as '12' | '24'),
         endTime: formatTimeDisplay('23:59', timeFormat as '12' | '24'),
         cast: [],
         notes: undefined
@@ -451,6 +455,83 @@ export default function DailyCallSheet() {
       locations: [...prev.locations, newLocation]
     }));
     setIsEditing(true);
+  };
+
+  const updateLocationName = (locationIndex: number, newName: string) => {
+    setCallData(prev => ({
+      ...prev,
+      locations: prev.locations.map((loc, idx) => 
+        idx === locationIndex ? { ...loc, name: newName } : loc
+      )
+    }));
+  };
+
+  const addFittingsSection = () => {
+    const newFittingEvent = {
+      id: Date.now(),
+      title: 'New Fitting',
+      startTime: formatTimeDisplay('10:00', timeFormat as '12' | '24'),
+      endTime: formatTimeDisplay('11:00', timeFormat as '12' | '24'),
+      cast: [],
+      notes: '',
+      location: 'Fitting Room'
+    };
+    
+    setCallData(prev => ({
+      ...prev,
+      fittingsEvents: [...(prev.fittingsEvents || []), newFittingEvent]
+    }));
+    setIsEditing(true);
+  };
+
+  const addAppointmentsSection = () => {
+    const newAppointmentEvent = {
+      id: Date.now(),
+      title: 'New Meeting',
+      startTime: formatTimeDisplay('10:00', timeFormat as '12' | '24'),
+      endTime: formatTimeDisplay('11:00', timeFormat as '12' | '24'),
+      cast: [],
+      notes: '',
+      location: ''
+    };
+    
+    setCallData(prev => ({
+      ...prev,
+      appointmentsEvents: [...(prev.appointmentsEvents || []), newAppointmentEvent]
+    }));
+    setIsEditing(true);
+  };
+
+  const updateFittingEvent = (eventIndex: number, updatedEvent: any) => {
+    setCallData(prev => ({
+      ...prev,
+      fittingsEvents: (prev.fittingsEvents || []).map((event, idx) => 
+        idx === eventIndex ? { ...event, ...updatedEvent } : event
+      )
+    }));
+  };
+
+  const updateAppointmentEvent = (eventIndex: number, updatedEvent: any) => {
+    setCallData(prev => ({
+      ...prev,
+      appointmentsEvents: (prev.appointmentsEvents || []).map((event, idx) => 
+        idx === eventIndex ? { ...event, ...updatedEvent } : event
+      )
+    }));
+  };
+
+  const removeFittingEvent = (eventIndex: number) => {
+    setCallData(prev => ({
+      ...prev,
+      fittingsEvents: (prev.fittingsEvents || []).filter((_, idx) => idx !== eventIndex)
+    }));
+  };
+
+  const removeAppointmentEvent = (eventIndex: number) => {
+    setCallData(prev => ({
+      ...prev,
+      appointmentsEvents: (prev.appointmentsEvents || []).filter((_, idx) => idx !== eventIndex)
+    }));
   };
 
   const addEvent = (locationIndex: number) => {
@@ -996,9 +1077,32 @@ export default function DailyCallSheet() {
                 {(callData.locations || []).map((location, locationIndex) => (
                   <div key={locationIndex} className="space-y-1">
                     <div className="border-b-2 border-black pb-2 flex items-center justify-between">
-                      <h4 className="text-lg font-semibold text-gray-900">
-                        {location.name}
-                      </h4>
+                      {isEditing ? (
+                        <Select
+                          value={location.name}
+                          onValueChange={(value) => updateLocationName(locationIndex, value)}
+                        >
+                          <SelectTrigger className="w-[250px] text-lg font-semibold" data-testid={`select-location-${locationIndex}`}>
+                            <SelectValue placeholder="Select location">{location.name || 'Select location'}</SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            {eventLocations.length > 0 ? (
+                              eventLocations.map((loc: any) => (
+                                <SelectItem key={loc.id} value={loc.name} data-testid={`select-location-option-${loc.id}`}>
+                                  {loc.name}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <SelectItem value={location.name} data-testid="select-location-current">{location.name}</SelectItem>
+                            )}
+                            <SelectItem value="New Location" data-testid="select-location-new">New Location</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <h4 className="text-lg font-semibold text-gray-900" data-testid={`text-location-name-${locationIndex}`}>
+                          {location.name}
+                        </h4>
+                      )}
                       {isEditing && (
                         <Button 
                           onClick={() => {
@@ -1112,9 +1216,32 @@ export default function DailyCallSheet() {
                   {(callData.locations || []).map((location, locationIndex) => (
                     <div key={locationIndex} className={`${locationIndex === 0 ? 'col-span-4' : 'col-span-3'}`}>
                       <div className="border-b-2 border-black pb-2">
-                        <h4 className="text-lg font-semibold text-gray-900">
-                          {location.name}
-                        </h4>
+                        {isEditing ? (
+                          <Select
+                            value={location.name}
+                            onValueChange={(value) => updateLocationName(locationIndex, value)}
+                          >
+                            <SelectTrigger className="w-[200px] text-lg font-semibold" data-testid={`select-multi-location-${locationIndex}`}>
+                              <SelectValue placeholder="Select location">{location.name || 'Select location'}</SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                              {eventLocations.length > 0 ? (
+                                eventLocations.map((loc: any) => (
+                                  <SelectItem key={loc.id} value={loc.name} data-testid={`select-multi-location-option-${loc.id}`}>
+                                    {loc.name}
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                <SelectItem value={location.name} data-testid="select-multi-location-current">{location.name}</SelectItem>
+                              )}
+                              <SelectItem value="New Location" data-testid="select-multi-location-new">New Location</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <h4 className="text-lg font-semibold text-gray-900" data-testid={`text-multi-location-name-${locationIndex}`}>
+                            {location.name}
+                          </h4>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -1353,13 +1480,54 @@ export default function DailyCallSheet() {
                 )}
               </div>
             )}
+
+            {/* Edit Mode Action Buttons */}
+            {isEditing && (
+              <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-200">
+                {(callData.locations || []).length < 2 && (
+                  <Button
+                    onClick={() => addLocation()}
+                    variant="outline"
+                    size="sm"
+                    data-testid="button-add-secondary-location"
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Secondary Location
+                  </Button>
+                )}
+                <Button
+                  onClick={addFittingsSection}
+                  variant="outline"
+                  size="sm"
+                  data-testid="button-add-fitting"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Fitting
+                </Button>
+                <Button
+                  onClick={addAppointmentsSection}
+                  variant="outline"
+                  size="sm"
+                  data-testid="button-add-meeting"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Meeting
+                </Button>
+              </div>
+            )}
           </div>
 
-          {/* Fittings Section - only show if there are fittings events */}
+          {/* Fittings Section - show if there are fittings events */}
           {(callData.fittingsEvents && callData.fittingsEvents.length > 0) && (
             <div className="mt-6">
-              <div className="border-b-2 border-black pb-2">
+              <div className="border-b-2 border-black pb-2 flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900">Fittings</h3>
+                {isEditing && (
+                  <Button onClick={addFittingsSection} variant="outline" size="sm" data-testid="button-add-fitting-inline">
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Fitting
+                  </Button>
+                )}
               </div>
               <div className="space-y-2 mt-1">
                 {callData.fittingsEvents
@@ -1367,31 +1535,73 @@ export default function DailyCallSheet() {
                   .map((event, index) => (
                     <div key={`fitting-${event.id}`} className="flex items-start gap-6 py-2">
                       <div className="w-20 text-sm font-medium text-gray-700 flex-shrink-0">
-                        {event.startTime}
+                        {isEditing ? (
+                          <Input
+                            value={event.startTime}
+                            onChange={(e) => updateFittingEvent(index, { startTime: e.target.value })}
+                            className="text-xs w-24"
+                            placeholder="10:00 AM"
+                          />
+                        ) : event.startTime}
                       </div>
                       <div className="flex-1">
                         <div className="flex justify-between items-center">
                           <div className="text-sm font-bold text-gray-800">
-                            {event.title}{event.startTime && event.endTime && (() => {
-                              const parseTime = (timeStr) => {
-                                if (!timeStr) return 0;
-                                const [hours, minutes] = timeStr.split(':').map(Number);
-                                return hours * 60 + minutes;
-                              };
-                              const startMinutes = parseTime(event.startTime);
-                              const endMinutes = parseTime(event.endTime);
-                              const duration = endMinutes - startMinutes;
-                              return duration > 0 ? ` - (${duration} Mins)` : '';
-                            })()}
+                            {isEditing ? (
+                              <Input
+                                value={event.title}
+                                onChange={(e) => updateFittingEvent(index, { title: e.target.value })}
+                                className="font-medium text-sm"
+                              />
+                            ) : (
+                              <>
+                                {event.title}{event.startTime && event.endTime && (() => {
+                                  const parseTime = (timeStr) => {
+                                    if (!timeStr) return 0;
+                                    const [hours, minutes] = timeStr.split(':').map(Number);
+                                    return hours * 60 + minutes;
+                                  };
+                                  const startMinutes = parseTime(event.startTime);
+                                  const endMinutes = parseTime(event.endTime);
+                                  const duration = endMinutes - startMinutes;
+                                  return duration > 0 ? ` - (${duration} Mins)` : '';
+                                })()}
+                              </>
+                            )}
                           </div>
-                          <div className="text-xs text-gray-600">{event.location}</div>
+                          {isEditing ? (
+                            <Button
+                              onClick={() => removeFittingEvent(index)}
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          ) : (
+                            <div className="text-xs text-gray-600">{event.location}</div>
+                          )}
                         </div>
-                        {event.cast && event.cast.length > 0 && (
-                          <div className="text-xs text-black mt-1">
-                            {event.cast.join(', ')}
+                        {isEditing ? (
+                          <div className="mt-2">
+                            <Label className="text-xs font-medium text-gray-600">Cast:</Label>
+                            <div className="mt-1">
+                              <CastSelector
+                                contacts={contacts}
+                                selectedCast={event.cast || []}
+                                onChange={(newCast) => updateFittingEvent(index, { cast: newCast })}
+                                placeholder="Type to search cast members..."
+                              />
+                            </div>
                           </div>
+                        ) : (
+                          event.cast && event.cast.length > 0 && (
+                            <div className="text-xs text-black mt-1">
+                              {event.cast.join(', ')}
+                            </div>
+                          )
                         )}
-                        {event.notes && (
+                        {!isEditing && event.notes && (
                           <div className="text-xs text-gray-600 mt-1">{event.notes}</div>
                         )}
                       </div>
@@ -1401,11 +1611,17 @@ export default function DailyCallSheet() {
             </div>
           )}
 
-          {/* Appointments & Meetings Section - only show if there are appointments events */}
+          {/* Appointments & Meetings Section - show if there are appointments events */}
           {(callData.appointmentsEvents && callData.appointmentsEvents.length > 0) && (
             <div className="mt-6">
-              <div className="border-b-2 border-black pb-2">
+              <div className="border-b-2 border-black pb-2 flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900">Appointments & Meetings</h3>
+                {isEditing && (
+                  <Button onClick={addAppointmentsSection} variant="outline" size="sm" data-testid="button-add-meeting-inline">
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Meeting
+                  </Button>
+                )}
               </div>
               <div className="space-y-2 mt-1">
                 {callData.appointmentsEvents
@@ -1413,31 +1629,73 @@ export default function DailyCallSheet() {
                   .map((event, index) => (
                     <div key={`appointment-${event.id}`} className="flex items-start gap-6 py-2">
                       <div className="w-20 text-sm font-medium text-gray-700 flex-shrink-0">
-                        {event.startTime}
+                        {isEditing ? (
+                          <Input
+                            value={event.startTime}
+                            onChange={(e) => updateAppointmentEvent(index, { startTime: e.target.value })}
+                            className="text-xs w-24"
+                            placeholder="10:00 AM"
+                          />
+                        ) : event.startTime}
                       </div>
                       <div className="flex-1">
                         <div className="flex justify-between items-center">
                           <div className="text-sm font-bold text-gray-800">
-                            {event.title}{event.startTime && event.endTime && (() => {
-                              const parseTime = (timeStr) => {
-                                if (!timeStr) return 0;
-                                const [hours, minutes] = timeStr.split(':').map(Number);
-                                return hours * 60 + minutes;
-                              };
-                              const startMinutes = parseTime(event.startTime);
-                              const endMinutes = parseTime(event.endTime);
-                              const duration = endMinutes - startMinutes;
-                              return duration > 0 ? ` - (${duration} Mins)` : '';
-                            })()}
+                            {isEditing ? (
+                              <Input
+                                value={event.title}
+                                onChange={(e) => updateAppointmentEvent(index, { title: e.target.value })}
+                                className="font-medium text-sm"
+                              />
+                            ) : (
+                              <>
+                                {event.title}{event.startTime && event.endTime && (() => {
+                                  const parseTime = (timeStr) => {
+                                    if (!timeStr) return 0;
+                                    const [hours, minutes] = timeStr.split(':').map(Number);
+                                    return hours * 60 + minutes;
+                                  };
+                                  const startMinutes = parseTime(event.startTime);
+                                  const endMinutes = parseTime(event.endTime);
+                                  const duration = endMinutes - startMinutes;
+                                  return duration > 0 ? ` - (${duration} Mins)` : '';
+                                })()}
+                              </>
+                            )}
                           </div>
-                          <div className="text-xs text-gray-600">{event.location}</div>
+                          {isEditing ? (
+                            <Button
+                              onClick={() => removeAppointmentEvent(index)}
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          ) : (
+                            <div className="text-xs text-gray-600">{event.location}</div>
+                          )}
                         </div>
-                        {event.cast && event.cast.length > 0 && (
-                          <div className="text-xs text-black mt-1">
-                            {event.cast.join(', ')}
+                        {isEditing ? (
+                          <div className="mt-2">
+                            <Label className="text-xs font-medium text-gray-600">Attendees:</Label>
+                            <div className="mt-1">
+                              <CastSelector
+                                contacts={contacts}
+                                selectedCast={event.cast || []}
+                                onChange={(newCast) => updateAppointmentEvent(index, { cast: newCast })}
+                                placeholder="Type to search attendees..."
+                              />
+                            </div>
                           </div>
+                        ) : (
+                          event.cast && event.cast.length > 0 && (
+                            <div className="text-xs text-black mt-1">
+                              {event.cast.join(', ')}
+                            </div>
+                          )
                         )}
-                        {event.notes && (
+                        {!isEditing && event.notes && (
                           <div className="text-xs text-gray-600 mt-1">{event.notes}</div>
                         )}
                       </div>
