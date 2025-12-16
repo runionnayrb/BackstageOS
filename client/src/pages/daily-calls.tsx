@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useLocation, useParams } from "wouter";
 import { format, parseISO } from "date-fns";
-import { Calendar, Plus, Save, FileText, ChevronLeft, Users, Edit, Download, Printer, Trash2, Import } from "lucide-react";
+import { Calendar, Plus, Save, FileText, ChevronLeft, Users, Edit, Upload, Trash2, Import } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -1164,7 +1164,7 @@ export default function DailyCallSheet() {
           </div>
           <div className="flex items-center space-x-3">
             <Button onClick={exportToPDF} variant="ghost" size="icon" className="border-0 hover:bg-transparent">
-              <Download className="h-4 w-4 hover:text-blue-600 transition-colors" />
+              <Upload className="h-4 w-4 hover:text-blue-600 transition-colors" />
             </Button>
             {!isEditing && existingDailyCall && (
               <Button onClick={() => setShowDeleteDialog(true)} variant="ghost" size="icon" className="border-0 hover:bg-transparent">
