@@ -8798,6 +8798,39 @@ Best regards,
     }
   });
 
+  // Get schedule events for a specific date with participants (for daily call import)
+  app.get('/api/projects/:id/schedule-events-by-date', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const date = req.query.date as string;
+      
+      if (!date) {
+        return res.status(400).json({ message: "Date parameter is required" });
+      }
+      
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership or team membership
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const events = await storage.getScheduleEventsByProjectAndDate(projectId, date);
+      res.json(events);
+    } catch (error) {
+      console.error('Error fetching schedule events by date:', error);
+      res.status(500).json({ message: "Failed to fetch schedule events" });
+    }
+  });
+
   // PATCH route for project-specific schedule events (used by monthly view)
   app.patch('/api/projects/:projectId/schedule-events/:eventId', isAuthenticated, async (req: any, res) => {
     try {
