@@ -886,17 +886,15 @@ export default function DailyCallSheet() {
               appFooter.style.display = 'none';
             }
             
-            // Fix END-OF-DAY text alignment - target all gray elements more aggressively
-            const grayElements = clonedElement.querySelectorAll('[class*="bg-gray"], .bg-gray-100, [style*="background"]');
-            grayElements.forEach(el => {
-              if (el.textContent?.includes('END-OF-DAY')) {
-                console.log('Found END-OF-DAY element:', el);
-                // Force centered text with consistent padding
-                el.style.padding = '4px 0';
-                el.style.display = 'flex';
-                el.style.alignItems = 'center';
-                el.style.boxSizing = 'border-box';
-              }
+            // Fix END-OF-DAY text alignment - target only the specific END-OF-DAY row
+            const endOfDayRows = clonedElement.querySelectorAll('[data-end-of-day-row="true"]');
+            endOfDayRows.forEach(el => {
+              console.log('Found END-OF-DAY row:', el);
+              // Force centered text with consistent padding
+              el.style.padding = '6px 0';
+              el.style.display = 'flex';
+              el.style.alignItems = 'center';
+              el.style.boxSizing = 'border-box';
             });
 
           }
@@ -1265,6 +1263,7 @@ export default function DailyCallSheet() {
                       {(location.events || []).map((event, eventIdx) => (
                         <div 
                           key={event.id} 
+                          data-end-of-day-row={event.title === 'END-OF-DAY' ? 'true' : undefined}
                           className={`flex ${event.title === 'END-OF-DAY' ? 'items-center' : 'items-start'} gap-6 ${event.title === 'END-OF-DAY' ? 'bg-gray-100 py-1 relative overflow-visible' : 'py-2'}`}
                           onClick={(e) => {
                             console.log('Row clicked:', { eventTitle: event.title, isEditing });
@@ -1752,7 +1751,7 @@ export default function DailyCallSheet() {
                         .filter(event => event.title === 'END-OF-DAY')
                         .map(event => ({ event, locationIndex }))
                     ).map(({ event, locationIndex }, index) => (
-                      <div key={`end-of-day-${index}`} className="bg-gray-100 py-2 relative flex items-center">
+                      <div key={`end-of-day-${index}`} data-end-of-day-row="true" className="bg-gray-100 py-2 relative flex items-center">
                         {/* Add Event Button in Left Margin - only show on first END-OF-DAY row */}
                         {isEditing && index === 0 && (
                           <Button
