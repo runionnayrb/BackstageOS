@@ -937,15 +937,10 @@ export default function DailyCallSheet() {
               appFooter.style.display = 'none';
             }
             
-            // Fix END-OF-DAY text alignment - target only the specific END-OF-DAY row
+            // Hide END-OF-DAY rows in PDF export (formatting issues)
             const endOfDayRows = clonedElement.querySelectorAll('[data-end-of-day-row="true"]');
             endOfDayRows.forEach(el => {
-              console.log('Found END-OF-DAY row:', el);
-              // Force centered text with consistent padding
-              el.style.padding = '6px 0';
-              el.style.display = 'flex';
-              el.style.alignItems = 'center';
-              el.style.boxSizing = 'border-box';
+              el.style.display = 'none';
             });
 
           }
