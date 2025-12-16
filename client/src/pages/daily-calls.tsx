@@ -1239,7 +1239,7 @@ export default function DailyCallSheet() {
                           value={location.name}
                           onValueChange={(value) => updateLocationName(locationIndex, value)}
                         >
-                          <SelectTrigger className="w-[250px] text-lg font-semibold" data-testid={`select-location-${locationIndex}`}>
+                          <SelectTrigger className="w-auto border-0 p-0 text-lg font-semibold focus:ring-0 focus:ring-offset-0" data-testid={`select-location-${locationIndex}`}>
                             <SelectValue placeholder="Select location">{location.name || 'Select location'}</SelectValue>
                           </SelectTrigger>
                           <SelectContent>
@@ -1853,7 +1853,7 @@ export default function DailyCallSheet() {
                           <Input
                             value={event.startTime}
                             onChange={(e) => updateFittingEvent(index, { startTime: e.target.value })}
-                            className="text-xs w-24"
+                            className="text-xs w-28"
                             placeholder="10:00 AM"
                           />
                         ) : event.startTime}
@@ -1947,7 +1947,7 @@ export default function DailyCallSheet() {
                           <Input
                             value={event.startTime}
                             onChange={(e) => updateAppointmentEvent(index, { startTime: e.target.value })}
-                            className="text-xs w-24"
+                            className="text-xs w-28"
                             placeholder="10:00 AM"
                           />
                         ) : event.startTime}
