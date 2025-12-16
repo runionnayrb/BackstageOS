@@ -1297,7 +1297,7 @@ export default function DailyCallSheet() {
                               <Plus className="h-4 w-4 text-black" />
                             </div>
                           )}
-                          <div className="w-20 text-sm font-medium text-gray-700 flex-shrink-0">
+                          <div className={`text-sm font-medium text-gray-700 flex-shrink-0 ${isEditing && event.title !== 'END-OF-DAY' ? '' : 'w-20'}`}>
                             {event.title === 'END-OF-DAY' ? (
                               <span className="font-bold leading-none flex items-center h-full">{event.startTime}</span>
                             ) : (
@@ -1310,7 +1310,7 @@ export default function DailyCallSheet() {
                                       newLocations[locationIndex].events[eventIdx].startTime = e.target.value;
                                       setCallData(prev => ({ ...prev, locations: newLocations }));
                                     }}
-                                    className="text-xs w-28"
+                                    className="text-xs w-24"
                                     placeholder="9:00 AM"
                                     data-testid={`input-start-time-${locationIndex}-${eventIdx}`}
                                   />
@@ -1319,7 +1319,7 @@ export default function DailyCallSheet() {
                                     onChange={(e) => {
                                       updateLocationEventProperty(locationIndex, eventIdx, 'endTime', e.target.value);
                                     }}
-                                    className="text-xs w-28"
+                                    className="text-xs w-24"
                                     placeholder="10:00 AM"
                                     data-testid={`input-end-time-${locationIndex}-${eventIdx}`}
                                   />
@@ -1518,7 +1518,7 @@ export default function DailyCallSheet() {
                             <div className="col-span-4">
                               {loc0Event ? (
                                 <div className="flex items-start gap-4 py-2">
-                                  <div className="w-20 text-sm font-medium text-gray-700 flex-shrink-0">
+                                  <div className={`text-sm font-medium text-gray-700 flex-shrink-0 ${isEditing ? '' : 'w-20'}`}>
                                     {isEditing ? (
                                       <div className="flex flex-col gap-1">
                                         <Input
@@ -1531,7 +1531,7 @@ export default function DailyCallSheet() {
                                               setCallData(prev => ({ ...prev, locations: newLocations }));
                                             }
                                           }}
-                                          className="text-xs w-20"
+                                          className="text-xs w-24"
                                           placeholder="9:00 AM"
                                         />
                                         <Input
@@ -1542,7 +1542,7 @@ export default function DailyCallSheet() {
                                               updateLocationEventProperty(0, realIdx, 'endTime', e.target.value);
                                             }
                                           }}
-                                          className="text-xs w-20"
+                                          className="text-xs w-24"
                                           placeholder="10:00 AM"
                                         />
                                       </div>
@@ -1622,7 +1622,7 @@ export default function DailyCallSheet() {
                             <div className="col-span-3">
                               {loc1Event ? (
                                 <div className="flex items-start gap-4 py-2">
-                                  <div className="w-20 text-sm font-medium text-gray-700 flex-shrink-0">
+                                  <div className={`text-sm font-medium text-gray-700 flex-shrink-0 ${isEditing ? '' : 'w-20'}`}>
                                     {isEditing ? (
                                       <div className="flex flex-col gap-1">
                                         <Input
@@ -1635,7 +1635,7 @@ export default function DailyCallSheet() {
                                               setCallData(prev => ({ ...prev, locations: newLocations }));
                                             }
                                           }}
-                                          className="text-xs w-20"
+                                          className="text-xs w-24"
                                           placeholder="9:00 AM"
                                         />
                                         <Input
@@ -1646,7 +1646,7 @@ export default function DailyCallSheet() {
                                               updateLocationEventProperty(1, realIdx, 'endTime', e.target.value);
                                             }
                                           }}
-                                          className="text-xs w-20"
+                                          className="text-xs w-24"
                                           placeholder="10:00 AM"
                                         />
                                       </div>
@@ -1853,7 +1853,7 @@ export default function DailyCallSheet() {
                           <Input
                             value={event.startTime}
                             onChange={(e) => updateFittingEvent(index, { startTime: e.target.value })}
-                            className="text-xs w-28"
+                            className="text-xs w-24"
                             placeholder="10:00 AM"
                           />
                         ) : event.startTime}
@@ -1947,7 +1947,7 @@ export default function DailyCallSheet() {
                           <Input
                             value={event.startTime}
                             onChange={(e) => updateAppointmentEvent(index, { startTime: e.target.value })}
-                            className="text-xs w-28"
+                            className="text-xs w-24"
                             placeholder="10:00 AM"
                           />
                         ) : event.startTime}
