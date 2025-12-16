@@ -1310,7 +1310,7 @@ export default function DailyCallSheet() {
                                       newLocations[locationIndex].events[eventIdx].startTime = e.target.value;
                                       setCallData(prev => ({ ...prev, locations: newLocations }));
                                     }}
-                                    className="text-xs w-24"
+                                    className="text-xs w-28"
                                     placeholder="9:00 AM"
                                     data-testid={`input-start-time-${locationIndex}-${eventIdx}`}
                                   />
@@ -1319,7 +1319,7 @@ export default function DailyCallSheet() {
                                     onChange={(e) => {
                                       updateLocationEventProperty(locationIndex, eventIdx, 'endTime', e.target.value);
                                     }}
-                                    className="text-xs w-24"
+                                    className="text-xs w-28"
                                     placeholder="10:00 AM"
                                     data-testid={`input-end-time-${locationIndex}-${eventIdx}`}
                                   />
