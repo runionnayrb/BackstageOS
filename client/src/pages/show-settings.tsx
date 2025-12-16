@@ -4587,50 +4587,51 @@ The Production Team`
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="emailSubject">Email Subject</Label>
-                    <Input
-                      ref={emailSubjectRef}
-                      id="emailSubject"
-                      placeholder="Schedule Update - Show Name (Version Number)"
-                      value={localEmailSubject || (() => {
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="emailSubject">Email Subject</Label>
+                  <Input
+                    ref={emailSubjectRef}
+                    id="emailSubject"
+                    placeholder="Schedule Update - Show Name (Version Number)"
+                    value={localEmailSubject || (() => {
+                      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                        ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                        : ((settings as any)?.scheduleSettings || {});
+                      return scheduleSettings?.emailTemplate?.subject || "";
+                    })()}
+                    onChange={(e) => {
+                      setLocalEmailSubject(e.target.value);
+                    }}
+                  />
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {templateVariables.map((variable) => (
+                      <button
+                        key={variable.key}
+                        type="button"
+                        className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                        onClick={() => insertVariable('subject', variable.key)}
+                        title={variable.description}
+                      >
+                        {variable.displayName}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="emailBody">Email Body</Label>
+                  <div ref={emailBodyRef} className="min-h-32 w-full rounded-md border border-input bg-background">
+                    <ChangeSummaryEditor
+                      content={localEmailBody || (() => {
                         const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
                           ? safeJsonParse((settings as any).scheduleSettings, {}) 
                           : ((settings as any)?.scheduleSettings || {});
-                        return scheduleSettings?.emailTemplate?.subject || "";
+                        return scheduleSettings?.emailTemplate?.body || "";
                       })()}
-                      onChange={(e) => {
-                        setLocalEmailSubject(e.target.value);
-                      }}
-                    />
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {templateVariables.map((variable) => (
-                        <button
-                          key={variable.key}
-                          type="button"
-                          className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
-                          onClick={() => insertVariable('subject', variable.key)}
-                          title={variable.description}
-                        >
-                          {variable.displayName}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="emailBody">Email Body</Label>
-                    <div ref={emailBodyRef} className="min-h-32 w-full rounded-md border border-input bg-background">
-                      <ChangeSummaryEditor
-                        content={localEmailBody || (() => {
-                          const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
-                            ? safeJsonParse((settings as any).scheduleSettings, {}) 
-                            : ((settings as any)?.scheduleSettings || {});
-                          return scheduleSettings?.emailTemplate?.body || "";
-                        })()}
-                        onChange={setLocalEmailBody}
-                        onEditorReady={setEmailBodyEditor}
-                        placeholder={`Hi {{contactName}},
+                      onChange={setLocalEmailBody}
+                      onEditorReady={setEmailBodyEditor}
+                      placeholder={`Hi {{contactName}},
 
 The schedule for {{showName}} has been updated with version {{version}}.
 
@@ -4644,42 +4645,43 @@ You can view your personal schedule here: {{personalScheduleLink}}
 
 Best regards,
 The Production Team`}
-                      />
-                    </div>
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {templateVariables.map((variable) => (
-                        <button
-                          key={variable.key}
-                          type="button"
-                          className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
-                          onClick={() => insertVariable('body', variable.key)}
-                          title={variable.description}
-                        >
-                          {variable.displayName}
-                        </button>
-                      ))}
-                    </div>
-                    
-                    <div className="p-3 bg-blue-50/50 rounded-lg">
-                      <p className="text-sm text-blue-700 font-medium">Click the variable buttons above to insert them at your cursor position, or type them manually in the template fields.</p>
-                    </div>
-                    
-                    <div className="flex justify-end gap-3 pt-4">
-                      <Button
-                        onClick={() => setShowTestEmailDialog(true)}
-                        variant="outline"
-                        disabled={sendTestEmailMutation.isPending}
-                      >
-                        Send Test Email
-                      </Button>
-                      <Button
-                        onClick={saveEmailTemplate}
-                        className="bg-blue-600 hover:bg-blue-700"
-                      >
-                        Save Email Template as Default
-                      </Button>
-                    </div>
+                    />
                   </div>
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {templateVariables.map((variable) => (
+                      <button
+                        key={variable.key}
+                        type="button"
+                        className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                        onClick={() => insertVariable('body', variable.key)}
+                        title={variable.description}
+                      >
+                        {variable.displayName}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  <div className="p-3 bg-blue-50/50 rounded-lg">
+                    <p className="text-sm text-blue-700 font-medium">Click the variable buttons above to insert them at your cursor position, or type them manually in the template fields.</p>
+                  </div>
+                  
+                  <div className="flex justify-end gap-3 pt-4">
+                    <Button
+                      onClick={() => setShowTestEmailDialog(true)}
+                      variant="outline"
+                      disabled={sendTestEmailMutation.isPending}
+                    >
+                      Send Test Email
+                    </Button>
+                    <Button
+                      onClick={saveEmailTemplate}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      Save Email Template as Default
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
