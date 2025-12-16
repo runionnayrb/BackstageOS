@@ -3202,7 +3202,7 @@ The Production Team`
                               <div key={groupName} className="space-y-2">
                                 <div className="flex items-center justify-between px-2">
                                   <h4 className="text-sm font-semibold text-muted-foreground">{groupName}</h4>
-                                  {groupTotal && <div className="text-sm text-muted-foreground flex" style={{gap: '1px', width: '140px'}}><span>Length:</span><span className="text-right flex-1">{groupTotal}</span></div>}
+                                  {groupTotal && <div className="text-sm text-muted-foreground flex justify-between" style={{width: '140px'}}><span>Length:</span><span>{groupTotal}</span></div>}
                                 </div>
                                 <div className="space-y-2">
                                   {grouped[groupName]
@@ -3221,7 +3221,7 @@ The Production Team`
                                         <div className="flex items-center gap-2">
                                           <GripVertical className="h-4 w-4 text-muted-foreground" />
                                           <span className="text-base select-none flex-1">{item.name}</span>
-                                          {item.duration && <div className="text-sm text-muted-foreground flex" style={{gap: '1px', width: '140px'}}><span>Length:</span><span className="text-right flex-1">{item.duration}</span></div>}
+                                          {item.duration && <div className="text-sm text-muted-foreground flex justify-between" style={{width: '140px'}}><span>Length:</span><span>{item.duration}</span></div>}
                                         </div>
                                       </div>
                                     ))}
@@ -3281,7 +3281,7 @@ The Production Team`
                                         <div className="flex items-center gap-2">
                                           <GripVertical className="h-4 w-4 text-muted-foreground" />
                                           <span className="text-base select-none flex-1">{item.name}</span>
-                                          {item.duration && <div className="text-sm text-muted-foreground flex" style={{gap: '1px', width: '140px'}}><span>Length:</span><span className="text-right flex-1">{item.duration}</span></div>}
+                                          {item.duration && <div className="text-sm text-muted-foreground flex justify-between" style={{width: '140px'}}><span>Length:</span><span>{item.duration}</span></div>}
                                         </div>
                                       </div>
                                     ))}
