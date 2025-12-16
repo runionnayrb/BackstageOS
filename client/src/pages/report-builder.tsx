@@ -661,20 +661,55 @@ export default function ReportBuilder() {
                                   const defaultValue = defaultValuesRef.current[field.id] || "";
                                   if (currentHTML === defaultValue && defaultValue.includes("Nothing today")) {
                                     // Clear the default text but keep the list structure
-                                    const listType = currentHTML.includes("<ol") ? "ol" : "ul";
-                                    const newHTML = currentHTML.replace(/Nothing today\.?/g, "");
-                                    e.currentTarget.innerHTML = newHTML;
-                                  }
-                                  
-                                  // Move cursor to end of first list item for editing
-                                  const firstLi = e.currentTarget.querySelector("li");
-                                  if (firstLi) {
-                                    const range = document.createRange();
-                                    const sel = window.getSelection();
-                                    range.setStart(firstLi, firstLi.childNodes.length);
-                                    range.collapse(true);
-                                    sel?.removeAllRanges();
-                                    sel?.addRange(range);
+                                    // Use a zero-width space to ensure the list item stays active
+                                    const firstLi = e.currentTarget.querySelector("li");
+                                    if (firstLi) {
+                                      firstLi.textContent = "\u200B"; // Zero-width space for Safari compatibility
+                                      
+                                      // Position cursor after the zero-width space
+                                      // Use setTimeout to let Safari complete its focus handling first
+                                      setTimeout(() => {
+                                        try {
+                                          const range = document.createRange();
+                                          const sel = window.getSelection();
+                                          if (firstLi.firstChild) {
+                                            range.setStart(firstLi.firstChild, 1);
+                                            range.collapse(true);
+                                            sel?.removeAllRanges();
+                                            sel?.addRange(range);
+                                          }
+                                        } catch (err) {
+                                          console.log("Focus positioning handled by browser");
+                                        }
+                                      }, 0);
+                                    }
+                                  } else {
+                                    // Content is not the default, just position cursor
+                                    const firstLi = e.currentTarget.querySelector("li");
+                                    if (firstLi) {
+                                      setTimeout(() => {
+                                        try {
+                                          const range = document.createRange();
+                                          const sel = window.getSelection();
+                                          // Position at end of existing content
+                                          if (firstLi.childNodes.length > 0) {
+                                            const lastNode = firstLi.childNodes[firstLi.childNodes.length - 1];
+                                            if (lastNode.nodeType === Node.TEXT_NODE) {
+                                              range.setStart(lastNode, (lastNode as Text).length);
+                                            } else {
+                                              range.setStartAfter(lastNode);
+                                            }
+                                          } else {
+                                            range.setStart(firstLi, 0);
+                                          }
+                                          range.collapse(true);
+                                          sel?.removeAllRanges();
+                                          sel?.addRange(range);
+                                        } catch (err) {
+                                          console.log("Focus positioning handled by browser");
+                                        }
+                                      }, 0);
+                                    }
                                   }
                                 }
                               }}
@@ -683,21 +718,28 @@ export default function ReportBuilder() {
                                 const defaultValue = defaultValuesRef.current[field.id] || "";
                                 
                                 // Get the actual text content without HTML tags
-                                const textContent = e.currentTarget.textContent?.trim() || "";
+                                // Remove zero-width spaces for checking if content is truly empty
+                                const textContent = (e.currentTarget.textContent || "")
+                                  .replace(/\u200B/g, '')
+                                  .trim();
                                 
                                 // Check if content is empty or just the default value
                                 const isDefaultListStructure = content === defaultValue || 
                                   (content.includes("<li></li>") || 
+                                   content.includes("<li>\u200B</li>") ||
                                    content.match(/<ol[^>]*>\s*<li[^>]*>\s*<\/li>\s*<\/ol>/) ||
-                                   content.match(/<ul[^>]*>\s*<li[^>]*>\s*<\/li>\s*<\/ul>/));
+                                   content.match(/<ul[^>]*>\s*<li[^>]*>\s*<\/li>\s*<\/ul>/) ||
+                                   content.match(/<ol[^>]*>\s*<li[^>]*>\u200B<\/li>\s*<\/ol>/) ||
+                                   content.match(/<ul[^>]*>\s*<li[^>]*>\u200B<\/li>\s*<\/ul>/));
                                 
                                 // If field is empty (no text content) or matches default, restore default
                                 if (!content || !textContent || isDefaultListStructure) {
                                   e.currentTarget.innerHTML = defaultValue;
                                   contentRef.current[field.label] = defaultValue;
                                 } else {
-                                  // User has entered content, track it
-                                  contentRef.current[field.label] = e.currentTarget.innerHTML;
+                                  // User has entered content, clean up zero-width spaces and track it
+                                  let cleanedContent = e.currentTarget.innerHTML.replace(/\u200B/g, '');
+                                  contentRef.current[field.label] = cleanedContent;
                                 }
                               }}
                               className="text-sm outline-none whitespace-normal [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:ml-0"
