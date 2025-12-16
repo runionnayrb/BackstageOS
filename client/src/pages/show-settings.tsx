@@ -3202,7 +3202,7 @@ The Production Team`
                               <div key={groupName} className="space-y-2">
                                 <div className="flex items-center justify-between px-2">
                                   <h4 className="text-sm font-semibold text-muted-foreground">{groupName}</h4>
-                                  {groupTotal && <div className="text-sm text-muted-foreground flex" style={{width: '140px'}}><span className="flex-shrink-0">Length:</span><span className="flex-1 text-right">{groupTotal}</span></div>}
+                                  {groupTotal && <div className="text-sm text-muted-foreground grid grid-cols-[auto_1fr]" style={{width: '140px'}}><span>Length:</span><span className="text-right tabular-nums">{groupTotal}</span></div>}
                                 </div>
                                 <div className="space-y-2">
                                   {grouped[groupName]
@@ -3221,7 +3221,7 @@ The Production Team`
                                         <div className="flex items-center gap-2">
                                           <GripVertical className="h-4 w-4 text-muted-foreground" />
                                           <span className="text-base select-none flex-1">{item.name}</span>
-                                          {item.duration && <div className="text-sm text-muted-foreground flex" style={{width: '140px'}}><span className="flex-shrink-0">Length:</span><span className="flex-1 text-right">{item.duration}</span></div>}
+                                          {item.duration && <div className="text-sm text-muted-foreground grid grid-cols-[auto_1fr]" style={{width: '140px'}}><span>Length:</span><span className="text-right tabular-nums">{item.duration}</span></div>}
                                         </div>
                                       </div>
                                     ))}
@@ -3281,7 +3281,7 @@ The Production Team`
                                         <div className="flex items-center gap-2">
                                           <GripVertical className="h-4 w-4 text-muted-foreground" />
                                           <span className="text-base select-none flex-1">{item.name}</span>
-                                          {item.duration && <div className="text-sm text-muted-foreground flex" style={{width: '140px'}}><span className="flex-shrink-0">Length:</span><span className="flex-1 text-right">{item.duration}</span></div>}
+                                          {item.duration && <div className="text-sm text-muted-foreground grid grid-cols-[auto_1fr]" style={{width: '140px'}}><span>Length:</span><span className="text-right tabular-nums">{item.duration}</span></div>}
                                         </div>
                                       </div>
                                     ))}
