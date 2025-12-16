@@ -1778,8 +1778,8 @@ export default function DailyCallSheet() {
                             <Plus className="h-4 w-4" />
                           </Button>
                         )}
-                        <div className="flex items-center">
-                          <div className="w-20 text-sm font-medium text-gray-700">
+                        <div className="flex items-center gap-6">
+                          <div className="w-20 text-sm font-medium text-gray-700 flex-shrink-0">
                             <span className="font-bold">{event.startTime}</span>
                           </div>
                           <div className="flex-1">
