@@ -77,9 +77,9 @@ export default function DailyCallSheet() {
     enabled: !!actualProjectId,
   });
 
-  // Fetch email contacts (unified contacts from all shows + personal) 
+  // Fetch project contacts (show contacts with contact groups for cast filtering)
   const { data: contacts = [] } = useQuery({
-    queryKey: ['/api/email-contacts', actualProjectId ? parseInt(actualProjectId) : null],
+    queryKey: ['/api/projects', actualProjectId, 'contacts'],
     enabled: !!actualProjectId,
   });
 

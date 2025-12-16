@@ -4,10 +4,15 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import type { Contact } from "@shared/schema";
+import type { Contact, ContactGroup } from "@shared/schema";
+
+// Extended contact type with contactGroup included (from storage layer join)
+type ContactWithGroup = Contact & {
+  contactGroup?: ContactGroup | null;
+};
 
 interface CastSelectorProps {
-  contacts: Contact[];
+  contacts: ContactWithGroup[];
   selectedCast: string[];
   onChange: (cast: string[]) => void;
   placeholder?: string;
@@ -30,7 +35,7 @@ export function CastSelector({
   const castMembers = contacts.filter(contact => contact.contactGroup?.name === 'Cast');
   
   // Format contact name consistently with daily calls display
-  const formatContactName = (contact: Contact) => 
+  const formatContactName = (contact: ContactWithGroup) => 
     `${contact.firstName.charAt(0)}. ${contact.lastName}`;
 
   // Filter available cast members (not already selected)
@@ -47,7 +52,7 @@ export function CastSelector({
            contact.lastName.toLowerCase().includes(inputValue.toLowerCase());
   });
 
-  const handleSelectCast = (contact: Contact) => {
+  const handleSelectCast = (contact: ContactWithGroup) => {
     const displayName = formatContactName(contact);
     if (!selectedCast.includes(displayName)) {
       onChange([...selectedCast, displayName]);
