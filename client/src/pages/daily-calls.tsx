@@ -440,22 +440,20 @@ export default function DailyCallSheet() {
     const defaultName = locationName || 
       (eventLocations.length > 0 ? eventLocations[0].name : 'New Location');
     
+    // Create new location with empty events array (no END-OF-DAY - that's managed globally)
     const newLocation = {
       name: defaultName,
-      events: [{
-        id: -1,
-        title: 'END-OF-DAY',
-        startTime: formatTimeDisplay('23:59', timeFormat as '12' | '24'),
-        endTime: formatTimeDisplay('23:59', timeFormat as '12' | '24'),
-        cast: [],
-        notes: undefined
-      }]
+      events: []
     };
     
-    setCallData(prev => ({
-      ...prev,
-      locations: [...prev.locations, newLocation]
-    }));
+    setCallData(prev => {
+      const newLocations = [...prev.locations, newLocation];
+      // Apply global END-OF-DAY recalculation
+      return {
+        ...prev,
+        locations: updateGlobalEndOfDay(newLocations)
+      };
+    });
     setIsEditing(true);
   };
 
@@ -538,14 +536,18 @@ export default function DailyCallSheet() {
 
   // Remove an event from a specific location
   const removeLocationEvent = (locationIndex: number, eventIndex: number) => {
-    setCallData(prev => ({
-      ...prev,
-      locations: prev.locations.map((loc, idx) => 
+    setCallData(prev => {
+      const newLocations = prev.locations.map((loc, idx) => 
         idx === locationIndex 
           ? { ...loc, events: loc.events.filter((_, eIdx) => eIdx !== eventIndex) }
           : loc
-      )
-    }));
+      );
+      // Apply global END-OF-DAY recalculation
+      return {
+        ...prev,
+        locations: updateGlobalEndOfDay(newLocations)
+      };
+    });
   };
 
   // Helper function to extract participant name, handling missing fields
@@ -641,9 +643,11 @@ export default function DailyCallSheet() {
       }));
       
       // Update call data with imported events (replaces existing data)
+      // Apply global END-OF-DAY recalculation
+      const locationsToUse = newLocations.length > 0 ? newLocations : (callData.locations || []);
       setCallData(prev => ({
         ...prev,
-        locations: newLocations.length > 0 ? newLocations : (prev.locations || []),
+        locations: updateGlobalEndOfDay(locationsToUse),
         fittingsEvents: fittingsEvents.length > 0 ? fittingsEvents : prev.fittingsEvents,
         appointmentsEvents: appointmentsEvents.length > 0 ? appointmentsEvents : prev.appointmentsEvents,
       }));
@@ -672,7 +676,6 @@ export default function DailyCallSheet() {
   };
 
   const addEvent = (locationIndex: number) => {
-    console.log('addEvent called for location:', locationIndex);
     const newEvent = {
       id: Date.now(),
       title: 'New Event',
@@ -682,52 +685,47 @@ export default function DailyCallSheet() {
       notes: ''
     };
     
-    console.log('Creating new event:', newEvent);
-    
     setCallData(prev => {
-      console.log('Current callData:', prev);
       const newLocations = prev.locations.map((loc, idx) => {
         if (idx === locationIndex) {
-          console.log('Updating location:', idx, loc);
+          // Filter out END-OF-DAY and add the new event
           const allEventsExceptEndOfDay = (loc.events || []).filter(event => event.title !== 'END-OF-DAY');
-          console.log('Events except END-OF-DAY:', allEventsExceptEndOfDay);
-          const sortedEvents = [...allEventsExceptEndOfDay, newEvent];
-          console.log('Events after adding new:', sortedEvents);
-          
-          // Determine end-of-day time based on the last event's end time
-          let endOfDayTime = formatTimeDisplay('23:59', timeFormat as '12' | '24');
-          if (sortedEvents.length > 0) {
-            const lastEvent = sortedEvents[sortedEvents.length - 1];
-            endOfDayTime = lastEvent.endTime;
-          }
-          
-          const updatedLocation = {
+          return {
             ...loc,
-            events: [
-              ...sortedEvents,
-              // Always add END-OF-DAY at the end with correct time
-              {
-                id: -1,
-                title: 'END-OF-DAY',
-                startTime: endOfDayTime,
-                endTime: endOfDayTime,
-                cast: [],
-                notes: undefined
-              }
-            ]
+            events: [...allEventsExceptEndOfDay, newEvent]
           };
-          console.log('Updated location:', updatedLocation);
-          return updatedLocation;
         }
         return loc;
       });
-      console.log('New locations:', newLocations);
+      
+      // Apply global END-OF-DAY recalculation
       return {
         ...prev,
-        locations: newLocations
+        locations: updateGlobalEndOfDay(newLocations)
       };
     });
     setIsEditing(true);
+  };
+
+  // Helper function to update a specific event property and recalculate END-OF-DAY
+  const updateLocationEventProperty = (locationIndex: number, eventIdx: number, property: string, value: any) => {
+    setCallData(prev => {
+      const newLocations = prev.locations.map((loc, idx) => {
+        if (idx === locationIndex) {
+          const newEvents = [...loc.events];
+          if (newEvents[eventIdx]) {
+            newEvents[eventIdx] = { ...newEvents[eventIdx], [property]: value };
+          }
+          return { ...loc, events: newEvents };
+        }
+        return loc;
+      });
+      // Recalculate END-OF-DAY if endTime was changed
+      return {
+        ...prev,
+        locations: property === 'endTime' ? updateGlobalEndOfDay(newLocations) : newLocations
+      };
+    });
   };
 
   // Helper function to update END-OF-DAY time for the entire day (single END-OF-DAY)
@@ -1287,21 +1285,33 @@ export default function DailyCallSheet() {
                               <Plus className="h-4 w-4 text-black" />
                             </div>
                           )}
-                          <div className="w-20 text-sm font-medium text-gray-700 flex-shrink-0">
+                          <div className="w-32 text-sm font-medium text-gray-700 flex-shrink-0">
                             {event.title === 'END-OF-DAY' ? (
                               <span className="font-bold leading-none flex items-center h-full">{event.startTime}</span>
                             ) : (
                               isEditing ? (
-                                <Input
-                                  value={event.startTime}
-                                  onChange={(e) => {
-                                    const newLocations = [...callData.locations];
-                                    newLocations[locationIndex].events[eventIdx].startTime = e.target.value;
-                                    setCallData(prev => ({ ...prev, locations: newLocations }));
-                                  }}
-                                  className="text-xs w-24"
-                                  placeholder="9:00 AM"
-                                />
+                                <div className="flex flex-col gap-1">
+                                  <Input
+                                    value={event.startTime}
+                                    onChange={(e) => {
+                                      const newLocations = [...callData.locations];
+                                      newLocations[locationIndex].events[eventIdx].startTime = e.target.value;
+                                      setCallData(prev => ({ ...prev, locations: newLocations }));
+                                    }}
+                                    className="text-xs w-24"
+                                    placeholder="9:00 AM"
+                                    data-testid={`input-start-time-${locationIndex}-${eventIdx}`}
+                                  />
+                                  <Input
+                                    value={event.endTime}
+                                    onChange={(e) => {
+                                      updateLocationEventProperty(locationIndex, eventIdx, 'endTime', e.target.value);
+                                    }}
+                                    className="text-xs w-24"
+                                    placeholder="10:00 AM"
+                                    data-testid={`input-end-time-${locationIndex}-${eventIdx}`}
+                                  />
+                                </div>
                               ) : event.startTime
                             )}
                           </div>
@@ -1363,6 +1373,21 @@ export default function DailyCallSheet() {
                         </div>
                       ))}
                       
+                      {/* Add Event button for this location */}
+                      {isEditing && (
+                        <div className="pt-2 border-t border-gray-100">
+                          <Button
+                            onClick={() => addEvent(locationIndex)}
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                            data-testid={`button-add-event-location-${locationIndex}`}
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Event to {location.name}
+                          </Button>
+                        </div>
+                      )}
 
                     </div>
                   </div>
@@ -1456,21 +1481,34 @@ export default function DailyCallSheet() {
                         <div className="col-span-4">
                           {event.locationIndex === 0 && (
                             <div className="flex items-start gap-4 py-2">
-                              <div className="w-16 text-sm font-medium text-gray-700 flex-shrink-0">
+                              <div className="w-24 text-sm font-medium text-gray-700 flex-shrink-0">
                                 {isEditing ? (
-                                  <Input
-                                    value={event.startTime}
-                                    onChange={(e) => {
-                                      const newLocations = [...callData.locations];
-                                      const originalEventIdx = newLocations[0].events.findIndex(ev => ev.id === event.id);
-                                      if (originalEventIdx !== -1) {
-                                        newLocations[0].events[originalEventIdx].startTime = e.target.value;
-                                        setCallData(prev => ({ ...prev, locations: newLocations }));
-                                      }
-                                    }}
-                                    className="text-xs w-24"
-                                    placeholder="9:00 AM"
-                                  />
+                                  <div className="flex flex-col gap-1">
+                                    <Input
+                                      value={event.startTime}
+                                      onChange={(e) => {
+                                        const newLocations = [...callData.locations];
+                                        const originalEventIdx = newLocations[0].events.findIndex(ev => ev.id === event.id);
+                                        if (originalEventIdx !== -1) {
+                                          newLocations[0].events[originalEventIdx].startTime = e.target.value;
+                                          setCallData(prev => ({ ...prev, locations: newLocations }));
+                                        }
+                                      }}
+                                      className="text-xs w-20"
+                                      placeholder="9:00 AM"
+                                    />
+                                    <Input
+                                      value={event.endTime}
+                                      onChange={(e) => {
+                                        const originalEventIdx = callData.locations[0].events.findIndex(ev => ev.id === event.id);
+                                        if (originalEventIdx !== -1) {
+                                          updateLocationEventProperty(0, originalEventIdx, 'endTime', e.target.value);
+                                        }
+                                      }}
+                                      className="text-xs w-20"
+                                      placeholder="10:00 AM"
+                                    />
+                                  </div>
                                 ) : event.startTime}
                               </div>
                               <div className="flex-1">
@@ -1547,21 +1585,34 @@ export default function DailyCallSheet() {
                         <div className="col-span-3">
                           {event.locationIndex === 1 && (
                             <div className="flex items-start gap-4 py-2">
-                              <div className="w-16 text-sm font-medium text-gray-700 flex-shrink-0">
+                              <div className="w-24 text-sm font-medium text-gray-700 flex-shrink-0">
                                 {isEditing ? (
-                                  <Input
-                                    value={event.startTime}
-                                    onChange={(e) => {
-                                      const newLocations = [...callData.locations];
-                                      const originalEventIdx = newLocations[1].events.findIndex(ev => ev.id === event.id);
-                                      if (originalEventIdx !== -1) {
-                                        newLocations[1].events[originalEventIdx].startTime = e.target.value;
-                                        setCallData(prev => ({ ...prev, locations: newLocations }));
-                                      }
-                                    }}
-                                    className="text-xs w-24"
-                                    placeholder="9:00 AM"
-                                  />
+                                  <div className="flex flex-col gap-1">
+                                    <Input
+                                      value={event.startTime}
+                                      onChange={(e) => {
+                                        const newLocations = [...callData.locations];
+                                        const originalEventIdx = newLocations[1].events.findIndex(ev => ev.id === event.id);
+                                        if (originalEventIdx !== -1) {
+                                          newLocations[1].events[originalEventIdx].startTime = e.target.value;
+                                          setCallData(prev => ({ ...prev, locations: newLocations }));
+                                        }
+                                      }}
+                                      className="text-xs w-20"
+                                      placeholder="9:00 AM"
+                                    />
+                                    <Input
+                                      value={event.endTime}
+                                      onChange={(e) => {
+                                        const originalEventIdx = callData.locations[1].events.findIndex(ev => ev.id === event.id);
+                                        if (originalEventIdx !== -1) {
+                                          updateLocationEventProperty(1, originalEventIdx, 'endTime', e.target.value);
+                                        }
+                                      }}
+                                      className="text-xs w-20"
+                                      placeholder="10:00 AM"
+                                    />
+                                  </div>
                                 ) : event.startTime}
                               </div>
                               <div className="flex-1">
@@ -1637,6 +1688,36 @@ export default function DailyCallSheet() {
                     ));
                   })()}
                 </div>
+
+                {/* Add Event buttons for each location */}
+                {isEditing && (
+                  <div className="grid grid-cols-7 gap-4 pt-2 border-t border-gray-100">
+                    <div className="col-span-4">
+                      <Button
+                        onClick={() => addEvent(0)}
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        data-testid="button-add-event-multi-location-0"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Event to {callData.locations[0]?.name || 'Primary'}
+                      </Button>
+                    </div>
+                    <div className="col-span-3">
+                      <Button
+                        onClick={() => addEvent(1)}
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        data-testid="button-add-event-multi-location-1"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Event to {callData.locations[1]?.name || 'Secondary'}
+                      </Button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Full-width END-OF-DAY events */}
                 {(callData.locations || []).some(location => 
