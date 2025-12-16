@@ -11475,8 +11475,13 @@ Best regards,
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    p { margin: 0 0 1em 0; }
+    ul, ol { margin: 0 0 1em 0; padding-left: 24px; }
+    li { margin-bottom: 0.25em; }
+  </style>
 </head>
-<body style="margin: 0; padding: 20px; font-family: Arial, sans-serif; font-size: 16px; line-height: 1.6; color: #333333;">
+<body style="margin: 0; padding: 20px; font-family: Arial, sans-serif; font-size: 16px; line-height: 1.5; color: #333333;">
   <div style="max-width: 600px; margin: 0 auto;">
     ${personalizedBodyHtml}
   </div>
@@ -11574,8 +11579,13 @@ Best regards,
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    p { margin: 0 0 1em 0; }
+    ul, ol { margin: 0 0 1em 0; padding-left: 24px; }
+    li { margin-bottom: 0.25em; }
+  </style>
 </head>
-<body style="margin: 0; padding: 20px; font-family: Arial, sans-serif; font-size: 16px; line-height: 1.6; color: #333333;">
+<body style="margin: 0; padding: 20px; font-family: Arial, sans-serif; font-size: 16px; line-height: 1.5; color: #333333;">
   <div style="max-width: 600px; margin: 0 auto;">
     ${testBody}
   </div>
