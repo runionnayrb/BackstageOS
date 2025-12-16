@@ -1929,8 +1929,8 @@ export default function DailyCallSheet() {
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           ) : (
-                            (event.location || fittingsLocationName) && 
-                            <div className="text-xs text-gray-600">{event.location || fittingsLocationName}</div>
+                            fittingsLocationName && 
+                            <div className="text-xs text-gray-600">{fittingsLocationName}</div>
                           )}
                         </div>
                         {isEditing ? (
@@ -2024,8 +2024,8 @@ export default function DailyCallSheet() {
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           ) : (
-                            (event.location || appointmentsLocationName) && 
-                            <div className="text-xs text-gray-600">{event.location || appointmentsLocationName}</div>
+                            appointmentsLocationName && 
+                            <div className="text-xs text-gray-600">{appointmentsLocationName}</div>
                           )}
                         </div>
                         {isEditing ? (
