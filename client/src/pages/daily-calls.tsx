@@ -589,14 +589,57 @@ export default function DailyCallSheet() {
     });
   };
 
-  // Helper function to extract participant name, handling missing fields
+  // Helper function to extract participant name in "F. Last" format
   const getParticipantName = (p: any): string => {
     const firstName = p.contactFirstName?.trim() || '';
     const lastName = p.contactLastName?.trim() || '';
-    if (firstName && lastName) return `${firstName} ${lastName}`;
-    if (firstName) return firstName;
+    if (firstName && lastName) {
+      return `${firstName.charAt(0)}. ${lastName}`;
+    }
     if (lastName) return lastName;
+    if (firstName) return firstName;
     return '';
+  };
+
+  // Helper function to normalize time string by removing seconds
+  const normalizeTime = (timeStr: string): string => {
+    if (!timeStr) return timeStr;
+    // Handle HH:MM:SS format - strip seconds
+    const parts = timeStr.split(':');
+    if (parts.length >= 2) {
+      return `${parts[0]}:${parts[1]}`;
+    }
+    return timeStr;
+  };
+
+  // Helper function to check if participants match "Full Cast" or "Full Company"
+  const getCastLabel = (participants: any[]): string[] => {
+    if (!participants || participants.length === 0) return [];
+    
+    // Get all contacts for this project
+    const allContacts = (contacts as any[]) || [];
+    if (allContacts.length === 0) return participants.map((p: any) => getParticipantName(p)).filter((n: string) => n.length > 0);
+    
+    // Get participant contact IDs
+    const participantIds = participants.map((p: any) => p.contactId).filter(Boolean);
+    
+    // Get cast members (contacts in "Cast" group)
+    const castMembers = allContacts.filter((c: any) => c.contactGroup?.name === 'Cast');
+    const castIds = castMembers.map((c: any) => c.id);
+    
+    // Check if all cast members are selected (Full Cast)
+    if (castIds.length > 0 && castIds.every((id: number) => participantIds.includes(id)) && participantIds.every((id: number) => castIds.includes(id))) {
+      return ['Full Cast'];
+    }
+    
+    // Check if all contacts are selected (Full Company)
+    const allContactIds = allContacts.map((c: any) => c.id);
+    if (allContactIds.length > 0 && allContactIds.every((id: number) => participantIds.includes(id)) && participantIds.every((id: number) => allContactIds.includes(id))) {
+      return ['Full Company'];
+    }
+    
+    // Otherwise return individual names in "F. Last" format
+    return participants.map((p: any) => getParticipantName(p)).filter((n: string) => n.length > 0);
   };
 
   // Import schedule events from the schedule into the daily call
@@ -628,18 +671,20 @@ export default function DailyCallSheet() {
         const eventType = event.type?.toLowerCase() || '';
         const eventTitle = event.title?.toLowerCase() || '';
         
-        // Get participant names from the event, filtering out empty names
-        const castNames = (event.participants || [])
-          .map((p: any) => getParticipantName(p))
-          .filter((name: string) => name.length > 0);
+        // Get cast names using the smart label function (handles Full Cast/Full Company)
+        const castNames = getCastLabel(event.participants || []);
+        
+        // Normalize times by stripping seconds (08:00:00 -> 08:00)
+        const normalizedStartTime = normalizeTime(event.startTime);
+        const normalizedEndTime = normalizeTime(event.endTime);
         
         // Categorize events: fittings, meetings/appointments, or regular events
         if (eventType === 'fitting' || eventTitle.includes('fitting') || eventTitle.includes('costume')) {
           fittingsEvents.push({
             id: event.id,
             title: event.title,
-            startTime: formatTimeDisplay(event.startTime, timeFormat as '12' | '24'),
-            endTime: formatTimeDisplay(event.endTime, timeFormat as '12' | '24'),
+            startTime: formatTimeDisplay(normalizedStartTime, timeFormat as '12' | '24'),
+            endTime: formatTimeDisplay(normalizedEndTime, timeFormat as '12' | '24'),
             cast: castNames,
             notes: event.notes || '',
             location: event.location || ''
@@ -648,8 +693,8 @@ export default function DailyCallSheet() {
           appointmentsEvents.push({
             id: event.id,
             title: event.title,
-            startTime: formatTimeDisplay(event.startTime, timeFormat as '12' | '24'),
-            endTime: formatTimeDisplay(event.endTime, timeFormat as '12' | '24'),
+            startTime: formatTimeDisplay(normalizedStartTime, timeFormat as '12' | '24'),
+            endTime: formatTimeDisplay(normalizedEndTime, timeFormat as '12' | '24'),
             cast: castNames,
             notes: event.notes || '',
             location: event.location || ''
@@ -664,8 +709,8 @@ export default function DailyCallSheet() {
           eventsByLocation.get(locationName)!.push({
             id: event.id,
             title: event.title,
-            startTime: formatTimeDisplay(event.startTime, timeFormat as '12' | '24'),
-            endTime: formatTimeDisplay(event.endTime, timeFormat as '12' | '24'),
+            startTime: formatTimeDisplay(normalizedStartTime, timeFormat as '12' | '24'),
+            endTime: formatTimeDisplay(normalizedEndTime, timeFormat as '12' | '24'),
             cast: castNames,
             notes: event.notes || ''
           });
