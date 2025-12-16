@@ -1763,7 +1763,7 @@ export default function DailyCallSheet() {
                         .filter(event => event.title === 'END-OF-DAY')
                         .map(event => ({ event, locationIndex }))
                     ).map(({ event, locationIndex }, index) => (
-                      <div key={`end-of-day-${index}`} className="bg-gray-100 py-1 relative">
+                      <div key={`end-of-day-${index}`} className="bg-gray-100 py-2 relative flex items-center">
                         {/* Add Event Button in Left Margin - only show on first END-OF-DAY row */}
                         {isEditing && index === 0 && (
                           <Button
