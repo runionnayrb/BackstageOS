@@ -937,10 +937,11 @@ export default function DailyCallSheet() {
               appFooter.style.display = 'none';
             }
             
-            // Hide END-OF-DAY rows in PDF export (formatting issues)
+            // Remove grey background from END-OF-DAY rows in PDF export, but keep text visible
             const endOfDayRows = clonedElement.querySelectorAll('[data-end-of-day-row="true"]');
             endOfDayRows.forEach(el => {
-              el.style.display = 'none';
+              el.style.backgroundColor = 'transparent';
+              el.style.background = 'none';
             });
 
           }
