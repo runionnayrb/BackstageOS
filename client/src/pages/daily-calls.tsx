@@ -1163,9 +1163,6 @@ export default function DailyCallSheet() {
             </Popover>
           </div>
           <div className="flex items-center space-x-3">
-            <Button onClick={handlePrint} variant="ghost" size="icon" className="border-0 hover:bg-transparent">
-              <Printer className="h-4 w-4 hover:text-blue-600 transition-colors" />
-            </Button>
             <Button onClick={exportToPDF} variant="ghost" size="icon" className="border-0 hover:bg-transparent">
               <Download className="h-4 w-4 hover:text-blue-600 transition-colors" />
             </Button>
