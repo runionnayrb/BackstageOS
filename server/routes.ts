@@ -11469,12 +11469,14 @@ Best regards,
             personalizedBodyHtml = personalizedBodyHtml.replace(new RegExp(variable, 'g'), value);
           });
 
+          // Wrap in email-safe container with same styling as preview
+          const emailHtml = `<div style="font-family: Arial, sans-serif; font-size: 16px; line-height: 1.5; color: #333333;">${personalizedBodyHtml}</div>`;
           
           await sendEmailWithResend({
             to: [entry.email],
             bcc: ['bryan@backstageos.com'],
             subject: personalizedSubject,
-            html: personalizedBodyHtml
+            html: emailHtml
           });
           
           emailsSent++;
@@ -11555,12 +11557,14 @@ Best regards,
         testBody = testBody.replace(new RegExp(variable, 'g'), value);
       });
 
+      // Wrap in email-safe container with same styling as preview
+      const emailHtml = `<div style="font-family: Arial, sans-serif; font-size: 16px; line-height: 1.5; color: #333333;">${testBody}</div>`;
       
       await sendEmailWithResend({
         to: [testEmail],
         bcc: ['bryan@backstageos.com'],
         subject: testSubject,
-        html: testBody
+        html: emailHtml
       });
       
       res.json({ 

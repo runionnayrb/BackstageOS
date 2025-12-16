@@ -520,15 +520,17 @@ export default function WaitlistEmailSettings() {
               </div>
             </div>
 
-            {/* Email preview */}
+            {/* Email preview - renders HTML exactly as it will be sent */}
             <div className="border rounded-lg overflow-hidden">
               <div className="bg-gray-100 p-4 border-b">
                 <div className="text-sm text-gray-600">From: {formData.fromName} &lt;{formData.fromEmail}&gt;</div>
                 <div className="text-sm text-gray-600">Subject: {replaceVariables(formData.subject)}</div>
               </div>
-              <div className="p-4 font-mono text-sm whitespace-pre-wrap">
-                {replaceVariables(formData.bodyText)}
-              </div>
+              <div 
+                className="p-5 bg-white"
+                style={{ fontFamily: 'Arial, sans-serif', fontSize: '16px', lineHeight: '1.5', color: '#333333' }}
+                dangerouslySetInnerHTML={{ __html: replaceVariables(formData.bodyHtml) }}
+              />
             </div>
           </CardContent>
         </Card>
