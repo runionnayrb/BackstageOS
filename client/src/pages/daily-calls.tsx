@@ -891,22 +891,11 @@ export default function DailyCallSheet() {
             grayElements.forEach(el => {
               if (el.textContent?.includes('END-OF-DAY')) {
                 console.log('Found END-OF-DAY element:', el);
-                // Force compact row styling with centered text
-                el.style.padding = '0';
-                el.style.minHeight = '20px';
-                el.style.height = '20px';
-                el.style.lineHeight = '20px';
+                // Force centered text with consistent padding
+                el.style.padding = '4px 0';
                 el.style.display = 'flex';
                 el.style.alignItems = 'center';
-                
-                // Also target all descendants to center text properly
-                const descendants = el.querySelectorAll('*');
-                descendants.forEach(desc => {
-                  desc.style.lineHeight = '20px';
-                  desc.style.padding = '0';
-                  desc.style.margin = '0';
-                  desc.style.verticalAlign = 'middle';
-                });
+                el.style.boxSizing = 'border-box';
               }
             });
 
