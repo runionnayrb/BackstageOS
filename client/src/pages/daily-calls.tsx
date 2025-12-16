@@ -351,7 +351,7 @@ export default function DailyCallSheet() {
     if (mainLocationNames.length > 0) {
       // For now, take the first main location for left column
       const mainLocationName = mainLocationNames[0];
-      const mainEvents = mainLocationGroups[mainLocationName].sort((a, b) => a.startTime.localeCompare(b.startTime));
+      const mainEvents = mainLocationGroups[mainLocationName].sort(sortByTime);
       
       // Add END-OF-DAY to the first (main) location
       mainEvents.push({
@@ -376,7 +376,7 @@ export default function DailyCallSheet() {
     if (auxiliaryLocationNames.length > 0) {
       // Take the first auxiliary location for right column
       const auxiliaryLocationName = auxiliaryLocationNames[0];
-      const auxiliaryEvents = auxiliaryLocationGroups[auxiliaryLocationName].sort((a, b) => a.startTime.localeCompare(b.startTime));
+      const auxiliaryEvents = auxiliaryLocationGroups[auxiliaryLocationName].sort(sortByTime);
       
       locations.push({
         name: auxiliaryLocationName,
@@ -612,6 +612,34 @@ export default function DailyCallSheet() {
     return timeStr;
   };
 
+  // Helper function to convert time string to minutes for proper sorting
+  const sortTimeToMinutes = (timeStr: string): number => {
+    if (!timeStr) return 0;
+    const cleanTime = timeStr.trim();
+    
+    // Handle 24-hour format (e.g., "14:30")
+    if (!cleanTime.includes('AM') && !cleanTime.includes('PM')) {
+      const [hours, minutes] = cleanTime.split(':').map(Number);
+      return (hours || 0) * 60 + (minutes || 0);
+    }
+    
+    // Handle 12-hour format (e.g., "2:30 PM")
+    const isPM = cleanTime.toUpperCase().includes('PM');
+    const timeWithoutAmPm = cleanTime.replace(/\s*(AM|PM)\s*/i, '').trim();
+    const [hours, minutes] = timeWithoutAmPm.split(':').map(Number);
+    
+    let hour24 = hours || 0;
+    if (isPM && hour24 !== 12) hour24 += 12;
+    if (!isPM && hour24 === 12) hour24 = 0;
+    
+    return hour24 * 60 + (minutes || 0);
+  };
+
+  // Helper function to sort events by start time
+  const sortByTime = (a: any, b: any): number => {
+    return sortTimeToMinutes(a.startTime) - sortTimeToMinutes(b.startTime);
+  };
+
   // Helper function to check if participants match "Full Cast" or "Full Company"
   const getCastLabel = (participants: any[]): string[] => {
     if (!participants || participants.length === 0) return [];
@@ -722,7 +750,7 @@ export default function DailyCallSheet() {
         name,
         events: events
           .filter(e => e.title !== 'END-OF-DAY')
-          .sort((a, b) => a.startTime.localeCompare(b.startTime))
+          .sort(sortByTime)
       }));
       
       // Update call data with imported events (replaces existing data)
@@ -1921,7 +1949,7 @@ export default function DailyCallSheet() {
               </div>
               <div className="space-y-2 mt-1">
                 {callData.fittingsEvents
-                  .sort((a, b) => a.startTime.localeCompare(b.startTime))
+                  .sort(sortByTime)
                   .map((event, index) => (
                     <div key={`fitting-${event.id}`} className="flex items-start gap-6 py-2">
                       <div className="w-20 text-sm font-medium text-gray-700 flex-shrink-0">
@@ -2016,7 +2044,7 @@ export default function DailyCallSheet() {
               </div>
               <div className="space-y-2 mt-1">
                 {callData.appointmentsEvents
-                  .sort((a, b) => a.startTime.localeCompare(b.startTime))
+                  .sort(sortByTime)
                   .map((event, index) => (
                     <div key={`appointment-${event.id}`} className="flex items-start gap-6 py-2">
                       <div className="w-20 text-sm font-medium text-gray-700 flex-shrink-0">
