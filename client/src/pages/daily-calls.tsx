@@ -1253,7 +1253,7 @@ export default function DailyCallSheet() {
                 <CardContent className="py-8 text-center">
                   <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-600 mb-4">No schedule events found for this date.</p>
-                  <Button onClick={addLocation} variant="outline">
+                  <Button onClick={() => addLocation()} variant="outline">
                     <Plus className="h-4 w-4 mr-2" />
                     Create Manual Call Sheet
                   </Button>
