@@ -60,16 +60,23 @@ export function setupAuth(app: Express) {
     disableTouch: true,
   });
 
+  // Determine if running in a secure context (Replit dev/prod URLs use HTTPS)
+  const isSecureContext = process.env.NODE_ENV === 'production' || 
+                          process.env.REPL_SLUG || 
+                          process.env.REPL_ID;
+
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "your-secret-key",
     resave: false,
     saveUninitialized: false,
     store: pgStore,
     cookie: {
-      secure: process.env.NODE_ENV === 'production',
+      secure: isSecureContext ? true : false,
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000,
-      sameSite: 'lax',
+      // Use 'none' for cross-site cookie support in Safari (requires secure: true)
+      // Fall back to 'lax' for local development without HTTPS
+      sameSite: isSecureContext ? 'none' : 'lax',
     },
     name: 'backstage.sid',
     rolling: false,
@@ -83,7 +90,13 @@ export function setupAuth(app: Express) {
     const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https';
     
     if (req.session && req.session.cookie) {
+      // Always use secure cookies over HTTPS
       req.session.cookie.secure = isSecure;
+      
+      // Safari requires sameSite: 'none' with secure: true for cross-origin cookies
+      if (isSecure) {
+        req.session.cookie.sameSite = 'none';
+      }
       
       const domain = getCookieDomain(host);
       if (domain) {
