@@ -1297,7 +1297,7 @@ export default function DailyCallSheet() {
                               <Plus className="h-4 w-4 text-black" />
                             </div>
                           )}
-                          <div className="w-32 text-sm font-medium text-gray-700 flex-shrink-0">
+                          <div className="w-20 text-sm font-medium text-gray-700 flex-shrink-0">
                             {event.title === 'END-OF-DAY' ? (
                               <span className="font-bold leading-none flex items-center h-full">{event.startTime}</span>
                             ) : (
@@ -1518,7 +1518,7 @@ export default function DailyCallSheet() {
                             <div className="col-span-4">
                               {loc0Event ? (
                                 <div className="flex items-start gap-4 py-2">
-                                  <div className="w-24 text-sm font-medium text-gray-700 flex-shrink-0">
+                                  <div className="w-20 text-sm font-medium text-gray-700 flex-shrink-0">
                                     {isEditing ? (
                                       <div className="flex flex-col gap-1">
                                         <Input
@@ -1622,7 +1622,7 @@ export default function DailyCallSheet() {
                             <div className="col-span-3">
                               {loc1Event ? (
                                 <div className="flex items-start gap-4 py-2">
-                                  <div className="w-24 text-sm font-medium text-gray-700 flex-shrink-0">
+                                  <div className="w-20 text-sm font-medium text-gray-700 flex-shrink-0">
                                     {isEditing ? (
                                       <div className="flex flex-col gap-1">
                                         <Input
