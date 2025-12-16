@@ -606,8 +606,7 @@ export default function DailyCallSheet() {
     setImportLoading(true);
     try {
       // Fetch schedule events for the selected date with participants
-      const response = await apiRequest('GET', `/api/projects/${actualProjectId}/schedule-events-by-date?date=${selectedDate}`);
-      const scheduleEventsForDate = await response.json();
+      const scheduleEventsForDate = await apiRequest('GET', `/api/projects/${actualProjectId}/schedule-events-by-date?date=${selectedDate}`);
       
       if (!scheduleEventsForDate || scheduleEventsForDate.length === 0) {
         toast({
