@@ -534,6 +534,17 @@ export default function DailyCallSheet() {
     }));
   };
 
+  // Helper to remove empty secondary locations (keeps primary location even if empty)
+  const pruneEmptySecondaryLocations = (locations: CallLocation[]) => {
+    return locations.filter((loc, idx) => {
+      // Always keep the primary location (index 0)
+      if (idx === 0) return true;
+      // Keep secondary locations only if they have non-END-OF-DAY events
+      const hasRealEvents = (loc.events || []).some(e => e.title !== 'END-OF-DAY');
+      return hasRealEvents;
+    });
+  };
+
   // Remove an event from a specific location
   const removeLocationEvent = (locationIndex: number, eventIndex: number) => {
     setCallData(prev => {
@@ -542,10 +553,11 @@ export default function DailyCallSheet() {
           ? { ...loc, events: loc.events.filter((_, eIdx) => eIdx !== eventIndex) }
           : loc
       );
-      // Apply global END-OF-DAY recalculation
+      // Prune empty secondary locations, then recalculate END-OF-DAY
+      const prunedLocations = pruneEmptySecondaryLocations(newLocations);
       return {
         ...prev,
-        locations: updateGlobalEndOfDay(newLocations)
+        locations: updateGlobalEndOfDay(prunedLocations)
       };
     });
   };
