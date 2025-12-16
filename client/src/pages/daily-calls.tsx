@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useLocation, useParams } from "wouter";
 import { format, parseISO } from "date-fns";
-import { Calendar, Plus, Save, FileText, ChevronLeft, Users, Edit, Download, Printer, Trash2 } from "lucide-react";
+import { Calendar, Plus, Save, FileText, ChevronLeft, Users, Edit, Download, Printer, Trash2, Import } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -60,6 +60,8 @@ export default function DailyCallSheet() {
   const [isEditing, setIsEditing] = useState(urlParams.get('edit') === 'true');
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [importLoading, setImportLoading] = useState(false);
   const [callData, setCallData] = useState<{
     locations: CallLocation[];
     announcements: string;
@@ -532,6 +534,129 @@ export default function DailyCallSheet() {
       ...prev,
       appointmentsEvents: (prev.appointmentsEvents || []).filter((_, idx) => idx !== eventIndex)
     }));
+  };
+
+  // Helper function to extract participant name, handling missing fields
+  const getParticipantName = (p: any): string => {
+    const firstName = p.contactFirstName?.trim() || '';
+    const lastName = p.contactLastName?.trim() || '';
+    if (firstName && lastName) return `${firstName} ${lastName}`;
+    if (firstName) return firstName;
+    if (lastName) return lastName;
+    return '';
+  };
+
+  // Import schedule events from the schedule into the daily call
+  const importFromSchedule = async () => {
+    if (!actualProjectId || !selectedDate) return;
+    
+    setImportLoading(true);
+    try {
+      // Fetch schedule events for the selected date with participants
+      const response = await apiRequest('GET', `/api/projects/${actualProjectId}/schedule-events-by-date?date=${selectedDate}`);
+      const scheduleEventsForDate = await response.json();
+      
+      if (!scheduleEventsForDate || scheduleEventsForDate.length === 0) {
+        toast({
+          title: "No Events Found",
+          description: "No scheduled events were found for this date.",
+          variant: "destructive",
+        });
+        setShowImportDialog(false);
+        setImportLoading(false);
+        return;
+      }
+      
+      // Group events by location - use a Map to preserve insertion order and handle all locations
+      const eventsByLocation = new Map<string, any[]>();
+      const fittingsEvents: any[] = [];
+      const appointmentsEvents: any[] = [];
+      
+      for (const event of scheduleEventsForDate) {
+        const eventType = event.type?.toLowerCase() || '';
+        const eventTitle = event.title?.toLowerCase() || '';
+        
+        // Get participant names from the event, filtering out empty names
+        const castNames = (event.participants || [])
+          .map((p: any) => getParticipantName(p))
+          .filter((name: string) => name.length > 0);
+        
+        // Categorize events: fittings, meetings/appointments, or regular events
+        if (eventType === 'fitting' || eventTitle.includes('fitting') || eventTitle.includes('costume')) {
+          fittingsEvents.push({
+            id: event.id,
+            title: event.title,
+            startTime: formatTimeDisplay(event.startTime, timeFormat as '12' | '24'),
+            endTime: formatTimeDisplay(event.endTime, timeFormat as '12' | '24'),
+            cast: castNames,
+            notes: event.notes || '',
+            location: event.location || ''
+          });
+        } else if (eventType === 'meeting' || eventType === 'appointment' || eventTitle.includes('meeting') || eventTitle.includes('appointment')) {
+          appointmentsEvents.push({
+            id: event.id,
+            title: event.title,
+            startTime: formatTimeDisplay(event.startTime, timeFormat as '12' | '24'),
+            endTime: formatTimeDisplay(event.endTime, timeFormat as '12' | '24'),
+            cast: castNames,
+            notes: event.notes || '',
+            location: event.location || ''
+          });
+        } else {
+          // Regular events - group by location
+          const locationName = event.location || 'Main Location';
+          if (!eventsByLocation.has(locationName)) {
+            eventsByLocation.set(locationName, []);
+          }
+          
+          eventsByLocation.get(locationName)!.push({
+            id: event.id,
+            title: event.title,
+            startTime: formatTimeDisplay(event.startTime, timeFormat as '12' | '24'),
+            endTime: formatTimeDisplay(event.endTime, timeFormat as '12' | '24'),
+            cast: castNames,
+            notes: event.notes || ''
+          });
+        }
+      }
+      
+      // Convert location groups to the expected format, excluding END-OF-DAY entries
+      const newLocations: CallLocation[] = Array.from(eventsByLocation.entries()).map(([name, events]) => ({
+        name,
+        events: events
+          .filter(e => e.title !== 'END-OF-DAY')
+          .sort((a, b) => a.startTime.localeCompare(b.startTime))
+      }));
+      
+      // Update call data with imported events (replaces existing data)
+      setCallData(prev => ({
+        ...prev,
+        locations: newLocations.length > 0 ? newLocations : (prev.locations || []),
+        fittingsEvents: fittingsEvents.length > 0 ? fittingsEvents : prev.fittingsEvents,
+        appointmentsEvents: appointmentsEvents.length > 0 ? appointmentsEvents : prev.appointmentsEvents,
+      }));
+      
+      // Count imported items for feedback
+      const totalLocationEvents = Array.from(eventsByLocation.values()).flat().length;
+      const totalImported = totalLocationEvents + fittingsEvents.length + appointmentsEvents.length;
+      
+      toast({
+        title: "Import Successful",
+        description: `Imported ${totalImported} event${totalImported !== 1 ? 's' : ''} from schedule (${totalLocationEvents} regular, ${fittingsEvents.length} fittings, ${appointmentsEvents.length} meetings).`,
+      });
+      
+      setShowImportDialog(false);
+      setIsEditing(true);
+    } catch (error) {
+      console.error('Error importing from schedule:', error);
+      toast({
+        title: "Import Failed",
+        description: "Failed to import events from schedule. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setImportLoading(false);
+    }
   };
 
   const addEvent = (locationIndex: number) => {
@@ -1033,10 +1158,20 @@ export default function DailyCallSheet() {
               </Button>
             )}
             {isEditing && (
-              <Button onClick={handleSave} disabled={saveCallMutation.isPending}>
-                <Save className="h-4 w-4 mr-2" />
-                {saveCallMutation.isPending ? 'Saving...' : 'Save'}
-              </Button>
+              <>
+                <Button 
+                  onClick={() => setShowImportDialog(true)} 
+                  variant="outline"
+                  data-testid="button-import-schedule"
+                >
+                  <Import className="h-4 w-4 mr-2" />
+                  Import from Schedule
+                </Button>
+                <Button onClick={handleSave} disabled={saveCallMutation.isPending}>
+                  <Save className="h-4 w-4 mr-2" />
+                  {saveCallMutation.isPending ? 'Saving...' : 'Save'}
+                </Button>
+              </>
             )}
           </div>
         </div>
@@ -1797,6 +1932,37 @@ export default function DailyCallSheet() {
               data-testid="button-confirm-delete"
             >
               {deleteCallMutation.isPending ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Import from Schedule Confirmation Dialog */}
+      <AlertDialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Import from Schedule?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will import all scheduled events for {format(parseISO(selectedDate), 'MMMM d, yyyy')} into this daily call.
+              <br /><br />
+              Events will be categorized automatically:
+              <ul className="list-disc ml-4 mt-2">
+                <li>Regular events grouped by location</li>
+                <li>Fittings and costume events</li>
+                <li>Meetings and appointments</li>
+              </ul>
+              <br />
+              <strong>You can continue editing after import.</strong> Existing data will be replaced with the imported schedule.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={importLoading}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={importFromSchedule}
+              disabled={importLoading}
+              data-testid="button-confirm-import"
+            >
+              {importLoading ? 'Importing...' : 'Import'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
