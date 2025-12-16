@@ -11469,11 +11469,25 @@ Best regards,
             personalizedBodyHtml = personalizedBodyHtml.replace(new RegExp(variable, 'g'), value);
           });
 
+          // Wrap content in email-friendly HTML with consistent styling
+          const wrappedHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 20px; font-family: Arial, sans-serif; font-size: 16px; line-height: 1.6; color: #333333;">
+  <div style="max-width: 600px; margin: 0 auto;">
+    ${personalizedBodyHtml}
+  </div>
+</body>
+</html>`;
+          
           await sendEmailWithResend({
             to: [entry.email],
             bcc: ['bryan@backstageos.com'],
             subject: personalizedSubject,
-            html: personalizedBodyHtml
+            html: wrappedHtml
           });
           
           emailsSent++;
@@ -11554,11 +11568,25 @@ Best regards,
         testBody = testBody.replace(new RegExp(variable, 'g'), value);
       });
 
+      // Wrap content in email-friendly HTML with consistent styling
+      const wrappedHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 20px; font-family: Arial, sans-serif; font-size: 16px; line-height: 1.6; color: #333333;">
+  <div style="max-width: 600px; margin: 0 auto;">
+    ${testBody}
+  </div>
+</body>
+</html>`;
+      
       await sendEmailWithResend({
         to: [testEmail],
         bcc: ['bryan@backstageos.com'],
         subject: testSubject,
-        html: testBody
+        html: wrappedHtml
       });
       
       res.json({ 
