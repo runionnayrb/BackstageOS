@@ -1418,7 +1418,7 @@ export default function DailyCallSheet() {
                             value={location.name}
                             onValueChange={(value) => updateLocationName(locationIndex, value)}
                           >
-                            <SelectTrigger className="w-[200px] text-lg font-semibold" data-testid={`select-multi-location-${locationIndex}`}>
+                            <SelectTrigger className="w-auto border-0 p-0 text-lg font-semibold focus:ring-0 focus:ring-offset-0" data-testid={`select-multi-location-${locationIndex}`}>
                               <SelectValue placeholder="Select location">{location.name || 'Select location'}</SelectValue>
                             </SelectTrigger>
                             <SelectContent>
