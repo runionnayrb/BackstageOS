@@ -109,6 +109,10 @@ export default function DailyCallSheet() {
     enabled: !!actualProjectId,
   });
 
+  // Get the location names for fittings and appointments based on their location type
+  const fittingsLocationName = eventLocations.find((loc: any) => loc.locationType === 'fittings')?.name || '';
+  const appointmentsLocationName = eventLocations.find((loc: any) => loc.locationType === 'appointments')?.name || '';
+
   // Fetch existing daily call for the selected date
   const { data: existingDailyCall, isLoading } = useQuery<DailyCall>({
     queryKey: ['/api/projects', actualProjectId, 'daily-calls', selectedDate],
@@ -1925,7 +1929,8 @@ export default function DailyCallSheet() {
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           ) : (
-                            <div className="text-xs text-gray-600">{event.location}</div>
+                            (event.location || fittingsLocationName) && 
+                            <div className="text-xs text-gray-600">{event.location || fittingsLocationName}</div>
                           )}
                         </div>
                         {isEditing ? (
@@ -2019,7 +2024,8 @@ export default function DailyCallSheet() {
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           ) : (
-                            <div className="text-xs text-gray-600">{event.location}</div>
+                            (event.location || appointmentsLocationName) && 
+                            <div className="text-xs text-gray-600">{event.location || appointmentsLocationName}</div>
                           )}
                         </div>
                         {isEditing ? (
