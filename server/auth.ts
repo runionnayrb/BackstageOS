@@ -248,7 +248,7 @@ export function setupAuth(app: Express) {
   });
 
   // Login endpoint
-  app.post("/api/login", passport.authenticate("local"), (req, res) => {
+  app.post("/api/login", passport.authenticate("local"), async (req, res) => {
     const host = req.get('host') || '';
     
     console.log("Login successful:", {
@@ -260,6 +260,15 @@ export function setupAuth(app: Express) {
       cookieSecure: req.session?.cookie?.secure,
       userAgent: req.get('User-Agent')?.substring(0, 50)
     });
+    
+    // Update lastActiveAt timestamp on login
+    if (req.user?.id) {
+      try {
+        await storage.updateUser(req.user.id, { lastActiveAt: new Date() });
+      } catch (error) {
+        console.error("Failed to update lastActiveAt on login:", error);
+      }
+    }
     
     req.session.save((saveErr) => {
       if (saveErr) {

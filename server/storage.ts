@@ -4809,7 +4809,7 @@ export class DatabaseStorage implements IStorage {
           lastSession: lastSession?.startTime || null
         },
         costBreakdown,
-        lastSeen: lastSession?.startTime || null,
+        lastSeen: lastSession?.startTime || user.lastActiveAt || null,
         searchMetrics,
         // Include billing status fields for user status calculation
         isActive: user.isActive ?? true, // Default to true if not set
