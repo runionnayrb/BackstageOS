@@ -5,18 +5,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { format } from "date-fns";
-import { Edit2, Trash2, Save, X, CreditCard, Calendar, Settings } from "lucide-react";
+import { Trash2 } from "lucide-react";
 
 interface EditorProduction {
   projectId: number;
@@ -57,7 +56,7 @@ interface UserAnalytics {
   monthlyCost: number;
   topFeatures: Array<{ feature: string; usage: number; percentage: number }>;
   sessionStats: {
-    averageSession: number; // minutes
+    averageSession: number;
     totalSessions: number;
     lastSession: Date | null;
   };
@@ -75,16 +74,6 @@ interface UserAnalytics {
   productions?: EditorProduction[];
 }
 
-interface BillingPlan {
-  id: number;
-  planId: string;
-  name: string;
-  description?: string;
-  price: number;
-  billingInterval: string;
-  isActive: boolean;
-}
-
 interface UserAnalyticsStats {
   totalUsers: number;
   activeUsers: number;
@@ -95,8 +84,16 @@ interface UserAnalyticsStats {
 
 export default function EditorAnalytics() {
   const { toast } = useToast();
+  const [editingEditor, setEditingEditor] = useState<UserAnalytics | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editData, setEditData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    isActive: true,
+  });
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   
-  // Get all editors with analytics data
   const { data: editorAnalytics, isLoading: isLoadingAnalytics } = useQuery<UserAnalytics[]>({
     queryKey: ['/api/admin/editor-analytics'],
   });
@@ -105,19 +102,81 @@ export default function EditorAnalytics() {
     queryKey: ['/api/admin/editor-analytics-stats'],
   });
 
-  const { data: billingPlans = [] } = useQuery<BillingPlan[]>({
-    queryKey: ['/api/billing/plans'],
+  const updateMutation = useMutation({
+    mutationFn: async (data: { userId: number; updates: any }) => {
+      return await apiRequest("PATCH", `/api/admin/users/${data.userId}`, data.updates);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/editor-analytics"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/editor-analytics-stats"] });
+      toast({
+        title: "Editor updated successfully",
+        description: "Editor settings have been saved.",
+      });
+      setEditingEditor(null);
+      setIsEditDialogOpen(false);
+    },
+    onError: () => {
+      toast({
+        title: "Update failed",
+        description: "Failed to update editor settings.",
+        variant: "destructive",
+      });
+    },
   });
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
+  const deleteMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      return await apiRequest("DELETE", `/api/admin/users/${userId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/editor-analytics"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/editor-analytics-stats"] });
+      toast({
+        title: "Editor deleted",
+        description: "Editor has been permanently deleted.",
+      });
+      setIsEditDialogOpen(false);
+      setIsDeleteDialogOpen(false);
+      setEditingEditor(null);
+    },
+    onError: () => {
+      toast({
+        title: "Delete failed",
+        description: "Failed to delete editor.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleRowClick = (editor: UserAnalytics) => {
+    setEditingEditor(editor);
+    setEditData({
+      firstName: editor.firstName || '',
+      lastName: editor.lastName || '',
+      email: editor.email || '',
+      isActive: editor.isActive,
+    });
+    setIsEditDialogOpen(true);
   };
 
-  const formatPercentage = (value: number) => {
-    return `${value.toFixed(1)}%`;
+  const handleSave = () => {
+    if (!editingEditor) return;
+    updateMutation.mutate({
+      userId: editingEditor.id,
+      updates: editData
+    });
+  };
+
+  const handleCancel = () => {
+    setEditingEditor(null);
+    setIsEditDialogOpen(false);
+    setEditData({
+      firstName: '',
+      lastName: '',
+      email: '',
+      isActive: true,
+    });
   };
 
   const getActivityBadge = (level: string) => {
@@ -128,12 +187,6 @@ export default function EditorAnalytics() {
       inactive: 'bg-gray-100 text-gray-800'
     };
     return <Badge className={colors[level as keyof typeof colors]}>{level}</Badge>;
-  };
-
-  const getStatusBadge = (isActive: boolean) => {
-    return isActive ? 
-      <Badge className="bg-green-100 text-green-800">Active</Badge> :
-      <Badge className="bg-red-100 text-red-800">Inactive</Badge>;
   };
 
   if (isLoadingAnalytics || isLoadingStats) {
@@ -151,7 +204,6 @@ export default function EditorAnalytics() {
 
   return (
     <div className="space-y-6">
-      {/* Analytics Overview Cards */}
       {analyticsStats && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
@@ -170,7 +222,9 @@ export default function EditorAnalytics() {
             </CardHeader>
             <CardContent className="pt-0">
               <div className="text-2xl font-bold">
-                {formatCurrency(filteredEditors.reduce((sum, editor) => sum + editor.monthlyCost, 0))}
+                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(
+                  filteredEditors.reduce((sum, editor) => sum + editor.monthlyCost, 0)
+                )}
               </div>
               <p className="text-xs text-gray-500">total API spend</p>
             </CardContent>
@@ -197,11 +251,11 @@ export default function EditorAnalytics() {
           </Card>
         </div>
       )}
-      {/* Editor List */}
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>Editor Analytics & Management</span>
+            <span>Invited Editors</span>
             <div className="text-sm font-normal text-gray-600">
               {filteredEditors.length} editors
             </div>
@@ -218,24 +272,28 @@ export default function EditorAnalytics() {
                   <TableHead>Account Status</TableHead>
                   <TableHead>Activity</TableHead>
                   <TableHead>Last Seen</TableHead>
-                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredEditors.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-gray-500 p-4">
+                    <TableCell colSpan={6} className="text-center text-gray-500 p-4">
                       No editors found.
                     </TableCell>
                   </TableRow>
                 )}
                 {filteredEditors.map((editor) => (
-                  <TableRow key={editor.id} className="cursor-pointer hover:bg-gray-50">
+                  <TableRow 
+                    key={editor.id} 
+                    className="cursor-pointer hover:bg-gray-50"
+                    onClick={() => handleRowClick(editor)}
+                    data-testid={`row-editor-${editor.id}`}
+                  >
                     <TableCell>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <div className="space-y-1">
-                            <div className="font-medium">
+                      <HoverCard>
+                        <HoverCardTrigger asChild>
+                          <div className="space-y-1" onClick={(e) => e.stopPropagation()}>
+                            <div className="font-medium hover:underline cursor-pointer">
                               {editor.firstName && editor.lastName 
                                 ? `${editor.firstName} ${editor.lastName}` 
                                 : editor.email}
@@ -244,9 +302,9 @@ export default function EditorAnalytics() {
                               {editor.email}
                             </div>
                           </div>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-80">
-                          <div className="space-y-3">
+                        </HoverCardTrigger>
+                        <HoverCardContent className="w-80">
+                          <div className="space-y-2">
                             <div className="font-medium">{editor.email}</div>
                             <div className="text-sm space-y-1">
                               <div>Profile: {editor.profileType || 'Not set'}</div>
@@ -254,65 +312,18 @@ export default function EditorAnalytics() {
                               <div>Sessions: {editor.sessionStats.totalSessions}</div>
                               <div>Avg Session: {editor.sessionStats.averageSession} min</div>
                             </div>
-
-                            {editor.searchMetrics && editor.searchMetrics.totalSearches > 0 && (
-                              <div>
-                                <div className="text-sm font-medium mb-1">Search Usage (30 days):</div>
-                                <div className="space-y-1 text-xs">
-                                  <div className="flex justify-between">
-                                    <span>Total Searches:</span>
-                                    <span>{editor.searchMetrics.totalSearches}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span>Daily Searches:</span>
-                                    <span>{editor.searchMetrics.dailySearches}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span>Natural Language:</span>
-                                    <span>{editor.searchMetrics.naturalLanguageSearches}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span>Advanced Searches:</span>
-                                    <span>{editor.searchMetrics.advancedSearches}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span>Avg Response Time:</span>
-                                    <span>{editor.searchMetrics.averageResponseTime}ms</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span>Search Cost:</span>
-                                    <span>{formatCurrency(editor.searchMetrics.searchCost)}</span>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-
-                            {editor.costBreakdown.length > 0 && (
-                              <div>
-                                <div className="text-sm font-medium mb-1">Cost Breakdown:</div>
-                                <div className="space-y-1 text-xs">
-                                  {editor.costBreakdown.map((item, idx) => (
-                                    <div key={idx} className="flex justify-between">
-                                      <span>{item.service}:</span>
-                                      <span>{formatCurrency(item.cost)} ({item.requests} calls)</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-
                           </div>
-                        </PopoverContent>
-                      </Popover>
+                        </HoverCardContent>
+                      </HoverCard>
                     </TableCell>
 
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <div className="text-sm">
                         {editor.invitedBy || 'Unknown'}
                       </div>
                     </TableCell>
 
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <Popover>
                         <PopoverTrigger asChild>
                           <div className="cursor-pointer">
@@ -335,7 +346,7 @@ export default function EditorAnalytics() {
                           <div className="space-y-3">
                             <div className="font-medium">Productions</div>
                             {editor.productions && editor.productions.length > 0 ? (
-                              <div className="space-y-2">
+                              <div className="space-y-2 max-h-60 overflow-y-auto">
                                 {editor.productions.map((production, idx) => (
                                   <div key={idx} className="p-2 border rounded-lg text-sm">
                                     <div className="font-medium">{production.projectName}</div>
@@ -400,19 +411,6 @@ export default function EditorAnalytics() {
                         : 'Never'
                       }
                     </TableCell>
-
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => console.log('Edit editor:', editor.id)}
-                          data-testid={`button-edit-editor-${editor.id}`}
-                        >
-                          <Settings className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -420,6 +418,99 @@ export default function EditorAnalytics() {
           </div>
         </CardContent>
       </Card>
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Editor</DialogTitle>
+            <DialogDescription>
+              Make changes to the editor's account settings.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="firstName" className="text-right">
+                First Name
+              </Label>
+              <Input
+                id="firstName"
+                value={editData.firstName}
+                onChange={(e) => setEditData({ ...editData, firstName: e.target.value })}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="lastName" className="text-right">
+                Last Name
+              </Label>
+              <Input
+                id="lastName"
+                value={editData.lastName}
+                onChange={(e) => setEditData({ ...editData, lastName: e.target.value })}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="email" className="text-right">
+                Email
+              </Label>
+              <Input
+                id="email"
+                value={editData.email}
+                onChange={(e) => setEditData({ ...editData, email: e.target.value })}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="isActive" className="text-right">
+                Active
+              </Label>
+              <Switch
+                id="isActive"
+                checked={editData.isActive}
+                onCheckedChange={(checked) => setEditData({ ...editData, isActive: checked })}
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex justify-between sm:justify-between">
+            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="sm" data-testid="button-delete-editor">
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Editor</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to permanently delete "{editingEditor?.firstName && editingEditor?.lastName ? `${editingEditor.firstName} ${editingEditor.lastName}` : editingEditor?.email}"? 
+                    This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => editingEditor && deleteMutation.mutate(editingEditor.id)}
+                    className="bg-red-600 hover:bg-red-700"
+                    disabled={deleteMutation.isPending}
+                  >
+                    {deleteMutation.isPending ? "Deleting..." : "Delete"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={handleCancel}>
+                Cancel
+              </Button>
+              <Button onClick={handleSave} disabled={updateMutation.isPending}>
+                {updateMutation.isPending ? "Saving..." : "Save changes"}
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

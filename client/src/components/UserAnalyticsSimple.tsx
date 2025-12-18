@@ -4,19 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
-import { Edit2, Trash2, Save, X, CreditCard, Calendar, Settings } from "lucide-react";
+import { Trash2 } from "lucide-react";
 
 
 interface UserAnalytics {
@@ -24,6 +22,7 @@ interface UserAnalytics {
   email: string;
   firstName: string | null;
   lastName: string | null;
+  username?: string | null;
   profileType: string | null;
   betaAccess: boolean;
   betaFeatures: string[] | null;
@@ -42,7 +41,7 @@ interface UserAnalytics {
   monthlyCost: number;
   topFeatures: Array<{ feature: string; usage: number; percentage: number }>;
   sessionStats: {
-    averageSession: number; // minutes
+    averageSession: number;
     totalSessions: number;
     lastSession: Date | null;
   };
@@ -75,17 +74,10 @@ interface UserAnalyticsStats {
   topFeature: string;
 }
 
-const BETA_FEATURES = [
-  { id: "script-editor", label: "Script Editor" },
-  { id: "advanced-reports", label: "Advanced Reports" },
-  { id: "email-system", label: "Email System" },
-  { id: "task-management", label: "Task Management" },
-  { id: "performance-tracker", label: "Performance Tracker" },
-];
-
 export default function UserAnalyticsSimple() {
   const [editingUser, setEditingUser] = useState<UserAnalytics | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editData, setEditData] = useState({
     firstName: '',
     lastName: '',
@@ -101,12 +93,10 @@ export default function UserAnalyticsSimple() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch billing plans for subscription management
   const { data: billingPlans = [] } = useQuery<BillingPlan[]>({
     queryKey: ["/api/billing/plans"],
   });
 
-  // Fetch profile types for dynamic dropdown
   const { data: profileTypes = [] } = useQuery({
     queryKey: ['/api/admin/account-types'],
     select: (data: any[]) => data || [],
@@ -114,12 +104,6 @@ export default function UserAnalyticsSimple() {
 
   const { data: users = [], isLoading, error } = useQuery<UserAnalytics[]>({
     queryKey: ["/api/admin/user-analytics"],
-    onError: (error) => {
-      console.error('Failed to fetch user analytics:', error);
-    },
-    onSuccess: (data) => {
-      console.log('User analytics data received:', data);
-    }
   });
 
   const { data: stats } = useQuery<UserAnalyticsStats>({
@@ -160,6 +144,9 @@ export default function UserAnalyticsSimple() {
         title: "User deleted",
         description: "User has been permanently deleted.",
       });
+      setIsEditDialogOpen(false);
+      setIsDeleteDialogOpen(false);
+      setEditingUser(null);
     },
     onError: () => {
       toast({
@@ -170,28 +157,7 @@ export default function UserAnalyticsSimple() {
     },
   });
 
-  // Update user subscription mutation
-  const updateSubscriptionMutation = useMutation({
-    mutationFn: (data: { userId: number; subscriptionData: any }) =>
-      apiRequest("PUT", `/api/admin/users/${data.userId}/subscription`, data.subscriptionData),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/user-analytics"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/analytics-stats"] });
-      toast({
-        title: "Success",
-        description: "User subscription updated successfully",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update subscription",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleEdit = (user: UserAnalytics) => {
+  const handleRowClick = (user: UserAnalytics) => {
     setEditingUser(user);
     setEditData({
       firstName: user.firstName || '',
@@ -211,7 +177,6 @@ export default function UserAnalyticsSimple() {
   const handleSave = () => {
     if (!editingUser) return;
     
-    // Convert UI values back to database format
     const dataToSave = {
       ...editData,
       subscriptionStatus: editData.subscriptionStatus === 'free' ? null : editData.subscriptionStatus,
@@ -284,10 +249,6 @@ export default function UserAnalyticsSimple() {
     }
   };
 
-  const handleUpdateUserSubscription = (userId: number, subscriptionData: any) => {
-    updateSubscriptionMutation.mutate({ userId, subscriptionData });
-  };
-
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -303,7 +264,6 @@ export default function UserAnalyticsSimple() {
 
   return (
     <div className="space-y-6">
-      {/* Summary Stats */}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
@@ -348,11 +308,10 @@ export default function UserAnalyticsSimple() {
         </div>
       )}
 
-      {/* User List */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>User Analytics & Management</span>
+            <span>Users</span>
             <div className="text-sm font-normal text-gray-600">
               {users.length} users
             </div>
@@ -370,31 +329,35 @@ export default function UserAnalyticsSimple() {
                 <TableHead>Cost/Month</TableHead>
                 <TableHead>Top Features</TableHead>
                 <TableHead>Last Seen</TableHead>
-                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {error && (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center text-red-500 p-4">
-                    Error loading users: {error.message || 'Unknown error'}
+                    Error loading users: {(error as any).message || 'Unknown error'}
                   </TableCell>
                 </TableRow>
               )}
               {!error && users.length === 0 && !isLoading && (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center text-gray-500 p-4">
-                    No users found. Debug: users array length = {users.length}
+                    No users found.
                   </TableCell>
                 </TableRow>
               )}
               {users.map((user) => (
-                <TableRow key={user.id} className="cursor-pointer hover:bg-gray-50">
+                <TableRow 
+                  key={user.id} 
+                  className="cursor-pointer hover:bg-gray-50"
+                  onClick={() => handleRowClick(user)}
+                  data-testid={`row-user-${user.id}`}
+                >
                   <TableCell>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <div className="space-y-1">
-                          <div className="font-medium">
+                    <HoverCard>
+                      <HoverCardTrigger asChild>
+                        <div className="space-y-1" onClick={(e) => e.stopPropagation()}>
+                          <div className="font-medium hover:underline cursor-pointer">
                             {user.firstName && user.lastName 
                               ? `${user.firstName} ${user.lastName}` 
                               : user.email}
@@ -404,9 +367,9 @@ export default function UserAnalyticsSimple() {
                             {user.profileType && `${user.profileType}`}
                           </div>
                         </div>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-80">
-                        <div className="space-y-3">
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-80">
+                        <div className="space-y-2">
                           <div className="font-medium">{user.email}</div>
                           <div className="text-sm space-y-1">
                             <div>Profile: {user.profileType || 'Not set'}</div>
@@ -414,56 +377,9 @@ export default function UserAnalyticsSimple() {
                             <div>Sessions: {user.sessionStats.totalSessions}</div>
                             <div>Avg Session: {formatTime(user.sessionStats.averageSession)}</div>
                           </div>
-
-                          {user.searchMetrics && user.searchMetrics.totalSearches > 0 && (
-                            <div>
-                              <div className="text-sm font-medium mb-1">Search Usage (30 days):</div>
-                              <div className="space-y-1 text-xs">
-                                <div className="flex justify-between">
-                                  <span>Total Searches:</span>
-                                  <span>{user.searchMetrics.totalSearches}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span>Daily Searches:</span>
-                                  <span>{user.searchMetrics.dailySearches}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span>Natural Language:</span>
-                                  <span>{user.searchMetrics.naturalLanguageSearches}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span>Advanced Searches:</span>
-                                  <span>{user.searchMetrics.advancedSearches}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span>Avg Response Time:</span>
-                                  <span>{user.searchMetrics.averageResponseTime}ms</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span>Search Cost:</span>
-                                  <span>{formatCurrency(user.searchMetrics.searchCost)}</span>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-
-                          {user.costBreakdown.length > 0 && (
-                            <div>
-                              <div className="text-sm font-medium mb-1">Cost Breakdown:</div>
-                              <div className="space-y-1 text-xs">
-                                {user.costBreakdown.map((item, idx) => (
-                                  <div key={idx} className="flex justify-between">
-                                    <span>{item.service}:</span>
-                                    <span>{formatCurrency(item.cost)} ({item.requests} calls)</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
                         </div>
-                      </PopoverContent>
-                    </Popover>
+                      </HoverCardContent>
+                    </HoverCard>
                   </TableCell>
 
                   <TableCell>
@@ -521,73 +437,11 @@ export default function UserAnalyticsSimple() {
                       : 'Never'
                     }
                   </TableCell>
-
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {editingUser?.id === user.id ? (
-                        <>
-                          <Button
-                            size="sm"
-                            onClick={handleSave}
-                            disabled={updateMutation.isPending}
-                          >
-                            <Save className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={handleCancel}
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                disabled={deleteMutation.isPending}
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete User</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to permanently delete user "{user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.email}"? 
-                                  This action cannot be undone and will remove all user data.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => deleteMutation.mutate(user.id)}
-                                  className="bg-red-600 hover:bg-red-700"
-                                  disabled={deleteMutation.isPending}
-                                >
-                                  {deleteMutation.isPending ? "Deleting..." : "Delete User"}
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </>
-                      ) : (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleEdit(user)}
-                        >
-                          <Settings className="h-3 w-3" />
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
 
-          {/* Comprehensive User Edit Dialog */}
           <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
@@ -598,7 +452,6 @@ export default function UserAnalyticsSimple() {
               </DialogHeader>
               
               <div className="grid grid-cols-2 gap-6">
-                {/* Personal Information */}
                 <div className="space-y-4">
                   <div className="font-medium text-sm text-gray-700">Personal Information</div>
                   
@@ -644,7 +497,6 @@ export default function UserAnalyticsSimple() {
                   </div>
                 </div>
 
-                {/* Account & Subscription Settings */}
                 <div className="space-y-4">
                   <div className="font-medium text-sm text-gray-700">Account & Subscription</div>
                   
@@ -742,24 +594,51 @@ export default function UserAnalyticsSimple() {
                 </div>
               </div>
 
-              <DialogFooter className="flex gap-2">
-                <Button variant="outline" onClick={handleCancel}>
-                  Cancel
-                </Button>
-                <Button 
-                  onClick={handleSave}
-                  disabled={updateMutation.isPending}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  {updateMutation.isPending ? "Saving..." : "Save Changes"}
-                </Button>
+              <DialogFooter className="flex justify-between sm:justify-between">
+                <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="sm" data-testid="button-delete-user">
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete User</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to permanently delete "{editingUser?.firstName && editingUser?.lastName ? `${editingUser.firstName} ${editingUser.lastName}` : editingUser?.email}"? 
+                        This action cannot be undone and will remove all user data.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => editingUser && deleteMutation.mutate(editingUser.id)}
+                        className="bg-red-600 hover:bg-red-700"
+                        disabled={deleteMutation.isPending}
+                      >
+                        {deleteMutation.isPending ? "Deleting..." : "Delete"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={handleCancel}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleSave}
+                    disabled={updateMutation.isPending}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    {updateMutation.isPending ? "Saving..." : "Save Changes"}
+                  </Button>
+                </div>
               </DialogFooter>
             </DialogContent>
           </Dialog>
         </CardContent>
       </Card>
-
-
     </div>
   );
 }
