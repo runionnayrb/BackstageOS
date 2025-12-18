@@ -6140,19 +6140,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getEditorAnalytics(): Promise<any[]> {
-    // Get user analytics data but filter for editors only
-    const allAnalytics = await this.getUserAnalytics();
-    const editorAnalytics = allAnalytics.filter(user => user.userRole === 'editor');
-    
-    if (editorAnalytics.length === 0) {
-      return [];
-    }
-    
-    // Batch fetch: Get all team member entries for ALL editors in one query
-    const editorIds = editorAnalytics.map(e => e.id);
-    const editorEmails = editorAnalytics.map(e => e.email);
-    
-    // Single query to get all team member entries with project and owner info
+    // Get all users who were invited to productions (have entries in teamMembers table)
+    // First, get all team member entries with user and project info
     const allTeamMemberEntries = await db.select({
       teamMemberUserId: teamMembers.userId,
       teamMemberEmail: teamMembers.email,
@@ -6169,20 +6158,36 @@ export class DatabaseStorage implements IStorage {
     })
     .from(teamMembers)
     .innerJoin(projects, eq(teamMembers.projectId, projects.id))
-    .innerJoin(users, eq(projects.ownerId, users.id))
-    .where(
-      or(
-        sql`${teamMembers.userId} IN (${sql.join(editorIds, sql`, `)})`,
-        sql`${teamMembers.email} IN (${sql.join(editorEmails.map(e => sql`${e}`), sql`, `)})`
-      )
+    .innerJoin(users, eq(projects.ownerId, users.id));
+    
+    if (allTeamMemberEntries.length === 0) {
+      return [];
+    }
+    
+    // Get unique user IDs and emails from team members (invited editors)
+    const invitedUserIds = new Set<number>();
+    const invitedEmails = new Set<string>();
+    
+    for (const entry of allTeamMemberEntries) {
+      if (entry.teamMemberUserId) {
+        invitedUserIds.add(entry.teamMemberUserId);
+      }
+      if (entry.teamMemberEmail) {
+        invitedEmails.add(entry.teamMemberEmail);
+      }
+    }
+    
+    // Get full analytics for these invited users
+    const allAnalytics = await this.getUserAnalytics();
+    const invitedEditorAnalytics = allAnalytics.filter(user => 
+      invitedUserIds.has(user.id) || invitedEmails.has(user.email)
     );
     
     // Group team member entries by editor
     const teamMembersByEditor = new Map<number, typeof allTeamMemberEntries>();
     
     for (const entry of allTeamMemberEntries) {
-      // Find the matching editor by userId or email
-      const matchingEditor = editorAnalytics.find(
+      const matchingEditor = invitedEditorAnalytics.find(
         e => e.id === entry.teamMemberUserId || e.email === entry.teamMemberEmail
       );
       
@@ -6195,7 +6200,7 @@ export class DatabaseStorage implements IStorage {
     }
     
     // Enrich each editor with their production and inviter info
-    const enrichedEditorAnalytics = editorAnalytics.map(editor => {
+    const enrichedEditorAnalytics = invitedEditorAnalytics.map(editor => {
       const teamMemberEntries = teamMembersByEditor.get(editor.id) || [];
       
       // Build unique inviters list
@@ -6238,9 +6243,30 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getNonEditorUserAnalytics(): Promise<any[]> {
-    // Get user analytics data but filter for non-editors only (user/admin roles)
+    // Get users who were NOT invited to any production (don't have entries in teamMembers table)
+    // First, get all invited user IDs and emails
+    const allTeamMemberEntries = await db.select({
+      userId: teamMembers.userId,
+      email: teamMembers.email,
+    }).from(teamMembers);
+    
+    const invitedUserIds = new Set<number>();
+    const invitedEmails = new Set<string>();
+    
+    for (const entry of allTeamMemberEntries) {
+      if (entry.userId) {
+        invitedUserIds.add(entry.userId);
+      }
+      if (entry.email) {
+        invitedEmails.add(entry.email);
+      }
+    }
+    
+    // Get all user analytics, excluding those who were invited
     const allAnalytics = await this.getUserAnalytics();
-    return allAnalytics.filter(user => user.userRole === 'user' || user.userRole === 'admin');
+    return allAnalytics.filter(user => 
+      !invitedUserIds.has(user.id) && !invitedEmails.has(user.email)
+    );
   }
 
   async getNonEditorAnalyticsStats(): Promise<any> {
