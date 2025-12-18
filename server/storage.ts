@@ -6142,7 +6142,99 @@ export class DatabaseStorage implements IStorage {
   async getEditorAnalytics(): Promise<any[]> {
     // Get user analytics data but filter for editors only
     const allAnalytics = await this.getUserAnalytics();
-    return allAnalytics.filter(user => user.userRole === 'editor');
+    const editorAnalytics = allAnalytics.filter(user => user.userRole === 'editor');
+    
+    if (editorAnalytics.length === 0) {
+      return [];
+    }
+    
+    // Batch fetch: Get all team member entries for ALL editors in one query
+    const editorIds = editorAnalytics.map(e => e.id);
+    const editorEmails = editorAnalytics.map(e => e.email);
+    
+    // Single query to get all team member entries with project and owner info
+    const allTeamMemberEntries = await db.select({
+      teamMemberUserId: teamMembers.userId,
+      teamMemberEmail: teamMembers.email,
+      projectId: teamMembers.projectId,
+      role: teamMembers.role,
+      accessLevel: teamMembers.accessLevel,
+      status: teamMembers.status,
+      invitedAt: teamMembers.invitedAt,
+      projectName: projects.name,
+      ownerId: projects.ownerId,
+      ownerFirstName: users.firstName,
+      ownerLastName: users.lastName,
+      ownerEmail: users.email,
+    })
+    .from(teamMembers)
+    .innerJoin(projects, eq(teamMembers.projectId, projects.id))
+    .innerJoin(users, eq(projects.ownerId, users.id))
+    .where(
+      or(
+        sql`${teamMembers.userId} IN (${sql.join(editorIds, sql`, `)})`,
+        sql`${teamMembers.email} IN (${sql.join(editorEmails.map(e => sql`${e}`), sql`, `)})`
+      )
+    );
+    
+    // Group team member entries by editor
+    const teamMembersByEditor = new Map<number, typeof allTeamMemberEntries>();
+    
+    for (const entry of allTeamMemberEntries) {
+      // Find the matching editor by userId or email
+      const matchingEditor = editorAnalytics.find(
+        e => e.id === entry.teamMemberUserId || e.email === entry.teamMemberEmail
+      );
+      
+      if (matchingEditor) {
+        if (!teamMembersByEditor.has(matchingEditor.id)) {
+          teamMembersByEditor.set(matchingEditor.id, []);
+        }
+        teamMembersByEditor.get(matchingEditor.id)!.push(entry);
+      }
+    }
+    
+    // Enrich each editor with their production and inviter info
+    const enrichedEditorAnalytics = editorAnalytics.map(editor => {
+      const teamMemberEntries = teamMembersByEditor.get(editor.id) || [];
+      
+      // Build unique inviters list
+      const inviterMap = new Map<number, { id: number; name: string; email: string }>();
+      for (const entry of teamMemberEntries) {
+        if (!inviterMap.has(entry.ownerId)) {
+          inviterMap.set(entry.ownerId, {
+            id: entry.ownerId,
+            name: entry.ownerFirstName && entry.ownerLastName 
+              ? `${entry.ownerFirstName} ${entry.ownerLastName}`.trim()
+              : entry.ownerEmail,
+            email: entry.ownerEmail
+          });
+        }
+      }
+      const inviters = Array.from(inviterMap.values());
+      
+      // Build productions list with inviter info
+      const productions = teamMemberEntries.map(entry => ({
+        projectId: entry.projectId,
+        projectName: entry.projectName,
+        role: entry.role,
+        accessLevel: entry.accessLevel,
+        status: entry.status,
+        invitedAt: entry.invitedAt,
+        invitedBy: entry.ownerFirstName && entry.ownerLastName 
+          ? `${entry.ownerFirstName} ${entry.ownerLastName}`.trim()
+          : entry.ownerEmail
+      }));
+      
+      return {
+        ...editor,
+        invitedBy: inviters.length > 0 ? inviters.map(i => i.name).join(', ') : 'Unknown',
+        inviters,
+        productions
+      };
+    });
+    
+    return enrichedEditorAnalytics;
   }
 
   async getNonEditorUserAnalytics(): Promise<any[]> {

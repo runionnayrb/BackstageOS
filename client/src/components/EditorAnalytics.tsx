@@ -18,6 +18,22 @@ import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
 import { Edit2, Trash2, Save, X, CreditCard, Calendar, Settings } from "lucide-react";
 
+interface EditorProduction {
+  projectId: number;
+  projectName: string;
+  role: string;
+  accessLevel: string;
+  status: string;
+  invitedAt: string | null;
+  invitedBy: string;
+}
+
+interface EditorInviter {
+  id: number;
+  name: string;
+  email: string;
+}
+
 interface UserAnalytics {
   id: number;
   email: string;
@@ -54,6 +70,9 @@ interface UserAnalytics {
     averageResponseTime: number;
     searchCost: number;
   };
+  invitedBy?: string;
+  inviters?: EditorInviter[];
+  productions?: EditorProduction[];
 }
 
 interface BillingPlan {
@@ -194,12 +213,10 @@ export default function EditorAnalytics() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Editor</TableHead>
+                  <TableHead>Invited By</TableHead>
+                  <TableHead>Productions</TableHead>
                   <TableHead>Account Status</TableHead>
-                  <TableHead>Subscription</TableHead>
                   <TableHead>Activity</TableHead>
-                  <TableHead>Cost/Day</TableHead>
-                  <TableHead>Cost/Month</TableHead>
-                  <TableHead>Top Features</TableHead>
                   <TableHead>Last Seen</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -207,7 +224,7 @@ export default function EditorAnalytics() {
               <TableBody>
                 {filteredEditors.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center text-gray-500 p-4">
+                    <TableCell colSpan={7} className="text-center text-gray-500 p-4">
                       No editors found.
                     </TableCell>
                   </TableRow>
@@ -222,10 +239,9 @@ export default function EditorAnalytics() {
                               {editor.firstName && editor.lastName 
                                 ? `${editor.firstName} ${editor.lastName}` 
                                 : editor.email}
-                              {editor.isAdmin && <span className="text-xs text-blue-600 ml-2">Admin</span>}
                             </div>
                             <div className="text-sm text-gray-500">
-                              {editor.profileType && `${editor.profileType}`}
+                              {editor.email}
                             </div>
                           </div>
                         </PopoverTrigger>
@@ -291,6 +307,81 @@ export default function EditorAnalytics() {
                     </TableCell>
 
                     <TableCell>
+                      <div className="text-sm">
+                        {editor.invitedBy || 'Unknown'}
+                      </div>
+                    </TableCell>
+
+                    <TableCell>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <div className="cursor-pointer">
+                            {editor.productions && editor.productions.length > 0 ? (
+                              <div className="space-y-1">
+                                <Badge variant="outline" className="text-xs">
+                                  {editor.productions.length} production{editor.productions.length !== 1 ? 's' : ''}
+                                </Badge>
+                                <div className="text-xs text-gray-500 truncate max-w-[150px]">
+                                  {editor.productions[0]?.projectName}
+                                  {editor.productions.length > 1 && ` +${editor.productions.length - 1} more`}
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-sm text-gray-400">None</span>
+                            )}
+                          </div>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80">
+                          <div className="space-y-3">
+                            <div className="font-medium">Productions</div>
+                            {editor.productions && editor.productions.length > 0 ? (
+                              <div className="space-y-2">
+                                {editor.productions.map((production, idx) => (
+                                  <div key={idx} className="p-2 border rounded-lg text-sm">
+                                    <div className="font-medium">{production.projectName}</div>
+                                    <div className="text-xs text-gray-500 space-y-1 mt-1">
+                                      <div className="flex justify-between">
+                                        <span>Role:</span>
+                                        <span>{production.role}</span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span>Access:</span>
+                                        <Badge variant="secondary" className="text-xs">
+                                          {production.accessLevel}
+                                        </Badge>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span>Status:</span>
+                                        <Badge 
+                                          variant={production.status === 'accepted' ? 'default' : 'secondary'}
+                                          className="text-xs"
+                                        >
+                                          {production.status}
+                                        </Badge>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span>Invited by:</span>
+                                        <span>{production.invitedBy}</span>
+                                      </div>
+                                      {production.invitedAt && (
+                                        <div className="flex justify-between">
+                                          <span>Invited:</span>
+                                          <span>{format(new Date(production.invitedAt), 'MMM d, yyyy')}</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="text-sm text-gray-500">No productions found</div>
+                            )}
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </TableCell>
+
+                    <TableCell>
                       <Badge 
                         variant={editor.isActive ? "outline" : "destructive"}
                         className={editor.isActive ? "border-green-500 text-green-700" : ""}
@@ -300,37 +391,7 @@ export default function EditorAnalytics() {
                     </TableCell>
 
                     <TableCell>
-                      <div className="space-y-1">
-                        <Badge variant="secondary" className="border-purple-500 text-purple-700">
-                          Free
-                        </Badge>
-                        {editor.grandfatheredFree && (
-                          <Badge variant="secondary" className="text-xs">Grandfathered</Badge>
-                        )}
-                      </div>
-                    </TableCell>
-
-                    <TableCell>
                       {getActivityBadge(editor.activityLevel)}
-                    </TableCell>
-
-                    <TableCell className="font-mono text-sm">
-                      {formatCurrency(editor.dailyCost)}
-                    </TableCell>
-
-                    <TableCell className="font-mono text-sm">
-                      {formatCurrency(editor.monthlyCost)}
-                    </TableCell>
-
-                    <TableCell>
-                      <div className="space-y-1 text-xs">
-                        {editor.topFeatures.slice(0, 2).map((feature, idx) => (
-                          <div key={idx} className="flex items-center justify-between">
-                            <span>{feature.feature}</span>
-                            <span className="text-gray-500">{feature.percentage}%</span>
-                          </div>
-                        ))}
-                      </div>
                     </TableCell>
 
                     <TableCell className="text-sm text-gray-500">
@@ -346,6 +407,7 @@ export default function EditorAnalytics() {
                           size="sm"
                           variant="outline"
                           onClick={() => console.log('Edit editor:', editor.id)}
+                          data-testid={`button-edit-editor-${editor.id}`}
                         >
                           <Settings className="h-3 w-3" />
                         </Button>
