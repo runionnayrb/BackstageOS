@@ -85,6 +85,14 @@ const DEFAULT_FEATURES: FeatureConfig[] = [
     status: 'implemented',
     enabled: true,
   },
+  {
+    id: 'document-templates',
+    name: 'Document Templates',
+    description: 'Upload custom Word templates for exporting running orders, reports, and other documents',
+    category: 'Reports & Templates',
+    status: 'implemented',
+    enabled: true,
+  },
   
   // Team Management - Implemented
   {
