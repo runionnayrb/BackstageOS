@@ -1442,7 +1442,8 @@ The Production Team`
     const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
       ? safeJsonParse((settings as any).scheduleSettings, {}) 
       : ((settings as any)?.scheduleSettings || {});
-    const runningOrder = runningOrderData || scheduleSettings.runningOrder || [];
+    const rawRunningOrder = runningOrderData || scheduleSettings.runningOrder || [];
+    const runningOrder = Array.isArray(rawRunningOrder) ? rawRunningOrder : [];
     const inShowItems = runningOrder.filter((item: any) => item.inShow !== false);
     
     const doc = new jsPDF({
