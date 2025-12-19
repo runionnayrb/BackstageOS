@@ -205,12 +205,37 @@ class BetaSettingsStore {
   };
 
   getBetaSettings(): BetaSettingsData {
-    return this.settings;
+    // Merge stored settings with DEFAULT_FEATURES to ensure new features are always included
+    const storedFeatureIds = new Set(this.settings.features.map(f => f.id));
+    const mergedFeatures = [...this.settings.features];
+    
+    // Add any new features from DEFAULT_FEATURES that aren't in stored settings
+    for (const defaultFeature of DEFAULT_FEATURES) {
+      if (!storedFeatureIds.has(defaultFeature.id)) {
+        mergedFeatures.push(defaultFeature);
+      }
+    }
+    
+    return {
+      ...this.settings,
+      features: mergedFeatures
+    };
   }
 
   updateBetaSettings(newSettings: BetaSettingsData): BetaSettingsData {
+    // Merge with DEFAULT_FEATURES before saving to preserve any new features
+    const newFeatureIds = new Set(newSettings.features.map(f => f.id));
+    const mergedFeatures = [...newSettings.features];
+    
+    for (const defaultFeature of DEFAULT_FEATURES) {
+      if (!newFeatureIds.has(defaultFeature.id)) {
+        mergedFeatures.push(defaultFeature);
+      }
+    }
+    
     this.settings = {
       ...newSettings,
+      features: mergedFeatures,
       updatedAt: new Date()
     };
     return this.settings;
