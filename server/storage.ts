@@ -6141,7 +6141,7 @@ export class DatabaseStorage implements IStorage {
 
   async getEditorAnalytics(): Promise<any[]> {
     // Get all users who were invited to productions (have entries in teamMembers table)
-    // EXCLUDING entries where the user is the owner of the project
+    // First, get all team member entries with user and project info
     const allTeamMemberEntries = await db.select({
       teamMemberUserId: teamMembers.userId,
       teamMemberEmail: teamMembers.email,
@@ -6164,24 +6164,11 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
     
-    // Filter out entries where the team member is the project owner
-    const nonOwnerEntries = allTeamMemberEntries.filter(entry => {
-      // Exclude if userId matches ownerId
-      if (entry.teamMemberUserId && entry.teamMemberUserId === entry.ownerId) {
-        return false;
-      }
-      return true;
-    });
-    
-    if (nonOwnerEntries.length === 0) {
-      return [];
-    }
-    
-    // Get unique user IDs and emails from team members (invited editors, excluding owners)
+    // Get unique user IDs and emails from team members (invited editors)
     const invitedUserIds = new Set<number>();
     const invitedEmails = new Set<string>();
     
-    for (const entry of nonOwnerEntries) {
+    for (const entry of allTeamMemberEntries) {
       if (entry.teamMemberUserId) {
         invitedUserIds.add(entry.teamMemberUserId);
       }
@@ -6196,10 +6183,10 @@ export class DatabaseStorage implements IStorage {
       invitedUserIds.has(user.id) || invitedEmails.has(user.email)
     );
     
-    // Group team member entries by editor (using filtered non-owner entries)
-    const teamMembersByEditor = new Map<number, typeof nonOwnerEntries>();
+    // Group team member entries by editor
+    const teamMembersByEditor = new Map<number, typeof allTeamMemberEntries>();
     
-    for (const entry of nonOwnerEntries) {
+    for (const entry of allTeamMemberEntries) {
       const matchingEditor = invitedEditorAnalytics.find(
         e => e.id === entry.teamMemberUserId || e.email === entry.teamMemberEmail
       );
@@ -6256,34 +6243,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getNonEditorUserAnalytics(): Promise<any[]> {
-    // Get users who were NOT invited to any production by someone else
-    // Users should appear here if:
-    // 1. They have no team_members entries at all, OR
-    // 2. They only have team_members entries for projects they own
-    
-    // Get all team member entries with project owner info
+    // Get users who were NOT invited to any production (don't have entries in teamMembers table)
+    // First, get all invited user IDs and emails
     const allTeamMemberEntries = await db.select({
       userId: teamMembers.userId,
       email: teamMembers.email,
-      projectId: teamMembers.projectId,
-      ownerId: projects.ownerId,
-    })
-    .from(teamMembers)
-    .innerJoin(projects, eq(teamMembers.projectId, projects.id));
+    }).from(teamMembers);
     
-    // Filter to only non-owner entries (entries where user was invited by someone else)
-    const nonOwnerEntries = allTeamMemberEntries.filter(entry => {
-      if (entry.userId && entry.userId === entry.ownerId) {
-        return false; // Exclude entries where user is the project owner
-      }
-      return true;
-    });
-    
-    // Get user IDs and emails that were actually invited by others
     const invitedUserIds = new Set<number>();
     const invitedEmails = new Set<string>();
     
-    for (const entry of nonOwnerEntries) {
+    for (const entry of allTeamMemberEntries) {
       if (entry.userId) {
         invitedUserIds.add(entry.userId);
       }
@@ -6292,7 +6262,7 @@ export class DatabaseStorage implements IStorage {
       }
     }
     
-    // Get all user analytics, excluding those who were invited by others
+    // Get all user analytics, excluding those who were invited
     const allAnalytics = await this.getUserAnalytics();
     return allAnalytics.filter(user => 
       !invitedUserIds.has(user.id) && !invitedEmails.has(user.email)
