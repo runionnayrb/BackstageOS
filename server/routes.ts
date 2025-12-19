@@ -19425,6 +19425,133 @@ The Production Team`;
     }
   });
 
+  // Generate PDF from template (processes Word template and converts to PDF)
+  app.post('/api/projects/:projectId/generate-document-pdf', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const { documentType, data, footerText } = req.body;
+
+      if (!documentType || !data) {
+        return res.status(400).json({ message: 'Document type and data are required' });
+      }
+
+      // Get active template for this document type
+      const template = await storage.getDocumentTemplateByType(projectId, documentType);
+
+      if (!template) {
+        return res.status(404).json({ 
+          message: 'No active template found for this document type',
+          useDefault: true 
+        });
+      }
+
+      // Import the processor and mammoth for DOCX to HTML conversion
+      const { DocumentTemplateProcessor } = await import('./services/documentTemplateProcessor.js');
+      const mammoth = await import('mammoth');
+      const puppeteer = await import('puppeteer');
+
+      // Process the template
+      const processor = new DocumentTemplateProcessor(template.filePath);
+      await processor.loadTemplate();
+      const docxBuffer = await processor.render(data);
+
+      // Convert DOCX to HTML using mammoth
+      const { value: htmlContent } = await mammoth.convertToHtml({ buffer: docxBuffer });
+
+      // Create full HTML document with styling and footer
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+      const footer = footerText || `Published: ${dateStr} at ${timeStr}`;
+
+      const fullHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            @page {
+              size: letter;
+              margin: 1in;
+              @bottom-left {
+                content: "${footer}";
+                font-family: Helvetica, Arial, sans-serif;
+                font-size: 9pt;
+              }
+            }
+            body {
+              font-family: Helvetica, Arial, sans-serif;
+              font-size: 11pt;
+              line-height: 1.4;
+              color: #000;
+              margin: 0;
+              padding: 0;
+            }
+            h1, h2, h3, h4, h5, h6 {
+              margin-top: 0.5em;
+              margin-bottom: 0.3em;
+            }
+            p {
+              margin: 0.3em 0;
+            }
+            ul, ol {
+              margin: 0.3em 0;
+              padding-left: 1.5em;
+            }
+            .footer {
+              position: fixed;
+              bottom: 0;
+              left: 0;
+              right: 0;
+              font-size: 9pt;
+              color: #333;
+              padding: 0 1in 0.4in 1in;
+            }
+          </style>
+        </head>
+        <body>
+          ${htmlContent}
+          <div class="footer">${footer}</div>
+        </body>
+        </html>
+      `;
+
+      // Launch puppeteer and convert HTML to PDF
+      const browser = await puppeteer.default.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+      });
+      const page = await browser.newPage();
+      await page.setContent(fullHtml, { waitUntil: 'networkidle0' });
+      
+      const pdfBuffer = await page.pdf({
+        format: 'letter',
+        margin: {
+          top: '1in',
+          right: '1in',
+          bottom: '1in',
+          left: '1in'
+        },
+        printBackground: true,
+        displayHeaderFooter: true,
+        footerTemplate: `<div style="font-size: 9px; padding: 0 40px; width: 100%;">${footer}</div>`,
+        headerTemplate: '<div></div>'
+      });
+
+      await browser.close();
+
+      // Set response headers for PDF download
+      const filename = `${data.show?.title || documentType}_${Date.now()}.pdf`;
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Length', pdfBuffer.length);
+      
+      res.send(Buffer.from(pdfBuffer));
+    } catch (error: any) {
+      console.error('Error generating PDF from template:', error);
+      res.status(500).json({ message: error.message || 'Failed to generate PDF' });
+    }
+  });
+
   // Check if a custom template exists for a document type
   app.get('/api/projects/:projectId/has-custom-template/:documentType', isAuthenticated, async (req: any, res) => {
     try {

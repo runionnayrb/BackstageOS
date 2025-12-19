@@ -1464,26 +1464,32 @@ The Production Team`
           group: item.group || '',
         }));
         
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+        
         const templateData = {
           show: {
-            title: project?.name || '',
-            venue: project?.venue || '',
+            title: project?.name || 'Running Order',
+            venue: (project as any)?.venue || '',
           },
           runningOrder: {
             version: scheduleSettings.runningOrderVersion || '1.0',
-            title: project?.name || '',
-            date: new Date().toLocaleDateString(),
+            title: project?.name || 'Running Order',
+            date: dateStr,
           },
           scenes: scenesData,
         };
         
-        const generateResponse = await fetch(`/api/projects/${project?.id}/generate-document`, {
+        // Use the PDF generation endpoint
+        const generateResponse = await fetch(`/api/projects/${project?.id}/generate-document-pdf`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
           body: JSON.stringify({
             documentType: 'running_order',
             data: templateData,
+            footerText: `Published: ${dateStr} at ${timeStr}`,
           }),
         });
         
@@ -1492,9 +1498,7 @@ The Production Team`
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
-          const now = new Date();
-          const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-          a.download = `${project?.name || 'Running Order'}_Running_Order_${dateStr}.docx`;
+          a.download = `${project?.name || 'Running Order'}_Running_Order_-_${dateStr}.pdf`;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
