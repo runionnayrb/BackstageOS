@@ -7284,12 +7284,24 @@ Best regards,
 
       // Get settings from database, fallback to default if not found
       let settings = await storage.getBetaSettings(environment);
+      const { betaSettingsStore, DEFAULT_FEATURES } = await import('./betaSettingsStore.ts');
+      
       if (!settings) {
-        // Import default settings from store
-        const { betaSettingsStore } = await import('./betaSettingsStore.ts');
+        // Use default settings from store
         const defaultSettings = betaSettingsStore.getBetaSettings();
         settings = defaultSettings;
       } else {
+        // Merge database settings with DEFAULT_FEATURES to ensure new features appear
+        const storedFeatureIds = new Set(settings.features.map((f: any) => f.id));
+        const mergedFeatures = [...settings.features];
+        
+        for (const defaultFeature of DEFAULT_FEATURES) {
+          if (!storedFeatureIds.has(defaultFeature.id)) {
+            mergedFeatures.push(defaultFeature);
+          }
+        }
+        
+        settings = { ...settings, features: mergedFeatures };
       }
       
       // Beta settings successfully loaded from database

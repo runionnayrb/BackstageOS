@@ -15,7 +15,7 @@ interface BetaSettingsData {
 }
 
 // Default feature configuration organized by current implementation status
-const DEFAULT_FEATURES: FeatureConfig[] = [
+export const DEFAULT_FEATURES: FeatureConfig[] = [
   // Core Production Tools - Implemented
   {
     id: 'script-editor',
