@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Users, Settings, Mail, Trash2, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';

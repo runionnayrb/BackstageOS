@@ -8,7 +8,7 @@ import { isAdmin } from "@/lib/admin";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useAdminView } from "@/contexts/AdminViewContext";
 import GlobalSearchBar from "@/components/search/GlobalSearchBar";
 

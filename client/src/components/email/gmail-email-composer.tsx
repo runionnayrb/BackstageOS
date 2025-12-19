@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { X, Send, ChevronDown, Paperclip, MoreHorizontal, FileText, Clock, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';

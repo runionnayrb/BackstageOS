@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { formatTimeDisplay, parseScheduleSettings, formatAsCalendarDate } from '@/lib/timeUtils';
 import { filterEventsBySettings, getTimezoneAbbreviation, calculateEventLayouts } from '@/lib/scheduleUtils';

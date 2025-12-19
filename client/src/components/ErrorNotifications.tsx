@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { ErrorNotification } from '@shared/schema';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
