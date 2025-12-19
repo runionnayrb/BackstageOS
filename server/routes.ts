@@ -19146,5 +19146,306 @@ The Production Team`;
   const { default: emailForwardingRoutes } = await import("./routes/emailForwarding.js");
   app.use("/api/email-forwarding", emailForwardingRoutes);
 
+  // ========== DOCUMENT TEMPLATES ==========
+  
+  // Configure multer for document template uploads (docx/xlsx files)
+  const documentTemplateUpload = multer({
+    storage: multer.diskStorage({
+      destination: (req: any, file: any, cb: any) => {
+        const uploadDir = path.join(process.cwd(), 'uploads', 'document-templates');
+        if (!fs.existsSync(uploadDir)) {
+          fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        cb(null, uploadDir);
+      },
+      filename: (req: any, file: any, cb: any) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const ext = path.extname(file.originalname);
+        cb(null, `template-${uniqueSuffix}${ext}`);
+      }
+    }),
+    limits: {
+      fileSize: 10 * 1024 * 1024 // 10MB limit
+    },
+    fileFilter: (req: any, file: any, cb: any) => {
+      const allowedTypes = [
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+      ];
+      if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only .docx and .xlsx files are allowed'));
+      }
+    }
+  });
+
+  // Get all document templates for a project
+  app.get('/api/projects/:projectId/document-templates', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const templates = await storage.getDocumentTemplatesByProjectId(projectId);
+      res.json(templates);
+    } catch (error) {
+      console.error('Error fetching document templates:', error);
+      res.status(500).json({ message: 'Failed to fetch document templates' });
+    }
+  });
+
+  // Get a specific document template
+  app.get('/api/document-templates/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const template = await storage.getDocumentTemplateById(id);
+      if (!template) {
+        return res.status(404).json({ message: 'Template not found' });
+      }
+      res.json(template);
+    } catch (error) {
+      console.error('Error fetching document template:', error);
+      res.status(500).json({ message: 'Failed to fetch document template' });
+    }
+  });
+
+  // Upload a new document template
+  app.post('/api/projects/:projectId/document-templates', isAuthenticated, documentTemplateUpload.single('file'), async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      
+      if (!req.file) {
+        return res.status(400).json({ message: 'No file uploaded' });
+      }
+
+      const { name, description, documentType } = req.body;
+      
+      if (!name || !documentType) {
+        return res.status(400).json({ message: 'Name and document type are required' });
+      }
+
+      const fileType = req.file.originalname.endsWith('.docx') ? 'docx' : 'xlsx';
+      
+      const template = await storage.createDocumentTemplate({
+        projectId,
+        name,
+        description: description || null,
+        documentType,
+        fileType,
+        filePath: `/uploads/document-templates/${req.file.filename}`,
+        originalFileName: req.file.originalname,
+        isActive: true
+      });
+
+      res.status(201).json(template);
+    } catch (error) {
+      console.error('Error creating document template:', error);
+      res.status(500).json({ message: 'Failed to create document template' });
+    }
+  });
+
+  // Update a document template
+  app.patch('/api/document-templates/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { name, description, isActive } = req.body;
+      
+      const template = await storage.updateDocumentTemplate(id, {
+        name,
+        description,
+        isActive
+      });
+      
+      res.json(template);
+    } catch (error) {
+      console.error('Error updating document template:', error);
+      res.status(500).json({ message: 'Failed to update document template' });
+    }
+  });
+
+  // Delete a document template
+  app.delete('/api/document-templates/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // Get the template to delete the file
+      const template = await storage.getDocumentTemplateById(id);
+      if (template) {
+        const filePath = path.join(process.cwd(), template.filePath);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      }
+      
+      await storage.deleteDocumentTemplate(id);
+      res.json({ message: 'Template deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting document template:', error);
+      res.status(500).json({ message: 'Failed to delete document template' });
+    }
+  });
+
+  // Set active template for a document type
+  app.post('/api/projects/:projectId/document-templates/:id/activate', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const templateId = parseInt(req.params.id);
+      
+      const template = await storage.getDocumentTemplateById(templateId);
+      if (!template) {
+        return res.status(404).json({ message: 'Template not found' });
+      }
+      
+      await storage.setActiveDocumentTemplate(projectId, template.documentType, templateId);
+      res.json({ message: 'Template activated successfully' });
+    } catch (error) {
+      console.error('Error activating document template:', error);
+      res.status(500).json({ message: 'Failed to activate document template' });
+    }
+  });
+
+  // Get available template variables for a document type
+  app.get('/api/projects/:projectId/document-template-variables/:documentType', isAuthenticated, async (req: any, res) => {
+    try {
+      const { documentType } = req.params;
+      
+      // Define available variables for each document type
+      const variablesByType: Record<string, Array<{ key: string; description: string; example: string }>> = {
+        report: [
+          { key: '{{show.title}}', description: 'Show/project title', example: 'Hamilton' },
+          { key: '{{show.venue}}', description: 'Venue name', example: 'Broadway Theatre' },
+          { key: '{{show.openingNight}}', description: 'Opening night date', example: 'January 15, 2025' },
+          { key: '{{report.title}}', description: 'Report title', example: 'Rehearsal Report #5' },
+          { key: '{{report.date}}', description: 'Report date', example: 'December 19, 2024' },
+          { key: '{{report.notes}}', description: 'Report notes content', example: 'General notes...' },
+        ],
+        daily_call: [
+          { key: '{{show.title}}', description: 'Show/project title', example: 'Hamilton' },
+          { key: '{{show.venue}}', description: 'Venue name', example: 'Broadway Theatre' },
+          { key: '{{call.date}}', description: 'Call date', example: 'December 19, 2024' },
+          { key: '{{call.generalCall}}', description: 'General call time', example: '10:00 AM' },
+          { key: '{{#calls}}...{{/calls}}', description: 'Loop through individual calls', example: 'Repeating section' },
+          { key: '{{call.time}}', description: 'Individual call time (inside loop)', example: '10:30 AM' },
+          { key: '{{call.description}}', description: 'Call description (inside loop)', example: 'Fight call' },
+          { key: '{{call.location}}', description: 'Call location (inside loop)', example: 'Main Stage' },
+        ],
+        contacts: [
+          { key: '{{show.title}}', description: 'Show/project title', example: 'Hamilton' },
+          { key: '{{#contacts}}...{{/contacts}}', description: 'Loop through all contacts', example: 'Repeating section' },
+          { key: '{{contact.name}}', description: 'Contact full name', example: 'John Smith' },
+          { key: '{{contact.preferredName}}', description: 'Contact preferred name', example: 'Johnny' },
+          { key: '{{contact.email}}', description: 'Contact email', example: 'john@example.com' },
+          { key: '{{contact.phone}}', description: 'Contact phone', example: '555-123-4567' },
+          { key: '{{contact.role}}', description: 'Contact role/position', example: 'Stage Manager' },
+          { key: '{{contact.department}}', description: 'Contact department', example: 'Production' },
+        ],
+        running_order: [
+          { key: '{{show.title}}', description: 'Show/project title', example: 'Hamilton' },
+          { key: '{{show.venue}}', description: 'Venue name', example: 'Broadway Theatre' },
+          { key: '{{runningOrder.version}}', description: 'Running order version', example: 'v2.1' },
+          { key: '{{#scenes}}...{{/scenes}}', description: 'Loop through scenes', example: 'Repeating section' },
+          { key: '{{scene.number}}', description: 'Scene number (inside loop)', example: '1' },
+          { key: '{{scene.name}}', description: 'Scene name (inside loop)', example: 'Opening' },
+          { key: '{{scene.duration}}', description: 'Scene duration (inside loop)', example: '5:30' },
+          { key: '{{scene.notes}}', description: 'Scene notes (inside loop)', example: 'Quick change' },
+        ],
+        cast_list: [
+          { key: '{{show.title}}', description: 'Show/project title', example: 'Hamilton' },
+          { key: '{{#cast}}...{{/cast}}', description: 'Loop through cast members', example: 'Repeating section' },
+          { key: '{{cast.name}}', description: 'Cast member name', example: 'John Smith' },
+          { key: '{{cast.character}}', description: 'Character name', example: 'Hamilton' },
+          { key: '{{cast.email}}', description: 'Cast member email', example: 'john@example.com' },
+          { key: '{{cast.phone}}', description: 'Cast member phone', example: '555-123-4567' },
+        ],
+        crew_list: [
+          { key: '{{show.title}}', description: 'Show/project title', example: 'Hamilton' },
+          { key: '{{#crew}}...{{/crew}}', description: 'Loop through crew members', example: 'Repeating section' },
+          { key: '{{crew.name}}', description: 'Crew member name', example: 'Jane Doe' },
+          { key: '{{crew.role}}', description: 'Crew role/position', example: 'Lighting Designer' },
+          { key: '{{crew.department}}', description: 'Crew department', example: 'Electrics' },
+          { key: '{{crew.email}}', description: 'Crew member email', example: 'jane@example.com' },
+          { key: '{{crew.phone}}', description: 'Crew member phone', example: '555-987-6543' },
+        ],
+        schedule: [
+          { key: '{{show.title}}', description: 'Show/project title', example: 'Hamilton' },
+          { key: '{{schedule.weekOf}}', description: 'Week start date', example: 'December 16, 2024' },
+          { key: '{{#events}}...{{/events}}', description: 'Loop through events', example: 'Repeating section' },
+          { key: '{{event.title}}', description: 'Event title (inside loop)', example: 'Rehearsal' },
+          { key: '{{event.date}}', description: 'Event date (inside loop)', example: 'Dec 19' },
+          { key: '{{event.startTime}}', description: 'Event start time (inside loop)', example: '10:00 AM' },
+          { key: '{{event.endTime}}', description: 'Event end time (inside loop)', example: '6:00 PM' },
+          { key: '{{event.location}}', description: 'Event location (inside loop)', example: 'Main Stage' },
+        ],
+      };
+
+      const variables = variablesByType[documentType] || [];
+      res.json(variables);
+    } catch (error) {
+      console.error('Error fetching template variables:', error);
+      res.status(500).json({ message: 'Failed to fetch template variables' });
+    }
+  });
+
+  // Generate document from template
+  app.post('/api/projects/:projectId/generate-document', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const { documentType, data } = req.body;
+
+      if (!documentType || !data) {
+        return res.status(400).json({ message: 'Document type and data are required' });
+      }
+
+      // Get active template for this document type
+      const template = await storage.getDocumentTemplateByType(projectId, documentType);
+
+      if (!template) {
+        return res.status(404).json({ 
+          message: 'No active template found for this document type',
+          useDefault: true 
+        });
+      }
+
+      // Import the processor
+      const { DocumentTemplateProcessor } = await import('./services/documentTemplateProcessor.js');
+
+      // Process the template
+      const processor = new DocumentTemplateProcessor(template.filePath);
+      await processor.loadTemplate();
+      const buffer = await processor.render(data);
+
+      // Set response headers for file download
+      const filename = `${documentType}_${Date.now()}.docx`;
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Length', buffer.length);
+      
+      res.send(buffer);
+    } catch (error: any) {
+      console.error('Error generating document:', error);
+      res.status(500).json({ message: error.message || 'Failed to generate document' });
+    }
+  });
+
+  // Check if a custom template exists for a document type
+  app.get('/api/projects/:projectId/has-custom-template/:documentType', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const { documentType } = req.params;
+
+      const template = await storage.getDocumentTemplateByType(projectId, documentType);
+      
+      res.json({ 
+        hasTemplate: !!template,
+        template: template ? {
+          id: template.id,
+          name: template.name,
+          fileType: template.fileType
+        } : null
+      });
+    } catch (error) {
+      console.error('Error checking template:', error);
+      res.status(500).json({ message: 'Failed to check template' });
+    }
+  });
+
   return server;
 }

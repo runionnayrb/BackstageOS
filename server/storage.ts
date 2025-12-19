@@ -92,6 +92,7 @@ import {
   scheduleTemplates,
   scheduleTemplateEvents,
   scheduleTemplateEventParticipants,
+  documentTemplates,
 
   type User,
   type UpsertUser,
@@ -263,6 +264,8 @@ import {
   type InsertScheduleTemplateEvent,
   type ScheduleTemplateEventParticipant,
   type InsertScheduleTemplateEventParticipant,
+  type DocumentTemplate,
+  type InsertDocumentTemplate,
 
 } from "@shared/schema";
 import { db } from "./db";
@@ -6544,6 +6547,65 @@ export class DatabaseStorage implements IStorage {
   async removeScheduleTemplateEventParticipants(templateEventId: number): Promise<void> {
     await db.delete(scheduleTemplateEventParticipants)
       .where(eq(scheduleTemplateEventParticipants.templateEventId, templateEventId));
+  }
+
+  // ========== DOCUMENT TEMPLATES ==========
+
+  async getDocumentTemplatesByProjectId(projectId: number): Promise<DocumentTemplate[]> {
+    const result = await db.select()
+      .from(documentTemplates)
+      .where(eq(documentTemplates.projectId, projectId))
+      .orderBy(documentTemplates.documentType, documentTemplates.name);
+    return result;
+  }
+
+  async getDocumentTemplateById(id: number): Promise<DocumentTemplate | undefined> {
+    const result = await db.select()
+      .from(documentTemplates)
+      .where(eq(documentTemplates.id, id));
+    return result[0];
+  }
+
+  async getDocumentTemplateByType(projectId: number, documentType: string): Promise<DocumentTemplate | undefined> {
+    const result = await db.select()
+      .from(documentTemplates)
+      .where(and(
+        eq(documentTemplates.projectId, projectId),
+        eq(documentTemplates.documentType, documentType),
+        eq(documentTemplates.isActive, true)
+      ));
+    return result[0];
+  }
+
+  async createDocumentTemplate(template: InsertDocumentTemplate): Promise<DocumentTemplate> {
+    const result = await db.insert(documentTemplates).values(template).returning();
+    return result[0];
+  }
+
+  async updateDocumentTemplate(id: number, updates: Partial<InsertDocumentTemplate>): Promise<DocumentTemplate> {
+    const result = await db.update(documentTemplates)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(documentTemplates.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteDocumentTemplate(id: number): Promise<void> {
+    await db.delete(documentTemplates).where(eq(documentTemplates.id, id));
+  }
+
+  async setActiveDocumentTemplate(projectId: number, documentType: string, templateId: number): Promise<void> {
+    // First, deactivate all templates of this type for the project
+    await db.update(documentTemplates)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(and(
+        eq(documentTemplates.projectId, projectId),
+        eq(documentTemplates.documentType, documentType)
+      ));
+    // Then activate the selected template
+    await db.update(documentTemplates)
+      .set({ isActive: true, updatedAt: new Date() })
+      .where(eq(documentTemplates.id, templateId));
   }
 
 }

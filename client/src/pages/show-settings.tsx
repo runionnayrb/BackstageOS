@@ -28,6 +28,7 @@ import { TeamMembersList } from "@/components/team/TeamMembersList";
 import { ManageTeamRolesModal } from "@/components/team/ManageTeamRolesModal";
 import { GlobalTemplateSettingsContent } from "@/components/GlobalTemplateSettingsContent";
 import { ScheduleTemplatesSection } from "@/components/schedule-templates/ScheduleTemplatesSection";
+import { DocumentTemplatesSection } from "@/components/document-templates/DocumentTemplatesSection";
 import {
   Dialog,
   DialogContent,
@@ -1980,6 +1981,10 @@ The Production Team`
             <Calendar className="h-4 w-4" />
             Schedule
           </TabsTrigger>
+          <TabsTrigger value="documents" className="flex items-center gap-2 flex-1">
+            <FileText className="h-4 w-4" />
+            Documents
+          </TabsTrigger>
         </TabsList>
 
         {/* Mobile dropdown - shown only on mobile */}
@@ -2028,6 +2033,12 @@ The Production Team`
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
                   Schedule
+                </div>
+              </SelectItem>
+              <SelectItem value="documents">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Documents
                 </div>
               </SelectItem>
               <SelectItem value="running-order">
@@ -4777,6 +4788,20 @@ The Production Team`}
             </CardHeader>
             <CardContent>
               <PersonalScheduleShare projectId={parseInt(params.id)} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="documents" className="mt-6">
+          <Card className="border-0 shadow-none">
+            <CardHeader>
+              <CardTitle>Document Templates</CardTitle>
+              <CardDescription>
+                Upload custom Word or Excel templates to use when exporting documents. Templates use placeholder variables that get replaced with your show data.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <DocumentTemplatesSection projectId={parseInt(params.id)} />
             </CardContent>
           </Card>
         </TabsContent>

@@ -4129,3 +4129,55 @@ export type SearchSuggestion = typeof searchSuggestions.$inferSelect;
 export type InsertSearchSuggestion = z.infer<typeof insertSearchSuggestionSchema>;
 export type SearchAnalytics = typeof searchAnalytics.$inferSelect;
 export type InsertSearchAnalytics = z.infer<typeof insertSearchAnalyticsSchema>;
+
+// ========== DOCUMENT TEMPLATES SYSTEM ==========
+
+// Document template types that can be customized
+export const DOCUMENT_TEMPLATE_TYPES = [
+  'report',
+  'daily_call',
+  'contacts',
+  'running_order',
+  'cast_list',
+  'crew_list',
+  'schedule',
+] as const;
+
+export type DocumentTemplateType = typeof DOCUMENT_TEMPLATE_TYPES[number];
+
+// Document templates table for storing uploaded Word/Excel templates
+export const documentTemplates = pgTable("document_templates", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  documentType: varchar("document_type").notNull(), // 'report', 'daily_call', 'contacts', 'running_order', etc.
+  fileType: varchar("file_type").notNull(), // 'docx' or 'xlsx'
+  filePath: varchar("file_path").notNull(), // Path to uploaded template file
+  originalFileName: varchar("original_file_name").notNull(),
+  isActive: boolean("is_active").default(true), // Whether this template is currently used for exports
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// ========== DOCUMENT TEMPLATES RELATIONS ==========
+
+export const documentTemplatesRelations = relations(documentTemplates, ({ one }) => ({
+  project: one(projects, {
+    fields: [documentTemplates.projectId],
+    references: [projects.id],
+  }),
+}));
+
+// ========== DOCUMENT TEMPLATES INSERT SCHEMAS ==========
+
+export const insertDocumentTemplateSchema = createInsertSchema(documentTemplates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// ========== DOCUMENT TEMPLATES TYPES ==========
+
+export type DocumentTemplate = typeof documentTemplates.$inferSelect;
+export type InsertDocumentTemplate = z.infer<typeof insertDocumentTemplateSchema>;

@@ -21,7 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Upload, Trash2, Save, Mail, Download } from "lucide-react";
+import { Upload, Trash2, Save, Mail, Download, FileText } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -94,6 +94,11 @@ export default function ReportViewer() {
 
   const { data: reportTypes = [] } = useQuery<any[]>({
     queryKey: [`/api/projects/${projectId}/report-types`],
+  });
+
+  const { data: customTemplateInfo } = useQuery<{ hasTemplate: boolean; template: { id: number; name: string; fileType: string } | null }>({
+    queryKey: ['/api/projects', projectId, 'has-custom-template', 'report'],
+    enabled: !!projectId,
   });
 
   // Find the V2 template for this report (used only to initialize stableTemplate)
@@ -477,6 +482,85 @@ export default function ReportViewer() {
     setShowEmailModal(true);
   };
 
+  const handleDownloadWithTemplate = async () => {
+    try {
+      if (!customTemplateInfo?.hasTemplate) {
+        toast({
+          title: "No Custom Template",
+          description: "No custom template is configured for reports. Please upload one in Show Settings > Documents.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const templateData = {
+        show: {
+          title: project?.name || "",
+          venue: project?.venue || "",
+          openingNight: project?.openingNight ? new Date(project.openingNight).toLocaleDateString() : "",
+        },
+        report: {
+          title: report?.title || "",
+          date: report?.date ? new Date(report.date).toLocaleDateString() : new Date().toLocaleDateString(),
+          notes: "",
+          type: reportType,
+        },
+        sections: stableTemplate?.sections?.map((section: any) => ({
+          name: section.name || "",
+          content: section.fields?.map((field: any) => ({
+            label: field.label || "",
+            value: contentRef.current[field.label] || field.defaultValue || "",
+          })) || [],
+        })) || [],
+      };
+
+      const response = await fetch(`/api/projects/${projectId}/generate-document`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          documentType: 'report',
+          data: templateData,
+        }),
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        if (error.useDefault) {
+          toast({
+            title: "No Custom Template",
+            description: "No active custom template found. Using default PDF export instead.",
+          });
+          handleDownloadPDF();
+          return;
+        }
+        throw new Error(error.message || 'Failed to generate document');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${project?.name || 'Show'}_${report?.title || 'Report'}_${new Date().toISOString().split('T')[0]}.docx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: "Success",
+        description: "Report downloaded using your custom template",
+      });
+    } catch (error: any) {
+      console.error('Template document generation error:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to generate document from template",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Find the report type ID for this report based on template
   // The template has a reportTypeId field that points to the report type
   const currentReportTypeId = foundTemplate?.reportTypeId || 0;
@@ -529,6 +613,12 @@ export default function ReportViewer() {
                   <Download className="h-4 w-4 mr-2" />
                   {isSettingsLoading ? "Loading..." : "Download PDF"}
                 </DropdownMenuItem>
+                {customTemplateInfo?.hasTemplate && (
+                  <DropdownMenuItem onClick={handleDownloadWithTemplate}>
+                    <FileText className="h-4 w-4 mr-2" />
+                    Download with Template
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
             

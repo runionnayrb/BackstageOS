@@ -106,6 +106,11 @@ export default function Personnel() {
     enabled: !!projectId,
   });
 
+  // Check for custom document template for contacts
+  const { data: customTemplateInfo } = useQuery<{ hasTemplate: boolean; template: { id: number; name: string; fileType: string } | null }>({
+    queryKey: ['/api/projects', projectId, 'has-custom-template', 'contacts'],
+    enabled: !!projectId,
+  });
 
   // Load groups from API on mount
   useEffect(() => {
@@ -352,6 +357,79 @@ export default function Personnel() {
     }
   };
 
+  const handleDownloadWithTemplate = async () => {
+    try {
+      if (!customTemplateInfo?.hasTemplate) {
+        toast({
+          title: "No Custom Template",
+          description: "No custom template is configured for contacts. Please upload one in Show Settings > Documents.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const templateData = {
+        show: {
+          title: (project as any)?.name || "",
+        },
+        contacts: allContacts.map((contact: Contact) => ({
+          name: `${contact.firstName} ${contact.lastName}`.trim(),
+          preferredName: contact.preferredName || "",
+          email: contact.email || "",
+          phone: contact.phone || "",
+          role: contact.role || "",
+          department: contactGroups.find(g => g.id === contact.groupId)?.name || "",
+          notes: contact.notes || "",
+        })),
+      };
+
+      const response = await fetch(`/api/projects/${projectId}/generate-document`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          documentType: 'contacts',
+          data: templateData,
+        }),
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        if (error.useDefault) {
+          toast({
+            title: "No Custom Template",
+            description: "No active custom template found. Using default PDF export instead.",
+          });
+          handleDownloadContactSheet();
+          return;
+        }
+        throw new Error(error.message || 'Failed to generate document');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${(project as any)?.name || 'Show'}_Contacts_${new Date().toISOString().split('T')[0]}.docx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: "Success",
+        description: "Contacts downloaded using your custom template",
+      });
+    } catch (error: any) {
+      console.error('Template document generation error:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to generate document from template",
+        variant: "destructive",
+      });
+    }
+  };
+
   const formatPhoneNumber = (phone: string | undefined): string => {
     if (!phone) return '';
     
@@ -421,6 +499,11 @@ export default function Personnel() {
                   <DropdownMenuItem onClick={handleDownloadFacesheet}>
                     Download Face Sheet (PDF)
                   </DropdownMenuItem>
+                  {customTemplateInfo?.hasTemplate && (
+                    <DropdownMenuItem onClick={handleDownloadWithTemplate}>
+                      Download with Template
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
