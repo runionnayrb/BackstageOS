@@ -1438,7 +1438,7 @@ The Production Team`
     return html;
   };
 
-  const downloadRunningOrderPDF = (runningOrderData?: any[]) => {
+  const downloadRunningOrderPDF = async (runningOrderData?: any[]) => {
     const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
       ? safeJsonParse((settings as any).scheduleSettings, {}) 
       : ((settings as any)?.scheduleSettings || {});
@@ -1446,6 +1446,68 @@ The Production Team`
     const runningOrder = Array.isArray(rawRunningOrder) ? rawRunningOrder : [];
     const inShowItems = runningOrder.filter((item: any) => item.inShow !== false);
     
+    // Check if there's a custom template for running_order
+    try {
+      const templateCheckResponse = await fetch(`/api/projects/${project?.id}/has-custom-template/running_order`, {
+        credentials: 'include'
+      });
+      const templateCheck = await templateCheckResponse.json();
+      
+      if (templateCheck.hasTemplate) {
+        // Use custom template - prepare scenes data from running order items
+        const scenesData = inShowItems.map((item: any, index: number) => ({
+          number: item.number || (index + 1).toString(),
+          name: item.name || '',
+          duration: item.duration || '',
+          notes: item.notes || '',
+          characters: item.characters || '',
+          group: item.group || '',
+        }));
+        
+        const templateData = {
+          show: {
+            title: project?.name || '',
+            venue: project?.venue || '',
+          },
+          runningOrder: {
+            version: scheduleSettings.runningOrderVersion || '1.0',
+            title: project?.name || '',
+            date: new Date().toLocaleDateString(),
+          },
+          scenes: scenesData,
+        };
+        
+        const generateResponse = await fetch(`/api/projects/${project?.id}/generate-document`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            documentType: 'running_order',
+            data: templateData,
+          }),
+        });
+        
+        if (generateResponse.ok) {
+          const blob = await generateResponse.blob();
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          const now = new Date();
+          const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+          a.download = `${project?.name || 'Running Order'}_Running_Order_${dateStr}.docx`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          return;
+        }
+      }
+    } catch (error) {
+      console.error('Error checking/using custom template:', error);
+      // Fall through to default PDF generation
+    }
+    
+    // Default PDF generation (no custom template)
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'in',
@@ -2619,7 +2681,7 @@ The Production Team`
                         <Mail className="h-4 w-4 mr-2" />
                         Email
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={downloadRunningOrderPDF} data-testid="menu-item-download-pdf">
+                      <DropdownMenuItem onClick={() => downloadRunningOrderPDF()} data-testid="menu-item-download-pdf">
                         <Download className="h-4 w-4 mr-2" />
                         Download PDF
                       </DropdownMenuItem>
