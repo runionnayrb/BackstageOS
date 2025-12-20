@@ -1,0 +1,25 @@
+BackstageOS:1 The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+BackstageOS:1 The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+BackstageOS:1 The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+daily-calls.tsx:1194 === PDF PAGE BREAK DEBUG ===
+daily-calls.tsx:1195 Canvas dimensions: 2394 x 3468
+daily-calls.tsx:1196 Element scrollWidth: 846
+daily-calls.tsx:1197 Scale factor: 2.8297872340425534
+daily-calls.tsx:1198 Content height (mm): 247.99999999999997
+daily-calls.tsx:1199 Content height (px): 3116.59842519685
+daily-calls.tsx:1200 Item metrics (CSS pixels): (9) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+daily-calls.tsx:1218 Item boundaries (canvas pixels):
+daily-calls.tsx:1220   event-549: top=591, bottom=750
+daily-calls.tsx:1220   event-550: top=772, bottom=932
+daily-calls.tsx:1220   event-551: top=953, bottom=1158
+daily-calls.tsx:1220   event-553: top=1366, bottom=1526
+daily-calls.tsx:1220   event-614: top=1734, bottom=1894
+daily-calls.tsx:1220   event-615: top=2102, bottom=2261
+daily-calls.tsx:1220   fittings-header: top=2521, bottom=2629
+daily-calls.tsx:1220   fitting-552: top=2640, bottom=2799
+daily-calls.tsx:1220   announcements-section: top=2866, bottom=3184
+daily-calls.tsx:1251   SPLIT: announcements-section (top=2866, bottom=3184) crosses idealPageEnd=3116.59842519685
+daily-calls.tsx:1255     Breaking at 2866 instead of 3116
+daily-calls.tsx:1267 Page 1: 0 to 2866
+daily-calls.tsx:1275 Final page breaks: (2) [{…}, {…}]
+App.tsx:132 Domain routing check: {hostname: '54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev', isJoinDomain: false, isMainDomain: false, isBetaDomain: false, isDevEnvironment: true}hostname: "54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev"isBetaDomain: falseisDevEnvironment: trueisJoinDomain: falseisMainDomain: false[[Prototype]]: Object
