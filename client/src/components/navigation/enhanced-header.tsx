@@ -134,8 +134,15 @@ export default function EnhancedHeader() {
         } else if (pathParts[3] === 'notes-tracking') {
           sectionName = 'Report Notes';
         } else if (pathParts[3] === 'calls') {
-          sectionName = 'Calendar';
-          sectionPath = 'calendar';
+          // If we're inside a specific daily call (has date in path), show "Daily Calls" to navigate back to list
+          // Otherwise on the calls list page, show "Calendar" to navigate back to calendar
+          if (pathParts[4]) {
+            sectionName = 'Daily Calls';
+            sectionPath = 'calls';
+          } else {
+            sectionName = 'Calendar';
+            sectionPath = 'calendar';
+          }
         }
         breadcrumbs.push({
           label: sectionName,
