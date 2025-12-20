@@ -1169,13 +1169,14 @@ export default function DailyCallSheet() {
         }
       });
       
-      // Page dimensions and layout (8.5x11 inch letter size with 0.5" margins)
+      // Page dimensions and layout (8.5x11 inch letter size with 0.5" margins on all sides)
       const pageWidth = 215.9; // Letter width in mm (8.5 inches)
       const pageHeight = 279.4; // Letter height in mm (11 inches)
-      const marginMm = 12.7; // 0.5 inch margins in mm
-      const contentWidth = pageWidth - (marginMm * 2);
-      // Footer is small (SUBJECT TO CHANGE + page number) - only ~6mm needed
-      const contentHeight = pageHeight - (marginMm * 2) - 6; // Reserve 6mm for footer
+      const marginMm = 12.7; // 0.5 inch margins in mm (left, right, top, bottom)
+      const contentWidth = pageWidth - (marginMm * 2); // 190.5mm
+      // Footer takes 10mm at bottom of content area for "SUBJECT TO CHANGE" + page number
+      const footerHeight = 10;
+      const contentHeight = pageHeight - (marginMm * 2) - footerHeight; // 241.4mm usable for content
       
       // Calculate how the content scales to fit the page width
       const imgWidth = contentWidth;
@@ -1244,17 +1245,31 @@ export default function DailyCallSheet() {
           // Skip items entirely after our ideal break (they're fine on next page)
           if (item.topPx >= idealPageEnd) continue;
           
-          // Check if this item crosses the ideal break point
-          // (item starts before break AND ends after break)
-          if (item.topPx < idealPageEnd && item.bottomPx > idealPageEnd) {
+          // Check if this item crosses OR is too close to the page break point
+          // We use a 20px buffer to ensure clean cuts without partial rendering
+          const buffer = 20;
+          const effectivePageEnd = idealPageEnd - buffer;
+          
+          // Item would be split if it crosses the effective page end
+          if (item.topPx < effectivePageEnd && item.bottomPx > effectivePageEnd) {
             // This item would be split - we need to break BEFORE it
-            console.log(`  SPLIT: ${item.name} (top=${item.topPx}, bottom=${item.bottomPx}) crosses idealPageEnd=${idealPageEnd}`);
-            // Only do this if there's meaningful content before this item
+            console.log(`  SPLIT: ${item.name} (top=${item.topPx}, bottom=${item.bottomPx}) crosses effectivePageEnd=${effectivePageEnd}`);
             const contentBeforeItem = item.topPx - currentPageStart;
-            if (contentBeforeItem > 50) { // At least 50px of content
+            if (contentBeforeItem > 50) {
               console.log(`    Breaking at ${item.topPx} instead of ${actualPageEnd}`);
               actualPageEnd = item.topPx;
-              break; // Found the first item that would split, use its top
+              break;
+            }
+          }
+          // Also check if item is very close to the page end (within buffer)
+          else if (item.bottomPx > effectivePageEnd && item.bottomPx <= idealPageEnd) {
+            // This item ends very close to page boundary - move it to next page
+            console.log(`  CLOSE TO EDGE: ${item.name} (bottom=${item.bottomPx}) is within ${buffer}px of page end`);
+            const contentBeforeItem = item.topPx - currentPageStart;
+            if (contentBeforeItem > 50) {
+              console.log(`    Breaking at ${item.topPx} to avoid edge clipping`);
+              actualPageEnd = item.topPx;
+              break;
             }
           }
         }
@@ -1310,8 +1325,8 @@ export default function DailyCallSheet() {
         // Add the image slice to this page
         pdf.addImage(sliceImgData, 'PNG', marginMm, marginMm, imgWidth, sliceHeightMm, '', 'FAST');
         
-        // Add footer matching app footer exactly - centered and bolded
-        const footerStartY = pageHeight - marginMm - 8;
+        // Add footer at bottom of content area (above the bottom 0.5" margin)
+        const footerStartY = pageHeight - marginMm - footerHeight + 2;
         
         // First line: SUBJECT TO CHANGE (bold, centered)
         pdf.setFontSize(10);
