@@ -1215,7 +1215,10 @@ export default function DailyCallSheet() {
       // Sort by top position
       itemBoundaries.sort((a, b) => a.topPx - b.topPx);
       
-      console.log('Item boundaries (canvas pixels):', itemBoundaries);
+      console.log('Item boundaries (canvas pixels):');
+      itemBoundaries.forEach(item => {
+        console.log(`  ${item.name}: top=${item.topPx}, bottom=${item.bottomPx}`);
+      });
       
       while (currentPageStart < canvas.height) {
         const idealPageEnd = currentPageStart + contentHeightPx;
@@ -1245,9 +1248,11 @@ export default function DailyCallSheet() {
           // (item starts before break AND ends after break)
           if (item.topPx < idealPageEnd && item.bottomPx > idealPageEnd) {
             // This item would be split - we need to break BEFORE it
+            console.log(`  SPLIT: ${item.name} (top=${item.topPx}, bottom=${item.bottomPx}) crosses idealPageEnd=${idealPageEnd}`);
             // Only do this if there's meaningful content before this item
             const contentBeforeItem = item.topPx - currentPageStart;
             if (contentBeforeItem > 50) { // At least 50px of content
+              console.log(`    Breaking at ${item.topPx} instead of ${actualPageEnd}`);
               actualPageEnd = item.topPx;
               break; // Found the first item that would split, use its top
             }
