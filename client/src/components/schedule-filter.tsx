@@ -658,7 +658,7 @@ export default function ScheduleFilter({
                   {mainLocations.length > 0 && (
                     <div className="mb-4">
                       <div className="px-2 py-1 text-sm font-medium text-gray-600 border-b">
-                        MAIN LOCATIONS
+                        PRIMARY LOCATIONS
                       </div>
                       <div className="space-y-1 mt-2">
                         {mainLocations.map((location) => (
