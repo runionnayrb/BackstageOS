@@ -1285,6 +1285,8 @@ export default function DailyCallSheet() {
         const sourceY = pageBreak.startPx;
         const sourceHeight = pageBreak.endPx - pageBreak.startPx;
         
+        console.log(`Rendering page ${pageNum}: sourceY=${sourceY}, sourceHeight=${sourceHeight}, canvas height=${canvas.height}`);
+        
         // Convert to mm for PDF placement
         const sliceHeightMm = (sourceHeight / canvas.width) * imgWidth;
         
@@ -1294,8 +1296,13 @@ export default function DailyCallSheet() {
         sliceCanvas.width = canvas.width;
         sliceCanvas.height = sourceHeight;
         
-        // Draw the slice
+        console.log(`  Slice canvas: ${sliceCanvas.width}x${sliceCanvas.height}`);
+        
+        // Draw the slice from the source canvas
+        // drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
+        // This copies from (0, sourceY) to (width, sourceY+sourceHeight) of source
         sliceCtx?.drawImage(canvas, 0, sourceY, canvas.width, sourceHeight, 0, 0, canvas.width, sourceHeight);
+        console.log(`  Drew from canvas (0,${sourceY}) to (${canvas.width},${sourceY + sourceHeight})`);
         
         // Convert slice to data URL
         const sliceImgData = sliceCanvas.toDataURL('image/png', 1.0);
