@@ -1188,6 +1188,16 @@ export default function DailyCallSheet() {
           break;
         }
         
+        // Check if remaining content after this page is very small (< 15% of page height)
+        // If so, try to fit it all on this page by extending slightly
+        const remainingContent = canvas.height - pageEnd;
+        const extendThreshold = contentHeightPx * 0.20; // Allow extending by up to 20%
+        if (remainingContent <= extendThreshold) {
+          // Remaining content is small - include it all on this page
+          pageBreaks.push({ startPx: currentPageStart, endPx: canvas.height });
+          break;
+        }
+        
         // Find the best break point - look for a section boundary before pageEnd
         // Prefer breaking BEFORE a section starts rather than in the middle
         let bestBreak = pageEnd;
@@ -2341,7 +2351,7 @@ export default function DailyCallSheet() {
 
           {/* Fittings Section - show if there are fittings events */}
           {(callData.fittingsEvents && callData.fittingsEvents.length > 0) && (
-            <div className="mt-6">
+            <div className="mt-6" data-pdf-section="fittings" data-pdf-priority="high">
               <div className="border-b-2 border-black pb-2 flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900">Fittings</h3>
                 {isEditing && (
