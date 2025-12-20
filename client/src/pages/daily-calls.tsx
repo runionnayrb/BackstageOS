@@ -1085,37 +1085,9 @@ export default function DailyCallSheet() {
         return;
       }
       
-      // Collect section and item positions BEFORE rendering to canvas
-      // These are used to calculate smart page breaks
-      const sections = element.querySelectorAll('[data-pdf-section]');
-      const items = element.querySelectorAll('[data-pdf-item]');
+      // Item metrics will be collected from the cloned element in onclone
       const sectionMetrics: Array<{ name: string; top: number; height: number; bottom: number; priority: string }> = [];
-      const itemMetrics: Array<{ name: string; top: number; height: number; bottom: number }> = [];
-      const containerRect = element.getBoundingClientRect();
-      
-      sections.forEach((section) => {
-        const rect = section.getBoundingClientRect();
-        const relativeTop = rect.top - containerRect.top;
-        sectionMetrics.push({
-          name: section.getAttribute('data-pdf-section') || 'unknown',
-          top: relativeTop,
-          height: rect.height,
-          bottom: relativeTop + rect.height,
-          priority: section.getAttribute('data-pdf-priority') || 'normal'
-        });
-      });
-      
-      // Collect individual event/item metrics
-      items.forEach((item) => {
-        const rect = item.getBoundingClientRect();
-        const relativeTop = rect.top - containerRect.top;
-        itemMetrics.push({
-          name: item.getAttribute('data-pdf-item') || 'event',
-          top: relativeTop,
-          height: rect.height,
-          bottom: relativeTop + rect.height
-        });
-      });
+      let itemMetrics: Array<{ name: string; top: number; height: number; bottom: number }> = [];
       
       // Safari-specific optimizations
       const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
@@ -1146,11 +1118,12 @@ export default function DailyCallSheet() {
             clonedElement.style.mozOsxFontSmoothing = 'grayscale';
             clonedElement.style.textRendering = 'optimizeLegibility';
             
-            // Remove border and shadow to make it look like a clean document
+            // Remove border, shadow, and padding to make it a clean document
             clonedElement.style.border = 'none';
             clonedElement.style.boxShadow = 'none';
             clonedElement.style.borderRadius = '0';
-            // Keep original padding to maintain position consistency with metrics
+            clonedElement.style.padding = '0';
+            clonedElement.style.margin = '0';
             
             // Hide the app footer since we'll add it as proper PDF footer
             const appFooter = clonedElement.querySelector('.mt-8.pt-6.border-t.border-gray-200.text-center');
@@ -1163,6 +1136,22 @@ export default function DailyCallSheet() {
             endOfDayRows.forEach(el => {
               (el as HTMLElement).style.backgroundColor = 'transparent';
               (el as HTMLElement).style.background = 'none';
+            });
+            
+            // Collect item metrics from the CLONED element after styles are applied
+            // This ensures metrics match what html2canvas actually renders
+            const clonedItems = clonedElement.querySelectorAll('[data-pdf-item]');
+            const clonedContainerRect = clonedElement.getBoundingClientRect();
+            
+            clonedItems.forEach((item) => {
+              const rect = item.getBoundingClientRect();
+              const relativeTop = rect.top - clonedContainerRect.top;
+              itemMetrics.push({
+                name: item.getAttribute('data-pdf-item') || 'event',
+                top: relativeTop,
+                height: rect.height,
+                bottom: relativeTop + rect.height
+              });
             });
 
           }
