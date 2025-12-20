@@ -145,7 +145,8 @@ export default function EnhancedHeader() {
 
       // Don't add breadcrumb items for templates-v2 editing pages (they show template name in header)
       // Don't add breadcrumb for schedule page (pathParts[4] === 'schedule')
-      if (pathParts[4] && pathParts[3] !== 'templates-v2' && pathParts[4] !== 'schedule') {
+      // Don't add breadcrumb for calls page (pathParts[3] === 'calls') - date is shown in header
+      if (pathParts[4] && pathParts[3] !== 'templates-v2' && pathParts[4] !== 'schedule' && pathParts[3] !== 'calls') {
         const label = pathParts[4]
           .split('-')
           .map(word => word.charAt(0).toUpperCase() + word.slice(1))
