@@ -1167,13 +1167,20 @@ export default function DailyCallSheet() {
       const footerHeight = 10;
       const contentHeight = pageHeight - (marginMm * 2) - footerHeight; // 241.4mm usable for content
       
+      // Use the ACTUAL html2canvas scale (3) for consistent calculations
+      const html2canvasScale = 3;
+      
       // Calculate how the content scales to fit the page width
       const imgWidth = contentWidth;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      const scale = canvas.width / element.scrollWidth; // Pixel scale factor
       
-      // Convert content height to pixels for break calculations
-      const contentHeightPx = (contentHeight / imgWidth) * canvas.width;
+      // Scale factor from CSS pixels to canvas pixels (should be exactly 3)
+      const scale = html2canvasScale;
+      
+      // Convert content height to mm, then to canvas pixels
+      // contentHeight (mm) -> CSS pixels -> canvas pixels
+      const cssPixelsPerMm = canvas.width / (imgWidth * html2canvasScale);
+      const contentHeightPx = contentHeight * cssPixelsPerMm * html2canvasScale;
       
       // Calculate page breaks that NEVER split events
       // Strategy: Find items that would be split and snap the break to their top
