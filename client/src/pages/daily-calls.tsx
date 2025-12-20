@@ -1191,19 +1191,10 @@ export default function DailyCallSheet() {
       let currentPageStart = 0;
       
       // Build a sorted list of all item boundaries in canvas pixels
-      // Include BOTH individual events AND section headers as atomic units
+      // Only use itemMetrics (individual events + section headers marked with data-pdf-item)
       const itemBoundaries: Array<{ topPx: number; bottomPx: number; name: string }> = [];
       
-      // Add sections (headers like "Fittings", "Announcements") - never split a section header from its content
-      sectionMetrics.forEach(section => {
-        itemBoundaries.push({
-          topPx: Math.floor(section.top * scale),
-          bottomPx: Math.ceil(section.bottom * scale),
-          name: section.name
-        });
-      });
-      
-      // Add items (individual events) - these are the atomic units we never split
+      // Add items (individual events and section headers) - these are the atomic units we never split
       itemMetrics.forEach(item => {
         itemBoundaries.push({
           topPx: Math.floor(item.top * scale),
@@ -2357,7 +2348,7 @@ export default function DailyCallSheet() {
           {/* Fittings Section - show if there are fittings events */}
           {(callData.fittingsEvents && callData.fittingsEvents.length > 0) && (
             <div className="mt-6" data-pdf-section="fittings" data-pdf-priority="high">
-              <div className="border-b-2 border-black pb-2 flex items-center justify-between">
+              <div className="border-b-2 border-black pb-2 flex items-center justify-between" data-pdf-item="fittings-header">
                 <h3 className="text-lg font-semibold text-gray-900">Fittings</h3>
                 {isEditing && (
                   <Button onClick={addFittingsSection} variant="outline" size="sm" data-testid="button-add-fitting-inline">
@@ -2452,7 +2443,7 @@ export default function DailyCallSheet() {
           {/* Appointments & Meetings Section - show if there are appointments events */}
           {(callData.appointmentsEvents && callData.appointmentsEvents.length > 0) && (
             <div className="mt-6">
-              <div className="border-b-2 border-black pb-2 flex items-center justify-between">
+              <div className="border-b-2 border-black pb-2 flex items-center justify-between" data-pdf-item="appointments-header">
                 <h3 className="text-lg font-semibold text-gray-900">Appointments & Meetings</h3>
                 {isEditing && (
                   <Button onClick={addAppointmentsSection} variant="outline" size="sm" data-testid="button-add-meeting-inline">
@@ -2546,7 +2537,7 @@ export default function DailyCallSheet() {
 
           {/* Announcements Section */}
           <div className="mt-6" data-pdf-section="announcements" data-pdf-priority="high">
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">Announcements</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-1" data-pdf-item="announcements-header">Announcements</h3>
             {isEditing ? (
               <Textarea
                 value={callData.announcements}
