@@ -1160,7 +1160,8 @@ export default function DailyCallSheet() {
       const pageHeight = 279.4; // Letter height in mm (11 inches)
       const marginMm = 12.7; // 0.5 inch margins in mm
       const contentWidth = pageWidth - (marginMm * 2);
-      const contentHeight = pageHeight - (marginMm * 2) - 12; // Reserve 12mm for footer
+      // Footer is small (SUBJECT TO CHANGE + page number) - only ~6mm needed
+      const contentHeight = pageHeight - (marginMm * 2) - 6; // Reserve 6mm for footer
       
       // Calculate how the content scales to fit the page width
       const imgWidth = contentWidth;
