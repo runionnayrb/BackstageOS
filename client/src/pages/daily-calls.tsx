@@ -1073,7 +1073,7 @@ export default function DailyCallSheet() {
       // Collect section positions BEFORE rendering to canvas
       // These are used to calculate smart page breaks
       const sections = element.querySelectorAll('[data-pdf-section]');
-      const sectionMetrics: Array<{ name: string; top: number; height: number; bottom: number }> = [];
+      const sectionMetrics: Array<{ name: string; top: number; height: number; bottom: number; priority: string }> = [];
       const containerRect = element.getBoundingClientRect();
       
       sections.forEach((section) => {
@@ -1083,7 +1083,8 @@ export default function DailyCallSheet() {
           name: section.getAttribute('data-pdf-section') || 'unknown',
           top: relativeTop,
           height: rect.height,
-          bottom: relativeTop + rect.height
+          bottom: relativeTop + rect.height,
+          priority: section.getAttribute('data-pdf-priority') || 'normal'
         });
       });
       
@@ -1159,6 +1160,9 @@ export default function DailyCallSheet() {
       const pageBreaks: Array<{ startPx: number; endPx: number }> = [];
       let currentPageStart = 0;
       
+      // Minimum content required on a page before we consider breaking for normal sections (30%)
+      const minContentForNormalBreak = contentHeightPx * 0.3;
+      
       while (currentPageStart < canvas.height) {
         let pageEnd = currentPageStart + contentHeightPx;
         
@@ -1171,22 +1175,60 @@ export default function DailyCallSheet() {
         // Find the best break point - look for a section boundary before pageEnd
         // Prefer breaking BEFORE a section starts rather than in the middle
         let bestBreak = pageEnd;
+        let foundBetterBreak = false;
         
-        for (const section of sectionMetrics) {
+        // Sort sections by their position (top to bottom)
+        const sortedSections = [...sectionMetrics].sort((a, b) => a.top - b.top);
+        
+        for (const section of sortedSections) {
           const sectionTopPx = section.top * scale;
           const sectionBottomPx = section.bottom * scale;
+          const sectionHeight = sectionBottomPx - sectionTopPx;
           
-          // If section starts after our page start and before our ideal page end
-          if (sectionTopPx > currentPageStart && sectionTopPx <= pageEnd) {
-            // Check if the section would be cut - if so, break before it
+          // Skip sections that are entirely before our current page start
+          if (sectionBottomPx <= currentPageStart) continue;
+          
+          // If section starts at or after our page start and before our ideal page end
+          // (includes sections starting exactly at currentPageStart)
+          if (sectionTopPx >= currentPageStart && sectionTopPx <= pageEnd) {
+            // Check if the section would be cut - if so, consider breaking before it
             if (sectionBottomPx > pageEnd) {
-              // This section would be split - break before it starts
-              // But only if breaking here leaves meaningful content on current page
-              if (sectionTopPx - currentPageStart > 100) { // At least 100px of content
-                bestBreak = sectionTopPx;
+              // This section would be split
+              const contentBeforeSection = sectionTopPx - currentPageStart;
+              
+              // High-priority sections (like announcements) should ALWAYS stay intact
+              if (section.priority === 'high') {
+                // Only split if:
+                // 1. Section itself is taller than a page (can't fit anyway), OR
+                // 2. Page would be completely empty (section starts at page start)
+                // Otherwise, ALWAYS break before the high-priority section
+                const sectionFitsOnPage = sectionHeight <= contentHeightPx;
+                const pageWouldBeEmpty = contentBeforeSection < 10; // ~3px tolerance
+                
+                if (sectionFitsOnPage && !pageWouldBeEmpty) {
+                  // Break before this high-priority section to keep it intact
+                  bestBreak = sectionTopPx;
+                  foundBetterBreak = true;
+                  break;
+                }
+                // If section doesn't fit on a page or page would be empty,
+                // let it split (fallback to default behavior)
+              } else {
+                // Normal priority - use 30% threshold
+                if (contentBeforeSection >= minContentForNormalBreak) {
+                  bestBreak = sectionTopPx;
+                  foundBetterBreak = true;
+                  break;
+                }
               }
             }
           }
+        }
+        
+        // If we didn't find a better break point, use the default page end
+        // This ensures we don't leave pages nearly empty
+        if (!foundBetterBreak) {
+          bestBreak = pageEnd;
         }
         
         pageBreaks.push({ startPx: currentPageStart, endPx: bestBreak });
@@ -1486,7 +1528,7 @@ export default function DailyCallSheet() {
               // Single location - full width
               <div className="space-y-8">
                 {(callData.locations || []).map((location, locationIndex) => (
-                  <div key={locationIndex} className="space-y-1">
+                  <div key={locationIndex} className="space-y-1" data-pdf-section={`location-${locationIndex}`}>
                     <div className="border-b-2 border-black pb-2 flex items-center justify-between">
                       {isEditing ? (
                         <Select
@@ -1662,7 +1704,7 @@ export default function DailyCallSheet() {
               </div>
             ) : (callData.locations || []).length === 2 ? (
               // Exactly 2 locations - two-column chronologically aligned layout
-              <div className="space-y-1">
+              <div className="space-y-1" data-pdf-section="two-column-schedule">
                 {/* Column headers */}
                 <div className="grid grid-cols-7 gap-0">
                   {(callData.locations || []).map((location, locationIndex) => (
@@ -2053,7 +2095,7 @@ export default function DailyCallSheet() {
               // Primary locations first, then secondary locations
               <div className="space-y-8">
                 {(callData.locations || []).map((location, locationIndex) => (
-                  <div key={locationIndex} className="space-y-1">
+                  <div key={locationIndex} className="space-y-1" data-pdf-section={`location-${locationIndex}`}>
                     <div className="border-b-2 border-black pb-2 flex items-center justify-between">
                       {isEditing ? (
                         <Select
@@ -2454,7 +2496,7 @@ export default function DailyCallSheet() {
           )}
 
           {/* Announcements Section */}
-          <div className="mt-6" data-pdf-section="announcements">
+          <div className="mt-6" data-pdf-section="announcements" data-pdf-priority="high">
             <h3 className="text-lg font-semibold text-gray-900 mb-1">Announcements</h3>
             {isEditing ? (
               <Textarea
