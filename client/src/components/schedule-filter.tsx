@@ -304,18 +304,18 @@ export default function ScheduleFilter({
           </div>
         </div>
 
-        <Tabs defaultValue={hidePeopleTab ? "events" : defaultTab} className="w-full">
+        <Tabs defaultValue="events" className="w-full">
           {!hidePeopleTab && (
             <div className="flex gap-2 mx-4 mb-4">
               <TabsList className="grid grid-cols-3 h-9 flex-1">
-                <TabsTrigger value="people" className="h-8 text-sm">
-                  People
-                </TabsTrigger>
                 <TabsTrigger value="events" className="h-8 text-sm">
                   Event Types
                 </TabsTrigger>
                 <TabsTrigger value="locations" className="h-8 text-sm">
                   Locations
+                </TabsTrigger>
+                <TabsTrigger value="people" className="h-8 text-sm">
+                  People
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -690,7 +690,7 @@ export default function ScheduleFilter({
                   {auxiliaryLocations.length > 0 && (
                     <div className="mb-4">
                       <div className="px-2 py-1 text-sm font-medium text-gray-600 border-b">
-                        AUXILIARY LOCATIONS
+                        SECONDARY LOCATIONS
                       </div>
                       <div className="space-y-1 mt-2">
                         {auxiliaryLocations.map((location) => (
