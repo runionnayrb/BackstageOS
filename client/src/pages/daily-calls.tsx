@@ -1250,10 +1250,24 @@ export default function DailyCallSheet() {
           if (item.topPx < effectivePageEnd && item.bottomPx > effectivePageEnd) {
             // This item would be split - we need to break BEFORE it
             console.log(`  SPLIT: ${item.name} (top=${item.topPx}, bottom=${item.bottomPx}) crosses effectivePageEnd=${effectivePageEnd}`);
-            const contentBeforeItem = item.topPx - currentPageStart;
+            let breakPoint = item.topPx;
+            
+            // Check if there's a header just above this item that would be orphaned
+            // (a header with no content on this page)
+            const headerAbove = itemBoundaries.find(h => 
+              h.name.includes('-header') && 
+              h.bottomPx <= item.topPx && 
+              h.bottomPx > item.topPx - 200 // Within 200px above
+            );
+            if (headerAbove) {
+              console.log(`    Found orphaned header above: ${headerAbove.name} at ${headerAbove.topPx}`);
+              breakPoint = headerAbove.topPx;
+            }
+            
+            const contentBeforeItem = breakPoint - currentPageStart;
             if (contentBeforeItem > 50) {
-              console.log(`    Breaking at ${item.topPx} instead of ${actualPageEnd}`);
-              actualPageEnd = item.topPx;
+              console.log(`    Breaking at ${breakPoint} instead of ${actualPageEnd}`);
+              actualPageEnd = breakPoint;
               break;
             }
           }
@@ -1261,10 +1275,23 @@ export default function DailyCallSheet() {
           else if (item.bottomPx > effectivePageEnd && item.bottomPx <= idealPageEnd) {
             // This item ends very close to page boundary - move it to next page
             console.log(`  CLOSE TO EDGE: ${item.name} (bottom=${item.bottomPx}) is within ${buffer}px of page end`);
-            const contentBeforeItem = item.topPx - currentPageStart;
+            let breakPoint = item.topPx;
+            
+            // Check for orphaned header
+            const headerAbove = itemBoundaries.find(h => 
+              h.name.includes('-header') && 
+              h.bottomPx <= item.topPx && 
+              h.bottomPx > item.topPx - 200
+            );
+            if (headerAbove) {
+              console.log(`    Found orphaned header above: ${headerAbove.name}`);
+              breakPoint = headerAbove.topPx;
+            }
+            
+            const contentBeforeItem = breakPoint - currentPageStart;
             if (contentBeforeItem > 50) {
-              console.log(`    Breaking at ${item.topPx} to avoid edge clipping`);
-              actualPageEnd = item.topPx;
+              console.log(`    Breaking at ${breakPoint} to avoid edge clipping`);
+              actualPageEnd = breakPoint;
               break;
             }
           }
