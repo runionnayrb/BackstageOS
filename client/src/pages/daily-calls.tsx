@@ -1070,6 +1070,23 @@ export default function DailyCallSheet() {
         return;
       }
       
+      // Collect section positions BEFORE rendering to canvas
+      // These are used to calculate smart page breaks
+      const sections = element.querySelectorAll('[data-pdf-section]');
+      const sectionMetrics: Array<{ name: string; top: number; height: number; bottom: number }> = [];
+      const containerRect = element.getBoundingClientRect();
+      
+      sections.forEach((section) => {
+        const rect = section.getBoundingClientRect();
+        const relativeTop = rect.top - containerRect.top;
+        sectionMetrics.push({
+          name: section.getAttribute('data-pdf-section') || 'unknown',
+          top: relativeTop,
+          height: rect.height,
+          bottom: relativeTop + rect.height
+        });
+      });
+      
       // Safari-specific optimizations
       const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
       
@@ -1108,28 +1125,19 @@ export default function DailyCallSheet() {
             // Hide the app footer since we'll add it as proper PDF footer
             const appFooter = clonedElement.querySelector('.mt-8.pt-6.border-t.border-gray-200.text-center');
             if (appFooter) {
-              appFooter.style.display = 'none';
+              (appFooter as HTMLElement).style.display = 'none';
             }
             
             // Remove grey background from END-OF-DAY rows in PDF export, but keep text visible
             const endOfDayRows = clonedElement.querySelectorAll('[data-end-of-day-row="true"]');
             endOfDayRows.forEach(el => {
-              el.style.backgroundColor = 'transparent';
-              el.style.background = 'none';
+              (el as HTMLElement).style.backgroundColor = 'transparent';
+              (el as HTMLElement).style.background = 'none';
             });
 
           }
         }
       });
-      
-      // Convert canvas to high-quality image data
-      let imgData;
-      try {
-        imgData = canvas.toDataURL('image/png', 1.0); // Maximum quality PNG
-      } catch (canvasError) {
-        console.warn('Canvas toDataURL failed, trying JPEG:', canvasError);
-        imgData = canvas.toDataURL('image/jpeg', 1.0); // Maximum quality JPEG
-      }
       
       // Page dimensions and layout (8.5x11 inch letter size with 0.5" margins)
       const pageWidth = 215.9; // Letter width in mm (8.5 inches)
@@ -1141,23 +1149,64 @@ export default function DailyCallSheet() {
       // Calculate how the content scales to fit the page width
       const imgWidth = contentWidth;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const scale = canvas.width / element.scrollWidth; // Pixel scale factor
       
-      // Determine if we need multiple pages
-      const totalPages = Math.ceil(imgHeight / contentHeight);
+      // Convert content height to pixels for break calculations
+      const contentHeightPx = (contentHeight / imgWidth) * canvas.width;
       
-      // Add content page by page
-      for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
-        if (pageNum > 1) {
-          pdf.addPage(); // Add new page for subsequent pages
+      // Calculate section-aware page breaks
+      // Instead of slicing at fixed intervals, find natural break points at section boundaries
+      const pageBreaks: Array<{ startPx: number; endPx: number }> = [];
+      let currentPageStart = 0;
+      
+      while (currentPageStart < canvas.height) {
+        let pageEnd = currentPageStart + contentHeightPx;
+        
+        // If this would be the last page, just take the rest
+        if (pageEnd >= canvas.height) {
+          pageBreaks.push({ startPx: currentPageStart, endPx: canvas.height });
+          break;
         }
         
-        // Calculate the vertical slice for this page
-        const yOffset = (pageNum - 1) * contentHeight;
-        const sliceHeight = Math.min(contentHeight, imgHeight - yOffset);
+        // Find the best break point - look for a section boundary before pageEnd
+        // Prefer breaking BEFORE a section starts rather than in the middle
+        let bestBreak = pageEnd;
         
-        // Calculate the source rectangle for this slice
-        const sourceY = (yOffset / imgHeight) * canvas.height;
-        const sourceHeight = (sliceHeight / imgHeight) * canvas.height;
+        for (const section of sectionMetrics) {
+          const sectionTopPx = section.top * scale;
+          const sectionBottomPx = section.bottom * scale;
+          
+          // If section starts after our page start and before our ideal page end
+          if (sectionTopPx > currentPageStart && sectionTopPx <= pageEnd) {
+            // Check if the section would be cut - if so, break before it
+            if (sectionBottomPx > pageEnd) {
+              // This section would be split - break before it starts
+              // But only if breaking here leaves meaningful content on current page
+              if (sectionTopPx - currentPageStart > 100) { // At least 100px of content
+                bestBreak = sectionTopPx;
+              }
+            }
+          }
+        }
+        
+        pageBreaks.push({ startPx: currentPageStart, endPx: bestBreak });
+        currentPageStart = bestBreak;
+      }
+      
+      const totalPages = pageBreaks.length;
+      
+      // Add content page by page using calculated break points
+      for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+        if (pageNum > 1) {
+          pdf.addPage();
+        }
+        
+        const pageBreak = pageBreaks[pageNum - 1];
+        const sourceY = pageBreak.startPx;
+        const sourceHeight = pageBreak.endPx - pageBreak.startPx;
+        
+        // Convert to mm for PDF placement
+        const sliceHeightMm = (sourceHeight / canvas.width) * imgWidth;
         
         // Create a temporary canvas with just this slice
         const sliceCanvas = document.createElement('canvas');
@@ -1166,13 +1215,13 @@ export default function DailyCallSheet() {
         sliceCanvas.height = sourceHeight;
         
         // Draw the slice
-        sliceCtx.drawImage(canvas, 0, sourceY, canvas.width, sourceHeight, 0, 0, canvas.width, sourceHeight);
+        sliceCtx?.drawImage(canvas, 0, sourceY, canvas.width, sourceHeight, 0, 0, canvas.width, sourceHeight);
         
         // Convert slice to data URL
         const sliceImgData = sliceCanvas.toDataURL('image/png', 1.0);
         
         // Add the image slice to this page
-        pdf.addImage(sliceImgData, 'PNG', marginMm, marginMm, imgWidth, sliceHeight, '', 'FAST');
+        pdf.addImage(sliceImgData, 'PNG', marginMm, marginMm, imgWidth, sliceHeightMm, '', 'FAST');
         
         // Add footer matching app footer exactly - centered and bolded
         const footerStartY = pageHeight - marginMm - 8;
@@ -1411,7 +1460,7 @@ export default function DailyCallSheet() {
       <div className="max-w-4xl mx-auto p-6">
         <div id="daily-call-content" className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
           {/* Call Sheet Header */}
-          <div className="text-center mb-8">
+          <div className="text-center mb-8" data-pdf-section="header">
             <h2 className="text-3xl font-bold text-gray-900">{project?.name}</h2>
             <h3 className="text-xl text-black mt-2">DAILY SCHEDULE</h3>
             <p className="text-lg text-black mt-0.5">
@@ -1420,7 +1469,7 @@ export default function DailyCallSheet() {
           </div>
 
           {/* Call Schedule by Location */}
-          <div className="space-y-6">
+          <div className="space-y-6" data-pdf-section="schedule">
 
             {(callData.locations || []).length === 0 ? (
               <Card>
@@ -2405,7 +2454,7 @@ export default function DailyCallSheet() {
           )}
 
           {/* Announcements Section */}
-          <div className="mt-6">
+          <div className="mt-6" data-pdf-section="announcements">
             <h3 className="text-lg font-semibold text-gray-900 mb-1">Announcements</h3>
             {isEditing ? (
               <Textarea
