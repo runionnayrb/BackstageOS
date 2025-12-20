@@ -126,16 +126,20 @@ export default function EnhancedHeader() {
           .split('-')
           .map(word => word.charAt(0).toUpperCase() + word.slice(1))
           .join(' ');
+        let sectionPath = pathParts[3];
         if (pathParts[3] === 'settings') {
           sectionName = 'Show Settings';
         } else if (pathParts[3] === 'templates' || pathParts[3] === 'templates-v2') {
           sectionName = 'Report Templates';
         } else if (pathParts[3] === 'notes-tracking') {
           sectionName = 'Report Notes';
+        } else if (pathParts[3] === 'calls') {
+          sectionName = 'Calendar';
+          sectionPath = 'calendar';
         }
         breadcrumbs.push({
           label: sectionName,
-          href: `/shows/${pathParts[2]}/${pathParts[3]}`
+          href: `/shows/${pathParts[2]}/${sectionPath}`
         });
       }
 
