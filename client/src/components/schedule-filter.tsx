@@ -5,7 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Filter, X, Users, Calendar } from "lucide-react";
+import { Filter, X, Users, Calendar, MapPin } from "lucide-react";
 
 interface Contact {
   id: number;
@@ -24,6 +24,14 @@ interface EventType {
   projectId: number;
 }
 
+interface EventLocation {
+  id: number;
+  name: string;
+  address?: string;
+  description?: string;
+  locationType: string;
+}
+
 interface ScheduleFilterProps {
   projectId: number;
   selectedContactIds: number[];
@@ -37,6 +45,8 @@ interface ScheduleFilterProps {
   viewMode?: 'monthly' | 'weekly' | 'daily';
   defaultTab?: string;
   hidePeopleTab?: boolean;
+  selectedLocations?: string[];
+  onLocationFilterChange?: (locations: string[]) => void;
 }
 
 export default function ScheduleFilter({ 
@@ -51,7 +61,9 @@ export default function ScheduleFilter({
   onProductionCalendarFilterChange,
   viewMode = 'monthly',
   defaultTab = "people",
-  hidePeopleTab = false
+  hidePeopleTab = false,
+  selectedLocations = [],
+  onLocationFilterChange
 }: ScheduleFilterProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showScheduleEnabled, setShowScheduleEnabled] = useState(true);
@@ -62,6 +74,10 @@ export default function ScheduleFilter({
 
   const { data: eventTypes = [] } = useQuery<EventType[]>({
     queryKey: [`/api/projects/${projectId}/event-types`],
+  });
+
+  const { data: eventLocations = [] } = useQuery<EventLocation[]>({
+    queryKey: [`/api/projects/${projectId}/event-locations`],
   });
 
   const { data: showSettings } = useQuery({
