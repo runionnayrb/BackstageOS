@@ -1131,12 +1131,12 @@ export default function DailyCallSheet() {
         imgData = canvas.toDataURL('image/jpeg', 1.0); // Maximum quality JPEG
       }
       
-      // Page dimensions and layout
-      const pageWidth = 215.9; // Letter width in mm
-      const pageHeight = 279.4; // Letter height in mm
-      const marginMm = 8; // Margins
+      // Page dimensions and layout (8.5x11 inch letter size with 0.5" margins)
+      const pageWidth = 215.9; // Letter width in mm (8.5 inches)
+      const pageHeight = 279.4; // Letter height in mm (11 inches)
+      const marginMm = 12.7; // 0.5 inch margins in mm
       const contentWidth = pageWidth - (marginMm * 2);
-      const contentHeight = pageHeight - (marginMm * 2) - 10; // Reserve 10mm for footer
+      const contentHeight = pageHeight - (marginMm * 2) - 12; // Reserve 12mm for footer
       
       // Calculate how the content scales to fit the page width
       const imgWidth = contentWidth;
@@ -1249,11 +1249,11 @@ export default function DailyCallSheet() {
         format: 'letter'
       });
       
-      const marginMm = 8;
-      const pageWidth = 215.9;
-      const pageHeight = 279.4;
+      const marginMm = 12.7; // 0.5 inch margins
+      const pageWidth = 215.9; // 8.5 inches
+      const pageHeight = 279.4; // 11 inches
       const contentWidth = pageWidth - (2 * marginMm);
-      const contentHeight = pageHeight - (2 * marginMm);
+      const contentHeight = pageHeight - (2 * marginMm) - 12; // Reserve space for footer
       
       const imgWidth = contentWidth;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
