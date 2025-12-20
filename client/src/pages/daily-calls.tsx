@@ -1191,7 +1191,17 @@ export default function DailyCallSheet() {
       let currentPageStart = 0;
       
       // Build a sorted list of all item boundaries in canvas pixels
+      // Include BOTH individual events AND section headers as atomic units
       const itemBoundaries: Array<{ topPx: number; bottomPx: number; name: string }> = [];
+      
+      // Add sections (headers like "Fittings", "Announcements") - never split a section header from its content
+      sectionMetrics.forEach(section => {
+        itemBoundaries.push({
+          topPx: Math.floor(section.top * scale),
+          bottomPx: Math.ceil(section.bottom * scale),
+          name: section.name
+        });
+      });
       
       // Add items (individual events) - these are the atomic units we never split
       itemMetrics.forEach(item => {
