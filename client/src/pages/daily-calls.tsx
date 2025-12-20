@@ -1188,12 +1188,15 @@ export default function DailyCallSheet() {
           break;
         }
         
-        // Check if remaining content after this page is very small (< 15% of page height)
-        // If so, try to fit it all on this page by extending slightly
+        // Check if remaining content after this page is very small
+        // Only extend if the remaining content is tiny AND the total won't overflow the page
         const remainingContent = canvas.height - pageEnd;
-        const extendThreshold = contentHeightPx * 0.20; // Allow extending by up to 20%
-        if (remainingContent <= extendThreshold) {
-          // Remaining content is small - include it all on this page
+        const extendThreshold = contentHeightPx * 0.10; // Allow extending by up to 10%
+        const maxContentHeightPx = contentHeightPx * 1.10; // Maximum we can fit on one page
+        const totalIfExtended = canvas.height - currentPageStart;
+        
+        if (remainingContent <= extendThreshold && totalIfExtended <= maxContentHeightPx) {
+          // Remaining content is small enough to fit - include it all on this page
           pageBreaks.push({ startPx: currentPageStart, endPx: canvas.height });
           break;
         }
@@ -1274,7 +1277,13 @@ export default function DailyCallSheet() {
         const sourceHeight = pageBreak.endPx - pageBreak.startPx;
         
         // Convert to mm for PDF placement
-        const sliceHeightMm = (sourceHeight / canvas.width) * imgWidth;
+        let sliceHeightMm = (sourceHeight / canvas.width) * imgWidth;
+        
+        // Ensure slice doesn't extend into footer area (leave 10mm for footer)
+        const maxSliceHeight = pageHeight - (marginMm * 2) - 10;
+        if (sliceHeightMm > maxSliceHeight) {
+          sliceHeightMm = maxSliceHeight;
+        }
         
         // Create a temporary canvas with just this slice
         const sliceCanvas = document.createElement('canvas');
