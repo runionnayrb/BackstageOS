@@ -1212,9 +1212,9 @@ export default function DailyCallSheet() {
           ...itemMetrics.map(i => ({ ...i, priority: 'event', type: 'item' as const }))
         ].sort((a, b) => a.top - b.top);
         
-        // Find the last item that ends BEFORE pageEnd (or starts before and would be split)
-        // We need to break at the top of any item that would be split
-        for (let i = allItems.length - 1; i >= 0; i--) {
+        // Find the FIRST item that would be split across pages
+        // We iterate forward (by position) and find the earliest split point
+        for (let i = 0; i < allItems.length; i++) {
           const item = allItems[i];
           const itemTopPx = item.top * scale;
           const itemBottomPx = item.bottom * scale;
@@ -1222,21 +1222,18 @@ export default function DailyCallSheet() {
           // Skip items entirely before current page
           if (itemBottomPx <= currentPageStart) continue;
           
-          // Skip items entirely after our ideal page end (they're on next page anyway)
+          // Skip items entirely before our ideal page end (they fit on this page)
+          if (itemBottomPx <= pageEnd) continue;
+          
+          // Skip items that start after our ideal page end (they're on next page anyway)
           if (itemTopPx >= pageEnd) continue;
           
-          // This item is on our current page
-          // Check if it would be split (starts before pageEnd but ends after)
-          if (itemTopPx < pageEnd && itemBottomPx > pageEnd) {
-            // This item would be split - we need to break BEFORE it
-            // But only if there's meaningful content before it
-            const contentBefore = itemTopPx - currentPageStart;
-            if (contentBefore > 20) { // At least 20px of content on this page
-              bestBreak = itemTopPx;
-              break;
-            }
-            // If page would be nearly empty, continue and let this item be on this page
-            // (it will extend past pageEnd, which we'll handle by moving to next page)
+          // This item starts before pageEnd but ends after - it would be split
+          // Break BEFORE this item (at its top)
+          const contentBefore = itemTopPx - currentPageStart;
+          if (contentBefore > 20) { // At least 20px of content on this page
+            bestBreak = itemTopPx;
+            break; // Use the first (topmost) split item as our break point
           }
         }
         
