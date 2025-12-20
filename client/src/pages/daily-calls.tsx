@@ -132,8 +132,9 @@ export default function DailyCallSheet() {
   const adjustMinutesForExtendedDay = (minutes: number): number => {
     // Only apply adjustment if schedule extends past midnight (endMinutes > 1440)
     // and the time is before startMinutes (e.g., 1 AM is before 7 AM start)
-    // and the time is within the extended portion (e.g., 1 AM is part of 7 AM - 2 AM schedule)
-    if (endMinutes > 1440 && minutes < startMinutes && minutes <= (endMinutes - 1440)) {
+    // Any time before the day start (e.g., 1 AM, 2 AM, 2:30 AM when start is 7 AM)
+    // should be treated as "after midnight" and sort after 11 PM events
+    if (endMinutes > 1440 && minutes < startMinutes) {
       return minutes + 1440;
     }
     return minutes;
