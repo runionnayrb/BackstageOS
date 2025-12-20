@@ -1150,7 +1150,7 @@ export default function DailyCallSheet() {
             clonedElement.style.border = 'none';
             clonedElement.style.boxShadow = 'none';
             clonedElement.style.borderRadius = '0';
-            clonedElement.style.padding = '20px'; // Reduced padding for tighter margins
+            // Keep original padding to maintain position consistency with metrics
             
             // Hide the app footer since we'll add it as proper PDF footer
             const appFooter = clonedElement.querySelector('.mt-8.pt-6.border-t.border-gray-200.text-center');
