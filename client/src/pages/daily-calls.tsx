@@ -36,6 +36,7 @@ interface DailyCallSheetParams {
 
 interface CallLocation {
   name: string;
+  locationType?: 'main' | 'auxiliary';
   events: Array<{
     id: number;
     title: string;
@@ -343,46 +344,111 @@ export default function DailyCallSheet() {
       auxiliaryLocationGroups[locationName].push(event);
     });
 
-    // Create the main locations array for two-column layout
+    // Create the locations array
     const locations: CallLocation[] = [];
     
-    // Get the main location names (left column)
+    // Get the location names
     const mainLocationNames = Object.keys(mainLocationGroups);
-    if (mainLocationNames.length > 0) {
-      // For now, take the first main location for left column
-      const mainLocationName = mainLocationNames[0];
-      const mainEvents = mainLocationGroups[mainLocationName].sort(sortByTime);
-      
-      // Add END-OF-DAY to the first (main) location
-      mainEvents.push({
-        id: -1,
-        title: 'END-OF-DAY',
-        startTime: globalEndOfDayTime,
-        endTime: globalEndOfDayTime,
-        cast: [],
-        notes: undefined,
-        location: ''
-      });
-      
-      locations.push({
-        name: mainLocationName,
-        events: mainEvents,
-        locationType: 'main'
-      });
-    }
-    
-    // Get the auxiliary location names (right column)
     const auxiliaryLocationNames = Object.keys(auxiliaryLocationGroups);
-    if (auxiliaryLocationNames.length > 0) {
-      // Take the first auxiliary location for right column
-      const auxiliaryLocationName = auxiliaryLocationNames[0];
-      const auxiliaryEvents = auxiliaryLocationGroups[auxiliaryLocationName].sort(sortByTime);
+    const totalLocationCount = mainLocationNames.length + auxiliaryLocationNames.length;
+    
+    // Check if we have more than 2 total locations
+    const hasMoreThanTwoLocations = totalLocationCount > 2;
+    
+    if (hasMoreThanTwoLocations) {
+      // More than 2 locations: show all in single column
+      // Primary (main) locations first, then secondary (auxiliary) locations
       
-      locations.push({
-        name: auxiliaryLocationName,
-        events: auxiliaryEvents,
-        locationType: 'auxiliary'
+      // Add all main locations first
+      mainLocationNames.forEach((mainLocationName, index) => {
+        // Clone array to avoid mutating the original
+        const mainEvents = [...mainLocationGroups[mainLocationName]].sort(sortByTime);
+        
+        // Add END-OF-DAY only to the last location in the combined list
+        const isLastLocation = index === mainLocationNames.length - 1 && auxiliaryLocationNames.length === 0;
+        if (isLastLocation) {
+          mainEvents.push({
+            id: -1,
+            title: 'END-OF-DAY',
+            startTime: globalEndOfDayTime,
+            endTime: globalEndOfDayTime,
+            cast: [],
+            notes: undefined,
+            location: ''
+          });
+        }
+        
+        locations.push({
+          name: mainLocationName,
+          events: mainEvents,
+          locationType: 'main'
+        });
       });
+      
+      // Then add all auxiliary locations
+      auxiliaryLocationNames.forEach((auxiliaryLocationName, index) => {
+        // Clone array to avoid mutating the original
+        const auxiliaryEvents = [...auxiliaryLocationGroups[auxiliaryLocationName]].sort(sortByTime);
+        
+        // Add END-OF-DAY to the last auxiliary location (which is the last overall)
+        const isLastLocation = index === auxiliaryLocationNames.length - 1;
+        if (isLastLocation) {
+          auxiliaryEvents.push({
+            id: -1,
+            title: 'END-OF-DAY',
+            startTime: globalEndOfDayTime,
+            endTime: globalEndOfDayTime,
+            cast: [],
+            notes: undefined,
+            location: ''
+          });
+        }
+        
+        locations.push({
+          name: auxiliaryLocationName,
+          events: auxiliaryEvents,
+          locationType: 'auxiliary'
+        });
+      });
+    } else {
+      // 2 or fewer locations: use two-column layout (existing behavior)
+      
+      // Get the main location (left column)
+      if (mainLocationNames.length > 0) {
+        const mainLocationName = mainLocationNames[0];
+        // Clone array to avoid mutating the original
+        const mainEvents = [...mainLocationGroups[mainLocationName]].sort(sortByTime);
+        
+        // Add END-OF-DAY to the first (main) location
+        mainEvents.push({
+          id: -1,
+          title: 'END-OF-DAY',
+          startTime: globalEndOfDayTime,
+          endTime: globalEndOfDayTime,
+          cast: [],
+          notes: undefined,
+          location: ''
+        });
+        
+        locations.push({
+          name: mainLocationName,
+          events: mainEvents,
+          locationType: 'main'
+        });
+      }
+      
+      // Get the auxiliary location (right column)
+      if (auxiliaryLocationNames.length > 0) {
+        const auxiliaryLocationName = auxiliaryLocationNames[0];
+        // Clone array to avoid mutating the original
+        const auxiliaryEvents = [...auxiliaryLocationGroups[auxiliaryLocationName]].sort(sortByTime);
+        
+        locations.push({
+          name: auxiliaryLocationName,
+          events: auxiliaryEvents,
+          locationType: 'auxiliary'
+        });
+      }
     }
 
     // Create the generated data object
@@ -1509,8 +1575,8 @@ export default function DailyCallSheet() {
                   </div>
                 ))}
               </div>
-            ) : (
-              // Multiple locations - chronologically aligned with no gap
+            ) : (callData.locations || []).length === 2 ? (
+              // Exactly 2 locations - two-column chronologically aligned layout
               <div className="space-y-1">
                 {/* Column headers */}
                 <div className="grid grid-cols-7 gap-0">
@@ -1896,6 +1962,183 @@ export default function DailyCallSheet() {
                     ))}
                   </div>
                 )}
+              </div>
+            ) : (
+              // More than 2 locations - single column with all locations listed
+              // Primary locations first, then secondary locations
+              <div className="space-y-8">
+                {(callData.locations || []).map((location, locationIndex) => (
+                  <div key={locationIndex} className="space-y-1">
+                    <div className="border-b-2 border-black pb-2 flex items-center justify-between">
+                      {isEditing ? (
+                        <Select
+                          value={location.name}
+                          onValueChange={(value) => updateLocationName(locationIndex, value)}
+                        >
+                          <SelectTrigger className="w-auto border-0 p-0 text-lg font-semibold focus:ring-0 focus:ring-offset-0" data-testid={`select-multi-col-location-${locationIndex}`}>
+                            <SelectValue placeholder="Select location">{location.name || 'Select location'}</SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            {eventLocations.length > 0 ? (
+                              eventLocations.map((loc: any) => (
+                                <SelectItem key={loc.id} value={loc.name} data-testid={`select-multi-col-location-option-${loc.id}`}>
+                                  {loc.name}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <SelectItem value={location.name} data-testid="select-multi-col-location-current">{location.name}</SelectItem>
+                            )}
+                            <SelectItem value="New Location" data-testid="select-multi-col-location-new">New Location</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <h4 className="text-lg font-semibold text-gray-900" data-testid={`text-multi-col-location-name-${locationIndex}`}>
+                          {location.name}
+                          {location.locationType && (
+                            <span className="ml-2 text-sm font-normal text-gray-500">
+                              ({location.locationType === 'main' ? 'Primary' : 'Secondary'})
+                            </span>
+                          )}
+                        </h4>
+                      )}
+                      {isEditing && (
+                        <Button 
+                          onClick={() => addEvent(locationIndex)}
+                          size="sm"
+                          variant="outline"
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add Event
+                        </Button>
+                      )}
+                    </div>
+                    
+                    <div className="space-y-2 overflow-visible">
+                      {(location.events || []).map((event, eventIdx) => (
+                        <div 
+                          key={event.id} 
+                          data-end-of-day-row={event.title === 'END-OF-DAY' ? 'true' : undefined}
+                          className={`flex ${event.title === 'END-OF-DAY' ? 'items-center' : 'items-start'} gap-6 ${event.title === 'END-OF-DAY' ? 'bg-gray-100 py-1 relative overflow-visible' : 'py-2'}`}
+                          onClick={(e) => {
+                            if (isEditing && event.title === 'END-OF-DAY') {
+                              addEvent(locationIndex);
+                            }
+                          }}
+                          style={isEditing && event.title === 'END-OF-DAY' ? { cursor: 'pointer' } : {}}
+                        >
+                          {isEditing && event.title === 'END-OF-DAY' && (
+                            <div
+                              className="absolute -left-6 top-1/2 -translate-y-1/2 w-6 h-6 opacity-0 hover:opacity-100 transition-opacity duration-200 z-10 flex items-center justify-center"
+                            >
+                              <Plus className="h-4 w-4 text-black" />
+                            </div>
+                          )}
+                          <div className="w-20 text-sm font-medium text-gray-700 flex-shrink-0">
+                            {event.title === 'END-OF-DAY' ? (
+                              <span className="font-bold leading-none flex items-center h-full">{event.startTime}</span>
+                            ) : (
+                              isEditing ? (
+                                <div className="flex flex-col gap-1">
+                                  <Input
+                                    value={event.startTime}
+                                    onChange={(e) => {
+                                      const newLocations = [...callData.locations];
+                                      newLocations[locationIndex].events[eventIdx].startTime = e.target.value;
+                                      setCallData(prev => ({ ...prev, locations: newLocations }));
+                                    }}
+                                    className="text-xs w-24"
+                                    placeholder="9:00 AM"
+                                    data-testid={`input-multi-col-start-time-${locationIndex}-${eventIdx}`}
+                                  />
+                                  <Input
+                                    value={event.endTime}
+                                    onChange={(e) => {
+                                      updateLocationEventProperty(locationIndex, eventIdx, 'endTime', e.target.value);
+                                    }}
+                                    className="text-xs w-24"
+                                    placeholder="10:00 AM"
+                                    data-testid={`input-multi-col-end-time-${locationIndex}-${eventIdx}`}
+                                  />
+                                </div>
+                              ) : event.startTime
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <div className={`text-sm ${event.title === 'END-OF-DAY' ? 'font-bold text-gray-900 leading-none flex items-center h-full' : 'font-bold text-gray-800'}`}>
+                                  {isEditing && event.title !== 'END-OF-DAY' ? (
+                                    <Input
+                                      value={event.title}
+                                      onChange={(e) => {
+                                        const newLocations = [...callData.locations];
+                                        newLocations[locationIndex].events[eventIdx].title = e.target.value;
+                                        setCallData(prev => ({ ...prev, locations: newLocations }));
+                                      }}
+                                      className="font-medium text-sm"
+                                    />
+                                  ) : (
+                                    event.title
+                                  )}
+                                </div>
+                                {isEditing && event.title !== 'END-OF-DAY' ? (
+                                  <div className="mt-2">
+                                    <Label className="text-xs font-medium text-gray-600">Cast Called:</Label>
+                                    <div className="mt-1">
+                                      <CastSelector
+                                        contacts={contacts}
+                                        selectedCast={event.cast}
+                                        onChange={(newCast) => {
+                                          const newLocations = [...callData.locations];
+                                          newLocations[locationIndex].events[eventIdx].cast = newCast;
+                                          setCallData(prev => ({ ...prev, locations: newLocations }));
+                                        }}
+                                        placeholder="Type to search cast members..."
+                                      />
+                                    </div>
+                                  </div>
+                                ) : (
+                                  event.cast && event.cast.length > 0 && (
+                                    <div className="text-xs text-black mt-1">
+                                      {event.cast.join(', ')}
+                                    </div>
+                                  )
+                                )}
+                              </div>
+                              {isEditing && event.title !== 'END-OF-DAY' && (
+                                <Button
+                                  onClick={() => removeLocationEvent(locationIndex, eventIdx)}
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-red-500 hover:text-red-700 ml-2"
+                                  data-testid={`button-delete-multi-col-event-${locationIndex}-${eventIdx}`}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      
+                      {/* Add Event button for this location */}
+                      {isEditing && (
+                        <div className="pt-2 border-t border-gray-100">
+                          <Button
+                            onClick={() => addEvent(locationIndex)}
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                            data-testid={`button-add-event-multi-col-location-${locationIndex}`}
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Event to {location.name}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
 
