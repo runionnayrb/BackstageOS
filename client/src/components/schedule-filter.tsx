@@ -231,6 +231,8 @@ export default function ScheduleFilter({
   // Group locations by type
   const mainLocations = eventLocations.filter(loc => loc.locationType === 'main');
   const auxiliaryLocations = eventLocations.filter(loc => loc.locationType === 'auxiliary');
+  const fittingsLocations = eventLocations.filter(loc => loc.locationType === 'fittings');
+  const appointmentsLocations = eventLocations.filter(loc => loc.locationType === 'appointments');
 
   const handleShowScheduleToggle = () => {
     setShowScheduleEnabled(!showScheduleEnabled);
@@ -694,6 +696,74 @@ export default function ScheduleFilter({
                       </div>
                       <div className="space-y-1 mt-2">
                         {auxiliaryLocations.map((location) => (
+                          <div
+                            key={location.id}
+                            className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer"
+                            onClick={() => handleLocationToggle(location.name)}
+                            data-testid={`location-filter-${location.id}`}
+                          >
+                            <Checkbox
+                              checked={selectedLocations?.includes(location.name) || false}
+                              onChange={() => handleLocationToggle(location.name)}
+                              className="pointer-events-none"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">
+                                {location.name}
+                              </p>
+                              {location.address && (
+                                <p className="text-xs text-gray-500 truncate">
+                                  {location.address}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {fittingsLocations.length > 0 && (
+                    <div className="mb-4">
+                      <div className="px-2 py-1 text-sm font-medium text-gray-600 border-b">
+                        FITTINGS LOCATIONS
+                      </div>
+                      <div className="space-y-1 mt-2">
+                        {fittingsLocations.map((location) => (
+                          <div
+                            key={location.id}
+                            className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer"
+                            onClick={() => handleLocationToggle(location.name)}
+                            data-testid={`location-filter-${location.id}`}
+                          >
+                            <Checkbox
+                              checked={selectedLocations?.includes(location.name) || false}
+                              onChange={() => handleLocationToggle(location.name)}
+                              className="pointer-events-none"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">
+                                {location.name}
+                              </p>
+                              {location.address && (
+                                <p className="text-xs text-gray-500 truncate">
+                                  {location.address}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {appointmentsLocations.length > 0 && (
+                    <div className="mb-4">
+                      <div className="px-2 py-1 text-sm font-medium text-gray-600 border-b">
+                        APPOINTMENTS LOCATIONS
+                      </div>
+                      <div className="space-y-1 mt-2">
+                        {appointmentsLocations.map((location) => (
                           <div
                             key={location.id}
                             className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer"
