@@ -122,7 +122,22 @@ export default function DailyCallSheet() {
 
   // Parse schedule settings for timezone and time format preferences
   const scheduleSettings = parseScheduleSettings((showSettings as any)?.scheduleSettings);
-  const { timeFormat = '12', timezone } = scheduleSettings;
+  const { timeFormat = '12', timezone, dayStartHour = 8, dayEndHour = 24 } = scheduleSettings;
+  
+  // Calculate time range for extended day support (e.g., 7 AM - 2 AM next day)
+  const startMinutes = dayStartHour * 60;
+  const endMinutes = dayEndHour * 60;
+  
+  // Helper to adjust minutes for extended day schedules (times past midnight sort after 11 PM)
+  const adjustMinutesForExtendedDay = (minutes: number): number => {
+    // Only apply adjustment if schedule extends past midnight (endMinutes > 1440)
+    // and the time is before startMinutes (e.g., 1 AM is before 7 AM start)
+    // and the time is within the extended portion (e.g., 1 AM is part of 7 AM - 2 AM schedule)
+    if (endMinutes > 1440 && minutes < startMinutes && minutes <= (endMinutes - 1440)) {
+      return minutes + 1440;
+    }
+    return minutes;
+  };
 
   // Mutation for saving daily call with optimistic updates
   const saveCallMutation = useMutation({
@@ -310,14 +325,21 @@ export default function DailyCallSheet() {
       
       return hour24 * 60 + (minutes || 0);
     };
+    
+    // Adjusted version that handles extended day schedules (times past midnight)
+    const timeToMinutesAdjusted = (timeStr: string): number => {
+      return adjustMinutesForExtendedDay(timeToMinutesLocal(timeStr));
+    };
 
     // Calculate single END-OF-DAY time for the entire day (latest end time across all events)
+    // Uses adjusted time comparison to properly handle events past midnight
     let globalEndOfDayTime = formatTimeDisplay('23:59', timeFormat as '12' | '24'); // Default fallback
     const allEventsAcrossTypes = Object.values(locationTypeGroups).flat();
     if (allEventsAcrossTypes.length > 0) {
-      // Find the latest end time across all events on this day using proper time comparison
+      // Find the latest end time across all events on this day using adjusted time comparison
+      // This ensures events ending at 1 AM are considered later than events ending at 11 PM
       const latestEvent = allEventsAcrossTypes.reduce((latest, event) => {
-        return timeToMinutesLocal(event.endTime) > timeToMinutesLocal(latest.endTime) ? event : latest;
+        return timeToMinutesAdjusted(event.endTime) > timeToMinutesAdjusted(latest.endTime) ? event : latest;
       }, allEventsAcrossTypes[0]);
       globalEndOfDayTime = latestEvent.endTime;
     }
@@ -700,10 +722,15 @@ export default function DailyCallSheet() {
     
     return hour24 * 60 + (minutes || 0);
   };
+  
+  // Adjusted version for extended day schedules (times past midnight sort after 11 PM)
+  const sortTimeToMinutesAdjusted = (timeStr: string): number => {
+    return adjustMinutesForExtendedDay(sortTimeToMinutes(timeStr));
+  };
 
-  // Helper function to sort events by start time
+  // Helper function to sort events by start time (handles extended day schedules)
   const sortByTime = (a: any, b: any): number => {
-    return sortTimeToMinutes(a.startTime) - sortTimeToMinutes(b.startTime);
+    return sortTimeToMinutesAdjusted(a.startTime) - sortTimeToMinutesAdjusted(b.startTime);
   };
 
   // Helper function to check if participants match "Full Cast" or "Full Company"
@@ -927,6 +954,11 @@ export default function DailyCallSheet() {
     
     return hour24 * 60 + (minutes || 0);
   };
+  
+  // Adjusted version for extended day schedules (times past midnight are later)
+  const timeToMinutesExtended = (timeStr: string): number => {
+    return adjustMinutesForExtendedDay(timeToMinutes(timeStr));
+  };
 
   // Helper function to update END-OF-DAY time for the entire day (single END-OF-DAY)
   const updateGlobalEndOfDay = (locations: CallLocation[]) => {
@@ -937,13 +969,15 @@ export default function DailyCallSheet() {
     }));
 
     // Calculate global end-of-day time across all locations
+    // Uses extended day adjustment to properly handle events past midnight
     let globalEndOfDayTime = formatTimeDisplay('23:59', timeFormat as '12' | '24');
     const allEvents = locationsWithoutEndOfDay.flatMap(loc => loc.events || []);
     
     if (allEvents.length > 0) {
-      // Find the event with the latest end time using proper time comparison
+      // Find the event with the latest end time using extended time comparison
+      // This ensures events ending at 1 AM are considered later than events ending at 11 PM
       const latestEvent = allEvents.reduce((latest, event) => {
-        return timeToMinutes(event.endTime) > timeToMinutes(latest.endTime) ? event : latest;
+        return timeToMinutesExtended(event.endTime) > timeToMinutesExtended(latest.endTime) ? event : latest;
       }, allEvents[0]);
       globalEndOfDayTime = latestEvent.endTime;
     }
