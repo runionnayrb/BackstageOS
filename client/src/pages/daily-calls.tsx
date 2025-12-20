@@ -983,9 +983,10 @@ export default function DailyCallSheet() {
       globalEndOfDayTime = latestEvent.endTime;
     }
 
-    // Add END-OF-DAY only to the first location
+    // Add END-OF-DAY only to the last location (after all primary and secondary locations)
+    const lastIndex = locationsWithoutEndOfDay.length - 1;
     return locationsWithoutEndOfDay.map((location, index) => {
-      if (index === 0) {
+      if (index === lastIndex) {
         return {
           ...location,
           events: [...location.events, {
