@@ -719,6 +719,9 @@ export const scheduleEvents = pgTable("schedule_events", {
   location: varchar("location"),
   notes: text("notes"),
   isAllDay: boolean("is_all_day").default(false),
+  // Participant selection flags (explicit flags for Full Company/Full Cast toggles)
+  isFullCompany: boolean("is_full_company").default(false), // true when Full Company toggle was selected
+  isFullCast: boolean("is_full_cast").default(false), // true when Full Cast toggle was selected
   // Schedule Relationship Mapping fields
   parentEventId: integer("parent_event_id").references(() => scheduleEvents.id, { onDelete: "set null" }), // Links daily events to production events
   isProductionLevel: boolean("is_production_level").default(false), // true for production schedule events, false for daily detail events

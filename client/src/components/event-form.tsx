@@ -76,6 +76,8 @@ export default function EventForm({
     isAllDay: initialValues?.isAllDay ?? false,
     isProductionLevel: initialValues?.isProductionLevel ?? false,
     participantIds: initialValues?.participantIds || [] as number[],
+    isFullCompany: (initialValues as any)?.isFullCompany ?? false,
+    isFullCast: (initialValues as any)?.isFullCast ?? false,
   });
 
   // Group contacts by contact group ONLY (matching schedule-filter pattern)
@@ -119,6 +121,8 @@ export default function EventForm({
       notes: formData.notes?.trim() || undefined,
       participantIds: formData.participantIds, // For create route
       participants: formData.participantIds, // For update route
+      isFullCompany: formData.isFullCompany, // Track Full Company selection
+      isFullCast: formData.isFullCast, // Track Full Cast selection
     };
     onSubmit(cleanedData);
   };
@@ -248,7 +252,7 @@ export default function EventForm({
                         e.preventDefault();
                         e.stopPropagation();
                         const allIds = contacts.filter(c => c.contactGroup?.name).map(c => c.id);
-                        setFormData(prev => ({ ...prev, participantIds: allIds }));
+                        setFormData(prev => ({ ...prev, participantIds: allIds, isFullCompany: true, isFullCast: false }));
                       }}
                     >
                       All
@@ -259,7 +263,7 @@ export default function EventForm({
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        setFormData(prev => ({ ...prev, participantIds: [] }));
+                        setFormData(prev => ({ ...prev, participantIds: [], isFullCompany: false, isFullCast: false }));
                       }}
                     >
                       None
@@ -284,10 +288,24 @@ export default function EventForm({
                               e.preventDefault();
                               e.stopPropagation();
                               const groupIds = groupContacts.map(c => c.id);
-                              setFormData(prev => ({
-                                ...prev,
-                                participantIds: [...new Set([...prev.participantIds, ...groupIds])],
-                              }));
+                              // If selecting Cast group and ONLY Cast members, set isFullCast
+                              const isCastGroup = groupName === 'Cast';
+                              setFormData(prev => {
+                                const newParticipantIds = [...new Set([...prev.participantIds, ...groupIds])];
+                                // Check if this results in exactly the Cast group (for Full Cast detection)
+                                const castMembers = contacts.filter(c => c.contactGroup?.name === 'Cast');
+                                const castIds = castMembers.map(c => c.id);
+                                const isExactlyFullCast = isCastGroup && 
+                                  castIds.length > 0 &&
+                                  castIds.every(id => newParticipantIds.includes(id)) &&
+                                  newParticipantIds.every(id => castIds.includes(id));
+                                return {
+                                  ...prev,
+                                  participantIds: newParticipantIds,
+                                  isFullCast: isExactlyFullCast,
+                                  isFullCompany: false, // Clear Full Company when selecting individual groups
+                                };
+                              });
                             }}
                           >
                             All
@@ -302,6 +320,8 @@ export default function EventForm({
                               setFormData(prev => ({
                                 ...prev,
                                 participantIds: prev.participantIds.filter(id => !groupIds.includes(id)),
+                                isFullCompany: false,
+                                isFullCast: false,
                               }));
                             }}
                           >
@@ -324,11 +344,15 @@ export default function EventForm({
                                   setFormData(prev => ({
                                     ...prev,
                                     participantIds: [...prev.participantIds, contactId],
+                                    isFullCompany: false, // Clear flags when selecting individual contacts
+                                    isFullCast: false,
                                   }));
                                 } else {
                                   setFormData(prev => ({
                                     ...prev,
                                     participantIds: prev.participantIds.filter(id => id !== contactId),
+                                    isFullCompany: false,
+                                    isFullCast: false,
                                   }));
                                 }
                               }}

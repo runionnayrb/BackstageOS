@@ -750,9 +750,19 @@ export default function DailyCallSheet() {
   };
 
   // Helper function to check if participants match "Full Cast" or "Full Company"
-  const getCastLabel = (participants: any[]): string[] => {
+  // Now uses explicit isFullCompany/isFullCast flags from schedule events
+  const getCastLabel = (participants: any[], event?: any): string[] => {
     if (!participants || participants.length === 0) return [];
     
+    // Check explicit flags first (set when user clicks "All" for Full Company or Cast)
+    if (event?.isFullCompany) {
+      return ['Full Company'];
+    }
+    if (event?.isFullCast) {
+      return ['Full Cast'];
+    }
+    
+    // Fallback to heuristic detection for backward compatibility
     // Get all contacts for this project
     const allContacts = (contacts as any[]) || [];
     if (allContacts.length === 0) return participants.map((p: any) => getParticipantName(p)).filter((n: string) => n.length > 0);
@@ -809,7 +819,8 @@ export default function DailyCallSheet() {
         const eventTitle = event.title?.toLowerCase() || '';
         
         // Get cast names using the smart label function (handles Full Cast/Full Company)
-        const castNames = getCastLabel(event.participants || []);
+        // Pass the event to check isFullCompany/isFullCast flags
+        const castNames = getCastLabel(event.participants || [], event);
         
         // Normalize times by stripping seconds (08:00:00 -> 08:00)
         const normalizedStartTime = normalizeTime(event.startTime);
