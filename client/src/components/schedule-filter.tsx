@@ -206,6 +206,32 @@ export default function ScheduleFilter({
     onIndividualTypeFilterChange([]);
   };
 
+  // Location filtering functions
+  const handleLocationToggle = (locationName: string) => {
+    if (!onLocationFilterChange) return;
+    const currentSelection = selectedLocations || [];
+    const newSelection = currentSelection.includes(locationName)
+      ? currentSelection.filter(name => name !== locationName)
+      : [...currentSelection, locationName];
+    
+    onLocationFilterChange(newSelection);
+  };
+
+  const handleSelectAllLocations = () => {
+    if (!onLocationFilterChange) return;
+    const allLocationNames = eventLocations.map(loc => loc.name);
+    onLocationFilterChange(allLocationNames);
+  };
+
+  const handleClearAllLocations = () => {
+    if (!onLocationFilterChange) return;
+    onLocationFilterChange([]);
+  };
+
+  // Group locations by type
+  const mainLocations = eventLocations.filter(loc => loc.locationType === 'main');
+  const auxiliaryLocations = eventLocations.filter(loc => loc.locationType === 'auxiliary');
+
   const handleShowScheduleToggle = () => {
     setShowScheduleEnabled(!showScheduleEnabled);
     if (!showScheduleEnabled) {
@@ -281,12 +307,15 @@ export default function ScheduleFilter({
         <Tabs defaultValue={hidePeopleTab ? "events" : defaultTab} className="w-full">
           {!hidePeopleTab && (
             <div className="flex gap-2 mx-4 mb-4">
-              <TabsList className="grid grid-cols-2 h-9 flex-1">
+              <TabsList className="grid grid-cols-3 h-9 flex-1">
                 <TabsTrigger value="people" className="h-8 text-sm">
                   People
                 </TabsTrigger>
                 <TabsTrigger value="events" className="h-8 text-sm">
                   Event Types
+                </TabsTrigger>
+                <TabsTrigger value="locations" className="h-8 text-sm">
+                  Locations
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -583,6 +612,134 @@ export default function ScheduleFilter({
                     className="h-6 px-2 text-xs"
                   >
                     Clear All
+                  </Button>
+                )}
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="locations" className="m-0">
+            <div className="px-4 py-3 border-b bg-gray-50">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">ALL LOCATIONS</span>
+                <div className="flex gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSelectAllLocations}
+                    className="text-xs px-2 py-1 h-5"
+                    disabled={eventLocations.length === 0}
+                  >
+                    All
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleClearAllLocations}
+                    className="text-xs px-2 py-1 h-5"
+                  >
+                    None
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <div className="max-h-96 overflow-y-auto">
+              {eventLocations.length === 0 ? (
+                <div className="p-4 text-center text-gray-500">
+                  <MapPin className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p>No locations found</p>
+                  <p className="text-sm">Add locations in show settings</p>
+                </div>
+              ) : (
+                <div className="p-2">
+                  {mainLocations.length > 0 && (
+                    <div className="mb-4">
+                      <div className="px-2 py-1 text-sm font-medium text-gray-600 border-b">
+                        MAIN LOCATIONS
+                      </div>
+                      <div className="space-y-1 mt-2">
+                        {mainLocations.map((location) => (
+                          <div
+                            key={location.id}
+                            className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer"
+                            onClick={() => handleLocationToggle(location.name)}
+                            data-testid={`location-filter-${location.id}`}
+                          >
+                            <Checkbox
+                              checked={selectedLocations?.includes(location.name) || false}
+                              onChange={() => handleLocationToggle(location.name)}
+                              className="pointer-events-none"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">
+                                {location.name}
+                              </p>
+                              {location.address && (
+                                <p className="text-xs text-gray-500 truncate">
+                                  {location.address}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {auxiliaryLocations.length > 0 && (
+                    <div className="mb-4">
+                      <div className="px-2 py-1 text-sm font-medium text-gray-600 border-b">
+                        AUXILIARY LOCATIONS
+                      </div>
+                      <div className="space-y-1 mt-2">
+                        {auxiliaryLocations.map((location) => (
+                          <div
+                            key={location.id}
+                            className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer"
+                            onClick={() => handleLocationToggle(location.name)}
+                            data-testid={`location-filter-${location.id}`}
+                          >
+                            <Checkbox
+                              checked={selectedLocations?.includes(location.name) || false}
+                              onChange={() => handleLocationToggle(location.name)}
+                              className="pointer-events-none"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">
+                                {location.name}
+                              </p>
+                              {location.address && (
+                                <p className="text-xs text-gray-500 truncate">
+                                  {location.address}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="p-3 border-t bg-gray-50">
+              <div className="flex items-center justify-between text-xs text-gray-600">
+                <span>
+                  {(selectedLocations?.length || 0) === 0 
+                    ? "Showing all locations"
+                    : `Filtering by ${selectedLocations?.length} ${selectedLocations?.length === 1 ? 'location' : 'locations'}`
+                  }
+                </span>
+                {(selectedLocations?.length || 0) > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleClearAllLocations}
+                    className="h-6 px-2 text-xs"
+                  >
+                    Clear
                   </Button>
                 )}
               </div>

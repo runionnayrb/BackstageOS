@@ -20,6 +20,7 @@ interface MonthlyScheduleViewProps {
   selectedContactIds: number[];
   selectedEventTypes: string[];
   selectedIndividualTypes: string[];
+  selectedLocations?: string[];
   showProductionCalendar?: boolean;
   onProductionCalendarFilterChange?: (show: boolean) => void;
   showAllDayEvents: boolean;
@@ -71,6 +72,7 @@ export default function MonthlyScheduleView({
   selectedContactIds,
   selectedEventTypes,
   selectedIndividualTypes,
+  selectedLocations = [],
   showProductionCalendar = true,
   onProductionCalendarFilterChange,
   showAllDayEvents,
@@ -183,6 +185,19 @@ export default function MonthlyScheduleView({
       filteredEvents = filteredEvents.filter((event: ScheduleEvent) => 
         event.participants.some(participant => selectedContactIds.includes(participant.contactId))
       );
+    }
+
+    // Apply location filtering
+    if (selectedLocations.length > 0) {
+      filteredEvents = filteredEvents.filter((event: ScheduleEvent) => {
+        if (!event.location) return false;
+        const eventLocationLower = event.location.toLowerCase();
+        return selectedLocations.some(loc => 
+          eventLocationLower === loc.toLowerCase() || 
+          eventLocationLower.includes(loc.toLowerCase()) ||
+          loc.toLowerCase().includes(eventLocationLower)
+        );
+      });
     }
 
     if (!showAllDayEvents) {

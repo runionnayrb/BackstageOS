@@ -26,6 +26,7 @@ interface MobileWeeklyScheduleViewProps {
   onEventTypeFilterChange: (eventTypes: string[]) => void;
   selectedIndividualTypes: string[];
   onIndividualTypeFilterChange: (individualTypes: string[]) => void;
+  selectedLocations?: string[];
   timeIncrement: 15 | 30 | 60;
   setTimeIncrement: (increment: 15 | 30 | 60) => void;
   showAllDayEvents?: boolean;
@@ -83,6 +84,7 @@ export default function MobileWeeklyScheduleView({
   onEventTypeFilterChange,
   selectedIndividualTypes,
   onIndividualTypeFilterChange,
+  selectedLocations = [],
   timeIncrement,
   setTimeIncrement,
   showAllDayEvents: propShowAllDayEvents,
@@ -208,16 +210,28 @@ export default function MobileWeeklyScheduleView({
     }
     
     // Apply contact filtering
-    if (selectedContactIds.length === 0) {
-      // When no contacts are selected, show all events that passed the event type filtering
-      return eventsToFilter;
-    } else {
-      return eventsToFilter.filter(event => 
+    if (selectedContactIds.length > 0) {
+      eventsToFilter = eventsToFilter.filter(event => 
         event.participants.some(participant => 
           selectedContactIds.includes(participant.contactId)
         )
       );
     }
+    
+    // Apply location filtering
+    if (selectedLocations.length > 0) {
+      eventsToFilter = eventsToFilter.filter(event => {
+        if (!event.location) return false;
+        const eventLocationLower = event.location.toLowerCase();
+        return selectedLocations.some(loc => 
+          eventLocationLower === loc.toLowerCase() || 
+          eventLocationLower.includes(loc.toLowerCase()) ||
+          loc.toLowerCase().includes(eventLocationLower)
+        );
+      });
+    }
+    
+    return eventsToFilter;
   })();
 
   // Generate multiple weeks of days for continuous scrolling

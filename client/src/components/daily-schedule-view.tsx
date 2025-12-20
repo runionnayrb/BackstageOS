@@ -28,6 +28,7 @@ interface DailyScheduleViewProps {
   onEventTypeFilterChange: (eventTypes: string[]) => void;
   selectedIndividualTypes: string[];
   onIndividualTypeFilterChange: (individualTypes: string[]) => void;
+  selectedLocations?: string[];
   timeIncrement: 15 | 30 | 60;
   setTimeIncrement: (increment: 15 | 30 | 60) => void;
   showAllDayEvents?: boolean;
@@ -87,6 +88,7 @@ export default function DailyScheduleView({
   onEventTypeFilterChange,
   selectedIndividualTypes,
   onIndividualTypeFilterChange,
+  selectedLocations = [],
   timeIncrement,
   setTimeIncrement,
   showAllDayEvents: propShowAllDayEvents = true, 
@@ -838,6 +840,19 @@ export default function DailyScheduleView({
           selectedContactIds.includes(participant.contactId)
         )
       );
+    }
+    
+    // Apply location filtering
+    if (selectedLocations.length > 0) {
+      filteredEvents = filteredEvents.filter(event => {
+        if (!event.location) return false;
+        const eventLocationLower = event.location.toLowerCase();
+        return selectedLocations.some(loc => 
+          eventLocationLower === loc.toLowerCase() || 
+          eventLocationLower.includes(loc.toLowerCase()) ||
+          loc.toLowerCase().includes(eventLocationLower)
+        );
+      });
     }
     
     return filteredEvents;

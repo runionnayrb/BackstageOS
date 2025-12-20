@@ -66,6 +66,7 @@ export default function Schedule() {
   const [selectedContactIds, setSelectedContactIds] = useState<number[]>([]);
   const [selectedEventTypes, setSelectedEventTypes] = useState<string[]>([]);
   const [selectedIndividualTypes, setSelectedIndividualTypes] = useState<string[]>([]);
+  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
   const [showProductionCalendar, setShowProductionCalendar] = useState(true); // Default to true for monthly view
   const [timeIncrement, setTimeIncrement] = useState<15 | 30 | 60>(30);
   const [showAllDayEvents, setShowAllDayEvents] = useState(true);
@@ -1058,6 +1059,8 @@ The Production Team`
               showProductionCalendar={showProductionCalendar}
               onProductionCalendarFilterChange={setShowProductionCalendar}
               viewMode={viewMode}
+              selectedLocations={selectedLocations}
+              onLocationFilterChange={setSelectedLocations}
             />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -1310,6 +1313,8 @@ The Production Team`
                 showProductionCalendar={showProductionCalendar}
                 onProductionCalendarFilterChange={setShowProductionCalendar}
                 viewMode={viewMode}
+                selectedLocations={selectedLocations}
+                onLocationFilterChange={setSelectedLocations}
               />
               <Button
                 variant="ghost"
@@ -1485,21 +1490,15 @@ The Production Team`
             currentDate={currentDate}
             setCurrentDate={setCurrentDate}
             selectedContactIds={selectedContactIds}
-            onFilterChange={setSelectedContactIds}
             selectedEventTypes={selectedEventTypes}
-            onEventTypeFilterChange={setSelectedEventTypes}
             selectedIndividualTypes={selectedIndividualTypes}
-            onIndividualTypeFilterChange={setSelectedIndividualTypes}
+            selectedLocations={selectedLocations}
             showProductionCalendar={showProductionCalendar}
             onProductionCalendarFilterChange={setShowProductionCalendar}
-            timeIncrement={timeIncrement}
-            setTimeIncrement={setTimeIncrement}
             showAllDayEvents={showAllDayEvents}
             setShowAllDayEvents={setShowAllDayEvents}
             createEventDialog={createEventDialog}
             setCreateEventDialog={setCreateEventDialog}
-            viewMode={viewMode}
-            setViewMode={setViewMode}
             onEventEdit={(event) => {
               setEditingEvent(event);
             }}
@@ -1524,6 +1523,7 @@ The Production Team`
                 onEventTypeFilterChange={setSelectedEventTypes}
                 selectedIndividualTypes={selectedIndividualTypes}
                 onIndividualTypeFilterChange={setSelectedIndividualTypes}
+                selectedLocations={selectedLocations}
                 timeIncrement={timeIncrement}
                 setTimeIncrement={setTimeIncrement}
                 showAllDayEvents={showAllDayEvents}
@@ -1548,6 +1548,7 @@ The Production Team`
                 onEventTypeFilterChange={setSelectedEventTypes}
                 selectedIndividualTypes={selectedIndividualTypes}
                 onIndividualTypeFilterChange={setSelectedIndividualTypes}
+                selectedLocations={selectedLocations}
                 timeIncrement={timeIncrement}
                 setTimeIncrement={setTimeIncrement}
                 showAllDayEvents={showAllDayEvents}
@@ -1576,6 +1577,7 @@ The Production Team`
             onEventTypeFilterChange={setSelectedEventTypes}
             selectedIndividualTypes={selectedIndividualTypes}
             onIndividualTypeFilterChange={setSelectedIndividualTypes}
+            selectedLocations={selectedLocations}
             timeIncrement={timeIncrement}
             setTimeIncrement={setTimeIncrement}
             showAllDayEvents={showAllDayEvents}
