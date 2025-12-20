@@ -2536,8 +2536,8 @@ export default function DailyCallSheet() {
           )}
 
           {/* Announcements Section */}
-          <div className="mt-6" data-pdf-section="announcements" data-pdf-priority="high">
-            <h3 className="text-lg font-semibold text-gray-900 mb-1" data-pdf-item="announcements-header">Announcements</h3>
+          <div className="mt-6" data-pdf-section="announcements" data-pdf-priority="high" data-pdf-item="announcements-section">
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">Announcements</h3>
             {isEditing ? (
               <Textarea
                 value={callData.announcements}
