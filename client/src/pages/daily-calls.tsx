@@ -1190,6 +1190,15 @@ export default function DailyCallSheet() {
       const pageBreaks: Array<{ startPx: number; endPx: number }> = [];
       let currentPageStart = 0;
       
+      // DEBUG: Log all the key values
+      console.log('=== PDF PAGE BREAK DEBUG ===');
+      console.log('Canvas dimensions:', canvas.width, 'x', canvas.height);
+      console.log('Element scrollWidth:', element.scrollWidth);
+      console.log('Scale factor:', scale);
+      console.log('Content height (mm):', contentHeight);
+      console.log('Content height (px):', contentHeightPx);
+      console.log('Item metrics (CSS pixels):', itemMetrics);
+      
       // Build a sorted list of all item boundaries in canvas pixels
       // Only use itemMetrics (individual events + section headers marked with data-pdf-item)
       const itemBoundaries: Array<{ topPx: number; bottomPx: number; name: string }> = [];
@@ -1205,6 +1214,8 @@ export default function DailyCallSheet() {
       
       // Sort by top position
       itemBoundaries.sort((a, b) => a.topPx - b.topPx);
+      
+      console.log('Item boundaries (canvas pixels):', itemBoundaries);
       
       while (currentPageStart < canvas.height) {
         const idealPageEnd = currentPageStart + contentHeightPx;
@@ -1248,6 +1259,7 @@ export default function DailyCallSheet() {
           actualPageEnd = Math.floor(currentPageStart + contentHeightPx);
         }
         
+        console.log(`Page ${pageBreaks.length + 1}: ${Math.floor(currentPageStart)} to ${actualPageEnd}`);
         pageBreaks.push({ 
           startPx: Math.floor(currentPageStart), 
           endPx: actualPageEnd 
@@ -1255,6 +1267,7 @@ export default function DailyCallSheet() {
         currentPageStart = actualPageEnd;
       }
       
+      console.log('Final page breaks:', pageBreaks);
       const totalPages = pageBreaks.length;
       
       // Add content page by page using calculated break points
