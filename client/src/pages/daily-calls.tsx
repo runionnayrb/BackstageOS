@@ -2156,60 +2156,42 @@ export default function DailyCallSheet() {
                     </div>
                     
                     <div className="space-y-2 overflow-visible">
-                      {(location.events || []).map((event, eventIdx) => (
+                      {(location.events || []).filter(event => event.title !== 'END-OF-DAY').map((event, eventIdx) => (
                         <div 
                           key={event.id} 
-                          data-end-of-day-row={event.title === 'END-OF-DAY' ? 'true' : undefined}
-                          className={`flex ${event.title === 'END-OF-DAY' ? 'items-center' : 'items-start'} gap-6 ${event.title === 'END-OF-DAY' ? 'bg-gray-100 py-1 relative overflow-visible' : 'py-2'}`}
-                          onClick={(e) => {
-                            if (isEditing && event.title === 'END-OF-DAY') {
-                              addEvent(locationIndex);
-                            }
-                          }}
-                          style={isEditing && event.title === 'END-OF-DAY' ? { cursor: 'pointer' } : {}}
+                          className="flex items-start gap-6 py-2"
                         >
-                          {isEditing && event.title === 'END-OF-DAY' && (
-                            <div
-                              className="absolute -left-6 top-1/2 -translate-y-1/2 w-6 h-6 opacity-0 hover:opacity-100 transition-opacity duration-200 z-10 flex items-center justify-center"
-                            >
-                              <Plus className="h-4 w-4 text-black" />
-                            </div>
-                          )}
                           <div className="w-20 text-sm font-medium text-gray-700 flex-shrink-0">
-                            {event.title === 'END-OF-DAY' ? (
-                              <span className="font-bold leading-none flex items-center h-full">{event.startTime}</span>
-                            ) : (
-                              isEditing ? (
-                                <div className="flex flex-col gap-1">
-                                  <Input
-                                    value={event.startTime}
-                                    onChange={(e) => {
-                                      const newLocations = [...callData.locations];
-                                      newLocations[locationIndex].events[eventIdx].startTime = e.target.value;
-                                      setCallData(prev => ({ ...prev, locations: newLocations }));
-                                    }}
-                                    className="text-xs w-24"
-                                    placeholder="9:00 AM"
-                                    data-testid={`input-multi-col-start-time-${locationIndex}-${eventIdx}`}
-                                  />
-                                  <Input
-                                    value={event.endTime}
-                                    onChange={(e) => {
-                                      updateLocationEventProperty(locationIndex, eventIdx, 'endTime', e.target.value);
-                                    }}
-                                    className="text-xs w-24"
-                                    placeholder="10:00 AM"
-                                    data-testid={`input-multi-col-end-time-${locationIndex}-${eventIdx}`}
-                                  />
-                                </div>
-                              ) : event.startTime
-                            )}
+                            {isEditing ? (
+                              <div className="flex flex-col gap-1">
+                                <Input
+                                  value={event.startTime}
+                                  onChange={(e) => {
+                                    const newLocations = [...callData.locations];
+                                    newLocations[locationIndex].events[eventIdx].startTime = e.target.value;
+                                    setCallData(prev => ({ ...prev, locations: newLocations }));
+                                  }}
+                                  className="text-xs w-24"
+                                  placeholder="9:00 AM"
+                                  data-testid={`input-multi-col-start-time-${locationIndex}-${eventIdx}`}
+                                />
+                                <Input
+                                  value={event.endTime}
+                                  onChange={(e) => {
+                                    updateLocationEventProperty(locationIndex, eventIdx, 'endTime', e.target.value);
+                                  }}
+                                  className="text-xs w-24"
+                                  placeholder="10:00 AM"
+                                  data-testid={`input-multi-col-end-time-${locationIndex}-${eventIdx}`}
+                                />
+                              </div>
+                            ) : event.startTime}
                           </div>
                           <div className="flex-1">
                             <div className="flex justify-between items-start">
                               <div className="flex-1">
-                                <div className={`text-sm ${event.title === 'END-OF-DAY' ? 'font-bold text-gray-900 leading-none flex items-center h-full' : 'font-bold text-gray-800'}`}>
-                                  {isEditing && event.title !== 'END-OF-DAY' ? (
+                                <div className="text-sm font-bold text-gray-800">
+                                  {isEditing ? (
                                     <Input
                                       value={event.title}
                                       onChange={(e) => {
@@ -2223,7 +2205,7 @@ export default function DailyCallSheet() {
                                     event.title
                                   )}
                                 </div>
-                                {isEditing && event.title !== 'END-OF-DAY' ? (
+                                {isEditing ? (
                                   <div className="mt-2">
                                     <Label className="text-xs font-medium text-gray-600">Cast Called:</Label>
                                     <div className="mt-1">
@@ -2247,7 +2229,7 @@ export default function DailyCallSheet() {
                                   )
                                 )}
                               </div>
-                              {isEditing && event.title !== 'END-OF-DAY' && (
+                              {isEditing && (
                                 <Button
                                   onClick={() => removeLocationEvent(locationIndex, eventIdx)}
                                   variant="ghost"
@@ -2281,6 +2263,42 @@ export default function DailyCallSheet() {
                     </div>
                   </div>
                 ))}
+                
+                {/* Full-width END-OF-DAY section after all locations */}
+                {(callData.locations || []).some(location => 
+                  (location.events || []).some(event => event.title === 'END-OF-DAY')
+                ) && (
+                  <div className="mt-4">
+                    {(callData.locations || []).flatMap((location, locationIndex) => 
+                      (location.events || [])
+                        .filter(event => event.title === 'END-OF-DAY')
+                        .map(event => ({ event, locationIndex }))
+                    ).map(({ event, locationIndex }, index) => (
+                      <div key={`end-of-day-multi-${index}`} data-end-of-day-row="true" className="bg-gray-100 py-2 relative flex items-center">
+                        {isEditing && index === 0 && (
+                          <Button
+                            onClick={() => addEvent(callData.locations.length - 1)}
+                            variant="ghost"
+                            size="sm"
+                            className="absolute -left-6 top-1/2 -translate-y-1/2 w-6 h-6 p-0 opacity-0 hover:opacity-100 transition-opacity duration-200 bg-transparent hover:bg-transparent text-black"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <div className="flex items-center gap-6">
+                          <div className="w-20 text-sm font-medium text-gray-700 flex-shrink-0">
+                            <span className="font-bold">{event.startTime}</span>
+                          </div>
+                          <div className="flex-1">
+                            <div className="text-sm font-bold text-gray-900">
+                              {event.title}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
