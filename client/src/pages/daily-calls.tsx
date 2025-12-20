@@ -435,6 +435,8 @@ export default function DailyCallSheet() {
       });
     } else {
       // 2 or fewer locations: use two-column layout (existing behavior)
+      // END-OF-DAY should be added to the LAST location in the list
+      const hasAuxiliaryLocation = auxiliaryLocationNames.length > 0;
       
       // Get the main location (left column)
       if (mainLocationNames.length > 0) {
@@ -442,16 +444,18 @@ export default function DailyCallSheet() {
         // Clone array to avoid mutating the original
         const mainEvents = [...mainLocationGroups[mainLocationName]].sort(sortByTime);
         
-        // Add END-OF-DAY to the first (main) location
-        mainEvents.push({
-          id: -1,
-          title: 'END-OF-DAY',
-          startTime: globalEndOfDayTime,
-          endTime: globalEndOfDayTime,
-          cast: [],
-          notes: undefined,
-          location: ''
-        });
+        // Only add END-OF-DAY to main location if there's no auxiliary location
+        if (!hasAuxiliaryLocation) {
+          mainEvents.push({
+            id: -1,
+            title: 'END-OF-DAY',
+            startTime: globalEndOfDayTime,
+            endTime: globalEndOfDayTime,
+            cast: [],
+            notes: undefined,
+            location: ''
+          });
+        }
         
         locations.push({
           name: mainLocationName,
@@ -465,6 +469,17 @@ export default function DailyCallSheet() {
         const auxiliaryLocationName = auxiliaryLocationNames[0];
         // Clone array to avoid mutating the original
         const auxiliaryEvents = [...auxiliaryLocationGroups[auxiliaryLocationName]].sort(sortByTime);
+        
+        // Add END-OF-DAY to auxiliary location (the last location)
+        auxiliaryEvents.push({
+          id: -1,
+          title: 'END-OF-DAY',
+          startTime: globalEndOfDayTime,
+          endTime: globalEndOfDayTime,
+          cast: [],
+          notes: undefined,
+          location: ''
+        });
         
         locations.push({
           name: auxiliaryLocationName,
