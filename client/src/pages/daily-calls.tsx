@@ -1085,10 +1085,12 @@ export default function DailyCallSheet() {
         return;
       }
       
-      // Collect section positions BEFORE rendering to canvas
+      // Collect section and item positions BEFORE rendering to canvas
       // These are used to calculate smart page breaks
       const sections = element.querySelectorAll('[data-pdf-section]');
+      const items = element.querySelectorAll('[data-pdf-item]');
       const sectionMetrics: Array<{ name: string; top: number; height: number; bottom: number; priority: string }> = [];
+      const itemMetrics: Array<{ name: string; top: number; height: number; bottom: number }> = [];
       const containerRect = element.getBoundingClientRect();
       
       sections.forEach((section) => {
@@ -1100,6 +1102,18 @@ export default function DailyCallSheet() {
           height: rect.height,
           bottom: relativeTop + rect.height,
           priority: section.getAttribute('data-pdf-priority') || 'normal'
+        });
+      });
+      
+      // Collect individual event/item metrics
+      items.forEach((item) => {
+        const rect = item.getBoundingClientRect();
+        const relativeTop = rect.top - containerRect.top;
+        itemMetrics.push({
+          name: item.getAttribute('data-pdf-item') || 'event',
+          top: relativeTop,
+          height: rect.height,
+          bottom: relativeTop + rect.height
         });
       });
       
@@ -1188,75 +1202,46 @@ export default function DailyCallSheet() {
           break;
         }
         
-        // Check if remaining content after this page is very small
-        // Only extend if the remaining content is tiny AND the total won't overflow the page
-        const remainingContent = canvas.height - pageEnd;
-        const extendThreshold = contentHeightPx * 0.10; // Allow extending by up to 10%
-        const maxContentHeightPx = contentHeightPx * 1.10; // Maximum we can fit on one page
-        const totalIfExtended = canvas.height - currentPageStart;
-        
-        if (remainingContent <= extendThreshold && totalIfExtended <= maxContentHeightPx) {
-          // Remaining content is small enough to fit - include it all on this page
-          pageBreaks.push({ startPx: currentPageStart, endPx: canvas.height });
-          break;
-        }
-        
-        // Find the best break point - look for a section boundary before pageEnd
-        // Prefer breaking BEFORE a section starts rather than in the middle
+        // Find the best break point by checking both sections and individual events
+        // NEVER split an event across pages - always break BEFORE an event that would be split
         let bestBreak = pageEnd;
-        let foundBetterBreak = false;
         
-        // Sort sections by their position (top to bottom)
-        const sortedSections = [...sectionMetrics].sort((a, b) => a.top - b.top);
+        // Combine and sort all items (sections + events) by position
+        const allItems = [
+          ...sectionMetrics.map(s => ({ ...s, type: 'section' as const })),
+          ...itemMetrics.map(i => ({ ...i, priority: 'event', type: 'item' as const }))
+        ].sort((a, b) => a.top - b.top);
         
-        for (const section of sortedSections) {
-          const sectionTopPx = section.top * scale;
-          const sectionBottomPx = section.bottom * scale;
-          const sectionHeight = sectionBottomPx - sectionTopPx;
+        // Find the last item that ends BEFORE pageEnd (or starts before and would be split)
+        // We need to break at the top of any item that would be split
+        for (let i = allItems.length - 1; i >= 0; i--) {
+          const item = allItems[i];
+          const itemTopPx = item.top * scale;
+          const itemBottomPx = item.bottom * scale;
           
-          // Skip sections that are entirely before our current page start
-          if (sectionBottomPx <= currentPageStart) continue;
+          // Skip items entirely before current page
+          if (itemBottomPx <= currentPageStart) continue;
           
-          // If section starts at or after our page start and before our ideal page end
-          // (includes sections starting exactly at currentPageStart)
-          if (sectionTopPx >= currentPageStart && sectionTopPx <= pageEnd) {
-            // Check if the section would be cut - if so, consider breaking before it
-            if (sectionBottomPx > pageEnd) {
-              // This section would be split
-              const contentBeforeSection = sectionTopPx - currentPageStart;
-              
-              // High-priority sections (like announcements) should ALWAYS stay intact
-              if (section.priority === 'high') {
-                // Only split if:
-                // 1. Section itself is taller than a page (can't fit anyway), OR
-                // 2. Page would be completely empty (section starts at page start)
-                // Otherwise, ALWAYS break before the high-priority section
-                const sectionFitsOnPage = sectionHeight <= contentHeightPx;
-                const pageWouldBeEmpty = contentBeforeSection < 10; // ~3px tolerance
-                
-                if (sectionFitsOnPage && !pageWouldBeEmpty) {
-                  // Break before this high-priority section to keep it intact
-                  bestBreak = sectionTopPx;
-                  foundBetterBreak = true;
-                  break;
-                }
-                // If section doesn't fit on a page or page would be empty,
-                // let it split (fallback to default behavior)
-              } else {
-                // Normal priority - use 30% threshold
-                if (contentBeforeSection >= minContentForNormalBreak) {
-                  bestBreak = sectionTopPx;
-                  foundBetterBreak = true;
-                  break;
-                }
-              }
+          // Skip items entirely after our ideal page end (they're on next page anyway)
+          if (itemTopPx >= pageEnd) continue;
+          
+          // This item is on our current page
+          // Check if it would be split (starts before pageEnd but ends after)
+          if (itemTopPx < pageEnd && itemBottomPx > pageEnd) {
+            // This item would be split - we need to break BEFORE it
+            // But only if there's meaningful content before it
+            const contentBefore = itemTopPx - currentPageStart;
+            if (contentBefore > 20) { // At least 20px of content on this page
+              bestBreak = itemTopPx;
+              break;
             }
+            // If page would be nearly empty, continue and let this item be on this page
+            // (it will extend past pageEnd, which we'll handle by moving to next page)
           }
         }
         
-        // If we didn't find a better break point, use the default page end
-        // This ensures we don't leave pages nearly empty
-        if (!foundBetterBreak) {
+        // Ensure bestBreak doesn't exceed pageEnd (no page extension)
+        if (bestBreak > pageEnd) {
           bestBreak = pageEnd;
         }
         
@@ -1277,13 +1262,7 @@ export default function DailyCallSheet() {
         const sourceHeight = pageBreak.endPx - pageBreak.startPx;
         
         // Convert to mm for PDF placement
-        let sliceHeightMm = (sourceHeight / canvas.width) * imgWidth;
-        
-        // Ensure slice doesn't extend into footer area (leave 10mm for footer)
-        const maxSliceHeight = pageHeight - (marginMm * 2) - 10;
-        if (sliceHeightMm > maxSliceHeight) {
-          sliceHeightMm = maxSliceHeight;
-        }
+        const sliceHeightMm = (sourceHeight / canvas.width) * imgWidth;
         
         // Create a temporary canvas with just this slice
         const sliceCanvas = document.createElement('canvas');
@@ -1610,6 +1589,7 @@ export default function DailyCallSheet() {
                       {(location.events || []).map((event, eventIdx) => (
                         <div 
                           key={event.id} 
+                          data-pdf-item={`event-${event.id}`}
                           data-end-of-day-row={event.title === 'END-OF-DAY' ? 'true' : undefined}
                           className={`flex ${event.title === 'END-OF-DAY' ? 'items-center' : 'items-start'} gap-6 ${event.title === 'END-OF-DAY' ? 'bg-gray-100 py-1 relative overflow-visible' : 'py-2'}`}
                           onClick={(e) => {
@@ -2178,7 +2158,8 @@ export default function DailyCallSheet() {
                     <div className="space-y-2 overflow-visible">
                       {(location.events || []).filter(event => event.title !== 'END-OF-DAY').map((event, eventIdx) => (
                         <div 
-                          key={event.id} 
+                          key={event.id}
+                          data-pdf-item={`event-${event.id}`}
                           className="flex items-start gap-6 py-2"
                         >
                           <div className="w-20 text-sm font-medium text-gray-700 flex-shrink-0">
@@ -2374,7 +2355,7 @@ export default function DailyCallSheet() {
                 {callData.fittingsEvents
                   .sort(sortByTime)
                   .map((event, index) => (
-                    <div key={`fitting-${event.id}`} className="flex items-start gap-6 py-2">
+                    <div key={`fitting-${event.id}`} data-pdf-item={`fitting-${event.id}`} className="flex items-start gap-6 py-2">
                       <div className="w-20 text-sm font-medium text-gray-700 flex-shrink-0">
                         {isEditing ? (
                           <Input
@@ -2469,7 +2450,7 @@ export default function DailyCallSheet() {
                 {callData.appointmentsEvents
                   .sort(sortByTime)
                   .map((event, index) => (
-                    <div key={`appointment-${event.id}`} className="flex items-start gap-6 py-2">
+                    <div key={`appointment-${event.id}`} data-pdf-item={`appointment-${event.id}`} className="flex items-start gap-6 py-2">
                       <div className="w-20 text-sm font-medium text-gray-700 flex-shrink-0">
                         {isEditing ? (
                           <Input
