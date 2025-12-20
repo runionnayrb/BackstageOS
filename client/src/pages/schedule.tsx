@@ -1672,6 +1672,8 @@ The Production Team`
                     isAllDay: editingEvent.isAllDay,
                     isProductionLevel: editingEvent.isProductionLevel,
                     participantIds: editingEvent.participants.map((p: any) => p.contactId),
+                    isFullCompany: editingEvent.isFullCompany || false,
+                    isFullCast: editingEvent.isFullCast || false,
                   }}
                 />
               </div>
