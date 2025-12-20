@@ -1185,65 +1185,73 @@ export default function DailyCallSheet() {
       // Convert content height to pixels for break calculations
       const contentHeightPx = (contentHeight / imgWidth) * canvas.width;
       
-      // Calculate section-aware page breaks
-      // Instead of slicing at fixed intervals, find natural break points at section boundaries
+      // Calculate page breaks that NEVER split events
+      // Strategy: Find items that would be split and snap the break to their top
       const pageBreaks: Array<{ startPx: number; endPx: number }> = [];
       let currentPageStart = 0;
       
-      // Minimum content required on a page before we consider breaking for normal sections (30%)
-      const minContentForNormalBreak = contentHeightPx * 0.3;
+      // Build a sorted list of all item boundaries in canvas pixels
+      const itemBoundaries: Array<{ topPx: number; bottomPx: number; name: string }> = [];
+      
+      // Add items (individual events) - these are the atomic units we never split
+      itemMetrics.forEach(item => {
+        itemBoundaries.push({
+          topPx: Math.floor(item.top * scale),
+          bottomPx: Math.ceil(item.bottom * scale),
+          name: item.name
+        });
+      });
+      
+      // Sort by top position
+      itemBoundaries.sort((a, b) => a.topPx - b.topPx);
       
       while (currentPageStart < canvas.height) {
-        let pageEnd = currentPageStart + contentHeightPx;
+        const idealPageEnd = currentPageStart + contentHeightPx;
         
-        // If this would be the last page, just take the rest
-        if (pageEnd >= canvas.height) {
-          pageBreaks.push({ startPx: currentPageStart, endPx: canvas.height });
+        // If this would be the last page, take the rest
+        if (idealPageEnd >= canvas.height) {
+          pageBreaks.push({ 
+            startPx: Math.floor(currentPageStart), 
+            endPx: Math.ceil(canvas.height) 
+          });
           break;
         }
         
-        // Find the best break point by checking both sections and individual events
-        // NEVER split an event across pages - always break BEFORE an event that would be split
-        let bestBreak = pageEnd;
+        // Find the best break point - start with ideal and adjust if needed
+        let actualPageEnd = Math.floor(idealPageEnd);
         
-        // Combine and sort all items (sections + events) by position
-        const allItems = [
-          ...sectionMetrics.map(s => ({ ...s, type: 'section' as const })),
-          ...itemMetrics.map(i => ({ ...i, priority: 'event', type: 'item' as const }))
-        ].sort((a, b) => a.top - b.top);
-        
-        // Find the FIRST item that would be split across pages
-        // We iterate forward (by position) and find the earliest split point
-        for (let i = 0; i < allItems.length; i++) {
-          const item = allItems[i];
-          const itemTopPx = item.top * scale;
-          const itemBottomPx = item.bottom * scale;
+        // Check if any item would be split at this break point
+        // If so, move the break to BEFORE that item (at its topPx)
+        for (const item of itemBoundaries) {
+          // Skip items entirely before this page
+          if (item.bottomPx <= currentPageStart) continue;
           
-          // Skip items entirely before current page
-          if (itemBottomPx <= currentPageStart) continue;
+          // Skip items entirely after our ideal break (they're fine on next page)
+          if (item.topPx >= idealPageEnd) continue;
           
-          // Skip items entirely before our ideal page end (they fit on this page)
-          if (itemBottomPx <= pageEnd) continue;
-          
-          // Skip items that start after our ideal page end (they're on next page anyway)
-          if (itemTopPx >= pageEnd) continue;
-          
-          // This item starts before pageEnd but ends after - it would be split
-          // Break BEFORE this item (at its top)
-          const contentBefore = itemTopPx - currentPageStart;
-          if (contentBefore > 20) { // At least 20px of content on this page
-            bestBreak = itemTopPx;
-            break; // Use the first (topmost) split item as our break point
+          // Check if this item crosses the ideal break point
+          // (item starts before break AND ends after break)
+          if (item.topPx < idealPageEnd && item.bottomPx > idealPageEnd) {
+            // This item would be split - we need to break BEFORE it
+            // Only do this if there's meaningful content before this item
+            const contentBeforeItem = item.topPx - currentPageStart;
+            if (contentBeforeItem > 50) { // At least 50px of content
+              actualPageEnd = item.topPx;
+              break; // Found the first item that would split, use its top
+            }
           }
         }
         
-        // Ensure bestBreak doesn't exceed pageEnd (no page extension)
-        if (bestBreak > pageEnd) {
-          bestBreak = pageEnd;
+        // Ensure we made progress (prevent infinite loop)
+        if (actualPageEnd <= currentPageStart) {
+          actualPageEnd = Math.floor(currentPageStart + contentHeightPx);
         }
         
-        pageBreaks.push({ startPx: currentPageStart, endPx: bestBreak });
-        currentPageStart = bestBreak;
+        pageBreaks.push({ 
+          startPx: Math.floor(currentPageStart), 
+          endPx: actualPageEnd 
+        });
+        currentPageStart = actualPageEnd;
       }
       
       const totalPages = pageBreaks.length;
