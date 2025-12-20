@@ -63,11 +63,12 @@ export function useNavigation(): NavigationContext & {
       // Add section if present
       if (sectionId) {
         const sectionLabel = getSectionLabel(sectionId);
+        const sectionPath = getSectionPath(sectionId);
         const isCurrentSection = !subsectionId;
         
         breadcrumbs.push({
           label: sectionLabel,
-          href: isCurrentSection ? undefined : `/shows/${showId}/${sectionId}`,
+          href: isCurrentSection ? undefined : `/shows/${showId}/${sectionPath}`,
           isCurrentPage: isCurrentSection
         });
       }
@@ -89,8 +90,9 @@ export function useNavigation(): NavigationContext & {
   const getBackDestination = (): string => {
     if (isInShow) {
       if (subsectionId) {
-        // From subsection back to section
-        return `/shows/${showId}/${sectionId}`;
+        // From subsection back to section (use corrected path for calls -> calendar)
+        const sectionPath = getSectionPath(sectionId || '');
+        return `/shows/${showId}/${sectionPath}`;
       }
       
       if (sectionId) {
@@ -145,6 +147,7 @@ function getSectionLabel(sectionId: string): string {
   const sectionLabels: Record<string, string> = {
     'reports': 'Reports',
     'calendar': 'Calendar',
+    'calls': 'Calendar',
     'script': 'Script',
     'props': 'Props',
     'contacts': 'Contacts',
@@ -153,6 +156,14 @@ function getSectionLabel(sectionId: string): string {
   };
   
   return sectionLabels[sectionId] || sectionId.charAt(0).toUpperCase() + sectionId.slice(1);
+}
+
+// Helper to get the actual navigation path for a section
+function getSectionPath(sectionId: string): string {
+  const sectionPaths: Record<string, string> = {
+    'calls': 'calendar',
+  };
+  return sectionPaths[sectionId] || sectionId;
 }
 
 // Helper function to get subsection display labels  
