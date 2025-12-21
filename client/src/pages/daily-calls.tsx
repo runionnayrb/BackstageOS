@@ -2248,7 +2248,7 @@ export default function DailyCallSheet() {
                           <div className="flex-1">
                             <div className="flex justify-between items-start">
                               <div className="flex-1">
-                                <div className="text-sm font-bold text-gray-800">
+                                <div className="text-sm font-bold text-gray-800 flex items-baseline gap-2">
                                   {isEditing ? (
                                     <Input
                                       value={event.title}
@@ -2260,7 +2260,12 @@ export default function DailyCallSheet() {
                                       className="font-medium text-sm"
                                     />
                                   ) : (
-                                    event.title
+                                    <>
+                                      <span>{event.title}</span>
+                                      {event.notes && (
+                                        <span className="text-xs font-normal text-gray-600">{event.notes}</span>
+                                      )}
+                                    </>
                                   )}
                                 </div>
                                 {isEditing ? (
