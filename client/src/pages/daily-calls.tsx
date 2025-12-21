@@ -370,9 +370,19 @@ export default function DailyCallSheet() {
     // Create the locations array
     const locations: CallLocation[] = [];
     
-    // Get the location names
-    const mainLocationNames = Object.keys(mainLocationGroups);
-    const auxiliaryLocationNames = Object.keys(auxiliaryLocationGroups);
+    // Get the location names and sort them by their order in eventLocations
+    // This ensures primary locations appear in the order defined by the user
+    const getLocationSortOrder = (locationName: string): number => {
+      const locationIndex = eventLocations.findIndex((loc: any) => loc.name === locationName);
+      return locationIndex >= 0 ? locationIndex : 999; // Unknown locations go last
+    };
+    
+    const mainLocationNames = Object.keys(mainLocationGroups).sort((a, b) => 
+      getLocationSortOrder(a) - getLocationSortOrder(b)
+    );
+    const auxiliaryLocationNames = Object.keys(auxiliaryLocationGroups).sort((a, b) => 
+      getLocationSortOrder(a) - getLocationSortOrder(b)
+    );
     const totalLocationCount = mainLocationNames.length + auxiliaryLocationNames.length;
     
     // Check if we have more than 2 total locations
