@@ -2211,9 +2211,10 @@ export default function DailyCallSheet() {
                         <div 
                           key={event.id}
                           data-pdf-item={`event-${event.id}`}
-                          className="flex items-start gap-6 py-2"
+                          style={{ display: 'grid', gridTemplateColumns: '170px 1fr 200px', gap: '16px', alignItems: 'start', padding: '8px 0' }}
                         >
-                          <div className="w-40 text-sm font-medium text-gray-700 flex-shrink-0">
+                          {/* Column 1: Time */}
+                          <div className="text-sm font-medium text-gray-700">
                             {isEditing ? (
                               <div className="flex flex-col gap-1">
                                 <Input
@@ -2245,10 +2246,11 @@ export default function DailyCallSheet() {
                               </div>
                             )}
                           </div>
-                          <div className="flex-1">
+                          {/* Column 2: Title and Cast */}
+                          <div>
                             <div className="flex justify-between items-start">
                               <div className="flex-1">
-                                <div className="text-sm font-bold text-gray-800 flex items-baseline gap-2">
+                                <div className="text-sm font-bold text-gray-800">
                                   {isEditing ? (
                                     <Input
                                       value={event.title}
@@ -2260,12 +2262,7 @@ export default function DailyCallSheet() {
                                       className="font-medium text-sm"
                                     />
                                   ) : (
-                                    <>
-                                      <span>{event.title}</span>
-                                      {event.notes && (
-                                        <span className="text-xs font-normal text-gray-600">{event.notes}</span>
-                                      )}
-                                    </>
+                                    event.title
                                   )}
                                 </div>
                                 {isEditing ? (
@@ -2304,6 +2301,10 @@ export default function DailyCallSheet() {
                                 </Button>
                               )}
                             </div>
+                          </div>
+                          {/* Column 3: Notes */}
+                          <div className="text-xs text-gray-600">
+                            {!isEditing && event.notes ? event.notes : ''}
                           </div>
                         </div>
                       ))}
