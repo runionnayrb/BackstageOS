@@ -810,7 +810,7 @@ export default function DailyCallSheet() {
             startTime: formatTimeDisplay(normalizedStartTime, timeFormat as '12' | '24'),
             endTime: formatTimeDisplay(normalizedEndTime, timeFormat as '12' | '24'),
             cast: castNames,
-            notes: event.notes || '',
+            notes: event.notes || event.description || '',
             location: event.location || ''
           });
         } else if (eventType === 'meeting' || eventType === 'appointment' || eventTitle.includes('meeting') || eventTitle.includes('appointment')) {
@@ -820,7 +820,7 @@ export default function DailyCallSheet() {
             startTime: formatTimeDisplay(normalizedStartTime, timeFormat as '12' | '24'),
             endTime: formatTimeDisplay(normalizedEndTime, timeFormat as '12' | '24'),
             cast: castNames,
-            notes: event.notes || '',
+            notes: event.notes || event.description || '',
             location: event.location || ''
           });
         } else {
@@ -836,7 +836,7 @@ export default function DailyCallSheet() {
             startTime: formatTimeDisplay(normalizedStartTime, timeFormat as '12' | '24'),
             endTime: formatTimeDisplay(normalizedEndTime, timeFormat as '12' | '24'),
             cast: castNames,
-            notes: event.notes || ''
+            notes: event.notes || event.description || ''
           });
         }
       }
