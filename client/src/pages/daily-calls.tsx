@@ -2238,10 +2238,10 @@ export default function DailyCallSheet() {
                                 />
                               </div>
                             ) : (
-                              <div className="flex items-center">
-                                <span className="w-[70px] text-right">{event.startTime}</span>
-                                <span className="mx-1">-</span>
-                                <span className="w-[70px] text-right">{event.endTime}</span>
+                              <div style={{ display: 'flex', alignItems: 'center', fontVariantNumeric: 'tabular-nums' }}>
+                                <span style={{ width: '70px', textAlign: 'right', display: 'inline-block' }}>{event.startTime}</span>
+                                <span style={{ margin: '0 4px' }}>-</span>
+                                <span style={{ width: '70px', textAlign: 'right', display: 'inline-block' }}>{event.endTime}</span>
                               </div>
                             )}
                           </div>
