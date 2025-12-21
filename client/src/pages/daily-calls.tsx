@@ -2216,7 +2216,7 @@ export default function DailyCallSheet() {
                           {/* Column 1: Time */}
                           <div className="text-sm font-medium text-gray-700">
                             {isEditing ? (
-                              <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-1">
                                 <Input
                                   value={event.startTime}
                                   onChange={(e) => {
@@ -2224,16 +2224,17 @@ export default function DailyCallSheet() {
                                     newLocations[locationIndex].events[eventIdx].startTime = e.target.value;
                                     setCallData(prev => ({ ...prev, locations: newLocations }));
                                   }}
-                                  className="text-xs w-24"
+                                  className="text-xs w-20 text-center"
                                   placeholder="9:00 AM"
                                   data-testid={`input-multi-col-start-time-${locationIndex}-${eventIdx}`}
                                 />
+                                <span className="text-xs">-</span>
                                 <Input
                                   value={event.endTime}
                                   onChange={(e) => {
                                     updateLocationEventProperty(locationIndex, eventIdx, 'endTime', e.target.value);
                                   }}
-                                  className="text-xs w-24"
+                                  className="text-xs w-20 text-center"
                                   placeholder="10:00 AM"
                                   data-testid={`input-multi-col-end-time-${locationIndex}-${eventIdx}`}
                                 />
@@ -2304,7 +2305,21 @@ export default function DailyCallSheet() {
                           </div>
                           {/* Column 3: Notes */}
                           <div className="text-xs text-gray-600">
-                            {!isEditing && event.notes ? event.notes : ''}
+                            {isEditing ? (
+                              <Input
+                                value={event.notes || ''}
+                                onChange={(e) => {
+                                  const newLocations = [...callData.locations];
+                                  newLocations[locationIndex].events[eventIdx].notes = e.target.value;
+                                  setCallData(prev => ({ ...prev, locations: newLocations }));
+                                }}
+                                className="text-xs"
+                                placeholder="Notes..."
+                                data-testid={`input-multi-col-notes-${locationIndex}-${eventIdx}`}
+                              />
+                            ) : (
+                              event.notes || ''
+                            )}
                           </div>
                         </div>
                       ))}
