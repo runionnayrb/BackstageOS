@@ -2192,11 +2192,6 @@ export default function DailyCallSheet() {
                       ) : (
                         <h4 className="text-lg font-semibold text-gray-900" data-testid={`text-multi-col-location-name-${locationIndex}`}>
                           {location.name}
-                          {location.locationType && (
-                            <span className="ml-2 text-sm font-normal text-gray-500">
-                              ({location.locationType === 'main' ? 'Primary' : 'Secondary'})
-                            </span>
-                          )}
                         </h4>
                       )}
                       {isEditing && (
