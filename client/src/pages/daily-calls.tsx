@@ -2237,7 +2237,13 @@ export default function DailyCallSheet() {
                                   data-testid={`input-multi-col-end-time-${locationIndex}-${eventIdx}`}
                                 />
                               </div>
-                            ) : `${event.startTime} - ${event.endTime}`}
+                            ) : (
+                              <div className="flex items-center">
+                                <span className="w-[70px] text-right">{event.startTime}</span>
+                                <span className="mx-1">-</span>
+                                <span className="w-[70px] text-right">{event.endTime}</span>
+                              </div>
+                            )}
                           </div>
                           <div className="flex-1">
                             <div className="flex justify-between items-start">
