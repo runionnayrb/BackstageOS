@@ -114,6 +114,51 @@ export default function DailyCallSheet() {
   const fittingsLocationName = eventLocations.find((loc: any) => loc.locationType === 'fittings')?.name || '';
   const appointmentsLocationName = eventLocations.find((loc: any) => loc.locationType === 'appointments')?.name || '';
 
+  // Helper function to normalize/sort locations by their order in eventLocations
+  // Ensures primary (main) locations come first, then secondary (auxiliary) locations
+  // Within each type, locations are ordered by their sortOrder in the settings
+  const normalizeLocationsByEventOrder = (locations: CallLocation[]): CallLocation[] => {
+    if (!eventLocations || eventLocations.length === 0 || !locations || locations.length === 0) {
+      return locations;
+    }
+
+    // Get sortOrder index from eventLocations, primary locations first then secondary
+    const getLocationSortKey = (locationName: string): { typePriority: number; sortIndex: number } => {
+      const eventLocation = eventLocations.find((loc: any) => loc.name === locationName);
+      const locationType = eventLocation?.locationType || 'main';
+      const sortIndex = eventLocations.findIndex((loc: any) => loc.name === locationName);
+      
+      // Type priority: main = 0, auxiliary = 1 (so main comes first)
+      const typePriority = locationType === 'main' ? 0 : 1;
+      
+      return {
+        typePriority,
+        sortIndex: sortIndex >= 0 ? sortIndex : 999 // Unknown locations go last
+      };
+    };
+
+    // Sort locations: first by type (primary before secondary), then by sortOrder index
+    return [...locations].sort((a, b) => {
+      const aKey = getLocationSortKey(a.name);
+      const bKey = getLocationSortKey(b.name);
+      
+      // First compare by type priority (main before auxiliary)
+      if (aKey.typePriority !== bKey.typePriority) {
+        return aKey.typePriority - bKey.typePriority;
+      }
+      
+      // Then compare by sortOrder index within the same type
+      return aKey.sortIndex - bKey.sortIndex;
+    }).map(location => {
+      // Also update the locationType field based on current settings
+      const eventLocation = eventLocations.find((loc: any) => loc.name === location.name);
+      return {
+        ...location,
+        locationType: (eventLocation?.locationType === 'auxiliary' ? 'auxiliary' : 'main') as 'main' | 'auxiliary'
+      };
+    });
+  };
+
   // Fetch existing daily call for the selected date
   const { data: existingDailyCall, isLoading } = useQuery<DailyCall>({
     queryKey: ['/api/projects', actualProjectId, 'daily-calls', selectedDate],
