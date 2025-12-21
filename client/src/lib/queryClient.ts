@@ -106,6 +106,7 @@ export const queryClient = new QueryClient({
       refetchInterval: false,
       refetchOnWindowFocus: false,
       staleTime: 5 * 60 * 1000, // 5 minutes instead of Infinity for better data freshness
+      throwOnError: false, // Prevent unhandled promise rejections - errors handled via error state
       retry: (failureCount, error) => {
         // Enhanced retry logic for better error handling
         if (error instanceof Error) {
@@ -157,6 +158,7 @@ export const queryClient = new QueryClient({
       },
     },
     mutations: {
+      throwOnError: false, // Prevent unhandled promise rejections - errors handled via onError callbacks
       retry: (failureCount, error) => {
         // Enhanced mutation retry logic
         if (error instanceof Error) {

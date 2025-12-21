@@ -27,6 +27,7 @@ import { PersonalScheduleShare } from "@/components/personal-schedule-share";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { parseScheduleSettings } from "@/lib/timeUtils";
+import type { Contact, ScheduleVersion, ScheduleEvent, PersonalSchedule } from "@shared/schema";
 
 // Helper function to safely parse JSON with error handling
 const safeJsonParse = (jsonString: string, fallback: any = {}) => {
@@ -229,41 +230,62 @@ The Production Team`
   });
 
   // Get schedule versions to find current published version
-  const { data: scheduleVersions = [], isLoading: isLoadingVersions } = useQuery({
+  const { data: scheduleVersions = [], isLoading: isLoadingVersions, error: versionsError } = useQuery<ScheduleVersion[]>({
     queryKey: [`/api/projects/${projectId}/schedule-versions`],
     enabled: !!projectId
   });
 
   // Fetch contacts for event creation
-  const { data: contacts = [] } = useQuery({
+  const { data: contacts = [], error: contactsError } = useQuery<Contact[]>({
     queryKey: [`/api/projects/${projectId}/contacts`],
   });
 
   // Fetch event types for event creation
-  const { data: eventTypes = [] } = useQuery({
+  const { data: eventTypes = [], error: eventTypesError } = useQuery<Array<{ id: number; name: string; color?: string }>>({
     queryKey: [`/api/projects/${projectId}/event-types`],
   });
 
   // Fetch schedule events for updated timestamp
-  const { data: events = [] } = useQuery({
+  const { data: events = [], error: eventsError } = useQuery<ScheduleEvent[]>({
     queryKey: [`/api/projects/${projectId}/schedule-events`],
   });
 
-  // Fetch all users for "updated by" information
-  const { data: users = [] } = useQuery({
+  // Fetch all users for "updated by" information - may fail for non-admins, that's expected
+  const { data: users = [] } = useQuery<Array<{ id: number; email: string; firstName?: string; lastName?: string }>>({
     queryKey: [`/api/admin/users`],
   });
 
   // Fetch personal schedules with contact information
-  const { data: personalSchedules = [] } = useQuery({
+  const { data: personalSchedules = [], error: personalSchedulesError } = useQuery<PersonalSchedule[]>({
     queryKey: [`/api/projects/${projectId}/personal-schedules`],
   });
 
   // Fetch email accounts for reply-to configuration
-  const { data: emailAccounts = [] } = useQuery({
+  const { data: emailAccounts = [] } = useQuery<Array<{ id: number; email: string; provider: string }>>({
     queryKey: [`/api/email/accounts`],
     enabled: showScheduleSettings, // Only fetch when modal is open
   });
+
+  // Handle query errors gracefully - show toast once per error
+  useEffect(() => {
+    const errors = [
+      { error: versionsError, name: 'schedule versions' },
+      { error: contactsError, name: 'contacts' },
+      { error: eventTypesError, name: 'event types' },
+      { error: eventsError, name: 'events' },
+      { error: personalSchedulesError, name: 'personal schedules' },
+    ].filter(e => e.error);
+
+    if (errors.length > 0) {
+      errors.forEach(({ error, name }) => {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        // Don't show toast for 401/403 errors (permission issues are expected)
+        if (!errorMessage.includes('401') && !errorMessage.includes('403')) {
+          console.error(`Failed to load ${name}:`, error);
+        }
+      });
+    }
+  }, [versionsError, contactsError, eventTypesError, eventsError, personalSchedulesError]);
 
   // Fetch auto-generated changes summary
   const { data: autoChangesSummary } = useQuery({
