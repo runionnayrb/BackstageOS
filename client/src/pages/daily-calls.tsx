@@ -115,40 +115,21 @@ export default function DailyCallSheet() {
   const appointmentsLocationName = eventLocations.find((loc: any) => loc.locationType === 'appointments')?.name || '';
 
   // Helper function to normalize/sort locations by their order in eventLocations
-  // Ensures primary (main) locations come first, then secondary (auxiliary) locations
-  // Within each type, locations are ordered by their sortOrder in the settings
+  // Locations appear in the exact same order as defined in show settings
   const normalizeLocationsByEventOrder = (locations: CallLocation[]): CallLocation[] => {
     if (!eventLocations || eventLocations.length === 0 || !locations || locations.length === 0) {
       return locations;
     }
 
-    // Get sortOrder index from eventLocations, primary locations first then secondary
-    const getLocationSortKey = (locationName: string): { typePriority: number; sortIndex: number } => {
-      const eventLocation = eventLocations.find((loc: any) => loc.name === locationName);
-      const locationType = eventLocation?.locationType || 'main';
+    // Get sortOrder index from eventLocations (same order as show settings)
+    const getLocationSortIndex = (locationName: string): number => {
       const sortIndex = eventLocations.findIndex((loc: any) => loc.name === locationName);
-      
-      // Type priority: main = 0, auxiliary = 1 (so main comes first)
-      const typePriority = locationType === 'main' ? 0 : 1;
-      
-      return {
-        typePriority,
-        sortIndex: sortIndex >= 0 ? sortIndex : 999 // Unknown locations go last
-      };
+      return sortIndex >= 0 ? sortIndex : 999; // Unknown locations go last
     };
 
-    // Sort locations: first by type (primary before secondary), then by sortOrder index
+    // Sort locations by their order in show settings (eventLocations)
     return [...locations].sort((a, b) => {
-      const aKey = getLocationSortKey(a.name);
-      const bKey = getLocationSortKey(b.name);
-      
-      // First compare by type priority (main before auxiliary)
-      if (aKey.typePriority !== bKey.typePriority) {
-        return aKey.typePriority - bKey.typePriority;
-      }
-      
-      // Then compare by sortOrder index within the same type
-      return aKey.sortIndex - bKey.sortIndex;
+      return getLocationSortIndex(a.name) - getLocationSortIndex(b.name);
     }).map(location => {
       // Also update the locationType field based on current settings
       const eventLocation = eventLocations.find((loc: any) => loc.name === location.name);
@@ -261,9 +242,10 @@ export default function DailyCallSheet() {
     if (isEditing) return;
     
     // If we have a saved daily call with actual data, use that instead of regenerating
+    // Apply normalization to ensure locations are in the correct order per show settings
     if (existingDailyCall && existingDailyCall.locations && existingDailyCall.locations.length > 0) {
       setCallData({
-        locations: existingDailyCall.locations,
+        locations: normalizeLocationsByEventOrder(existingDailyCall.locations),
         announcements: existingDailyCall.announcements || '',
         fittingsEvents: existingDailyCall.fittingsEvents || [],
         appointmentsEvents: existingDailyCall.appointmentsEvents || []
@@ -390,62 +372,49 @@ export default function DailyCallSheet() {
       globalEndOfDayTime = latestEvent.endTime;
     }
 
-    // Group events by actual location names within each location type
-    const mainLocationGroups: { [key: string]: any[] } = {};
-    const auxiliaryLocationGroups: { [key: string]: any[] } = {};
+    // Group events by actual location names (combining main and auxiliary)
+    const locationGroups: { [key: string]: any[] } = {};
     
-    // Group main events by location name
-    locationTypeGroups.main.forEach(event => {
+    // Group all main and auxiliary events by location name
+    [...locationTypeGroups.main, ...locationTypeGroups.auxiliary].forEach(event => {
       const locationName = event.location || 'Main Location';
-      if (!mainLocationGroups[locationName]) {
-        mainLocationGroups[locationName] = [];
+      if (!locationGroups[locationName]) {
+        locationGroups[locationName] = [];
       }
-      mainLocationGroups[locationName].push(event);
-    });
-    
-    // Group auxiliary events by location name  
-    locationTypeGroups.auxiliary.forEach(event => {
-      const locationName = event.location || 'Auxiliary Location';
-      if (!auxiliaryLocationGroups[locationName]) {
-        auxiliaryLocationGroups[locationName] = [];
-      }
-      auxiliaryLocationGroups[locationName].push(event);
+      locationGroups[locationName].push(event);
     });
 
     // Create the locations array
     const locations: CallLocation[] = [];
     
-    // Get the location names and sort them by their order in eventLocations
-    // This ensures primary locations appear in the order defined by the user
+    // Get all location names and sort them by their order in eventLocations (show settings order)
     const getLocationSortOrder = (locationName: string): number => {
       const locationIndex = eventLocations.findIndex((loc: any) => loc.name === locationName);
       return locationIndex >= 0 ? locationIndex : 999; // Unknown locations go last
     };
     
-    const mainLocationNames = Object.keys(mainLocationGroups).sort((a, b) => 
+    const allLocationNames = Object.keys(locationGroups).sort((a, b) => 
       getLocationSortOrder(a) - getLocationSortOrder(b)
     );
-    const auxiliaryLocationNames = Object.keys(auxiliaryLocationGroups).sort((a, b) => 
-      getLocationSortOrder(a) - getLocationSortOrder(b)
-    );
-    const totalLocationCount = mainLocationNames.length + auxiliaryLocationNames.length;
+    const totalLocationCount = allLocationNames.length;
     
     // Check if we have more than 2 total locations
     const hasMoreThanTwoLocations = totalLocationCount > 2;
     
     if (hasMoreThanTwoLocations) {
-      // More than 2 locations: show all in single column
-      // Primary (main) locations first, then secondary (auxiliary) locations
-      
-      // Add all main locations first
-      mainLocationNames.forEach((mainLocationName, index) => {
+      // More than 2 locations: show all in single column in show settings order
+      allLocationNames.forEach((locationName, index) => {
         // Clone array to avoid mutating the original
-        const mainEvents = [...mainLocationGroups[mainLocationName]].sort(sortByTime);
+        const locationEvents = [...locationGroups[locationName]].sort(sortByTime);
         
-        // Add END-OF-DAY only to the last location in the combined list
-        const isLastLocation = index === mainLocationNames.length - 1 && auxiliaryLocationNames.length === 0;
+        // Get location type from eventLocations
+        const eventLocation = eventLocations.find((loc: any) => loc.name === locationName);
+        const locationType = eventLocation?.locationType === 'auxiliary' ? 'auxiliary' : 'main';
+        
+        // Add END-OF-DAY only to the last location
+        const isLastLocation = index === allLocationNames.length - 1;
         if (isLastLocation) {
-          mainEvents.push({
+          locationEvents.push({
             id: -1,
             title: 'END-OF-DAY',
             startTime: globalEndOfDayTime,
@@ -457,51 +426,27 @@ export default function DailyCallSheet() {
         }
         
         locations.push({
-          name: mainLocationName,
-          events: mainEvents,
-          locationType: 'main'
-        });
-      });
-      
-      // Then add all auxiliary locations
-      auxiliaryLocationNames.forEach((auxiliaryLocationName, index) => {
-        // Clone array to avoid mutating the original
-        const auxiliaryEvents = [...auxiliaryLocationGroups[auxiliaryLocationName]].sort(sortByTime);
-        
-        // Add END-OF-DAY to the last auxiliary location (which is the last overall)
-        const isLastLocation = index === auxiliaryLocationNames.length - 1;
-        if (isLastLocation) {
-          auxiliaryEvents.push({
-            id: -1,
-            title: 'END-OF-DAY',
-            startTime: globalEndOfDayTime,
-            endTime: globalEndOfDayTime,
-            cast: [],
-            notes: undefined,
-            location: ''
-          });
-        }
-        
-        locations.push({
-          name: auxiliaryLocationName,
-          events: auxiliaryEvents,
-          locationType: 'auxiliary'
+          name: locationName,
+          events: locationEvents,
+          locationType: locationType as 'main' | 'auxiliary'
         });
       });
     } else {
       // 2 or fewer locations: use two-column layout (existing behavior)
       // END-OF-DAY should be added to the LAST location in the list
-      const hasAuxiliaryLocation = auxiliaryLocationNames.length > 0;
-      
-      // Get the main location (left column)
-      if (mainLocationNames.length > 0) {
-        const mainLocationName = mainLocationNames[0];
+      // Process locations in show settings order
+      allLocationNames.forEach((locationName, index) => {
         // Clone array to avoid mutating the original
-        const mainEvents = [...mainLocationGroups[mainLocationName]].sort(sortByTime);
+        const locationEvents = [...locationGroups[locationName]].sort(sortByTime);
         
-        // Only add END-OF-DAY to main location if there's no auxiliary location
-        if (!hasAuxiliaryLocation) {
-          mainEvents.push({
+        // Get location type from eventLocations
+        const eventLocation = eventLocations.find((loc: any) => loc.name === locationName);
+        const locationType = eventLocation?.locationType === 'auxiliary' ? 'auxiliary' : 'main';
+        
+        // Add END-OF-DAY only to the last location
+        const isLastLocation = index === allLocationNames.length - 1;
+        if (isLastLocation) {
+          locationEvents.push({
             id: -1,
             title: 'END-OF-DAY',
             startTime: globalEndOfDayTime,
@@ -513,35 +458,11 @@ export default function DailyCallSheet() {
         }
         
         locations.push({
-          name: mainLocationName,
-          events: mainEvents,
-          locationType: 'main'
+          name: locationName,
+          events: locationEvents,
+          locationType: locationType as 'main' | 'auxiliary'
         });
-      }
-      
-      // Get the auxiliary location (right column)
-      if (auxiliaryLocationNames.length > 0) {
-        const auxiliaryLocationName = auxiliaryLocationNames[0];
-        // Clone array to avoid mutating the original
-        const auxiliaryEvents = [...auxiliaryLocationGroups[auxiliaryLocationName]].sort(sortByTime);
-        
-        // Add END-OF-DAY to auxiliary location (the last location)
-        auxiliaryEvents.push({
-          id: -1,
-          title: 'END-OF-DAY',
-          startTime: globalEndOfDayTime,
-          endTime: globalEndOfDayTime,
-          cast: [],
-          notes: undefined,
-          location: ''
-        });
-        
-        locations.push({
-          name: auxiliaryLocationName,
-          events: auxiliaryEvents,
-          locationType: 'auxiliary'
-        });
-      }
+      });
     }
 
     // Create the generated data object
