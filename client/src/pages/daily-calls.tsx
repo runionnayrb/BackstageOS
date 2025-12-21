@@ -2240,8 +2240,8 @@ export default function DailyCallSheet() {
                             ) : (
                               <div style={{ display: 'flex', alignItems: 'center', fontVariantNumeric: 'tabular-nums' }}>
                                 <span style={{ width: '70px', textAlign: 'right', display: 'inline-block' }}>{event.startTime}</span>
-                                <span style={{ margin: '0 4px' }}>-</span>
-                                <span style={{ width: '70px', textAlign: 'right', display: 'inline-block' }}>{event.endTime}</span>
+                                <span style={{ width: '20px', textAlign: 'center', display: 'inline-block' }}>-</span>
+                                <span style={{ width: '70px', textAlign: 'left', display: 'inline-block' }}>{event.endTime}</span>
                               </div>
                             )}
                           </div>
