@@ -791,9 +791,6 @@ export default function DailyCallSheet() {
       const appointmentsEvents: any[] = [];
       
       for (const event of scheduleEventsForDate) {
-        const eventType = event.type?.toLowerCase() || '';
-        const eventTitle = event.title?.toLowerCase() || '';
-        
         // Get cast names using the smart label function (handles Full Cast/Full Company)
         // Pass the event to check isFullCompany/isFullCast flags
         const castNames = getCastLabel(event.participants || [], event);
@@ -802,42 +799,31 @@ export default function DailyCallSheet() {
         const normalizedStartTime = normalizeTime(event.startTime);
         const normalizedEndTime = normalizeTime(event.endTime);
         
-        // Categorize events: fittings, meetings/appointments, or regular events
-        if (eventType === 'fitting' || eventTitle.includes('fitting') || eventTitle.includes('costume')) {
-          fittingsEvents.push({
-            id: event.id,
-            title: event.title,
-            startTime: formatTimeDisplay(normalizedStartTime, timeFormat as '12' | '24'),
-            endTime: formatTimeDisplay(normalizedEndTime, timeFormat as '12' | '24'),
-            cast: castNames,
-            notes: event.notes || event.description || '',
-            location: event.location || ''
-          });
-        } else if (eventType === 'meeting' || eventType === 'appointment' || eventTitle.includes('meeting') || eventTitle.includes('appointment')) {
-          appointmentsEvents.push({
-            id: event.id,
-            title: event.title,
-            startTime: formatTimeDisplay(normalizedStartTime, timeFormat as '12' | '24'),
-            endTime: formatTimeDisplay(normalizedEndTime, timeFormat as '12' | '24'),
-            cast: castNames,
-            notes: event.notes || event.description || '',
-            location: event.location || ''
-          });
+        // Categorize events based on location type (same as generateCallFromSchedule)
+        const eventLocation = eventLocations.find((loc: any) => loc.name === event.location);
+        const locationType = eventLocation?.locationType || 'main';
+        
+        const processedEvent = {
+          id: event.id,
+          title: event.title,
+          startTime: formatTimeDisplay(normalizedStartTime, timeFormat as '12' | '24'),
+          endTime: formatTimeDisplay(normalizedEndTime, timeFormat as '12' | '24'),
+          cast: castNames,
+          notes: event.notes || event.description || '',
+          location: event.location || ''
+        };
+        
+        if (locationType === 'fittings') {
+          fittingsEvents.push(processedEvent);
+        } else if (locationType === 'appointments') {
+          appointmentsEvents.push(processedEvent);
         } else {
-          // Regular events - group by location
+          // Regular events (main or auxiliary) - group by location
           const locationName = event.location || 'Main Location';
           if (!eventsByLocation.has(locationName)) {
             eventsByLocation.set(locationName, []);
           }
-          
-          eventsByLocation.get(locationName)!.push({
-            id: event.id,
-            title: event.title,
-            startTime: formatTimeDisplay(normalizedStartTime, timeFormat as '12' | '24'),
-            endTime: formatTimeDisplay(normalizedEndTime, timeFormat as '12' | '24'),
-            cast: castNames,
-            notes: event.notes || event.description || ''
-          });
+          eventsByLocation.get(locationName)!.push(processedEvent);
         }
       }
       
