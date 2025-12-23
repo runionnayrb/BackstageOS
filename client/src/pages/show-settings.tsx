@@ -18,6 +18,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminView } from "@/contexts/AdminViewContext";
@@ -233,6 +234,16 @@ export default function ShowSettings() {
   const [deletingRunningOrderId, setDeletingRunningOrderId] = useState<string | null>(null);
   const [isRunningOrderMenuExpanded, setIsRunningOrderMenuExpanded] = useState(false);
   const [isStructureDialogOpen, setIsStructureDialogOpen] = useState(false);
+  
+  // Schedule tab collapsible sections state
+  const [scheduleSettingsOpen, setScheduleSettingsOpen] = useState(true);
+  const [importantDatesOpen, setImportantDatesOpen] = useState(true);
+  const [eventLocationsOpen, setEventLocationsOpen] = useState(true);
+  const [eventTypesOpen, setEventTypesOpen] = useState(true);
+  const [scheduleFilteringOpen, setScheduleFilteringOpen] = useState(true);
+  const [emailTemplateOpen, setEmailTemplateOpen] = useState(true);
+  const [changeSummaryOpen, setChangeSummaryOpen] = useState(true);
+  const [scheduleSharingOpen, setScheduleSharingOpen] = useState(true);
   const [isEditingStructureGroupModalOpen, setIsEditingStructureGroupModalOpen] = useState(false);
   const [editingStructureGroup, setEditingStructureGroup] = useState<{ id: string; name: string; order: number } | null>(null);
   const [structureGroupForm, setStructureGroupForm] = useState({ name: '' });
@@ -4091,15 +4102,24 @@ The Production Team`
           </TabsContent>
         )}
 
-        <TabsContent value="schedule" className="mt-6">
-          <Card className="border-0 shadow-none">
-            <CardHeader>
-              <CardTitle>Schedule Settings</CardTitle>
-              <CardDescription>
-                Configure timezone and scheduling preferences.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
+        <TabsContent value="schedule" className="mt-6 space-y-6">
+          <Collapsible open={scheduleSettingsOpen} onOpenChange={setScheduleSettingsOpen}>
+            <Card>
+              <CollapsibleTrigger asChild>
+                <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Schedule Settings</CardTitle>
+                      <CardDescription>
+                        Configure timezone and scheduling preferences.
+                      </CardDescription>
+                    </div>
+                    <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${scheduleSettingsOpen ? 'rotate-180' : ''}`} />
+                  </div>
+                </CardHeader>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <CardContent className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="timeZone">Time Zone</Label>
@@ -4252,17 +4272,28 @@ The Production Team`
               </div>
 
             </CardContent>
-          </Card>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
 
           {/* Important Dates */}
-          <Card className="mt-6 border-0 shadow-none">
-            <CardHeader>
-              <CardTitle>Important Dates</CardTitle>
-              <CardDescription>
-                Configure key production milestones and dates for this {showLabel.toLowerCase()}.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
+          <Collapsible open={importantDatesOpen} onOpenChange={setImportantDatesOpen}>
+            <Card>
+              <CollapsibleTrigger asChild>
+                <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Important Dates</CardTitle>
+                      <CardDescription>
+                        Configure key production milestones and dates for this {showLabel.toLowerCase()}.
+                      </CardDescription>
+                    </div>
+                    <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${importantDatesOpen ? 'rotate-180' : ''}`} />
+                  </div>
+                </CardHeader>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="prepStartDate">Prep Start Date</Label>
@@ -4346,40 +4377,49 @@ The Production Team`
                 </Button>
               </div>
             </CardContent>
-          </Card>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
 
           {/* Weekly Templates */}
           <ScheduleTemplatesSection projectId={parseInt(params.id)} />
 
           {/* Event Locations Management */}
-          <Card className="mt-6 border-0 shadow-none">
-            <CardHeader>
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>
-                      Event Locations
-                    </CardTitle>
+          <Collapsible open={eventLocationsOpen} onOpenChange={setEventLocationsOpen}>
+            <Card>
+              <CollapsibleTrigger asChild>
+                <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 flex-1">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle>
+                            Event Locations
+                          </CardTitle>
+                        </div>
+                        <Button onClick={(e) => { e.stopPropagation(); handleCreateLocation(); }} size="sm" variant="ghost" className="h-8 w-8 p-0 md:hidden">
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div className="hidden md:block">
+                        <Button onClick={(e) => { e.stopPropagation(); handleCreateLocation(); }} size="sm">
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Location
+                        </Button>
+                      </div>
+                      <CardDescription className="md:hidden">
+                        Manage locations where events can take place
+                      </CardDescription>
+                    </div>
+                    <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ml-4 ${eventLocationsOpen ? 'rotate-180' : ''}`} />
                   </div>
-                  <Button onClick={handleCreateLocation} size="sm" variant="ghost" className="h-8 w-8 p-0 md:hidden">
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div className="hidden md:block">
-                  <Button onClick={handleCreateLocation} size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Location
-                  </Button>
-                </div>
-                <CardDescription className="md:hidden">
-                  Manage locations where events can take place
-                </CardDescription>
-              </div>
-              <CardDescription className="hidden md:block">
-                Manage locations where events can take place
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+                  <CardDescription className="hidden md:block">
+                    Manage locations where events can take place
+                  </CardDescription>
+                </CardHeader>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <CardContent>
               <div className="space-y-3">
                 {locations.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">
@@ -4471,39 +4511,48 @@ The Production Team`
                   ))
                 )}
               </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
 
           {/* Event Types Management */}
-          <Card className="mt-6 border-0 shadow-none">
-            <CardHeader>
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>
-                      Event Types
-                    </CardTitle>
+          <Collapsible open={eventTypesOpen} onOpenChange={setEventTypesOpen}>
+            <Card>
+              <CollapsibleTrigger asChild>
+                <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 flex-1">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle>
+                            Event Types
+                          </CardTitle>
+                        </div>
+                        <Button onClick={(e) => { e.stopPropagation(); handleCreateEventType(); }} size="sm" variant="ghost" className="h-8 w-8 p-0 md:hidden">
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div className="hidden md:block">
+                        <Button onClick={(e) => { e.stopPropagation(); handleCreateEventType(); }} size="sm">
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Event Type
+                        </Button>
+                      </div>
+                      <CardDescription className="md:hidden">
+                        Manage custom event types for your schedule
+                      </CardDescription>
+                    </div>
+                    <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ml-4 ${eventTypesOpen ? 'rotate-180' : ''}`} />
                   </div>
-                  <Button onClick={handleCreateEventType} size="sm" variant="ghost" className="h-8 w-8 p-0 md:hidden">
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div className="hidden md:block">
-                  <Button onClick={handleCreateEventType} size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Event Type
-                  </Button>
-                </div>
-                <CardDescription className="md:hidden">
-                  Manage custom event types for your schedule
-                </CardDescription>
-              </div>
-              <CardDescription className="hidden md:block">
-                Manage custom event types for your schedule
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
+                  <CardDescription className="hidden md:block">
+                    Manage custom event types for your schedule
+                  </CardDescription>
+                </CardHeader>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <CardContent>
+                  <div className="space-y-3">
                 {eventTypes.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">
                     Loading event types...
@@ -4581,18 +4630,29 @@ The Production Team`
                   ))
                 )}
               </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
 
           {/* Show Schedule Filtering */}
-          <Card className="mt-6 border-0 shadow-none">
-            <CardHeader>
-              <CardTitle>Show Schedule Filtering</CardTitle>
-              <CardDescription>
-                Configure which event types appear in your schedule views by default. Only enabled types will be shown in monthly, weekly, and daily views.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+          <Collapsible open={scheduleFilteringOpen} onOpenChange={setScheduleFilteringOpen}>
+            <Card>
+              <CollapsibleTrigger asChild>
+                <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Show Schedule Filtering</CardTitle>
+                      <CardDescription>
+                        Configure which event types appear in your schedule views by default. Only enabled types will be shown in monthly, weekly, and daily views.
+                      </CardDescription>
+                    </div>
+                    <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${scheduleFilteringOpen ? 'rotate-180' : ''}`} />
+                  </div>
+                </CardHeader>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <CardContent>
               <div className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {eventTypes.map((eventType: any) => (
@@ -4657,18 +4717,29 @@ The Production Team`
                   </p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
 
           {/* Email Template */}
-          <Card className="mt-6 border-0 shadow-none">
-            <CardHeader>
-              <CardTitle>Schedule Publication Email</CardTitle>
-              <CardDescription>
-                Customize the email template sent to team members when schedules are published.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
+          <Collapsible open={emailTemplateOpen} onOpenChange={setEmailTemplateOpen}>
+            <Card>
+              <CollapsibleTrigger asChild>
+                <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Schedule Publication Email</CardTitle>
+                      <CardDescription>
+                        Customize the email template sent to team members when schedules are published.
+                      </CardDescription>
+                    </div>
+                    <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${emailTemplateOpen ? 'rotate-180' : ''}`} />
+                  </div>
+                </CardHeader>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <CardContent className="space-y-6">
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="emailSubject">Email Subject</Label>
@@ -4764,18 +4835,29 @@ The Production Team`}
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
 
           {/* Change Summary Template Customization */}
-          <Card className="mt-6 border-0 shadow-none">
-            <CardHeader>
-              <CardTitle>Change Summary</CardTitle>
-              <CardDescription>
-                This summary is automatically generated based on actual schedule changes. You can edit it before sending notifications and customize the format with template variables.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+          <Collapsible open={changeSummaryOpen} onOpenChange={setChangeSummaryOpen}>
+            <Card>
+              <CollapsibleTrigger asChild>
+                <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Change Summary</CardTitle>
+                      <CardDescription>
+                        This summary is automatically generated based on actual schedule changes. You can edit it before sending notifications and customize the format with template variables.
+                      </CardDescription>
+                    </div>
+                    <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${changeSummaryOpen ? 'rotate-180' : ''}`} />
+                  </div>
+                </CardHeader>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <CardContent>
               <div className="space-y-2">
                 <Label htmlFor="changeSummary">Summary of Changes</Label>
                 <ChangeSummaryEditor
@@ -4849,18 +4931,31 @@ The Production Team`}
                   </Button>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
 
           {/* Schedule Sharing */}
-          <Card className="mt-6 border-0 shadow-none">
-            <CardHeader>
-              <CardTitle>Schedule Sharing</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <PersonalScheduleShare projectId={parseInt(params.id)} />
-            </CardContent>
-          </Card>
+          <Collapsible open={scheduleSharingOpen} onOpenChange={setScheduleSharingOpen}>
+            <Card>
+              <CollapsibleTrigger asChild>
+                <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Schedule Sharing</CardTitle>
+                    </div>
+                    <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${scheduleSharingOpen ? 'rotate-180' : ''}`} />
+                  </div>
+                </CardHeader>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <CardContent>
+                  <PersonalScheduleShare projectId={parseInt(params.id)} />
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
         </TabsContent>
 
         {canAccessFeature('document-templates') && (
