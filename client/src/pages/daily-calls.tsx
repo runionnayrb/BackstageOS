@@ -316,9 +316,11 @@ export default function DailyCallSheet() {
     }
     
     // If we have stored contact IDs, use them to look up and format names
+    // Convert to number to ensure proper comparison (IDs may be stored as strings)
     if (contactIds.length > 0 && contacts && contacts.length > 0) {
-      return contactIds.map((id: number) => {
-        const contact = contacts.find((c: any) => c.id === id);
+      return contactIds.map((id: number | string) => {
+        const numericId = Number(id);
+        const contact = contacts.find((c: any) => c.id === numericId);
         if (!contact) return null;
         
         const firstName = contact.firstName || '';
@@ -963,9 +965,9 @@ export default function DailyCallSheet() {
         let castNames: string[] = [];
         let contactIds: number[] = [];
         
-        // Get required participants
+        // Get required participants - convert contactId to number for comparison
         const requiredParticipants = (event.participants || []).filter((p: any) => p.isRequired);
-        const participantIds = requiredParticipants.map((p: any) => p.contactId).filter(Boolean);
+        const participantIds = requiredParticipants.map((p: any) => Number(p.contactId)).filter(Boolean);
         
         // Check explicit flags first (set when user clicks "All" for Full Company or Cast)
         if (event.isFullCompany) {
