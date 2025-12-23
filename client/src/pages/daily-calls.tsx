@@ -671,16 +671,38 @@ export default function DailyCallSheet() {
     });
   };
 
-  // Helper function to extract participant name in "F. Last" format
+  // Helper function to extract participant name based on display format setting
   const getParticipantName = (p: any): string => {
     const firstName = p.contactFirstName?.trim() || '';
     const lastName = p.contactLastName?.trim() || '';
-    if (firstName && lastName) {
-      return `${firstName.charAt(0)}. ${lastName}`;
+    const preferredName = p.contactPreferredName?.trim() || p.preferredName?.trim() || '';
+    const nameFormat = scheduleSettings.nameDisplayFormat || 'firstInitialLastName';
+    
+    switch (nameFormat) {
+      case 'fullName':
+        // Full Name (John Smith)
+        if (firstName && lastName) return `${firstName} ${lastName}`;
+        return firstName || lastName || '';
+      case 'firstNameLastInitial':
+        // First Name L. (John S.)
+        if (firstName && lastName) return `${firstName} ${lastName.charAt(0)}.`;
+        return firstName || lastName || '';
+      case 'firstInitialLastName':
+        // F. Last Name (J. Smith) - default
+        if (firstName && lastName) return `${firstName.charAt(0)}. ${lastName}`;
+        if (lastName) return lastName;
+        if (firstName) return firstName;
+        return '';
+      case 'preferredName':
+        // Preferred Name (falls back to first name if not set)
+        return preferredName || firstName || lastName || '';
+      default:
+        // Default to F. Last Name
+        if (firstName && lastName) return `${firstName.charAt(0)}. ${lastName}`;
+        if (lastName) return lastName;
+        if (firstName) return firstName;
+        return '';
     }
-    if (lastName) return lastName;
-    if (firstName) return firstName;
-    return '';
   };
 
   // Helper function to normalize time string by removing seconds
@@ -1567,6 +1589,57 @@ export default function DailyCallSheet() {
               {format(parseISO(selectedDate), 'EEEE, MMMM d, yyyy')}
             </p>
           </div>
+
+          {/* Announcements Section - Above the Call */}
+          {(scheduleSettings.announcementsPosition === 'top') && (
+            <div className="mb-6" data-pdf-section="announcements" data-pdf-priority="high" data-pdf-item="announcements-section">
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">Announcements</h3>
+              {isEditing ? (
+                <Textarea
+                  value={callData.announcements}
+                  onChange={(e) => setCallData(prev => ({ ...prev, announcements: e.target.value }))}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      const textarea = e.target as HTMLTextAreaElement;
+                      const { value, selectionStart } = textarea;
+                      const beforeCursor = value.substring(0, selectionStart);
+                      const afterCursor = value.substring(selectionStart);
+                      const lines = beforeCursor.split('\n');
+                      const currentLine = lines[lines.length - 1];
+                      const numberMatch = currentLine.match(/^(\d+)\.\s/);
+                      let newText;
+                      let nextNumber;
+                      if (numberMatch) {
+                        const currentNumber = parseInt(numberMatch[1]);
+                        nextNumber = currentNumber + 1;
+                        newText = beforeCursor + '\n' + nextNumber + '. ' + afterCursor;
+                      } else if (lines.length === 1 && currentLine.trim() === '') {
+                        nextNumber = 1;
+                        newText = '1. ' + afterCursor;
+                      } else {
+                        const allLines = value.split('\n');
+                        const numberedLines = allLines.filter(line => /^\d+\.\s/.test(line));
+                        nextNumber = numberedLines.length + 1;
+                        newText = beforeCursor + '\n' + nextNumber + '. ' + afterCursor;
+                      }
+                      setCallData(prev => ({ ...prev, announcements: newText }));
+                      setTimeout(() => {
+                        const newCursorPos = beforeCursor.length + 1 + nextNumber.toString().length + 2;
+                        textarea.setSelectionRange(newCursorPos, newCursorPos);
+                      }, 0);
+                    }
+                  }}
+                  placeholder="Start typing and press Enter to create numbered items..."
+                  className="min-h-20 border-2 border-black"
+                />
+              ) : (
+                <div className="min-h-20 text-sm text-black whitespace-pre-wrap border-2 border-black p-3">
+                  {callData.announcements || '1.   No announcements for today'}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Call Schedule by Location */}
           <div className="space-y-6" data-pdf-section="schedule">
@@ -2595,67 +2668,56 @@ export default function DailyCallSheet() {
             </div>
           )}
 
-          {/* Announcements Section */}
-          <div className="mt-6" data-pdf-section="announcements" data-pdf-priority="high" data-pdf-item="announcements-section">
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">Announcements</h3>
-            {isEditing ? (
-              <Textarea
-                value={callData.announcements}
-                onChange={(e) => setCallData(prev => ({ ...prev, announcements: e.target.value }))}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const textarea = e.target as HTMLTextAreaElement;
-                    const { value, selectionStart } = textarea;
-                    
-                    // Split content into lines up to cursor position
-                    const beforeCursor = value.substring(0, selectionStart);
-                    const afterCursor = value.substring(selectionStart);
-                    const lines = beforeCursor.split('\n');
-                    
-                    // Get the current line
-                    const currentLine = lines[lines.length - 1];
-                    
-                    // Check if current line starts with a number pattern (e.g., "1. ", "12. ")
-                    const numberMatch = currentLine.match(/^(\d+)\.\s/);
-                    
-                    let newText;
-                    let nextNumber;
-                    if (numberMatch) {
-                      // If we're on a numbered line, create the next number
-                      const currentNumber = parseInt(numberMatch[1]);
-                      nextNumber = currentNumber + 1;
-                      newText = beforeCursor + '\n' + nextNumber + '. ' + afterCursor;
-                    } else if (lines.length === 1 && currentLine.trim() === '') {
-                      // If it's the first line and empty, start with "1. "
-                      nextNumber = 1;
-                      newText = '1. ' + afterCursor;
-                    } else {
-                      // For any other case, determine the next number based on existing content
-                      const allLines = value.split('\n');
-                      const numberedLines = allLines.filter(line => /^\d+\.\s/.test(line));
-                      nextNumber = numberedLines.length + 1;
-                      newText = beforeCursor + '\n' + nextNumber + '. ' + afterCursor;
+          {/* Announcements Section - Below the Call */}
+          {(scheduleSettings.announcementsPosition !== 'top') && (
+            <div className="mt-6" data-pdf-section="announcements" data-pdf-priority="high" data-pdf-item="announcements-section">
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">Announcements</h3>
+              {isEditing ? (
+                <Textarea
+                  value={callData.announcements}
+                  onChange={(e) => setCallData(prev => ({ ...prev, announcements: e.target.value }))}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      const textarea = e.target as HTMLTextAreaElement;
+                      const { value, selectionStart } = textarea;
+                      const beforeCursor = value.substring(0, selectionStart);
+                      const afterCursor = value.substring(selectionStart);
+                      const lines = beforeCursor.split('\n');
+                      const currentLine = lines[lines.length - 1];
+                      const numberMatch = currentLine.match(/^(\d+)\.\s/);
+                      let newText;
+                      let nextNumber;
+                      if (numberMatch) {
+                        const currentNumber = parseInt(numberMatch[1]);
+                        nextNumber = currentNumber + 1;
+                        newText = beforeCursor + '\n' + nextNumber + '. ' + afterCursor;
+                      } else if (lines.length === 1 && currentLine.trim() === '') {
+                        nextNumber = 1;
+                        newText = '1. ' + afterCursor;
+                      } else {
+                        const allLines = value.split('\n');
+                        const numberedLines = allLines.filter(line => /^\d+\.\s/.test(line));
+                        nextNumber = numberedLines.length + 1;
+                        newText = beforeCursor + '\n' + nextNumber + '. ' + afterCursor;
+                      }
+                      setCallData(prev => ({ ...prev, announcements: newText }));
+                      setTimeout(() => {
+                        const newCursorPos = beforeCursor.length + 1 + nextNumber.toString().length + 2;
+                        textarea.setSelectionRange(newCursorPos, newCursorPos);
+                      }, 0);
                     }
-                    
-                    setCallData(prev => ({ ...prev, announcements: newText }));
-                    
-                    // Set cursor position after the new number
-                    setTimeout(() => {
-                      const newCursorPos = beforeCursor.length + 1 + nextNumber.toString().length + 2;
-                      textarea.setSelectionRange(newCursorPos, newCursorPos);
-                    }, 0);
-                  }
-                }}
-                placeholder="Start typing and press Enter to create numbered items..."
-                className="min-h-20 border-2 border-black"
-              />
-            ) : (
-              <div className="min-h-20 text-sm text-black whitespace-pre-wrap border-2 border-black p-3">
-                {callData.announcements || '1.   No announcements for today'}
-              </div>
-            )}
-          </div>
+                  }}
+                  placeholder="Start typing and press Enter to create numbered items..."
+                  className="min-h-20 border-2 border-black"
+                />
+              ) : (
+                <div className="min-h-20 text-sm text-black whitespace-pre-wrap border-2 border-black p-3">
+                  {callData.announcements || '1.   No announcements for today'}
+                </div>
+              )}
+            </div>
+          )}
 
 
 
