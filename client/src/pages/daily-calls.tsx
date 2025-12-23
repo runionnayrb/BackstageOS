@@ -237,6 +237,82 @@ export default function DailyCallSheet() {
     },
   });
 
+  // Helper to reformat a single name based on current settings by looking up the contact
+  const reformatCastName = (name: string): string => {
+    if (!name || name === 'Full Cast' || name === 'Full Company') return name;
+    
+    // Try to find the contact by matching various name patterns
+    const allContacts = (contacts as any[]) || [];
+    let matchedContact: any = null;
+    
+    // Try exact match by full name
+    matchedContact = allContacts.find((c: any) => {
+      const fullName = `${c.firstName || ''} ${c.lastName || ''}`.trim();
+      return fullName === name;
+    });
+    
+    // Try match by "F. Last" pattern
+    if (!matchedContact) {
+      const fLastMatch = name.match(/^(\w)\.\s*(.+)$/);
+      if (fLastMatch) {
+        const [, firstInitial, lastName] = fLastMatch;
+        matchedContact = allContacts.find((c: any) => 
+          c.lastName === lastName && c.firstName?.charAt(0) === firstInitial
+        );
+      }
+    }
+    
+    // Try match by "First L." pattern
+    if (!matchedContact) {
+      const firstLMatch = name.match(/^(.+)\s+(\w)\.$/);
+      if (firstLMatch) {
+        const [, firstName, lastInitial] = firstLMatch;
+        matchedContact = allContacts.find((c: any) => 
+          c.firstName === firstName && c.lastName?.charAt(0) === lastInitial
+        );
+      }
+    }
+    
+    // If we found a match, reformat using current settings
+    if (matchedContact) {
+      return getParticipantName({
+        contactFirstName: matchedContact.firstName,
+        contactLastName: matchedContact.lastName,
+        contactPreferredName: matchedContact.preferredName
+      });
+    }
+    
+    // No match found, return original
+    return name;
+  };
+  
+  // Helper to reformat all cast names in saved daily call data
+  const reformatSavedCallData = (savedData: any) => {
+    const reformattedLocations = (savedData.locations || []).map((location: any) => ({
+      ...location,
+      events: (location.events || []).map((event: any) => ({
+        ...event,
+        cast: (event.cast || []).map(reformatCastName)
+      }))
+    }));
+    
+    const reformattedFittings = (savedData.fittingsEvents || []).map((event: any) => ({
+      ...event,
+      cast: (event.cast || []).map(reformatCastName)
+    }));
+    
+    const reformattedAppointments = (savedData.appointmentsEvents || []).map((event: any) => ({
+      ...event,
+      cast: (event.cast || []).map(reformatCastName)
+    }));
+    
+    return {
+      locations: reformattedLocations,
+      fittingsEvents: reformattedFittings,
+      appointmentsEvents: reformattedAppointments
+    };
+  };
+
   // Load existing daily call data when it changes  
   useEffect(() => {
     if (!actualProjectId || !scheduleEvents || !eventLocations || !contacts) return;
@@ -244,12 +320,14 @@ export default function DailyCallSheet() {
     
     // If we have a saved daily call with actual data, use that instead of regenerating
     // Apply normalization to ensure locations are in the correct order per show settings
+    // Also reformat cast names based on current name display format setting
     if (existingDailyCall && existingDailyCall.locations && existingDailyCall.locations.length > 0) {
+      const reformatted = reformatSavedCallData(existingDailyCall);
       setCallData({
-        locations: normalizeLocationsByEventOrder(existingDailyCall.locations),
+        locations: normalizeLocationsByEventOrder(reformatted.locations),
         announcements: existingDailyCall.announcements || '',
-        fittingsEvents: existingDailyCall.fittingsEvents || [],
-        appointmentsEvents: existingDailyCall.appointmentsEvents || []
+        fittingsEvents: reformatted.fittingsEvents,
+        appointmentsEvents: reformatted.appointmentsEvents
       });
       return;
     }
@@ -262,7 +340,7 @@ export default function DailyCallSheet() {
         ...generatedData
       }));
     }
-  }, [actualProjectId, selectedDate, timeFormat, scheduleEvents, eventLocations, contacts, isEditing, existingDailyCall]);
+  }, [actualProjectId, selectedDate, timeFormat, scheduleEvents, eventLocations, contacts, isEditing, existingDailyCall, scheduleSettings.nameDisplayFormat]);
 
   // Date picker navigation function
   const handleDateSelect = (date: Date | undefined) => {
@@ -317,7 +395,7 @@ export default function DailyCallSheet() {
           const contact = contacts.find(c => c.id === participant.contactId);
           return contact && contact.contactGroup?.name === 'Cast';
         })
-        .map(participant => `${participant.contactFirstName.charAt(0)}. ${participant.contactLastName}`);
+        .map(participant => getParticipantName(participant));
       
       const processedEvent = {
         id: event.id,
