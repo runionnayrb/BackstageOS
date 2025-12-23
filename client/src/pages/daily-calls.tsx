@@ -273,13 +273,29 @@ export default function DailyCallSheet() {
       }
     }
     
-    // If we found a match, reformat using current settings
+    // If we found a match, reformat using current settings (inline logic from getParticipantName)
     if (matchedContact) {
-      return getParticipantName({
-        contactFirstName: matchedContact.firstName,
-        contactLastName: matchedContact.lastName,
-        contactPreferredName: matchedContact.preferredName
-      });
+      const firstName = matchedContact.firstName?.trim() || '';
+      const lastName = matchedContact.lastName?.trim() || '';
+      const preferredName = matchedContact.preferredName?.trim() || '';
+      const nameFormat = scheduleSettings.nameDisplayFormat || 'firstInitialLastName';
+      
+      switch (nameFormat) {
+        case 'fullName':
+          if (firstName && lastName) return `${firstName} ${lastName}`;
+          return firstName || lastName || '';
+        case 'firstNameLastInitial':
+          if (firstName && lastName) return `${firstName} ${lastName.charAt(0)}.`;
+          return firstName || lastName || '';
+        case 'firstInitialLastName':
+          if (firstName && lastName) return `${firstName.charAt(0)}. ${lastName}`;
+          return lastName || firstName || '';
+        case 'preferredName':
+          return preferredName || firstName || lastName || '';
+        default:
+          if (firstName && lastName) return `${firstName.charAt(0)}. ${lastName}`;
+          return lastName || firstName || '';
+      }
     }
     
     // No match found, return original
