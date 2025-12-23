@@ -44,6 +44,7 @@ interface CallLocation {
     endTime: string;
     cast: string[];
     notes?: string;
+    isAllDay?: boolean;
   }>;
 }
 
@@ -321,11 +322,12 @@ export default function DailyCallSheet() {
       const processedEvent = {
         id: event.id,
         title: event.title,
-        startTime: formatTimeDisplay(event.startTime?.slice(0, 5) || event.startTime, timeFormat as '12' | '24'),
-        endTime: formatTimeDisplay(event.endTime?.slice(0, 5) || event.endTime, timeFormat as '12' | '24'),
+        startTime: event.isAllDay ? 'All Day' : formatTimeDisplay(event.startTime?.slice(0, 5) || event.startTime, timeFormat as '12' | '24'),
+        endTime: event.isAllDay ? '' : formatTimeDisplay(event.endTime?.slice(0, 5) || event.endTime, timeFormat as '12' | '24'),
         cast: eventCast,
         notes: event.notes || event.description,
-        location: event.location // Keep location name for display
+        location: event.location, // Keep location name for display
+        isAllDay: event.isAllDay || false
       };
       
       locationTypeGroups[locationType].push(processedEvent);
