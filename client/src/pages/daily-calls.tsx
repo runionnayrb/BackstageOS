@@ -43,6 +43,7 @@ interface CallLocation {
     startTime: string;
     endTime: string;
     cast: string[];
+    contactIds?: number[]; // Store contact IDs for dynamic name formatting
     notes?: string;
     isAllDay?: boolean;
   }>;
@@ -240,141 +241,58 @@ export default function DailyCallSheet() {
     },
   });
 
-  // Helper to reformat a single name based on current settings by looking up the contact
-  const reformatCastName = (name: string): string => {
-    if (!name || name === 'Full Cast' || name === 'Full Company') return name;
+  // CENTRALIZED NAME FORMATTER - Used at RENDER time for all name display
+  // This ensures names are always formatted according to current nameDisplayFormat setting
+  const formatContactName = (contactId: number | string): string => {
+    if (!contacts || contacts.length === 0) return '';
     
-    // Try to find the contact by matching various name patterns
-    const allContacts = (contacts as any[]) || [];
-    let matchedContact: any = null;
+    const numericId = Number(contactId);
+    const contact = (contacts as any[]).find((c: any) => c.id === numericId);
+    if (!contact) return '';
     
-    // Try exact match by full name
-    matchedContact = allContacts.find((c: any) => {
-      const fullName = `${c.firstName || ''} ${c.lastName || ''}`.trim();
-      return fullName === name;
-    });
+    const firstName = contact.firstName?.trim() || '';
+    const lastName = contact.lastName?.trim() || '';
+    const preferredName = contact.preferredName?.trim() || '';
     
-    // Try match by "F. Last" pattern
-    if (!matchedContact) {
-      const fLastMatch = name.match(/^(\w)\.\s*(.+)$/);
-      if (fLastMatch) {
-        const [, firstInitial, lastName] = fLastMatch;
-        matchedContact = allContacts.find((c: any) => 
-          c.lastName === lastName && c.firstName?.charAt(0) === firstInitial
-        );
-      }
+    switch (nameDisplayFormat) {
+      case 'fullName':
+        if (firstName && lastName) return `${firstName} ${lastName}`;
+        return firstName || lastName || '';
+      case 'firstNameLastInitial':
+        if (firstName && lastName) return `${firstName} ${lastName.charAt(0)}.`;
+        return firstName || lastName || '';
+      case 'firstInitialLastName':
+        if (firstName && lastName) return `${firstName.charAt(0)}. ${lastName}`;
+        return lastName || firstName || '';
+      case 'preferredName':
+        return preferredName || firstName || lastName || '';
+      default:
+        if (firstName && lastName) return `${firstName.charAt(0)}. ${lastName}`;
+        return lastName || firstName || '';
     }
-    
-    // Try match by "First L." pattern
-    if (!matchedContact) {
-      const firstLMatch = name.match(/^(.+)\s+(\w)\.$/);
-      if (firstLMatch) {
-        const [, firstName, lastInitial] = firstLMatch;
-        matchedContact = allContacts.find((c: any) => 
-          c.firstName === firstName && c.lastName?.charAt(0) === lastInitial
-        );
-      }
-    }
-    
-    // If we found a match, reformat using current settings (inline logic from getParticipantName)
-    if (matchedContact) {
-      const firstName = matchedContact.firstName?.trim() || '';
-      const lastName = matchedContact.lastName?.trim() || '';
-      const preferredName = matchedContact.preferredName?.trim() || '';
-      const nameFormat = nameDisplayFormat;
-      
-      switch (nameFormat) {
-        case 'fullName':
-          if (firstName && lastName) return `${firstName} ${lastName}`;
-          return firstName || lastName || '';
-        case 'firstNameLastInitial':
-          if (firstName && lastName) return `${firstName} ${lastName.charAt(0)}.`;
-          return firstName || lastName || '';
-        case 'firstInitialLastName':
-          if (firstName && lastName) return `${firstName.charAt(0)}. ${lastName}`;
-          return lastName || firstName || '';
-        case 'preferredName':
-          return preferredName || firstName || lastName || '';
-        default:
-          if (firstName && lastName) return `${firstName.charAt(0)}. ${lastName}`;
-          return lastName || firstName || '';
-      }
-    }
-    
-    // No match found, return original
-    return name;
   };
   
-  // Helper to reformat cast names in an event using stored contact IDs
-  const reformatEventCast = (event: any) => {
+  // Get formatted cast names for display - uses contactIds if available, falls back to stored names
+  const getFormattedCast = (event: any): string[] => {
     const castNames = event.cast || [];
     const contactIds = event.contactIds || [];
     
-    // Skip reformatting for Full Cast/Full Company
+    // Preserve special labels
     if (castNames.length === 1 && (castNames[0] === 'Full Cast' || castNames[0] === 'Full Company')) {
       return castNames;
     }
     
-    // If we have stored contact IDs, use them to look up and format names
-    // Convert to number to ensure proper comparison (IDs may be stored as strings)
-    if (contactIds.length > 0 && contacts && contacts.length > 0) {
-      return contactIds.map((id: number | string) => {
-        const numericId = Number(id);
-        const contact = contacts.find((c: any) => c.id === numericId);
-        if (!contact) return null;
-        
-        const firstName = contact.firstName || '';
-        const lastName = contact.lastName || '';
-        const preferredName = contact.preferredName || '';
-        
-        switch (nameDisplayFormat) {
-          case 'fullName':
-            if (firstName && lastName) return `${firstName} ${lastName}`;
-            return firstName || lastName || '';
-          case 'firstNameLastInitial':
-            if (firstName && lastName) return `${firstName} ${lastName.charAt(0)}.`;
-            return firstName || lastName || '';
-          case 'firstInitialLastName':
-            if (firstName && lastName) return `${firstName.charAt(0)}. ${lastName}`;
-            return lastName || firstName || '';
-          case 'preferredName':
-            return preferredName || firstName || lastName || '';
-          default:
-            if (firstName && lastName) return `${firstName.charAt(0)}. ${lastName}`;
-            return lastName || firstName || '';
-        }
-      }).filter(Boolean);
+    // If we have contact IDs, format names dynamically based on current setting
+    if (contactIds.length > 0 && contacts && (contacts as any[]).length > 0) {
+      const formattedNames = contactIds.map((id: number | string) => formatContactName(id)).filter(Boolean);
+      // Only return formatted names if we got results
+      if (formattedNames.length > 0) {
+        return formattedNames;
+      }
     }
     
-    // Fallback to pattern matching for old data without contact IDs
-    return castNames.map(reformatCastName);
-  };
-  
-  // Helper to reformat all cast names in saved daily call data
-  const reformatSavedCallData = (savedData: any) => {
-    const reformattedLocations = (savedData.locations || []).map((location: any) => ({
-      ...location,
-      events: (location.events || []).map((event: any) => ({
-        ...event,
-        cast: reformatEventCast(event)
-      }))
-    }));
-    
-    const reformattedFittings = (savedData.fittingsEvents || []).map((event: any) => ({
-      ...event,
-      cast: reformatEventCast(event)
-    }));
-    
-    const reformattedAppointments = (savedData.appointmentsEvents || []).map((event: any) => ({
-      ...event,
-      cast: reformatEventCast(event)
-    }));
-    
-    return {
-      locations: reformattedLocations,
-      fittingsEvents: reformattedFittings,
-      appointmentsEvents: reformattedAppointments
-    };
+    // Fallback to stored cast names (for legacy data or when contacts aren't loaded)
+    return castNames;
   };
 
   // Load existing daily call data when it changes  
@@ -384,15 +302,13 @@ export default function DailyCallSheet() {
     if (isEditing) return;
     
     // If we have a saved daily call with actual data, use that instead of regenerating
-    // Apply normalization to ensure locations are in the correct order per show settings
-    // Also reformat cast names based on current name display format setting
+    // No need to reformat names here - getFormattedCast handles it at render time
     if (existingDailyCall && existingDailyCall.locations && existingDailyCall.locations.length > 0) {
-      const reformatted = reformatSavedCallData(existingDailyCall);
       setCallData({
-        locations: normalizeLocationsByEventOrder(reformatted.locations),
+        locations: normalizeLocationsByEventOrder(existingDailyCall.locations),
         announcements: existingDailyCall.announcements || '',
-        fittingsEvents: reformatted.fittingsEvents,
-        appointmentsEvents: reformatted.appointmentsEvents
+        fittingsEvents: existingDailyCall.fittingsEvents || [],
+        appointmentsEvents: existingDailyCall.appointmentsEvents || []
       });
       return;
     }
@@ -405,7 +321,7 @@ export default function DailyCallSheet() {
         ...generatedData
       }));
     }
-  }, [actualProjectId, selectedDate, timeFormat, scheduleEvents, eventLocations, contacts, isEditing, existingDailyCall, nameDisplayFormat]);
+  }, [actualProjectId, selectedDate, timeFormat, scheduleEvents, eventLocations, contacts, isEditing, existingDailyCall]);
 
   // Date picker navigation function
   const handleDateSelect = (date: Date | undefined) => {
@@ -2001,7 +1917,7 @@ export default function DailyCallSheet() {
                                 ) : (
                                   event.cast && event.cast.length > 0 && (
                                     <div className="text-xs text-black mt-1">
-                                      {event.cast.join(', ')}
+                                      {getFormattedCast(event).join(', ')}
                                     </div>
                                   )
                                 )}
@@ -2554,7 +2470,7 @@ export default function DailyCallSheet() {
                                 ) : (
                                   event.cast && event.cast.length > 0 && (
                                     <div className="text-xs text-black mt-1">
-                                      {event.cast.join(', ')}
+                                      {getFormattedCast(event).join(', ')}
                                     </div>
                                   )
                                 )}
@@ -2767,7 +2683,7 @@ export default function DailyCallSheet() {
                         ) : (
                           event.cast && event.cast.length > 0 && (
                             <div className="text-xs text-black mt-1">
-                              {event.cast.join(', ')}
+                              {getFormattedCast(event).join(', ')}
                             </div>
                           )
                         )}
@@ -2862,7 +2778,7 @@ export default function DailyCallSheet() {
                         ) : (
                           event.cast && event.cast.length > 0 && (
                             <div className="text-xs text-black mt-1">
-                              {event.cast.join(', ')}
+                              {getFormattedCast(event).join(', ')}
                             </div>
                           )
                         )}
