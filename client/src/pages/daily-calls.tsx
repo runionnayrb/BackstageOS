@@ -244,7 +244,7 @@ export default function DailyCallSheet() {
   // CENTRALIZED NAME FORMATTER - Used at RENDER time for all name display
   // This ensures names are always formatted according to current nameDisplayFormat setting
   const formatContactName = (contactId: number | string): string => {
-    if (!contacts || contacts.length === 0) return '';
+    if (!contacts || (contacts as any[]).length === 0) return '';
     
     const numericId = Number(contactId);
     const contact = (contacts as any[]).find((c: any) => c.id === numericId);
@@ -272,10 +272,78 @@ export default function DailyCallSheet() {
     }
   };
   
+  // Reverse-map a stored name string back to a contact ID (for legacy data without contactIds)
+  const findContactIdByName = (name: string): number | null => {
+    if (!name || !contacts || (contacts as any[]).length === 0) return null;
+    if (name === 'Full Cast' || name === 'Full Company') return null;
+    
+    const allContacts = contacts as any[];
+    
+    // Try exact match by full name
+    let match = allContacts.find((c: any) => {
+      const fullName = `${c.firstName || ''} ${c.lastName || ''}`.trim();
+      return fullName === name;
+    });
+    if (match) return match.id;
+    
+    // Try match by "F. Last" pattern  
+    const fLastMatch = name.match(/^(\w)\.\s*(.+)$/);
+    if (fLastMatch) {
+      const [, firstInitial, lastName] = fLastMatch;
+      match = allContacts.find((c: any) => 
+        c.lastName === lastName && c.firstName?.charAt(0) === firstInitial
+      );
+      if (match) return match.id;
+    }
+    
+    // Try match by "First L." pattern
+    const firstLMatch = name.match(/^(.+)\s+(\w)\.$/);
+    if (firstLMatch) {
+      const [, firstName, lastInitial] = firstLMatch;
+      match = allContacts.find((c: any) => 
+        c.firstName === firstName && c.lastName?.charAt(0) === lastInitial
+      );
+      if (match) return match.id;
+    }
+    
+    // Try match by preferred name
+    match = allContacts.find((c: any) => c.preferredName === name);
+    if (match) return match.id;
+    
+    // Try match by first name only
+    match = allContacts.find((c: any) => c.firstName === name);
+    if (match) return match.id;
+    
+    return null;
+  };
+  
+  // Normalize an event to ensure it has contactIds (reverse-map from cast names if missing)
+  const normalizeEventContactIds = (event: any): any => {
+    if (!event) return event;
+    
+    const castNames = event.cast || [];
+    let contactIds = event.contactIds || [];
+    
+    // Skip if it's a special label
+    if (castNames.length === 1 && (castNames[0] === 'Full Cast' || castNames[0] === 'Full Company')) {
+      return event;
+    }
+    
+    // If we have cast names but no contactIds, reverse-map them
+    if (castNames.length > 0 && contactIds.length === 0 && contacts && (contacts as any[]).length > 0) {
+      contactIds = castNames
+        .map((name: string) => findContactIdByName(name))
+        .filter((id: number | null): id is number => id !== null);
+    }
+    
+    return { ...event, contactIds };
+  };
+  
   // Get formatted cast names for display - uses contactIds if available, falls back to stored names
   const getFormattedCast = (event: any): string[] => {
-    const castNames = event.cast || [];
-    const contactIds = event.contactIds || [];
+    const normalizedEvent = normalizeEventContactIds(event);
+    const castNames = normalizedEvent.cast || [];
+    const contactIds = normalizedEvent.contactIds || [];
     
     // Preserve special labels
     if (castNames.length === 1 && (castNames[0] === 'Full Cast' || castNames[0] === 'Full Company')) {
