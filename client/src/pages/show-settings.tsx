@@ -4347,8 +4347,8 @@ The Production Team`
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="top">Top of the call</SelectItem>
-                          <SelectItem value="bottom">Bottom of the call</SelectItem>
+                          <SelectItem value="top">Above the Call</SelectItem>
+                          <SelectItem value="bottom">Below the Call</SelectItem>
                         </SelectContent>
                       </Select>
                       <p className="text-xs text-muted-foreground">Where Announcements appear on Daily Calls</p>
