@@ -244,10 +244,15 @@ export default function DailyCallSheet() {
   // CENTRALIZED NAME FORMATTER - Used at RENDER time for all name display
   // This ensures names are always formatted according to current nameDisplayFormat setting
   const formatContactName = (contactId: number | string): string => {
-    if (!contacts || (contacts as any[]).length === 0) return '';
+    console.log('📛 formatContactName called:', { contactId, contactsLength: contacts ? (contacts as any[]).length : 0 });
+    if (!contacts || (contacts as any[]).length === 0) {
+      console.log('📛 No contacts loaded');
+      return '';
+    }
     
     const numericId = Number(contactId);
     const contact = (contacts as any[]).find((c: any) => c.id === numericId);
+    console.log('📛 Contact found:', contact ? { id: contact.id, firstName: contact.firstName, lastName: contact.lastName } : 'NOT FOUND');
     if (!contact) return '';
     
     const firstName = contact.firstName?.trim() || '';
