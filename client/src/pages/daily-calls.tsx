@@ -252,11 +252,6 @@ export default function DailyCallSheet() {
     const contact = (contacts as any[]).find((c: any) => c.id === numericId);
     if (!contact) return '';
     
-    // Debug: Check what fields the contact object has
-    if (numericId === 24) {
-      console.log('🔍 Contact 24 object:', JSON.stringify(contact, null, 2));
-    }
-    
     const firstName = contact.firstName?.trim() || '';
     const lastName = contact.lastName?.trim() || '';
     const preferredName = contact.preferredName?.trim() || '';
