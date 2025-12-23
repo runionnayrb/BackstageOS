@@ -207,8 +207,7 @@ export function ScheduleTemplatesSection({ projectId }: ScheduleTemplatesSection
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 flex-1">
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <LayoutTemplate className="h-5 w-5" />
+                    <CardTitle>
                       Weekly Templates
                     </CardTitle>
                   </div>

@@ -4277,111 +4277,6 @@ The Production Team`
             </Card>
           </Collapsible>
 
-          {/* Important Dates */}
-          <Collapsible open={importantDatesOpen} onOpenChange={setImportantDatesOpen}>
-            <Card>
-              <CollapsibleTrigger asChild>
-                <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle>Important Dates</CardTitle>
-                      <CardDescription>
-                        Configure key production milestones and dates for this {showLabel.toLowerCase()}.
-                      </CardDescription>
-                    </div>
-                    <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${importantDatesOpen ? 'rotate-180' : ''}`} />
-                  </div>
-                </CardHeader>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="prepStartDate">Prep Start Date</Label>
-                  <Input
-                    id="prepStartDate"
-                    type="date"
-                    value={(project as any)?.prepStartDate ? new Date((project as any).prepStartDate).toISOString().split('T')[0] : ''}
-                    onChange={(e) => handleProjectUpdate({ prepStartDate: e.target.value.trim() ? new Date(e.target.value) : null })}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="firstRehearsalDate">First Rehearsal</Label>
-                  <Input
-                    id="firstRehearsalDate"
-                    type="date"
-                    value={(project as any)?.firstRehearsalDate ? new Date((project as any).firstRehearsalDate).toISOString().split('T')[0] : ''}
-                    onChange={(e) => handleProjectUpdate({ firstRehearsalDate: e.target.value.trim() ? new Date(e.target.value) : null })}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="designerRunDate">Designer Run</Label>
-                  <Input
-                    id="designerRunDate"
-                    type="date"
-                    value={(project as any)?.designerRunDate ? new Date((project as any).designerRunDate).toISOString().split('T')[0] : ''}
-                    onChange={(e) => handleProjectUpdate({ designerRunDate: e.target.value.trim() ? new Date(e.target.value) : null })}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="firstTechDate">First Tech</Label>
-                  <Input
-                    id="firstTechDate"
-                    type="date"
-                    value={(project as any)?.firstTechDate ? new Date((project as any).firstTechDate).toISOString().split('T')[0] : ''}
-                    onChange={(e) => handleProjectUpdate({ firstTechDate: e.target.value.trim() ? new Date(e.target.value) : null })}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="firstPreviewDate">First Preview</Label>
-                  <Input
-                    id="firstPreviewDate"
-                    type="date"
-                    value={(project as any)?.firstPreviewDate ? new Date((project as any).firstPreviewDate).toISOString().split('T')[0] : ''}
-                    onChange={(e) => handleProjectUpdate({ firstPreviewDate: e.target.value.trim() ? new Date(e.target.value) : null })}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="openingNight">Opening Night</Label>
-                  <Input
-                    id="openingNight"
-                    type="date"
-                    value={(project as any)?.openingNight ? new Date((project as any).openingNight).toISOString().split('T')[0] : ''}
-                    onChange={(e) => handleProjectUpdate({ openingNight: e.target.value.trim() ? new Date(e.target.value) : null })}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="closingDate">Closing Date</Label>
-                  <Input
-                    id="closingDate"
-                    type="date"
-                    value={(project as any)?.closingDate ? new Date((project as any).closingDate).toISOString().split('T')[0] : ''}
-                    onChange={(e) => handleProjectUpdate({ closingDate: e.target.value.trim() ? new Date(e.target.value) : null })}
-                  />
-                </div>
-              </div>
-              
-              <div className="pt-4">
-                <Button 
-                  onClick={() => saveProjectMutation.mutate()}
-                  disabled={saveProjectMutation.isPending}
-                  className="w-full"
-                >
-                  <Save className="h-4 w-4 mr-2" />
-                  {saveProjectMutation.isPending ? "Saving..." : "Save Important Dates"}
-                </Button>
-              </div>
-            </CardContent>
-              </CollapsibleContent>
-            </Card>
-          </Collapsible>
-
           {/* Weekly Templates */}
           <ScheduleTemplatesSection projectId={parseInt(params.id)} />
 
@@ -4932,6 +4827,111 @@ The Production Team`}
                   </Button>
                 </div>
               </div>
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
+
+          {/* Important Dates */}
+          <Collapsible open={importantDatesOpen} onOpenChange={setImportantDatesOpen}>
+            <Card>
+              <CollapsibleTrigger asChild>
+                <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Important Dates</CardTitle>
+                      <CardDescription>
+                        Configure key production milestones and dates for this {showLabel.toLowerCase()}.
+                      </CardDescription>
+                    </div>
+                    <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${importantDatesOpen ? 'rotate-180' : ''}`} />
+                  </div>
+                </CardHeader>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="prepStartDate">Prep Start Date</Label>
+                      <Input
+                        id="prepStartDate"
+                        type="date"
+                        value={(project as any)?.prepStartDate ? new Date((project as any).prepStartDate).toISOString().split('T')[0] : ''}
+                        onChange={(e) => handleProjectUpdate({ prepStartDate: e.target.value.trim() ? new Date(e.target.value) : null })}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="firstRehearsalDate">First Rehearsal</Label>
+                      <Input
+                        id="firstRehearsalDate"
+                        type="date"
+                        value={(project as any)?.firstRehearsalDate ? new Date((project as any).firstRehearsalDate).toISOString().split('T')[0] : ''}
+                        onChange={(e) => handleProjectUpdate({ firstRehearsalDate: e.target.value.trim() ? new Date(e.target.value) : null })}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="designerRunDate">Designer Run</Label>
+                      <Input
+                        id="designerRunDate"
+                        type="date"
+                        value={(project as any)?.designerRunDate ? new Date((project as any).designerRunDate).toISOString().split('T')[0] : ''}
+                        onChange={(e) => handleProjectUpdate({ designerRunDate: e.target.value.trim() ? new Date(e.target.value) : null })}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="firstTechDate">First Tech</Label>
+                      <Input
+                        id="firstTechDate"
+                        type="date"
+                        value={(project as any)?.firstTechDate ? new Date((project as any).firstTechDate).toISOString().split('T')[0] : ''}
+                        onChange={(e) => handleProjectUpdate({ firstTechDate: e.target.value.trim() ? new Date(e.target.value) : null })}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="firstPreviewDate">First Preview</Label>
+                      <Input
+                        id="firstPreviewDate"
+                        type="date"
+                        value={(project as any)?.firstPreviewDate ? new Date((project as any).firstPreviewDate).toISOString().split('T')[0] : ''}
+                        onChange={(e) => handleProjectUpdate({ firstPreviewDate: e.target.value.trim() ? new Date(e.target.value) : null })}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="openingNight">Opening Night</Label>
+                      <Input
+                        id="openingNight"
+                        type="date"
+                        value={(project as any)?.openingNight ? new Date((project as any).openingNight).toISOString().split('T')[0] : ''}
+                        onChange={(e) => handleProjectUpdate({ openingNight: e.target.value.trim() ? new Date(e.target.value) : null })}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="closingDate">Closing Date</Label>
+                      <Input
+                        id="closingDate"
+                        type="date"
+                        value={(project as any)?.closingDate ? new Date((project as any).closingDate).toISOString().split('T')[0] : ''}
+                        onChange={(e) => handleProjectUpdate({ closingDate: e.target.value.trim() ? new Date(e.target.value) : null })}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="pt-4">
+                    <Button 
+                      onClick={() => saveProjectMutation.mutate()}
+                      disabled={saveProjectMutation.isPending}
+                      className="w-full"
+                    >
+                      <Save className="h-4 w-4 mr-2" />
+                      {saveProjectMutation.isPending ? "Saving..." : "Save Important Dates"}
+                    </Button>
+                  </div>
                 </CardContent>
               </CollapsibleContent>
             </Card>
