@@ -406,15 +406,17 @@ export default function DailyCallSheet() {
       }
       
       // Get actual cast members called to this event (filter by contacts in "Cast" group)
-      const eventCast = (event.participants || [])
+      const castParticipants = (event.participants || [])
         .filter(participant => {
           if (!participant.isRequired) return false;
           
           // Find the actual contact to check if they're in the Cast group
           const contact = contacts.find(c => c.id === participant.contactId);
           return contact && contact.contactGroup?.name === 'Cast';
-        })
-        .map(participant => getParticipantName(participant));
+        });
+      
+      const eventCast = castParticipants.map(participant => getParticipantName(participant));
+      const eventContactIds = castParticipants.map(participant => participant.contactId).filter(Boolean);
       
       const processedEvent = {
         id: event.id,
@@ -422,6 +424,7 @@ export default function DailyCallSheet() {
         startTime: event.isAllDay ? 'All Day' : formatTimeDisplay(event.startTime?.slice(0, 5) || event.startTime, timeFormat as '12' | '24'),
         endTime: event.isAllDay ? '' : formatTimeDisplay(event.endTime?.slice(0, 5) || event.endTime, timeFormat as '12' | '24'),
         cast: eventCast,
+        contactIds: eventContactIds, // Store contact IDs for reformatting
         notes: event.notes || event.description,
         location: event.location, // Keep location name for display
         isAllDay: event.isAllDay || false
@@ -916,6 +919,15 @@ export default function DailyCallSheet() {
         // Pass the event to check isFullCompany/isFullCast flags
         const castNames = getCastLabel(event.participants || [], event);
         
+        // Extract contact IDs from participants for later reformatting
+        // Store IDs in the same order as cast names (unless Full Cast/Full Company)
+        const contactIds = (castNames[0] === 'Full Cast' || castNames[0] === 'Full Company')
+          ? [] // For Full Cast/Company, we don't need individual IDs
+          : (event.participants || [])
+              .filter((p: any) => p.isRequired)
+              .map((p: any) => p.contactId)
+              .filter(Boolean);
+        
         // Normalize times by stripping seconds (08:00:00 -> 08:00)
         const normalizedStartTime = normalizeTime(event.startTime);
         const normalizedEndTime = normalizeTime(event.endTime);
@@ -930,6 +942,7 @@ export default function DailyCallSheet() {
           startTime: formatTimeDisplay(normalizedStartTime, timeFormat as '12' | '24'),
           endTime: formatTimeDisplay(normalizedEndTime, timeFormat as '12' | '24'),
           cast: castNames,
+          contactIds: contactIds, // Store contact IDs for reformatting
           notes: event.notes || event.description || '',
           location: event.location || ''
         };
