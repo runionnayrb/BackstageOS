@@ -4351,7 +4351,7 @@ The Production Team`
                           <SelectItem value="bottom">Bottom of the call</SelectItem>
                         </SelectContent>
                       </Select>
-                      <p className="text-xs text-muted-foreground">Where announcements appear on daily call sheets</p>
+                      <p className="text-xs text-muted-foreground">Where Announcements appear on Daily Calls</p>
                     </div>
                   </div>
                 </CardContent>
