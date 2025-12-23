@@ -305,24 +305,67 @@ export default function DailyCallSheet() {
     return name;
   };
   
+  // Helper to reformat cast names in an event using stored contact IDs
+  const reformatEventCast = (event: any) => {
+    const castNames = event.cast || [];
+    const contactIds = event.contactIds || [];
+    
+    // Skip reformatting for Full Cast/Full Company
+    if (castNames.length === 1 && (castNames[0] === 'Full Cast' || castNames[0] === 'Full Company')) {
+      return castNames;
+    }
+    
+    // If we have stored contact IDs, use them to look up and format names
+    if (contactIds.length > 0 && contacts && contacts.length > 0) {
+      return contactIds.map((id: number) => {
+        const contact = contacts.find((c: any) => c.id === id);
+        if (!contact) return null;
+        
+        const firstName = contact.firstName || '';
+        const lastName = contact.lastName || '';
+        const preferredName = contact.preferredName || '';
+        
+        switch (nameDisplayFormat) {
+          case 'fullName':
+            if (firstName && lastName) return `${firstName} ${lastName}`;
+            return firstName || lastName || '';
+          case 'firstNameLastInitial':
+            if (firstName && lastName) return `${firstName} ${lastName.charAt(0)}.`;
+            return firstName || lastName || '';
+          case 'firstInitialLastName':
+            if (firstName && lastName) return `${firstName.charAt(0)}. ${lastName}`;
+            return lastName || firstName || '';
+          case 'preferredName':
+            return preferredName || firstName || lastName || '';
+          default:
+            if (firstName && lastName) return `${firstName.charAt(0)}. ${lastName}`;
+            return lastName || firstName || '';
+        }
+      }).filter(Boolean);
+    }
+    
+    // Fallback to pattern matching for old data without contact IDs
+    return castNames.map(reformatCastName);
+  };
+  
   // Helper to reformat all cast names in saved daily call data
   const reformatSavedCallData = (savedData: any) => {
     const reformattedLocations = (savedData.locations || []).map((location: any) => ({
       ...location,
       events: (location.events || []).map((event: any) => ({
         ...event,
-        cast: (event.cast || []).map(reformatCastName)
+        cast: reformatEventCast(event)
       }))
     }));
     
     const reformattedFittings = (savedData.fittingsEvents || []).map((event: any) => ({
       ...event,
-      cast: (event.cast || []).map(reformatCastName)
+      cast: reformatEventCast(event)
     }));
     
     const reformattedAppointments = (savedData.appointmentsEvents || []).map((event: any) => ({
       ...event,
-      cast: (event.cast || []).map(reformatCastName)
+      cast: reformatEventCast(event)
     }));
     
     return {
@@ -334,7 +377,8 @@ export default function DailyCallSheet() {
 
   // Load existing daily call data when it changes  
   useEffect(() => {
-    if (!actualProjectId || !scheduleEvents || !eventLocations || !contacts) return;
+    // Wait for contacts to actually load (array exists AND has data)
+    if (!actualProjectId || !scheduleEvents || !eventLocations || !contacts || contacts.length === 0) return;
     if (isEditing) return;
     
     // If we have a saved daily call with actual data, use that instead of regenerating
