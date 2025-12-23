@@ -959,18 +959,46 @@ export default function DailyCallSheet() {
       const appointmentsEvents: any[] = [];
       
       for (const event of scheduleEventsForDate) {
-        // Get cast names using the smart label function (handles Full Cast/Full Company)
-        // Pass the event to check isFullCompany/isFullCast flags
-        const castNames = getCastLabel(event.participants || [], event);
+        // Check for Full Company/Full Cast flags first
+        let castNames: string[] = [];
+        let contactIds: number[] = [];
         
-        // Extract contact IDs from participants for later reformatting
-        // Store IDs in the same order as cast names (unless Full Cast/Full Company)
-        const contactIds = (castNames[0] === 'Full Cast' || castNames[0] === 'Full Company')
-          ? [] // For Full Cast/Company, we don't need individual IDs
-          : (event.participants || [])
-              .filter((p: any) => p.isRequired)
-              .map((p: any) => p.contactId)
-              .filter(Boolean);
+        if (event.isFullCompany) {
+          castNames = ['Full Company'];
+        } else if (event.isFullCast) {
+          castNames = ['Full Cast'];
+        } else {
+          // Get required participants and format names according to nameDisplayFormat setting
+          const requiredParticipants = (event.participants || []).filter((p: any) => p.isRequired);
+          contactIds = requiredParticipants.map((p: any) => p.contactId).filter(Boolean);
+          
+          // Format each name using the nameDisplayFormat setting
+          castNames = contactIds.map((id: number) => {
+            const contact = contacts.find((c: any) => c.id === id);
+            if (!contact) return null;
+            
+            const firstName = contact.firstName || '';
+            const lastName = contact.lastName || '';
+            const preferredName = contact.preferredName || '';
+            
+            switch (nameDisplayFormat) {
+              case 'fullName':
+                if (firstName && lastName) return `${firstName} ${lastName}`;
+                return firstName || lastName || '';
+              case 'firstNameLastInitial':
+                if (firstName && lastName) return `${firstName} ${lastName.charAt(0)}.`;
+                return firstName || lastName || '';
+              case 'firstInitialLastName':
+                if (firstName && lastName) return `${firstName.charAt(0)}. ${lastName}`;
+                return lastName || firstName || '';
+              case 'preferredName':
+                return preferredName || firstName || lastName || '';
+              default:
+                if (firstName && lastName) return `${firstName.charAt(0)}. ${lastName}`;
+                return lastName || firstName || '';
+            }
+          }).filter(Boolean) as string[];
+        }
         
         // Normalize times by stripping seconds (08:00:00 -> 08:00)
         const normalizedStartTime = normalizeTime(event.startTime);
