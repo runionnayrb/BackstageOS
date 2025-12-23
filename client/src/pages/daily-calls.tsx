@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useLocation, useParams } from "wouter";
@@ -244,37 +244,42 @@ export default function DailyCallSheet() {
   // CENTRALIZED NAME FORMATTER - Used at RENDER time for all name display
   // This ensures names are always formatted according to current nameDisplayFormat setting
   const formatContactName = (contactId: number | string): string => {
-    console.log('📛 formatContactName called:', { contactId, contactsLength: contacts ? (contacts as any[]).length : 0 });
     if (!contacts || (contacts as any[]).length === 0) {
-      console.log('📛 No contacts loaded');
       return '';
     }
     
     const numericId = Number(contactId);
     const contact = (contacts as any[]).find((c: any) => c.id === numericId);
-    console.log('📛 Contact found:', contact ? { id: contact.id, firstName: contact.firstName, lastName: contact.lastName } : 'NOT FOUND');
     if (!contact) return '';
     
     const firstName = contact.firstName?.trim() || '';
     const lastName = contact.lastName?.trim() || '';
     const preferredName = contact.preferredName?.trim() || '';
     
+    let result = '';
     switch (nameDisplayFormat) {
       case 'fullName':
-        if (firstName && lastName) return `${firstName} ${lastName}`;
-        return firstName || lastName || '';
+        if (firstName && lastName) result = `${firstName} ${lastName}`;
+        else result = firstName || lastName || '';
+        break;
       case 'firstNameLastInitial':
-        if (firstName && lastName) return `${firstName} ${lastName.charAt(0)}.`;
-        return firstName || lastName || '';
+        if (firstName && lastName) result = `${firstName} ${lastName.charAt(0)}.`;
+        else result = firstName || lastName || '';
+        break;
       case 'firstInitialLastName':
-        if (firstName && lastName) return `${firstName.charAt(0)}. ${lastName}`;
-        return lastName || firstName || '';
+        if (firstName && lastName) result = `${firstName.charAt(0)}. ${lastName}`;
+        else result = lastName || firstName || '';
+        break;
       case 'preferredName':
-        return preferredName || firstName || lastName || '';
+        result = preferredName || firstName || lastName || '';
+        break;
       default:
-        if (firstName && lastName) return `${firstName.charAt(0)}. ${lastName}`;
-        return lastName || firstName || '';
+        if (firstName && lastName) result = `${firstName.charAt(0)}. ${lastName}`;
+        else result = lastName || firstName || '';
     }
+    
+    console.log('📛 FORMAT:', { id: numericId, format: nameDisplayFormat, firstName, lastName, result });
+    return result;
   };
   
   // Reverse-map a stored name string back to a contact ID (for legacy data without contactIds)
