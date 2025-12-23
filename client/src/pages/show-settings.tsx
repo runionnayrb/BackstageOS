@@ -4324,7 +4324,7 @@ The Production Team`
                           <SelectItem value="preferredName">Preferred Name</SelectItem>
                         </SelectContent>
                       </Select>
-                      <p className="text-xs text-muted-foreground">How people's names appear on daily call sheets</p>
+                      <p className="text-xs text-muted-foreground">How Cast names appear on Daily Calls</p>
                     </div>
                     
                     <div className="space-y-2">
