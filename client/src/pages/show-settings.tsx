@@ -4289,9 +4289,7 @@ The Production Team`
                   <div className="flex items-center justify-between">
                     <div>
                       <CardTitle>Daily Calls</CardTitle>
-                      <CardDescription>
-                        Configure how daily call sheets are displayed and formatted.
-                      </CardDescription>
+                      <CardDescription>Configure how Daily Calls are displayed and formatted.</CardDescription>
                     </div>
                     <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${dailyCallsOpen ? 'rotate-180' : ''}`} />
                   </div>
