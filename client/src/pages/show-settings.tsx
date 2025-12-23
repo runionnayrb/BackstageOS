@@ -4383,28 +4383,7 @@ The Production Team`
           </Collapsible>
 
           {/* Weekly Templates */}
-          <Collapsible open={weeklyTemplatesOpen} onOpenChange={setWeeklyTemplatesOpen}>
-            <Card>
-              <CollapsibleTrigger asChild>
-                <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle>Weekly Templates</CardTitle>
-                      <CardDescription>
-                        Create and manage weekly schedule templates.
-                      </CardDescription>
-                    </div>
-                    <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${weeklyTemplatesOpen ? 'rotate-180' : ''}`} />
-                  </div>
-                </CardHeader>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <CardContent>
-                  <ScheduleTemplatesSection projectId={parseInt(params.id)} />
-                </CardContent>
-              </CollapsibleContent>
-            </Card>
-          </Collapsible>
+          <ScheduleTemplatesSection projectId={parseInt(params.id)} />
 
           {/* Event Locations Management */}
           <Collapsible open={eventLocationsOpen} onOpenChange={setEventLocationsOpen}>

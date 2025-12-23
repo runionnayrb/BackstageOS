@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,7 +26,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Edit3, Trash2, LayoutTemplate, ArrowLeft, Settings } from "lucide-react";
+import { Plus, Edit3, Trash2, LayoutTemplate, ArrowLeft, Settings, ChevronDown } from "lucide-react";
 import { format } from "date-fns";
 import { TemplateWeeklyScheduleView } from "./TemplateWeeklyScheduleView";
 
@@ -65,6 +66,7 @@ const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Frid
 
 export function ScheduleTemplatesSection({ projectId }: ScheduleTemplatesSectionProps) {
   const { toast } = useToast();
+  const [isOpen, setIsOpen] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editSheetOpen, setEditSheetOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -197,35 +199,42 @@ export function ScheduleTemplatesSection({ projectId }: ScheduleTemplatesSection
   };
 
   return (
-    <Card className="mt-6 border-0 shadow-none">
-      <CardHeader>
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <LayoutTemplate className="h-5 w-5" />
-                Weekly Templates
-              </CardTitle>
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <Card>
+        <CollapsibleTrigger asChild>
+          <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 flex-1">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <LayoutTemplate className="h-5 w-5" />
+                      Weekly Templates
+                    </CardTitle>
+                  </div>
+                  <Button onClick={(e) => { e.stopPropagation(); handleCreateTemplate(); }} size="sm" variant="ghost" className="h-8 w-8 p-0 md:hidden">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="hidden md:block">
+                  <Button onClick={(e) => { e.stopPropagation(); handleCreateTemplate(); }} size="sm" data-testid="button-create-template">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Template
+                  </Button>
+                </div>
+                <CardDescription className="md:hidden">
+                  Save and reuse weekly schedule patterns
+                </CardDescription>
+              </div>
+              <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ml-4 ${isOpen ? 'rotate-180' : ''}`} />
             </div>
-            <Button onClick={handleCreateTemplate} size="sm" variant="ghost" className="h-8 w-8 p-0 md:hidden">
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-          <div className="hidden md:block">
-            <Button onClick={handleCreateTemplate} size="sm" data-testid="button-create-template">
-              <Plus className="h-4 w-4 mr-2" />
-              Create Template
-            </Button>
-          </div>
-          <CardDescription className="md:hidden">
-            Save and reuse weekly schedule patterns
-          </CardDescription>
-        </div>
-        <CardDescription className="hidden md:block">
-          Save and reuse weekly schedule patterns. Create templates from existing weeks and apply them to new weeks.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+            <CardDescription className="hidden md:block">
+              Save and reuse weekly schedule patterns. Create templates from existing weeks and apply them to new weeks.
+            </CardDescription>
+          </CardHeader>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <CardContent>
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -275,7 +284,8 @@ export function ScheduleTemplatesSection({ projectId }: ScheduleTemplatesSection
             ))}
           </div>
         )}
-      </CardContent>
+          </CardContent>
+        </CollapsibleContent>
 
       {/* Create Template Dialog */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
@@ -459,6 +469,7 @@ export function ScheduleTemplatesSection({ projectId }: ScheduleTemplatesSection
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </Card>
+      </Card>
+    </Collapsible>
   );
 }
