@@ -278,7 +278,6 @@ export default function DailyCallSheet() {
         else result = lastName || firstName || '';
     }
     
-    console.log('📛 FORMAT:', { id: numericId, format: nameDisplayFormat, firstName, lastName, result });
     return result;
   };
   
@@ -355,15 +354,6 @@ export default function DailyCallSheet() {
     const castNames = normalizedEvent.cast || [];
     const contactIds = normalizedEvent.contactIds || [];
     
-    console.log('🎭 getFormattedCast:', {
-      eventTitle: event?.title,
-      originalCast: event?.cast,
-      originalContactIds: event?.contactIds,
-      normalizedContactIds: contactIds,
-      contactsLoaded: contacts ? (contacts as any[]).length : 0,
-      nameDisplayFormat
-    });
-    
     // Preserve special labels
     if (castNames.length === 1 && (castNames[0] === 'Full Cast' || castNames[0] === 'Full Company')) {
       return castNames;
@@ -372,7 +362,6 @@ export default function DailyCallSheet() {
     // If we have contact IDs, format names dynamically based on current setting
     if (contactIds.length > 0 && contacts && (contacts as any[]).length > 0) {
       const formattedNames = contactIds.map((id: number | string) => formatContactName(id)).filter(Boolean);
-      console.log('🎭 Formatted names from IDs:', formattedNames);
       // Only return formatted names if we got results
       if (formattedNames.length > 0) {
         return formattedNames;
@@ -380,7 +369,6 @@ export default function DailyCallSheet() {
     }
     
     // Fallback to stored cast names (for legacy data or when contacts aren't loaded)
-    console.log('🎭 Falling back to stored names:', castNames);
     return castNames;
   };
 
