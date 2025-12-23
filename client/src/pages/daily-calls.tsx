@@ -963,41 +963,65 @@ export default function DailyCallSheet() {
         let castNames: string[] = [];
         let contactIds: number[] = [];
         
+        // Get required participants
+        const requiredParticipants = (event.participants || []).filter((p: any) => p.isRequired);
+        const participantIds = requiredParticipants.map((p: any) => p.contactId).filter(Boolean);
+        
+        // Check explicit flags first (set when user clicks "All" for Full Company or Cast)
         if (event.isFullCompany) {
           castNames = ['Full Company'];
         } else if (event.isFullCast) {
           castNames = ['Full Cast'];
-        } else {
-          // Get required participants and format names according to nameDisplayFormat setting
-          const requiredParticipants = (event.participants || []).filter((p: any) => p.isRequired);
-          contactIds = requiredParticipants.map((p: any) => p.contactId).filter(Boolean);
+        } else if (contacts && contacts.length > 0) {
+          // Fallback to heuristic detection for Full Cast/Full Company
+          const castMembers = contacts.filter((c: any) => c.contactGroup?.name === 'Cast');
+          const castIds = castMembers.map((c: any) => c.id);
+          const allContactIds = contacts.map((c: any) => c.id);
           
-          // Format each name using the nameDisplayFormat setting
-          castNames = contactIds.map((id: number) => {
-            const contact = contacts.find((c: any) => c.id === id);
-            if (!contact) return null;
-            
-            const firstName = contact.firstName || '';
-            const lastName = contact.lastName || '';
-            const preferredName = contact.preferredName || '';
-            
-            switch (nameDisplayFormat) {
-              case 'fullName':
-                if (firstName && lastName) return `${firstName} ${lastName}`;
-                return firstName || lastName || '';
-              case 'firstNameLastInitial':
-                if (firstName && lastName) return `${firstName} ${lastName.charAt(0)}.`;
-                return firstName || lastName || '';
-              case 'firstInitialLastName':
-                if (firstName && lastName) return `${firstName.charAt(0)}. ${lastName}`;
-                return lastName || firstName || '';
-              case 'preferredName':
-                return preferredName || firstName || lastName || '';
-              default:
-                if (firstName && lastName) return `${firstName.charAt(0)}. ${lastName}`;
-                return lastName || firstName || '';
-            }
-          }).filter(Boolean) as string[];
+          // Check if all cast members are selected (Full Cast)
+          if (castIds.length > 0 && 
+              castIds.every((id: number) => participantIds.includes(id)) && 
+              participantIds.every((id: number) => castIds.includes(id))) {
+            castNames = ['Full Cast'];
+          }
+          // Check if all contacts are selected (Full Company)
+          else if (allContactIds.length > 0 && 
+                   allContactIds.every((id: number) => participantIds.includes(id)) && 
+                   participantIds.every((id: number) => allContactIds.includes(id))) {
+            castNames = ['Full Company'];
+          }
+          else {
+            // Individual names - format according to nameDisplayFormat setting
+            contactIds = participantIds;
+            castNames = contactIds.map((id: number) => {
+              const contact = contacts.find((c: any) => c.id === id);
+              if (!contact) return null;
+              
+              const firstName = contact.firstName || '';
+              const lastName = contact.lastName || '';
+              const preferredName = contact.preferredName || '';
+              
+              switch (nameDisplayFormat) {
+                case 'fullName':
+                  if (firstName && lastName) return `${firstName} ${lastName}`;
+                  return firstName || lastName || '';
+                case 'firstNameLastInitial':
+                  if (firstName && lastName) return `${firstName} ${lastName.charAt(0)}.`;
+                  return firstName || lastName || '';
+                case 'firstInitialLastName':
+                  if (firstName && lastName) return `${firstName.charAt(0)}. ${lastName}`;
+                  return lastName || firstName || '';
+                case 'preferredName':
+                  return preferredName || firstName || lastName || '';
+                default:
+                  if (firstName && lastName) return `${firstName.charAt(0)}. ${lastName}`;
+                  return lastName || firstName || '';
+              }
+            }).filter(Boolean) as string[];
+          }
+        } else {
+          // No contacts loaded, use participant IDs for later reformatting
+          contactIds = participantIds;
         }
         
         // Normalize times by stripping seconds (08:00:00 -> 08:00)
