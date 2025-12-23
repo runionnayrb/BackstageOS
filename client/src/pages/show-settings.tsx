@@ -244,6 +244,7 @@ export default function ShowSettings() {
   const [emailTemplateOpen, setEmailTemplateOpen] = useState(true);
   const [changeSummaryOpen, setChangeSummaryOpen] = useState(true);
   const [scheduleSharingOpen, setScheduleSharingOpen] = useState(true);
+  const [weeklyTemplatesOpen, setWeeklyTemplatesOpen] = useState(true);
   const [isEditingStructureGroupModalOpen, setIsEditingStructureGroupModalOpen] = useState(false);
   const [editingStructureGroup, setEditingStructureGroup] = useState<{ id: string; name: string; order: number } | null>(null);
   const [structureGroupForm, setStructureGroupForm] = useState({ name: '' });
@@ -4382,7 +4383,28 @@ The Production Team`
           </Collapsible>
 
           {/* Weekly Templates */}
-          <ScheduleTemplatesSection projectId={parseInt(params.id)} />
+          <Collapsible open={weeklyTemplatesOpen} onOpenChange={setWeeklyTemplatesOpen}>
+            <Card>
+              <CollapsibleTrigger asChild>
+                <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Weekly Templates</CardTitle>
+                      <CardDescription>
+                        Create and manage weekly schedule templates.
+                      </CardDescription>
+                    </div>
+                    <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${weeklyTemplatesOpen ? 'rotate-180' : ''}`} />
+                  </div>
+                </CardHeader>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <CardContent>
+                  <ScheduleTemplatesSection projectId={parseInt(params.id)} />
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
 
           {/* Event Locations Management */}
           <Collapsible open={eventLocationsOpen} onOpenChange={setEventLocationsOpen}>
