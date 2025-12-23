@@ -70,6 +70,8 @@ export function parseScheduleSettings(settings: any) {
     workEndTime: '18:00',
     dayStartHour: 8,  // 8 AM default
     dayEndHour: 24,   // Midnight default (can go up to 28 for 4 AM next day)
+    nameDisplayFormat: 'firstInitialLastName',
+    announcementsPosition: 'bottom',
   };
   
   if (!settings) return defaultSettings;
@@ -87,6 +89,8 @@ export function parseScheduleSettings(settings: any) {
     workEndTime: scheduleSettings.workEndTime || defaultSettings.workEndTime,
     dayStartHour: scheduleSettings.dayStartHour ?? defaultSettings.dayStartHour,
     dayEndHour: scheduleSettings.dayEndHour ?? defaultSettings.dayEndHour,
+    nameDisplayFormat: scheduleSettings.nameDisplayFormat || defaultSettings.nameDisplayFormat,
+    announcementsPosition: scheduleSettings.announcementsPosition || defaultSettings.announcementsPosition,
   };
 }
 
