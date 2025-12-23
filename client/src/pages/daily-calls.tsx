@@ -151,6 +151,9 @@ export default function DailyCallSheet() {
   const scheduleSettings = parseScheduleSettings((showSettings as any)?.scheduleSettings);
   const { timeFormat = '12', timezone, dayStartHour = 8, dayEndHour = 24 } = scheduleSettings;
   
+  // Extract nameDisplayFormat as a stable value for dependency tracking
+  const nameDisplayFormat = scheduleSettings.nameDisplayFormat || 'firstInitialLastName';
+  
   // Calculate time range for extended day support (e.g., 7 AM - 2 AM next day)
   const startMinutes = dayStartHour * 60;
   const endMinutes = dayEndHour * 60;
@@ -278,7 +281,7 @@ export default function DailyCallSheet() {
       const firstName = matchedContact.firstName?.trim() || '';
       const lastName = matchedContact.lastName?.trim() || '';
       const preferredName = matchedContact.preferredName?.trim() || '';
-      const nameFormat = scheduleSettings.nameDisplayFormat || 'firstInitialLastName';
+      const nameFormat = nameDisplayFormat;
       
       switch (nameFormat) {
         case 'fullName':
@@ -356,7 +359,7 @@ export default function DailyCallSheet() {
         ...generatedData
       }));
     }
-  }, [actualProjectId, selectedDate, timeFormat, scheduleEvents, eventLocations, contacts, isEditing, existingDailyCall, scheduleSettings.nameDisplayFormat]);
+  }, [actualProjectId, selectedDate, timeFormat, scheduleEvents, eventLocations, contacts, isEditing, existingDailyCall, nameDisplayFormat]);
 
   // Date picker navigation function
   const handleDateSelect = (date: Date | undefined) => {
