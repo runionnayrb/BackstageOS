@@ -245,6 +245,7 @@ export default function ShowSettings() {
   const [changeSummaryOpen, setChangeSummaryOpen] = useState(true);
   const [scheduleSharingOpen, setScheduleSharingOpen] = useState(true);
   const [weeklyTemplatesOpen, setWeeklyTemplatesOpen] = useState(true);
+  const [dailyCallsOpen, setDailyCallsOpen] = useState(true);
   const [isEditingStructureGroupModalOpen, setIsEditingStructureGroupModalOpen] = useState(false);
   const [editingStructureGroup, setEditingStructureGroup] = useState<{ id: string; name: string; order: number } | null>(null);
   const [structureGroupForm, setStructureGroupForm] = useState({ name: '' });
@@ -4279,6 +4280,86 @@ The Production Team`
 
           {/* Weekly Templates */}
           <ScheduleTemplatesSection projectId={parseInt(params.id)} />
+
+          {/* Daily Calls Settings */}
+          <Collapsible open={dailyCallsOpen} onOpenChange={setDailyCallsOpen}>
+            <Card>
+              <CollapsibleTrigger asChild>
+                <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Daily Calls</CardTitle>
+                      <CardDescription>
+                        Configure how daily call sheets are displayed and formatted.
+                      </CardDescription>
+                    </div>
+                    <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${dailyCallsOpen ? 'rotate-180' : ''}`} />
+                  </div>
+                </CardHeader>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="nameDisplayFormat">Name Display Format</Label>
+                      <Select
+                        value={(() => {
+                          const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                            ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                            : ((settings as any)?.scheduleSettings || {});
+                          return scheduleSettings.nameDisplayFormat || 'firstInitialLastName';
+                        })()}
+                        onValueChange={(value) => {
+                          const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                            ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                            : ((settings as any)?.scheduleSettings || {});
+                          handleSettingsUpdate("scheduleSettings", { ...scheduleSettings, nameDisplayFormat: value });
+                        }}
+                      >
+                        <SelectTrigger id="nameDisplayFormat">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="fullName">Full Name (John Smith)</SelectItem>
+                          <SelectItem value="firstNameLastInitial">First Name L. (John S.)</SelectItem>
+                          <SelectItem value="firstInitialLastName">F. Last Name (J. Smith)</SelectItem>
+                          <SelectItem value="preferredName">Preferred Name</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">How people's names appear on daily call sheets</p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="announcementsPosition">Announcements Position</Label>
+                      <Select
+                        value={(() => {
+                          const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                            ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                            : ((settings as any)?.scheduleSettings || {});
+                          return scheduleSettings.announcementsPosition || 'bottom';
+                        })()}
+                        onValueChange={(value) => {
+                          const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                            ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                            : ((settings as any)?.scheduleSettings || {});
+                          handleSettingsUpdate("scheduleSettings", { ...scheduleSettings, announcementsPosition: value });
+                        }}
+                      >
+                        <SelectTrigger id="announcementsPosition">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="top">Top of the call</SelectItem>
+                          <SelectItem value="bottom">Bottom of the call</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">Where announcements appear on daily call sheets</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
 
           {/* Event Locations Management */}
           <Collapsible open={eventLocationsOpen} onOpenChange={setEventLocationsOpen}>
