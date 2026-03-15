@@ -1,13 +1,13 @@
-tree 467c25bc800e93cae49c142282b02ac30bfd9375
-parent 12976e756173ee4f5dfd03b2b496d052c9c50e4b
-parent 31fa2c1030b84906f623e7840e4a0c91398735df
-author runionbryan <44106967-runionbryan@users.noreply.replit.com> 1751136647 +0000
-committer runionbryan <44106967-runionbryan@users.noreply.replit.com> 1751136647 +0000
+tree 4160542fa9496cef065ed84d2f29fe25f947210b
+parent bc6347f0896b487af687822c89d3ad830d32cc51
+author runionbryan <44106967-runionbryan@users.noreply.replit.com> 1769349494 +0000
+committer runionbryan <44106967-runionbryan@users.noreply.replit.com> 1769349494 +0000
 
-Improve the drag and drop experience by hiding the drag handle icon
+Add a month-to-month pricing option for theatrical productions
 
-Removes drag handle icons from category and column headers in ContactSheet.tsx, enhancing drag and drop UI.
+Add a new "Month-to-Month" pricing card to the pricing page, offering an ongoing $110/month subscription per show, and update the layout to accommodate three pricing tiers.
 
 Replit-Commit-Author: Agent
-Replit-Commit-Session-Id: 91ca7da2-826c-41ba-8c16-7eeb26383530
-Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/54b2a03e-f6bc-4ffb-98e0-199af055748d/9e988b6c-9708-454c-9561-9c5b9e63b8bf.jpg
+Replit-Commit-Session-Id: c018774e-1e84-4fe0-b32e-adb6544559fd
+Replit-Commit-Checkpoint-Type: full_checkpoint
+Replit-Commit-Event-Id: 6b44ac6d-1d90-49f8-bc2d-c171ada4206f

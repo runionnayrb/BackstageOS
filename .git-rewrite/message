@@ -1,7 +1,9 @@
-Improve the drag and drop experience by hiding the drag handle icon
+Update show settings to refer to production dates
 
-Removes drag handle icons from category and column headers in ContactSheet.tsx, enhancing drag and drop UI.
+Update references from "Important Dates" to "Production Dates" in the show settings schedule tab within client/src/pages/show-settings.tsx.
 
 Replit-Commit-Author: Agent
-Replit-Commit-Session-Id: 91ca7da2-826c-41ba-8c16-7eeb26383530
-Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/54b2a03e-f6bc-4ffb-98e0-199af055748d/9e988b6c-9708-454c-9561-9c5b9e63b8bf.jpg
+Replit-Commit-Session-Id: c4ea21af-15c0-4027-9a68-d988e4766147
+Replit-Commit-Checkpoint-Type: full_checkpoint
+Replit-Commit-Event-Id: 80aa445f-b854-481e-ab8d-5c7719ef784c
+Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/54b2a03e-f6bc-4ffb-98e0-199af055748d/c4ea21af-15c0-4027-9a68-d988e4766147/aEMBVub
