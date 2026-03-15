@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useParams, useLocation } from "wouter";
@@ -6,8 +6,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, FileText } from "lucide-react";
+import { Plus, FileText, Send } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { BatchSendModal } from "@/components/batch-send-modal";
 
 interface ShowReportsParams {
   id: string;
@@ -22,6 +23,7 @@ export default function ShowReports() {
   const projectId = params.id;
   const reportType = params.type;
   const isMobile = useIsMobile();
+  const [batchSendOpen, setBatchSendOpen] = useState(false);
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -59,7 +61,12 @@ export default function ShowReports() {
   const { data: templatesV2 = [], isLoading: templatesLoading } = useQuery({
     queryKey: [`/api/projects/${projectId}/templates-v2`],
     enabled: !!projectId && isAuthenticated,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes - serves cached data instantly
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: globalTemplateSettings } = useQuery({
+    queryKey: [`/api/projects/${projectId}/global-template-settings`],
+    enabled: !!projectId && isAuthenticated,
   });
 
   if (isLoading || projectsLoading || reportTypesLoading || templatesLoading) return <div>Loading...</div>;
@@ -104,15 +111,23 @@ export default function ShowReports() {
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-gray-900">{pageTitle}</h1>
           
-          <Button onClick={() => {
-            const url = currentTemplate 
-              ? `/shows/${projectId}/reports/${reportType}/builder?template=${currentTemplate.id}`
-              : `/shows/${projectId}/reports/${reportType}/builder`;
-            setLocation(url);
-          }}>
-            <Plus className="h-4 w-4 mr-2" />
-            New Report
-          </Button>
+          <div className="flex items-center gap-2">
+            {reports.length > 0 && (
+              <Button variant="outline" onClick={() => setBatchSendOpen(true)}>
+                <Send className="h-4 w-4 mr-2" />
+                Send Reports
+              </Button>
+            )}
+            <Button onClick={() => {
+              const url = currentTemplate 
+                ? `/shows/${projectId}/reports/${reportType}/builder?template=${currentTemplate.id}`
+                : `/shows/${projectId}/reports/${reportType}/builder`;
+              setLocation(url);
+            }}>
+              <Plus className="h-4 w-4 mr-2" />
+              New Report
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -150,6 +165,20 @@ export default function ShowReports() {
           </div>
         )}
       </div>
+
+      {currentReportType && (
+        <BatchSendModal
+          isOpen={batchSendOpen}
+          onClose={() => setBatchSendOpen(false)}
+          projectId={parseInt(projectId || '0')}
+          reportTypeId={currentReportType.id}
+          reportTypeSlug={canonicalSlug}
+          reports={reports}
+          project={project}
+          templates={Array.isArray(templatesV2) ? templatesV2 : []}
+          globalTemplateSettings={globalTemplateSettings}
+        />
+      )}
     </div>
   );
 }

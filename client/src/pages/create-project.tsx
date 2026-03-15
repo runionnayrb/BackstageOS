@@ -17,6 +17,7 @@ import type { Season, Venue } from "@shared/schema";
 
 const projectSchema = z.object({
   name: z.string().min(1, "Project name is required"),
+  director: z.string().optional(),
   description: z.string().optional(),
   venue: z.string().optional(),
   venueId: z.string().optional(),
@@ -39,24 +40,28 @@ export default function CreateProject() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const isFullTime = (user as any)?.profileType === "fulltime";
+  // Check if user has seasons enabled in their feature preferences or legacy profileType
+  const userFeatures = (user as any)?.defaultFeaturePreferences as Record<string, boolean> | undefined;
+  const isLegacyFullTime = (user as any)?.profileType === "fulltime";
+  const hasSeasons = userFeatures?.seasons ?? isLegacyFullTime;
   const projectSingle = "Show";
 
-  // Fetch seasons and venues for full-time users
+  // Fetch seasons and venues for users with seasons enabled
   const { data: seasons = [] } = useQuery<Season[]>({
     queryKey: ["/api/seasons"],
-    enabled: isFullTime,
+    enabled: hasSeasons,
   });
 
   const { data: venues = [] } = useQuery<Venue[]>({
     queryKey: ["/api/venues"],
-    enabled: isFullTime,
+    enabled: hasSeasons,
   });
 
   const form = useForm<ProjectFormData>({
     resolver: zodResolver(projectSchema),
     defaultValues: {
       name: "",
+      director: "",
       description: "",
       venue: "",
       venueId: "",
@@ -84,20 +89,26 @@ export default function CreateProject() {
         openingNight: data.openingNight ? new Date(data.openingNight) : null,
         closingDate: data.closingDate ? new Date(data.closingDate) : null,
       };
-      await apiRequest("POST", "/api/projects", projectData);
+      const result = await apiRequest("POST", "/api/projects", projectData);
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (project: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
       toast({
         title: "Success",
         description: `${projectSingle} created successfully!`,
       });
-      setLocation("/");
+      // Redirect to onboarding wizard for new shows
+      setLocation(`/shows/${project.id}/onboarding`);
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      const errorData = error?.response || error;
+      const message = errorData?.betaLimitReached 
+        ? "Beta users are limited to 1 active show. Please archive your current show to create a new one."
+        : `Failed to create ${projectSingle.toLowerCase()}. Please try again.`;
       toast({
-        title: "Error",
-        description: `Failed to create ${projectSingle.toLowerCase()}. Please try again.`,
+        title: errorData?.betaLimitReached ? "Show Limit Reached" : "Error",
+        description: message,
         variant: "destructive",
       });
     },
@@ -134,7 +145,7 @@ export default function CreateProject() {
                 </div>
                 <div>
                   <Label htmlFor="venue">Venue/Company</Label>
-                  {isFullTime ? (
+                  {hasSeasons ? (
                     <Select onValueChange={(value) => {
                       const selectedVenue = venues.find(v => v.id.toString() === value);
                       form.setValue("venueId", value);
@@ -159,6 +170,15 @@ export default function CreateProject() {
                     />
                   )}
                 </div>
+              </div>
+
+              <div>
+                <Label htmlFor="director">Director</Label>
+                <Input
+                  id="director"
+                  placeholder="e.g., Jane Smith"
+                  {...form.register("director")}
+                />
               </div>
 
               <div>
@@ -244,8 +264,8 @@ export default function CreateProject() {
                 </div>
               </div>
 
-              {/* Full-Time Specific Fields */}
-              {isFullTime && (
+              {/* Season field - only shown when seasons feature is enabled */}
+              {hasSeasons && (
                 <div>
                   <Label htmlFor="season">Season</Label>
                   <Select onValueChange={(value) => {

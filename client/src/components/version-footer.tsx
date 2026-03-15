@@ -6,9 +6,60 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, CheckCircle, Archive } from "lucide-react";
 import { Link } from "wouter";
 
-const CURRENT_VERSION = "26.8.0";
+const CURRENT_VERSION = "26.11.0";
 
 const RELEASE_NOTES = [
+  {
+    version: "26.11.0",
+    date: "January 11, 2026",
+    features: [
+      "<strong><u>SMARTER EMAIL DISTRIBUTION:</u></strong>",
+      "Select specific contacts when sending emails to distribution lists",
+      "<strong><u>PERFORMANCE TRACKING:</u></strong>",
+      "Performance numbers are now assigned and tracked directly from your schedule",
+      "<strong><u>CONTACT ORGANIZATION:</u></strong>",
+      "Sort and view contacts by their assigned groups",
+      "<strong><u>CALENDAR SHARING:</u></strong>",
+      "Share calendar subscriptions filtered by location, not just event type",
+      "<strong><u>REPORT NOTES:</u></strong>",
+      "Import notes from your previous report when creating a new one"
+    ]
+  },
+  {
+    version: "26.10.0",
+    date: "January 2, 2026",
+    features: [
+      "<strong><u>PERFORMANCE NUMBERING:</u></strong>",
+      "Automatic show numbering for performances and previews across all schedule views",
+      "Set custom starting numbers and select which event is your first performance",
+      "Performance numbers display on weekly, daily, and monthly calendar views",
+      "<strong><u>PERFORMANCE CANCELLATIONS:</u></strong>",
+      "Cancel performances with a required reason that's saved and displayed",
+      "Cancelled shows are clearly marked and don't count toward performance numbering",
+      "Reinstate cancelled performances when needed",
+      "<strong><u>CALENDAR SUBSCRIPTIONS:</u></strong>",
+      "Subscribe to your show schedule from Google Calendar, Apple Calendar, or Outlook",
+      "All published events from every week automatically sync to your calendar",
+      "Custom event types appear alongside standard schedule events"
+    ]
+  },
+  {
+    version: "26.9.0",
+    date: "December 30, 2025",
+    features: [
+      "<strong><u>CUSTOM DAILY CALL SECTIONS:</u></strong>",
+      "Add up to 5 custom sections (like Notes or Announcements) to your daily calls",
+      "Choose whether each section appears above or below the call schedule",
+      "Drag to reorder sections exactly how you want them",
+      "<strong><u>SCHEDULE IMPROVEMENTS:</u></strong>",
+      "Multi-select events by holding Shift and dragging a selection rectangle",
+      "Better display of short and overlapping events",
+      "Dates now display in your local timezone",
+      "<strong><u>EMAIL & PERFORMANCE:</u></strong>",
+      "Instant updates when archiving or deleting emails in bulk",
+      "Faster app startup and data loading"
+    ]
+  },
   {
     version: "26.8.0",
     date: "December 14, 2025",

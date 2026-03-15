@@ -1,0 +1,959 @@
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+report-builder.tsx:744 🎯 renderTemplateFields called with customTemplate: {id: 4, projectId: 12, reportTypeId: 35, name: 'Performance Report', description: 'All performance reports for The Lion King On Broadway', …}
+report-builder.tsx:745 🎯 customTemplate.sections: (2) [{…}, {…}]
+chunk-RPCDYKBN.js?v=d761e00b:19659 Uncaught Error: Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate. React limits the number of nested updates to prevent infinite loops.
+    at checkForNestedUpdates (chunk-RPCDYKBN.js?v=d761e00b:19659:19)
+    at scheduleUpdateOnFiber (chunk-RPCDYKBN.js?v=d761e00b:18533:11)
+    at dispatchSetState (chunk-RPCDYKBN.js?v=d761e00b:12403:15)
+    at @radix-ui_react-checkbox.js?v=d761e00b:60:66
+    at setRef (chunk-JDYSANEB.js?v=d761e00b:12:12)
+    at chunk-JDYSANEB.js?v=d761e00b:21:23
+    at Array.map (<anonymous>)
+    at chunk-JDYSANEB.js?v=d761e00b:20:27
+    at safelyDetachRef (chunk-RPCDYKBN.js?v=d761e00b:16726:30)
+    at commitMutationEffectsOnFiber (chunk-RPCDYKBN.js?v=d761e00b:17741:19)
+checkForNestedUpdates @ chunk-RPCDYKBN.js?v=d761e00b:19659
+scheduleUpdateOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:18533
+dispatchSetState @ chunk-RPCDYKBN.js?v=d761e00b:12403
+(anonymous) @ @radix-ui_react-checkbox.js?v=d761e00b:60
+setRef @ chunk-JDYSANEB.js?v=d761e00b:12
+(anonymous) @ chunk-JDYSANEB.js?v=d761e00b:21
+(anonymous) @ chunk-JDYSANEB.js?v=d761e00b:20
+safelyDetachRef @ chunk-RPCDYKBN.js?v=d761e00b:16726
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17741
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17737
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17737
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17737
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17737
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17737
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17737
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17737
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17737
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17727
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17794
+commitMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17663
+commitRootImpl @ chunk-RPCDYKBN.js?v=d761e00b:19347
+commitRoot @ chunk-RPCDYKBN.js?v=d761e00b:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=d761e00b:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=d761e00b:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=d761e00b:18627Understand this error
+report-builder.tsx:845 🔄 Ref callback for field: Performance Notes already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Carpentry already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Automation already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Lighting already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Audio already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Wardrobe already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Artistic already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Props already initialized: true
+report-builder.tsx:845 🔄 Ref callback for field: Security already initialized: true
+chunk-RPCDYKBN.js?v=d761e00b:521 Warning: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+    at ErrorBoundary (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/error-boundary.tsx:10:5)
+    at Router (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/App.tsx?v=9QT3Cw7y8-9Vz8X5GUeow:107:31)
+    at PWAManager (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/pwa-manager.tsx:21:30)
+    at Provider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=d761e00b:38:15)
+    at TooltipProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=d761e00b:66:5)
+    at SearchProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/search/SearchContext.tsx:22:34)
+    at AdminViewProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/contexts/AdminViewContext.tsx:20:37)
+    at AuthProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/hooks/useAuth.tsx:26:32)
+    at QueryClientProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=d761e00b:2805:3)
+    at App
+printWarning @ chunk-RPCDYKBN.js?v=d761e00b:521
+error @ chunk-RPCDYKBN.js?v=d761e00b:505
+checkForNestedUpdates @ chunk-RPCDYKBN.js?v=d761e00b:19665
+scheduleUpdateOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:18533
+dispatchSetState @ chunk-RPCDYKBN.js?v=d761e00b:12403
+setRef @ chunk-JDYSANEB.js?v=d761e00b:12
+(anonymous) @ chunk-JDYSANEB.js?v=d761e00b:21
+(anonymous) @ chunk-JDYSANEB.js?v=d761e00b:20
+setRef @ chunk-JDYSANEB.js?v=d761e00b:12
+(anonymous) @ chunk-JDYSANEB.js?v=d761e00b:21
+(anonymous) @ chunk-JDYSANEB.js?v=d761e00b:20
+safelyDetachRef @ chunk-RPCDYKBN.js?v=d761e00b:16726
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17495
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=d761e00b:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17577
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=d761e00b:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17577
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=d761e00b:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17577
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=d761e00b:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17577
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=d761e00b:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17577
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=d761e00b:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17577
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=d761e00b:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17577
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=d761e00b:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17610
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=d761e00b:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17577
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=d761e00b:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17610
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=d761e00b:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17577
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=d761e00b:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17577
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=d761e00b:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17610
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=d761e00b:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17577
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=d761e00b:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17610
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=d761e00b:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17577
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=d761e00b:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17577
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=d761e00b:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17577
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=d761e00b:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17503
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=d761e00b:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17503
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=d761e00b:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17503
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=d761e00b:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17503
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=d761e00b:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17577
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=d761e00b:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17503
+recursivelyTraverseDeletionEffects @ chunk-RPCDYKBN.js?v=d761e00b:17486
+commitDeletionEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17577
+commitDeletionEffects @ chunk-RPCDYKBN.js?v=d761e00b:17477
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17674
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17727
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17896
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17699
+recursivelyTraverseMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17685
+commitMutationEffectsOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17794
+commitMutationEffects @ chunk-RPCDYKBN.js?v=d761e00b:17663
+commitRootImpl @ chunk-RPCDYKBN.js?v=d761e00b:19347
+commitRoot @ chunk-RPCDYKBN.js?v=d761e00b:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=d761e00b:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=d761e00b:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=d761e00b:18627Understand this error
+chunk-RPCDYKBN.js?v=d761e00b:14032 The above error occurred in the <button> component:
+
+    at button
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-IWFJIMEQ.js?v=d761e00b:42:13
+    at Provider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=d761e00b:38:15)
+    at https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-checkbox.js?v=d761e00b:48:7
+    at _c (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/ui/checkbox.tsx:22:11)
+    at div
+    at div
+    at div
+    at form
+    at div
+    at div
+    at ReportBuilder (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/pages/report-builder.tsx:49:27)
+    at Route (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=d761e00b:191:16)
+    at Switch (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=d761e00b:247:17)
+    at PageTransition (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/transitions/page-transition.tsx:21:42)
+    at main
+    at div
+    at Layout (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/layout/layout.tsx:21:34)
+    at ErrorBoundary (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/error-boundary.tsx:10:5)
+    at Router (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/App.tsx?v=9QT3Cw7y8-9Vz8X5GUeow:107:31)
+    at PWAManager (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/pwa-manager.tsx:21:30)
+    at Provider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=d761e00b:38:15)
+    at TooltipProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=d761e00b:66:5)
+    at SearchProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/components/search/SearchContext.tsx:22:34)
+    at AdminViewProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/contexts/AdminViewContext.tsx:20:37)
+    at AuthProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/src/hooks/useAuth.tsx:26:32)
+    at QueryClientProvider (https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=d761e00b:2805:3)
+    at App
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary.
+logCapturedError @ chunk-RPCDYKBN.js?v=d761e00b:14032
+callback @ chunk-RPCDYKBN.js?v=d761e00b:14078
+callCallback @ chunk-RPCDYKBN.js?v=d761e00b:11248
+commitUpdateQueue @ chunk-RPCDYKBN.js?v=d761e00b:11265
+commitLayoutEffectOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17075
+commitLayoutMountEffects_complete @ chunk-RPCDYKBN.js?v=d761e00b:17980
+commitLayoutEffects_begin @ chunk-RPCDYKBN.js?v=d761e00b:17969
+commitLayoutEffects @ chunk-RPCDYKBN.js?v=d761e00b:17920
+commitRootImpl @ chunk-RPCDYKBN.js?v=d761e00b:19353
+commitRoot @ chunk-RPCDYKBN.js?v=d761e00b:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=d761e00b:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=d761e00b:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=d761e00b:18627Understand this error
+error-boundary.tsx:28 Error Boundary caught an error: Error: Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate. React limits the number of nested updates to prevent infinite loops.
+    at checkForNestedUpdates (chunk-RPCDYKBN.js?v=d761e00b:19659:19)
+    at scheduleUpdateOnFiber (chunk-RPCDYKBN.js?v=d761e00b:18533:11)
+    at dispatchSetState (chunk-RPCDYKBN.js?v=d761e00b:12403:15)
+    at @radix-ui_react-checkbox.js?v=d761e00b:60:66
+    at setRef (chunk-JDYSANEB.js?v=d761e00b:12:12)
+    at chunk-JDYSANEB.js?v=d761e00b:21:23
+    at Array.map (<anonymous>)
+    at chunk-JDYSANEB.js?v=d761e00b:20:27
+    at safelyDetachRef (chunk-RPCDYKBN.js?v=d761e00b:16726:30)
+    at commitMutationEffectsOnFiber (chunk-RPCDYKBN.js?v=d761e00b:17741:19) {componentStack: '\n    at button\n    at https://54b2a03e-f6bc-4ffb-9…tack_react-query.js?v=d761e00b:2805:3)\n    at App'}
+componentDidCatch @ error-boundary.tsx:28
+callback @ chunk-RPCDYKBN.js?v=d761e00b:14084
+callCallback @ chunk-RPCDYKBN.js?v=d761e00b:11248
+commitUpdateQueue @ chunk-RPCDYKBN.js?v=d761e00b:11265
+commitLayoutEffectOnFiber @ chunk-RPCDYKBN.js?v=d761e00b:17075
+commitLayoutMountEffects_complete @ chunk-RPCDYKBN.js?v=d761e00b:17980
+commitLayoutEffects_begin @ chunk-RPCDYKBN.js?v=d761e00b:17969
+commitLayoutEffects @ chunk-RPCDYKBN.js?v=d761e00b:17920
+commitRootImpl @ chunk-RPCDYKBN.js?v=d761e00b:19353
+commitRoot @ chunk-RPCDYKBN.js?v=d761e00b:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=d761e00b:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=d761e00b:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=d761e00b:18627Understand this error
+errorLogger.ts:156  POST https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/api/errors/log 400 (Bad Request)

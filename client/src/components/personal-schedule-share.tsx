@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Bell, Calendar, Copy, Download, ExternalLink, Mail, Plus, Settings, Share2, Trash2, Users } from "lucide-react";
+import { Bell, Calendar, Copy, Download, ExternalLink, Mail, MapPin, Plus, Settings, Share2, Trash2, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
@@ -61,6 +61,7 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
   const [selectedShareContact, setSelectedShareContact] = useState<string>('');
   const [selectedEventType, setSelectedEventType] = useState<string>('');
   const [selectedEventTypeCategory, setSelectedEventTypeCategory] = useState<string>('');
+  const [selectedLocation, setSelectedLocation] = useState<string>('');
   const [expiresAt, setExpiresAt] = useState<string>('');
   const [isActive, setIsActive] = useState(true);
   const { toast } = useToast();
@@ -72,7 +73,21 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
     queryFn: () => apiRequest('GET', `/api/projects/${projectId}/settings`)
   });
 
-  // Dynamic event type options based on project settings
+  // Fetch custom event types
+  const { data: customEventTypesData = [] } = useQuery({
+    queryKey: [`/api/projects/${projectId}/event-types`],
+    queryFn: () => apiRequest('GET', `/api/projects/${projectId}/event-types`)
+  });
+  const customEventTypes = Array.isArray(customEventTypesData) ? customEventTypesData : [];
+
+  // Fetch locations
+  const { data: locationsData = [] } = useQuery({
+    queryKey: [`/api/projects/${projectId}/event-locations`],
+    queryFn: () => apiRequest('GET', `/api/projects/${projectId}/event-locations`)
+  });
+  const locations = Array.isArray(locationsData) ? locationsData : [];
+
+  // Dynamic event type options based on project settings and custom event types
   const getEventTypeOptions = () => {
     const enabledEventTypes = projectSettingsData?.enabledEventTypes || [];
     
@@ -94,7 +109,8 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
       ? `All ${enabledTypeNames.join(', ')}` 
       : 'All enabled show schedule events';
 
-    return [
+    // Stock event types
+    const stockTypes = [
       { category: 'show_schedule', name: 'Show Schedule', description: showScheduleDescription },
       { category: 'individual', name: 'Meetings', description: 'All meeting events' },
       { category: 'individual', name: 'Costume Fittings', description: 'All costume fitting events' },
@@ -102,6 +118,23 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
       { category: 'individual', name: 'Hair and Make-Up', description: 'All hair and make-up events' },
       { category: 'individual', name: 'Vocal Coaching', description: 'All vocal coaching events' }
     ];
+
+    // Add custom event types from the project
+    const customTypes = customEventTypes.map((et: any) => ({
+      category: 'individual',
+      name: et.name,
+      description: `All ${et.name} events`
+    }));
+
+    // Combine stock and custom types, avoiding duplicates
+    const allTypes = [...stockTypes];
+    for (const customType of customTypes) {
+      if (!allTypes.some(t => t.name.toLowerCase() === customType.name.toLowerCase())) {
+        allTypes.push(customType);
+      }
+    }
+
+    return allTypes;
   };
 
   const eventTypeOptions = getEventTypeOptions();
@@ -132,6 +165,13 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
 
   // Ensure event type shares is always an array
   const eventTypeShares = Array.isArray(eventTypeSharesData) ? eventTypeSharesData : [];
+
+  // Get available locations that don't already have shares
+  const availableLocations = locations.filter((location: any) =>
+    !eventTypeShares.some((share: EventTypeCalendarShare) => 
+      share.eventTypeCategory === 'location' && share.eventTypeName === location.name
+    )
+  );
 
   // Fetch notification preferences for unified interface
   const { data: notificationPreferences = [] } = useQuery({
@@ -212,15 +252,16 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
       setIsCreateEventTypeDialogOpen(false);
       setSelectedEventType('');
       setSelectedEventTypeCategory('');
+      setSelectedLocation('');
       toast({
-        title: "Event Type Share Created",
-        description: "Your event type calendar share has been created successfully."
+        title: "Calendar Share Created",
+        description: "Your calendar share has been created successfully."
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Error Creating Event Type Share",
-        description: error.message || "Failed to create event type calendar share",
+        title: "Error Creating Share",
+        description: error.message || "Failed to create calendar share",
         variant: "destructive"
       });
     }
@@ -371,22 +412,43 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
 
   // Event type helper functions
   const handleCreateEventTypeShare = () => {
-    if (!selectedEventType) {
+    // Check if either event type or location is selected
+    if (!selectedEventType && !selectedLocation) {
       toast({
-        title: "No Event Type Selected",
-        description: "Please select an event type to share.",
+        title: "No Selection Made",
+        description: "Please select an event type or location to share.",
         variant: "destructive"
       });
       return;
     }
 
-    const eventType = eventTypeOptions.find(opt => opt.name === selectedEventType);
-    if (!eventType) return;
+    // Prioritize location if selected
+    if (selectedLocation) {
+      const location = locations.find((loc: any) => loc.name === selectedLocation);
+      if (!location) return;
 
-    createEventTypeShareMutation.mutate({
-      eventTypeName: eventType.name,
-      eventTypeCategory: eventType.category
-    });
+      createEventTypeShareMutation.mutate({
+        eventTypeName: location.name,
+        eventTypeCategory: 'location'
+      });
+    } else if (selectedEventType) {
+      const eventType = eventTypeOptions.find(opt => opt.name === selectedEventType);
+      if (!eventType) return;
+
+      createEventTypeShareMutation.mutate({
+        eventTypeName: eventType.name,
+        eventTypeCategory: eventType.category
+      });
+    }
+  };
+
+  // Reset selections when dialog closes
+  const handleDialogChange = (open: boolean) => {
+    setIsCreateEventTypeDialogOpen(open);
+    if (!open) {
+      setSelectedEventType('');
+      setSelectedLocation('');
+    }
   };
 
   const handleCopyEventTypeLink = (token: string, eventTypeName: string) => {
@@ -468,29 +530,36 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-lg font-semibold">Show Wide Schedules</h3>
-            <p className="text-sm text-muted-foreground">Share the show schedule and individual event types with external calendar applications that automatically update when published</p>
+                <p className="text-sm text-muted-foreground">Share the show schedule and individual event types with external calendar applications that automatically update when published</p>
           </div>
-          <Dialog open={isCreateEventTypeDialogOpen} onOpenChange={setIsCreateEventTypeDialogOpen}>
+          <Dialog open={isCreateEventTypeDialogOpen} onOpenChange={handleDialogChange}>
             <DialogTrigger asChild>
-              <Button className="gap-2" variant="outline">
+              <Button className="gap-2" variant="outline" data-testid="button-share-schedule">
                 <Calendar className="h-4 w-4" />
                 Share
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Create Event Type Calendar Share</DialogTitle>
+                <DialogTitle>Create Calendar Share</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="eventType">Event Type</Label>
-                  <Select value={selectedEventType} onValueChange={setSelectedEventType}>
-                    <SelectTrigger>
+                  <Select 
+                    value={selectedEventType} 
+                    onValueChange={(value) => {
+                      setSelectedEventType(value);
+                      setSelectedLocation('');
+                    }}
+                    disabled={!!selectedLocation}
+                  >
+                    <SelectTrigger data-testid="select-event-type">
                       <SelectValue placeholder="Select an event type to share" />
                     </SelectTrigger>
                     <SelectContent>
                       {availableEventTypes.map((eventType) => (
-                        <SelectItem key={eventType.name} value={eventType.name}>
+                        <SelectItem key={eventType.name} value={eventType.name} data-testid={`option-event-type-${eventType.name}`}>
                           <div>
                             <div className="font-medium">{eventType.name}</div>
                             <div className="text-sm text-muted-foreground">{eventType.description}</div>
@@ -500,18 +569,58 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
                     </SelectContent>
                   </Select>
                 </div>
+
+                {availableLocations.length > 0 && (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-px bg-border"></div>
+                      <span className="text-xs text-muted-foreground">or</span>
+                      <div className="flex-1 h-px bg-border"></div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="location">Location</Label>
+                      <Select 
+                        value={selectedLocation} 
+                        onValueChange={(value) => {
+                          setSelectedLocation(value);
+                          setSelectedEventType('');
+                        }}
+                        disabled={!!selectedEventType}
+                      >
+                        <SelectTrigger data-testid="select-location">
+                          <SelectValue placeholder="Select a location to share" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableLocations.map((location: any) => (
+                            <SelectItem key={location.id} value={location.name} data-testid={`option-location-${location.id}`}>
+                              <div className="flex items-center gap-2">
+                                <MapPin className="h-4 w-4 text-muted-foreground" />
+                                <span className="font-medium">{location.name}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">Share all events at a specific location</p>
+                    </div>
+                  </>
+                )}
+
                 <div className="flex gap-3 pt-2">
                   <Button 
-                    onClick={() => setIsCreateEventTypeDialogOpen(false)} 
+                    onClick={() => handleDialogChange(false)} 
                     variant="outline" 
                     className="flex-1"
+                    data-testid="button-cancel-share"
                   >
                     Cancel
                   </Button>
                   <Button 
                     onClick={handleCreateEventTypeShare} 
                     className="flex-1 gap-2"
-                    disabled={createEventTypeShareMutation.isPending}
+                    disabled={createEventTypeShareMutation.isPending || (!selectedEventType && !selectedLocation)}
+                    data-testid="button-create-share"
                   >
                     {createEventTypeShareMutation.isPending ? (
                       <>Creating...</>
@@ -532,11 +641,21 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
         {eventTypeShares.length > 0 ? (
           <div className="space-y-2">
             {eventTypeShares.map((share: EventTypeCalendarShare) => (
-              <div key={share.id} className="py-3 px-4 rounded-lg bg-gray-50/50">
+              <div key={share.id} className="py-3 px-4 rounded-lg bg-gray-50/50" data-testid={`share-item-${share.id}`}>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div className="flex-1">
-                    <h4 className="font-medium">{share.eventTypeName}</h4>
-                    <div className="text-xs text-muted-foreground mt-1">
+                    <div className="flex items-center gap-2">
+                      {share.eventTypeCategory === 'location' ? (
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                      )}
+                      <h4 className="font-medium">{share.eventTypeName}</h4>
+                      {share.eventTypeCategory === 'location' && (
+                        <Badge variant="secondary" className="text-xs">Location</Badge>
+                      )}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1 ml-6">
                       {share.accessCount} access{share.accessCount !== 1 ? 'es' : ''} • Created {formatDate(share.createdAt)}
                     </div>
                   </div>

@@ -78,11 +78,14 @@ self.addEventListener('fetch', event => {
     return;
   }
   
-  // Handle different types of requests
+  // Never intercept API requests - let them go directly to the server
+  // This ensures cookies/credentials are properly handled
   if (url.pathname.startsWith('/api/')) {
-    // API requests - Network First with cache fallback
-    event.respondWith(handleAPIRequest(request));
-  } else if (STATIC_ASSETS.some(asset => url.pathname === asset)) {
+    return;
+  }
+  
+  // Handle different types of requests
+  if (STATIC_ASSETS.some(asset => url.pathname === asset)) {
     // Static assets - Cache First
     event.respondWith(handleStaticAsset(request));
   } else if (url.pathname.endsWith('.js') || 

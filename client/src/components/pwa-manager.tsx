@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, Wifi, WifiOff, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { PWAInstallBanner } from './pwa-install-banner';
 
 interface PWAManagerProps {
   children?: React.ReactNode;
@@ -160,19 +159,6 @@ export function PWAManager({ children }: PWAManagerProps) {
   return (
     <>
       {children}
-      
-      {/* PWA Install Banner */}
-      <PWAInstallBanner 
-        onInstall={() => {
-          toast({
-            title: "BackstageOS installed!",
-            description: "You can now access BackstageOS from your home screen.",
-          });
-        }}
-        onDismiss={() => {
-          console.log('[PWA] Install banner dismissed');
-        }}
-      />
 
       {/* Offline Indicator */}
       <div className="fixed top-4 right-4 z-50">

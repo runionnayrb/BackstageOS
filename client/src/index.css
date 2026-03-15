@@ -45,11 +45,11 @@
 
 /* Email composer dialog z-index override */
 [data-radix-dialog-overlay] {
-  z-index: 65 !important;
+  z-index: 1000 !important;
 }
 
 [data-radix-dialog-content] {
-  z-index: 70 !important;
+  z-index: 1001 !important;
 }
 
 /* React Grid Layout and Resizable Styles */

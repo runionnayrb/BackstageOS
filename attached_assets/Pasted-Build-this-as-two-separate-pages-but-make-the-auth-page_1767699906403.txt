@@ -1,0 +1,115 @@
+Build this as two separate pages, but make the auth page use the same split screen layout shown in the screenshot.
+
+Context
+- BackstageOS is entering beta, people can subscribe
+- I already have working auth logic and an existing auth page
+- Do not rewrite authentication logic, only update layout, routing, and copy
+- Keep everything calm, production first, and trustworthy
+- No hype language, no hyphens, use commas instead
+
+Goal
+1. Create a new Beta Home page that explains what BackstageOS is and drives people to Pricing, Sign In, or Create Account
+2. Update the existing Auth page UI to match the split screen design, left marketing panel, right auth card
+
+Routes
+- Home page at / (or /home if / is already used), this is the beta marketing home
+- Pricing at /pricing
+- Auth pages:
+  - /auth/sign-in
+  - /auth/sign-up
+If my project already has different routes, keep the existing routes but match this behavior.
+
+Header
+Create a reusable public header component and use it on Home and Pricing.
+Left side: BackstageOS logo or wordmark, link to Home
+Right side links:
+- Pricing
+- Sign In
+- Create Account, primary button
+Optional, only if these pages already exist, otherwise create simple placeholder pages so links do not break:
+- Privacy
+- Terms
+
+Beta Home page content
+Build a clean, simple home page with these sections, mobile first.
+
+1. Hero
+- Headline that is specific and visual, not generic
+- Subhead that communicates, everything lives in one system, one place, a single truth
+- Primary CTA: Create Account
+- Secondary CTA: View Pricing
+- Small calm line about beta, optional, only if true, like “Beta access is limited”
+
+2. Feature list
+Use the core features I have today, short human bullets, no buzzwords:
+- Drag and drop schedules
+- Automated daily calls
+- Personalized schedules
+- Availability for people and locations, avoid double bookings
+- Custom reports with automatic notes tracking
+- Integrated email, Outlook available, Gmail coming soon
+- Email and PDF documents
+- Document templates that can pull data from BackstageOS
+- Manage props lists
+- Manage costume lists
+- Team collaboration, 4 seats total, 3 SM team members plus 1
+- Unlimited viewers
+
+3. How it works
+A 3 step section:
+- Create a show
+- Add people, locations, schedule
+- Generate daily calls, reports, documents from the single source of truth
+
+4. Beta expectations
+A short section setting expectations:
+- This is beta
+- Feedback is welcome
+- Fast fixes, steady improvements
+Include a simple contact method if one exists, otherwise add a placeholder like support email in env vars.
+
+5. Footer
+- Dynamic copyright year
+- Links: Pricing, Sign In, Create Account, Terms, Privacy
+
+Auth page UI update
+Update the sign in and sign up pages to match the split screen design like the screenshot.
+
+Layout
+- Two column on desktop
+  - Left panel, blue gradient background
+  - Right panel, centered card with auth form
+- Mobile stacks vertically
+  - Form first
+  - Left panel content becomes a compact section below or above, but do not make the page feel long
+
+Left panel content
+- Large BackstageOS wordmark
+- One sentence value prop, calm and direct
+- Six short feature bullets with icons, similar to:
+  - Show centric organization
+  - Scheduling and call sheets
+  - Professional reports and templates
+  - Team and cast management
+  - Script and cue management
+  - Secure collaboration
+Do not invent testimonials or logos.
+
+Right panel
+- Keep existing form fields and handlers
+- Improve spacing and readability
+- Keep Terms and Privacy links under the form, consistent with the screenshot styling
+- Include “Forgot password” only if it exists in my auth flow, otherwise omit
+
+Implementation details
+- Create a reusable AuthSplitLayout component and use it for both sign in and sign up so styling stays consistent
+- Do not change backend auth logic, only move UI into the new layout
+- Ensure no broken links, confirm all routes work
+- Keep the code simple and readable, no large refactors
+
+Deliverables
+- New Beta Home page with header and sections above
+- Pricing page linked from header, keep existing pricing content if it already exists
+- Updated sign in and sign up pages using the split screen layout
+- Reusable PublicHeader component and AuthSplitLayout component
+- Confirm mobile looks good and navigation works

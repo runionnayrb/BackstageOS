@@ -1,0 +1,149 @@
+You are working in the BackstageOS Replit codebase. I need you to update pricing end to end, database, backend logic, UI, and onboarding communication, to move from the current tiered plans to simple show based pricing with unlimited users. This must be reliable, minimal, and not break existing users.
+
+Primary goals
+1. Pricing is per show, not per user, unlimited users always
+2. Long running shows follow the same pattern as TourOS, one time fee for up to 6 months, then monthly if longer
+3. Onboarding makes the difference between limited run and long running unmissable, with clear plain language and a payment summary
+4. Everything works 100 percent, no broken access, no silent edge cases
+
+New pricing rules
+A. Limited run show, 6 months or less
+400 USD one time per show
+Unlimited users
+B. Long running or permanent show, longer than 6 months or no end date
+400 USD to activate the show
+Then 100 USD per month starting after month 6, billed monthly until the show is closed or archived
+Unlimited users
+
+Show classification rules
+A show has start date required and end date optional
+If end date is missing, default to long running
+If end date exists and the duration is greater than 6 months, set to long running
+If end date exists and duration is 6 months or less, set to limited run
+If a limited run show later extends beyond 6 months, allow converting it to long running
+If conversion happens after month 6 has already passed, monthly billing starts immediately
+If conversion happens before month 6, monthly billing starts exactly at start date plus 6 months
+
+Implementation approach, keep it simple
+Do not add new third party services
+Use the existing payment provider and billing patterns already in the codebase, likely Stripe
+Centralize all pricing logic in one backend module, for example billingService.ts, so pricing is not duplicated across routes and UI
+
+Database changes
+Implement a simple billing model, either fields on shows or a separate show_billing table, choose the option that is simplest and least risky
+Minimum required data
+show_id
+billing_type, limited_run or long_running
+show_start_date
+show_end_date nullable
+activation_fee_paid_at nullable
+monthly_billing_starts_at nullable, computed as show_start_date plus 6 months when long running
+billing_status, unpaid, active, paused, canceled, archived
+closed_at nullable
+Add a billing_events table if one does not exist
+id
+show_id
+event_type
+provider_reference
+created_at
+payload_json
+
+Backend and API requirements
+1. Remove or deprecate the old tier plan logic, per user seats logic, team plan logic, any code paths that conflict with unlimited users
+2. Add a single source of truth for pricing decisions
+Functions to implement
+getShowBillingSummary(showId)
+requiresActivationFee(showId)
+requiresMonthlySubscription(showId, onDate)
+createActivationCheckout(showId)
+createMonthlySubscription(showId)
+cancelMonthlySubscription(showId)
+convertShowToLongRunning(showId)
+closeShow(showId), must stop monthly billing
+archiveShow(showId), must stop monthly billing
+3. Server side enforcement
+Users cannot use a paid show unless the activation fee is paid
+Long running monthly billing must start after month 6 and stop when the show is closed or archived
+Add clear error messages and safe recovery paths if payment fails or webhooks lag
+
+Payment provider requirements
+1. Activation fee
+One time checkout for 400 per show
+2. Monthly billing
+Subscription for 100 per month for long running shows
+If delayed start cannot be done cleanly with current setup, implement it with a scheduled job or a daily server check that creates the subscription when monthly_billing_starts_at is reached
+Store provider IDs in env vars and document them
+Ensure webhook handling is correct and idempotent, do not double charge
+Every billing action should write a billing_events record
+
+UI requirements, pricing page
+Update the landing pricing page to reflect
+400 per show for limited run, up to 6 months
+400 to start, then 100 per month after month 6 for long running or permanent
+Unlimited users always
+No seat language anywhere
+Keep copy short and clear
+
+UI requirements, onboarding clarity, must be unmissable
+When creating a new show, insert a required step called Show billing before activation
+Step content
+1. Two choice cards, user must pick one
+Card 1
+Title: Limited run
+Subtitle: Runs 6 months or less
+Price: 400 one time per show
+Helper: Unlimited users included
+Card 2
+Title: Long running
+Subtitle: Longer than 6 months, or no end date
+Price: 400 to start, then 100 per month after month 6
+Helper: Unlimited users included, monthly stops when you close the show
+
+2. Date fields directly below
+Required: Start date
+Optional: End date
+If end date is blank, auto select Long running and show a note
+Because there is no end date, this show is set as Long running
+If end date is present and duration is longer than 6 months, auto select Long running and show a note
+This run is longer than 6 months, so this show is set as Long running
+
+3. Real time summary box, always visible
+Title: What you will pay
+Line 1: Due today: 400
+Line 2 only if long running: Monthly starts: <start date plus 6 months>, 100 per month
+Line 3: Unlimited users included
+Line 4: You can change this later if the run extends
+
+4. Confirmation checkbox required to continue
+Text: I understand BackstageOS is priced per show, and long running shows add monthly billing after 6 months
+User must check it before checkout
+
+5. Post payment confirmation screen
+Headline: Show activated
+Body:
+You activated <Show Name> for 400
+If this is a long running show, monthly billing begins on <date> at 100 per month, and stops when you close the show
+
+Migration and backwards compatibility, do not break current users
+Existing users stay on their current plan for now, grandfathered
+New shows created after this change use the new show based model
+If needed, implement a simple flag on accounts or shows, billing_version, old or show_based, default old for existing users and show_based for new
+Do not remove old plan code until the new flow is fully working, but stop using it for new shows
+
+Testing and verification requirements
+Add unit tests for:
+Show classification logic, end date missing, end date over 6 months, end date under 6 months
+Monthly billing start date calculation, exactly 6 months threshold
+Conversion from limited run to long running, with before and after month 6 scenarios
+Add at least one integration test for checkout and billing status updates
+Provide a manual QA checklist in the PR description
+Include a short internal doc explaining the new billing model, data fields, and webhook flow
+
+Acceptance criteria
+A user can create a show, clearly choose billing type, see what they will pay today and later, pay the activation fee, and immediately use the show with unlimited users
+Long running shows begin monthly billing after month 6 and stop when the show is closed or archived
+No existing users lose access or have broken billing
+No UI references remain to per user pricing or old tiers for new shows
+All TypeScript builds cleanly, and the solution is minimal and maintainable
+
+Start by scanning the codebase for current pricing, Stripe integration, plan enums, and any per user seat logic. Propose the minimal refactor plan, then implement it in small commits with clear notes.

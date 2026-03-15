@@ -63,7 +63,8 @@ export default function EnhancedHeader() {
     queryKey: ['/api/email/unread-count'],
     enabled: !!user,
     refetchInterval: 600000, // Refresh every 10 minutes (cost reduction)
-    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    staleTime: 10 * 60 * 1000, // Consider data fresh for 10 minutes
+    gcTime: 30 * 60 * 1000, // Cache for 30 minutes
   });
 
   // Parse current location to determine navigation context
@@ -174,7 +175,8 @@ export default function EnhancedHeader() {
     queryKey: ['/api/admin/users'],
     enabled: isOriginalAdmin(user),
     select: (data: any[]) => data || [],
-    staleTime: 10 * 60 * 1000, // Consider data fresh for 10 minutes
+    staleTime: 30 * 60 * 1000, // Consider data fresh for 30 minutes (admin users rarely change)
+    gcTime: 60 * 60 * 1000, // Cache for 1 hour
   });
 
 
@@ -183,7 +185,8 @@ export default function EnhancedHeader() {
   const { data: switchStatus } = useQuery<SwitchStatus>({
     queryKey: ['/api/admin/switch-status'],
     enabled: isOriginalAdmin(user),
-    staleTime: 10 * 60 * 1000, // Consider data fresh for 10 minutes
+    staleTime: 30 * 60 * 1000, // Consider data fresh for 30 minutes (rarely changes during session)
+    gcTime: 60 * 60 * 1000, // Cache for 1 hour
   });
 
   // Sync defaultUserId with the current viewing user or logged-in user
@@ -317,7 +320,7 @@ export default function EnhancedHeader() {
                     All Shows
                   </DropdownMenuItem>
                   
-                  <DropdownMenuItem onClick={() => setLocation('/create-project')}>
+                  <DropdownMenuItem onClick={() => setLocation('/onboarding')}>
                     <Plus className="h-4 w-4 mr-2" strokeWidth={1.5} />
                     New Show
                   </DropdownMenuItem>

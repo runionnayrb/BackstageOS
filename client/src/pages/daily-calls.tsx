@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useLocation, useParams } from "wouter";
 import { format, parseISO } from "date-fns";
-import { Calendar, Plus, Save, FileText, ChevronLeft, Users, Edit, Upload, Trash2, Import } from "lucide-react";
+import { Calendar, Plus, Save, FileText, ChevronLeft, Users, Edit, Upload, Trash2, Import, Mail, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,8 +26,16 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { parseScheduleSettings, formatTimeDisplay } from "@/lib/timeUtils";
+import { calculatePerformanceNumbers } from "@/lib/eventUtils";
 import { CastSelector } from "@/components/cast-selector";
 import { DailyCall, Project, EmailContact, ScheduleEvent } from "@shared/schema";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { DailyCallEmailModal } from "@/components/daily-call-email-modal";
 
 interface DailyCallSheetParams {
   id: string;
@@ -64,16 +72,46 @@ export default function DailyCallSheet() {
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
   const [importLoading, setImportLoading] = useState(false);
   const [callData, setCallData] = useState<{
     locations: CallLocation[];
     announcements: string;
+    sectionContents: Record<string, string>;
     fittingsEvents?: any[];
     appointmentsEvents?: any[];
   }>({
     locations: [],
-    announcements: ''
+    announcements: '',
+    sectionContents: {}
   });
+  
+  // Track which section line should be focused after render
+  const [focusTarget, setFocusTarget] = useState<{ sectionId: string; lineIndex: number } | null>(null);
+  
+  // Focus the target line after render
+  useEffect(() => {
+    if (focusTarget) {
+      setTimeout(() => {
+        const container = document.querySelector(`[data-testid="section-editor-${focusTarget.sectionId}"]`);
+        if (container) {
+          const editableSpans = container.querySelectorAll('[contenteditable="true"]');
+          const targetSpan = editableSpans[focusTarget.lineIndex] as HTMLElement;
+          if (targetSpan) {
+            targetSpan.focus();
+            // Move cursor to end of text
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(targetSpan);
+            range.collapse(false); // false = collapse to end
+            selection?.removeAllRanges();
+            selection?.addRange(range);
+          }
+        }
+        setFocusTarget(null);
+      }, 0);
+    }
+  }, [focusTarget, callData.sectionContents]);
   
 
   // Fetch project data
@@ -109,6 +147,12 @@ export default function DailyCallSheet() {
   // Fetch event locations to map location names to types
   const { data: eventLocations = [] } = useQuery({
     queryKey: [`/api/projects/${actualProjectId}/event-locations`],
+    enabled: !!actualProjectId,
+  });
+
+  // Fetch event types for the project
+  const { data: eventTypes = [] } = useQuery({
+    queryKey: [`/api/projects/${actualProjectId}/event-types`],
     enabled: !!actualProjectId,
   });
 
@@ -171,6 +215,36 @@ export default function DailyCallSheet() {
     return minutes;
   };
 
+  // Helper to handle paste events - strips formatting and inserts plain text only
+  const handlePlainTextPaste = (e: React.ClipboardEvent<HTMLElement>) => {
+    e.preventDefault();
+    const text = e.clipboardData.getData('text/plain');
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      range.deleteContents();
+      range.insertNode(document.createTextNode(text));
+      range.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+  };
+
+  // Calculate performance numbers for all schedule events
+  const performanceNumbers = useMemo(() => {
+    const config = scheduleSettings.performanceNumbering || {
+      firstPerformanceEventId: null,
+      startingNumber: 1,
+    };
+    return calculatePerformanceNumbers(scheduleEvents, config, eventTypes);
+  }, [scheduleEvents, scheduleSettings.performanceNumbering, eventTypes]);
+
+  // Helper to get performance number display text for an event
+  const getPerformanceDisplay = (eventId: number): string => {
+    const perfNum = performanceNumbers.get(eventId);
+    return perfNum ? `#${perfNum}` : '';
+  };
+
   // Mutation for saving daily call with optimistic updates
   const saveCallMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -193,9 +267,37 @@ export default function DailyCallSheet() {
     onMutate: async (data) => {
       // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: ['/api/projects', actualProjectId, 'daily-calls-list'] });
+      await queryClient.cancelQueries({ queryKey: ['/api/projects', actualProjectId, 'daily-calls', selectedDate] });
       
-      // Snapshot the previous value
+      // Snapshot the previous values
       const previousCalls = queryClient.getQueryData(['/api/projects', actualProjectId, 'daily-calls-list']);
+      const previousDetail = queryClient.getQueryData(['/api/projects', actualProjectId, 'daily-calls', selectedDate]);
+      
+      // Optimistically update the detail view with the new data
+      queryClient.setQueryData(['/api/projects', actualProjectId, 'daily-calls', selectedDate], (old: any) => {
+        if (!old) {
+          // Creating new
+          return {
+            id: -1,
+            date: selectedDate,
+            projectId: actualProjectId,
+            locations: data.locations,
+            announcements: data.announcements,
+            sectionContents: data.sectionContents || {},
+            fittingsEvents: data.fittingsEvents || [],
+            appointmentsEvents: data.appointmentsEvents || [],
+          };
+        }
+        // Updating existing - merge with new data
+        return {
+          ...old,
+          locations: data.locations,
+          announcements: data.announcements,
+          sectionContents: data.sectionContents || {},
+          fittingsEvents: data.fittingsEvents || [],
+          appointmentsEvents: data.appointmentsEvents || [],
+        };
+      });
       
       // Optimistically update the list
       if (!existingDailyCall?.id) {
@@ -208,17 +310,28 @@ export default function DailyCallSheet() {
             projectId: actualProjectId,
             locations: data.locations,
             announcements: data.announcements,
+            sectionContents: data.sectionContents || {},
           };
           return [...old, newCall].sort((a, b) => a.date.localeCompare(b.date));
         });
+      } else {
+        // Updating existing - update in list
+        queryClient.setQueryData(['/api/projects', actualProjectId, 'daily-calls-list'], (old: any[]) => {
+          if (!old) return old;
+          return old.map((call: any) => 
+            call.id === existingDailyCall.id 
+              ? { ...call, locations: data.locations, announcements: data.announcements, sectionContents: data.sectionContents || {} }
+              : call
+          );
+        });
       }
       
-      return { previousCalls };
+      return { previousCalls, previousDetail };
     },
     onSuccess: () => {
       toast({
-        title: "Call Sheet Saved",
-        description: "Daily call sheet has been saved successfully.",
+        title: "Daily Call Saved",
+        description: "Daily call has been saved successfully.",
       });
       setIsEditing(false);
       // Also invalidate schedule events since we're now syncing changes back to them
@@ -229,9 +342,12 @@ export default function DailyCallSheet() {
       if (context?.previousCalls) {
         queryClient.setQueryData(['/api/projects', actualProjectId, 'daily-calls-list'], context.previousCalls);
       }
+      if (context?.previousDetail) {
+        queryClient.setQueryData(['/api/projects', actualProjectId, 'daily-calls', selectedDate], context.previousDetail);
+      }
       toast({
         title: "Error",
-        description: "Failed to save daily call sheet.",
+        description: "Failed to save daily call.",
         variant: "destructive",
       });
     },
@@ -374,16 +490,32 @@ export default function DailyCallSheet() {
 
   // Load existing daily call data when it changes  
   useEffect(() => {
-    // Wait for contacts to actually load (array exists AND has data)
-    if (!actualProjectId || !scheduleEvents || !eventLocations || !contacts || contacts.length === 0) return;
+    // Wait for data to load (contacts can be empty array if project has no contacts)
+    if (!actualProjectId || !scheduleEvents || !eventLocations || contacts === undefined) return;
     if (isEditing) return;
     
     // If we have a saved daily call with actual data, use that instead of regenerating
     // No need to reformat names here - getFormattedCast handles it at render time
     if (existingDailyCall && existingDailyCall.locations && existingDailyCall.locations.length > 0) {
+      // Migration: if sectionContents doesn't exist, create it from announcements
+      // Clone to avoid mutating the TanStack Query cache object
+      let sectionContents = { ...(existingDailyCall as any).sectionContents } || {};
+      if (Object.keys(sectionContents).length === 0 && existingDailyCall.announcements) {
+        sectionContents = { 'announcements': existingDailyCall.announcements };
+      }
+      
+      // Ensure all configured sections have entries (initialize empty ones)
+      const customSections = scheduleSettings.customSections || [];
+      customSections.forEach((section: any) => {
+        if (!(section.id in sectionContents)) {
+          sectionContents[section.id] = '';
+        }
+      });
+      
       setCallData({
         locations: normalizeLocationsByEventOrder(existingDailyCall.locations),
         announcements: existingDailyCall.announcements || '',
+        sectionContents: sectionContents,
         fittingsEvents: existingDailyCall.fittingsEvents || [],
         appointmentsEvents: existingDailyCall.appointmentsEvents || []
       });
@@ -606,12 +738,20 @@ export default function DailyCallSheet() {
       });
     }
 
+    // Initialize sectionContents for all configured sections
+    const customSections = scheduleSettings.customSections || [];
+    const sectionContents: Record<string, string> = {};
+    customSections.forEach((section: any) => {
+      sectionContents[section.id] = '';
+    });
+    
     // Create the generated data object
     const generatedData = {
       locations,
       fittingsEvents: locationTypeGroups.fittings,
       appointmentsEvents: locationTypeGroups.appointments,
-      announcements: ''
+      announcements: '',
+      sectionContents
     };
 
     // Set state with the generated data
@@ -629,6 +769,7 @@ export default function DailyCallSheet() {
     saveCallMutation.mutate({
       locations: callData.locations,
       announcements: callData.announcements,
+      sectionContents: callData.sectionContents || {},
       fittingsEvents: callData.fittingsEvents || [],
       appointmentsEvents: callData.appointmentsEvents || [],
       events: scheduleEvents.filter(event => event.date === selectedDate)
@@ -1743,9 +1884,23 @@ export default function DailyCallSheet() {
             </Popover>
           </div>
           <div className="flex items-center space-x-3">
-            <Button onClick={exportToPDF} variant="ghost" size="icon" className="border-0 hover:bg-transparent">
-              <Upload className="h-4 w-4 hover:text-blue-600 transition-colors" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="border-0 hover:bg-transparent">
+                  <Upload className="h-4 w-4 hover:text-blue-600 transition-colors" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setShowEmailModal(true)}>
+                  <Mail className="h-4 w-4 mr-2" />
+                  Email
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportToPDF}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Download PDF
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             {!isEditing && existingDailyCall && (
               <Button onClick={() => setShowDeleteDialog(true)} variant="ghost" size="icon" className="border-0 hover:bg-transparent">
                 <Trash2 className="h-4 w-4 hover:text-red-600 transition-colors" />
@@ -1791,56 +1946,296 @@ export default function DailyCallSheet() {
             </p>
           </div>
 
-          {/* Announcements Section - Above the Call */}
-          {(scheduleSettings.announcementsPosition === 'top') && (
-            <div className="mb-6" data-pdf-section="announcements" data-pdf-priority="high" data-pdf-item="announcements-section">
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">Announcements</h3>
-              {isEditing ? (
-                <Textarea
-                  value={callData.announcements}
-                  onChange={(e) => setCallData(prev => ({ ...prev, announcements: e.target.value }))}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      const textarea = e.target as HTMLTextAreaElement;
-                      const { value, selectionStart } = textarea;
-                      const beforeCursor = value.substring(0, selectionStart);
-                      const afterCursor = value.substring(selectionStart);
-                      const lines = beforeCursor.split('\n');
-                      const currentLine = lines[lines.length - 1];
-                      const numberMatch = currentLine.match(/^(\d+)\.\s/);
-                      let newText;
-                      let nextNumber;
-                      if (numberMatch) {
-                        const currentNumber = parseInt(numberMatch[1]);
-                        nextNumber = currentNumber + 1;
-                        newText = beforeCursor + '\n' + nextNumber + '. ' + afterCursor;
-                      } else if (lines.length === 1 && currentLine.trim() === '') {
-                        nextNumber = 1;
-                        newText = '1. ' + afterCursor;
-                      } else {
-                        const allLines = value.split('\n');
-                        const numberedLines = allLines.filter(line => /^\d+\.\s/.test(line));
-                        nextNumber = numberedLines.length + 1;
-                        newText = beforeCursor + '\n' + nextNumber + '. ' + afterCursor;
+          {/* Custom Sections - Above the Call */}
+          {scheduleSettings.customSections
+            .filter((section: any) => section.position === 'top')
+            .sort((a: any, b: any) => (a.order || 0) - (b.order || 0))
+            .map((section: any) => {
+              const sectionContent = callData.sectionContents[section.id] || 
+                (section.id === 'announcements' ? callData.announcements : '');
+              return (
+                <div key={section.id} className="mb-6" data-pdf-section={`custom-section-${section.id}`} data-pdf-priority="high" data-pdf-item={`section-${section.id}`}>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1">{section.name}</h3>
+                  {(() => {
+                    const listType = section.listType || 'numbered';
+                    const lines = sectionContent ? sectionContent.split('\n') : [];
+                    
+                    const renderLine = (line: string, idx: number, editable: boolean) => {
+                      const numberedMatch = line.match(/^(\d+\.)\s(.*)$/);
+                      const bulletMatch = line.match(/^(•)\s(.*)$/);
+                      const dashMatch = line.match(/^(-)\s(.*)$/);
+                      
+                      if (numberedMatch) {
+                        return (
+                          <div key={idx} style={{ display: 'flex' }}>
+                            <span style={{ flexShrink: 0, width: '2rem', textAlign: 'right', paddingRight: '0.5rem' }}>{numberedMatch[1]}</span>
+                            {editable ? (
+                              <span
+                                contentEditable
+                                suppressContentEditableWarning
+                                style={{ flex: 1, wordBreak: 'break-word', outline: 'none' }}
+                                onPaste={handlePlainTextPaste}
+                                onBlur={(e) => {
+                                  const newLines = [...lines];
+                                  newLines[idx] = numberedMatch[1] + ' ' + (e.currentTarget.textContent || '');
+                                  const newContent = newLines.join('\n');
+                                  setCallData(prev => ({
+                                    ...prev,
+                                    sectionContents: { ...prev.sectionContents, [section.id]: newContent },
+                                    ...(section.id === 'announcements' ? { announcements: newContent } : {})
+                                  }));
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    const nextNumber = parseInt(numberedMatch[1]) + 1;
+                                    const newLines = [...lines];
+                                    newLines[idx] = numberedMatch[1] + ' ' + (e.currentTarget.textContent || '');
+                                    newLines.splice(idx + 1, 0, nextNumber + '. ');
+                                    const newContent = newLines.join('\n');
+                                    setCallData(prev => ({
+                                      ...prev,
+                                      sectionContents: { ...prev.sectionContents, [section.id]: newContent },
+                                      ...(section.id === 'announcements' ? { announcements: newContent } : {})
+                                    }));
+                                    setFocusTarget({ sectionId: section.id, lineIndex: idx + 1 });
+                                  } else if (e.key === 'Backspace' && !(e.currentTarget.textContent || '').trim()) {
+                                    e.preventDefault();
+                                    if (lines.length > 1) {
+                                      const newLines = lines.filter((_, i) => i !== idx);
+                                      const newContent = newLines.join('\n');
+                                      setCallData(prev => ({
+                                        ...prev,
+                                        sectionContents: { ...prev.sectionContents, [section.id]: newContent },
+                                        ...(section.id === 'announcements' ? { announcements: newContent } : {})
+                                      }));
+                                      if (idx > 0) setFocusTarget({ sectionId: section.id, lineIndex: idx - 1 });
+                                    }
+                                  }
+                                }}
+                              >{numberedMatch[2]}</span>
+                            ) : (
+                              <span style={{ flex: 1, wordBreak: 'break-word' }}>{numberedMatch[2]}</span>
+                            )}
+                          </div>
+                        );
+                      } else if (bulletMatch) {
+                        return (
+                          <div key={idx} style={{ display: 'flex' }}>
+                            <span style={{ flexShrink: 0, width: '1.25rem' }}>{bulletMatch[1]}</span>
+                            {editable ? (
+                              <span
+                                contentEditable
+                                suppressContentEditableWarning
+                                style={{ flex: 1, wordBreak: 'break-word', outline: 'none' }}
+                                onPaste={handlePlainTextPaste}
+                                onBlur={(e) => {
+                                  const newLines = [...lines];
+                                  newLines[idx] = '• ' + (e.currentTarget.textContent || '');
+                                  const newContent = newLines.join('\n');
+                                  setCallData(prev => ({
+                                    ...prev,
+                                    sectionContents: { ...prev.sectionContents, [section.id]: newContent },
+                                    ...(section.id === 'announcements' ? { announcements: newContent } : {})
+                                  }));
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    const newLines = [...lines];
+                                    newLines[idx] = '• ' + (e.currentTarget.textContent || '');
+                                    newLines.splice(idx + 1, 0, '• ');
+                                    const newContent = newLines.join('\n');
+                                    setCallData(prev => ({
+                                      ...prev,
+                                      sectionContents: { ...prev.sectionContents, [section.id]: newContent },
+                                      ...(section.id === 'announcements' ? { announcements: newContent } : {})
+                                    }));
+                                    setFocusTarget({ sectionId: section.id, lineIndex: idx + 1 });
+                                  } else if (e.key === 'Backspace' && !(e.currentTarget.textContent || '').trim()) {
+                                    e.preventDefault();
+                                    if (lines.length > 1) {
+                                      const newLines = lines.filter((_, i) => i !== idx);
+                                      const newContent = newLines.join('\n');
+                                      setCallData(prev => ({
+                                        ...prev,
+                                        sectionContents: { ...prev.sectionContents, [section.id]: newContent },
+                                        ...(section.id === 'announcements' ? { announcements: newContent } : {})
+                                      }));
+                                      if (idx > 0) setFocusTarget({ sectionId: section.id, lineIndex: idx - 1 });
+                                    }
+                                  }
+                                }}
+                              >{bulletMatch[2]}</span>
+                            ) : (
+                              <span style={{ flex: 1, wordBreak: 'break-word' }}>{bulletMatch[2]}</span>
+                            )}
+                          </div>
+                        );
+                      } else if (dashMatch) {
+                        return (
+                          <div key={idx} style={{ display: 'flex' }}>
+                            <span style={{ flexShrink: 0, width: '1.25rem' }}>{dashMatch[1]}</span>
+                            {editable ? (
+                              <span
+                                contentEditable
+                                suppressContentEditableWarning
+                                style={{ flex: 1, wordBreak: 'break-word', outline: 'none' }}
+                                onPaste={handlePlainTextPaste}
+                                onBlur={(e) => {
+                                  const newLines = [...lines];
+                                  newLines[idx] = '- ' + (e.currentTarget.textContent || '');
+                                  const newContent = newLines.join('\n');
+                                  setCallData(prev => ({
+                                    ...prev,
+                                    sectionContents: { ...prev.sectionContents, [section.id]: newContent },
+                                    ...(section.id === 'announcements' ? { announcements: newContent } : {})
+                                  }));
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    const newLines = [...lines];
+                                    newLines[idx] = '- ' + (e.currentTarget.textContent || '');
+                                    newLines.splice(idx + 1, 0, '- ');
+                                    const newContent = newLines.join('\n');
+                                    setCallData(prev => ({
+                                      ...prev,
+                                      sectionContents: { ...prev.sectionContents, [section.id]: newContent },
+                                      ...(section.id === 'announcements' ? { announcements: newContent } : {})
+                                    }));
+                                    setFocusTarget({ sectionId: section.id, lineIndex: idx + 1 });
+                                  } else if (e.key === 'Backspace' && !(e.currentTarget.textContent || '').trim()) {
+                                    e.preventDefault();
+                                    if (lines.length > 1) {
+                                      const newLines = lines.filter((_, i) => i !== idx);
+                                      const newContent = newLines.join('\n');
+                                      setCallData(prev => ({
+                                        ...prev,
+                                        sectionContents: { ...prev.sectionContents, [section.id]: newContent },
+                                        ...(section.id === 'announcements' ? { announcements: newContent } : {})
+                                      }));
+                                      if (idx > 0) setFocusTarget({ sectionId: section.id, lineIndex: idx - 1 });
+                                    }
+                                  }
+                                }}
+                              >{dashMatch[2]}</span>
+                            ) : (
+                              <span style={{ flex: 1, wordBreak: 'break-word' }}>{dashMatch[2]}</span>
+                            )}
+                          </div>
+                        );
                       }
-                      setCallData(prev => ({ ...prev, announcements: newText }));
-                      setTimeout(() => {
-                        const newCursorPos = beforeCursor.length + 1 + nextNumber.toString().length + 2;
-                        textarea.setSelectionRange(newCursorPos, newCursorPos);
-                      }, 0);
-                    }
-                  }}
-                  placeholder="Start typing and press Enter to create numbered items..."
-                  className="min-h-20 border-2 border-black"
-                />
-              ) : (
-                <div className="min-h-20 text-sm text-black whitespace-pre-wrap border-2 border-black p-3">
-                  {callData.announcements || '1.   No announcements for today'}
+                      return editable ? (
+                        <div key={idx}>
+                          <span
+                            contentEditable
+                            suppressContentEditableWarning
+                            style={{ wordBreak: 'break-word', outline: 'none', display: 'block' }}
+                            onPaste={handlePlainTextPaste}
+                            onBlur={(e) => {
+                              const newLines = [...lines];
+                              newLines[idx] = e.currentTarget.textContent || '';
+                              const newContent = newLines.join('\n');
+                              setCallData(prev => ({
+                                ...prev,
+                                sectionContents: { ...prev.sectionContents, [section.id]: newContent },
+                                ...(section.id === 'announcements' ? { announcements: newContent } : {})
+                              }));
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                let newLine = '';
+                                if (listType === 'numbered') newLine = (lines.length + 1) + '. ';
+                                else if (listType === 'bulleted') newLine = '• ';
+                                else newLine = '- ';
+                                const newLines = [...lines];
+                                newLines[idx] = e.currentTarget.textContent || '';
+                                newLines.splice(idx + 1, 0, newLine);
+                                const newContent = newLines.join('\n');
+                                setCallData(prev => ({
+                                  ...prev,
+                                  sectionContents: { ...prev.sectionContents, [section.id]: newContent },
+                                  ...(section.id === 'announcements' ? { announcements: newContent } : {})
+                                }));
+                                setFocusTarget({ sectionId: section.id, lineIndex: idx + 1 });
+                              } else if (e.key === 'Backspace' && !(e.currentTarget.textContent || '').trim()) {
+                                e.preventDefault();
+                                if (lines.length > 1) {
+                                  const newLines = lines.filter((_, i) => i !== idx);
+                                  const newContent = newLines.join('\n');
+                                  setCallData(prev => ({
+                                    ...prev,
+                                    sectionContents: { ...prev.sectionContents, [section.id]: newContent },
+                                    ...(section.id === 'announcements' ? { announcements: newContent } : {})
+                                  }));
+                                  if (idx > 0) setFocusTarget({ sectionId: section.id, lineIndex: idx - 1 });
+                                }
+                              }
+                            }}
+                          >{line}</span>
+                        </div>
+                      ) : (
+                        <div key={idx} style={{ wordBreak: 'break-word' }}>{line}</div>
+                      );
+                    };
+                    
+                    return (
+                      <div 
+                        className="min-h-20 text-sm text-black border-2 border-black p-3 overflow-hidden" 
+                        style={{ wordBreak: 'break-word' }}
+                        data-testid={`section-editor-${section.id}`}
+                      >
+                        {lines.length > 0 ? (
+                          <div className="space-y-1">
+                            {lines.map((line: string, idx: number) => renderLine(line, idx, isEditing))}
+                          </div>
+                        ) : isEditing ? (
+                          <div
+                            contentEditable
+                            suppressContentEditableWarning
+                            style={{ outline: 'none', minHeight: '1.5rem' }}
+                            data-placeholder={`Start typing and press Enter to create ${listType === 'bulleted' ? 'bulleted' : listType === 'dash' ? 'dash' : 'numbered'} items...`}
+                            className="empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400"
+                            onPaste={handlePlainTextPaste}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                let firstLine = '';
+                                if (listType === 'numbered') firstLine = '1. ';
+                                else if (listType === 'bulleted') firstLine = '• ';
+                                else firstLine = '- ';
+                                const text = e.currentTarget.textContent || '';
+                                const newContent = firstLine + text;
+                                setCallData(prev => ({
+                                  ...prev,
+                                  sectionContents: { ...prev.sectionContents, [section.id]: newContent },
+                                  ...(section.id === 'announcements' ? { announcements: newContent } : {})
+                                }));
+                                setFocusTarget({ sectionId: section.id, lineIndex: 0 });
+                              }
+                            }}
+                            onBlur={(e) => {
+                              const text = e.currentTarget.textContent || '';
+                              if (text) {
+                                setCallData(prev => ({
+                                  ...prev,
+                                  sectionContents: { ...prev.sectionContents, [section.id]: text },
+                                  ...(section.id === 'announcements' ? { announcements: text } : {})
+                                }));
+                              }
+                            }}
+                          />
+                        ) : (
+                          `No ${section.name.toLowerCase()} for today`
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
-              )}
-            </div>
-          )}
+              );
+            })}
 
           {/* Call Schedule by Location */}
           <div className="space-y-6" data-pdf-section="schedule">
@@ -1972,7 +2367,10 @@ export default function DailyCallSheet() {
                                       className="font-medium text-sm"
                                     />
                                   ) : (
-                                    event.title
+                                    <>
+                                      {event.title}
+                                      {getPerformanceDisplay(event.id) && ` ${getPerformanceDisplay(event.id)}`}
+                                    </>
                                   )}
                                 </div>
                                 {isEditing && event.title !== 'END-OF-DAY' ? (
@@ -2195,7 +2593,12 @@ export default function DailyCallSheet() {
                                               }}
                                               className="font-medium text-sm"
                                             />
-                                          ) : loc0Event.title}
+                                          ) : (
+                                            <>
+                                              {loc0Event.title}
+                                              {getPerformanceDisplay(loc0Event.id) && ` ${getPerformanceDisplay(loc0Event.id)}`}
+                                            </>
+                                          )}
                                         </div>
                                         {isEditing ? (
                                           <div className="mt-2">
@@ -2299,7 +2702,12 @@ export default function DailyCallSheet() {
                                               }}
                                               className="font-medium text-sm"
                                             />
-                                          ) : loc1Event.title}
+                                          ) : (
+                                            <>
+                                              {loc1Event.title}
+                                              {getPerformanceDisplay(loc1Event.id) && ` ${getPerformanceDisplay(loc1Event.id)}`}
+                                            </>
+                                          )}
                                         </div>
                                         {isEditing ? (
                                           <div className="mt-2">
@@ -2525,7 +2933,10 @@ export default function DailyCallSheet() {
                                       className="font-medium text-sm"
                                     />
                                   ) : (
-                                    event.title
+                                    <>
+                                      {event.title}
+                                      {getPerformanceDisplay(event.id) && ` ${getPerformanceDisplay(event.id)}`}
+                                    </>
                                   )}
                                 </div>
                                 {isEditing ? (
@@ -2869,56 +3280,296 @@ export default function DailyCallSheet() {
             </div>
           )}
 
-          {/* Announcements Section - Below the Call */}
-          {(scheduleSettings.announcementsPosition !== 'top') && (
-            <div className="mt-6" data-pdf-section="announcements" data-pdf-priority="high" data-pdf-item="announcements-section">
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">Announcements</h3>
-              {isEditing ? (
-                <Textarea
-                  value={callData.announcements}
-                  onChange={(e) => setCallData(prev => ({ ...prev, announcements: e.target.value }))}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      const textarea = e.target as HTMLTextAreaElement;
-                      const { value, selectionStart } = textarea;
-                      const beforeCursor = value.substring(0, selectionStart);
-                      const afterCursor = value.substring(selectionStart);
-                      const lines = beforeCursor.split('\n');
-                      const currentLine = lines[lines.length - 1];
-                      const numberMatch = currentLine.match(/^(\d+)\.\s/);
-                      let newText;
-                      let nextNumber;
-                      if (numberMatch) {
-                        const currentNumber = parseInt(numberMatch[1]);
-                        nextNumber = currentNumber + 1;
-                        newText = beforeCursor + '\n' + nextNumber + '. ' + afterCursor;
-                      } else if (lines.length === 1 && currentLine.trim() === '') {
-                        nextNumber = 1;
-                        newText = '1. ' + afterCursor;
-                      } else {
-                        const allLines = value.split('\n');
-                        const numberedLines = allLines.filter(line => /^\d+\.\s/.test(line));
-                        nextNumber = numberedLines.length + 1;
-                        newText = beforeCursor + '\n' + nextNumber + '. ' + afterCursor;
+          {/* Custom Sections - Below the Call */}
+          {scheduleSettings.customSections
+            .filter((section: any) => section.position === 'bottom')
+            .sort((a: any, b: any) => (a.order || 0) - (b.order || 0))
+            .map((section: any) => {
+              const sectionContent = callData.sectionContents[section.id] || 
+                (section.id === 'announcements' ? callData.announcements : '');
+              return (
+                <div key={section.id} className="mt-6" data-pdf-section={`custom-section-${section.id}`} data-pdf-priority="high" data-pdf-item={`section-${section.id}`}>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1">{section.name}</h3>
+                  {(() => {
+                    const listType = section.listType || 'numbered';
+                    const lines = sectionContent ? sectionContent.split('\n') : [];
+                    
+                    const renderLine = (line: string, idx: number, editable: boolean) => {
+                      const numberedMatch = line.match(/^(\d+\.)\s(.*)$/);
+                      const bulletMatch = line.match(/^(•)\s(.*)$/);
+                      const dashMatch = line.match(/^(-)\s(.*)$/);
+                      
+                      if (numberedMatch) {
+                        return (
+                          <div key={idx} style={{ display: 'flex' }}>
+                            <span style={{ flexShrink: 0, width: '2rem', textAlign: 'right', paddingRight: '0.5rem' }}>{numberedMatch[1]}</span>
+                            {editable ? (
+                              <span
+                                contentEditable
+                                suppressContentEditableWarning
+                                style={{ flex: 1, wordBreak: 'break-word', outline: 'none' }}
+                                onPaste={handlePlainTextPaste}
+                                onBlur={(e) => {
+                                  const newLines = [...lines];
+                                  newLines[idx] = numberedMatch[1] + ' ' + (e.currentTarget.textContent || '');
+                                  const newContent = newLines.join('\n');
+                                  setCallData(prev => ({
+                                    ...prev,
+                                    sectionContents: { ...prev.sectionContents, [section.id]: newContent },
+                                    ...(section.id === 'announcements' ? { announcements: newContent } : {})
+                                  }));
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    const nextNumber = parseInt(numberedMatch[1]) + 1;
+                                    const newLines = [...lines];
+                                    newLines[idx] = numberedMatch[1] + ' ' + (e.currentTarget.textContent || '');
+                                    newLines.splice(idx + 1, 0, nextNumber + '. ');
+                                    const newContent = newLines.join('\n');
+                                    setCallData(prev => ({
+                                      ...prev,
+                                      sectionContents: { ...prev.sectionContents, [section.id]: newContent },
+                                      ...(section.id === 'announcements' ? { announcements: newContent } : {})
+                                    }));
+                                    setFocusTarget({ sectionId: section.id, lineIndex: idx + 1 });
+                                  } else if (e.key === 'Backspace' && !(e.currentTarget.textContent || '').trim()) {
+                                    e.preventDefault();
+                                    if (lines.length > 1) {
+                                      const newLines = lines.filter((_, i) => i !== idx);
+                                      const newContent = newLines.join('\n');
+                                      setCallData(prev => ({
+                                        ...prev,
+                                        sectionContents: { ...prev.sectionContents, [section.id]: newContent },
+                                        ...(section.id === 'announcements' ? { announcements: newContent } : {})
+                                      }));
+                                      if (idx > 0) setFocusTarget({ sectionId: section.id, lineIndex: idx - 1 });
+                                    }
+                                  }
+                                }}
+                              >{numberedMatch[2]}</span>
+                            ) : (
+                              <span style={{ flex: 1, wordBreak: 'break-word' }}>{numberedMatch[2]}</span>
+                            )}
+                          </div>
+                        );
+                      } else if (bulletMatch) {
+                        return (
+                          <div key={idx} style={{ display: 'flex' }}>
+                            <span style={{ flexShrink: 0, width: '1.25rem' }}>{bulletMatch[1]}</span>
+                            {editable ? (
+                              <span
+                                contentEditable
+                                suppressContentEditableWarning
+                                style={{ flex: 1, wordBreak: 'break-word', outline: 'none' }}
+                                onPaste={handlePlainTextPaste}
+                                onBlur={(e) => {
+                                  const newLines = [...lines];
+                                  newLines[idx] = '• ' + (e.currentTarget.textContent || '');
+                                  const newContent = newLines.join('\n');
+                                  setCallData(prev => ({
+                                    ...prev,
+                                    sectionContents: { ...prev.sectionContents, [section.id]: newContent },
+                                    ...(section.id === 'announcements' ? { announcements: newContent } : {})
+                                  }));
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    const newLines = [...lines];
+                                    newLines[idx] = '• ' + (e.currentTarget.textContent || '');
+                                    newLines.splice(idx + 1, 0, '• ');
+                                    const newContent = newLines.join('\n');
+                                    setCallData(prev => ({
+                                      ...prev,
+                                      sectionContents: { ...prev.sectionContents, [section.id]: newContent },
+                                      ...(section.id === 'announcements' ? { announcements: newContent } : {})
+                                    }));
+                                    setFocusTarget({ sectionId: section.id, lineIndex: idx + 1 });
+                                  } else if (e.key === 'Backspace' && !(e.currentTarget.textContent || '').trim()) {
+                                    e.preventDefault();
+                                    if (lines.length > 1) {
+                                      const newLines = lines.filter((_, i) => i !== idx);
+                                      const newContent = newLines.join('\n');
+                                      setCallData(prev => ({
+                                        ...prev,
+                                        sectionContents: { ...prev.sectionContents, [section.id]: newContent },
+                                        ...(section.id === 'announcements' ? { announcements: newContent } : {})
+                                      }));
+                                      if (idx > 0) setFocusTarget({ sectionId: section.id, lineIndex: idx - 1 });
+                                    }
+                                  }
+                                }}
+                              >{bulletMatch[2]}</span>
+                            ) : (
+                              <span style={{ flex: 1, wordBreak: 'break-word' }}>{bulletMatch[2]}</span>
+                            )}
+                          </div>
+                        );
+                      } else if (dashMatch) {
+                        return (
+                          <div key={idx} style={{ display: 'flex' }}>
+                            <span style={{ flexShrink: 0, width: '1.25rem' }}>{dashMatch[1]}</span>
+                            {editable ? (
+                              <span
+                                contentEditable
+                                suppressContentEditableWarning
+                                style={{ flex: 1, wordBreak: 'break-word', outline: 'none' }}
+                                onPaste={handlePlainTextPaste}
+                                onBlur={(e) => {
+                                  const newLines = [...lines];
+                                  newLines[idx] = '- ' + (e.currentTarget.textContent || '');
+                                  const newContent = newLines.join('\n');
+                                  setCallData(prev => ({
+                                    ...prev,
+                                    sectionContents: { ...prev.sectionContents, [section.id]: newContent },
+                                    ...(section.id === 'announcements' ? { announcements: newContent } : {})
+                                  }));
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    const newLines = [...lines];
+                                    newLines[idx] = '- ' + (e.currentTarget.textContent || '');
+                                    newLines.splice(idx + 1, 0, '- ');
+                                    const newContent = newLines.join('\n');
+                                    setCallData(prev => ({
+                                      ...prev,
+                                      sectionContents: { ...prev.sectionContents, [section.id]: newContent },
+                                      ...(section.id === 'announcements' ? { announcements: newContent } : {})
+                                    }));
+                                    setFocusTarget({ sectionId: section.id, lineIndex: idx + 1 });
+                                  } else if (e.key === 'Backspace' && !(e.currentTarget.textContent || '').trim()) {
+                                    e.preventDefault();
+                                    if (lines.length > 1) {
+                                      const newLines = lines.filter((_, i) => i !== idx);
+                                      const newContent = newLines.join('\n');
+                                      setCallData(prev => ({
+                                        ...prev,
+                                        sectionContents: { ...prev.sectionContents, [section.id]: newContent },
+                                        ...(section.id === 'announcements' ? { announcements: newContent } : {})
+                                      }));
+                                      if (idx > 0) setFocusTarget({ sectionId: section.id, lineIndex: idx - 1 });
+                                    }
+                                  }
+                                }}
+                              >{dashMatch[2]}</span>
+                            ) : (
+                              <span style={{ flex: 1, wordBreak: 'break-word' }}>{dashMatch[2]}</span>
+                            )}
+                          </div>
+                        );
                       }
-                      setCallData(prev => ({ ...prev, announcements: newText }));
-                      setTimeout(() => {
-                        const newCursorPos = beforeCursor.length + 1 + nextNumber.toString().length + 2;
-                        textarea.setSelectionRange(newCursorPos, newCursorPos);
-                      }, 0);
-                    }
-                  }}
-                  placeholder="Start typing and press Enter to create numbered items..."
-                  className="min-h-20 border-2 border-black"
-                />
-              ) : (
-                <div className="min-h-20 text-sm text-black whitespace-pre-wrap border-2 border-black p-3">
-                  {callData.announcements || '1.   No announcements for today'}
+                      return editable ? (
+                        <div key={idx}>
+                          <span
+                            contentEditable
+                            suppressContentEditableWarning
+                            style={{ wordBreak: 'break-word', outline: 'none', display: 'block' }}
+                            onPaste={handlePlainTextPaste}
+                            onBlur={(e) => {
+                              const newLines = [...lines];
+                              newLines[idx] = e.currentTarget.textContent || '';
+                              const newContent = newLines.join('\n');
+                              setCallData(prev => ({
+                                ...prev,
+                                sectionContents: { ...prev.sectionContents, [section.id]: newContent },
+                                ...(section.id === 'announcements' ? { announcements: newContent } : {})
+                              }));
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                let newLine = '';
+                                if (listType === 'numbered') newLine = (lines.length + 1) + '. ';
+                                else if (listType === 'bulleted') newLine = '• ';
+                                else newLine = '- ';
+                                const newLines = [...lines];
+                                newLines[idx] = e.currentTarget.textContent || '';
+                                newLines.splice(idx + 1, 0, newLine);
+                                const newContent = newLines.join('\n');
+                                setCallData(prev => ({
+                                  ...prev,
+                                  sectionContents: { ...prev.sectionContents, [section.id]: newContent },
+                                  ...(section.id === 'announcements' ? { announcements: newContent } : {})
+                                }));
+                                setFocusTarget({ sectionId: section.id, lineIndex: idx + 1 });
+                              } else if (e.key === 'Backspace' && !(e.currentTarget.textContent || '').trim()) {
+                                e.preventDefault();
+                                if (lines.length > 1) {
+                                  const newLines = lines.filter((_, i) => i !== idx);
+                                  const newContent = newLines.join('\n');
+                                  setCallData(prev => ({
+                                    ...prev,
+                                    sectionContents: { ...prev.sectionContents, [section.id]: newContent },
+                                    ...(section.id === 'announcements' ? { announcements: newContent } : {})
+                                  }));
+                                  if (idx > 0) setFocusTarget({ sectionId: section.id, lineIndex: idx - 1 });
+                                }
+                              }
+                            }}
+                          >{line}</span>
+                        </div>
+                      ) : (
+                        <div key={idx} style={{ wordBreak: 'break-word' }}>{line}</div>
+                      );
+                    };
+                    
+                    return (
+                      <div 
+                        className="min-h-20 text-sm text-black border-2 border-black p-3 overflow-hidden" 
+                        style={{ wordBreak: 'break-word' }}
+                        data-testid={`section-editor-${section.id}`}
+                      >
+                        {lines.length > 0 ? (
+                          <div className="space-y-1">
+                            {lines.map((line: string, idx: number) => renderLine(line, idx, isEditing))}
+                          </div>
+                        ) : isEditing ? (
+                          <div
+                            contentEditable
+                            suppressContentEditableWarning
+                            style={{ outline: 'none', minHeight: '1.5rem' }}
+                            data-placeholder={`Start typing and press Enter to create ${listType === 'bulleted' ? 'bulleted' : listType === 'dash' ? 'dash' : 'numbered'} items...`}
+                            className="empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400"
+                            onPaste={handlePlainTextPaste}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                let firstLine = '';
+                                if (listType === 'numbered') firstLine = '1. ';
+                                else if (listType === 'bulleted') firstLine = '• ';
+                                else firstLine = '- ';
+                                const text = e.currentTarget.textContent || '';
+                                const newContent = firstLine + text;
+                                setCallData(prev => ({
+                                  ...prev,
+                                  sectionContents: { ...prev.sectionContents, [section.id]: newContent },
+                                  ...(section.id === 'announcements' ? { announcements: newContent } : {})
+                                }));
+                                setFocusTarget({ sectionId: section.id, lineIndex: 0 });
+                              }
+                            }}
+                            onBlur={(e) => {
+                              const text = e.currentTarget.textContent || '';
+                              if (text) {
+                                setCallData(prev => ({
+                                  ...prev,
+                                  sectionContents: { ...prev.sectionContents, [section.id]: text },
+                                  ...(section.id === 'announcements' ? { announcements: text } : {})
+                                }));
+                              }
+                            }}
+                          />
+                        ) : (
+                          `No ${section.name.toLowerCase()} for today`
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
-              )}
-            </div>
-          )}
+              );
+            })}
 
 
 
@@ -2985,6 +3636,20 @@ export default function DailyCallSheet() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Email Modal */}
+      {project && (
+        <DailyCallEmailModal
+          isOpen={showEmailModal}
+          onClose={() => setShowEmailModal(false)}
+          projectId={parseInt(actualProjectId)}
+          project={{ id: project.id, name: project.name }}
+          selectedDate={selectedDate}
+          callData={callData}
+          scheduleSettings={scheduleSettings}
+          getFormattedCast={getFormattedCast}
+        />
+      )}
     </div>
   );
 }

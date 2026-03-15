@@ -1,142 +1,126 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, Briefcase, Building2 } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { CheckCircle, Calendar, FileText, Users, MessageSquare, Shirt, Package, Book, Building2 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
+interface FeaturePreferences {
+  reports: boolean;
+  calendar: boolean;
+  script: boolean;
+  props: boolean;
+  costumes: boolean;
+  contacts: boolean;
+  chat: boolean;
+  seasons: boolean;
+}
+
 export default function ProfileSelection() {
-  const [selectedProfile, setSelectedProfile] = useState<string | null>(null);
   const { toast } = useToast();
+  const [features, setFeatures] = useState<FeaturePreferences>({
+    reports: true,
+    calendar: true,
+    script: true,
+    props: true,
+    costumes: true,
+    contacts: true,
+    chat: true,
+    seasons: false,
+  });
 
   const mutation = useMutation({
-    mutationFn: async (profileType: string) => {
-      await apiRequest("POST", "/api/auth/profile-type", { profileType });
+    mutationFn: async (featurePreferences: FeaturePreferences) => {
+      await apiRequest("POST", "/api/auth/feature-preferences", { featurePreferences });
     },
     onSuccess: () => {
       toast({
-        title: "Profile Updated",
-        description: "Your profile has been set up successfully!",
+        title: "Preferences Saved",
+        description: "Your app preferences have been set up successfully!",
       });
-      // The router will automatically redirect based on user state
       window.location.reload();
     },
-    onError: (error) => {
+    onError: () => {
       toast({
         title: "Error",
-        description: "Failed to update profile. Please try again.",
+        description: "Failed to save preferences. Please try again.",
         variant: "destructive",
       });
     },
   });
 
-  const handleProfileSelect = (type: string) => {
-    setSelectedProfile(type);
-    mutation.mutate(type);
+  const handleContinue = () => {
+    mutation.mutate(features);
   };
+
+  const toggleFeature = (feature: keyof FeaturePreferences) => {
+    setFeatures(prev => ({ ...prev, [feature]: !prev[feature] }));
+  };
+
+  const featureList = [
+    { key: 'reports' as const, name: 'Reports', description: 'Daily production and performance reports', icon: FileText, default: true },
+    { key: 'calendar' as const, name: 'Calendar', description: 'Schedule management and daily calls', icon: Calendar, default: true },
+    { key: 'script' as const, name: 'Script Editor', description: 'Script management and blocking notes', icon: Book, default: true },
+    { key: 'props' as const, name: 'Props Tracker', description: 'Property management and tracking', icon: Package, default: true },
+    { key: 'costumes' as const, name: 'Costumes', description: 'Costume tracking and quick changes', icon: Shirt, default: true },
+    { key: 'contacts' as const, name: 'Contacts', description: 'Cast and crew contact management', icon: Users, default: true },
+    { key: 'chat' as const, name: 'Team Chat', description: 'In-app team communication', icon: MessageSquare, default: true },
+    { key: 'seasons' as const, name: 'Seasons', description: 'Organize shows by season (for venue-based work)', icon: Building2, default: false },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Choose Your Profile Type</h2>
-          <p className="text-lg text-gray-600">Select the workflow that best matches how you work</p>
+      <div className="max-w-2xl mx-auto">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Set Up Your Workspace</h2>
+          <p className="text-lg text-gray-600">Choose which features you'd like to use. You can always change these later in your show settings.</p>
         </div>
         
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {/* Freelance Profile */}
-          <Card 
-            className={`cursor-pointer transition-all border-2 ${
-              selectedProfile === 'freelance' 
-                ? 'border-primary bg-blue-50' 
-                : 'border-transparent hover:border-primary'
-            }`}
-            onClick={() => handleProfileSelect('freelance')}
-          >
-            <CardContent className="p-8">
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Briefcase className="w-8 h-8 text-white" />
+        <Card>
+          <CardHeader>
+            <CardTitle>App Features</CardTitle>
+            <CardDescription>
+              Toggle the features you want available in your shows. Disabled features won't appear in navigation.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {featureList.map((feature) => (
+              <div key={feature.key} className="flex items-center justify-between py-3 border-b last:border-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                    <feature.icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">{feature.name}</Label>
+                    <p className="text-xs text-muted-foreground">{feature.description}</p>
+                  </div>
                 </div>
-                <h3 className="text-2xl font-semibold text-gray-900 mb-2">Freelance</h3>
-                <p className="text-gray-600">For stage managers working on multiple shows with different teams</p>
+                <Switch
+                  checked={features[feature.key]}
+                  onCheckedChange={() => toggleFeature(feature.key)}
+                />
               </div>
-              
-              <ul className="space-y-3 text-sm text-gray-700">
-                <li className="flex items-center">
-                  <CheckCircle className="w-4 h-4 text-green-600 mr-3 flex-shrink-0" />
-                  Create multiple independent projects
-                </li>
-                <li className="flex items-center">
-                  <CheckCircle className="w-4 h-4 text-green-600 mr-3 flex-shrink-0" />
-                  Flexible team roles per project
-                </li>
-                <li className="flex items-center">
-                  <CheckCircle className="w-4 h-4 text-green-600 mr-3 flex-shrink-0" />
-                  Customizable templates per project
-                </li>
-                <li className="flex items-center">
-                  <CheckCircle className="w-4 h-4 text-green-600 mr-3 flex-shrink-0" />
-                  Project-based reporting
-                </li>
-              </ul>
-              
-              <Button 
-                className="w-full mt-6 bg-primary hover:bg-primary/90"
-                disabled={mutation.isPending && selectedProfile === 'freelance'}
-              >
-                {mutation.isPending && selectedProfile === 'freelance' ? "Setting up..." : "Choose Freelance"}
-              </Button>
-            </CardContent>
-          </Card>
+            ))}
 
-          {/* Full-Time Profile */}
-          <Card 
-            className={`cursor-pointer transition-all border-2 ${
-              selectedProfile === 'fulltime' 
-                ? 'border-secondary bg-purple-50' 
-                : 'border-transparent hover:border-secondary'
-            }`}
-            onClick={() => handleProfileSelect('fulltime')}
-          >
-            <CardContent className="p-8">
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Building2 className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-2xl font-semibold text-gray-900 mb-2">Full-Time</h3>
-                <p className="text-gray-600">For stage managers working in-house at a theater or company</p>
-              </div>
-              
-              <ul className="space-y-3 text-sm text-gray-700">
-                <li className="flex items-center">
-                  <CheckCircle className="w-4 h-4 text-green-600 mr-3 flex-shrink-0" />
-                  Season and show organization
-                </li>
-                <li className="flex items-center">
-                  <CheckCircle className="w-4 h-4 text-green-600 mr-3 flex-shrink-0" />
-                  Consistent team structure
-                </li>
-                <li className="flex items-center">
-                  <CheckCircle className="w-4 h-4 text-green-600 mr-3 flex-shrink-0" />
-                  Standardized templates
-                </li>
-                <li className="flex items-center">
-                  <CheckCircle className="w-4 h-4 text-green-600 mr-3 flex-shrink-0" />
-                  Company-wide reporting
-                </li>
-              </ul>
-              
+            <div className="pt-6">
               <Button 
-                className="w-full mt-6 bg-secondary hover:bg-secondary/90"
-                disabled={mutation.isPending && selectedProfile === 'fulltime'}
+                className="w-full" 
+                size="lg"
+                onClick={handleContinue}
+                disabled={mutation.isPending}
               >
-                {mutation.isPending && selectedProfile === 'fulltime' ? "Setting up..." : "Choose Full-Time"}
+                {mutation.isPending ? "Setting up..." : "Continue"}
               </Button>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <p className="text-center text-sm text-muted-foreground mt-6">
+          These are your default preferences. Each show can have its own feature settings.
+        </p>
       </div>
     </div>
   );

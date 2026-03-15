@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, forwardRef, useImperativeHandle, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -32,8 +32,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Mail, Users, X } from "lucide-react";
+import { Plus, Mail, Users, X, UserPlus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import type { Contact } from "@shared/schema";
 
 interface DistributionList {
   id: number;
@@ -47,6 +48,7 @@ interface DistributionList {
   subjectTemplate: string | null;
   bodyTemplate: string | null;
   signature: string | null;
+  isDailyCallDistro: boolean | null;
   createdBy: number;
   createdAt: string;
   updatedAt: string;
@@ -62,7 +64,11 @@ interface DistroManagerProps {
   projectId: string;
 }
 
-export function DistroManager({ projectId }: DistroManagerProps) {
+export interface DistroManagerRef {
+  openCreate: () => void;
+}
+
+export const DistroManager = forwardRef<DistroManagerRef, DistroManagerProps>(({ projectId }, ref) => {
   const { toast } = useToast();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingDistro, setEditingDistro] = useState<DistributionList | null>(null);
@@ -80,7 +86,14 @@ export function DistroManager({ projectId }: DistroManagerProps) {
   });
   
   const [newEmail, setNewEmail] = useState({ to: "", cc: "", bcc: "" });
-  const [selectedReportType, setSelectedReportType] = useState<number | null>(null);
+  const [selectedAssignment, setSelectedAssignment] = useState<string>("");
+  const [contactSearch, setContactSearch] = useState({ to: "", cc: "", bcc: "" });
+  const [showContactPicker, setShowContactPicker] = useState({ to: false, cc: false, bcc: false });
+  const contactPickerRefs = {
+    to: useRef<HTMLDivElement>(null),
+    cc: useRef<HTMLDivElement>(null),
+    bcc: useRef<HTMLDivElement>(null),
+  };
 
   const { data: distros = [], isLoading } = useQuery<DistributionList[]>({
     queryKey: [`/api/projects/${projectId}/distros`],
@@ -89,6 +102,11 @@ export function DistroManager({ projectId }: DistroManagerProps) {
 
   const { data: reportTypes = [] } = useQuery<ReportType[]>({
     queryKey: [`/api/projects/${projectId}/report-types`],
+    enabled: !!projectId,
+  });
+
+  const { data: contacts = [] } = useQuery<Contact[]>({
+    queryKey: [`/api/projects/${projectId}/contacts`],
     enabled: !!projectId,
   });
 
@@ -103,19 +121,41 @@ export function DistroManager({ projectId }: DistroManagerProps) {
   });
 
   useEffect(() => {
-    if (editingDistro && assignedReportTypes) {
-      setSelectedReportType(assignedReportTypes.length > 0 ? assignedReportTypes[0] : null);
+    if (editingDistro) {
+      if (editingDistro.isDailyCallDistro) {
+        setSelectedAssignment("daily-call");
+      } else if (assignedReportTypes && assignedReportTypes.length > 0) {
+        setSelectedAssignment(assignedReportTypes[0].toString());
+      } else {
+        setSelectedAssignment("");
+      }
     }
   }, [editingDistro, assignedReportTypes]);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const types: ("to" | "cc" | "bcc")[] = ["to", "cc", "bcc"];
+      types.forEach(type => {
+        if (contactPickerRefs[type].current && !contactPickerRefs[type].current.contains(event.target as Node)) {
+          setShowContactPicker(prev => ({ ...prev, [type]: false }));
+        }
+      });
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  type DistroFormData = typeof formData & { isDailyCallDistro?: boolean };
+
   const createMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
+    mutationFn: async (data: DistroFormData) => {
       return apiRequest("POST", `/api/projects/${projectId}/distros`, data);
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: typeof formData }) => {
+    mutationFn: async ({ id, data }: { id: number; data: DistroFormData }) => {
       return apiRequest("PUT", `/api/projects/${projectId}/distros/${id}`, data);
     },
   });
@@ -126,6 +166,8 @@ export function DistroManager({ projectId }: DistroManagerProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/distros`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/daily-call-distro`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/distro-report-type-mappings`] });
       toast({ title: "Success", description: "Distribution list deleted successfully" });
       setDeleteDistro(null);
       setEditingDistro(null);
@@ -157,7 +199,9 @@ export function DistroManager({ projectId }: DistroManagerProps) {
       signature: "",
     });
     setNewEmail({ to: "", cc: "", bcc: "" });
-    setSelectedReportType(null);
+    setContactSearch({ to: "", cc: "", bcc: "" });
+    setShowContactPicker({ to: false, cc: false, bcc: false });
+    setSelectedAssignment("");
   };
 
   const openEdit = (distro: DistributionList) => {
@@ -176,9 +220,13 @@ export function DistroManager({ projectId }: DistroManagerProps) {
 
   const openCreate = () => {
     resetForm();
-    setSelectedReportType(null);
+    setSelectedAssignment("");
     setIsCreateOpen(true);
   };
+
+  useImperativeHandle(ref, () => ({
+    openCreate
+  }));
 
   const handleSubmit = async () => {
     if (!formData.name.trim()) {
@@ -186,25 +234,29 @@ export function DistroManager({ projectId }: DistroManagerProps) {
       return;
     }
 
+    const isDailyCall = selectedAssignment === "daily-call";
+    const reportTypeIds = (!isDailyCall && selectedAssignment) ? [parseInt(selectedAssignment)] : [];
+
     try {
       if (editingDistro) {
         const distroId = editingDistro.id;
-        const reportTypeIds = selectedReportType ? [selectedReportType] : [];
         
-        await updateMutation.mutateAsync({ id: distroId, data: formData });
+        await updateMutation.mutateAsync({ 
+          id: distroId, 
+          data: { ...formData, isDailyCallDistro: isDailyCall }
+        });
         await syncReportTypesMutation.mutateAsync({ distroId, reportTypeIds });
         
         queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/distros`] });
         queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/distro-report-type-mappings`] });
+        queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/daily-call-distro`] });
         queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'distros', distroId, 'report-types'] });
         
         toast({ title: "Success", description: "Distribution list updated successfully" });
         setEditingDistro(null);
         resetForm();
       } else {
-        const reportTypeIds = selectedReportType ? [selectedReportType] : [];
-        
-        const data = await createMutation.mutateAsync(formData);
+        const data = await createMutation.mutateAsync({ ...formData, isDailyCallDistro: isDailyCall });
         
         if (data?.id && reportTypeIds.length > 0) {
           await syncReportTypesMutation.mutateAsync({ distroId: data.id, reportTypeIds });
@@ -212,6 +264,7 @@ export function DistroManager({ projectId }: DistroManagerProps) {
         
         queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/distros`] });
         queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/distro-report-type-mappings`] });
+        queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/daily-call-distro`] });
         
         toast({ title: "Success", description: "Distribution list created successfully" });
         setIsCreateOpen(false);
@@ -257,9 +310,12 @@ export function DistroManager({ projectId }: DistroManagerProps) {
            (distro.bccRecipients?.length || 0);
   };
 
-  const getReportTypesLabel = (distroId: number) => {
-    const assignedIds = distroMappings[distroId] || [];
-    if (assignedIds.length === 0) return "No Report Assigned";
+  const getAssignmentLabel = (distro: DistributionList) => {
+    if (distro.isDailyCallDistro) {
+      return "Daily Call";
+    }
+    const assignedIds = distroMappings[distro.id] || [];
+    if (assignedIds.length === 0) return "Not Assigned";
     const assignedId = assignedIds[0];
     const reportType = reportTypes.find(rt => rt.id === assignedId);
     return reportType?.name || "Unknown Report";
@@ -285,9 +341,52 @@ export function DistroManager({ projectId }: DistroManagerProps) {
     );
   }
 
+  const addContactEmail = (type: "to" | "cc" | "bcc", contact: Contact) => {
+    if (!contact.email) {
+      toast({ title: "No email", description: "This contact doesn't have an email address", variant: "destructive" });
+      return;
+    }
+    
+    const fieldKey = `${type}Recipients` as "toRecipients" | "ccRecipients" | "bccRecipients";
+    const displayEmail = `${contact.firstName} ${contact.lastName} <${contact.email}>`;
+    
+    if (formData[fieldKey].some(e => e.includes(contact.email!))) {
+      toast({ title: "Duplicate", description: "This contact is already added", variant: "destructive" });
+      return;
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      [fieldKey]: [...prev[fieldKey], displayEmail]
+    }));
+    setContactSearch(prev => ({ ...prev, [type]: "" }));
+    setShowContactPicker(prev => ({ ...prev, [type]: false }));
+  };
+
+  const getFilteredContacts = (type: "to" | "cc" | "bcc") => {
+    const search = contactSearch[type].toLowerCase();
+    const fieldKey = `${type}Recipients` as "toRecipients" | "ccRecipients" | "bccRecipients";
+    const existingEmails = formData[fieldKey];
+    
+    return contacts
+      .filter(contact => {
+        if (!contact.email) return false;
+        const alreadyAdded = existingEmails.some(e => e.includes(contact.email!));
+        if (alreadyAdded) return false;
+        
+        if (!search) return true;
+        const fullName = `${contact.firstName} ${contact.lastName}`.toLowerCase();
+        return fullName.includes(search) || 
+               (contact.email && contact.email.toLowerCase().includes(search)) ||
+               (contact.role && contact.role.toLowerCase().includes(search));
+      })
+      .sort((a, b) => a.firstName.localeCompare(b.firstName));
+  };
+
   const renderEmailSection = (type: "to" | "cc" | "bcc", label: string) => {
     const fieldKey = `${type}Recipients` as "toRecipients" | "ccRecipients" | "bccRecipients";
     const emails = formData[fieldKey];
+    const filteredContacts = getFilteredContacts(type);
     
     return (
       <div className="space-y-2">
@@ -296,7 +395,7 @@ export function DistroManager({ projectId }: DistroManagerProps) {
           <div className="flex flex-wrap gap-2 p-2 border rounded-md bg-muted/50">
             {emails.map((email, index) => (
               <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                {email}
+                {email.includes('<') ? email.split('<')[0].trim() : email}
                 <button
                   type="button"
                   onClick={() => removeEmail(type, index)}
@@ -309,29 +408,75 @@ export function DistroManager({ projectId }: DistroManagerProps) {
             ))}
           </div>
         )}
-        <div className="flex gap-2">
-          <Input
-            type="email"
-            placeholder={`Add ${label} email...`}
-            value={newEmail[type]}
-            onChange={(e) => setNewEmail(prev => ({ ...prev, [type]: e.target.value }))}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                addEmail(type);
-              }
-            }}
-            data-testid={`input-${type}-email`}
-          />
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => addEmail(type)}
-            data-testid={`btn-add-${type}-email`}
-          >
-            Add
-          </Button>
+        
+        <div className="space-y-2">
+          <div className="relative" ref={contactPickerRefs[type]}>
+            <div className="flex gap-2">
+              <div className="flex-1 relative">
+                <Input
+                  placeholder="Search contacts..."
+                  value={contactSearch[type]}
+                  onChange={(e) => {
+                    setContactSearch(prev => ({ ...prev, [type]: e.target.value }));
+                    setShowContactPicker(prev => ({ ...prev, [type]: true }));
+                  }}
+                  onFocus={() => setShowContactPicker(prev => ({ ...prev, [type]: true }))}
+                  data-testid={`input-search-${type}-contacts`}
+                />
+                <UserPlus className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              </div>
+            </div>
+            
+            {showContactPicker[type] && filteredContacts.length > 0 && (
+              <div className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-lg max-h-48 overflow-y-auto">
+                {filteredContacts.map((contact) => (
+                  <div
+                    key={contact.id}
+                    className="px-3 py-2 cursor-pointer hover:bg-accent hover:text-accent-foreground flex items-center justify-between"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      addContactEmail(type, contact);
+                    }}
+                    data-testid={`contact-option-${type}-${contact.id}`}
+                  >
+                    <div>
+                      <div className="font-medium text-sm">
+                        {contact.firstName} {contact.lastName}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {contact.email} {contact.role && `• ${contact.role}`}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          <div className="flex gap-2">
+            <Input
+              type="email"
+              placeholder={`Or type an email manually...`}
+              value={newEmail[type]}
+              onChange={(e) => setNewEmail(prev => ({ ...prev, [type]: e.target.value }))}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addEmail(type);
+                }
+              }}
+              data-testid={`input-${type}-email`}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => addEmail(type)}
+              data-testid={`btn-add-${type}-email`}
+            >
+              Add
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -449,52 +594,40 @@ export function DistroManager({ projectId }: DistroManagerProps) {
         </div>
       </div>
 
-      {reportTypes.length > 0 && (
-        <div className="border-t pt-4 space-y-4">
-          <h4 className="text-sm font-medium">Assigned Report</h4>
-          <p className="text-xs text-muted-foreground">Select which report type will use this distribution list when sending.</p>
-          <Select
-            value={selectedReportType?.toString() || ""}
-            onValueChange={(value) => setSelectedReportType(value ? parseInt(value) : null)}
-          >
-            <SelectTrigger data-testid="select-report-type">
-              <SelectValue placeholder="Select a report type..." />
-            </SelectTrigger>
-            <SelectContent>
-              {reportTypes.map((rt) => (
-                <SelectItem key={rt.id} value={rt.id.toString()} data-testid={`select-item-report-type-${rt.id}`}>
-                  {rt.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
+      <div className="border-t pt-4 space-y-4">
+        <h4 className="text-sm font-medium">Distro Assignment</h4>
+        <p className="text-xs text-muted-foreground">Select which document type will use this distribution list when sending.</p>
+        <Select
+          value={selectedAssignment}
+          onValueChange={setSelectedAssignment}
+        >
+          <SelectTrigger data-testid="select-distro-assignment">
+            <SelectValue placeholder="Select assignment..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="daily-call" data-testid="select-item-daily-call">
+              Daily Call
+            </SelectItem>
+            {reportTypes.map((rt) => (
+              <SelectItem key={rt.id} value={rt.id.toString()} data-testid={`select-item-report-type-${rt.id}`}>
+                {rt.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   );
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-medium">Distribution Lists</h3>
-          <p className="text-sm text-muted-foreground">
-            Manage email distribution lists for sending reports
-          </p>
-        </div>
-        <Button onClick={openCreate} data-testid="btn-create-distro">
-          <Plus className="h-4 w-4 mr-2" />
-          Create Distro
-        </Button>
-      </div>
-
       {distros.length === 0 ? (
         <Card>
           <CardContent className="p-8 text-center">
             <Mail className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h4 className="text-lg font-medium mb-2">No Distribution Lists</h4>
             <p className="text-sm text-muted-foreground mb-4">
-              Create distribution lists to easily send reports to groups of people.
+              Create distribution lists to easily send schedules and reports to groups of people.
             </p>
           </CardContent>
         </Card>
@@ -511,7 +644,7 @@ export function DistroManager({ projectId }: DistroManagerProps) {
                 <div className="flex-1 min-w-0">
                   <h4 className="font-medium truncate">{distro.name}</h4>
                   <p className="text-sm text-muted-foreground truncate">
-                    {getTotalRecipients(distro)} recipients | {getReportTypesLabel(distro.id)}
+                    {getTotalRecipients(distro)} recipients | {getAssignmentLabel(distro)}
                   </p>
                 </div>
               </CardContent>
@@ -599,4 +732,4 @@ export function DistroManager({ projectId }: DistroManagerProps) {
       </AlertDialog>
     </div>
   );
-}
+});

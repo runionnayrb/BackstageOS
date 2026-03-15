@@ -1,0 +1,7 @@
+Improve the drag and drop experience by hiding the drag handle icon
+
+Removes drag handle icons from category and column headers in ContactSheet.tsx, enhancing drag and drop UI.
+
+Replit-Commit-Author: Agent
+Replit-Commit-Session-Id: 91ca7da2-826c-41ba-8c16-7eeb26383530
+Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/54b2a03e-f6bc-4ffb-98e0-199af055748d/9e988b6c-9708-454c-9561-9c5b9e63b8bf.jpg

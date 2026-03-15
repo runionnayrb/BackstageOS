@@ -251,20 +251,29 @@ export function InviteTeamMemberDialog({ variant, trigger }: InviteTeamMemberDia
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Production Role</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  {variant === "viewer" ? (
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a role" />
-                      </SelectTrigger>
+                      <Input 
+                        placeholder="e.g., Guest Designer, Observer" 
+                        {...field} 
+                      />
                     </FormControl>
-                    <SelectContent>
-                      {roles.map((roleName: string) => (
-                        <SelectItem key={roleName} value={roleName}>
-                          {roleName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  ) : (
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a role" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {roles.map((roleName: string) => (
+                          <SelectItem key={roleName} value={roleName}>
+                            {roleName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}

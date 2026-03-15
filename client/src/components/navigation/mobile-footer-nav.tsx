@@ -6,12 +6,13 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { isEffectiveAdmin, isOriginalAdmin } from "@/lib/admin";
+import { isEffectiveAdmin, isOriginalAdmin, isAdmin } from "@/lib/admin";
 import { useFeatureSettings } from "@/hooks/useFeatureSettings";
 import { useBetaFeatures } from "@/hooks/useBetaFeatures";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAdminView } from "@/contexts/AdminViewContext";
 
 interface SwitchStatus {
   isViewingAs: boolean;
@@ -25,6 +26,16 @@ export default function MobileFooterNav() {
   const { showId } = usePageTitle();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { selectedProfileType } = useAdminView();
+  
+  // Check if user can create shows (same logic as projects.tsx)
+  const isFullTime = (user as any)?.profileType === "fulltime" || 
+    (isAdmin(user) && selectedProfileType === "fulltime");
+  const isUserRole = (user as any)?.userRole === "user" || (user as any)?.userRole === "admin";
+  const hasActiveSubscription = (user as any)?.subscriptionStatus === "active" || 
+     (user as any)?.subscriptionStatus === "trialing" ||
+     (user as any)?.grandfatheredFree === true;
+  const canCreateShow = isFullTime && isUserRole && hasActiveSubscription;
   
   // Fetch unread email count
   const { data: unreadEmailData } = useQuery({
@@ -207,10 +218,12 @@ export default function MobileFooterNav() {
               Navigation
             </div>
             
-            <DropdownMenuItem onClick={() => setLocation('/create-project')}>
-              <Plus className="h-4 w-4 mr-2" />
-              New Show
-            </DropdownMenuItem>
+            {canCreateShow && (
+              <DropdownMenuItem onClick={() => setLocation('/onboarding')}>
+                <Plus className="h-4 w-4 mr-2" />
+                New Show
+              </DropdownMenuItem>
+            )}
             
             {/* Show-specific navigation - only when in a show */}
             {showId && showData && (

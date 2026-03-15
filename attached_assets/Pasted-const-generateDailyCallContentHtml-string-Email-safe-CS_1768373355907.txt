@@ -1,0 +1,112 @@
+const generateDailyCallContentHtml = (): string => {
+  // Email safe CSS: table based rows, wraps correctly with larger text, stacks on small screens
+  let html =
+    `<hr>` +
+    `<div style="font-family: Arial, sans-serif; max-width: 800px;">` +
+    `<style>
+      table { border-collapse: collapse; width: 100%; }
+      td { vertical-align: top; }
+      .col-time { width: 165px; padding: 6px 10px 6px 0; line-height: 1.3; white-space: normal; }
+      .col-details { padding: 6px 0; line-height: 1.3; white-space: normal; word-break: break-word; }
+      @media screen and (max-width: 480px) {
+        .col-time, .col-details { display: block !important; width: 100% !important; padding-right: 0 !important; }
+        .col-time { padding-bottom: 2px !important; }
+      }
+    </style>`;
+
+  html += `<h2 style="text-align: center; margin: 0 0 1px 0;">${project.name}</h2>`;
+  html += `<h3 style="text-align: center; margin: 0 0 1px 0;">DAILY SCHEDULE</h3>`;
+  html += `<p style="text-align: center; margin: 0 0 16px 0;">${format(parseISO(selectedDate), "EEEE, MMMM d, yyyy")}</p>`;
+
+  const customSections = scheduleSettings?.customSections || [];
+  const topSections = customSections.filter((s: any) => s.position === "top");
+  topSections.sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
+
+  for (const section of topSections) {
+    const content =
+      callData.sectionContents[section.id] ||
+      (section.id === "announcements" ? callData.announcements : "");
+    const hasContent = content && content.trim().length > 0;
+    const displayContent = hasContent
+      ? formatSectionContentForEmail(content)
+      : `<span style="color: #888; font-style: italic;">No ${section.name.toLowerCase()} for today</span>`;
+
+    html += `<h3 style="margin-top: 16px; margin-bottom: 4px; color: #333;">${section.name}</h3>`;
+    html += `<div style="border: 2px solid #000; padding: 8px; min-height: 40px;">${displayContent}</div>`;
+  }
+
+  for (const location of callData.locations || []) {
+    const realEvents = (location.events || []).filter((e: any) => e.title !== "END-OF-DAY");
+    if (realEvents.length === 0) continue;
+
+    html += `<h3 style="margin-top: 16px; margin-bottom: 8px; border-bottom: 2px solid #000; padding-bottom: 4px;">${location.name}</h3>`;
+
+    for (const event of realEvents) {
+      const castDisplay = getFormattedCast(event).join(", ");
+
+      // Table based row instead of flex: avoids overlap when recipient uses larger text sizes
+      html += `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width: 100%; margin-bottom: 8px;">`;
+      html += `<tr>`;
+
+      html += `<td class="col-time"><strong>${event.startTime} - ${event.endTime}</strong></td>`;
+
+      html += `<td class="col-details">`;
+      html += `<div style="font-weight: 700;">${event.title}</div>`;
+
+      if (castDisplay) {
+        html += `<div style="font-size: 12px; color: #333;">${castDisplay}</div>`;
+      }
+      if (event.notes) {
+        html += `<div style="font-size: 12px; color: #666;">${event.notes}</div>`;
+      }
+
+      html += `</td>`;
+
+      html += `</tr>`;
+      html += `</table>`;
+    }
+  }
+
+  if (callData.fittingsEvents && callData.fittingsEvents.length > 0) {
+    html += `<h3 style="margin-top: 16px; margin-bottom: 8px; border-bottom: 2px solid #000; padding-bottom: 4px;">Fittings</h3>`;
+    for (const event of callData.fittingsEvents) {
+      const castDisplay = getFormattedCast(event).join(", ");
+      html += `<div style="margin-bottom: 8px;">`;
+      html += `${event.startTime} - ${event.title}`;
+      if (castDisplay) {
+        html += ` (${castDisplay})`;
+      }
+      html += `</div>`;
+    }
+  }
+
+  if (callData.appointmentsEvents && callData.appointmentsEvents.length > 0) {
+    html += `<h3 style="margin-top: 16px; margin-bottom: 8px; border-bottom: 2px solid #000; padding-bottom: 4px;">Appointments & Meetings</h3>`;
+    for (const event of callData.appointmentsEvents) {
+      const castDisplay = getFormattedCast(event).join(", ");
+      html += `<div style="margin-bottom: 8px;">`;
+      html += `${event.startTime} - ${event.title}`;
+      if (castDisplay) {
+        html += ` (${castDisplay})`;
+      }
+      html += `</div>`;
+    }
+  }
+
+  const bottomSections = customSections.filter((s: any) => s.position === "bottom");
+  bottomSections.sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
+
+  for (const section of bottomSections) {
+    const content = callData.sectionContents[section.id] || "";
+    const hasContent = content && content.trim().length > 0;
+    const displayContent = hasContent
+      ? formatSectionContentForEmail(content)
+      : `<span style="color: #888; font-style: italic;">No ${section.name.toLowerCase()} for today</span>`;
+
+    html += `<h3 style="margin-top: 16px; margin-bottom: 4px; color: #333;">${section.name}</h3>`;
+    html += `<div style="border: 2px solid #000; padding: 8px; min-height: 40px;">${displayContent}</div>`;
+  }
+
+  html += `</div>`;
+  return html;
+};

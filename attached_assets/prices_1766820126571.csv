@@ -1,0 +1,10 @@
+Price ID,Product ID,Product Name,Product Statement Descriptor,Product Tax Code,Description,Created (UTC),Amount,Currency,Interval,Interval Count,Usage Type,Aggregate Usage,Billing Scheme,Trial Period Days,Tax Behavior
+price_1Sirm8ByZ7wraq6OIe4ELEr5,prod_TgEDND9zQn3EHr,BackstageOS Additional Editor,,txcd_10103000,,2025-12-27 07:18,120.00,usd,year,1,licensed,,per_unit,,unspecified
+price_1Sirm8ByZ7wraq6OpWUUmlI3,prod_TgEDND9zQn3EHr,BackstageOS Additional Editor,,txcd_10103000,,2025-12-27 07:18,72.00,usd,month,6,licensed,,per_unit,,unspecified
+price_1SirkzByZ7wraq6OywaqZmxL,prod_TgEDND9zQn3EHr,BackstageOS Additional Editor,,txcd_10103000,,2025-12-27 07:17,15.00,usd,month,1,licensed,,per_unit,,unspecified
+price_1SirilByZ7wraq6OXE63WToa,prod_TgEAcT7DI75JgN,BackstageOS Founder,,txcd_10103000,,2025-12-27 07:15,924.00,usd,year,1,licensed,,per_unit,,unspecified
+price_1SiriPByZ7wraq6OpQ13zU9J,prod_TgEAcT7DI75JgN,BackstageOS Founder,,txcd_10103000,,2025-12-27 07:15,80.00,usd,month,1,licensed,,per_unit,,unspecified
+price_1SirZsByZ7wraq6OiCDmIOrA,prod_TgDyYvYEnbteBC,BackstageOS Pro Team,,txcd_10103000,"",2025-12-27 07:06,4764.00,usd,year,1,licensed,,per_unit,,unspecified
+price_1SirWBByZ7wraq6ONYsUAKyr,prod_TgDyYvYEnbteBC,BackstageOS Pro Team,,txcd_10103000,,2025-12-27 07:02,419.00,usd,month,1,licensed,,per_unit,,unspecified
+price_1SirV3ByZ7wraq6OuN0B5SC1,prod_TgDvDkkvwqaRbc,BackstageOS Pro,,txcd_10103000,,2025-12-27 07:01,1164.00,usd,year,1,licensed,,per_unit,,unspecified
+price_1SirTuByZ7wraq6OGohdWySz,prod_TgDvDkkvwqaRbc,BackstageOS Pro,,txcd_10103000,,2025-12-27 07:00,119.00,usd,month,1,licensed,,per_unit,,unspecified

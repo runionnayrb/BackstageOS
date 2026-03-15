@@ -235,7 +235,7 @@ export default function BillingStatus() {
 
               {subscription.status === 'past_due' && (
                 <Button 
-                  onClick={() => window.location.href = `/subscribe?plan=${subscription.plan}`}
+                  onClick={() => window.location.href = `/pricing?plan=${subscription.plan}`}
                   size="sm"
                 >
                   Update Payment Method
@@ -258,7 +258,7 @@ export default function BillingStatus() {
                 .map((plan) => (
                   <Button 
                     key={plan.id}
-                    onClick={() => window.location.href = `/subscribe?plan=${plan.planId}`}
+                    onClick={() => window.location.href = `/pricing?plan=${plan.planId}`}
                     variant={plan.billingInterval === 'year' ? 'default' : 'outline'}
                     size="sm"
                   >

@@ -700,9 +700,9 @@ const ALL_APP_PAGES: Page[] = [
         updatedAt: '2025-06-30T00:00:00Z'
       },
       {
-        id: 'subscribe',
-        name: 'Subscribe',
-        slug: '/subscribe',
+        id: 'pricing',
+        name: 'Pricing',
+        slug: '/pricing',
         description: 'Subscription signup',
         isSystem: true,
         parent: 'billing-management',

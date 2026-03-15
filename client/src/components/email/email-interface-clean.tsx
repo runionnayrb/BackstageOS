@@ -163,7 +163,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   const setSelectedMessages = onSelectedMessagesChange || (() => {});
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [pendingDeleteAction, setPendingDeleteAction] = useState<{ messageIds: number[]; action: string; targetFolder?: string } | null>(null);
+  const [pendingDeleteAction, setPendingDeleteAction] = useState<{ messageIds: (number | string)[]; action: string; targetFolder?: string; accountId?: number } | null>(null);
 
   const [moveDropdownOpen, setMoveDropdownOpen] = useState<number | null>(null);
   const [bulkMoveDropdownOpen, setBulkMoveDropdownOpen] = useState(false);
@@ -335,7 +335,8 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
         bulkActionMutation.mutate({
           messageIds: [swipeState.messageId],
           action: 'mark-unread',
-          accountId: selectedAccount.id
+          accountId: selectedAccount.id,
+          currentFolder: activeFolder
         });
         // Reset states
         setRevealedActions({ messageId: null, type: null });
@@ -420,9 +421,9 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
 
   // Bulk actions mutation with optimistic updates
   const bulkActionMutation = useMutation({
-    mutationFn: async ({ messageIds, action, targetFolder }: { messageIds: (number | string)[]; action: string; targetFolder?: string }) => {
+    mutationFn: async ({ messageIds, action, targetFolder, accountId, currentFolder }: { messageIds: (number | string)[]; action: string; targetFolder?: string; accountId: number; currentFolder: string }) => {
       // For OAuth connected accounts, perform actions via the new provider endpoints
-      if (selectedAccount.id === -1) {
+      if (accountId === -1) {
         const results = await Promise.all(
           messageIds.map(async (messageId) => {
             let endpoint = '';
@@ -450,7 +451,16 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
             if (!response.ok) {
               throw new Error(`Failed to ${action} message`);
             }
-            return response.json();
+            // Handle empty responses (204 No Content)
+            const contentLength = response.headers.get('content-length');
+            if (response.status === 204 || contentLength === '0') {
+              return { success: true };
+            }
+            try {
+              return await response.json();
+            } catch {
+              return { success: true };
+            }
           })
         );
         return { result: results, action, messageIds, targetFolder };
@@ -465,7 +475,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
         body: JSON.stringify({
           messageIds,
           action,
-          accountId: selectedAccount.id,
+          accountId,
           targetFolder,
         }),
       });
@@ -475,27 +485,37 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
       const result = await response.json();
       return { result, action, messageIds, targetFolder };
     },
-    onMutate: async ({ messageIds, action, targetFolder }) => {
+    onMutate: async ({ messageIds, action, targetFolder, accountId, currentFolder }) => {
+      // Use the passed accountId and currentFolder to ensure we update the correct cache
+      const queryKey = ['/api/email/accounts', accountId, currentFolder];
+      
+      console.log('🔄 onMutate called:', { messageIds, action, accountId, currentFolder, queryKey });
+      
       // Cancel outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['/api/email/accounts', selectedAccount.id, activeFolder] });
+      await queryClient.cancelQueries({ queryKey });
       
       // Snapshot previous value
-      const previousMessages = queryClient.getQueryData<EmailMessage[]>(['/api/email/accounts', selectedAccount.id, activeFolder]);
+      const previousMessages = queryClient.getQueryData<EmailMessage[]>(queryKey);
+      console.log('📦 Previous messages in cache:', previousMessages?.length, 'messages');
       
       // Optimistically update based on action
       queryClient.setQueryData<EmailMessage[]>(
-        ['/api/email/accounts', selectedAccount.id, activeFolder],
+        queryKey,
         (old) => {
+          console.log('🎯 setQueryData updater called, old:', old?.length, 'messages');
           if (!old) return old;
           
           const messageIdSet = new Set(messageIds.map(id => String(id)));
           
+          let result;
           switch (action) {
             case 'delete':
             case 'archive':
             case 'move':
               // Remove messages from current view immediately
-              return old.filter(msg => !messageIdSet.has(String(msg.id)));
+              result = old.filter(msg => !messageIdSet.has(String(msg.id)));
+              console.log('🗑️ Filtered messages:', old.length, '->', result.length);
+              return result;
             case 'mark-read':
               return old.map(msg => 
                 messageIdSet.has(String(msg.id)) ? { ...msg, isRead: true } : msg
@@ -510,19 +530,20 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
         }
       );
       
+      // Verify the update was applied
+      const afterUpdate = queryClient.getQueryData<EmailMessage[]>(queryKey);
+      console.log('✅ After setQueryData:', afterUpdate?.length, 'messages');
+      
       // Clear selection immediately for responsive feel
       setSelectedMessages(new Set());
       setIsSelectionMode(false);
       
-      return { previousMessages };
+      return { previousMessages, queryKey };
     },
     onError: (err, variables, context) => {
-      // Roll back on error
-      if (context?.previousMessages) {
-        queryClient.setQueryData(
-          ['/api/email/accounts', selectedAccount.id, activeFolder],
-          context.previousMessages
-        );
+      // Roll back on error using the stored queryKey
+      if (context?.previousMessages && context?.queryKey) {
+        queryClient.setQueryData(context.queryKey, context.previousMessages);
       }
       toast({
         title: "Action failed",
@@ -800,17 +821,17 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
     
     // Show confirmation dialog for delete operations
     if (action === 'delete') {
-      setPendingDeleteAction({ messageIds, action, targetFolder });
+      setPendingDeleteAction({ messageIds, action, targetFolder, accountId: selectedAccount.id });
       setShowDeleteConfirm(true);
     } else {
       // Execute other actions immediately
-      bulkActionMutation.mutate({ messageIds, action, targetFolder });
+      bulkActionMutation.mutate({ messageIds, action, targetFolder, accountId: selectedAccount.id, currentFolder: activeFolder });
     }
   };
 
   const confirmDelete = () => {
     if (pendingDeleteAction) {
-      bulkActionMutation.mutate(pendingDeleteAction);
+      bulkActionMutation.mutate({ ...pendingDeleteAction, accountId: selectedAccount.id, currentFolder: activeFolder });
       setShowDeleteConfirm(false);
       setPendingDeleteAction(null);
       // Close email modal after successful delete
@@ -901,7 +922,9 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
     bulkActionMutation.mutate({
       messageIds: [modalEmail.id],
       action: 'archive',
-      targetFolder: 'archive'
+      targetFolder: 'archive',
+      accountId: selectedAccount.id,
+      currentFolder: activeFolder
     });
     
     handleCloseEmailModal();
@@ -914,7 +937,8 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
     setPendingDeleteAction({
       messageIds: [modalEmail.id],
       action: 'delete',
-      targetFolder: 'trash'
+      targetFolder: 'trash',
+      accountId: selectedAccount.id
     });
     setShowDeleteConfirm(true);
     // Don't close the email modal - let user return to it if they cancel
@@ -1090,7 +1114,8 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                                 messageIds: [message.id],
                                 action: 'archive',
                                 accountId: selectedAccount.id,
-                                targetFolder: 'archive'
+                                targetFolder: 'archive',
+                                currentFolder: activeFolder
                               });
                               setRevealedActions({ messageId: null, type: null });
                             }}
@@ -1301,7 +1326,8 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                                         messageIds: [message.id],
                                         action: 'move',
                                         accountId: selectedAccount.id,
-                                        targetFolder: 'inbox'
+                                        targetFolder: 'inbox',
+                                        currentFolder: activeFolder
                                       });
                                     }}
                                     className="w-full h-7 justify-start text-xs"
@@ -1319,7 +1345,8 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                                         messageIds: [message.id],
                                         action: 'move',
                                         accountId: selectedAccount.id,
-                                        targetFolder: 'sent'
+                                        targetFolder: 'sent',
+                                        currentFolder: activeFolder
                                       });
                                     }}
                                     className="w-full h-7 justify-start text-xs"
@@ -1337,7 +1364,8 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                                         messageIds: [message.id],
                                         action: 'move',
                                         accountId: selectedAccount.id,
-                                        targetFolder: 'drafts'
+                                        targetFolder: 'drafts',
+                                        currentFolder: activeFolder
                                       });
                                     }}
                                     className="w-full h-7 justify-start text-xs"
@@ -1355,7 +1383,8 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                                         messageIds: [message.id],
                                         action: 'archive',
                                         accountId: selectedAccount.id,
-                                        targetFolder: 'archive'
+                                        targetFolder: 'archive',
+                                        currentFolder: activeFolder
                                       });
                                     }}
                                     className="w-full h-7 justify-start text-xs"
@@ -1373,7 +1402,8 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                                         messageIds: [message.id],
                                         action: 'move',
                                         accountId: selectedAccount.id,
-                                        targetFolder: 'trash'
+                                        targetFolder: 'trash',
+                                        currentFolder: activeFolder
                                       });
                                     }}
                                     className="w-full h-7 justify-start text-xs"
@@ -1394,7 +1424,8 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                                 messageIds: [message.id],
                                 action: 'archive',
                                 accountId: selectedAccount.id,
-                                targetFolder: 'archive'
+                                targetFolder: 'archive',
+                                currentFolder: activeFolder
                               });
                             }}
                             className="h-6 w-6 p-0 hover:bg-transparent group/icon"
@@ -1411,7 +1442,8 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                                 messageIds: [message.id],
                                 action: 'delete',
                                 accountId: selectedAccount.id,
-                                targetFolder: 'trash'
+                                targetFolder: 'trash',
+                                currentFolder: activeFolder
                               });
                             }}
                             className="h-6 w-6 p-0 hover:bg-transparent group/icon"
@@ -1501,7 +1533,8 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                               messageIds: [message.id],
                               action: 'move',
                               targetFolder: 'inbox',
-                              accountId: selectedAccount.id
+                              accountId: selectedAccount.id,
+                              currentFolder: activeFolder
                             });
                             setMoveDropdownOpen(null);
                           }}
@@ -1515,7 +1548,8 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                               messageIds: [message.id],
                               action: 'move',
                               targetFolder: 'trash',
-                              accountId: selectedAccount.id
+                              accountId: selectedAccount.id,
+                              currentFolder: activeFolder
                             });
                             setMoveDropdownOpen(null);
                           }}
@@ -1733,7 +1767,8 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                         messageIds: [moveDropdownOpen],
                         action: 'move',
                         accountId: selectedAccount.id,
-                        targetFolder: 'inbox'
+                        targetFolder: 'inbox',
+                        currentFolder: activeFolder
                       });
                     }
                     setMoveDropdownOpen(null);
@@ -1757,7 +1792,8 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                         messageIds: [moveDropdownOpen],
                         action: 'move',
                         accountId: selectedAccount.id,
-                        targetFolder: 'drafts'
+                        targetFolder: 'drafts',
+                        currentFolder: activeFolder
                       });
                     }
                     setMoveDropdownOpen(null);
@@ -1779,7 +1815,8 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                         messageIds: [moveDropdownOpen],
                         action: 'archive',
                         accountId: selectedAccount.id,
-                        targetFolder: 'archive'
+                        targetFolder: 'archive',
+                        currentFolder: activeFolder
                       });
                     }
                     setMoveDropdownOpen(null);
@@ -1801,7 +1838,8 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                         messageIds: [moveDropdownOpen],
                         action: 'move',
                         accountId: selectedAccount.id,
-                        targetFolder: 'trash'
+                        targetFolder: 'trash',
+                        currentFolder: activeFolder
                       });
                     }
                     setMoveDropdownOpen(null);

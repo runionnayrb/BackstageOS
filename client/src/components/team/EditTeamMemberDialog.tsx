@@ -78,19 +78,22 @@ export function EditTeamMemberDialog({
     },
   });
 
+  // Convert projectId to string to match the query key format used by TeamMembersList (useParams returns strings)
+  const projectIdStr = String(projectId);
+  
   const editTeamMemberMutation = useMutation({
     mutationFn: async (data: EditTeamMemberForm) => {
       return apiRequest("PUT", `/api/team-members/${teamMember.id}`, data);
     },
     onMutate: async (data: EditTeamMemberForm) => {
       // Cancel outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ["/api/projects", projectId, "team-members"] });
+      await queryClient.cancelQueries({ queryKey: ["/api/projects", projectIdStr, "team-members"] });
       
       // Snapshot previous data
-      const previousMembers = queryClient.getQueryData(["/api/projects", projectId, "team-members"]);
+      const previousMembers = queryClient.getQueryData(["/api/projects", projectIdStr, "team-members"]);
       
       // Optimistically update cache
-      queryClient.setQueryData(["/api/projects", projectId, "team-members"], (old: any[] = []) => 
+      queryClient.setQueryData(["/api/projects", projectIdStr, "team-members"], (old: any[] = []) => 
         old.map((member: any) => 
           member.id === teamMember.id 
             ? { ...member, ...data }
@@ -100,7 +103,19 @@ export function EditTeamMemberDialog({
       
       return { previousMembers };
     },
-    onSuccess: () => {
+    onSuccess: (updatedMember) => {
+      // Update cache with real data from server
+      queryClient.setQueryData(["/api/projects", projectIdStr, "team-members"], (old: any[] = []) => 
+        old.map((member: any) => 
+          member.id === teamMember.id 
+            ? { ...member, ...updatedMember, id: teamMember.id } // Ensure ID stays consistent
+            : member
+        )
+      );
+      
+      // Also invalidate to be safe, but the setQueryData handles the "instant" part
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectIdStr, "team-members"] });
+      
       toast({
         title: "Team member updated",
         description: "Changes have been saved successfully.",
@@ -110,7 +125,7 @@ export function EditTeamMemberDialog({
     onError: (error: any, variables, context) => {
       // Rollback on error
       if (context?.previousMembers) {
-        queryClient.setQueryData(["/api/projects", projectId, "team-members"], context.previousMembers);
+        queryClient.setQueryData(["/api/projects", projectIdStr, "team-members"], context.previousMembers);
       }
       toast({
         title: "Error",
@@ -177,20 +192,12 @@ export function EditTeamMemberDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Production Role</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a role" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {roles.map((roleName: string) => (
-                        <SelectItem key={roleName} value={roleName}>
-                          {roleName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <Input 
+                      placeholder="e.g., Guest Designer, Observer" 
+                      {...field} 
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

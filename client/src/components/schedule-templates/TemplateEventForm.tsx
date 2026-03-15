@@ -219,6 +219,17 @@ export default function TemplateEventForm({
         />
       </div>
       <div>
+        <Label htmlFor="notes">Notes</Label>
+        <Textarea
+          id="notes"
+          value={formData.notes}
+          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+          placeholder="Notes to display on the schedule"
+          rows={2}
+          data-testid="input-template-notes"
+        />
+      </div>
+      <div>
         <Label>People</Label>
         <div className="max-h-60 overflow-y-auto">
           {contacts.length === 0 ? (
@@ -352,17 +363,6 @@ export default function TemplateEventForm({
           placeholder="Brief description of the event..."
           rows={2}
           data-testid="input-template-description"
-        />
-      </div>
-      <div>
-        <Label htmlFor="notes">Notes</Label>
-        <Textarea
-          id="notes"
-          value={formData.notes}
-          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-          placeholder="Additional notes..."
-          rows={2}
-          data-testid="input-template-notes"
         />
       </div>
       {showButtons && (

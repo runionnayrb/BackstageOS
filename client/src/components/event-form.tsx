@@ -113,12 +113,13 @@ export default function EventForm({
     e.preventDefault();
     // Clean up the form data before submission and map to API format
     // Send both participantIds (for create) and participants (for update) to handle backend inconsistency
+    // Use null instead of undefined for empty fields so the backend clears them
     const cleanedData = {
       ...formData,
       date: formData.startDate, // Use startDate as the primary date for API compatibility
-      location: formData.location?.trim() || undefined,
-      description: formData.description?.trim() || undefined,
-      notes: formData.notes?.trim() || undefined,
+      location: formData.location?.trim() || null,
+      description: formData.description?.trim() || null,
+      notes: formData.notes?.trim() || null,
       participantIds: formData.participantIds, // For create route
       participants: formData.participantIds, // For update route
       isFullCompany: formData.isFullCompany, // Track Full Company selection
@@ -232,6 +233,15 @@ export default function EventForm({
           date={formData.startDate}
           startTime={formData.startTime}
           endTime={formData.endTime}
+        />
+      </div>
+      <div>
+        <Label htmlFor="notes">Notes</Label>
+        <Textarea
+          id="notes"
+          value={formData.notes}
+          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+          placeholder="Notes to display on the schedule"
         />
       </div>
       <div>

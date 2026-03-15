@@ -444,7 +444,9 @@ export function TemplateWeeklyScheduleView({
         setTimeout(() => setJustDragged(null), 200);
         setDraggedEvent(null);
       } else {
+        // User clicked without dragging - open the edit dialog directly
         setDraggedEvent(null);
+        setEditingEvent(event);
       }
       
       document.removeEventListener('mousemove', handleMouseMove);
@@ -453,7 +455,7 @@ export function TemplateWeeklyScheduleView({
     
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-  }, [orderedDays, timeIncrement, updateEventMutation, eventsQueryKey]);
+  }, [orderedDays, timeIncrement, updateEventMutation, eventsQueryKey, updateOpenPopoverId]);
 
   const handleResizeStart = useCallback((e: React.MouseEvent, event: ScheduleTemplateEvent, edge: 'start' | 'end') => {
     e.preventDefault();

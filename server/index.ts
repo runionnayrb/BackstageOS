@@ -5,6 +5,13 @@ import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 
+app.use((req, res, next) => {
+  if (req.path === '/health' || (req.path === '/' && req.method === 'GET' && !req.headers['accept']?.includes('text/html'))) {
+    return res.status(200).json({ status: 'ok' });
+  }
+  next();
+});
+
 // Trust proxy for proper domain handling in production
 app.set('trust proxy', true);
 
@@ -112,12 +119,18 @@ async function initializeDefaultAccountTypes() {
 (async () => {
   const server = await registerRoutes(app);
   
-  // Initialize default data
-  await initializeDefaultAccountTypes();
+  // Initialize default data in background (non-blocking)
+  initializeDefaultAccountTypes().catch(err => console.error('Account types init failed:', err));
 
-  // Start scheduled email processor (checks every minute)
-  const { startScheduledEmailProcessor } = await import('./services/scheduledEmailProcessor.js');
-  startScheduledEmailProcessor();
+  // Defer email processor startup to after server is listening (non-blocking)
+  setImmediate(async () => {
+    try {
+      const { startScheduledEmailProcessor } = await import('./services/scheduledEmailProcessor.js');
+      startScheduledEmailProcessor();
+    } catch (err) {
+      console.error('Failed to start scheduled email processor:', err);
+    }
+  });
 
   // Self-hosted IMAP/SMTP email servers disabled - using Google/Outlook OAuth integration instead
   // To re-enable, uncomment the following:
@@ -136,6 +149,22 @@ async function initializeDefaultAccountTypes() {
     throw err;
   });
 
+  // SEO settings cache (in-memory, refreshes every 5 minutes)
+  const seoCache = new Map<string, { data: any; timestamp: number }>();
+  const SEO_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+  async function getCachedSeoSettings(domain: string): Promise<any> {
+    const cached = seoCache.get(domain);
+    if (cached && Date.now() - cached.timestamp < SEO_CACHE_TTL) {
+      return cached.data;
+    }
+    
+    const { storage } = await import('./storage.js');
+    const seoSettings = await storage.getSeoSettings(domain);
+    seoCache.set(domain, { data: seoSettings, timestamp: Date.now() });
+    return seoSettings;
+  }
+
   // SEO injection middleware - inject domain-specific SEO settings into HTML
   app.use((req, res, next) => {
     // Store original send function
@@ -145,15 +174,13 @@ async function initializeDefaultAccountTypes() {
       // Only process HTML responses
       if (typeof data === 'string' && data.includes('<html') && data.includes('</html>')) {
         try {
-          const { storage } = await import('./storage.js');
-          
           // Extract domain from request headers
           const hostname = req.get('x-forwarded-host') || req.get('host') || req.hostname;
           const cleanDomain = hostname ? hostname.split(':')[0] : null;
           
           if (cleanDomain) {
-            // Fetch SEO settings for this domain
-            const seoSettings = await storage.getSeoSettings(cleanDomain);
+            // Fetch SEO settings for this domain (from cache)
+            const seoSettings = await getCachedSeoSettings(cleanDomain);
             
             if (seoSettings) {
               // Generate SEO meta tags

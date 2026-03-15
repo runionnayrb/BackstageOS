@@ -13,11 +13,12 @@ import { AdminViewProvider } from "@/contexts/AdminViewContext";
 import { SearchProvider } from "@/components/search/SearchContext";
 import { PWAManager } from "@/components/pwa-manager";
 import AuthPage from "@/pages/auth-page";
+import BetaHome from "@/pages/beta-home";
 import ProfileSelection from "@/pages/profile-selection";
 import Layout from "@/components/layout/layout";
 import Dashboard from "@/pages/dashboard";
 import Projects from "@/pages/projects";
-import CreateProject from "@/pages/create-project";
+import ShowOnboarding from "@/pages/show-onboarding";
 import Team from "@/pages/team";
 import Invitations from "@/pages/invitations";
 import ReportBuilder from "@/pages/report-builder";
@@ -34,7 +35,6 @@ import ShowReportsList from "@/pages/show-reports-list";
 import TemplateSettingsV2 from "@/pages/template-settings-v2";
 import TemplateEditorV2 from "@/pages/template-editor-v2";
 import GlobalTemplateSettings from "@/pages/global-template-settings";
-import NewReport from "@/pages/new-report";
 import ReportViewer from "./pages/report-viewer";
 import AdminDashboard from "@/pages/admin-dashboard";
 import AdminUserRoles from "@/pages/admin-user-roles";
@@ -74,7 +74,7 @@ import DailyCallsList from "@/pages/daily-calls-list";
 import DailyCallSheet from "@/pages/daily-calls";
 import ArchivedShows from "@/pages/archived-shows";
 import Checkout from "@/pages/checkout";
-import Subscribe from "@/pages/subscribe";
+import Pricing from "@/pages/pricing";
 import Billing from "@/pages/billing";
 import NotesTracking from "@/pages/notes-tracking";
 import EmailContacts from "@/pages/email-contacts";
@@ -137,8 +137,13 @@ function Router() {
   }
   
   // Handle auth-related pages - these must render without Layout
-  if (location === '/auth' || location === '/login') {
+  if (location === '/auth' || location === '/login' || location.startsWith('/auth?')) {
     return <AuthPage />;
+  }
+  
+  // Handle Beta Home page for unauthenticated users
+  if (location === '/home') {
+    return <BetaHome />;
   }
   
   if (location === '/forgot-password') {
@@ -210,10 +215,15 @@ function Router() {
     return <TermsPage />;
   }
   
-  // For dev environment, show authentication page if not authenticated (except for explicit public routes)
+  // Pricing page - public access for unauthenticated users
+  if (location === '/pricing' && !user && !isLoading) {
+    return <Pricing />;
+  }
+  
+  // For dev environment, show Beta Home page if not authenticated (except for explicit public routes)
   // This guard now comes AFTER the auth page early returns above
   if (isDevEnvironment && !user && !isLoading) {
-    return <AuthPage />;
+    return <BetaHome />;
   }
 
   if (isLoading) {
@@ -224,19 +234,20 @@ function Router() {
     );
   }
 
-  // Beta domain or other subdomains - require authentication (but not for dev environment with authenticated users)
+  // Beta domain or other subdomains - show Beta Home for unauthenticated users
   if (!user && (isBetaDomain || (!isMainDomain && !isJoinDomain && !isDevEnvironment))) {
-    return <AuthPage />;
+    return <BetaHome />;
   }
 
-  // If authenticated but no profile type selected
-  if (user && !user?.profileType) {
+  // If authenticated but no feature preferences selected (new onboarding flow)
+  // Allow users with legacy profileType to skip this step
+  if (user && !(user as any)?.defaultFeaturePreferences && !(user as any)?.profileType) {
     return <ProfileSelection />;
   }
 
   // Check if user needs payment (past_due, canceled, incomplete)
-  if (user && (user as any).needsPayment && location !== '/subscribe' && location !== '/checkout') {
-    window.location.href = '/subscribe';
+  if (user && (user as any).needsPayment && location !== '/pricing' && location !== '/checkout' && location !== '/onboarding') {
+    window.location.href = '/pricing';
     return null;
   }
 
@@ -247,10 +258,10 @@ function Router() {
         <Route path="/" component={Projects} />
         <Route path="/projects" component={Projects} />
         <Route path="/projects/archived" component={ArchivedShows} />
-        <Route path="/create-project" component={CreateProject} />
+        <Route path="/create-project" component={ShowOnboarding} />
+        <Route path="/onboarding" component={ShowOnboarding} />
         <Route path="/shows/:id" component={ShowDetail} />
         <Route path="/shows/:id/reports" component={ShowReportsList} />
-        <Route path="/shows/:id/reports/:type/new" component={NewReport} />
         <Route path="/shows/:id/reports/:type/builder" component={ReportBuilder} />
         <Route path="/shows/:id/reports/:type/:reportId/edit" component={ReportBuilder} />
         <Route path="/shows/:id/reports/:type/:reportId" component={ReportViewer} />
@@ -308,7 +319,7 @@ function Router() {
         <Route path="/test-image-upload" component={TestImageUpload} />
         <Route path="/navigation-demo" component={NavigationDemo} />
         <Route path="/checkout" component={Checkout} />
-        <Route path="/subscribe" component={Subscribe} />
+        <Route path="/pricing" component={Pricing} />
         <Route path="/billing" component={Billing} />
         <Route component={NotFound} />
         </Switch>
@@ -322,6 +333,63 @@ function App() {
   // This prevents the 20-30 second auth delay on full page refreshes
   // and ensures these pages render without any Layout wrapper
   const currentPath = window.location.pathname;
+  
+  // Handles domain check
+  const hostname = window.location.hostname;
+  const isJoinDomain = hostname.includes('join.backstageos.com') || hostname === 'join.backstageos.com';
+  const isMainDomain = hostname === 'backstageos.com' || (hostname.includes('backstageos.com') && !hostname.includes('beta.') && !hostname.includes('join.'));
+  const isBetaDomain = hostname.includes('beta.backstageos.com') || hostname === 'beta.backstageos.com';
+  const isDevEnvironment = hostname.includes('replit.dev');
+
+  // Special routes that bypass domain restrictions and Layout
+  if (currentPath.startsWith('/personal-schedule/')) {
+    const token = currentPath.split('/personal-schedule/')[1];
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <PersonalScheduleViewer token={token} />
+        </TooltipProvider>
+      </QueryClientProvider>
+    );
+  }
+
+  if (currentPath.startsWith('/public-calendar/')) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          {currentPath.startsWith('/public-calendar/event-type/') ? <PublicEventTypeCalendar /> : <PublicCalendar />}
+        </TooltipProvider>
+      </QueryClientProvider>
+    );
+  }
+
+  // Join project invitation route
+  if (currentPath.startsWith('/join/')) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <JoinProject />
+          </TooltipProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    );
+  }
+
+  // Beta Home page for marketing
+  if (currentPath === '/home') {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <BetaHome />
+        </TooltipProvider>
+      </QueryClientProvider>
+    );
+  }
   
   // Auth pages - must render without Layout
   if (currentPath === '/auth' || currentPath === '/login') {
@@ -353,6 +421,22 @@ function App() {
           <Toaster />
           <ResetPassword />
         </TooltipProvider>
+      </QueryClientProvider>
+    );
+  }
+  
+  // Pricing page - fast render for unauthenticated users
+  if (currentPath === '/pricing') {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <AdminViewProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Pricing />
+            </TooltipProvider>
+          </AdminViewProvider>
+        </AuthProvider>
       </QueryClientProvider>
     );
   }

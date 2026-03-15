@@ -9,10 +9,9 @@ import { Loader2 } from "lucide-react";
 
 // Make sure to call `loadStripe` outside of a component's render to avoid
 // recreating the `Stripe` object on every render.
-if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
-  throw new Error('Missing required Stripe key: VITE_STRIPE_PUBLIC_KEY');
-}
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+// Only load Stripe if the key is available to prevent errors
+const stripePublicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+const stripePromise = stripePublicKey ? loadStripe(stripePublicKey) : null;
 
 const CheckoutForm = () => {
   const stripe = useStripe();
@@ -127,6 +126,20 @@ export default function Checkout() {
         setIsLoading(false);
       });
   }, [toast]);
+
+  // Show error if Stripe is not configured
+  if (!stripePromise) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          <h2 className="text-xl font-semibold mb-2">Payment Unavailable</h2>
+          <p className="text-muted-foreground">
+            Payment processing is temporarily unavailable. Please try again later or contact support.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading || !clientSecret) {
     return (

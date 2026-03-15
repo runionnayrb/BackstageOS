@@ -224,3 +224,102 @@ export const darkenColor = (hexColor: string, percent: number = 20): string => {
   
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 };
+
+// Performance numbering types that should be counted
+export const PERFORMANCE_EVENT_TYPES = ['performance', 'preview'] as const;
+
+// Check if an event type should be counted as a performance
+export const isPerformanceType = (eventType: string, eventTypes?: any[], eventTypeId?: number): boolean => {
+  // Check database event types first if provided
+  if (eventTypes && eventTypes.length > 0 && eventTypeId) {
+    const matchedEventType = eventTypes.find(et => et.id === eventTypeId);
+    if (matchedEventType) {
+      // Check if the database event type's category or name indicates it's a performance
+      const name = matchedEventType.name?.toLowerCase() || '';
+      const category = matchedEventType.category?.toLowerCase() || '';
+      return name.includes('performance') || name.includes('show') || 
+             name.includes('preview') || category === 'performance';
+    }
+  }
+  
+  // Fall back to checking the type string
+  const normalizedType = eventType.toLowerCase().replace(/[\s-]/g, '_');
+  return PERFORMANCE_EVENT_TYPES.includes(normalizedType as any) ||
+         normalizedType.includes('performance') ||
+         normalizedType.includes('show') ||
+         normalizedType.includes('preview');
+};
+
+// Event interface for performance numbering calculations
+interface PerformanceEvent {
+  id: number;
+  date: string;
+  endDate?: string | null;
+  startTime: string;
+  type: string;
+  eventTypeId?: number | null;
+  status?: string;
+}
+
+// Calculate performance numbers for all events
+// Returns a Map of eventId -> performance number (or null if not a performance type)
+export function calculatePerformanceNumbers(
+  events: PerformanceEvent[],
+  config: { firstPerformanceEventId: number | null; startingNumber: number },
+  eventTypes?: any[]
+): Map<number, number | null> {
+  const result = new Map<number, number | null>();
+  
+  // Filter to only performance-type events that aren't cancelled
+  const performanceEvents = events.filter(event => {
+    const isCancelled = event.status === 'cancelled';
+    const isPerformance = isPerformanceType(event.type, eventTypes, event.eventTypeId ?? undefined);
+    return isPerformance && !isCancelled;
+  });
+  
+  // Sort by date, then by startTime for same-day events
+  performanceEvents.sort((a, b) => {
+    const dateA = a.date;
+    const dateB = b.date;
+    if (dateA !== dateB) {
+      return dateA.localeCompare(dateB);
+    }
+    return a.startTime.localeCompare(b.startTime);
+  });
+  
+  // Find the starting index
+  let startIndex = 0;
+  if (config.firstPerformanceEventId) {
+    const firstIndex = performanceEvents.findIndex(e => e.id === config.firstPerformanceEventId);
+    if (firstIndex !== -1) {
+      startIndex = firstIndex;
+    }
+  }
+  
+  // Assign numbers starting from the first performance
+  let currentNumber = config.startingNumber;
+  for (let i = startIndex; i < performanceEvents.length; i++) {
+    result.set(performanceEvents[i].id, currentNumber);
+    currentNumber++;
+  }
+  
+  // Mark all other events (non-performances, cancelled, or before first) as null
+  for (const event of events) {
+    if (!result.has(event.id)) {
+      result.set(event.id, null);
+    }
+  }
+  
+  return result;
+}
+
+// Get the performance number for a single event
+export function getPerformanceNumber(
+  eventId: number,
+  events: PerformanceEvent[],
+  config: { firstPerformanceEventId: number | null; startingNumber: number },
+  eventTypes?: any[]
+): number | null {
+  const numbers = calculatePerformanceNumbers(events, config, eventTypes);
+  return numbers.get(eventId) ?? null;
+}

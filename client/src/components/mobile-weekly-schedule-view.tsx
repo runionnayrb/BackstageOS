@@ -11,7 +11,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatTimeDisplay, parseScheduleSettings } from "@/lib/timeUtils";
-import { isShowEvent, getEventTypeDisplayName, getEventTypeColor, getEventTypeColorFromDatabase } from "@/lib/eventUtils";
+import { isShowEvent, getEventTypeDisplayName, getEventTypeColor, getEventTypeColorFromDatabase, isLightColor } from "@/lib/eventUtils";
 import { filterEventsBySettings, getTimezoneAbbreviation } from "@/lib/scheduleUtils";
 import LocationSelect from "@/components/location-select";
 
@@ -622,7 +622,9 @@ export default function MobileWeeklyScheduleView({
                             >
                               <PopoverTrigger asChild>
                                 <div
-                                  className="text-white rounded px-2 py-1 text-xs mb-1 cursor-pointer hover:opacity-90 transition-opacity"
+                                  className={`rounded px-2 py-1 text-xs mb-1 cursor-pointer hover:opacity-90 transition-opacity ${
+                                    isLightColor(eventTypeColor) ? 'text-gray-900' : 'text-white'
+                                  }`}
                                   style={{ backgroundColor: eventTypeColor }}
                                 >
                                   <div className="font-medium truncate">{event.title}</div>

@@ -81,6 +81,21 @@ export default function DailyAvailabilityView({
     return `${displayHours}:${mins.toString().padStart(2, '0')} ${ampm}`;
   };
 
+  // Fetch schedule events to show assignments
+  const { data: scheduleEvents = [] } = useQuery({
+    queryKey: [`/api/projects/${projectId}/schedule-events`],
+    enabled: isOpen,
+  });
+
+  // Get schedule events for a specific contact and the selected date
+  const getContactScheduleEventsForDate = (contactId: number) => {
+    const dateStr = selectedDate.toISOString().split('T')[0];
+    return (scheduleEvents as any[]).filter((event: any) => {
+      if (event.date !== dateStr) return false;
+      return event.participants?.some((p: any) => (p.contactId === contactId) || (p.id === contactId));
+    });
+  };
+
   // Convert time string to minutes since start of day
   const timeToMinutes = (timeStr: string) => {
     const [hours, minutes] = timeStr.split(':').map(Number);
@@ -317,6 +332,32 @@ export default function DailyAvailabilityView({
                                     {item.notes}
                                   </div>
                                 )}
+                              </div>
+                            );
+                          })}
+
+                          {/* Schedule Assignments */}
+                          {getContactScheduleEventsForDate(contact.id).map((event: any) => {
+                            const startMinutes = timeToMinutes(event.startTime);
+                            const endMinutes = timeToMinutes(event.endTime);
+                            const startPos = minutesToPosition(startMinutes);
+                            const duration = endMinutes - startMinutes;
+
+                            return (
+                              <div
+                                key={`event-${event.id}`}
+                                className="absolute left-1 right-1 rounded text-xs px-2 py-1 text-white bg-green-600 border border-green-700 shadow-sm z-10 opacity-90"
+                                style={{
+                                  top: `${startPos}px`,
+                                  height: `${duration}px`,
+                                  minHeight: '24px',
+                                }}
+                                title={`Scheduled: ${event.title}\n${formatTime(startMinutes)} - ${formatTime(endMinutes)}`}
+                              >
+                                <div className="font-bold truncate">{event.title}</div>
+                                <div className="text-[10px] opacity-90">
+                                  {formatTime(startMinutes)} - {formatTime(endMinutes)}
+                                </div>
                               </div>
                             );
                           })}

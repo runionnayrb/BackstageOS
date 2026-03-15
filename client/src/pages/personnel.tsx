@@ -1,8 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useParams } from "wouter";
-import { ArrowLeft, FileText, ChevronDown, Mail, Phone, GripVertical, Calendar, Plus, Settings, X, Users, Edit, Save, Upload } from "lucide-react";
+import { ArrowLeft, FileText, ChevronDown, Mail, Phone, GripVertical, Calendar, Plus, Settings, X, Users, Edit, Save, Upload, ArrowUpDown, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
@@ -241,6 +242,30 @@ export default function Personnel() {
     },
   });
 
+  const updateSortByMutation = useMutation({
+    mutationFn: (data: { groupId: number; sortBy: string }) => apiRequest('PATCH', `/api/contact-groups/${data.groupId}`, { sortBy: data.sortBy }),
+    onMutate: (data) => {
+      const previousGroups = queryClient.getQueryData<ContactGroup[]>([`/api/projects/${projectId}/contact-groups`]);
+      if (previousGroups) {
+        const updatedGroups = previousGroups.map(g => 
+          g.id === data.groupId ? { ...g, sortBy: data.sortBy } : g
+        );
+        queryClient.setQueryData([`/api/projects/${projectId}/contact-groups`], updatedGroups);
+      }
+      return previousGroups;
+    },
+    onError: (error, variables, context) => {
+      if (context) {
+        queryClient.setQueryData([`/api/projects/${projectId}/contact-groups`], context);
+      }
+      toast({
+        title: "Error",
+        description: "Failed to update sort preference",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleDragStartGroup = (e: React.DragEvent, groupId: number) => {
     setDraggedGroupId(groupId);
     e.dataTransfer.effectAllowed = 'move';
@@ -266,9 +291,30 @@ export default function Personnel() {
     setDraggedGroupId(null);
   };
 
-  // Group contacts by group ID, using contact groups from database
+  // Helper function to sort contacts based on sortBy preference
+  const sortContacts = (contacts: Contact[], sortBy: string | null) => {
+    const sortField = sortBy || 'firstName';
+    return [...contacts].sort((a, b) => {
+      let aVal = '';
+      let bVal = '';
+      if (sortField === 'firstName') {
+        aVal = a.firstName?.toLowerCase() || '';
+        bVal = b.firstName?.toLowerCase() || '';
+      } else if (sortField === 'lastName') {
+        aVal = a.lastName?.toLowerCase() || '';
+        bVal = b.lastName?.toLowerCase() || '';
+      } else if (sortField === 'preferredName') {
+        aVal = (a.preferredName || a.firstName)?.toLowerCase() || '';
+        bVal = (b.preferredName || b.firstName)?.toLowerCase() || '';
+      }
+      return aVal.localeCompare(bVal);
+    });
+  };
+
+  // Group contacts by group ID, using contact groups from database, with sorting applied
   const contactsByCategory = contactGroups.reduce((acc, group) => {
-    acc[group.id] = allContacts.filter(contact => contact.groupId === group.id);
+    const groupContacts = allContacts.filter(contact => contact.groupId === group.id);
+    acc[group.id] = sortContacts(groupContacts, group.sortBy);
     return acc;
   }, {} as Record<number, Contact[]>);
 
@@ -537,7 +583,7 @@ export default function Personnel() {
 
                   <div>
                     <Label className="text-sm font-semibold mb-2 block">Your Groups (drag to reorder)</Label>
-                    <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                    <div className="space-y-2 max-h-[300px] overflow-y-auto overflow-x-visible">
                       {contactGroups.length === 0 ? (
                         <p className="text-sm text-muted-foreground text-center py-4">No groups yet</p>
                       ) : (
@@ -590,6 +636,19 @@ export default function Personnel() {
                                   <span className="text-sm">{group.name}</span>
                                 </div>
                                 <div className="flex items-center gap-1">
+                                  <Select
+                                    value={group.sortBy || 'firstName'}
+                                    onValueChange={(value) => updateSortByMutation.mutate({ groupId: group.id, sortBy: value as 'firstName' | 'lastName' | 'preferredName' })}
+                                  >
+                                    <SelectTrigger className="h-8 w-8 p-0 border-0 bg-transparent hover:bg-accent" title="Sort contacts">
+                                      <ArrowUpDown className="h-4 w-4" />
+                                    </SelectTrigger>
+                                    <SelectContent className="z-[10002]">
+                                      <SelectItem value="firstName">First Name</SelectItem>
+                                      <SelectItem value="lastName">Last Name</SelectItem>
+                                      <SelectItem value="preferredName">Preferred Name</SelectItem>
+                                    </SelectContent>
+                                  </Select>
                                   <Button
                                     variant="ghost"
                                     size="sm"
@@ -875,54 +934,51 @@ export default function Personnel() {
                     No contacts in this group yet.
                   </div>
                 ) : (
-                  <div className="space-y-1">
+                  <div className="grid gap-x-6" style={{ gridTemplateColumns: "2fr 2.5fr 2.5fr 1.5fr 80px" }}>
                     {categoryContacts.map((contact) => (
                       <div
                         key={contact.id}
-                        className="p-2 hover:bg-gray-50 cursor-pointer transition-colors"
+                        className="contents cursor-pointer group"
                         onClick={() => handleContactClick(contact)}
                       >
-                        <div className="grid items-center gap-6" style={{ gridTemplateColumns: "2fr 1.5fr 3fr 1.5fr auto" }}>
-                          <div className="text-gray-900">
-                            {contact.firstName} {contact.lastName}
-                          </div>
-                          <div className="text-gray-900">
-                            {contact.role || ''}
-                          </div>
-                          <div className="text-gray-900">
-                            {contact.email || ''}
-                          </div>
-                          <div className="text-gray-900">
-                            {formatPhoneNumber(contact.phone)}
-                          </div>
-                          
-                          <div className="flex gap-2">
-                            <Calendar 
+                        <div className="px-4 py-2 text-gray-900 group-hover:bg-gray-50">
+                          {contact.firstName?.trim()} {contact.lastName?.trim()}
+                        </div>
+                        <div className="py-2 text-gray-900 group-hover:bg-gray-50">
+                          {contact.role?.trim() || ''}
+                        </div>
+                        <div className="py-2 text-gray-900 group-hover:bg-gray-50">
+                          {contact.email?.trim() || ''}
+                        </div>
+                        <div className="py-2 text-gray-900 group-hover:bg-gray-50">
+                          {formatPhoneNumber(contact.phone)}
+                        </div>
+                        <div className="py-2 flex gap-2 group-hover:bg-gray-50">
+                          <Calendar 
+                            className="h-4 w-4 text-gray-600 hover:text-gray-800 cursor-pointer" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAvailabilityClick(contact);
+                            }}
+                          />
+                          {contact.email && (
+                            <Mail 
                               className="h-4 w-4 text-gray-600 hover:text-gray-800 cursor-pointer" 
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleAvailabilityClick(contact);
+                                handleEmailContact(contact.email!);
                               }}
                             />
-                            {contact.email && (
-                              <Mail 
-                                className="h-4 w-4 text-gray-600 hover:text-gray-800 cursor-pointer" 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEmailContact(contact.email!);
-                                }}
-                              />
-                            )}
-                            {contact.phone && (
-                              <Phone 
-                                className="h-4 w-4 text-gray-600 hover:text-gray-800 cursor-pointer" 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  window.location.href = `tel:${contact.phone}`;
-                                }}
-                              />
-                            )}
-                          </div>
+                          )}
+                          {contact.phone && (
+                            <Phone 
+                              className="h-4 w-4 text-gray-600 hover:text-gray-800 cursor-pointer" 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                window.location.href = `tel:${contact.phone}`;
+                              }}
+                            />
+                          )}
                         </div>
                       </div>
                     ))}

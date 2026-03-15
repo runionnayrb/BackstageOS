@@ -39,7 +39,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       title: projectLabel,
       items: [
         { name: `All ${projectLabel}`, href: "/projects", icon: FolderOpen },
-        { name: `New ${projectSingle}`, href: "/create-project", icon: Plus },
+        { name: `New ${projectSingle}`, href: "/onboarding", icon: Plus },
       ],
     },
     {

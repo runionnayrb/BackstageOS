@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,12 @@ import { useLocation, Link } from "wouter";
 import { FileText, Users, Calendar, Clapperboard, Settings, Shield } from "lucide-react";
 
 export default function AuthPage() {
-  const [isLogin, setIsLogin] = useState(true);
+  const [location, setLocation] = useLocation();
+  
+  const urlParams = new URLSearchParams(window.location.search);
+  const modeParam = urlParams.get('mode');
+  const [isLogin, setIsLogin] = useState(modeParam !== 'signup');
+  
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -16,17 +21,25 @@ export default function AuthPage() {
     lastName: "",
   });
   const { loginMutation, registerMutation, user } = useAuth();
-  const [, setLocation] = useLocation();
 
-  // Redirect if already logged in
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get('mode');
+    setIsLogin(mode !== 'signup');
+  }, [location]);
+
   if (user) {
-    // Check for invitation redirect
     const returnPath = sessionStorage.getItem('returnToJoin');
+    const params = new URLSearchParams(window.location.search);
+    const fromPricing = params.get('from') === 'pricing';
+    
     if (returnPath) {
       sessionStorage.removeItem('returnToJoin');
-      setLocation(returnPath);
+      window.location.href = returnPath;
+    } else if (fromPricing) {
+      window.location.href = "/onboarding";
     } else {
-      setLocation("/");
+      window.location.href = "/";
     }
     return null;
   }
@@ -56,16 +69,22 @@ export default function AuthPage() {
     }));
   };
 
+  const toggleMode = () => {
+    const newMode = isLogin ? 'signup' : 'login';
+    setLocation(`/auth?mode=${newMode}`);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary to-secondary flex items-center justify-center px-4 pb-12 lg:pb-0">
       <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
-        {/* Hero Content */}
         <div className="text-white space-y-8 pt-6 lg:pt-16">
           <div className="text-center lg:text-left">
-            <h1 className="text-4xl lg:text-6xl mb-4 leading-tight">
-              <span style={{ fontWeight: 400 }}>Backstage</span>
-              <span style={{ fontWeight: 700 }}>OS</span>
-            </h1>
+            <Link href="/">
+              <h1 className="text-4xl lg:text-6xl mb-4 leading-tight cursor-pointer hover:opacity-90 transition-opacity">
+                <span style={{ fontWeight: 400 }}>Backstage</span>
+                <span style={{ fontWeight: 700 }}>OS</span>
+              </h1>
+            </Link>
             <p className="text-xl lg:text-2xl opacity-90 leading-relaxed">
               The complete stage management platform for professional stage managers
             </p>
@@ -110,7 +129,6 @@ export default function AuthPage() {
           </div>
         </div>
 
-        {/* Auth Form */}
         <Card className="max-w-md mx-auto w-full">
           <CardContent className="p-8">
             <div className="text-center mb-8">
@@ -208,7 +226,7 @@ export default function AuthPage() {
 
             <div className="mt-6 text-center">
               <button
-                onClick={() => setIsLogin(!isLogin)}
+                onClick={toggleMode}
                 className="text-primary hover:underline text-sm"
               >
                 {isLogin 

@@ -1,0 +1,40 @@
+📅 Weekly view - All events: (11) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:229 📅 Weekly view - All events: (11) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:242 Events array changed: 11 events
+weekly-schedule-view.tsx:243 Event #25 current data: undefined
+errorLogger.ts:140  POST https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/api/projects/3/schedule-events 409 (Conflict)
+window.fetch @ errorLogger.ts:140
+apiRequest @ queryClient.ts:27
+mutationFn @ schedule.tsx:617
+fn @ @tanstack_react-query.js?v=3d3f9d9c:1189
+run @ @tanstack_react-query.js?v=3d3f9d9c:494
+start @ @tanstack_react-query.js?v=3d3f9d9c:536
+execute @ @tanstack_react-query.js?v=3d3f9d9c:1225
+await in execute
+mutate @ @tanstack_react-query.js?v=3d3f9d9c:2630
+(anonymous) @ @tanstack_react-query.js?v=3d3f9d9c:3295
+handleCreateEvent @ schedule.tsx:932
+handleSubmit @ event-form.tsx:128
+callCallback2 @ chunk-RPCDYKBN.js?v=3d3f9d9c:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=3d3f9d9c:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=3d3f9d9c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=3d3f9d9c:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=3d3f9d9c:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=3d3f9d9c:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=3d3f9d9c:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=3d3f9d9c:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=3d3f9d9c:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=3d3f9d9c:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=3d3f9d9c:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=3d3f9d9c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=3d3f9d9c:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=3d3f9d9c:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=3d3f9d9c:5449Understand this error
+weekly-schedule-view.tsx:229 📅 Weekly view - All events: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:229 📅 Weekly view - All events: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+weekly-schedule-view.tsx:242 Events array changed: 10 events
+weekly-schedule-view.tsx:243 Event #25 current data: undefined
+App.tsx:132 Domain routing check: {hostname: '54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev', isJoinDomain: false, isMainDomain: false, isBetaDomain: false, isDevEnvironment: true}
+weekly-schedule-view.tsx:229 📅 Weekly view - All events: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+App.tsx:132 Domain routing check: {hostname: '54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev', isJoinDomain: false, isMainDomain: false, isBetaDomain: false, isDevEnvironment: true}
+weekly-schedule-view.tsx:229 📅 Weekly view - All events: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]

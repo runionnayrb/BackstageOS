@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import jsPDF from "jspdf";
 import { useParams, useLocation } from "wouter";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useBetaFeatures } from "@/hooks/useBetaFeatures";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -24,12 +24,14 @@ import { useToast } from "@/hooks/use-toast";
 import { useAdminView } from "@/contexts/AdminViewContext";
 import { PersonalScheduleShare } from "@/components/personal-schedule-share";
 import { ChangeSummaryEditor } from "@/components/ChangeSummaryEditor";
+import { DistroManager, DistroManagerRef } from "@/components/DistroManager";
 import { InviteTeamMemberDialog } from "@/components/team/InviteTeamMemberDialog";
 import { TeamMembersList } from "@/components/team/TeamMembersList";
 import { ManageTeamRolesModal } from "@/components/team/ManageTeamRolesModal";
 import { GlobalTemplateSettingsContent } from "@/components/GlobalTemplateSettingsContent";
 import { ScheduleTemplatesSection } from "@/components/schedule-templates/ScheduleTemplatesSection";
 import { DocumentTemplatesSection } from "@/components/document-templates/DocumentTemplatesSection";
+import { PerformanceNumberingSettings } from "@/components/PerformanceNumberingSettings";
 import {
   Dialog,
   DialogContent,
@@ -92,7 +94,9 @@ import {
   Italic,
   List,
   ListOrdered,
-  Underline as UnderlineIcon
+  Underline as UnderlineIcon,
+  CreditCard,
+  Loader2
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -176,6 +180,7 @@ interface ShowSettings {
   };
 }
 
+
 export default function ShowSettings() {
   const params = useParams<ShowSettingsParams>();
   const { id } = params;
@@ -202,6 +207,9 @@ export default function ShowSettings() {
   // Drag and drop state for event types
   const [draggedEventTypeId, setDraggedEventTypeId] = useState<number | null>(null);
   const [dragOverEventTypeId, setDragOverEventTypeId] = useState<number | null>(null);
+  // Drag and drop state for running order items
+  const [draggedRunningOrderItemId, setDraggedRunningOrderItemId] = useState<string | null>(null);
+  const [dragOverRunningOrderItemId, setDragOverRunningOrderItemId] = useState<string | null>(null);
   const [eventTypeForm, setEventTypeForm] = useState({ name: '', description: '', color: '#3b82f6' });
   const [locationForm, setLocationForm] = useState({ name: '', address: '', description: '', capacity: '', notes: '', locationType: 'main' });
 
@@ -217,6 +225,7 @@ export default function ShowSettings() {
   // Email template refs
   const emailSubjectRef = useRef<HTMLInputElement>(null);
   const emailBodyRef = useRef<HTMLTextAreaElement>(null);
+  const distroManagerRef = useRef<DistroManagerRef>(null);
   const [localChangeSummary, setLocalChangeSummary] = useState('');
   const [testEmailAddress, setTestEmailAddress] = useState('');
   const [showTestEmailDialog, setShowTestEmailDialog] = useState(false);
@@ -237,6 +246,7 @@ export default function ShowSettings() {
   
   // Schedule tab collapsible sections state
   const [scheduleSettingsOpen, setScheduleSettingsOpen] = useState(true);
+  const [performanceNumberingOpen, setPerformanceNumberingOpen] = useState(true);
   const [importantDatesOpen, setImportantDatesOpen] = useState(true);
   const [eventLocationsOpen, setEventLocationsOpen] = useState(true);
   const [eventTypesOpen, setEventTypesOpen] = useState(true);
@@ -311,74 +321,80 @@ export default function ShowSettings() {
     }
   }, [isEmailModalOpen, emailEditor, emailForm.body]);
 
-  // Use admin view context to override profile type for testing
+  // Use admin view context to override profile type for testing (legacy)
   const { selectedProfileType } = useAdminView();
-  const effectiveProfileType = user ? (selectedProfileType === 'all' ? user.profileType : selectedProfileType) : 'freelance';
-  const isFullTime = effectiveProfileType === "fulltime";
-  const showLabel = isFullTime ? "Show" : "Project";
+  const effectiveProfileType = user ? (selectedProfileType === 'all' ? (user as any).profileType : selectedProfileType) : 'freelance';
+  // Use show's feature settings for seasons, fall back to user preferences, then legacy profileType
+  const showLabel = "Show";
 
   const { data: project, isLoading: projectLoading, error: projectError } = useQuery({
-    queryKey: [`/api/projects/${params.id}`],
+    queryKey: ['/api/projects', params.id],
     enabled: !!params.id,
   });
 
   const { data: settings, isLoading } = useQuery({
-    queryKey: [`/api/projects/${params.id}/settings`],
+    queryKey: ['/api/projects', params.id, 'settings'],
     enabled: !!params.id,
   });
 
+  // Check if this show has seasons enabled in feature settings
+  const showFeatureSettings = (settings as any)?.featureSettings;
+  const userFeatures = (user as any)?.defaultFeaturePreferences as Record<string, boolean> | undefined;
+  const isLegacyFullTime = effectiveProfileType === "fulltime";
+  const hasSeasons = showFeatureSettings?.seasons ?? userFeatures?.seasons ?? isLegacyFullTime;
+
   // Query for auto-generated change summary (for the change summary section)
   const { data: autoChangesSummary } = useQuery({
-    queryKey: [`/api/projects/${params.id}/schedule-changes-summary`],
+    queryKey: ['/api/projects', params.id, 'schedule-changes-summary'],
     enabled: !!params.id,
   });
 
   const { data: eventTypes = [], refetch: refetchEventTypes } = useQuery({
-    queryKey: [`/api/projects/${params.id}/event-types`],
+    queryKey: ['/api/projects', params.id, 'event-types'],
     enabled: !!params.id && !!user,
   });
 
   const { data: locations = [], refetch: refetchLocations } = useQuery({
-    queryKey: [`/api/projects/${params.id}/event-locations`],
+    queryKey: ['/api/projects', params.id, 'event-locations'],
     enabled: !!params.id && !!user,
   });
 
   // Phase 5 queries
   const { data: calendarIntegrations = [] } = useQuery({
-    queryKey: [`/api/projects/${params.id}/calendar/integrations`],
+    queryKey: ['/api/projects', params.id, 'calendar', 'integrations'],
     enabled: !!params.id,
   });
 
   const { data: notificationPreferences = [] } = useQuery({
-    queryKey: [`/api/projects/${params.id}/notification-preferences`],
+    queryKey: ['/api/projects', params.id, 'notification-preferences'],
     enabled: !!params.id,
   });
 
   const { data: scheduleComparisons = [] } = useQuery({
-    queryKey: [`/api/projects/${params.id}/schedule/comparisons`],
+    queryKey: ['/api/projects', params.id, 'schedule', 'comparisons'],
     enabled: !!params.id,
   });
 
   const { data: changeStats } = useQuery({
-    queryKey: [`/api/projects/${params.id}/schedule/change-stats`],
+    queryKey: ['/api/projects', params.id, 'schedule', 'change-stats'],
     enabled: !!params.id,
   });
 
-  // Query venues for full-time users
+  // Query venues for users with seasons enabled
   const { data: venues = [], refetch: refetchVenues } = useQuery({
     queryKey: ["/api/venues"],
-    enabled: !!user && isFullTime,
+    enabled: !!user && hasSeasons,
   });
 
 
 
   const { data: emailTemplateCategories = [] } = useQuery({
-    queryKey: [`/api/projects/${params.id}/email-template-categories`],
+    queryKey: ['/api/projects', params.id, 'email-template-categories'],
     enabled: !!params.id,
   });
 
   const { data: contacts = [] } = useQuery({
-    queryKey: [`/api/projects/${params.id}/contacts`],
+    queryKey: ['/api/projects', params.id, 'contacts'],
     enabled: !!params.id,
   });
 
@@ -390,7 +406,7 @@ export default function ShowSettings() {
 
   // Query for running order versions
   const { data: runningOrderVersions = [], refetch: refetchVersions } = useQuery({
-    queryKey: [`/api/projects/${params.id}/running-order-versions`],
+    queryKey: ['/api/projects', params.id, 'running-order-versions'],
     enabled: !!params.id && activeTab === 'running-order',
   });
 
@@ -410,7 +426,7 @@ export default function ShowSettings() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/running-order-versions`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', params.id, 'running-order-versions'] });
       setIsSaveVersionDialogOpen(false);
       setVersionForm({ label: '', notes: '' });
       toast({
@@ -433,7 +449,7 @@ export default function ShowSettings() {
       return await apiRequest("PATCH", `/api/projects/${params.id}/running-order-versions/${id}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/running-order-versions`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', params.id, 'running-order-versions'] });
       toast({
         title: "Version Updated",
         description: "Version has been updated successfully.",
@@ -454,7 +470,7 @@ export default function ShowSettings() {
       return await apiRequest("DELETE", `/api/projects/${params.id}/running-order-versions/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/running-order-versions`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', params.id, 'running-order-versions'] });
       toast({
         title: "Version Deleted",
         description: "Version has been deleted successfully.",
@@ -498,13 +514,13 @@ export default function ShowSettings() {
     },
     onMutate: async (newSettings) => {
       // Cancel outgoing refetches
-      await queryClient.cancelQueries({ queryKey: [`/api/projects/${params.id}/settings`] });
+      await queryClient.cancelQueries({ queryKey: ['/api/projects', params.id, 'settings'] });
       
       // Snapshot the previous value
-      const previousSettings = queryClient.getQueryData([`/api/projects/${params.id}/settings`]);
+      const previousSettings = queryClient.getQueryData(['/api/projects', params.id, 'settings']);
       
       // Optimistically update to the new value
-      queryClient.setQueryData([`/api/projects/${params.id}/settings`], (oldData: any) => {
+      queryClient.setQueryData(['/api/projects', params.id, 'settings'], (oldData: any) => {
         if (!oldData) return newSettings;
         return { ...oldData, ...newSettings };
       });
@@ -513,7 +529,7 @@ export default function ShowSettings() {
       return { previousSettings };
     },
     onSuccess: (data, variables, context) => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/settings`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', params.id, 'settings'] });
       
       // Check if this is a schedule filtering update (no toast for these)
       let isScheduleFilterUpdate = false;
@@ -535,7 +551,7 @@ export default function ShowSettings() {
     onError: (error, variables, context) => {
       // Roll back to the previous value
       if (context?.previousSettings) {
-        queryClient.setQueryData([`/api/projects/${params.id}/settings`], context.previousSettings);
+        queryClient.setQueryData(['/api/projects', params.id, 'settings'], context.previousSettings);
       }
       
       toast({
@@ -688,37 +704,50 @@ The Production Team`
       return await apiRequest("PUT", `/api/projects/${params.id}`, projectUpdates);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/schedule-events`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', params.id] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', params.id, 'schedule-events'] });
       setProjectUpdates({}); // Clear the pending updates
       toast({
-        title: "Important Dates Updated",
+        title: "Production Dates Updated",
         description: "Your production dates have been saved successfully and will appear on the calendar as all-day events.",
       });
     },
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to save important dates. Please try again.",
+        description: "Failed to save production dates. Please try again.",
         variant: "destructive",
       });
     },
   });
 
   const updateBasicInfoMutation = useMutation({
-    mutationFn: async (data: { name?: string; venue?: string; description?: string }) => {
+    mutationFn: async (data: { name?: string; director?: string; venue?: string; description?: string }) => {
       return await apiRequest("PUT", `/api/projects/${params.id}`, data);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}`] });
-      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+    onMutate: async (newData) => {
+      await queryClient.cancelQueries({ queryKey: ['/api/projects', params.id] });
+      const previousProject = queryClient.getQueryData(['/api/projects', params.id]);
+      queryClient.setQueryData(['/api/projects', params.id], (oldData: any) => {
+        if (!oldData) return newData;
+        return { ...oldData, ...newData };
+      });
       setIsEditingBasicInfo(false);
+      return { previousProject };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', params.id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
       toast({
         title: "Show Updated",
         description: "Show information has been updated successfully.",
       });
     },
-    onError: () => {
+    onError: (error, variables, context) => {
+      if (context?.previousProject) {
+        queryClient.setQueryData(['/api/projects', params.id], context.previousProject);
+      }
+      setIsEditingBasicInfo(true);
       toast({
         title: "Error",
         description: "Failed to update show information. Please try again.",
@@ -754,7 +783,7 @@ The Production Team`
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', params.id] });
       setLocation("/");
       toast({
         title: "Show Archived",
@@ -860,7 +889,7 @@ The Production Team`
       return await apiRequest("POST", `/api/projects/${params.id}/event-locations`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/event-locations`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', params.id, 'event-locations'] });
       refetchLocations();
       setIsLocationDialogOpen(false);
       setLocationForm({ name: '', address: '', description: '', capacity: '', notes: '' });
@@ -1065,6 +1094,91 @@ The Production Team`
     setDragOverEventTypeId(null);
   };
 
+  // Drag and drop handlers for running order items
+  const handleRunningOrderItemDragStart = (e: React.DragEvent, itemId: string) => {
+    setDraggedRunningOrderItemId(itemId);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleRunningOrderItemDragOver = (e: React.DragEvent, itemId: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverRunningOrderItemId(itemId);
+  };
+
+  const handleRunningOrderItemDragLeave = () => {
+    setDragOverRunningOrderItemId(null);
+  };
+
+  const handleRunningOrderItemDrop = (e: React.DragEvent, dropItemId: string) => {
+    e.preventDefault();
+    
+    if (!draggedRunningOrderItemId || draggedRunningOrderItemId === dropItemId) {
+      setDraggedRunningOrderItemId(null);
+      setDragOverRunningOrderItemId(null);
+      return;
+    }
+
+    const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+      ? safeJsonParse((settings as any).scheduleSettings, {}) 
+      : ((settings as any)?.scheduleSettings || {});
+    const runningOrder = [...(scheduleSettings.runningOrder || [])];
+    
+    const draggedItem = runningOrder.find((item: any) => item.id === draggedRunningOrderItemId);
+    const dropItem = runningOrder.find((item: any) => item.id === dropItemId);
+    
+    if (!draggedItem || !dropItem) {
+      setDraggedRunningOrderItemId(null);
+      setDragOverRunningOrderItemId(null);
+      return;
+    }
+
+    // Only allow reordering within the same group
+    if (draggedItem.group !== dropItem.group || draggedItem.inShow !== dropItem.inShow) {
+      setDraggedRunningOrderItemId(null);
+      setDragOverRunningOrderItemId(null);
+      toast({
+        title: "Cannot reorder",
+        description: "Items can only be reordered within the same group and section.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const draggedIndex = runningOrder.findIndex((item: any) => item.id === draggedRunningOrderItemId);
+    const dropIndex = runningOrder.findIndex((item: any) => item.id === dropItemId);
+
+    if (draggedIndex === -1 || dropIndex === -1) return;
+
+    // Remove dragged item and insert at new position
+    const [removed] = runningOrder.splice(draggedIndex, 1);
+    runningOrder.splice(dropIndex, 0, removed);
+
+    // Recalculate order within the group
+    const groupName = draggedItem.group || 'Ungrouped';
+    const inShowStatus = draggedItem.inShow !== false;
+    let orderCounter = 0;
+    runningOrder.forEach((item: any) => {
+      if ((item.group || 'Ungrouped') === groupName && (item.inShow !== false) === inShowStatus) {
+        item.order = orderCounter++;
+      }
+    });
+
+    // Update settings
+    handleSettingsUpdate("scheduleSettings", { 
+      ...scheduleSettings, 
+      runningOrder 
+    });
+
+    setDraggedRunningOrderItemId(null);
+    setDragOverRunningOrderItemId(null);
+  };
+
+  const handleRunningOrderItemDragEnd = () => {
+    setDraggedRunningOrderItemId(null);
+    setDragOverRunningOrderItemId(null);
+  };
+
   // Phase 5 mutations
   const connectGoogleCalendar = useMutation({
     mutationFn: async () => {
@@ -1090,7 +1204,7 @@ The Production Team`
         const messageHandler = (event: MessageEvent) => {
           if (event.data.type === 'GOOGLE_AUTH_SUCCESS') {
             window.removeEventListener('message', messageHandler);
-            queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/calendar/integrations`] });
+            queryClient.invalidateQueries({ queryKey: ['/api/projects', params.id, 'calendar', 'integrations'] });
             resolve(event.data.data);
             
             // Handle both real and temporary integrations
@@ -1140,7 +1254,7 @@ The Production Team`
       return apiRequest('PUT', `/api/projects/${params.id}/calendar/integrations/${integrationId}`, { syncSettings });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/calendar/integrations`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', params.id, 'calendar', 'integrations'] });
       toast({
         title: "Settings updated",
         description: "Google Calendar sync settings have been updated.",
@@ -1153,7 +1267,7 @@ The Production Team`
       return apiRequest('DELETE', `/api/projects/${params.id}/calendar/integrations/${integrationId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/calendar/integrations`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', params.id, 'calendar', 'integrations'] });
       toast({
         title: "Calendar disconnected",
         description: "Google Calendar has been disconnected.",
@@ -1166,7 +1280,7 @@ The Production Team`
       return apiRequest('PUT', `/api/projects/${params.id}/notification-preferences/${contactId}`, preferences);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/notification-preferences`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', params.id, 'notification-preferences'] });
       toast({
         title: "Preferences updated",
         description: "Notification preferences have been updated.",
@@ -1179,7 +1293,7 @@ The Production Team`
       return apiRequest('POST', `/api/projects/${params.id}/email-template-categories`, categoryData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/email-template-categories`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', params.id, 'email-template-categories'] });
       setShowNewCategoryDialog(false);
       setNewTemplateCategory({ name: '', description: '' });
       toast({
@@ -1194,7 +1308,7 @@ The Production Team`
       return apiRequest('DELETE', `/api/projects/${params.id}/email-template-categories/${categoryId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/email-template-categories`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', params.id, 'email-template-categories'] });
       toast({
         title: "Category deleted",
         description: "Email template category has been deleted.",
@@ -1893,6 +2007,7 @@ The Production Team`
     if (project) {
       setShowBasicInfo({
         name: (project as any).name || "",
+        director: (project as any).director || "",
         venue: (project as any).venue || "",
         venueId: (project as any).venueId || null,
         description: (project as any).description || "",
@@ -2021,17 +2136,16 @@ The Production Team`
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-6">
-        <div className="mb-6"></div>
-
-        <div className="mb-8">
-          <div className="flex items-center gap-3">
-            <Settings className="h-6 w-6" />
-            <h1 className="text-3xl font-bold">Show Settings</h1>
+    <div className="w-full">
+      <div className="md:block px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold text-gray-900">Show Settings</h1>
           </div>
         </div>
+      </div>
 
+      <div className="px-4 sm:px-6 lg:px-8">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         {/* Desktop tabs - hidden on mobile */}
         <TabsList className="hidden md:flex w-full justify-start">
@@ -2061,12 +2175,20 @@ The Production Team`
             <Calendar className="h-4 w-4" />
             Schedule
           </TabsTrigger>
+          <TabsTrigger value="distro" className="flex items-center gap-2 flex-1">
+            <Mail className="h-4 w-4" />
+            Distro
+          </TabsTrigger>
           {canAccessFeature('document-templates') && (
             <TabsTrigger value="documents" className="flex items-center gap-2 flex-1">
               <FileText className="h-4 w-4" />
               Documents
             </TabsTrigger>
           )}
+          <TabsTrigger value="billing" className="flex items-center gap-2 flex-1">
+            <CreditCard className="h-4 w-4" />
+            Billing
+          </TabsTrigger>
         </TabsList>
 
         {/* Mobile dropdown - shown only on mobile */}
@@ -2117,6 +2239,12 @@ The Production Team`
                   Schedule
                 </div>
               </SelectItem>
+              <SelectItem value="distro">
+                <div className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  Distro
+                </div>
+              </SelectItem>
               {canAccessFeature('document-templates') && (
                 <SelectItem value="documents">
                   <div className="flex items-center gap-2">
@@ -2129,6 +2257,12 @@ The Production Team`
                 <div className="flex items-center gap-2">
                   <Theater className="h-4 w-4" />
                   Running Order
+                </div>
+              </SelectItem>
+              <SelectItem value="billing">
+                <div className="flex items-center gap-2">
+                  <CreditCard className="h-4 w-4" />
+                  Billing
                 </div>
               </SelectItem>
             </SelectContent>
@@ -2149,6 +2283,10 @@ The Production Team`
                   <div>
                     <Label className="text-sm font-medium">Show Name</Label>
                     <p className="text-lg">{(project as any)?.name || "Untitled Show"}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Director</Label>
+                    <p className="text-lg">{(project as any)?.director || "No director specified"}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium">Venue</Label>
@@ -2177,8 +2315,17 @@ The Production Team`
                     />
                   </div>
                   <div>
+                    <Label htmlFor="director">Director</Label>
+                    <Input
+                      id="director"
+                      value={showBasicInfo.director || ""}
+                      onChange={(e) => setShowBasicInfo(prev => ({ ...prev, director: e.target.value }))}
+                      placeholder="Enter director name"
+                    />
+                  </div>
+                  <div>
                     <Label htmlFor="venue">Venue</Label>
-                    {isFullTime ? (
+                    {hasSeasons ? (
                       <Select
                         value={showBasicInfo.venueId ? showBasicInfo.venueId.toString() : ""}
                         onValueChange={(value) => {
@@ -2442,6 +2589,26 @@ The Production Team`
                         handleSettingsUpdate("featureSettings", { 
                           ...(settings as any)?.featureSettings,
                           contacts: checked
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-sm font-medium">
+                        Seasons
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        Organize shows by season for venue management
+                      </p>
+                    </div>
+                    <Switch
+                      checked={(settings as any)?.featureSettings?.seasons ?? false}
+                      onCheckedChange={(checked) =>
+                        handleSettingsUpdate("featureSettings", { 
+                          ...(settings as any)?.featureSettings,
+                          seasons: checked
                         })
                       }
                     />
@@ -3278,8 +3445,18 @@ The Production Team`
                                     .map((item) => (
                                       <div
                                         key={item.id} 
-                                        className="cursor-pointer hover:shadow-md transition-shadow select-none p-4 rounded-md bg-background" 
+                                        className={`cursor-pointer hover:shadow-md transition-shadow select-none p-4 rounded-md bg-background ${
+                                          draggedRunningOrderItemId === item.id ? 'opacity-50' : ''
+                                        } ${
+                                          dragOverRunningOrderItemId === item.id ? 'ring-2 ring-primary' : ''
+                                        }`}
                                         data-testid={`card-running-order-${item.id}`}
+                                        draggable
+                                        onDragStart={(e) => handleRunningOrderItemDragStart(e, item.id)}
+                                        onDragOver={(e) => handleRunningOrderItemDragOver(e, item.id)}
+                                        onDragLeave={handleRunningOrderItemDragLeave}
+                                        onDrop={(e) => handleRunningOrderItemDrop(e, item.id)}
+                                        onDragEnd={handleRunningOrderItemDragEnd}
                                         onClick={() => {
                                           setEditingRunningOrderItem(item);
                                           setRunningOrderForm({ name: item.name, group: item.group || '', inShow: item.inShow ?? true, duration: item.duration || '' });
@@ -3287,7 +3464,7 @@ The Production Team`
                                         }}
                                       >
                                         <div className="flex items-center gap-2">
-                                          <GripVertical className="h-4 w-4 text-muted-foreground" />
+                                          <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab pointer-events-none" />
                                           <span className="text-base select-none flex-1">{item.name}</span>
                                           {item.duration && <div className="text-sm text-muted-foreground flex" style={{gap: '1px', width: '140px'}}><span>Length:</span><span className="text-right flex-1">{item.duration}</span></div>}
                                         </div>
@@ -3338,8 +3515,18 @@ The Production Team`
                                     .map((item) => (
                                       <div
                                         key={item.id} 
-                                        className="cursor-pointer hover:shadow-md transition-shadow select-none p-4 rounded-md bg-background opacity-75" 
+                                        className={`cursor-pointer hover:shadow-md transition-shadow select-none p-4 rounded-md bg-background opacity-75 ${
+                                          draggedRunningOrderItemId === item.id ? 'opacity-50' : ''
+                                        } ${
+                                          dragOverRunningOrderItemId === item.id ? 'ring-2 ring-primary' : ''
+                                        }`}
                                         data-testid={`card-running-order-${item.id}`}
+                                        draggable
+                                        onDragStart={(e) => handleRunningOrderItemDragStart(e, item.id)}
+                                        onDragOver={(e) => handleRunningOrderItemDragOver(e, item.id)}
+                                        onDragLeave={handleRunningOrderItemDragLeave}
+                                        onDrop={(e) => handleRunningOrderItemDrop(e, item.id)}
+                                        onDragEnd={handleRunningOrderItemDragEnd}
                                         onClick={() => {
                                           setEditingRunningOrderItem(item);
                                           setRunningOrderForm({ name: item.name, group: item.group || '', inShow: item.inShow ?? true, duration: item.duration || '' });
@@ -3347,7 +3534,7 @@ The Production Team`
                                         }}
                                       >
                                         <div className="flex items-center gap-2">
-                                          <GripVertical className="h-4 w-4 text-muted-foreground" />
+                                          <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab pointer-events-none" />
                                           <span className="text-base select-none flex-1">{item.name}</span>
                                           {item.duration && <div className="text-sm text-muted-foreground flex" style={{gap: '1px', width: '140px'}}><span>Length:</span><span className="text-right flex-1">{item.duration}</span></div>}
                                         </div>
@@ -4278,6 +4465,15 @@ The Production Team`
             </Card>
           </Collapsible>
 
+          {/* Performance Numbering */}
+          <PerformanceNumberingSettings 
+            projectId={parseInt(params.id)} 
+            settings={settings}
+            handleSettingsUpdate={handleSettingsUpdate}
+            isOpen={performanceNumberingOpen}
+            onOpenChange={setPerformanceNumberingOpen}
+          />
+
           {/* Weekly Templates */}
           <ScheduleTemplatesSection projectId={parseInt(params.id)} />
 
@@ -4327,31 +4523,229 @@ The Production Team`
                       <p className="text-xs text-muted-foreground">How Cast names appear on Daily Calls</p>
                     </div>
                     
-                    <div className="space-y-2">
-                      <Label htmlFor="announcementsPosition">Announcements Position</Label>
-                      <Select
-                        value={(() => {
+                  </div>
+                  
+                  {/* Custom Sections Management */}
+                  <div className="space-y-4 pt-4 border-t">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label className="text-base font-medium">Custom Sections</Label>
+                        <p className="text-xs text-muted-foreground mt-1">Add custom sections like Notes or Announcements that appear above or below the call (max 5)</p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
                           const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
                             ? safeJsonParse((settings as any).scheduleSettings, {}) 
                             : ((settings as any)?.scheduleSettings || {});
-                          return scheduleSettings.announcementsPosition || 'bottom';
-                        })()}
-                        onValueChange={(value) => {
-                          const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
-                            ? safeJsonParse((settings as any).scheduleSettings, {}) 
-                            : ((settings as any)?.scheduleSettings || {});
-                          handleSettingsUpdate("scheduleSettings", { ...scheduleSettings, announcementsPosition: value });
+                          const currentSections = scheduleSettings.customSections || [];
+                          
+                          if (currentSections.length >= 5) {
+                            toast({
+                              title: "Maximum sections reached",
+                              description: "You can have up to 5 custom sections.",
+                              variant: "destructive"
+                            });
+                            return;
+                          }
+                          
+                          const newSection = {
+                            id: `section-${Date.now()}`,
+                            name: 'New Section',
+                            position: 'bottom' as const,
+                            order: currentSections.length,
+                            listType: 'numbered' as const,
+                          };
+                          
+                          handleSettingsUpdate("scheduleSettings", { 
+                            ...scheduleSettings, 
+                            customSections: [...currentSections, newSection]
+                          });
                         }}
+                        disabled={(() => {
+                          const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                            ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                            : ((settings as any)?.scheduleSettings || {});
+                          const currentSections = scheduleSettings.customSections || [];
+                          return currentSections.length >= 5;
+                        })()}
+                        data-testid="button-add-custom-section"
                       >
-                        <SelectTrigger id="announcementsPosition">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="top">Above the Call</SelectItem>
-                          <SelectItem value="bottom">Below the Call</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <p className="text-xs text-muted-foreground">Where Announcements appear on Daily Calls</p>
+                        <Plus className="h-4 w-4 mr-1" />
+                        Add Section
+                      </Button>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      {(() => {
+                        const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                          ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                          : ((settings as any)?.scheduleSettings || {});
+                        let sections = scheduleSettings.customSections || [];
+                        
+                        // Migration: if no sections exist, create default from announcementsPosition
+                        if (sections.length === 0) {
+                          sections = [{
+                            id: 'announcements',
+                            name: 'Announcements',
+                            position: scheduleSettings.announcementsPosition || 'bottom',
+                            order: 0,
+                          }];
+                        }
+                        
+                        return sections
+                          .sort((a: any, b: any) => (a.order || 0) - (b.order || 0))
+                          .map((section: any, index: number) => (
+                            <div 
+                              key={section.id} 
+                              className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg transition-colors" 
+                              data-testid={`custom-section-${section.id}`}
+                              draggable
+                              onDragStart={(e) => {
+                                e.dataTransfer.setData('customSectionId', section.id);
+                                e.currentTarget.classList.add('opacity-50');
+                              }}
+                              onDragEnd={(e) => {
+                                e.currentTarget.classList.remove('opacity-50');
+                              }}
+                              onDragOver={(e) => {
+                                e.preventDefault();
+                                e.currentTarget.classList.add('border-2', 'border-primary');
+                              }}
+                              onDragLeave={(e) => {
+                                e.currentTarget.classList.remove('border-2', 'border-primary');
+                              }}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                e.currentTarget.classList.remove('border-2', 'border-primary');
+                                const draggedId = e.dataTransfer.getData('customSectionId');
+                                if (draggedId === section.id) return;
+                                
+                                const sortedSections = [...sections].sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
+                                const draggedIndex = sortedSections.findIndex((s: any) => s.id === draggedId);
+                                const dropIndex = sortedSections.findIndex((s: any) => s.id === section.id);
+                                
+                                if (draggedIndex === -1 || dropIndex === -1) return;
+                                
+                                const newSections = [...sortedSections];
+                                const [removed] = newSections.splice(draggedIndex, 1);
+                                newSections.splice(dropIndex, 0, removed);
+                                
+                                const reorderedSections = newSections.map((s: any, i: number) => ({ ...s, order: i }));
+                                handleSettingsUpdate("scheduleSettings", { 
+                                  ...scheduleSettings, 
+                                  customSections: reorderedSections
+                                });
+                              }}
+                            >
+                              <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab pointer-events-none flex-shrink-0" />
+                              <div className="flex-1 space-y-2">
+                                <Input
+                                  value={section.name}
+                                  onChange={(e) => {
+                                    const updatedSections = sections.map((s: any) => 
+                                      s.id === section.id ? { ...s, name: e.target.value } : s
+                                    );
+                                    handleSettingsUpdate("scheduleSettings", { 
+                                      ...scheduleSettings, 
+                                      customSections: updatedSections
+                                    });
+                                  }}
+                                  placeholder="Section name"
+                                  className="font-medium"
+                                  data-testid={`input-section-name-${section.id}`}
+                                />
+                              </div>
+                              <Select
+                                value={section.listType || 'numbered'}
+                                onValueChange={(value: 'numbered' | 'bulleted' | 'dash') => {
+                                  const updatedSections = sections.map((s: any) => 
+                                    s.id === section.id ? { ...s, listType: value } : s
+                                  );
+                                  handleSettingsUpdate("scheduleSettings", { 
+                                    ...scheduleSettings, 
+                                    customSections: updatedSections
+                                  });
+                                }}
+                              >
+                                <SelectTrigger className="w-[120px]" data-testid={`select-section-listtype-${section.id}`}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="numbered">1. 2. 3.</SelectItem>
+                                  <SelectItem value="bulleted">• • •</SelectItem>
+                                  <SelectItem value="dash">- - -</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Select
+                                value={section.position}
+                                onValueChange={(value: 'top' | 'bottom') => {
+                                  const updatedSections = sections.map((s: any) => 
+                                    s.id === section.id ? { ...s, position: value } : s
+                                  );
+                                  handleSettingsUpdate("scheduleSettings", { 
+                                    ...scheduleSettings, 
+                                    customSections: updatedSections
+                                  });
+                                }}
+                              >
+                                <SelectTrigger className="w-[140px]" data-testid={`select-section-position-${section.id}`}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="top">Above the Call</SelectItem>
+                                  <SelectItem value="bottom">Below the Call</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-foreground/70 hover:text-foreground"
+                                    data-testid={`button-delete-section-${section.id}`}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Section</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete "{section.name}"? This will remove the section from all daily calls.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => {
+                                        if (sections.length <= 1) {
+                                          toast({
+                                            title: "Cannot delete",
+                                            description: "You must have at least one section.",
+                                            variant: "destructive"
+                                          });
+                                          return;
+                                        }
+                                        const updatedSections = sections
+                                          .filter((s: any) => s.id !== section.id)
+                                          .map((s: any, i: number) => ({ ...s, order: i }));
+                                        handleSettingsUpdate("scheduleSettings", { 
+                                          ...scheduleSettings, 
+                                          customSections: updatedSections
+                                        });
+                                      }}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          ));
+                      })()}
                     </div>
                   </div>
                 </CardContent>
@@ -4911,14 +5305,14 @@ The Production Team`}
             </Card>
           </Collapsible>
 
-          {/* Important Dates */}
+          {/* Production Dates */}
           <Collapsible open={importantDatesOpen} onOpenChange={setImportantDatesOpen}>
             <Card>
               <CollapsibleTrigger asChild>
                 <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle>Important Dates</CardTitle>
+                      <CardTitle>Production Dates</CardTitle>
                       <CardDescription>
                         Configure key production milestones and dates for this {showLabel.toLowerCase()}.
                       </CardDescription>
@@ -5008,7 +5402,7 @@ The Production Team`}
                       className="w-full"
                     >
                       <Save className="h-4 w-4 mr-2" />
-                      {saveProjectMutation.isPending ? "Saving..." : "Save Important Dates"}
+                      {saveProjectMutation.isPending ? "Saving..." : "Save Production Dates"}
                     </Button>
                   </div>
                 </CardContent>
@@ -5053,6 +5447,43 @@ The Production Team`}
             </Card>
           </TabsContent>
         )}
+
+        <TabsContent value="distro" className="mt-6">
+          <Card className="border-0 shadow-none">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+              <div>
+                <CardTitle>Distribution Lists</CardTitle>
+                <CardDescription>
+                  Manage email distribution lists for sending schedules, reports, and other communications to your team.
+                </CardDescription>
+              </div>
+              <Button onClick={() => distroManagerRef.current?.openCreate()} data-testid="btn-create-distro-header">
+                <Plus className="h-4 w-4 mr-2" />
+                Create Distro
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <DistroManager ref={distroManagerRef} projectId={params.id!} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="billing" className="mt-6">
+          <Card className="border-0 shadow-none">
+            <CardHeader>
+              <CardTitle>Show Billing</CardTitle>
+              <CardDescription>
+                All your show billing is now managed in one central location.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button onClick={() => setLocation('/billing')}>
+                <CreditCard className="mr-2 h-4 w-4" />
+                Go to Billing
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
 
       {/* Event Type Dialog */}

@@ -660,10 +660,26 @@ export class StandaloneEmailService {
   }
 
   /**
-   * Delete message
+   * Delete message - returns true only if a message was actually deleted
    */
   async deleteMessage(messageId: number, accountId: number): Promise<boolean> {
     try {
+      // Check if the message exists first before trying to delete
+      const existingMessage = await db
+        .select({ id: emailMessages.id })
+        .from(emailMessages)
+        .where(
+          and(
+            eq(emailMessages.id, messageId),
+            eq(emailMessages.accountId, accountId)
+          )
+        )
+        .limit(1);
+      
+      if (existingMessage.length === 0) {
+        return false; // Message doesn't exist locally, caller should try Gmail/Outlook
+      }
+      
       await db
         .delete(emailMessages)
         .where(

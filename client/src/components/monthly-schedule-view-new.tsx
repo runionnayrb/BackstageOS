@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -7,7 +7,7 @@ import { ChevronLeft, ChevronRight, Plus, Calendar, X, Clock, MapPin, Users, Edi
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { formatTimeDisplay, parseScheduleSettings } from "@/lib/timeUtils";
-import { isShowEvent, getEventTypeDisplayName, getEventTypeColor, getEventTypeColorFromDatabase, isLightColor } from "@/lib/eventUtils";
+import { isShowEvent, getEventTypeDisplayName, getEventTypeColor, getEventTypeColorFromDatabase, isLightColor, calculatePerformanceNumbers, isPerformanceType } from "@/lib/eventUtils";
 import { filterEventsBySettings } from "@/lib/scheduleUtils";
 import EventForm from "@/components/event-form";
 import { apiRequest } from "@/lib/queryClient";
@@ -40,11 +40,14 @@ interface ScheduleEvent {
   startTime: string;
   endTime: string;
   type: string;
+  eventTypeId?: number | null;
   location?: string;
   notes?: string;
   isAllDay: boolean;
   parentEventId?: number | null;
   isProductionLevel?: boolean;
+  status?: string;
+  cancellationReason?: string | null;
   participants: {
     id: number;
     contactId: number;
@@ -91,7 +94,7 @@ export default function MonthlyScheduleView({
 
   // Fetch all data needed for event creation/editing
   const { data: events = [] } = useQuery({
-    queryKey: [`/api/projects/${projectId}/schedule-events`],
+    queryKey: ['/api/projects', projectId, 'schedule-events'],
     select: (data) => {
       console.log('📅 All events in monthly view:', data?.map(e => ({
         id: e.id,
@@ -105,20 +108,29 @@ export default function MonthlyScheduleView({
   });
 
   const { data: contacts = [] } = useQuery({
-    queryKey: [`/api/projects/${projectId}/contacts`],
+    queryKey: ['/api/projects', projectId, 'contacts'],
   });
 
   const { data: eventTypes = [] } = useQuery({
-    queryKey: [`/api/projects/${projectId}/event-types`],
+    queryKey: ['/api/projects', projectId, 'event-types'],
   });
 
   const { data: settings } = useQuery({
-    queryKey: [`/api/projects/${projectId}/settings`],
+    queryKey: ['/api/projects', projectId, 'settings'],
   });
 
   // Get time format and week start day from settings
   const scheduleSettings = parseScheduleSettings(settings?.scheduleSettings);
   const { timeFormat, weekStartDay } = scheduleSettings;
+
+  // Calculate performance numbers for all events
+  const performanceNumbers = useMemo(() => {
+    const config = scheduleSettings.performanceNumbering || {
+      firstPerformanceEventId: null,
+      startingNumber: 1,
+    };
+    return calculatePerformanceNumbers(events, config, eventTypes);
+  }, [events, scheduleSettings.performanceNumbering, eventTypes]);
 
   // Filter events based on contacts, all-day settings, and schedule filtering
   const getEventsForDate = (date: Date) => {
@@ -217,7 +229,7 @@ export default function MonthlyScheduleView({
       projectId,
     }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
       setCreateEventDialog(false);
       toast({
         title: "Event created successfully",
@@ -236,9 +248,9 @@ export default function MonthlyScheduleView({
   const updateEventMutation = useMutation({
     mutationFn: ({ id, ...eventData }: any) => apiRequest('PUT', `/api/schedule-events/${id}`, eventData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
       // Also invalidate Show Settings query since Important Date events sync to project settings
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/settings`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
       setEditEventDialog({ isOpen: false });
       toast({
         title: "Event updated successfully",
@@ -257,9 +269,9 @@ export default function MonthlyScheduleView({
   const deleteEventMutation = useMutation({
     mutationFn: (eventId: number) => apiRequest('DELETE', `/api/schedule-events/${eventId}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
       // Also invalidate Show Settings query since Important Date events sync to project settings
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/settings`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
       setEditEventDialog({ isOpen: false });
       toast({
         title: "Event deleted successfully",
@@ -447,20 +459,30 @@ export default function MonthlyScheduleView({
                         >
                           <PopoverTrigger asChild>
                             <div
-                              className={`px-1 py-0.5 rounded text-xs cursor-pointer transition-colors hover:opacity-80 flex items-center space-x-1 ${
+                              className={`px-1 py-0.5 rounded text-xs cursor-pointer transition-colors hover:opacity-80 flex items-center justify-between ${
                                 isLightColor(eventTypeColor) ? 'text-gray-900' : 'text-white'
                               }`}
                               style={{ backgroundColor: eventTypeColor }}
                               onClick={(e) => e.stopPropagation()}
                             >
-                              {!event.isAllDay && (
-                                <span className="font-medium opacity-90 text-[10px] flex-shrink-0">
-                                  {formatEventTime(event.startTime)}
+                              <div className="flex items-center space-x-1 min-w-0">
+                                {!event.isAllDay && (
+                                  <span className="font-medium opacity-90 text-[10px] flex-shrink-0">
+                                    {formatEventTime(event.startTime)}
+                                  </span>
+                                )}
+                                <span className="truncate">
+                                  {event.title}
                                 </span>
-                              )}
-                              <span className="truncate">
-                                {event.title}
-                              </span>
+                              </div>
+                              <div className="flex items-center gap-0.5 flex-shrink-0 ml-1">
+                                {event.status === 'cancelled' && (
+                                  <span className="text-[8px] font-bold bg-red-500 text-white px-0.5 rounded leading-none">X</span>
+                                )}
+                                {performanceNumbers.get(event.id) && (
+                                  <span className="text-[8px] font-bold bg-white/30 px-0.5 rounded leading-none">#{performanceNumbers.get(event.id)}</span>
+                                )}
+                              </div>
                             </div>
                           </PopoverTrigger>
                         <PopoverContent className="w-80 p-0" align="start">
@@ -473,6 +495,12 @@ export default function MonthlyScheduleView({
                                   style={{ backgroundColor: eventTypeColor }}
                                 />
                                 <h3 className="font-medium text-sm">{event.title}</h3>
+                                {event.status === 'cancelled' && (
+                                  <span className="text-xs font-bold bg-red-500 text-white px-1.5 py-0.5 rounded">Cancelled</span>
+                                )}
+                                {performanceNumbers.get(event.id) && (
+                                  <span className="text-xs font-bold bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100 px-1.5 py-0.5 rounded">#{performanceNumbers.get(event.id)}</span>
+                                )}
                               </div>
                               <Button
                                 variant="ghost"
@@ -519,6 +547,14 @@ export default function MonthlyScheduleView({
                                 <Calendar className="h-3 w-3" />
                                 <span>{getEventTypeDisplayName(event.type, eventTypes, event.eventTypeId)}</span>
                               </div>
+
+                              {/* Cancellation Reason */}
+                              {event.status === 'cancelled' && event.cancellationReason && (
+                                <div className="bg-red-50 border border-red-200 rounded-md p-2">
+                                  <div className="text-xs font-medium text-red-700 mb-1">Cancellation Reason:</div>
+                                  <div className="text-xs text-red-600">{event.cancellationReason}</div>
+                                </div>
+                              )}
 
                               {/* Participants */}
                               {event.participants && event.participants.length > 0 && (
@@ -583,13 +619,6 @@ export default function MonthlyScheduleView({
                                     </div>
                                   </PopoverContent>
                                 </Popover>
-                              )}
-
-                              {/* Description */}
-                              {event.description && (
-                                <div className="text-xs text-gray-700 pt-1">
-                                  <p>{event.description}</p>
-                                </div>
                               )}
 
                               {/* Notes */}

@@ -24,7 +24,7 @@ export default function ArchivedShows() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: archivedProjects, isLoading } = useQuery({
+  const { data: archivedProjects = [], isLoading } = useQuery<ArchivedProject[]>({
     queryKey: ["/api/projects/archived"],
   });
 
@@ -187,7 +187,7 @@ export default function ArchivedShows() {
 
                 <div className="flex gap-2 pt-2">
                   <Button asChild variant="outline" size="sm" className="flex-1">
-                    <Link href={`/projects/${project.id}`}>
+                    <Link href={`/shows/${project.id}`}>
                       <Users className="h-4 w-4 mr-1" />
                       View Details
                     </Link>

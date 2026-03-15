@@ -10,10 +10,21 @@ export class GoogleOAuthService {
     this.clientId = process.env.GOOGLE_CLIENT_ID || '';
     this.clientSecret = process.env.GOOGLE_CLIENT_SECRET || '';
     
-    const baseUrl = process.env.REPLIT_DEV_DOMAIN 
-      ? `https://${process.env.REPLIT_DEV_DOMAIN}`
-      : 'http://localhost:5000';
+    // Priority: Custom domain > Production deployment > Dev domain > localhost
+    let baseUrl: string;
+    if (process.env.CUSTOM_DOMAIN) {
+      baseUrl = `https://${process.env.CUSTOM_DOMAIN}`;
+    } else if (process.env.REPLIT_DEPLOYMENT === '1' && process.env.REPLIT_DOMAINS) {
+      // In production deployment, use the first production domain
+      const domains = process.env.REPLIT_DOMAINS.split(',');
+      baseUrl = `https://${domains[0]}`;
+    } else if (process.env.REPLIT_DEV_DOMAIN) {
+      baseUrl = `https://${process.env.REPLIT_DEV_DOMAIN}`;
+    } else {
+      baseUrl = 'http://localhost:5000';
+    }
     this.redirectUri = `${baseUrl}/api/oauth/google/callback`;
+    
     
     if (!this.clientId || !this.clientSecret) {
       console.warn('⚠️  Google OAuth credentials not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET');

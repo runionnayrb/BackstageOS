@@ -60,16 +60,19 @@ export function setupAuth(app: Express) {
     disableTouch: true,
   });
 
+  const isReplit = !!(process.env.REPL_ID || process.env.REPL_SLUG);
+  const useSecureCookies = process.env.NODE_ENV === 'production' || isReplit;
+  
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "your-secret-key",
     resave: false,
     saveUninitialized: false,
     store: pgStore,
     cookie: {
-      secure: process.env.NODE_ENV === 'production',
+      secure: useSecureCookies,
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000,
-      sameSite: 'lax',
+      sameSite: useSecureCookies ? 'none' : 'lax',
     },
     name: 'backstage.sid',
     rolling: false,
@@ -78,13 +81,33 @@ export function setupAuth(app: Express) {
   app.set("trust proxy", 1);
   app.use(session(sessionSettings));
   
+  // Passport 0.7 compatibility: wrap regenerate/save to work with connect-pg-simple
+  // Passport 0.7 calls req.session.regenerate() during login, which can break
+  // session stores that don't fully support regeneration
   app.use((req, res, next) => {
+    if (req.session) {
+      const origRegenerate = req.session.regenerate;
+      req.session.regenerate = function (cb: (err?: any) => void) {
+        origRegenerate.call(this, (err: any) => {
+          if (!err && req.session && req.session.cookie) {
+            const host = req.get('host') || '';
+            const domain = getCookieDomain(host);
+            if (domain) {
+              req.session.cookie.domain = domain;
+            }
+          }
+          cb(err);
+        });
+      };
+
+      const origSave = req.session.save;
+      req.session.save = function (cb?: (err?: any) => void) {
+        origSave.call(this, cb || function () {});
+      };
+    }
+
     const host = req.get('host') || '';
-    const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https';
-    
     if (req.session && req.session.cookie) {
-      req.session.cookie.secure = isSecure;
-      
       const domain = getCookieDomain(host);
       if (domain) {
         req.session.cookie.domain = domain;
@@ -172,14 +195,19 @@ export function setupAuth(app: Express) {
         console.error('Error checking waitlist:', waitlistError);
       }
 
-      // Create new user - grant beta access to all new users
+      // Create new user - beta access depends on BILLING_MODE
+      // BILLING_MODE=beta (default): All users get free access
+      // BILLING_MODE=live: Users must pay to access features
+      const billingMode = process.env.BILLING_MODE || 'beta';
+      const grantBetaAccess = billingMode === 'beta';
+      
       const hashedPassword = await hashPassword(password);
       const user = await storage.createUser({
         email,
         password: hashedPassword,
         firstName,
         lastName,
-        betaAccess: true, // All new users get beta access
+        betaAccess: grantBetaAccess, // Only grant free beta access in beta mode
         defaultReplyToEmail: email, // Auto-populate with their registration email
         emailDisplayName: `${firstName} ${lastName}`.trim() || null, // Auto-populate with their name
       });
@@ -296,12 +324,13 @@ export function setupAuth(app: Express) {
           console.error("Session destroy error:", destroyErr);
         }
         
+        const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https';
         res.clearCookie('backstage.sid', {
           path: '/',
           domain: cookieDomain,
           httpOnly: true,
-          secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
-          sameSite: 'lax'
+          secure: isSecure,
+          sameSite: isSecure ? 'none' : 'lax'
         });
         
         console.log("Logout complete, session destroyed, cookie cleared");

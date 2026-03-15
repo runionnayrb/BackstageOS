@@ -175,9 +175,9 @@ function groupOverlappingEvents(events: EventForLayout[]): EventForLayout[][] {
 }
 
 // Assign columns to events within a group
-// Uses a stable approach: columns are assigned by event ID order to ensure consistent positioning
+// Uses greedy algorithm to ensure overlapping events never share the same column
 function assignColumns(group: EventForLayout[]): Map<number, number> {
-  // First, determine the actual number of columns needed using greedy algorithm on time-sorted events
+  // Sort events by start time, then by end time, then by ID for stability
   const timeSorted = [...group].sort((a, b) => {
     const startA = timeToMinutes(a.startTime);
     const startB = timeToMinutes(b.startTime);
@@ -188,32 +188,31 @@ function assignColumns(group: EventForLayout[]): Map<number, number> {
     return a.id - b.id;
   });
   
-  const tempColumnEndTimes: number[] = [];
+  const columnAssignments = new Map<number, number>();
+  const columnEndTimes: number[] = [];
+  
   for (const event of timeSorted) {
     const startTime = timeToMinutes(event.startTime);
+    const endTime = timeToMinutes(event.endTime);
+    
+    // Find the first column where this event can fit (column is free when event starts)
     let assignedColumn = -1;
-    for (let col = 0; col < tempColumnEndTimes.length; col++) {
-      if (tempColumnEndTimes[col] <= startTime) {
+    for (let col = 0; col < columnEndTimes.length; col++) {
+      if (columnEndTimes[col] <= startTime) {
         assignedColumn = col;
         break;
       }
     }
+    
+    // If no existing column is free, create a new one
     if (assignedColumn === -1) {
-      assignedColumn = tempColumnEndTimes.length;
-      tempColumnEndTimes.push(0);
+      assignedColumn = columnEndTimes.length;
+      columnEndTimes.push(0);
     }
-    tempColumnEndTimes[assignedColumn] = timeToMinutes(event.endTime);
-  }
-  
-  const totalColumns = tempColumnEndTimes.length;
-  
-  // Now assign columns based on ID order for stable positioning
-  // This ensures the same events always maintain the same left/right positions
-  const idSorted = [...group].sort((a, b) => a.id - b.id);
-  const columnAssignments = new Map<number, number>();
-  
-  for (let i = 0; i < idSorted.length; i++) {
-    columnAssignments.set(idSorted[i].id, i % totalColumns);
+    
+    // Assign this event to the column and update when the column becomes free
+    columnAssignments.set(event.id, assignedColumn);
+    columnEndTimes[assignedColumn] = endTime;
   }
   
   return columnAssignments;

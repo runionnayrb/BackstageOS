@@ -36,6 +36,23 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Plus, Trash2, GripVertical, Edit, Eye, Settings } from "lucide-react";
 import { ChangeSummaryEditor } from "@/components/ChangeSummaryEditor";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface TemplateEditorV2Params {
   id: string;
@@ -62,6 +79,7 @@ interface TemplateField {
   options: any;
   defaultValue: string | null;
   departmentKey: string | null;
+  hideLabel: boolean;
   displayOrder: number;
 }
 
@@ -90,7 +108,190 @@ const FIELD_TYPES = [
   { value: "time", label: "Time" },
   { value: "checkbox", label: "Checkbox" },
   { value: "select", label: "Dropdown" },
+  { value: "dailycall", label: "Daily Call" },
 ];
+
+interface SortableFieldProps {
+  field: TemplateField;
+  isLast: boolean;
+  onEdit: (field: TemplateField) => void;
+}
+
+function SortableField({ field, isLast, onEdit }: SortableFieldProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: field.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`overflow-hidden ${!isLast ? 'border-b' : ''}`}
+      data-testid={`field-${field.id}`}
+    >
+      <div className="flex items-center gap-3 py-3 hover:bg-muted transition-colors">
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing touch-none"
+        >
+          <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+        </div>
+        <div
+          className="flex-1 cursor-pointer"
+          onClick={() => onEdit(field)}
+        >
+          <div className="font-medium">
+            {field.hideLabel ? <span className="text-muted-foreground line-through">{field.label}</span> : field.label}
+            {field.required && <span className="text-destructive ml-1">*</span>}
+          </div>
+          {field.helperText && (
+            <div className="text-sm text-muted-foreground">{field.helperText}</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface SortableSectionProps {
+  section: TemplateSection;
+  departments: Record<string, string>;
+  onAddField: (section: TemplateSection) => void;
+  onEditSection: (section: TemplateSection) => void;
+  onDeleteSection: (section: TemplateSection) => void;
+  onEditField: (field: TemplateField) => void;
+  onFieldDragEnd: (sectionId: number, event: DragEndEvent) => void;
+}
+
+function SortableSection({
+  section,
+  departments,
+  onAddField,
+  onEditSection,
+  onDeleteSection,
+  onEditField,
+  onFieldDragEnd,
+}: SortableSectionProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: section.id });
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const fieldIds = section.fields.map((f) => f.id);
+
+  return (
+    <Card
+      ref={setNodeRef}
+      style={style}
+      data-testid={`card-section-${section.id}`}
+      className="border-0 p-0"
+    >
+      <CardHeader className="p-0 pb-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div
+              {...attributes}
+              {...listeners}
+              className="cursor-grab active:cursor-grabbing touch-none"
+            >
+              <GripVertical className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <CardTitle>{section.title}</CardTitle>
+            {section.departmentKey && (
+              <span className="text-sm text-muted-foreground">
+                ({departments[section.departmentKey] || section.departmentKey})
+              </span>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onAddField(section)}
+              data-testid={`button-add-field-${section.id}`}
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Add Field
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onEditSection(section)}
+              data-testid={`button-edit-section-${section.id}`}
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onDeleteSection(section)}
+              data-testid={`button-delete-section-${section.id}`}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="p-0">
+        {section.fields.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No fields yet. Add your first field to get started.</p>
+        ) : (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={(event) => onFieldDragEnd(section.id, event)}
+          >
+            <SortableContext items={fieldIds} strategy={verticalListSortingStrategy}>
+              <div className="space-y-0">
+                {section.fields.map((field, index) => (
+                  <SortableField
+                    key={field.id}
+                    field={field}
+                    isLast={index === section.fields.length - 1}
+                    onEdit={onEditField}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function TemplateEditorV2() {
   const { toast } = useToast();
@@ -123,6 +324,7 @@ export default function TemplateEditorV2() {
   const [newFieldDefaultValue, setNewFieldDefaultValue] = useState("");
   const [newFieldDefaultValueRichText, setNewFieldDefaultValueRichText] = useState("");
   const [newFieldDepartmentKey, setNewFieldDepartmentKey] = useState("none");
+  const [newFieldHideLabel, setNewFieldHideLabel] = useState(false);
 
   const [editFieldType, setEditFieldType] = useState("richtext");
   const [editFieldLabel, setEditFieldLabel] = useState("");
@@ -133,6 +335,7 @@ export default function TemplateEditorV2() {
   const [editFieldDefaultValue, setEditFieldDefaultValue] = useState("");
   const [editFieldDefaultValueRichText, setEditFieldDefaultValueRichText] = useState("");
   const [editFieldDepartmentKey, setEditFieldDepartmentKey] = useState("none");
+  const [editFieldHideLabel, setEditFieldHideLabel] = useState(false);
 
   // Template metadata editing
   const [isEditTemplateDialogOpen, setIsEditTemplateDialogOpen] = useState(false);
@@ -508,6 +711,145 @@ export default function TemplateEditorV2() {
     },
   });
 
+  // Reorder sections mutation
+  const reorderSectionsMutation = useMutation({
+    mutationFn: async (sectionIds: number[]) => {
+      return apiRequest("PATCH", `/api/templates-v2/${templateId}/sections/reorder`, { sectionIds });
+    },
+    onMutate: async (sectionIds) => {
+      await queryClient.cancelQueries({
+        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+      });
+
+      const previousTemplate = queryClient.getQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)]);
+
+      queryClient.setQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)], (old: any) => {
+        if (!old) return old;
+        const sectionMap = new Map(old.sections.map((s: TemplateSection) => [s.id, s]));
+        const reorderedSections = sectionIds
+          .map((id) => sectionMap.get(id))
+          .filter(Boolean)
+          .map((section, index) => ({ ...section, displayOrder: index }));
+        return { ...old, sections: reorderedSections };
+      });
+
+      return { previousTemplate };
+    },
+    onError: (error, variables, context) => {
+      if (context?.previousTemplate) {
+        queryClient.setQueryData(
+          ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+          context.previousTemplate
+        );
+      }
+      toast({
+        title: "Error",
+        description: "Failed to reorder sections. Please try again.",
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2"],
+      });
+    },
+  });
+
+  // Reorder fields mutation
+  const reorderFieldsMutation = useMutation({
+    mutationFn: async ({ sectionId, fieldIds }: { sectionId: number; fieldIds: number[] }) => {
+      return apiRequest("PATCH", `/api/templates-v2/sections/${sectionId}/fields/reorder`, { fieldIds });
+    },
+    onMutate: async ({ sectionId, fieldIds }) => {
+      await queryClient.cancelQueries({
+        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+      });
+
+      const previousTemplate = queryClient.getQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)]);
+
+      queryClient.setQueryData(["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          sections: old.sections.map((section: any) => {
+            if (section.id !== sectionId) return section;
+            const fieldMap = new Map(section.fields.map((f: TemplateField) => [f.id, f]));
+            const reorderedFields = fieldIds
+              .map((id) => fieldMap.get(id))
+              .filter(Boolean)
+              .map((field, index) => ({ ...field, displayOrder: index }));
+            return { ...section, fields: reorderedFields };
+          }),
+        };
+      });
+
+      return { previousTemplate };
+    },
+    onError: (error, variables, context) => {
+      if (context?.previousTemplate) {
+        queryClient.setQueryData(
+          ["/api/projects", parseInt(projectId!), "templates-v2", parseInt(templateId!)],
+          context.previousTemplate
+        );
+      }
+      toast({
+        title: "Error",
+        description: "Failed to reorder fields. Please try again.",
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["/api/projects", parseInt(projectId!), "templates-v2"],
+      });
+    },
+  });
+
+  // DnD sensors for sections
+  const sectionSensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Handle section drag end
+  const handleSectionDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id || !template) return;
+
+    const oldIndex = template.sections.findIndex((s) => s.id === active.id);
+    const newIndex = template.sections.findIndex((s) => s.id === over.id);
+
+    if (oldIndex !== -1 && newIndex !== -1) {
+      const newSections = arrayMove(template.sections, oldIndex, newIndex);
+      const sectionIds = newSections.map((s) => s.id);
+      reorderSectionsMutation.mutate(sectionIds);
+    }
+  };
+
+  // Handle field drag end within a section
+  const handleFieldDragEnd = (sectionId: number, event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id || !template) return;
+
+    const section = template.sections.find((s) => s.id === sectionId);
+    if (!section) return;
+
+    const oldIndex = section.fields.findIndex((f) => f.id === active.id);
+    const newIndex = section.fields.findIndex((f) => f.id === over.id);
+
+    if (oldIndex !== -1 && newIndex !== -1) {
+      const newFields = arrayMove(section.fields, oldIndex, newIndex);
+      const fieldIds = newFields.map((f) => f.id);
+      reorderFieldsMutation.mutate({ sectionId, fieldIds });
+    }
+  };
+
   // Update template mutation
   const updateTemplateMutation = useMutation({
     mutationFn: async (data: { name?: string; description?: string; reportTypeId?: number | null }) => {
@@ -600,6 +942,7 @@ export default function TemplateEditorV2() {
     setNewFieldDefaultValue("");
     setNewFieldDefaultValueRichText("");
     setNewFieldDepartmentKey("none");
+    setNewFieldHideLabel(false);
   };
 
   const handleEditTemplateClick = () => {
@@ -688,7 +1031,8 @@ export default function TemplateEditorV2() {
   };
 
   const handleCreateField = () => {
-    if (!selectedSection || !newFieldLabel.trim()) {
+    const effectiveLabel = newFieldLabel.trim() || (newFieldType === "dailycall" ? "Daily Call" : "");
+    if (!selectedSection || !effectiveLabel) {
       toast({
         title: "Label required",
         description: "Please enter a field label.",
@@ -706,13 +1050,14 @@ export default function TemplateEditorV2() {
     createFieldMutation.mutate({
       sectionId: selectedSection.id,
       type: newFieldType,
-      label: newFieldLabel,
+      label: effectiveLabel,
       helperText: newFieldHelperText || undefined,
       placeholder: newFieldPlaceholder || undefined,
       required: newFieldRequired,
       options,
       defaultValue: defaultValue || undefined,
       departmentKey: newFieldDepartmentKey === "none" ? null : newFieldDepartmentKey,
+      hideLabel: newFieldHideLabel,
     });
   };
 
@@ -727,6 +1072,7 @@ export default function TemplateEditorV2() {
     setEditFieldDefaultValue(field.type === "richtext" ? "" : (field.defaultValue || ""));
     setEditFieldDefaultValueRichText(field.type === "richtext" ? (field.defaultValue || "") : "");
     setEditFieldDepartmentKey(field.departmentKey || "none");
+    setEditFieldHideLabel(field.hideLabel || false);
     setIsEditFieldDialogOpen(true);
   };
 
@@ -757,6 +1103,7 @@ export default function TemplateEditorV2() {
         options,
         defaultValue: defaultValue || null,
         departmentKey: editFieldDepartmentKey === "none" ? null : editFieldDepartmentKey,
+        hideLabel: editFieldHideLabel,
       },
     });
   };
@@ -840,83 +1187,31 @@ export default function TemplateEditorV2() {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-4">
-            {template.sections.map((section) => (
-              <Card key={section.id} data-testid={`card-section-${section.id}`} className="border-0 p-0">
-                <CardHeader className="p-0 pb-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <GripVertical className="h-5 w-5 text-muted-foreground" />
-                      <CardTitle>{section.title}</CardTitle>
-                      {section.departmentKey && (
-                        <span className="text-sm text-muted-foreground">
-                          ({departments[section.departmentKey] || section.departmentKey})
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleAddField(section)}
-                        data-testid={`button-add-field-${section.id}`}
-                      >
-                        <Plus className="h-4 w-4 mr-1" />
-                        Add Field
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEditSection(section)}
-                        data-testid={`button-edit-section-${section.id}`}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeleteSection(section)}
-                        data-testid={`button-delete-section-${section.id}`}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-0">
-                  {section.fields.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No fields yet. Add your first field to get started.</p>
-                  ) : (
-                    <div className="space-y-3">
-                      {section.fields.map((field, index) => (
-                        <div
-                          key={field.id}
-                          className={`overflow-hidden ${index < section.fields.length - 1 ? 'border-b' : ''}`}
-                          data-testid={`field-${field.id}`}
-                        >
-                          <div
-                            className="flex items-center gap-3 py-3 cursor-pointer hover:bg-muted transition-colors"
-                            onClick={() => handleEditField(field)}
-                          >
-                            <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                            <div className="flex-1">
-                              <div className="font-medium">
-                                {field.label}
-                                {field.required && <span className="text-destructive ml-1">*</span>}
-                              </div>
-                              {field.helperText && (
-                                <div className="text-sm text-muted-foreground">{field.helperText}</div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <DndContext
+            sensors={sectionSensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleSectionDragEnd}
+          >
+            <SortableContext
+              items={template.sections.map((s) => s.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-4">
+                {template.sections.map((section) => (
+                  <SortableSection
+                    key={section.id}
+                    section={section}
+                    departments={departments}
+                    onAddField={handleAddField}
+                    onEditSection={handleEditSection}
+                    onDeleteSection={handleDeleteSection}
+                    onEditField={handleEditField}
+                    onFieldDragEnd={handleFieldDragEnd}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
         )}
 
         {/* Add Section Dialog */}
@@ -1113,34 +1408,38 @@ export default function TemplateEditorV2() {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label htmlFor="field-default">Default Value (Optional)</Label>
-                {newFieldType === "richtext" ? (
-                  <ChangeSummaryEditor
-                    content={newFieldDefaultValueRichText}
-                    onChange={setNewFieldDefaultValueRichText}
-                    placeholder="Default value with formatting"
-                  />
-                ) : (
+              {newFieldType !== "dailycall" && (
+                <div>
+                  <Label htmlFor="field-default">Default Value (Optional)</Label>
+                  {newFieldType === "richtext" ? (
+                    <ChangeSummaryEditor
+                      content={newFieldDefaultValueRichText}
+                      onChange={setNewFieldDefaultValueRichText}
+                      placeholder="Default value with formatting"
+                    />
+                  ) : (
+                    <Input
+                      id="field-default"
+                      value={newFieldDefaultValue}
+                      onChange={(e) => setNewFieldDefaultValue(e.target.value)}
+                      placeholder="Default value"
+                      data-testid="input-field-default"
+                    />
+                  )}
+                </div>
+              )}
+              {newFieldType !== "dailycall" && (
+                <div>
+                  <Label htmlFor="field-placeholder">Placeholder (Optional)</Label>
                   <Input
-                    id="field-default"
-                    value={newFieldDefaultValue}
-                    onChange={(e) => setNewFieldDefaultValue(e.target.value)}
-                    placeholder="Default value"
-                    data-testid="input-field-default"
+                    id="field-placeholder"
+                    value={newFieldPlaceholder}
+                    onChange={(e) => setNewFieldPlaceholder(e.target.value)}
+                    placeholder="Placeholder text"
+                    data-testid="input-field-placeholder"
                   />
-                )}
-              </div>
-              <div>
-                <Label htmlFor="field-placeholder">Placeholder (Optional)</Label>
-                <Input
-                  id="field-placeholder"
-                  value={newFieldPlaceholder}
-                  onChange={(e) => setNewFieldPlaceholder(e.target.value)}
-                  placeholder="Placeholder text"
-                  data-testid="input-field-placeholder"
-                />
-              </div>
+                </div>
+              )}
               <div>
                 <Label htmlFor="field-helper">Helper Text (Optional)</Label>
                 <Input
@@ -1151,15 +1450,28 @@ export default function TemplateEditorV2() {
                   data-testid="input-field-helper"
                 />
               </div>
+              {newFieldType !== "dailycall" && (
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="field-required"
+                    checked={newFieldRequired}
+                    onCheckedChange={(checked) => setNewFieldRequired(checked as boolean)}
+                    data-testid="checkbox-field-required"
+                  />
+                  <Label htmlFor="field-required" className="cursor-pointer">
+                    Required field
+                  </Label>
+                </div>
+              )}
               <div className="flex items-center space-x-2">
                 <Checkbox
-                  id="field-required"
-                  checked={newFieldRequired}
-                  onCheckedChange={(checked) => setNewFieldRequired(checked as boolean)}
-                  data-testid="checkbox-field-required"
+                  id="field-hide-label"
+                  checked={newFieldHideLabel}
+                  onCheckedChange={(checked) => setNewFieldHideLabel(checked as boolean)}
+                  data-testid="checkbox-field-hide-label"
                 />
-                <Label htmlFor="field-required" className="cursor-pointer">
-                  Required field
+                <Label htmlFor="field-hide-label" className="cursor-pointer">
+                  Hide field name
                 </Label>
               </div>
               {newFieldType === "select" && (
@@ -1250,32 +1562,36 @@ export default function TemplateEditorV2() {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label htmlFor="edit-field-default">Default Value (Optional)</Label>
-                {editFieldType === "richtext" ? (
-                  <ChangeSummaryEditor
-                    content={editFieldDefaultValueRichText}
-                    onChange={setEditFieldDefaultValueRichText}
-                    placeholder="Default value with formatting"
-                  />
-                ) : (
+              {editFieldType !== "dailycall" && (
+                <div>
+                  <Label htmlFor="edit-field-default">Default Value (Optional)</Label>
+                  {editFieldType === "richtext" ? (
+                    <ChangeSummaryEditor
+                      content={editFieldDefaultValueRichText}
+                      onChange={setEditFieldDefaultValueRichText}
+                      placeholder="Default value with formatting"
+                    />
+                  ) : (
+                    <Input
+                      id="edit-field-default"
+                      value={editFieldDefaultValue}
+                      onChange={(e) => setEditFieldDefaultValue(e.target.value)}
+                      data-testid="input-edit-field-default"
+                    />
+                  )}
+                </div>
+              )}
+              {editFieldType !== "dailycall" && (
+                <div>
+                  <Label htmlFor="edit-field-placeholder">Placeholder (Optional)</Label>
                   <Input
-                    id="edit-field-default"
-                    value={editFieldDefaultValue}
-                    onChange={(e) => setEditFieldDefaultValue(e.target.value)}
-                    data-testid="input-edit-field-default"
+                    id="edit-field-placeholder"
+                    value={editFieldPlaceholder}
+                    onChange={(e) => setEditFieldPlaceholder(e.target.value)}
+                    data-testid="input-edit-field-placeholder"
                   />
-                )}
-              </div>
-              <div>
-                <Label htmlFor="edit-field-placeholder">Placeholder (Optional)</Label>
-                <Input
-                  id="edit-field-placeholder"
-                  value={editFieldPlaceholder}
-                  onChange={(e) => setEditFieldPlaceholder(e.target.value)}
-                  data-testid="input-edit-field-placeholder"
-                />
-              </div>
+                </div>
+              )}
               <div>
                 <Label htmlFor="edit-field-helper">Helper Text (Optional)</Label>
                 <Input
@@ -1285,15 +1601,28 @@ export default function TemplateEditorV2() {
                   data-testid="input-edit-field-helper"
                 />
               </div>
+              {editFieldType !== "dailycall" && (
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="edit-field-required"
+                    checked={editFieldRequired}
+                    onCheckedChange={(checked) => setEditFieldRequired(checked as boolean)}
+                    data-testid="checkbox-edit-field-required"
+                  />
+                  <Label htmlFor="edit-field-required" className="cursor-pointer">
+                    Required field
+                  </Label>
+                </div>
+              )}
               <div className="flex items-center space-x-2">
                 <Checkbox
-                  id="edit-field-required"
-                  checked={editFieldRequired}
-                  onCheckedChange={(checked) => setEditFieldRequired(checked as boolean)}
-                  data-testid="checkbox-edit-field-required"
+                  id="edit-field-hide-label"
+                  checked={editFieldHideLabel}
+                  onCheckedChange={(checked) => setEditFieldHideLabel(checked as boolean)}
+                  data-testid="checkbox-edit-field-hide-label"
                 />
-                <Label htmlFor="edit-field-required" className="cursor-pointer">
-                  Required field
+                <Label htmlFor="edit-field-hide-label" className="cursor-pointer">
+                  Hide field name
                 </Label>
               </div>
               {editFieldType === "select" && (
@@ -1396,7 +1725,7 @@ export default function TemplateEditorV2() {
                         {section.fields.map((field) => (
                           <div key={field.id} className="space-y-2">
                             <Label>
-                              {field.label}
+                              {field.hideLabel ? <span className="text-muted-foreground line-through">{field.label}</span> : field.label}
                               {field.required && <span className="text-destructive ml-1">*</span>}
                             </Label>
                             <div className="pl-4">
@@ -1458,6 +1787,9 @@ export default function TemplateEditorV2() {
                                   </p>
                                 )}
                               </div>
+                            )}
+                            {field.type === "dailycall" && (
+                              <span className="text-xs text-muted-foreground italic">Auto-imports the daily call for the report date</span>
                             )}
                             </div>
                           </div>

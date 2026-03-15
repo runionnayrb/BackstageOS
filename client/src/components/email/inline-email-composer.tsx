@@ -558,7 +558,7 @@ export function InlineEmailComposer({
         toAddresses,
         ccAddresses,
         bccAddresses,
-        content,
+        content: editor?.getHTML() || '',
         fromAccountId: selectedAccountId,
         attachments,
         showCc,

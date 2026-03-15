@@ -1,0 +1,143 @@
+Replit Agent Prompt
+
+Goal: Prepare BackstageOS for a small public MVP beta by fixing stability, correctness, and billing blockers. Do not add new features. Prioritize correctness over refactoring.
+
+Context
+
+This is a production scheduling app built with React, TanStack Query, Express, and Stripe. The app is functionally rich but needs tightening before real users are added. Gmail integration is intentionally unavailable. Outlook email works and should remain unchanged.
+
+Phase 1 — Must Fix Build and Crash Issues
+
+Fix duplicate identifiers
+
+In schedule.tsx, there are two safeJsonParse helpers defined in the same scope.
+
+Remove one and standardize all usages to a single helper.
+
+Audit for any other build blocking issues
+
+Ensure the app compiles cleanly with no duplicate declarations or type errors.
+
+Phase 2 — React Query Cache Correctness (Critical)
+
+Standardize all React Query keys
+
+Pick ONE canonical format for schedule related data:
+
+schedule events
+
+schedule versions
+
+project settings
+
+personal schedules
+
+Update:
+
+all useQuery
+
+all invalidateQueries
+
+all setQueryData and setQueriesData
+
+all optimistic updates
+
+Ensure Weekly, Daily, Monthly, and Mobile schedule views all use the exact same key structure.
+
+Verify optimistic updates actually hit active queries
+
+Confirm create event, update event, delete event, publish version, apply template all correctly update the visible UI without requiring refresh.
+
+Phase 3 — Timezone and Date Safety
+
+Fix UTC date leakage
+
+Stop sending toISOString() for schedule week logic (e.g. resend schedule).
+
+Send a local date string (YYYY-MM-DD) using existing helpers.
+
+Ensure week calculations align with user configured timezone.
+
+Phase 4 — Billing and Subscription Safety
+
+Remove hardcoded Stripe portal URLs
+
+Replace with a backend endpoint that creates a Stripe customer portal session and returns the URL.
+
+If not implemented yet, hide billing history and payment management buttons entirely.
+
+Disable incomplete plan switching
+
+The Change Plan UI currently shows real controls but is stubbed.
+
+Either:
+
+fully disable the UI, or
+
+hide it until backend support exists.
+
+No user facing “coming soon” toast for billing actions.
+
+Phase 5 — Permissions and Feature Gating
+
+Remove hardcoded owner user ID
+
+Move owner logic to environment config.
+
+Do not leave magic IDs in source code.
+
+Tighten admin and beta access
+
+Ensure non admin users cannot access admin endpoints like /api/admin/users.
+
+Ensure UI handles 401 and 403 gracefully.
+
+Either remove unused feature based beta gating or implement feature specific access properly.
+
+Phase 6 — Stability Improvements (Do Not Over Refactor)
+
+Reduce risk in schedule.tsx
+
+Extract at least:
+
+Schedule Settings modal
+
+Publish and Resend logic
+
+Template Create and Apply logic
+
+Goal is to reduce regression risk, not full architectural rewrite.
+
+Normalize scheduleSettings handling
+
+Always parse scheduleSettings once.
+
+Treat it as typed data, never assume it is an object when it may be a string.
+
+Ensure timeFormat, timezone, weekStartDay behave consistently across views.
+
+Constraints
+
+Do NOT add new features.
+
+Do NOT redesign UI.
+
+Do NOT touch Gmail integration.
+
+Do NOT refactor unrelated areas.
+
+Focus on correctness, safety, and MVP readiness only.
+
+Deliverables
+
+App builds cleanly.
+
+Schedule UI stays in sync across views.
+
+No silent cache desyncs.
+
+Billing UI cannot mislead users.
+
+No timezone related schedule bugs.
+
+Safe to invite real users into a limited beta.

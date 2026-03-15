@@ -55,21 +55,11 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
-      // CRITICAL: Cancel any in-flight /api/user queries to prevent race condition
-      await queryClient.cancelQueries({ queryKey: ["/api/user"] });
-      
-      // Clear ALL cached data BEFORE login to prevent showing previous user's data
-      queryClient.clear();
-      
       const res = await apiRequest("POST", "/api/login", credentials);
       return res;
     },
     onSuccess: (user: User) => {
-      // Set the new user data immediately
       queryClient.setQueryData(["/api/user"], user);
-      
-      // Force refetch to ensure we have latest session state
-      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
     },
     onError: (error: Error) => {
       toast({
@@ -82,21 +72,11 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
 
   const registerMutation = useMutation({
     mutationFn: async (credentials: RegisterData) => {
-      // CRITICAL: Cancel any in-flight /api/user queries to prevent race condition
-      await queryClient.cancelQueries({ queryKey: ["/api/user"] });
-      
-      // Clear ALL cached data BEFORE registration to prevent showing previous user's data
-      queryClient.clear();
-      
       const res = await apiRequest("POST", "/api/register", credentials);
       return res;
     },
     onSuccess: (user: User) => {
-      // Set the new user data immediately
       queryClient.setQueryData(["/api/user"], user);
-      
-      // Force refetch to ensure we have latest session state
-      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
     },
     onError: (error: Error) => {
       toast({
@@ -115,6 +95,8 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
       // Clear ALL cached data when logging out to prevent other users from seeing previous user's data
       queryClient.clear();
       queryClient.setQueryData(["/api/user"], null);
+      // Redirect to home page (Beta Home for unauthenticated users)
+      window.location.href = '/';
     },
     onError: (error: Error) => {
       toast({

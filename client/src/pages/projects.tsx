@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
-import { Plus, FolderOpen, Settings } from "lucide-react";
+import { Plus, FolderOpen, Settings, Info } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAdminView } from "@/contexts/AdminViewContext";
 import { isAdmin } from "@/lib/admin";
 import { FloatingActionButton } from "@/components/navigation/floating-action-button";
@@ -21,11 +22,13 @@ export default function Projects() {
   
   // User can create shows if they are a USER (not just an invited editor) with fulltime profile AND active subscription
   // Editors invited to productions cannot create shows unless they're also a user with their own subscription
+  // Admins can always create unlimited shows regardless of subscription status
   const isUserRole = (user as any)?.userRole === "user" || (user as any)?.userRole === "admin";
   const hasActiveSubscription = (user as any)?.subscriptionStatus === "active" || 
      (user as any)?.subscriptionStatus === "trialing" ||
      (user as any)?.grandfatheredFree === true;
-  const canCreateShow = isFullTime && isUserRole && hasActiveSubscription;
+  const userIsAdmin = isAdmin(user);
+  const isBetaUser = (user as any)?.betaAccess === true;
   
   const projectLabel = "Shows";
   const projectSingle = "Show";
@@ -33,6 +36,13 @@ export default function Projects() {
   const { data: projects = [], isLoading } = useQuery({
     queryKey: ["/api/projects"],
   });
+  
+  // Filter to only non-archived, owned projects for beta limit check
+  const ownedActiveProjects = (projects as any[]).filter((p: any) => !p.isArchived && !p.isInvited);
+  
+  // Beta users can only have 1 active show (check after projects is defined)
+  const betaLimitReached = isBetaUser && !userIsAdmin && ownedActiveProjects.length >= 1;
+  const canCreateShow = userIsAdmin || (isFullTime && isUserRole && (hasActiveSubscription || isBetaUser) && !betaLimitReached);
 
   // Sort projects by first rehearsal date (primary) and closing date (secondary)
   const sortedProjects = [...(projects as any[])].sort((a, b) => {
@@ -136,7 +146,7 @@ export default function Projects() {
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  onClick={() => setLocation("/create-project")}
+                  onClick={() => setLocation("/onboarding")}
                   className="hover:bg-transparent hover:text-blue-600 transition-colors p-1"
                   data-testid="button-create-show"
                 >
@@ -148,6 +158,15 @@ export default function Projects() {
         </div>
 
         <div className="px-4 sm:px-6 lg:px-8">
+          {betaLimitReached && (
+            <Alert className="mb-4 border-blue-200 bg-blue-50">
+              <Info className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-800">
+                Beta accounts are limited to 1 active show. Archive your current show to create a new one, or upgrade after the beta period ends.
+              </AlertDescription>
+            </Alert>
+          )}
+          
           {sortedProjects.length === 0 ? (
             <div className="text-center py-12">
               <FolderOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -155,7 +174,7 @@ export default function Projects() {
               {canCreateShow ? (
                 <>
                   <p className="text-gray-500 mb-6">Get started by creating your first {projectSingle.toLowerCase()}</p>
-                  <Button onClick={() => setLocation("/create-project")} data-testid="button-create-show-empty">
+                  <Button onClick={() => setLocation("/onboarding")} data-testid="button-create-show-empty">
                     <Plus className="w-5 h-5 mr-2" />
                     Create {projectSingle}
                   </Button>
@@ -191,7 +210,7 @@ export default function Projects() {
       </div>
       
       {/* Floating Action Button - Mobile Only */}
-      {canCreateShow && <FloatingActionButton onClick={() => setLocation("/create-project")} />}
+      {canCreateShow && <FloatingActionButton onClick={() => setLocation("/onboarding")} />}
     </div>
   );
 }

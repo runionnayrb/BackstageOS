@@ -1,18 +1,19 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ChevronLeft, ChevronRight, Plus, Clock, Users, Calendar, X, ChevronDown, MapPin, FileText, User, Edit } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Clock, Users, Calendar, X, ChevronDown, MapPin, FileText, User, Edit, AlertTriangle } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatTimeDisplay, parseScheduleSettings, formatAsCalendarDate } from "@/lib/timeUtils";
-import { isShowEvent, getEventTypeDisplayName, getEventTypeColor, getEventTypeBorderColor, getEventTypeColorFromDatabase, isLightColor, darkenColor } from "@/lib/eventUtils";
+import { isShowEvent, getEventTypeDisplayName, getEventTypeColor, getEventTypeBorderColor, getEventTypeColorFromDatabase, isLightColor, darkenColor, calculatePerformanceNumbers, isPerformanceType } from "@/lib/eventUtils";
 import { filterEventsBySettings, getTimezoneAbbreviation, calculateEventLayouts } from "@/lib/scheduleUtils";
 import LocationSelect from "@/components/location-select";
 import EventTypeSelect from "@/components/event-type-select";
@@ -152,8 +153,20 @@ export default function WeeklyScheduleView({
   const [justDragged, setJustDragged] = useState<number | null>(null);
   const [justResized, setJustResized] = useState<number | null>(null);
   const [selectedEvents, setSelectedEvents] = useState<Set<number>>(new Set());
+  const [focusedEventId, setFocusedEventId] = useState<number | null>(null);
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
+  const [showCancelPerformanceDialog, setShowCancelPerformanceDialog] = useState(false);
+  const [cancellationReason, setCancellationReason] = useState('');
+  const [conflictDialog, setConflictDialog] = useState<{ open: boolean; messages: string[] }>({ open: false, messages: [] });
+  const [dragSelectState, setDragSelectState] = useState<{
+    isActive: boolean;
+    startX: number;
+    startY: number;
+    currentX: number;
+    currentY: number;
+    scrollTop: number;
+  } | null>(null);
   const calendarRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -249,6 +262,25 @@ export default function WeeklyScheduleView({
     queryKey: [`/api/projects/${projectId}/event-types`],
     enabled: !!projectId,
   });
+
+  // Fetch ALL schedule events for accurate performance numbering (not limited by date range)
+  const { data: allEvents = [], isLoading: allEventsLoading } = useQuery<ScheduleEvent[]>({
+    queryKey: ['/api/projects', projectId, 'schedule-events'],
+  });
+
+  // Calculate performance numbers optimistically:
+  // 1. First, show provisional numbers from current week's events (instant)
+  // 2. When full data loads, reconcile with accurate cross-week numbers
+  const performanceNumbers = useMemo(() => {
+    const config = scheduleSettings.performanceNumbering || {
+      firstPerformanceEventId: null,
+      startingNumber: 1,
+    };
+    
+    // Use allEvents if loaded, otherwise use current week's events for optimistic display
+    const eventsToUse = allEvents.length > 0 ? allEvents : events;
+    return calculatePerformanceNumbers(eventsToUse, config, eventTypes);
+  }, [allEvents, events, scheduleSettings.performanceNumbering, eventTypes]);
 
   // Filter events based on selected contact IDs and schedule filtering
   const filteredEvents = (() => {
@@ -542,20 +574,78 @@ export default function WeeklyScheduleView({
       }
       
       if (error.status === 409 && error.conflicts) {
-        const conflictMessages = error.conflicts.map((conflict: any) => {
-          if (conflict.conflictType === 'unavailable') {
-            return `${conflict.contactName} is unavailable during ${conflict.conflictTime}`;
-          } else if (conflict.conflictType === 'schedule_overlap') {
-            return `${conflict.contactName} is unavailable during ${conflict.conflictTime}`;
-          } else if (conflict.conflictType === 'location_unavailable') {
-            return `${conflict.locationName} is unavailable during ${conflict.conflictTime}`;
-          }
-          return conflict.conflictDetails;
-        });
+        const conflicts = error.conflicts;
+        const peopleConflicts = conflicts.filter((c: any) => c.conflictType === 'unavailable' || c.conflictType === 'schedule_overlap');
+        const locationConflicts = conflicts.filter((c: any) => c.conflictType === 'location_unavailable');
+        
+        let descriptionParts: string[] = [];
+        
+        if (peopleConflicts.length > 0) {
+          // Group by conflict detail (the event name/time)
+          const grouped = peopleConflicts.reduce((acc: any, c: any) => {
+            // Use eventName if available, otherwise fallback to conflictDetails
+            const eventTitle = c.eventName || c.conflictDetails?.split(' scheduled for ')[0]?.split(' is unavailable')[0] || 'Scheduled Event';
+            let timeStr = '';
+            
+            // Check if formatTime exists and handle potential reference errors
+            const safeFormatTime = (time: string) => {
+              try {
+                // If formatTime is available globally/imported
+                if (typeof formatTime === 'function') {
+                  return formatTime(time, showSettings?.timeFormat);
+                }
+                // Fallback if formatTime is not found in scope
+                return time;
+              } catch (e) {
+                return time;
+              }
+            };
+
+            if (c.conflictTime) {
+              const [start, end] = c.conflictTime.split('-').map(t => t.trim());
+              timeStr = `at ${safeFormatTime(start)} - ${safeFormatTime(end)}`;
+            } else if (c.conflictDetails && c.conflictDetails.includes('is unavailable during')) {
+              const timeMatch = c.conflictDetails.match(/during\s+(.*)/);
+              if (timeMatch) {
+                const rawTime = timeMatch[1];
+                if (rawTime.includes('-')) {
+                  const [start, end] = rawTime.split('-').map(t => t.trim());
+                  timeStr = `at ${safeFormatTime(start)} - ${safeFormatTime(end)}`;
+                } else {
+                  timeStr = `at ${safeFormatTime(rawTime)}`;
+                }
+              }
+            }
+            
+            const key = `${eventTitle} ${timeStr}`.trim();
+            
+            if (!acc[key]) acc[key] = [];
+            acc[key].push(c.contactName);
+            return acc;
+          }, {});
+
+          Object.entries(grouped).forEach(([detail, names]: [string, any]) => {
+            let nameStr = '';
+            if (names.length === 1) {
+              nameStr = names[0];
+            } else if (names.length === 2) {
+              nameStr = names.join(' and ');
+            } else {
+              nameStr = `${names.slice(0, 2).join(', ')} and ${names.length - 2} others`;
+            }
+            
+            descriptionParts.push(`${nameStr} scheduled for ${detail}`);
+          });
+        }
+        
+        if (locationConflicts.length > 0) {
+          const locationMsg = locationConflicts.map((c: any) => c.locationName).join(', ') + ' unavailable during this time.';
+          descriptionParts.push(locationMsg);
+        }
         
         toast({
           title: "Scheduling Conflict",
-          description: conflictMessages.join('\n'),
+          description: descriptionParts.join('\n') || "Some participants or locations are unavailable.",
           variant: "destructive",
         });
       } else {
@@ -624,22 +714,80 @@ export default function WeeklyScheduleView({
       // Revert optimistic update by forcing a fresh query
       queryClient.refetchQueries({ queryKey: ['/api/projects', projectId, 'schedule-events'] });
       
-      // Handle conflict errors with user-friendly toast messages
+      // Handle conflict errors with toast notification
       if (error.status === 409 && error.conflicts) {
-        const conflictMessages = error.conflicts.map((conflict: any) => {
-          if (conflict.conflictType === 'unavailable') {
-            return `${conflict.contactName} is unavailable during ${conflict.conflictTime}`;
-          } else if (conflict.conflictType === 'schedule_overlap') {
-            return `${conflict.contactName} is unavailable during ${conflict.conflictTime}`;
-          } else if (conflict.conflictType === 'location_unavailable') {
-            return `${conflict.locationName} is unavailable during ${conflict.conflictTime}`;
-          }
-          return conflict.conflictDetails;
-        });
+        const conflicts = error.conflicts;
+        const peopleConflicts = conflicts.filter((c: any) => c.conflictType === 'unavailable' || c.conflictType === 'schedule_overlap');
+        const locationConflicts = conflicts.filter((c: any) => c.conflictType === 'location_unavailable');
+        
+        let descriptionParts: string[] = [];
+        
+        if (peopleConflicts.length > 0) {
+          // Group by conflict detail (the event name/time)
+          const grouped = peopleConflicts.reduce((acc: any, c: any) => {
+            // Use eventName if available, otherwise fallback to conflictDetails
+            const eventTitle = c.eventName || c.conflictDetails?.split(' scheduled for ')[0]?.split(' is unavailable')[0] || 'Scheduled Event';
+            let timeStr = '';
+            
+            // Check if formatTime exists and handle potential reference errors
+            const safeFormatTime = (time: string) => {
+              try {
+                // If formatTime is available globally/imported
+                if (typeof formatTime === 'function') {
+                  return formatTime(time, showSettings?.timeFormat);
+                }
+                // Fallback if formatTime is not found in scope
+                return time;
+              } catch (e) {
+                return time;
+              }
+            };
+
+            if (c.conflictTime) {
+              const [start, end] = c.conflictTime.split('-').map(t => t.trim());
+              timeStr = `at ${safeFormatTime(start)} - ${safeFormatTime(end)}`;
+            } else if (c.conflictDetails && c.conflictDetails.includes('is unavailable during')) {
+              const timeMatch = c.conflictDetails.match(/during\s+(.*)/);
+              if (timeMatch) {
+                const rawTime = timeMatch[1];
+                if (rawTime.includes('-')) {
+                  const [start, end] = rawTime.split('-').map(t => t.trim());
+                  timeStr = `at ${safeFormatTime(start)} - ${safeFormatTime(end)}`;
+                } else {
+                  timeStr = `at ${safeFormatTime(rawTime)}`;
+                }
+              }
+            }
+            
+            const key = `${eventTitle} ${timeStr}`.trim();
+            
+            if (!acc[key]) acc[key] = [];
+            acc[key].push(c.contactName);
+            return acc;
+          }, {});
+
+          Object.entries(grouped).forEach(([detail, names]: [string, any]) => {
+            let nameStr = '';
+            if (names.length === 1) {
+              nameStr = names[0];
+            } else if (names.length === 2) {
+              nameStr = names.join(' and ');
+            } else {
+              nameStr = `${names.slice(0, 2).join(', ')} and ${names.length - 2} others`;
+            }
+            
+            descriptionParts.push(`${nameStr} scheduled for ${detail}`);
+          });
+        }
+        
+        if (locationConflicts.length > 0) {
+          const locationMsg = locationConflicts.map((c: any) => c.locationName).join(', ') + ' unavailable during this time.';
+          descriptionParts.push(locationMsg);
+        }
         
         toast({
           title: "Scheduling Conflict",
-          description: conflictMessages.join('\n'),
+          description: descriptionParts.join('\n') || "Some participants or locations are unavailable.",
           variant: "destructive",
         });
       } else {
@@ -792,19 +940,129 @@ export default function WeeklyScheduleView({
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
   };
 
+  // Helper function to get events within a selection rectangle
+  const getEventsInSelectionRect = useCallback((
+    startX: number, 
+    startY: number, 
+    endX: number, 
+    endY: number,
+    scrollTop: number
+  ): number[] => {
+    if (!calendarRef.current) return [];
+    
+    const rect = calendarRef.current.getBoundingClientRect();
+    const calendarLeft = 64; // Time column width
+    const calendarWidth = rect.width - calendarLeft;
+    const dayWidth = calendarWidth / 7;
+    
+    // Normalize rectangle coordinates (min/max)
+    const rectLeft = Math.min(startX, endX);
+    const rectRight = Math.max(startX, endX);
+    const rectTop = Math.min(startY, endY);
+    const rectBottom = Math.max(startY, endY);
+    
+    const selectedIds: number[] = [];
+    
+    filteredEvents.forEach(event => {
+      if (event.isAllDay) return; // Skip all-day events for now
+      
+      const eventDayIndex = weekDates.findIndex((date: Date) => formatAsCalendarDate(date) === event.date);
+      if (eventDayIndex === -1) return;
+      
+      // Calculate event position on screen
+      const eventLeft = calendarLeft + (eventDayIndex * dayWidth);
+      const eventRight = eventLeft + dayWidth;
+      const eventStartMinutes = adjustMinutesForExtendedDay(timeToMinutes(event.startTime));
+      let eventEndMinutes = adjustMinutesForExtendedDay(timeToMinutes(event.endTime));
+      if (isCrossMidnightEvent(event)) {
+        eventEndMinutes = adjustMinutesForExtendedDay(timeToMinutes(event.endTime) + 1440);
+      }
+      const eventTop = minutesToPosition(eventStartMinutes);
+      const eventBottom = minutesToPosition(eventEndMinutes);
+      
+      // Check if event rectangle intersects with selection rectangle
+      const horizontalOverlap = eventLeft < rectRight && eventRight > rectLeft;
+      const verticalOverlap = eventTop < rectBottom && eventBottom > rectTop;
+      
+      if (horizontalOverlap && verticalOverlap) {
+        selectedIds.push(event.id);
+      }
+    });
+    
+    return selectedIds;
+  }, [filteredEvents, weekDates, minutesToPosition, adjustMinutesForExtendedDay, timeToMinutes]);
+
   // Mouse handlers for drag-to-create (matching weekly availability pattern)
   const handleMouseDown = useCallback((e: React.MouseEvent, dayIndex: number) => {
     if (!calendarRef.current || !scrollContainerRef.current) return;
     
     // Ignore right clicks
     if (e.button !== 0) return;
+    
+    // Clear focused event when clicking on calendar background
+    setFocusedEventId(null);
 
     // Use same coordinate system as weekly availability editor
     // Add scroll offset to get the actual position within the full calendar content
     const rect = calendarRef.current.getBoundingClientRect();
     const scrollTop = scrollContainerRef.current.scrollTop || 0;
     const y = e.clientY - rect.top + scrollTop;
+    const x = e.clientX - rect.left;
     const minutes = snapToIncrement(positionToMinutes(y));
+    
+    // Handle Shift+drag for multi-select
+    if (e.shiftKey) {
+      const initialDragSelect = {
+        isActive: true,
+        startX: x,
+        startY: y,
+        currentX: x,
+        currentY: y,
+        scrollTop: scrollTop,
+      };
+      setDragSelectState(initialDragSelect);
+      
+      const handleDragSelectMove = (moveEvent: MouseEvent) => {
+        if (!calendarRef.current || !scrollContainerRef.current) return;
+        const moveRect = calendarRef.current.getBoundingClientRect();
+        const moveScrollTop = scrollContainerRef.current.scrollTop || 0;
+        const moveX = moveEvent.clientX - moveRect.left;
+        const moveY = moveEvent.clientY - moveRect.top + moveScrollTop;
+        
+        setDragSelectState(prev => prev ? {
+          ...prev,
+          currentX: moveX,
+          currentY: moveY,
+        } : null);
+      };
+      
+      const handleDragSelectUp = () => {
+        setDragSelectState(prev => {
+          if (prev) {
+            // Get all events within the selection rectangle
+            const eventsInRect = getEventsInSelectionRect(
+              prev.startX, prev.startY, prev.currentX, prev.currentY, prev.scrollTop
+            );
+            // Add them to the selected events
+            if (eventsInRect.length > 0) {
+              setSelectedEvents(current => {
+                const newSelected = new Set(current);
+                eventsInRect.forEach(id => newSelected.add(id));
+                return newSelected;
+              });
+            }
+          }
+          return null;
+        });
+        
+        document.removeEventListener('mousemove', handleDragSelectMove);
+        document.removeEventListener('mouseup', handleDragSelectUp);
+      };
+      
+      document.addEventListener('mousemove', handleDragSelectMove);
+      document.addEventListener('mouseup', handleDragSelectUp);
+      return;
+    }
     
     console.log('Mouse click:', { 
       y, 
@@ -912,7 +1170,7 @@ export default function WeeklyScheduleView({
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
     document.addEventListener('keydown', handleKeyDown);
-  }, [filteredEvents, weekDates, timeIncrement, timeFormat, setCreateEventData, setCreateEventDialog]);
+  }, [filteredEvents, weekDates, timeIncrement, timeFormat, setCreateEventData, setCreateEventDialog, getEventsInSelectionRect]);
 
   // Handle dragging existing events and multi-select
   const handleEventMouseDown = useCallback((e: React.MouseEvent, event: ScheduleEvent) => {
@@ -940,8 +1198,9 @@ export default function WeeklyScheduleView({
 
     // Clear any existing selections when not in multi-select mode
     setSelectedEvents(new Set());
-
-
+    
+    // Bring clicked event to front (Notion-style)
+    setFocusedEventId(event.id);
 
     // Set up drag immediately
     const eventDate = event.date;
@@ -1346,7 +1605,7 @@ export default function WeeklyScheduleView({
             <div className="flex items-center space-x-4">
               {isShiftPressed && (
                 <div className="text-sm text-blue-700 font-medium">
-                  Multi-select mode - Click events to select/deselect
+                  Multi-select mode - Click events or drag to select multiple
                 </div>
               )}
               {selectedEvents.size > 0 && (
@@ -1368,7 +1627,7 @@ export default function WeeklyScheduleView({
         )}
 
         {/* Main Schedule Grid */}
-        <div className="border border-gray-200 rounded-lg overflow-hidden">
+        <div className="border border-gray-200 rounded-lg overflow-hidden select-none">
           {/* Header row - fixed, no scroll */}
           <div className="relative bg-gray-50 border-b border-gray-200" style={{ height: '24px' }}>
             <div 
@@ -1516,6 +1775,7 @@ export default function WeeklyScheduleView({
                     }}
                   >
                     {dayEvents.map(event => {
+                      const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes, event.eventTypeId);
                       const handleAllDayMouseDown = (e: React.MouseEvent) => {
                         if (e.button !== 0) return; // Ignore right clicks
                         
@@ -1570,9 +1830,13 @@ export default function WeeklyScheduleView({
                         >
                           <PopoverTrigger asChild>
                             <div
-                              className={`${getEventColor(event.type)} text-white text-xs p-1 rounded cursor-pointer hover:opacity-80 select-none ${
-                                selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''
-                              }`}
+                              className={`text-xs p-1 rounded cursor-pointer hover:opacity-80 select-none ${
+                                isLightColor(eventTypeColor) ? 'text-gray-900' : 'text-white'
+                              } ${selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''}`}
+                              style={{ 
+                                backgroundColor: eventTypeColor,
+                                border: `1px solid ${darkenColor(eventTypeColor, 25)}`
+                              }}
                               onMouseDown={handleAllDayMouseDown}
                               onMouseUp={handleAllDayMouseUp}
                             >
@@ -1586,7 +1850,7 @@ export default function WeeklyScheduleView({
                               <div className="flex items-center space-x-2">
                                 <div 
                                   className="w-3 h-3 rounded-full" 
-                                  style={{ backgroundColor: getEventTypeColorFromDatabase(event.type, eventTypes) }}
+                                  style={{ backgroundColor: eventTypeColor }}
                                 />
                                 <h3 className="font-medium text-sm">{event.title}</h3>
                               </div>
@@ -1687,13 +1951,6 @@ export default function WeeklyScheduleView({
                                 </Popover>
                               )}
 
-                              {/* Description */}
-                              {event.description && (
-                                <div className="text-xs text-gray-700 pt-1">
-                                  <p>{event.description}</p>
-                                </div>
-                              )}
-
                               {/* Notes */}
                               {event.notes && (
                                 <div className="text-xs text-gray-700 pt-1">
@@ -1730,7 +1987,7 @@ export default function WeeklyScheduleView({
             >
             <div 
               ref={calendarRef}
-              className="relative bg-white"
+              className="relative bg-white select-none"
               style={{ height: `${TOTAL_MINUTES}px` }}
             >
               {/* Time column with consistent right border */}
@@ -1824,6 +2081,12 @@ export default function WeeklyScheduleView({
                   const eventLayout = dayLayouts?.get(event.id);
                   const hasOverlap = eventLayout && eventLayout.totalColumns > 1;
                   
+                  // Calculate z-index: shorter events should be on top so they're not hidden
+                  // Base z-index is 30, add more for shorter events
+                  // Focused (clicked) event gets highest z-index to bring it to front
+                  const baseZIndex = 30 + Math.max(0, Math.floor((120 - durationMinutes) / 10));
+                  const eventZIndex = focusedEventId === event.id ? 100 : baseZIndex;
+                  
                   // Calculate width and left position based on overlap layout
                   const dayColumnWidth = `calc((100% - 64px) / 7)`;
                   const baseLeft = `calc(64px + (100% - 64px) * ${displayDayIndex} / 7)`;
@@ -1857,7 +2120,7 @@ export default function WeeklyScheduleView({
                     >
                       <PopoverTrigger asChild>
                         <div
-                          className={`absolute text-sm rounded-md shadow-sm cursor-pointer hover:opacity-90 z-30 ${
+                          className={`absolute text-sm rounded-md shadow-sm cursor-pointer hover:opacity-90 ${
                             isLightColor(eventTypeColor) ? 'text-gray-900' : 'text-white'
                           } ${selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''
                           } ${draggedEvent?.event.id === event.id && draggedEvent.isDragging ? 'opacity-50' : ''
@@ -1867,21 +2130,36 @@ export default function WeeklyScheduleView({
                             left: eventLeft,
                             width: eventWidth,
                             top: `${resizedTop}px`,
-                            height: `${Math.max(20, displayHeight)}px`,
-                            minHeight: '20px',
+                            height: `${displayHeight}px`,
                             backgroundColor: eventTypeColor,
                             border: `1px solid ${darkenColor(eventTypeColor, 25)}`,
                             overflow: 'hidden',
-                            padding: (isCenterableShortEvent && !hasOverlap) ? '0 8px' : (isVeryShortEvent ? '2px 4px' : ((isCenterableMediumEvent && !hasOverlap) ? '4px 8px' : '4px 6px')),
+                            padding: isCompactEvent ? '0 4px' : ((isCenterableMediumEvent && !hasOverlap) ? '4px 8px' : '4px 6px'),
+                            zIndex: eventZIndex,
                           }}
                           onMouseDown={(e) => handleEventMouseDown(e, event)}
                           onContextMenu={(e) => e.preventDefault()}
                         >
                           {isCompactEvent ? (
-                            <div className={`flex items-center gap-1 ${hasOverlap ? 'flex-col items-start' : 'truncate'}`}>
-                              <span className={`font-medium leading-tight ${hasOverlap ? 'line-clamp-2' : 'truncate'}`} style={{ wordBreak: hasOverlap ? 'break-word' : undefined }}>{event.title}</span>
-                              {!hasOverlap && (
-                                <span className="text-xs opacity-90 flex-shrink-0">{(() => {
+                            hasOverlap ? (
+                              <div className="flex flex-col items-start overflow-hidden w-full">
+                                <div className="flex items-center justify-between gap-1 w-full">
+                                  <span className="font-medium leading-none line-clamp-1">{event.title}</span>
+                                  <div className="flex items-center gap-1 flex-shrink-0">
+                                    {event.status === 'cancelled' && (
+                                      <span className="text-[10px] font-bold bg-red-500 text-white px-1 rounded leading-none">Cancelled</span>
+                                    )}
+                                    {performanceNumbers.get(event.id) && (
+                                      <span className="text-[10px] font-bold bg-white/30 px-1 rounded leading-none">#{performanceNumbers.get(event.id)}</span>
+                                    )}
+                                  </div>
+                                </div>
+                                <span className="text-xs opacity-90 leading-none">{formatTimeDisplay(formatTime(startMinutes), timeFormat as '12' | '24')}</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-1 truncate w-full">
+                                <span className="font-medium leading-none truncate">{event.title}</span>
+                                <span className="text-xs opacity-90 flex-shrink-0 leading-none">{(() => {
                                   if (draggedEvent?.event.id === event.id && draggedEvent.isDragging) {
                                     const dragStartMinutes = draggedEvent.currentPosition.startMinutes;
                                     const duration = endMinutes - startMinutes;
@@ -1890,20 +2168,29 @@ export default function WeeklyScheduleView({
                                   }
                                   return `${formatTimeDisplay(formatTime(startMinutes), timeFormat as '12' | '24')} - ${formatTimeDisplay(formatTime(endMinutes), timeFormat as '12' | '24')}`;
                                 })()}</span>
-                              )}
-                              {hasOverlap && (
-                                <span className="text-xs opacity-90 leading-tight">{(() => {
-                                  if (draggedEvent?.event.id === event.id && draggedEvent.isDragging) {
-                                    const dragStartMinutes = draggedEvent.currentPosition.startMinutes;
-                                    return formatTimeDisplay(formatTime(dragStartMinutes), timeFormat as '12' | '24');
-                                  }
-                                  return formatTimeDisplay(formatTime(startMinutes), timeFormat as '12' | '24');
-                                })()}</span>
-                              )}
-                            </div>
+                                <div className="flex items-center gap-1 flex-shrink-0 ml-auto">
+                                  {event.status === 'cancelled' && (
+                                    <span className="text-[10px] font-bold bg-red-500 text-white px-1 rounded leading-none">Cancelled</span>
+                                  )}
+                                  {performanceNumbers.get(event.id) && (
+                                    <span className="text-[10px] font-bold bg-white/30 px-1 rounded leading-none">#{performanceNumbers.get(event.id)}</span>
+                                  )}
+                                </div>
+                              </div>
+                            )
                           ) : (
-                            <div className={hasOverlap ? 'overflow-hidden' : ''}>
-                              <div className={`font-medium ${hasOverlap ? 'break-words' : 'truncate'}`}>{event.title}</div>
+                            <div className={hasOverlap ? 'overflow-hidden' : 'w-full'}>
+                              <div className={`font-medium ${hasOverlap ? 'break-words' : 'truncate'} flex items-center justify-between gap-1`}>
+                                <span>{event.title}</span>
+                                <div className="flex items-center gap-1 flex-shrink-0">
+                                  {event.status === 'cancelled' && (
+                                    <span className="text-xs font-bold bg-red-500 text-white px-1.5 py-0.5 rounded">Cancelled</span>
+                                  )}
+                                  {performanceNumbers.get(event.id) && (
+                                    <span className="text-xs font-bold bg-white/30 px-1.5 py-0.5 rounded">#{performanceNumbers.get(event.id)}</span>
+                                  )}
+                                </div>
+                              </div>
                               <div className={`text-xs opacity-90 mt-0.5 ${hasOverlap ? 'break-words' : 'truncate'}`}>
                                 {(() => {
                                   if (draggedEvent?.event.id === event.id && draggedEvent.isDragging) {
@@ -1939,6 +2226,16 @@ export default function WeeklyScheduleView({
                                 style={{ backgroundColor: eventTypeColor }}
                               />
                               <h3 className="font-medium text-sm">{event.title}</h3>
+                              {event.status === 'cancelled' && (
+                                <span className="text-xs font-bold bg-red-500 text-white px-1.5 py-0.5 rounded">
+                                  Cancelled
+                                </span>
+                              )}
+                              {performanceNumbers.get(event.id) && (
+                                <span className="text-xs font-bold bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100 px-1.5 py-0.5 rounded">
+                                  #{performanceNumbers.get(event.id)}
+                                </span>
+                              )}
                             </div>
                             <Button
                               variant="ghost"
@@ -1979,6 +2276,14 @@ export default function WeeklyScheduleView({
                               <Calendar className="h-3 w-3" />
                               <span>{getEventTypeDisplayName(event.type, eventTypes, event.eventTypeId)}</span>
                             </div>
+
+                            {/* Cancellation Reason */}
+                            {event.status === 'cancelled' && event.cancellationReason && (
+                              <div className="bg-red-50 border border-red-200 rounded-md p-2">
+                                <div className="text-xs font-medium text-red-700 mb-1">Cancellation Reason:</div>
+                                <div className="text-xs text-red-600">{event.cancellationReason}</div>
+                              </div>
+                            )}
 
                             {/* Participants */}
                             {event.participants && event.participants.length > 0 && (
@@ -2042,13 +2347,6 @@ export default function WeeklyScheduleView({
                               </Popover>
                             )}
 
-                            {/* Description */}
-                            {event.description && (
-                              <div className="text-xs text-gray-700 pt-1">
-                                <p>{event.description}</p>
-                              </div>
-                            )}
-
                             {/* Notes */}
                             {event.notes && (
                               <div className="text-xs text-gray-700 pt-1">
@@ -2082,6 +2380,19 @@ export default function WeeklyScheduleView({
                     </div>
                   </div>
                 </div>
+              )}
+
+              {/* Drag selection rectangle overlay */}
+              {dragSelectState?.isActive && (
+                <div
+                  className="absolute border-2 border-blue-500 bg-transparent pointer-events-none z-40"
+                  style={{
+                    left: `${Math.min(dragSelectState.startX, dragSelectState.currentX)}px`,
+                    top: `${Math.min(dragSelectState.startY, dragSelectState.currentY)}px`,
+                    width: `${Math.abs(dragSelectState.currentX - dragSelectState.startX)}px`,
+                    height: `${Math.abs(dragSelectState.currentY - dragSelectState.startY)}px`,
+                  }}
+                />
               )}
               </div>
             </div>
@@ -2129,20 +2440,45 @@ export default function WeeklyScheduleView({
           
           <div className="border-t border-gray-200 p-4 bg-white flex-shrink-0 mt-auto">
             <div className="flex justify-between items-center">
-              <Button 
-                type="button" 
-                variant="destructive" 
-                onClick={() => {
-                  if (editingEvent && confirm('Are you sure you want to delete this event?')) {
-                    deleteEventMutation.mutate(editingEvent.id);
-                    setEditingEvent(null);
-                  }
-                }}
-                disabled={deleteEventMutation.isPending}
-                data-testid="button-delete-event"
-              >
-                {deleteEventMutation.isPending ? "Deleting..." : "Delete Event"}
-              </Button>
+              <div className="flex space-x-2">
+                <Button 
+                  type="button" 
+                  variant="destructive" 
+                  onClick={() => {
+                    if (editingEvent && confirm('Are you sure you want to delete this event?')) {
+                      deleteEventMutation.mutate(editingEvent.id);
+                      setEditingEvent(null);
+                    }
+                  }}
+                  disabled={deleteEventMutation.isPending}
+                  data-testid="button-delete-event"
+                >
+                  {deleteEventMutation.isPending ? "Deleting..." : "Delete Event"}
+                </Button>
+                {editingEvent && isPerformanceType(editingEvent.type, eventTypes, editingEvent.eventTypeId ?? undefined) && (
+                  <Button 
+                    type="button" 
+                    variant="outline"
+                    className={editingEvent.status === 'cancelled' ? 'border-green-500 text-green-600 hover:bg-green-50' : 'border-orange-500 text-orange-600 hover:bg-orange-50'}
+                    onClick={() => {
+                      if (editingEvent.status === 'cancelled') {
+                        updateEventMutation.mutate({ 
+                          eventId: editingEvent.id, 
+                          eventData: { status: 'active', cancellationReason: null } 
+                        });
+                        setEditingEvent(null);
+                      } else {
+                        setCancellationReason('');
+                        setShowCancelPerformanceDialog(true);
+                      }
+                    }}
+                    disabled={updateEventMutation.isPending}
+                    data-testid="button-cancel-performance"
+                  >
+                    {editingEvent.status === 'cancelled' ? 'Reinstate Performance' : 'Cancel Performance'}
+                  </Button>
+                )}
+              </div>
               <div className="flex space-x-2">
                 <Button 
                   type="button" 
@@ -2194,6 +2530,95 @@ export default function WeeklyScheduleView({
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Cancel Performance Confirmation Dialog */}
+      {showCancelPerformanceDialog && editingEvent && (
+        <Dialog open={showCancelPerformanceDialog} onOpenChange={(open) => {
+          setShowCancelPerformanceDialog(open);
+          if (!open) setCancellationReason('');
+        }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Cancel Performance</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Are you sure you want to cancel this performance? It will not count towards performance numbering.
+              </p>
+              <div className="space-y-2">
+                <Label htmlFor="cancellation-reason">Reason for cancellation</Label>
+                <Textarea
+                  id="cancellation-reason"
+                  placeholder="Enter the reason for cancelling this performance..."
+                  value={cancellationReason}
+                  onChange={(e) => setCancellationReason(e.target.value)}
+                  rows={3}
+                  data-testid="input-cancellation-reason"
+                />
+              </div>
+              <div className="flex justify-end space-x-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setShowCancelPerformanceDialog(false);
+                    setCancellationReason('');
+                  }}
+                  data-testid="button-cancel-cancellation"
+                >
+                  Go Back
+                </Button>
+                <Button 
+                  variant="destructive"
+                  onClick={() => {
+                    updateEventMutation.mutate({ 
+                      eventId: editingEvent.id, 
+                      eventData: { 
+                        status: 'cancelled',
+                        cancellationReason: cancellationReason || null
+                      } 
+                    });
+                    setShowCancelPerformanceDialog(false);
+                    setCancellationReason('');
+                    setEditingEvent(null);
+                  }}
+                  disabled={updateEventMutation.isPending}
+                  data-testid="button-confirm-cancellation"
+                >
+                  {updateEventMutation.isPending ? "Cancelling..." : "Cancel Performance"}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Scheduling Conflict Alert Dialog */}
+      <AlertDialog open={conflictDialog.open} onOpenChange={(open) => setConflictDialog({ ...conflictDialog, open })}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Scheduling Conflict
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-left">
+              <p className="mb-3">This event could not be scheduled due to the following conflicts:</p>
+              <ul className="list-disc pl-5 space-y-1">
+                {conflictDialog.messages.map((message, index) => (
+                  <li key={index} className="text-sm text-foreground">{message}</li>
+                ))}
+              </ul>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction 
+              onClick={() => setConflictDialog({ open: false, messages: [] })}
+              data-testid="button-acknowledge-conflict"
+            >
+              OK
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

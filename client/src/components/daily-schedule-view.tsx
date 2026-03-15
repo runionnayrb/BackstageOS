@@ -2,7 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { formatTimeDisplay, parseScheduleSettings, formatAsCalendarDate } from '@/lib/timeUtils';
 import { filterEventsBySettings, getTimezoneAbbreviation, calculateEventLayouts } from '@/lib/scheduleUtils';
-import { getEventTypeColor, getEventTypeColorFromDatabase, getEventTypeDisplayName, isLightColor, darkenColor } from '@/lib/eventUtils';
+import { getEventTypeColor, getEventTypeColorFromDatabase, getEventTypeDisplayName, isLightColor, darkenColor, calculatePerformanceNumbers, isPerformanceType } from '@/lib/eventUtils';
 import { ChevronLeft, ChevronRight, Plus, Calendar, Clock, ChevronDown, MapPin, Users, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -50,11 +50,14 @@ interface ScheduleEvent {
   startTime: string;
   endTime: string;
   type: string;
+  eventTypeId?: number | null;
   location?: string;
   notes?: string;
   isAllDay: boolean;
   parentEventId?: number | null;
   isProductionLevel?: boolean;
+  status?: string;
+  cancellationReason?: string | null;
   participants: {
     id: number;
     contactId: number;
@@ -748,7 +751,7 @@ export default function DailyScheduleView({
 
   // Fetch project settings (matching weekly view query key format)
   const { data: projectSettings } = useQuery({
-    queryKey: [`/api/projects/${projectId}/settings`],
+    queryKey: ['/api/projects', projectId, 'settings'],
   });
 
   // Extract timezone and time format from settings using utility function
@@ -770,15 +773,24 @@ export default function DailyScheduleView({
 
   // Fetch event types for filtering
   const { data: eventTypes = [] } = useQuery({
-    queryKey: [`/api/projects/${projectId}/event-types`],
+    queryKey: ['/api/projects', projectId, 'event-types'],
     enabled: !!projectId,
   });
 
   // Fetch contacts for participant popover categorization
   const { data: contacts = [] } = useQuery({
-    queryKey: [`/api/projects/${projectId}/contacts`],
+    queryKey: ['/api/projects', projectId, 'contacts'],
     enabled: !!projectId,
   });
+
+  // Calculate performance numbers for all events
+  const performanceNumbers = useMemo(() => {
+    const config = scheduleSettings.performanceNumbering || {
+      firstPerformanceEventId: null,
+      startingNumber: 1,
+    };
+    return calculatePerformanceNumbers(events, config, eventTypes);
+  }, [events, scheduleSettings.performanceNumbering, eventTypes]);
 
   // Filter events for the selected day
   const getEventsForDate = (date: Date) => {
@@ -1078,7 +1090,17 @@ export default function DailyScheduleView({
                               }}
                               onMouseDown={(e) => handleEventMouseDown(e, event.id)}
                             >
-                              <div className="font-medium truncate">{event.title}</div>
+                              <div className="flex items-center justify-between gap-1">
+                                <span className="font-medium truncate">{event.title}</span>
+                                <div className="flex items-center gap-1 flex-shrink-0">
+                                  {event.status === 'cancelled' && (
+                                    <span className="text-[10px] font-bold bg-red-500 text-white px-1 rounded leading-none">Cancelled</span>
+                                  )}
+                                  {performanceNumbers.get(event.id) && (
+                                    <span className="text-[10px] font-bold bg-white/30 px-1 rounded leading-none">#{performanceNumbers.get(event.id)}</span>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                           </PopoverTrigger>
                           <PopoverContent className="w-80 p-0" align="start">
@@ -1091,6 +1113,12 @@ export default function DailyScheduleView({
                                     style={{ backgroundColor: eventTypeColor }}
                                   />
                                   <h3 className="font-medium text-sm">{event.title}</h3>
+                                  {event.status === 'cancelled' && (
+                                    <span className="text-xs font-bold bg-red-500 text-white px-1.5 py-0.5 rounded">Cancelled</span>
+                                  )}
+                                  {performanceNumbers.get(event.id) && (
+                                    <span className="text-xs font-bold bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100 px-1.5 py-0.5 rounded">#{performanceNumbers.get(event.id)}</span>
+                                  )}
                                 </div>
                                 <Button
                                   variant="ghost"
@@ -1126,6 +1154,14 @@ export default function DailyScheduleView({
                                   <Calendar className="h-3 w-3" />
                                   <span>{getEventTypeDisplayName(event.type, eventTypes, event.eventTypeId)}</span>
                                 </div>
+
+                                {/* Cancellation Reason */}
+                                {event.status === 'cancelled' && event.cancellationReason && (
+                                  <div className="bg-red-50 border border-red-200 rounded-md p-2">
+                                    <div className="text-xs font-medium text-red-700 mb-1">Cancellation Reason:</div>
+                                    <div className="text-xs text-red-600">{event.cancellationReason}</div>
+                                  </div>
+                                )}
 
                                 {/* Participants */}
                                 {event.participants && event.participants.length > 0 && (
@@ -1187,13 +1223,6 @@ export default function DailyScheduleView({
                                       </div>
                                     </PopoverContent>
                                   </Popover>
-                                )}
-
-                                {/* Description */}
-                                {event.description && (
-                                  <div className="text-xs text-gray-700 pt-1">
-                                    <p>{event.description}</p>
-                                  </div>
                                 )}
 
                                 {/* Notes */}
@@ -1352,32 +1381,46 @@ export default function DailyScheduleView({
                           <PopoverTrigger asChild>
                             <div
                               data-event-card
-                              className={`absolute text-sm rounded-md shadow-sm cursor-pointer hover:opacity-90 z-30 ${
+                              className={`absolute text-sm rounded-md shadow-sm cursor-pointer hover:opacity-90 ${
                                 isLightColor(eventTypeColor) ? 'text-gray-900' : 'text-white'
                               } ${selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''
                               } ${isCurrentlyDragging ? 'opacity-50 cursor-grabbing' : 'cursor-grab'
-                              } ${isCenterableShortEvent && !hasOverlap ? 'flex items-center' : ''
+                              } ${isCompactEvent && !hasOverlap ? 'flex items-center justify-start' : ''
                               } ${isCenterableMediumEvent && !hasOverlap ? 'flex flex-col justify-center' : ''}`}
                               style={{
                                 left: eventLeft,
                                 width: eventWidth,
                                 top: `${displayTop}px`,
-                                height: `${Math.max(20, displayHeight)}px`,
-                                minHeight: '20px',
+                                height: `${Math.max(18, displayHeight)}px`,
                                 backgroundColor: eventTypeColor,
                                 border: `1px solid ${darkenColor(eventTypeColor, 25)}`,
                                 overflow: 'hidden',
-                                padding: (isCenterableShortEvent && !hasOverlap) ? '0 8px' : (isVeryShortEvent ? '2px 4px' : ((isCenterableMediumEvent && !hasOverlap) ? '4px 8px' : '4px 6px')),
+                                padding: isCompactEvent ? '0 4px' : ((isCenterableMediumEvent && !hasOverlap) ? '4px 8px' : '4px 6px'),
+                                zIndex: 30,
                               }}
                               onMouseDown={(e) => handleEventMouseDown(e, event.id)}
                               onContextMenu={(e) => e.preventDefault()}
                             >
                               {isCompactEvent ? (
-                                <div className={`flex items-center gap-1 ${hasOverlap ? 'flex-col items-start' : 'truncate'}`}>
-                                  <span className={`font-medium leading-tight ${hasOverlap ? 'line-clamp-2' : 'truncate'}`} style={{ wordBreak: hasOverlap ? 'break-word' : undefined }}>{event.title}</span>
-                                  {!hasOverlap && (
-                                    <span className="text-xs opacity-90 flex-shrink-0">{(() => {
-                                      // Show updated times during resize
+                                hasOverlap ? (
+                                  <div className="flex flex-col items-start overflow-hidden w-full">
+                                    <div className="flex items-center justify-between gap-1 w-full">
+                                      <span className="font-medium leading-none line-clamp-1">{event.title}</span>
+                                      <div className="flex items-center gap-1 flex-shrink-0">
+                                        {event.status === 'cancelled' && (
+                                          <span className="text-[10px] font-bold bg-red-500 text-white px-1 rounded leading-none">Cancelled</span>
+                                        )}
+                                        {performanceNumbers.get(event.id) && (
+                                          <span className="text-[10px] font-bold bg-white/30 px-1 rounded leading-none">#{performanceNumbers.get(event.id)}</span>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <span className="text-xs opacity-90 leading-none">{formatTimeDisplay(formatTime(startMinutes), timeFormat)}</span>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-1 truncate w-full">
+                                    <span className="font-medium leading-none truncate">{event.title}</span>
+                                    <span className="text-xs opacity-90 flex-shrink-0 leading-none">{(() => {
                                       if (isCurrentlyResizing) {
                                         const resizeStartMins = timeToMinutes(resizingEvent.event.startTime);
                                         const resizeEndMins = timeToMinutes(resizingEvent.event.endTime);
@@ -1385,21 +1428,29 @@ export default function DailyScheduleView({
                                       }
                                       return `${formatTimeDisplay(formatTime(startMinutes), timeFormat)} - ${formatTimeDisplay(formatTime(endMinutes), timeFormat)}`;
                                     })()}</span>
-                                  )}
-                                  {hasOverlap && (
-                                    <span className="text-xs opacity-90 leading-tight">{(() => {
-                                      // Show updated times during resize
-                                      if (isCurrentlyResizing) {
-                                        const resizeStartMins = timeToMinutes(resizingEvent.event.startTime);
-                                        return formatTimeDisplay(formatTime(resizeStartMins), timeFormat);
-                                      }
-                                      return formatTimeDisplay(formatTime(startMinutes), timeFormat);
-                                    })()}</span>
-                                  )}
-                                </div>
+                                    <div className="flex items-center gap-1 flex-shrink-0 ml-auto">
+                                      {event.status === 'cancelled' && (
+                                        <span className="text-[10px] font-bold bg-red-500 text-white px-1 rounded leading-none">Cancelled</span>
+                                      )}
+                                      {performanceNumbers.get(event.id) && (
+                                        <span className="text-[10px] font-bold bg-white/30 px-1 rounded leading-none">#{performanceNumbers.get(event.id)}</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                )
                               ) : (
-                                <div className={hasOverlap ? 'overflow-hidden' : ''}>
-                                  <div className={`font-medium ${hasOverlap ? 'break-words' : 'truncate'}`}>{event.title}</div>
+                                <div className={hasOverlap ? 'overflow-hidden' : 'w-full'}>
+                                  <div className={`font-medium ${hasOverlap ? 'break-words' : 'truncate'} flex items-center justify-between gap-1`}>
+                                    <span>{event.title}</span>
+                                    <div className="flex items-center gap-1 flex-shrink-0">
+                                      {event.status === 'cancelled' && (
+                                        <span className="text-xs font-bold bg-red-500 text-white px-1.5 py-0.5 rounded">Cancelled</span>
+                                      )}
+                                      {performanceNumbers.get(event.id) && (
+                                        <span className="text-xs font-bold bg-white/30 px-1.5 py-0.5 rounded">#{performanceNumbers.get(event.id)}</span>
+                                      )}
+                                    </div>
+                                  </div>
                                   <div className={`text-xs opacity-90 mt-0.5 ${hasOverlap ? 'break-words' : 'truncate'}`}>
                                     {(() => {
                                       // Show updated times during resize
@@ -1435,6 +1486,12 @@ export default function DailyScheduleView({
                                     style={{ backgroundColor: eventTypeColor }}
                                   />
                                   <h3 className="font-medium text-sm">{event.title}</h3>
+                                  {event.status === 'cancelled' && (
+                                    <span className="text-xs font-bold bg-red-500 text-white px-1.5 py-0.5 rounded">Cancelled</span>
+                                  )}
+                                  {performanceNumbers.get(event.id) && (
+                                    <span className="text-xs font-bold bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100 px-1.5 py-0.5 rounded">#{performanceNumbers.get(event.id)}</span>
+                                  )}
                                 </div>
                                 <Button
                                   variant="ghost"
@@ -1475,6 +1532,14 @@ export default function DailyScheduleView({
                                   <Calendar className="h-3 w-3" />
                                   <span>{getEventTypeDisplayName(event.type, eventTypes, event.eventTypeId)}</span>
                                 </div>
+
+                                {/* Cancellation Reason */}
+                                {event.status === 'cancelled' && event.cancellationReason && (
+                                  <div className="bg-red-50 border border-red-200 rounded-md p-2">
+                                    <div className="text-xs font-medium text-red-700 mb-1">Cancellation Reason:</div>
+                                    <div className="text-xs text-red-600">{event.cancellationReason}</div>
+                                  </div>
+                                )}
 
                                 {/* Participants */}
                                 {event.participants && event.participants.length > 0 && (
@@ -1536,13 +1601,6 @@ export default function DailyScheduleView({
                                       </div>
                                     </PopoverContent>
                                   </Popover>
-                                )}
-
-                                {/* Description */}
-                                {event.description && (
-                                  <div className="text-xs text-gray-700 pt-1">
-                                    <p>{event.description}</p>
-                                  </div>
                                 )}
 
                                 {/* Notes */}

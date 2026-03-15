@@ -64,15 +64,25 @@ export function TeamMembersList({ accessLevel, isActive = true }: TeamMembersLis
     mutationFn: async (memberId: number) => {
       return apiRequest("DELETE", `/api/team-members/${memberId}`);
     },
+    onMutate: async (memberId) => {
+      await queryClient.cancelQueries({ queryKey: ["/api/projects", projectId, "team-members"] });
+      const previousMembers = queryClient.getQueryData(["/api/projects", projectId, "team-members"]);
+      queryClient.setQueryData(["/api/projects", projectId, "team-members"], (old: any[] = []) => 
+        old.filter((member: any) => member.id !== memberId)
+      );
+      return { previousMembers };
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "team-members"] });
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/editor-count`] });
       toast({
         title: "Team member removed",
         description: "The team member has been removed from the production.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: any, variables, context) => {
+      if (context?.previousMembers) {
+        queryClient.setQueryData(["/api/projects", projectId, "team-members"], context.previousMembers);
+      }
       toast({
         title: "Error",
         description: error.message || "Failed to remove team member",

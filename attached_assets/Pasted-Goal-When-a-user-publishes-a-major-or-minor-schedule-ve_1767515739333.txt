@@ -1,0 +1,89 @@
+Goal
+When a user publishes a major or minor schedule version, BackstageOS must automatically email all project contacts using the user connected Gmail or Outlook provider when available, otherwise fall back to SendGrid. Right now publishing is not reliably triggering emails.
+
+Context
+Frontend publishes via schedule.ts using POST /api/projects/${projectId}/schedule-versions.
+Backend route in routes.tsx already calls scheduleNotificationService.sendScheduleUpdateNotifications(newVersion.id, projectId, req.user.id) inside setImmediate after creating the version.
+ScheduleNotificationService already attempts Gmail or Outlook first, then SendGrid.
+
+Primary issues to fix
+1. Frontend publish mutation has a real bug that can prevent the publish call from ever succeeding:
+In schedule.ts, inside onMutate, this line is wrong:
+const sorted = [.weekVersions].sort(...)
+It should be:
+const sorted = [...weekVersions].sort(...)
+Because the current code references a non existent property and also creates an invalid array, which can throw during onMutate and block the mutation.
+See schedule.ts.rtf lines 13 to 33 and 50 to 70. 
+
+2. Frontend optimistic toast is misleading and can claim published before the server succeeds:
+Right now onMutate immediately shows “Schedule published!” even if the request fails later. That makes it look like it published but no emails send.
+Move the success toast to onSuccess, and in onMutate show a neutral “Publishing” toast or no toast.
+See schedule.ts.rtf lines 55 to 60 and onSuccess and onError. 
+
+3. Backend swallows email errors silently so it is impossible to debug:
+In routes.tsx schedule version creation and resend routes, setImmediate has an empty catch.
+Add logging inside the catch so we can see why emails fail.
+See routes.tsx.rtf where setImmediate catches emailError but does nothing. 
+
+4. Personal schedule link base URL is likely wrong in Replit:
+ScheduleNotificationService builds personalScheduleUrl using process.env.REPLIT_HOST or fallback https://backstageos.com.
+In Replit, REPLIT_HOST is usually not set. Use one of REPLIT_DEPLOYMENT_URL or REPLIT_URL when present, otherwise fall back to a configurable PUBLIC_BASE_URL env var.
+This prevents links in emails from pointing to the wrong domain, which looks like “email did not work” because links break.
+This code is inside scheduleNotificationService when constructing personalScheduleUrl.
+
+5. Make sure schedule version publish route actually triggers notifications for both major and minor versions:
+Confirm that the create schedule version route sends notifications for any versionType.
+The route already does this after updating the version changelog. Keep it, but add logs that print:
+projectId, newVersion.id, req.user.id, versionType, contacts count, connectedEmailProvider, connectedEmailAddress.
+
+Exact change list
+A. Fix schedule.ts optimistic version sorting bug
+In schedule.ts publishVersionMutation onMutate, replace:
+const sorted = [.weekVersions].sort(...)
+with:
+const sorted = [...weekVersions].sort(...)
+Also match backend logic by sorting with publishedAt fallback to createdAt:
+new Date(b.publishedAt || b.createdAt).getTime()
+
+B. Adjust publish toasts so success toast only happens after server success
+Remove the success toast from onMutate.
+Add a success toast inside onSuccess using the real response version values.
+Optionally show a “Publishing schedule” toast in onMutate, or rely on button disabled state.
+
+C. Add backend logging for email failures and for publish trigger
+In routes.tsx:
+1. In the schedule version creation route, inside setImmediate catch, log emailError with console.error and include versionId and projectId.
+2. In the resend schedule route, inside setImmediate catch, log emailError with console.error and include currentVersion.id, projectId, contactIds.
+
+D. Fix personalScheduleUrl base url selection
+In ScheduleNotificationService, replace:
+const personalScheduleUrl = `${process.env.REPLIT_HOST || 'https://backstageos.com'}/personal-schedule/${accessToken}`;
+with a helper like:
+const baseUrl =
+  process.env.PUBLIC_BASE_URL ||
+  process.env.REPLIT_DEPLOYMENT_URL ||
+  process.env.REPLIT_URL ||
+  'https://backstageos.com';
+Then:
+const personalScheduleUrl = `${baseUrl}/personal-schedule/${accessToken}`;
+Ensure baseUrl has no trailing slash.
+
+E. Add minimal debug logs in ScheduleNotificationService for provider sending
+In sendEmailViaProvider, when gmail or outlook token is missing, log userId and provider.
+When provider send returns failure, log result.error.
+Do not log access tokens.
+
+Acceptance tests
+1. Connect Gmail or Outlook, then call POST /api/user/email-provider/test, verify it arrives. The route exists. 
+2. Publish a minor schedule version for a week with events.
+Backend should create new version and call sendScheduleUpdateNotifications asynchronously. 
+3. Confirm server logs show:
+Creating version, newVersion.id, contacts count, provider, and either “Email sent via Gmail” or “Email sent via Outlook” or “Sending via SendGrid”.
+4. Confirm a contact receives the email and the personal schedule link opens correctly.
+
+Please implement the above changes directly in:
+client schedule.ts
+server routes.tsx
+server services schedulenotificationservice.ts
+
+Keep changes scoped to only these issues, no refactors.

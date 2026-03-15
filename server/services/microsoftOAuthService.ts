@@ -11,18 +11,19 @@ export class MicrosoftOAuthService {
     this.clientSecret = process.env.MICROSOFT_CLIENT_SECRET?.trim() || '';
     this.tenantId = process.env.MICROSOFT_TENANT_ID || 'common';
     
-    const baseUrl = process.env.REPLIT_DEV_DOMAIN 
-      ? `https://${process.env.REPLIT_DEV_DOMAIN}`
-      : 'http://localhost:5000';
+    // Priority: Custom domain > Production deployment > Dev domain > localhost
+    let baseUrl: string;
+    if (process.env.CUSTOM_DOMAIN) {
+      baseUrl = `https://${process.env.CUSTOM_DOMAIN}`;
+    } else if (process.env.REPLIT_DEPLOYMENT === '1' && process.env.REPLIT_DOMAINS) {
+      const domains = process.env.REPLIT_DOMAINS.split(',');
+      baseUrl = `https://${domains[0]}`;
+    } else if (process.env.REPLIT_DEV_DOMAIN) {
+      baseUrl = `https://${process.env.REPLIT_DEV_DOMAIN}`;
+    } else {
+      baseUrl = 'http://localhost:5000';
+    }
     this.redirectUri = `${baseUrl}/api/oauth/microsoft/callback`;
-    
-    console.log('Microsoft OAuth Config:', {
-      clientId: this.clientId,
-      clientSecretLength: this.clientSecret.length,
-      clientSecretPrefix: this.clientSecret.substring(0, 8) + '...',
-      redirectUri: this.redirectUri,
-      tenantId: this.tenantId,
-    });
     
     if (!this.clientId || !this.clientSecret) {
       console.warn('⚠️  Microsoft OAuth credentials not configured. Set MICROSOFT_CLIENT_ID and MICROSOFT_CLIENT_SECRET');

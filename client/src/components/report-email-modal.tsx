@@ -49,10 +49,7 @@ interface ReportEmailModalProps {
     date: string;
     content: Record<string, any>;
   };
-  project: {
-    id: number;
-    name: string;
-  };
+  project: any;
   template: {
     id: number;
     name: string;
@@ -189,33 +186,30 @@ export function ReportEmailModal({
 
   const normalizeListHtml = (html: string): string => {
     if (!html) return "";
-    // Gmail strips padding/margin from ol/ul directly, so wrap in a div with padding
-    // and use list-style-position: inside so numbering stays visible
     const olStyle = "list-style-type: decimal; list-style-position: inside; padding-left: 0; margin: 0;";
     const ulStyle = "list-style-type: disc; list-style-position: inside; padding-left: 0; margin: 0;";
     const listItemStyle = "margin: 0; padding: 0;";
+    const paragraphStyle = "margin: 0; padding: 0;";
     let result = html
       .replace(/<p><\/p>/gi, '')
       .replace(/<p>\s*<\/p>/gi, '')
-      // Wrap ol in a div with padding that Gmail won't strip
       .replace(/<ol[^>]*>/gi, `<div style="padding-left: 20px;"><ol style="${olStyle}">`)
       .replace(/<\/ol>/gi, '</ol></div>')
-      // Wrap ul in a div with padding that Gmail won't strip
       .replace(/<ul[^>]*>/gi, `<div style="padding-left: 20px;"><ul style="${ulStyle}">`)
       .replace(/<\/ul>/gi, '</ul></div>')
       .replace(/<li[^>]*>/gi, `<li style="${listItemStyle}">`)
-      .replace(/<p[^>]*>/gi, '<span>')
-      .replace(/<\/p>/gi, '</span>');
+      .replace(/<p[^>]*>/gi, `<p style="${paragraphStyle}">`)
+      .replace(/<\/p>/gi, '</p>');
     return result;
   };
 
   const generateReportContentHtml = (): string => {
     if (!template?.sections) return "";
     
-    let html = "<hr><div style=\"font-family: Arial, sans-serif; max-width: 800px;\">";
+    let html = "<hr><div style=\"font-family: Arial, sans-serif; font-size: 14px; max-width: 800px;\">";
     
     for (const section of template.sections) {
-      html += `<h3 style="margin-top: 16px; margin-bottom: 4px; color: #333;">${section.title}</h3>`;
+      html += `<h3 style="margin: 12px 0 4px 0; font-size: 16px; color: #333;">${section.title}</h3>`;
       
       if (section.fields?.length > 0) {
         for (const field of section.fields) {
@@ -224,15 +218,14 @@ export function ReportEmailModal({
           const plainContent = stripHtml(fieldHtml);
           
           if (plainContent.trim()) {
-            html += `<div style="margin-bottom: 8px;">`;
-            html += `<strong style="display: block; margin-bottom: 2px;">${field.label}</strong>`;
-            html += `<div>${normalizeListHtml(fieldHtml)}</div>`;
+            html += `<div style="margin: 0 0 4px 0;">`;
+            html += `<strong style="display: block; margin: 0;">${field.label}</strong>`;
+            html += `<div style="margin: 0;">${normalizeListHtml(fieldHtml)}</div>`;
             html += `</div>`;
           }
         }
       }
     }
-    
     
     html += "</div>";
     return html;
@@ -324,8 +317,8 @@ export function ReportEmailModal({
       lineHeight: 1.4,
       marginTop: 0.5,
       marginBottom: 0.5,
-      marginLeft: 1,
-      marginRight: 1,
+      marginLeft: 0.5,
+      marginRight: 0.5,
     };
 
     const pdf = new jsPDF({
@@ -366,28 +359,112 @@ export function ReportEmailModal({
       return pdf.splitTextToSize(text, maxWidth);
     };
 
+    type TextSegment = { text: string; indent: number; isListItem: boolean };
+    const parseHtmlWithLists = (html: string): TextSegment[] => {
+      if (!html) return [];
+      const segments: TextSegment[] = [];
+      const temp = document.createElement('div');
+      temp.innerHTML = html;
+
+      const processNode = (node: Node, listCounter: number[] = [], listType: string[] = []) => {
+        if (node.nodeType === Node.TEXT_NODE) {
+          const text = node.textContent?.trim();
+          if (text) {
+            segments.push({ text, indent: listCounter.length, isListItem: false });
+          }
+          return;
+        }
+
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          const el = node as Element;
+          const tagName = el.tagName.toLowerCase();
+
+          if (tagName === 'ol') {
+            listCounter.push(0);
+            listType.push('ol');
+            el.childNodes.forEach(child => processNode(child, listCounter, listType));
+            listCounter.pop();
+            listType.pop();
+          } else if (tagName === 'ul') {
+            listCounter.push(0);
+            listType.push('ul');
+            el.childNodes.forEach(child => processNode(child, listCounter, listType));
+            listCounter.pop();
+            listType.pop();
+          } else if (tagName === 'li') {
+            if (listCounter.length > 0) {
+              listCounter[listCounter.length - 1]++;
+              const currentType = listType[listType.length - 1];
+              const num = listCounter[listCounter.length - 1];
+              const prefix = currentType === 'ol' ? `${num}. ` : '• ';
+              const text = el.textContent?.trim() || '';
+              if (text) {
+                segments.push({ 
+                  text: prefix + text, 
+                  indent: listCounter.length, 
+                  isListItem: true 
+                });
+              }
+            }
+          } else if (tagName === 'p' || tagName === 'div' || tagName === 'br') {
+            const hasListChild = Array.from(el.children).some(
+              child => ['ol', 'ul'].includes(child.tagName.toLowerCase())
+            );
+            if (hasListChild) {
+              el.childNodes.forEach(child => processNode(child, listCounter, listType));
+            } else if (listCounter.length === 0) {
+              const text = el.textContent?.trim();
+              if (text) {
+                segments.push({ text, indent: 0, isListItem: false });
+              }
+            }
+          } else {
+            el.childNodes.forEach(child => processNode(child, listCounter, listType));
+          }
+        }
+      };
+
+      temp.childNodes.forEach(child => processNode(child));
+      return segments;
+    };
+
     const centerX = pageWidth / 2;
+    const headerShowNameSize = 24;
+    const headerSubtitleSize = 16;
+    const headerDateSize = 14;
 
-    pdf.setFontSize(titleSize);
-    pdf.setFont(fontFamily, "bold");
-    const titleLines = wrapText(report.title || "Report", contentWidth, titleSize);
-    titleLines.forEach((line: string) => {
-      checkNewPage(titleSize * lineHeight);
-      pdf.text(line, centerX, yPosition, { align: "center" });
-      yPosition += titleSize * lineHeight;
-    });
-
-    pdf.setFontSize(showNameSize);
-    pdf.setFont(fontFamily, "normal");
+    pdf.setFontSize(headerShowNameSize);
+    pdf.setFont('helvetica', 'bold');
     if (project.name) {
-      const projectLines = wrapText(project.name, contentWidth, showNameSize);
+      const projectLines = wrapText(project.name, contentWidth, headerShowNameSize);
       projectLines.forEach((line: string) => {
-        checkNewPage(showNameSize * lineHeight);
-        pdf.text(line, centerX, yPosition, { align: "center" });
-        yPosition += showNameSize * lineHeight;
+        checkNewPage(headerShowNameSize * 0.8);
+        pdf.text(line, centerX, yPosition, { align: 'center' });
+        yPosition += headerShowNameSize * 0.8;
       });
     }
 
+    const directorName = project?.director || '';
+    if (directorName.trim()) {
+      pdf.setFontSize(headerDateSize);
+      pdf.setFont('helvetica', 'normal');
+      const directorText = `Directed by ${directorName}`;
+      pdf.text(directorText, centerX, yPosition, { align: 'center' });
+      yPosition += headerDateSize * 1.2 + 8;
+    }
+
+    pdf.setFontSize(headerSubtitleSize);
+    pdf.setFont('helvetica', 'normal');
+    const reportTitle = (report.title || 'Report').toUpperCase();
+    const titleLines = wrapText(reportTitle, contentWidth, headerSubtitleSize);
+    titleLines.forEach((line: string) => {
+      checkNewPage(headerSubtitleSize * 1.2);
+      pdf.text(line, centerX, yPosition, { align: 'center' });
+      yPosition += headerSubtitleSize * 1.2;
+    });
+
+    pdf.setFontSize(headerDateSize);
+    pdf.setFont('helvetica', 'normal');
     const dateStr = new Date(report.date).toLocaleDateString("en-US", {
       weekday: "long",
       year: "numeric",
@@ -395,31 +472,33 @@ export function ReportEmailModal({
       day: "numeric",
     });
     pdf.text(dateStr, centerX, yPosition, { align: "center" });
-    yPosition += showNameSize * lineHeight;
+    yPosition += headerDateSize * 1.2 + 8;
 
-    pdf.setLineWidth(0.5);
-    pdf.line(marginLeft, yPosition, pageWidth - marginRight, yPosition);
-    yPosition += contentSize * lineHeight;
+    yPosition += 10;
 
     if (template?.sections) {
       for (const section of template.sections) {
         checkNewPage(sectionTitleSize * lineHeight + 20);
 
         pdf.setFontSize(sectionTitleSize);
-        pdf.setFont(fontFamily, "bold");
-        const sectionLines = wrapText(section.title || "", contentWidth, sectionTitleSize);
+        pdf.setFont('helvetica', 'bold');
+        const sectionTitle = (section.title || '').toUpperCase();
+        const sectionLines = wrapText(sectionTitle, contentWidth, sectionTitleSize);
         sectionLines.forEach((line: string) => {
-          checkNewPage(sectionTitleSize * lineHeight);
+          checkNewPage(sectionTitleSize * 1.0);
           pdf.text(line, marginLeft, yPosition);
-          yPosition += sectionTitleSize * lineHeight;
+          yPosition += sectionTitleSize * 1.0;
         });
-        yPosition += 6;
+
+        pdf.setLineWidth(1.5);
+        pdf.line(marginLeft, yPosition - 4, pageWidth - marginRight, yPosition - 4);
+        yPosition += 16;
 
         if (section.fields?.length > 0) {
           for (const field of section.fields) {
             checkNewPage(fieldTitleSize * lineHeight + 10);
             pdf.setFontSize(fieldTitleSize);
-            pdf.setFont(fontFamily, "bold");
+            pdf.setFont('helvetica', 'bold');
             const fieldLines = wrapText(field.label || "", contentWidth - 20, fieldTitleSize);
             fieldLines.forEach((line: string) => {
               checkNewPage(fieldTitleSize * lineHeight);
@@ -429,23 +508,39 @@ export function ReportEmailModal({
             yPosition += 2;
 
             const fieldContent = contentRef.current[field.label] || field.defaultValue || "";
-            const plainContent = stripHtml(fieldContent);
+            const segments = parseHtmlWithLists(fieldContent);
 
-            if (plainContent.trim()) {
+            if (segments.length > 0) {
               pdf.setFontSize(contentSize);
-              pdf.setFont(fontFamily, "normal");
-              const contentLines = wrapText(plainContent, contentWidth - 30, contentSize);
-              contentLines.forEach((line: string) => {
-                checkNewPage(contentSize * lineHeight);
-                pdf.text(line, marginLeft + 20, yPosition);
-                yPosition += contentSize * lineHeight;
-              });
+              pdf.setFont('helvetica', 'normal');
+
+              for (const segment of segments) {
+                const indentOffset = segment.indent * 15;
+                const baseIndent = marginLeft + 20;
+                const segmentLines = wrapText(segment.text, contentWidth - 30 - indentOffset, contentSize);
+
+                segmentLines.forEach((line: string, lineIndex: number) => {
+                  checkNewPage(contentSize * lineHeight);
+                  const xPos = baseIndent + indentOffset + (segment.isListItem && lineIndex > 0 ? 15 : 0);
+                  pdf.text(line, xPos, yPosition);
+                  yPosition += contentSize * lineHeight;
+                });
+              }
             }
             yPosition += 8;
           }
         }
         yPosition += 12;
       }
+    }
+
+    const totalPages = pdf.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      pdf.setPage(i);
+      pdf.setFontSize(11);
+      pdf.setFont('helvetica', 'normal');
+      const pageText = `Page ${i} of ${totalPages}`;
+      pdf.text(pageText, centerX, pageHeight - marginBottom + 20, { align: 'center' });
     }
 
     return pdf.output("blob");
@@ -482,6 +577,8 @@ export function ReportEmailModal({
       formData.append("content", stripHtml(htmlContent));
       formData.append("htmlContent", htmlContent);
       formData.append("attachments", new File([pdfBlob], pdfFileName, { type: "application/pdf" }));
+      formData.append("projectId", projectId.toString());
+      formData.append("emailType", "report");
 
       const response = await fetch("/api/email/send", {
         method: "POST",
@@ -519,9 +616,15 @@ export function ReportEmailModal({
     onClose();
   };
 
+  const setIsOpenInternal = (open: boolean) => {
+    if (!open) {
+      handleClose();
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto" style={{ width: '75vw', maxWidth: 'none' }}>
+    <Dialog open={isOpen} onOpenChange={setIsOpenInternal}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Email Report</DialogTitle>
           <DialogDescription>
@@ -669,14 +772,14 @@ export function ReportEmailModal({
                 <EditorContent 
                   editor={editor}
                   data-testid="editor-email-body"
-                  className="[&_.ProseMirror]:outline-none [&_.ProseMirror]:p-3 [&_.ProseMirror]:min-h-[300px] max-h-[400px] overflow-y-auto"
+                  className="[&_.ProseMirror]:outline-none [&_.ProseMirror]:p-3 [&_.ProseMirror]:min-h-[120px]"
                 />
               </div>
             )}
           </div>
 
           <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded text-sm text-blue-900 dark:text-blue-100">
-            📎 Report PDF will also be attached to this email.
+            📎 Report PDF will be attached to this email
           </div>
 
           {assignedDistros.length > 0 && (

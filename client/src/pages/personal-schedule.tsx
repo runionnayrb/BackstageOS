@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
-import { Calendar, AlertCircle, X, MapPin, Clock, Users, History, ChevronRight } from "lucide-react";
-import { format, parseISO, isValid } from "date-fns";
+import { useState, useMemo } from "react";
+import { Calendar, AlertCircle, X, MapPin, Clock, Users, History, ChevronRight, ChevronDown } from "lucide-react";
+import { format, parseISO, isValid, isBefore, startOfDay } from "date-fns";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { getEventTypeColorFromDatabase, isLightColor } from "@/lib/eventUtils";
+import { getEventTypeColorFromDatabase, isLightColor, calculatePerformanceNumbers } from "@/lib/eventUtils";
 
 interface HistoricalWeek {
   weekStart: string;
@@ -61,7 +61,7 @@ interface PersonalScheduleData {
     eventTypeId?: number;
   }>;
   historicalWeeks?: HistoricalWeek[];
-  eventTypes?: EventType[];
+  eventTypes: EventType[];
 }
 
 interface HistoricalWeekEvents {
@@ -82,7 +82,7 @@ interface HistoricalWeekEvents {
     notes?: string;
     eventTypeId?: number;
   }>;
-  eventTypes?: EventType[];
+  eventTypes: EventType[];
 }
 
 interface PersonalScheduleViewerProps {
@@ -93,11 +93,25 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [showPreviousSchedules, setShowPreviousSchedules] = useState(false);
   const [selectedHistoricalWeek, setSelectedHistoricalWeek] = useState<string | null>(null);
+  const [collapsedDays, setCollapsedDays] = useState<Record<string, boolean>>({});
 
-  const { data: scheduleData, isLoading, error } = useQuery<PersonalScheduleData>({
+  const today = useMemo(() => startOfDay(new Date()), []);
+
+  const { data: scheduleData, isLoading, error } = useQuery<PersonalScheduleData & { performanceNumbers?: Record<number, number | null> }>({
     queryKey: token === "test" ? [`/api/schedule/test-personal`] : [`/api/schedule/${token}`],
     enabled: !!token,
   });
+
+  const performanceNumbers = useMemo(() => {
+    if (!scheduleData?.performanceNumbers) return new Map<number, number | null>();
+    
+    // Convert the object from server into a Map for the existing UI logic
+    const perfMap = new Map<number, number | null>();
+    Object.entries(scheduleData.performanceNumbers).forEach(([id, num]) => {
+      perfMap.set(Number(id), num);
+    });
+    return perfMap;
+  }, [scheduleData]);
 
   // Fetch historical week events on demand (not available for test tokens)
   const isTestToken = token === "test";
@@ -265,41 +279,37 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-4xl mx-auto px-4 py-6">
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Personal Schedule</h1>
-              <div className="space-y-1">
-                {version ? (
-                  <p className="text-gray-600 mb-2">
-                    Version {getVersionDisplay(version)}, Published: {formatPublishedDate(version.publishedAt)}
-                  </p>
-                ) : (
-                  <p className="text-gray-600 mb-2">
-                    No upcoming schedule published
-                  </p>
-                )}
-                <p className="text-gray-700">
-                  <span className="font-medium">{contactName}</span> • {getContactTypeDisplay(contact.contactType)}
-                </p>
-                <p className="text-gray-600">{project.name}</p>
-              </div>
-            </div>
-
+      <div className="bg-white">
+        <div className="max-w-4xl mx-auto px-4 pt-8 pb-4">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Personal Schedule</h1>
+            <p className="text-lg text-gray-600 font-medium">{project.name}</p>
+            <p className="text-gray-700 mt-1">
+              <span className="font-medium">{contactName}</span> {getContactTypeDisplay(contact.contactType)}
+            </p>
           </div>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-6">
-
+      <div className="max-w-4xl mx-auto px-4 py-3">
         {/* Events List */}
         <div className="bg-white rounded-lg">
           <div className="px-6 py-4">
-            <h2 className="text-lg font-semibold text-gray-900">Upcoming Schedule</h2>
-            <p className="text-gray-600 text-sm">
-              You have {events.length} upcoming event{events.length !== 1 ? 's' : ''} scheduled
-            </p>
+            <div className="flex flex-col">
+              {version ? (
+                <p className="text-sm text-gray-500 mb-1">
+                  Version {getVersionDisplay(version)} • Published: {formatPublishedDate(version.publishedAt)}
+                </p>
+              ) : (
+                <p className="text-sm text-gray-500 mb-1">
+                  No upcoming schedule published
+                </p>
+              )}
+              <h2 className="text-lg font-semibold text-gray-900">Upcoming Schedule</h2>
+              <p className="text-gray-600 text-sm">
+                You have {events.length} upcoming event{events.length !== 1 ? 's' : ''} scheduled
+              </p>
+            </div>
           </div>
 
           {events.length === 0 ? (
@@ -334,49 +344,65 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
                     {/* Days within this week */}
                     {sortedDates.map((date) => {
                       const dayEvents = weekEvents[date];
+                      const dateObj = startOfDay(parseISO(date));
+                      const isPastDay = isBefore(dateObj, today);
+                      const isCollapsed = collapsedDays[date] !== undefined ? collapsedDays[date] : isPastDay;
+
                       return (
-                        <div key={date}>
+                        <div key={date} className="border-b border-gray-100 last:border-0">
                           {/* Date Header */}
-                          <div className="px-6 pt-4 pb-2 bg-white">
-                            <h4 className="text-base font-semibold text-gray-900">{formatDate(date)}</h4>
-                            <p className="text-sm text-gray-600">
-                              {dayEvents.length} event{dayEvents.length !== 1 ? 's' : ''}
-                            </p>
+                          <div 
+                            className="px-6 py-4 bg-white flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
+                            onClick={() => setCollapsedDays(prev => ({ ...prev, [date]: !isCollapsed }))}
+                          >
+                            <div>
+                              <h4 className="text-base font-semibold text-gray-900">{formatDate(date)}</h4>
+                              <p className="text-sm text-gray-600">
+                                {dayEvents.length} event{dayEvents.length !== 1 ? 's' : ''}
+                              </p>
+                            </div>
+                            {isCollapsed ? (
+                              <ChevronRight className="h-5 w-5 text-gray-400" />
+                            ) : (
+                              <ChevronDown className="h-5 w-5 text-gray-400" />
+                            )}
                           </div>
                           
                           {/* Events for this date */}
-                          <div>
-                            {dayEvents.map((event) => {
+                          {!isCollapsed && (
+                            <div className="pb-2">
+                              {dayEvents.map((event) => {
                               const eventColor = getEventColor(event);
-                              const textColorClass = isLightColor(eventColor) ? 'text-gray-900' : 'text-white';
-                              const secondaryTextClass = isLightColor(eventColor) ? 'text-gray-600' : 'text-gray-300';
+                              // Force high contrast dark text for better readability
+                              const textColorClass = 'text-gray-900';
+                              const secondaryTextClass = 'text-gray-700';
                               return (
                                 <div 
                                   key={event.id} 
-                                  className="px-6 pt-2 pb-6 cursor-pointer hover:opacity-90 transition-opacity"
+                                  className="px-6 py-1 cursor-pointer hover:opacity-90 transition-opacity"
                                   onClick={() => setSelectedEvent(event)}
                                 >
                                   <div 
-                                    className="flex items-start gap-3 p-4 rounded-lg border-l-4" 
+                                    className="flex items-start gap-3 p-4 rounded-lg border-l-4 shadow-sm" 
                                     style={{ 
                                       borderLeftColor: eventColor,
-                                      backgroundColor: `${eventColor}10`
+                                      backgroundColor: `${eventColor}15`
                                     }}
                                   >
                                     <div className={`text-sm min-w-[80px] pt-1 ${secondaryTextClass}`}>
                                       {event.isAllDay ? (
                                         <div>
-                                          <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${isLightColor(eventColor) ? 'bg-black/10 text-gray-900' : 'bg-white/20 text-white'}`}>
+                                          <span className="inline-flex items-center px-2 py-1 rounded text-xs font-bold bg-black/10 text-gray-900">
                                             All Day
                                           </span>
                                         </div>
                                       ) : (
                                         <div>
-                                          <div className="font-medium">
+                                          <div className="font-bold">
                                             {formatTime(event.startTime)}
                                           </div>
                                           {event.endTime && (
-                                            <div className={`text-xs mt-1 ${secondaryTextClass}`}>
+                                            <div className="text-xs mt-1 font-medium">
                                               {formatTime(event.endTime)}
                                             </div>
                                           )}
@@ -384,9 +410,12 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
                                       )}
                                     </div>
                                     <div className="flex-1">
-                                      <h4 className={`font-semibold mb-1 ${textColorClass}`}>{event.title}</h4>
+                                      <h4 className={`font-bold text-base mb-1 ${textColorClass}`}>
+                                        {event.title}
+                                        {performanceNumbers.get(event.id) && ` #${performanceNumbers.get(event.id)}`}
+                                      </h4>
                                       {event.location && (
-                                        <div className={`text-sm mb-1 ${secondaryTextClass}`}>
+                                        <div className={`text-sm font-medium ${secondaryTextClass}`}>
                                           {event.location}
                                         </div>
                                       )}
@@ -396,6 +425,7 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
                               );
                             })}
                           </div>
+                          )}
                         </div>
                       );
                     })}
@@ -462,50 +492,16 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
                     <div className="animate-spin h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full"></div>
                   </div>
                 ) : historicalWeekData ? (
-                  <div>
-                    <div className="mb-4">
-                      <h3 className="font-semibold text-gray-900">
-                        {format(parseISO(historicalWeekData.weekStart), 'MMM d')} - {format(parseISO(historicalWeekData.weekEnd), 'MMM d, yyyy')}
-                      </h3>
-                      <p className="text-sm text-gray-500">Version {historicalWeekData.version}</p>
-                    </div>
-                    
-                    {historicalWeekData.events.length === 0 ? (
-                      <p className="text-gray-500 text-center py-4">No events for this week</p>
-                    ) : (
-                      <div className="space-y-3">
-                        {historicalWeekData.events.map((event) => {
-                          const eventColor = getEventColor(event, historicalWeekData.eventTypes);
-                          const textColorClass = isLightColor(eventColor) ? 'text-gray-900' : 'text-white';
-                          const secondaryTextClass = isLightColor(eventColor) ? 'text-gray-600' : 'text-gray-300';
-                          return (
-                            <div 
-                              key={event.id}
-                              className="p-3 rounded-lg cursor-pointer hover:opacity-90 transition-opacity border-l-4"
-                              style={{ 
-                                borderLeftColor: eventColor,
-                                backgroundColor: `${eventColor}10`
-                              }}
-                              onClick={() => {
-                                setSelectedEvent(event);
-                                setShowPreviousSchedules(false);
-                              }}
-                            >
-                              <div className="flex items-center gap-3">
-                                <div className={`text-sm min-w-[60px] ${secondaryTextClass}`}>
-                                  {event.isAllDay ? 'All Day' : formatTime(event.startTime)}
-                                </div>
-                                <div>
-                                  <p className={`font-medium ${textColorClass}`}>{event.title}</p>
-                                  <p className={`text-sm ${secondaryTextClass}`}>{formatDate(event.date)}</p>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
+                  <HistoricalWeekEventsViewer 
+                    data={historicalWeekData} 
+                    onSelectEvent={(event) => {
+                      setSelectedEvent(event);
+                      setShowPreviousSchedules(false);
+                    }}
+                    getEventColor={getEventColor}
+                    formatTime={formatTime}
+                    formatDate={formatDate}
+                  />
                 ) : (
                   <p className="text-gray-500 text-center py-4">Failed to load events</p>
                 )}
@@ -617,3 +613,99 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
 }
 
 export default PersonalScheduleViewer;
+
+function HistoricalWeekEventsViewer({ 
+  data, 
+  onSelectEvent, 
+  getEventColor, 
+  formatTime, 
+  formatDate 
+}: { 
+  data: HistoricalWeekEvents, 
+  onSelectEvent: (event: any) => void,
+  getEventColor: any,
+  formatTime: any,
+  formatDate: any
+}) {
+  const performanceNumbers = useMemo(() => {
+    return calculatePerformanceNumbers(
+      data.events.map(e => ({
+        ...e,
+        endDate: null,
+        status: 'published'
+      })),
+      { firstPerformanceEventId: null, startingNumber: 1 },
+      data.eventTypes
+    );
+  }, [data]);
+
+  return (
+    <div>
+      <div className="mb-4">
+        <h3 className="font-semibold text-gray-900">
+          {format(parseISO(data.weekStart), 'MMM d')} - {format(parseISO(data.weekEnd), 'MMM d, yyyy')}
+        </h3>
+        <p className="text-sm text-gray-500">Version {data.version}</p>
+      </div>
+      
+      {data.events.length === 0 ? (
+        <p className="text-gray-500 text-center py-4">No events for this week</p>
+      ) : (
+        <div className="space-y-4">
+          {Object.entries(
+            data.events.reduce((acc, event) => {
+              const dateKey = event.date;
+              if (!acc[dateKey]) acc[dateKey] = [];
+              acc[dateKey].push(event);
+              return acc;
+            }, {} as Record<string, typeof data.events>)
+          )
+          .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
+          .map(([date, dayEvents]) => (
+            <div key={date} className="border border-gray-100 rounded-lg overflow-hidden">
+              <div className="bg-gray-50 px-4 py-2 border-b border-gray-100">
+                <h4 className="font-semibold text-sm text-gray-900">{formatDate(date)}</h4>
+              </div>
+              <div className="divide-y divide-gray-50">
+                {dayEvents.sort((a, b) => {
+                  if (a.isAllDay && !b.isAllDay) return -1;
+                  if (!a.isAllDay && b.isAllDay) return 1;
+                  const timeA = a.startTime || '00:00:00';
+                  const timeB = b.startTime || '00:00:00';
+                  return timeA.localeCompare(timeB);
+                }).map((event) => {
+                  const eventColor = getEventColor(event, data.eventTypes);
+                  const textColorClass = 'text-gray-900';
+                  const secondaryTextClass = 'text-gray-700';
+                  const perfNum = performanceNumbers.get(event.id);
+
+                  return (
+                    <div 
+                      key={event.id}
+                      className="p-3 cursor-pointer hover:bg-gray-50 transition-colors border-l-4"
+                      style={{ borderLeftColor: eventColor }}
+                      onClick={() => onSelectEvent(event)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`text-sm min-w-[65px] font-bold ${secondaryTextClass}`}>
+                          {event.isAllDay ? 'All Day' : formatTime(event.startTime)}
+                        </div>
+                        <div>
+                          <p className={`font-bold ${textColorClass}`}>
+                            {event.title}
+                            {perfNum && ` #${perfNum}`}
+                          </p>
+                          {event.location && <p className={`text-xs font-medium ${secondaryTextClass}`}>{event.location}</p>}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

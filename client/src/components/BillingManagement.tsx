@@ -1,866 +1,441 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { Button } from "@/components/ui/button";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { CreditCard, DollarSign, Users, TrendingUp, ExternalLink, RefreshCw, AlertCircle } from "lucide-react";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Edit2, Trash2, CreditCard } from "lucide-react";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
-interface BillingPlan {
-  id: number;
-  planId: string;
+interface StripeProduct {
+  id: string;
   name: string;
-  description?: string;
-  price: number;
-  billingInterval: string;
-  trialDays: number;
-  features: string[];
-  maxProjects?: number;
-  maxTeamMembers?: number;
-  isActive: boolean;
-  sortOrder: number;
-  stripeProductId?: string;
-  activeStripePriceId?: string;
+  description: string | null;
+  active: boolean;
+  metadata: Record<string, string>;
+  defaultPriceId: string | null;
+  prices: {
+    id: string;
+    unitAmount: number | null;
+    currency: string;
+    interval: string | null;
+    intervalCount: number | null;
+    trialPeriodDays: number | null;
+    active: boolean;
+    metadata: Record<string, string>;
+  }[];
 }
 
-interface BillingHistory {
-  id: number;
-  userId: number;
-  planId: string;
-  action: string;
-  amount: number;
-  currency: string;
-  status: string;
-  description?: string;
-  createdAt: string;
+interface StripeAnalytics {
+  activeSubscriptions: number;
+  mrr: number;
+  recentInvoices: {
+    id: string;
+    customerEmail: string | null;
+    amount: number;
+    status: string | null;
+    created: string;
+  }[];
 }
 
-interface PaymentMethod {
-  id: number;
-  userId: number;
-  type: string;
-  cardLastFour?: string;
-  cardBrand?: string;
-  cardExpMonth?: number;
-  cardExpYear?: number;
-  isDefault: boolean;
-  isActive: boolean;
-  createdAt: string;
+interface BillingModeResponse {
+  mode: 'beta' | 'live';
+  description: string;
 }
-
-interface ProfileType {
-  id: number;
-  name: string;
-  description?: string;
-  sortOrder: number;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-
 
 export default function BillingManagement() {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  
-  // Fetch user analytics for billing overview
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingMode, setPendingMode] = useState<'beta' | 'live' | null>(null);
+  const [gracePeriodDays, setGracePeriodDays] = useState<number>(30);
+
   const { data: users = [] } = useQuery<any[]>({
     queryKey: ["/api/admin/user-analytics"],
   });
-  const [isCreatePlanOpen, setIsCreatePlanOpen] = useState(false);
-  const [isEditPlanOpen, setIsEditPlanOpen] = useState(false);
-  const [editingPlan, setEditingPlan] = useState<BillingPlan | null>(null);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [planToDelete, setPlanToDelete] = useState<BillingPlan | null>(null);
-  
-  // Profile Types state
-  const [isCreateProfileTypeOpen, setIsCreateProfileTypeOpen] = useState(false);
-  const [isEditProfileTypeOpen, setIsEditProfileTypeOpen] = useState(false);
-  const [editingProfileType, setEditingProfileType] = useState<ProfileType | null>(null);
-  const [isDeleteProfileTypeDialogOpen, setIsDeleteProfileTypeDialogOpen] = useState(false);
-  const [profileTypeToDelete, setProfileTypeToDelete] = useState<ProfileType | null>(null);
 
-
-
-  // Fetch billing plans
-  const { data: billingPlans = [], isLoading: plansLoading } = useQuery<BillingPlan[]>({
-    queryKey: ["/api/billing/plans"],
+  const { data: stripeProducts, isLoading: productsLoading, refetch: refetchProducts } = useQuery<{ products: StripeProduct[] }>({
+    queryKey: ["/api/stripe/products"],
   });
 
-  // Fetch profile types
-  const { data: profileTypes = [], isLoading: profileTypesLoading } = useQuery<ProfileType[]>({
-    queryKey: ["/api/admin/account-types"],
+  const { data: analytics, isLoading: analyticsLoading, refetch: refetchAnalytics } = useQuery<StripeAnalytics>({
+    queryKey: ["/api/admin/stripe/analytics"],
   });
 
-  // Create billing plan mutation
-  const createPlanMutation = useMutation({
-    mutationFn: (planData: any) => apiRequest("POST", "/api/admin/billing/plans", planData),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/billing/plans"] });
-      setIsCreatePlanOpen(false);
+  const { data: billingMode, isLoading: billingModeLoading, refetch: refetchBillingMode } = useQuery<BillingModeResponse>({
+    queryKey: ["/api/admin/billing-mode"],
+  });
+
+  const updateBillingModeMutation = useMutation({
+    mutationFn: async ({ mode, gracePeriodDays }: { mode: 'beta' | 'live'; gracePeriodDays?: number }) => {
+      const response = await apiRequest("POST", "/api/admin/billing-mode", { 
+        mode, 
+        gracePeriodDays: mode === 'live' ? gracePeriodDays : undefined 
+      });
+      return response;
+    },
+    onMutate: async ({ mode }) => {
+      await queryClient.cancelQueries({ queryKey: ["/api/admin/billing-mode"] });
+      const previousMode = queryClient.getQueryData<BillingModeResponse>(["/api/admin/billing-mode"]);
+      queryClient.setQueryData(["/api/admin/billing-mode"], {
+        mode,
+        description: mode === 'live' 
+          ? 'Live mode - New users must pay to access features'
+          : 'Beta mode - New users get free access without payment',
+      });
+      return { previousMode };
+    },
+    onSuccess: (data: any, { mode, gracePeriodDays }) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/billing-mode"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/user-analytics"] });
       toast({
-        title: "Success",
-        description: "Billing plan created successfully",
+        title: mode === 'live' ? "Live Billing Enabled" : "Beta Mode Enabled",
+        description: mode === 'live' && data?.usersUpdated > 0
+          ? `${data.usersUpdated} beta users given ${gracePeriodDays} day grace period.`
+          : mode === 'live' 
+            ? "New users will now be required to pay. All user statuses updated."
+            : "New users will get free access. All user statuses updated.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: any, _, context) => {
+      if (context?.previousMode) {
+        queryClient.setQueryData(["/api/admin/billing-mode"], context.previousMode);
+      }
       toast({
-        title: "Error",
-        description: error.message || "Failed to create billing plan",
+        title: "Failed to update billing mode",
+        description: error.message || "Please try again",
         variant: "destructive",
       });
     },
   });
 
-  // Update billing plan mutation
-  const updatePlanMutation = useMutation({
-    mutationFn: ({ planId, planData }: { planId: number; planData: any }) => 
-      apiRequest("PUT", `/api/admin/billing/plans/${planId}`, planData),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/billing/plans"] });
-      setIsEditPlanOpen(false);
-      setEditingPlan(null);
-      toast({
-        title: "Success",
-        description: "Billing plan updated successfully",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update billing plan",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Delete billing plan mutation
-  const deletePlanMutation = useMutation({
-    mutationFn: (planId: number) => apiRequest("DELETE", `/api/admin/billing/plans/${planId}`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/billing/plans"] });
-      toast({
-        title: "Success",
-        description: "Billing plan deleted successfully",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to delete billing plan",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Profile Types mutations
-  const createProfileTypeMutation = useMutation({
-    mutationFn: (profileTypeData: any) => apiRequest("POST", "/api/admin/account-types", profileTypeData),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/account-types"] });
-      setIsCreateProfileTypeOpen(false);
-      toast({
-        title: "Success",
-        description: "Profile type created successfully",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to create profile type",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const updateProfileTypeMutation = useMutation({
-    mutationFn: ({ profileTypeId, profileTypeData }: { profileTypeId: number; profileTypeData: any }) => 
-      apiRequest("PUT", `/api/admin/account-types/${profileTypeId}`, profileTypeData),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/account-types"] });
-      setIsEditProfileTypeOpen(false);
-      setEditingProfileType(null);
-      toast({
-        title: "Success",
-        description: "Profile type updated successfully",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update profile type",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const deleteProfileTypeMutation = useMutation({
-    mutationFn: (profileTypeId: number) => apiRequest("DELETE", `/api/admin/account-types/${profileTypeId}`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/account-types"] });
-      toast({
-        title: "Success",
-        description: "Profile type deleted successfully",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to delete profile type",
-        variant: "destructive",
-      });
-    },
-  });
-
-
-
-  // Auto-generate planId from name
-  const generatePlanId = (name: string): string => {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '') // Remove special chars
-      .replace(/\s+/g, '-')         // Spaces to hyphens
-      .replace(/-+/g, '-')          // Multiple hyphens to single
-      .replace(/^-+|-+$/g, '');     // Remove leading/trailing hyphens
+  const formatPrice = (amount: number | null, currency: string, interval: string | null) => {
+    if (amount === null) return "Custom pricing";
+    const price = amount / 100;
+    const intervalLabel = interval === "year" ? "/year" : "/month";
+    return `$${price.toLocaleString()}${intervalLabel}`;
   };
 
-  const handleCreatePlan = (formData: FormData) => {
-    const name = formData.get("name") as string;
-    const planData = {
-      planId: generatePlanId(name),
-      name: name,
-      price: parseFloat(formData.get("price") as string),
-      billingInterval: formData.get("billingInterval") as string,
-      trialDays: parseInt(formData.get("trialDays") as string),
-      maxProjects: formData.get("maxProjects") ? parseInt(formData.get("maxProjects") as string) : null,
-      maxTeamMembers: formData.get("maxTeamMembers") ? parseInt(formData.get("maxTeamMembers") as string) : null,
-      isActive: formData.get("isActive") === "on",
-      sortOrder: parseInt(formData.get("sortOrder") as string),
-    };
-
-    createPlanMutation.mutate(planData);
+  const handleRefresh = () => {
+    refetchProducts();
+    refetchAnalytics();
+    refetchBillingMode();
   };
 
-  const handleEditPlan = (formData: FormData) => {
-    if (!editingPlan) return;
-
-    const name = formData.get("name") as string;
-    const planData = {
-      planId: generatePlanId(name),
-      name: name,
-      price: parseFloat(formData.get("price") as string),
-      billingInterval: formData.get("billingInterval") as string,
-      trialDays: parseInt(formData.get("trialDays") as string),
-      maxProjects: formData.get("maxProjects") ? parseInt(formData.get("maxProjects") as string) : null,
-      maxTeamMembers: formData.get("maxTeamMembers") ? parseInt(formData.get("maxTeamMembers") as string) : null,
-      isActive: formData.get("isActive") === "on",
-      sortOrder: parseInt(formData.get("sortOrder") as string),
-    };
-
-    updatePlanMutation.mutate({ planId: editingPlan.id, planData });
+  const openStripeDashboard = () => {
+    window.open("https://dashboard.stripe.com", "_blank");
   };
 
-  const handleDeletePlan = (plan: BillingPlan) => {
-    setPlanToDelete(plan);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const confirmDeletePlan = () => {
-    if (planToDelete) {
-      deletePlanMutation.mutate(planToDelete.id);
-      setIsDeleteDialogOpen(false);
-      setPlanToDelete(null);
+  const handleBillingModeToggle = (checked: boolean) => {
+    const newMode = checked ? 'live' : 'beta';
+    if (newMode === 'live') {
+      setPendingMode('live');
+      setShowConfirmDialog(true);
+    } else {
+      updateBillingModeMutation.mutate({ mode: 'beta' });
     }
   };
 
-  // Profile Types handlers
-  const handleCreateProfileType = (formData: FormData) => {
-    const profileTypeData = {
-      name: formData.get("name") as string,
-      description: formData.get("description") as string,
-      sortOrder: parseInt(formData.get("sortOrder") as string) || 0,
-      isActive: formData.get("isActive") === "on",
-    };
-    
-    createProfileTypeMutation.mutate(profileTypeData);
-  };
-
-  const openEditProfileTypeDialog = (profileType: ProfileType) => {
-    setEditingProfileType(profileType);
-    setIsEditProfileTypeOpen(true);
-  };
-
-  const handleUpdateProfileType = (formData: FormData) => {
-    if (editingProfileType) {
-      const profileTypeData = {
-        name: formData.get("name") as string,
-        description: formData.get("description") as string,
-        sortOrder: parseInt(formData.get("sortOrder") as string),
-        isActive: formData.get("isActive") === "on",
-      };
-      
-      updateProfileTypeMutation.mutate({
-        profileTypeId: editingProfileType.id,
-        profileTypeData,
-      });
+  const confirmBillingModeChange = () => {
+    if (pendingMode) {
+      updateBillingModeMutation.mutate({ mode: pendingMode, gracePeriodDays });
     }
+    setShowConfirmDialog(false);
+    setPendingMode(null);
   };
 
-  const handleDeleteProfileType = (profileType: ProfileType) => {
-    setProfileTypeToDelete(profileType);
-    setIsDeleteProfileTypeDialogOpen(true);
-  };
-
-  const confirmDeleteProfileType = () => {
-    if (profileTypeToDelete) {
-      deleteProfileTypeMutation.mutate(profileTypeToDelete.id);
-      setIsDeleteProfileTypeDialogOpen(false);
-      setProfileTypeToDelete(null);
-    }
-  };
-
-  const openEditDialog = (plan: BillingPlan) => {
-    setEditingPlan(plan);
-    setIsEditPlanOpen(true);
-  };
-
-
-
-  const formatPrice = (price: number | string, interval: string) => {
-    const numPrice = typeof price === 'string' ? parseFloat(price) : price;
-    if (interval === "year") {
-      const monthlyEquivalent = Math.round(numPrice / 12);
-      return `$${monthlyEquivalent.toLocaleString()}/mo (billed annually at $${numPrice.toLocaleString()})`;
-    }
-    return `$${numPrice.toLocaleString()}/mo`;
-  };
-
-
+  const isLiveMode = billingMode?.mode === 'live';
 
   return (
     <div className="space-y-6">
-      {/* Billing Overview */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Billing Dashboard</h2>
+          <p className="text-muted-foreground">View billing data from Stripe. Manage products and subscriptions in Stripe Dashboard.</p>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 px-4 py-2 rounded-lg border bg-card">
+            <div className="flex flex-col">
+              <Label htmlFor="billing-mode" className="text-sm font-medium">
+                {billingModeLoading ? "Loading..." : (isLiveMode ? "Live Billing" : "Beta Mode")}
+              </Label>
+              <span className="text-xs text-muted-foreground">
+                {isLiveMode ? "Users must pay" : "Free access"}
+              </span>
+            </div>
+            <Switch
+              id="billing-mode"
+              checked={isLiveMode}
+              onCheckedChange={handleBillingModeToggle}
+              disabled={billingModeLoading || updateBillingModeMutation.isPending}
+              className={isLiveMode ? "data-[state=checked]:bg-green-600" : ""}
+            />
+          </div>
+          <Button variant="outline" size="sm" onClick={handleRefresh}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+          <Button onClick={openStripeDashboard}>
+            <ExternalLink className="h-4 w-4 mr-2" />
+            Open Stripe Dashboard
+          </Button>
+        </div>
+      </div>
+
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-amber-500" />
+              Enable Live Billing?
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-4">
+                <p>This will switch from beta mode to live billing. Here's what will happen:</p>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>New users will be required to pay for access</li>
+                  <li>All user statuses will be recalculated instantly</li>
+                </ul>
+                
+                <div className="bg-muted/50 p-4 rounded-lg border space-y-3">
+                  <Label htmlFor="grace-period" className="text-sm font-medium text-foreground">
+                    Grace Period for Existing Beta Users
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Set how many days existing beta users can continue using the app for free before they need to subscribe.
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="grace-period"
+                      type="number"
+                      min="0"
+                      max="365"
+                      value={gracePeriodDays}
+                      onChange={(e) => setGracePeriodDays(parseInt(e.target.value) || 0)}
+                      className="w-24"
+                    />
+                    <span className="text-sm text-muted-foreground">days</span>
+                  </div>
+                </div>
+                
+                <p className="font-medium text-foreground">Are you sure you want to enable live billing?</p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmBillingModeChange} className="bg-green-600 hover:bg-green-700">
+              Enable Live Billing
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Subscriptions</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {analyticsLoading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-2xl font-bold text-green-600">
+                {analytics?.activeSubscriptions || 0}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Monthly Recurring Revenue</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {analyticsLoading ? (
+              <Skeleton className="h-8 w-24" />
+            ) : (
+              <div className="text-2xl font-bold text-blue-600">
+                ${(analytics?.mrr || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Trial Users</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-yellow-600">
+              {users.filter(u => u.subscriptionStatus === 'trialing').length}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Past Due</CardTitle>
+            <CreditCard className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">
+              {users.filter(u => u.subscriptionStatus === 'past_due').length}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              Products & Pricing
+            </CardTitle>
+            <CardDescription>
+              Products and prices from your Stripe account
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {productsLoading ? (
+              <div className="space-y-3">
+                <Skeleton className="h-20 w-full" />
+                <Skeleton className="h-20 w-full" />
+              </div>
+            ) : stripeProducts?.products?.length ? (
+              <div className="space-y-4">
+                {stripeProducts.products.map((product) => (
+                  <div key={product.id} className="border rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold">{product.name}</h4>
+                      <Badge variant={product.active ? "default" : "secondary"}>
+                        {product.active ? "Active" : "Inactive"}
+                      </Badge>
+                    </div>
+                    {product.description && (
+                      <p className="text-sm text-muted-foreground mb-3">{product.description}</p>
+                    )}
+                    <div className="flex flex-wrap gap-2">
+                      {product.prices.map((price) => (
+                        <Badge key={price.id} variant="outline" className="text-xs">
+                          {formatPrice(price.unitAmount, price.currency, price.interval)}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>No products found in Stripe.</p>
+                <Button variant="link" onClick={openStripeDashboard} className="mt-2">
+                  Create products in Stripe Dashboard
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Invoices</CardTitle>
+            <CardDescription>
+              Latest payment activity from Stripe
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {analyticsLoading ? (
+              <div className="space-y-3">
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+              </div>
+            ) : analytics?.recentInvoices?.length ? (
+              <div className="space-y-3">
+                {analytics.recentInvoices.map((invoice) => (
+                  <div key={invoice.id} className="flex items-center justify-between border-b pb-2 last:border-0">
+                    <div>
+                      <p className="text-sm font-medium">{invoice.customerEmail || "Unknown"}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(invoice.created).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold">${invoice.amount.toFixed(2)}</span>
+                      <Badge variant={invoice.status === 'paid' ? 'default' : 'secondary'} className="text-xs">
+                        {invoice.status}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                No recent invoices found.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5" />
-            Billing Overview
-          </CardTitle>
+          <CardTitle>Subscription Status by User</CardTitle>
+          <CardDescription>
+            Overview of user subscription statuses from your database
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+            <div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg">
               <div className="text-2xl font-bold text-green-600">
                 {users.filter(u => u.subscriptionStatus === 'active').length}
               </div>
-              <div className="text-sm text-muted-foreground">Active Subscriptions</div>
+              <div className="text-sm text-muted-foreground">Active</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">
+            <div className="p-4 bg-yellow-50 dark:bg-yellow-950 rounded-lg">
+              <div className="text-2xl font-bold text-yellow-600">
                 {users.filter(u => u.subscriptionStatus === 'trialing').length}
               </div>
-              <div className="text-sm text-muted-foreground">Trial Users</div>
+              <div className="text-sm text-muted-foreground">Trialing</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-yellow-600">
+            <div className="p-4 bg-red-50 dark:bg-red-950 rounded-lg">
+              <div className="text-2xl font-bold text-red-600">
                 {users.filter(u => u.subscriptionStatus === 'past_due').length}
               </div>
               <div className="text-sm text-muted-foreground">Past Due</div>
             </div>
-            <div className="text-center">
+            <div className="p-4 bg-gray-50 dark:bg-gray-950 rounded-lg">
               <div className="text-2xl font-bold text-gray-600">
+                {users.filter(u => u.subscriptionStatus === 'canceled').length}
+              </div>
+              <div className="text-sm text-muted-foreground">Canceled</div>
+            </div>
+            <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
+              <div className="text-2xl font-bold text-blue-600">
                 {users.filter(u => !u.subscriptionStatus || u.subscriptionStatus === 'none').length}
               </div>
-              <div className="text-sm text-muted-foreground">Free/No Plan</div>
+              <div className="text-sm text-muted-foreground">Free/None</div>
             </div>
           </div>
         </CardContent>
       </Card>
-
-      
-
-      <Tabs defaultValue="billing-plans" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="billing-plans">Billing Plans</TabsTrigger>
-          <TabsTrigger value="account-types">Profile Types</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="billing-plans" className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-medium">Billing Plans</h3>
-            </div>
-            <Dialog open={isCreatePlanOpen} onOpenChange={setIsCreatePlanOpen}>
-          <DialogTrigger asChild>
-            <Button>Create New Plan</Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Create Billing Plan</DialogTitle>
-              <DialogDescription>Create a new subscription plan for users</DialogDescription>
-            </DialogHeader>
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              const formData = new FormData(e.currentTarget);
-              handleCreatePlan(formData);
-            }}>
-              <div className="grid grid-cols-2 gap-4 py-4">
-                <div className="col-span-2">
-                  <Label htmlFor="name">Plan Name</Label>
-                  <Input id="name" name="name" placeholder="Monthly Standard" required />
-                </div>
-                <div>
-                  <Label htmlFor="price">Price</Label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <span className="text-gray-500 text-sm">$</span>
-                    </div>
-                    <Input id="price" name="price" type="number" step="0.01" placeholder="1,199.00" className="pl-8" required />
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="billingInterval">Billing Interval</Label>
-                  <Select name="billingInterval" required>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select interval" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="month">Monthly</SelectItem>
-                      <SelectItem value="year">Yearly</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="trialDays">Trial Days</Label>
-                  <Input id="trialDays" name="trialDays" type="number" defaultValue="30" />
-                </div>
-                <div>
-                  <Label htmlFor="sortOrder">Sort Order</Label>
-                  <Input id="sortOrder" name="sortOrder" type="number" defaultValue="1" />
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch id="isActive" name="isActive" defaultChecked />
-                  <Label htmlFor="isActive">Active Plan</Label>
-                </div>
-              </div>
-              <div className="flex justify-end space-x-2">
-                <Button type="button" variant="outline" onClick={() => setIsCreatePlanOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={createPlanMutation.isPending}>
-                  Create Plan
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* Edit Plan Dialog */}
-      <Dialog open={isEditPlanOpen} onOpenChange={setIsEditPlanOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Edit Billing Plan</DialogTitle>
-            <DialogDescription>Update the subscription plan details</DialogDescription>
-          </DialogHeader>
-          <form onSubmit={(e) => {
-            e.preventDefault();
-            const formData = new FormData(e.currentTarget);
-            handleEditPlan(formData);
-          }}>
-            <div className="grid grid-cols-2 gap-4 py-4">
-              <div className="col-span-2">
-                <Label htmlFor="edit-name">Plan Name</Label>
-                <Input 
-                  id="edit-name" 
-                  name="name" 
-                  defaultValue={editingPlan?.name || ""}
-                  required 
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-price">Price</Label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span className="text-gray-500 text-sm">$</span>
-                  </div>
-                  <Input 
-                    id="edit-price" 
-                    name="price" 
-                    type="number" 
-                    step="0.01" 
-                    defaultValue={editingPlan?.price || ""}
-                    placeholder="1,199.00"
-                    className="pl-8"
-                    required 
-                  />
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="edit-billingInterval">Billing Interval</Label>
-                <Select name="billingInterval" defaultValue={editingPlan?.billingInterval || ""}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select interval" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="month">Monthly</SelectItem>
-                    <SelectItem value="year">Yearly</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="edit-trialDays">Trial Days</Label>
-                <Input 
-                  id="edit-trialDays" 
-                  name="trialDays" 
-                  type="number" 
-                  defaultValue={editingPlan?.trialDays || "30"}
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-sortOrder">Sort Order</Label>
-                <Input 
-                  id="edit-sortOrder" 
-                  name="sortOrder" 
-                  type="number" 
-                  defaultValue={editingPlan?.sortOrder || "1"}
-                />
-              </div>
-              <div className="flex items-center space-x-2">
-                <Switch 
-                  id="edit-isActive" 
-                  name="isActive" 
-                  defaultChecked={editingPlan?.isActive || false}
-                />
-                <Label htmlFor="edit-isActive">Active Plan</Label>
-              </div>
-            </div>
-            <div className="flex justify-end space-x-2">
-              <Button type="button" variant="outline" onClick={() => setIsEditPlanOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={updatePlanMutation.isPending}>
-                Update Plan
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      <div className="space-y-4">
-        {plansLoading ? (
-          <div className="flex items-center justify-center p-8">
-            <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {billingPlans.map((plan: BillingPlan) => (
-              <Card key={plan.id} className={!plan.isActive ? "opacity-60" : ""}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{plan.name}</CardTitle>
-                    <Badge variant={plan.isActive ? "default" : "secondary"}>
-                      {plan.isActive ? "Active" : "Inactive"}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="text-2xl font-bold text-primary">
-                    {formatPrice(plan.price, plan.billingInterval)}
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">
-                      {plan.trialDays}-day trial included
-                    </p>
-                  </div>
-                  
-                  {/* Stripe Integration Info */}
-                  <div className="space-y-1 pt-2 border-t">
-                    <div className="text-xs font-medium text-muted-foreground">Stripe Integration</div>
-                    {plan.stripeProductId ? (
-                      <>
-                        <div className="text-xs font-mono bg-muted p-2 rounded break-all">
-                          <span className="text-muted-foreground">Product:</span> {plan.stripeProductId}
-                        </div>
-                        {plan.activeStripePriceId ? (
-                          <div className="text-xs font-mono bg-muted p-2 rounded break-all">
-                            <span className="text-muted-foreground">Price:</span> {plan.activeStripePriceId}
-                          </div>
-                        ) : (
-                          <div className="text-xs text-yellow-600 p-2 bg-yellow-50 rounded">
-                            ⚠️ No active Price ID
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <div className="text-xs text-yellow-600 p-2 bg-yellow-50 rounded">
-                        ⚠️ Not synced to Stripe
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex gap-2 pt-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => openEditDialog(plan)}
-                      className="flex-1"
-                      data-testid={`button-edit-plan-${plan.id}`}
-                    >
-                      <Edit2 className="h-4 w-4 mr-2" />
-                      Edit
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => handleDeletePlan(plan)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      data-testid={`button-delete-plan-${plan.id}`}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
-
-          {/* Delete Confirmation Dialog */}
-          <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete Billing Plan</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to delete the billing plan "{planToDelete?.name}"? This action cannot be undone and will affect any users currently subscribed to this plan.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel onClick={() => {
-                  setIsDeleteDialogOpen(false);
-                  setPlanToDelete(null);
-                }}>
-                  Cancel
-                </AlertDialogCancel>
-                <AlertDialogAction 
-                  onClick={confirmDeletePlan}
-                  className="bg-red-600 hover:bg-red-700"
-                  disabled={deletePlanMutation.isPending}
-                >
-                  {deletePlanMutation.isPending ? "Deleting..." : "Delete Plan"}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </TabsContent>
-
-        <TabsContent value="account-types" className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-medium">Profile Types</h3>
-              <p className="text-sm text-muted-foreground">Organize billing plans by user category</p>
-            </div>
-            <Dialog open={isCreateProfileTypeOpen} onOpenChange={setIsCreateProfileTypeOpen}>
-              <DialogTrigger asChild>
-                <Button>Create Profile Type</Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-lg">
-                <DialogHeader>
-                  <DialogTitle>Create Profile Type</DialogTitle>
-                  <DialogDescription>Create a new profile type category for billing plans</DialogDescription>
-                </DialogHeader>
-                <form onSubmit={(e) => {
-                  e.preventDefault();
-                  const formData = new FormData(e.currentTarget);
-                  handleCreateProfileType(formData);
-                }}>
-                  <div className="grid gap-4 py-4">
-                    <div>
-                      <Label htmlFor="accountTypeName">Type Name</Label>
-                      <Input id="accountTypeName" name="name" placeholder="Professional" required />
-                    </div>
-                    <div>
-                      <Label htmlFor="accountTypeDescription">Description</Label>
-                      <Textarea id="accountTypeDescription" name="description" placeholder="Professional theater organizations" />
-                    </div>
-                    <div>
-                      <Label htmlFor="accountTypeSortOrder">Sort Order</Label>
-                      <Input id="accountTypeSortOrder" name="sortOrder" type="number" defaultValue="1" />
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Switch id="accountTypeIsActive" name="isActive" defaultChecked />
-                      <Label htmlFor="accountTypeIsActive">Active Type</Label>
-                    </div>
-                  </div>
-                  <div className="flex justify-end space-x-2">
-                    <Button type="button" variant="outline" onClick={() => setIsCreateProfileTypeOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button type="submit" disabled={createProfileTypeMutation.isPending}>
-                      {createProfileTypeMutation.isPending ? "Creating..." : "Create Type"}
-                    </Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
-
-          {/* Edit Profile Type Dialog */}
-          <Dialog open={isEditProfileTypeOpen} onOpenChange={setIsEditProfileTypeOpen}>
-            <DialogContent className="max-w-lg">
-              <DialogHeader>
-                <DialogTitle>Edit Profile Type</DialogTitle>
-                <DialogDescription>Update profile type information</DialogDescription>
-              </DialogHeader>
-              <form onSubmit={(e) => {
-                e.preventDefault();
-                const formData = new FormData(e.currentTarget);
-                handleUpdateProfileType(formData);
-              }}>
-                <div className="grid gap-4 py-4">
-                  <div>
-                    <Label htmlFor="editAccountTypeName">Type Name</Label>
-                    <Input 
-                      id="editAccountTypeName" 
-                      name="name" 
-                      defaultValue={editingProfileType?.name || ""} 
-                      required 
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="editAccountTypeDescription">Description</Label>
-                    <Textarea 
-                      id="editAccountTypeDescription" 
-                      name="description" 
-                      defaultValue={editingProfileType?.description || ""} 
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="editAccountTypeSortOrder">Sort Order</Label>
-                    <Input 
-                      id="editAccountTypeSortOrder" 
-                      name="sortOrder" 
-                      type="number" 
-                      defaultValue={editingProfileType?.sortOrder || 1} 
-                    />
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Switch 
-                      id="editAccountTypeIsActive" 
-                      name="isActive" 
-                      defaultChecked={editingProfileType?.isActive} 
-                    />
-                    <Label htmlFor="editAccountTypeIsActive">Active Type</Label>
-                  </div>
-                </div>
-                <div className="flex justify-end space-x-2">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => {
-                      setIsEditProfileTypeOpen(false);
-                      setEditingProfileType(null);
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={updateProfileTypeMutation.isPending}>
-                    {updateProfileTypeMutation.isPending ? "Updating..." : "Update Type"}
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
-
-          <div className="space-y-4">
-            {profileTypesLoading ? (
-              <div className="flex items-center justify-center p-8">
-                <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {profileTypes.map((profileType: ProfileType) => (
-                  <Card key={profileType.id} className={!profileType.isActive ? "opacity-60" : ""}>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-lg">{profileType.name}</CardTitle>
-                        <Badge variant={profileType.isActive ? "default" : "secondary"}>
-                          {profileType.isActive ? "Active" : "Inactive"}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {profileType.description && (
-                        <p className="text-sm text-muted-foreground">{profileType.description}</p>
-                      )}
-                      <div className="flex gap-2 pt-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => openEditProfileTypeDialog(profileType)}
-                          className="flex-1"
-                        >
-                          <Edit2 className="h-4 w-4 mr-2" />
-                          Edit
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => handleDeleteProfileType(profileType)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Profile Type Delete Confirmation Dialog */}
-          <AlertDialog open={isDeleteProfileTypeDialogOpen} onOpenChange={setIsDeleteProfileTypeDialogOpen}>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete Profile Type</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to delete the profile type "{profileTypeToDelete?.name}"? This action cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel onClick={() => {
-                  setIsDeleteProfileTypeDialogOpen(false);
-                  setProfileTypeToDelete(null);
-                }}>
-                  Cancel
-                </AlertDialogCancel>
-                <AlertDialogAction 
-                  onClick={confirmDeleteProfileType}
-                  className="bg-red-600 hover:bg-red-700"
-                  disabled={deleteProfileTypeMutation.isPending}
-                >
-                  {deleteProfileTypeMutation.isPending ? "Deleting..." : "Delete Type"}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </TabsContent>
-      </Tabs>
     </div>
   );
 }

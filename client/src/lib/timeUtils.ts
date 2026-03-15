@@ -60,6 +60,32 @@ export function getTimeGridLabels(startHour: number, endHour: number, timeFormat
   return labels;
 }
 
+// Type for custom sections on daily calls
+export interface CustomSection {
+  id: string;
+  name: string;
+  position: 'top' | 'bottom';
+  order: number;
+}
+
+// Default sections - migrates from old announcementsPosition setting
+export function getDefaultCustomSections(announcementsPosition: string = 'bottom'): CustomSection[] {
+  return [
+    {
+      id: 'announcements',
+      name: 'Announcements',
+      position: announcementsPosition === 'top' ? 'top' : 'bottom',
+      order: 0,
+    }
+  ];
+}
+
+// Performance numbering configuration
+export interface PerformanceNumberingConfig {
+  firstPerformanceEventId: number | null;
+  startingNumber: number;
+}
+
 export function parseScheduleSettings(settings: any) {
   // Always return defaults, even if settings are undefined
   const defaultSettings = {
@@ -72,6 +98,11 @@ export function parseScheduleSettings(settings: any) {
     dayEndHour: 24,   // Midnight default (can go up to 28 for 4 AM next day)
     nameDisplayFormat: 'firstInitialLastName',
     announcementsPosition: 'bottom',
+    customSections: [] as CustomSection[],
+    performanceNumbering: {
+      firstPerformanceEventId: null,
+      startingNumber: 1,
+    } as PerformanceNumberingConfig,
   };
   
   if (!settings) return defaultSettings;
@@ -80,6 +111,18 @@ export function parseScheduleSettings(settings: any) {
   const scheduleSettings = typeof settings === 'string' 
     ? JSON.parse(settings) 
     : settings;
+  
+  // Migration: if customSections doesn't exist, create from announcementsPosition
+  let customSections = scheduleSettings.customSections;
+  if (!customSections || customSections.length === 0) {
+    customSections = getDefaultCustomSections(scheduleSettings.announcementsPosition || defaultSettings.announcementsPosition);
+  }
+
+  // Parse performance numbering config with defaults
+  const performanceNumbering: PerformanceNumberingConfig = {
+    firstPerformanceEventId: scheduleSettings.performanceNumbering?.firstPerformanceEventId ?? null,
+    startingNumber: scheduleSettings.performanceNumbering?.startingNumber ?? 1,
+  };
     
   return {
     timeFormat: scheduleSettings.timeFormat || defaultSettings.timeFormat,
@@ -91,6 +134,8 @@ export function parseScheduleSettings(settings: any) {
     dayEndHour: scheduleSettings.dayEndHour ?? defaultSettings.dayEndHour,
     nameDisplayFormat: scheduleSettings.nameDisplayFormat || defaultSettings.nameDisplayFormat,
     announcementsPosition: scheduleSettings.announcementsPosition || defaultSettings.announcementsPosition,
+    customSections: customSections as CustomSection[],
+    performanceNumbering,
   };
 }
 

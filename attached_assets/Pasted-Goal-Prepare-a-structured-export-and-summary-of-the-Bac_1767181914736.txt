@@ -1,0 +1,203 @@
+Goal
+Prepare a structured export and summary of the BackstageOS codebase so it can be reviewed for MVP readiness, with a focus on data integrity, permissions, and billing stability.
+
+Do NOT refactor or change behavior.
+This task is read-only and documentation only.
+
+1. Database Schema and Data Ownership
+
+Produce a clear, human-readable summary of the database.
+
+Include:
+
+List of all tables
+
+For each table:
+
+Primary key
+
+Foreign keys
+
+Ownership model (user-owned, show-owned, global)
+
+Important indexes
+
+Call out any:
+
+Shared tables across shows
+
+JSON columns used for core logic
+
+Soft deletes vs hard deletes
+
+Deliverables:
+
+A markdown file: docs/mvp/db-schema.md
+
+Include ERD style ASCII diagram if possible
+
+Include raw SQL for table creation if migrations exist
+
+2. Permission Model and Enforcement
+
+Document how access is enforced.
+
+Include:
+
+All Supabase RLS policies
+
+Any server middleware or API permission checks
+
+Invite, remove, and role change flows
+
+Where permissions are enforced:
+
+Database
+
+Server
+
+Client
+
+Deliverables:
+
+A markdown file: docs/mvp/permissions.md
+
+Explicitly state:
+
+“This action is enforced at X layer”
+
+“These actions rely only on client checks” (if any)
+
+3. Billing and Subscription System
+
+Document billing as a system of record.
+
+Include:
+
+Billing related tables and fields
+
+How users map to customers
+
+How subscriptions are stored
+
+Webhook handlers:
+
+Event types handled
+
+Idempotency handling
+
+Failure and retry behavior
+
+Feature gating logic:
+
+Where subscription status is checked
+
+What happens when a subscription lapses
+
+Deliverables:
+
+A markdown file: docs/mvp/billing.md
+
+A sequence diagram (textual is fine) for:
+
+New subscription
+
+Cancel at period end
+
+Payment failure
+
+Upgrade or downgrade
+
+4. One Core Domain Flow (End-to-End)
+
+Choose one core flow and trace it completely.
+
+Recommended:
+Schedule → Daily Call → Publish → Notify
+
+Include:
+
+Database mutations in order
+
+API routes involved
+
+Client state changes
+
+Versioning logic
+
+Timezone handling
+
+Deliverables:
+
+A markdown file: docs/mvp/core-flow.md
+
+5. Failure Boundaries and Observability
+
+Document how the system behaves when things go wrong.
+
+Include:
+
+Error handling patterns
+
+Logging
+
+Background jobs or automations
+
+Email or integration failure handling
+
+Deliverables:
+
+A markdown file: docs/mvp/failures.md
+
+List of known silent failure risks
+
+6. Security and Secrets Hygiene
+
+Audit config and secrets usage.
+
+Include:
+
+Environment variables used
+
+Where secrets are accessed
+
+Any secrets committed to repo (flag only, do not expose)
+
+Deliverables:
+
+A markdown file: docs/mvp/security.md
+
+Constraints
+
+Do NOT change application behavior
+
+Do NOT rewrite code
+
+Do NOT optimize
+
+Do NOT add new features
+
+Do NOT remove dead code unless explicitly documenting it
+
+Final Output
+
+Create a folder:
+
+docs/mvp/
+
+
+Containing:
+
+db-schema.md
+
+permissions.md
+
+billing.md
+
+core-flow.md
+
+failures.md
+
+security.md
+
+Add a short README.md explaining how these documents were generated.

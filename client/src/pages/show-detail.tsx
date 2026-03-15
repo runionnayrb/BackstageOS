@@ -14,6 +14,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useFeatureSettings } from "@/hooks/useFeatureSettings";
 import { useBetaFeatures } from "@/hooks/useBetaFeatures";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import ShowBillingPrompt from "@/components/ShowBillingPrompt";
 
 interface ShowDetailParams {
   id: string;
@@ -102,8 +103,30 @@ export default function ShowDetail() {
     enabled: isAuthenticated,
   });
 
+  // Fetch project directly by ID to support archived shows
+  const { data: projectData, isLoading: projectDataLoading } = useQuery({
+    queryKey: [`/api/projects/${projectId}`],
+    enabled: isAuthenticated && !!projectId,
+  });
+
   const { data: projectSettings } = useQuery({
     queryKey: [`/api/projects/${projectId}/settings`],
+    enabled: isAuthenticated && !!projectId,
+  });
+
+  // Fetch billing status for this show
+  const { data: billingStatus } = useQuery({
+    queryKey: ['/api/shows', projectId, 'billing'],
+    queryFn: async () => {
+      const response = await fetch(`/api/shows/${projectId}/billing`, {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        if (response.status === 404) return null;
+        throw new Error('Failed to fetch billing');
+      }
+      return response.json();
+    },
     enabled: isAuthenticated && !!projectId,
   });
 
@@ -177,7 +200,7 @@ export default function ShowDetail() {
   }, [projectSettings]);
 
   // Early returns after all hooks are called
-  if (isLoading || projectsLoading || sections.length === 0) {
+  if (isLoading || projectDataLoading || sections.length === 0) {
     return (
       <div className="w-full">
         {/* Mobile Loading */}
@@ -213,7 +236,8 @@ export default function ShowDetail() {
     return null;
   }
 
-  const project = Array.isArray(projects) ? projects.find((p: any) => p.id === parseInt(projectId)) : null;
+  // Use directly fetched project data (supports both active and archived shows)
+  const project = projectData as any;
   
   if (!project) {
     return (
@@ -293,8 +317,24 @@ export default function ShowDetail() {
     saveSectionOrderMutation.mutate(sectionOrder);
   };
 
+  // Check if billing payment is required
+  const requiresPayment = billingStatus && 
+    (billingStatus.billingStatus === 'unpaid' || 
+     (billingStatus.billingStatus === 'trial' && !billingStatus.trialActive));
+
   return (
     <div className="w-full">
+      {/* Show billing prompt if payment is required */}
+      {requiresPayment && (
+        <ShowBillingPrompt 
+          projectId={parseInt(projectId)} 
+          projectName={project.name}
+          onActivated={() => {
+            queryClient.invalidateQueries({ queryKey: ['/api/shows', projectId, 'billing'] });
+          }}
+        />
+      )}
+
       {/* Mobile reorder indicator */}
       {isReordering && (
         <div className="md:hidden px-4 sm:px-6 lg:px-8 pt-2 pb-1">

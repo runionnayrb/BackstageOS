@@ -13,11 +13,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useLocation, useParams } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Clock, Settings, Star, Users, FileText, ArrowLeft, Bold, Italic, Underline, List, ListOrdered } from "lucide-react";
+import { Clock, Settings, Star, Users, FileText, ArrowLeft, Bold, Italic, Underline, List, ListOrdered, Calendar, Download, CalendarDays } from "lucide-react";
 import ReportNotesManager from "@/components/report-notes-manager";
 import ReportNotesFilter from "@/components/report-notes-filter";
 import { NoteStatusPopup } from "@/components/note-status-popup";
 import { NoteContextMenu } from "@/components/note-context-menu";
+import { format } from "date-fns";
 
 const reportSchema = z.object({
   projectId: z.number(),
@@ -26,6 +27,7 @@ const reportSchema = z.object({
   date: z.string().min(1, "Date is required"),
   content: z.record(z.any()),
   templateId: z.number().optional(),
+  scheduleEventId: z.number().optional(),
 });
 
 type ReportFormData = z.infer<typeof reportSchema>;
@@ -114,51 +116,257 @@ export default function ReportBuilder() {
   // Report notes filter state
   const [noteFilters, setNoteFilters] = useState<Record<string, { priorities: string[]; statuses: string[]; assignees: number[] }>>({});
 
-  // Find the template matching the query param, report's templateId, or report type
-  let matchingTemplate = null;
-  
-  // If editing an existing report, use its templateId first
-  if (isEditMode && existingReport?.templateId && Array.isArray(templatesV2)) {
-    matchingTemplate = templatesV2.find((t: any) => t.id === existingReport.templateId);
-    if (matchingTemplate) {
-      console.log('✅ Loaded template from existing report:', existingReport.templateId, matchingTemplate);
-    } else {
-      console.warn('⚠️ Template ID from report not found:', existingReport.templateId);
+  // Import previous notes state
+  const [isImporting, setIsImporting] = useState(false);
+  const [, forceUpdate] = useState(0);
+
+  const handleImportPreviousNotes = async () => {
+    if (!customTemplate?.sections) {
+      toast({
+        title: "Template Not Ready",
+        description: "Please wait for the template to load before importing.",
+        variant: "destructive",
+      });
+      return;
     }
-  }
-  
-  // If template ID is provided in query params, use it
-  if (!matchingTemplate && templateQueryParam && Array.isArray(templatesV2)) {
-    const templateId = parseInt(templateQueryParam);
-    matchingTemplate = templatesV2.find((t: any) => t.id === templateId);
-    if (matchingTemplate) {
-      console.log('✅ Loaded template from query param:', templateId, matchingTemplate);
-    } else {
-      console.warn('⚠️ Template ID from query param not found:', templateId);
+
+    setIsImporting(true);
+    try {
+      const response = await fetch(`/api/projects/${projectId}/reports/latest/${reportType}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch previous report");
+      }
+      const data = await response.json();
+      
+      if (!data.report) {
+        toast({
+          title: "No Previous Report",
+          description: "No previous report of this type found to import from.",
+        });
+        setIsImporting(false);
+        return;
+      }
+
+      // Group notes by department
+      const notesByDepartment: Record<string, string[]> = {};
+      if (data.notes && data.notes.length > 0) {
+        for (const note of data.notes) {
+          const dept = note.department || 'general';
+          if (!notesByDepartment[dept]) {
+            notesByDepartment[dept] = [];
+          }
+          notesByDepartment[dept].push(note.content);
+        }
+      }
+
+      // Also import content from the previous report's content field
+      const previousContent = data.report.content || {};
+      
+      let fieldsPopulated = 0;
+
+      // Iterate through template sections and fields to populate content
+      for (const section of customTemplate.sections) {
+        const fields = Array.isArray(section.fields) ? section.fields : [];
+        for (const field of fields) {
+          // Check if there are notes for this field's department
+          if (field.departmentKey && notesByDepartment[field.departmentKey]) {
+            const notes = notesByDepartment[field.departmentKey];
+            // Format as ordered list with inline styles to match contentEditable structure
+            const listItems = notes.map(note => `<li style="margin-left: 0;">${note}</li>`).join('');
+            const formattedContent = `<ol style="list-style-type: decimal; padding-left: 20px; margin-left: 0;">${listItems}</ol>`;
+            contentRef.current[field.label] = formattedContent;
+            fieldsPopulated++;
+            
+            // Update the DOM element directly for optimistic display
+            const elements = document.querySelectorAll(`[data-field-label="${field.label}"]`);
+            elements.forEach(el => {
+              if (el instanceof HTMLElement) {
+                el.innerHTML = formattedContent;
+              }
+            });
+          }
+          
+          // Import from previous report content if available
+          if (previousContent[field.label] && !contentRef.current[field.label]) {
+            const content = previousContent[field.label];
+            contentRef.current[field.label] = content;
+            fieldsPopulated++;
+            
+            // Update DOM for previous content as well
+            const elements = document.querySelectorAll(`[data-field-label="${field.label}"]`);
+            elements.forEach(el => {
+              if (el instanceof HTMLElement) {
+                el.innerHTML = content;
+              }
+            });
+          }
+        }
+      }
+
+      // Force a re-render to show the imported content
+      forceUpdate(prev => prev + 1);
+
+      if (fieldsPopulated > 0) {
+        toast({
+          title: "Notes Imported",
+          description: `Content imported into ${fieldsPopulated} field(s) from the previous report.`,
+        });
+      } else {
+        toast({
+          title: "No Content Found",
+          description: "The previous report had no matching content to import.",
+        });
+      }
+    } catch (error) {
+      console.error("Import error:", error);
+      toast({
+        title: "Import Failed",
+        description: "Could not import content from the previous report.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsImporting(false);
     }
-  }
-  
-  // Otherwise find by report type
-  if (!matchingTemplate && Array.isArray(templatesV2) && Array.isArray(reportTypes)) {
-    const currentReportTypeObj = reportTypes.find((rt: any) => rt.slug === reportType);
-    if (currentReportTypeObj) {
-      matchingTemplate = templatesV2.find((t: any) => t.reportTypeId === currentReportTypeObj.id);
-      if (matchingTemplate) {
-        console.log('✅ Loaded template by report type:', reportType, matchingTemplate);
+  };
+
+  // Performance selection state (for performance reports) - supports multiple
+  const [selectedPerformanceId, setSelectedPerformanceId] = useState<number | null>(null);
+  const [selectedPerformanceIds, setSelectedPerformanceIds] = useState<number[]>([]);
+
+  // Check if this is a performance report type
+  const isPerformanceReportType = reportType === 'performance' || 
+    reportType?.toLowerCase().includes('performance') ||
+    reportType?.toLowerCase().includes('show');
+
+  // Fetch available performances (only for performance report types)
+  const { data: availablePerformances = [] } = useQuery<any[]>({
+    queryKey: ['/api/projects', projectId, 'available-performances'],
+    enabled: !!projectId && isPerformanceReportType,
+  });
+
+  // Fetch project settings for performance numbering
+  const { data: showSettings } = useQuery<any>({
+    queryKey: [`/api/projects/${projectId}/settings`],
+    enabled: !!projectId && isPerformanceReportType,
+  });
+
+  // Fetch all schedule events for performance numbering calculation
+  const { data: allScheduleEvents = [] } = useQuery<any[]>({
+    queryKey: ['/api/projects', projectId, 'schedule-events'],
+    enabled: !!projectId && isPerformanceReportType,
+  });
+
+  // Fetch event types for performance identification
+  const { data: eventTypes = [] } = useQuery<any[]>({
+    queryKey: [`/api/projects/${projectId}/event-types`],
+    enabled: !!projectId && isPerformanceReportType,
+  });
+
+  // Check if template has a dailycall field type
+  const hasDailyCallField = customTemplate?.sections?.some((s: any) =>
+    s.fields?.some((f: any) => f.type === "dailycall")
+  );
+
+  // Get the report date for daily call lookup (use default; form is initialized later)
+  const [reportDate, setReportDate] = useState<string>(new Date().toISOString().split('T')[0]);
+
+  // Fetch daily call for the report date (only if template has a dailycall field)
+  const { data: dailyCallData, isLoading: dailyCallLoading } = useQuery<any>({
+    queryKey: ['/api/projects', projectId, 'daily-calls', reportDate],
+    queryFn: async () => {
+      const res = await fetch(`/api/projects/${projectId}/daily-calls/${reportDate}`, { credentials: 'include' });
+      if (res.ok) return res.json();
+      // If no daily call for this date, try to find the next one
+      const allRes = await fetch(`/api/projects/${projectId}/daily-calls`, { credentials: 'include' });
+      if (!allRes.ok) return null;
+      const allCalls = await allRes.json();
+      if (!Array.isArray(allCalls) || allCalls.length === 0) return null;
+      // Find the next daily call on or after the report date
+      const futureCalls = allCalls
+        .filter((c: any) => c.date >= reportDate)
+        .sort((a: any, b: any) => a.date.localeCompare(b.date));
+      return futureCalls.length > 0 ? futureCalls[0] : null;
+    },
+    enabled: !!projectId && !!hasDailyCallField,
+    staleTime: 30000,
+  });
+
+  // Calculate performance number for a given event
+  const getPerformanceNumberForEvent = (eventId: number): number | null => {
+    if (!showSettings || !allScheduleEvents.length) return null;
+    
+    const scheduleSettings = typeof showSettings?.scheduleSettings === 'string'
+      ? JSON.parse(showSettings.scheduleSettings)
+      : (showSettings?.scheduleSettings || {});
+    
+    const performanceNumbering = scheduleSettings?.performanceNumbering || {
+      firstPerformanceEventId: null,
+      startingNumber: 1,
+    };
+
+    // Filter to performance-type events that aren't cancelled
+    const performanceEvents = allScheduleEvents.filter((event: any) => {
+      const isPerformance = event.type === 'performance' || event.type === 'preview' ||
+                           event.type?.toLowerCase().includes('performance') ||
+                           event.type?.toLowerCase().includes('show');
+      const isCancelled = event.status === 'cancelled';
+      return isPerformance && !isCancelled;
+    });
+
+    // Sort by date and time
+    performanceEvents.sort((a: any, b: any) => {
+      if (a.date !== b.date) return a.date.localeCompare(b.date);
+      return a.startTime.localeCompare(b.startTime);
+    });
+
+    // Find starting index
+    let startIndex = 0;
+    if (performanceNumbering.firstPerformanceEventId) {
+      const firstIndex = performanceEvents.findIndex((e: any) => e.id === performanceNumbering.firstPerformanceEventId);
+      if (firstIndex !== -1) startIndex = firstIndex;
+    }
+
+    // Find the event and calculate its number
+    for (let i = startIndex; i < performanceEvents.length; i++) {
+      if (performanceEvents[i].id === eventId) {
+        return performanceNumbering.startingNumber + (i - startIndex);
       }
     }
-  }
-  
-  if (!matchingTemplate && Array.isArray(templatesV2) && templatesV2.length > 0) {
-    console.warn('⚠️ No matching template found for report type:', reportType);
-  }
+
+    return null;
+  };
+
+  // Find the template matching the query param, report's templateId, or report type
+  const matchingTemplate = useMemo(() => {
+    let result = null;
+    
+    if (isEditMode && existingReport?.templateId && Array.isArray(templatesV2)) {
+      result = templatesV2.find((t: any) => t.id === existingReport.templateId) || null;
+    }
+    
+    if (!result && templateQueryParam && Array.isArray(templatesV2)) {
+      const templateId = parseInt(templateQueryParam);
+      result = templatesV2.find((t: any) => t.id === templateId) || null;
+    }
+    
+    if (!result && Array.isArray(templatesV2) && Array.isArray(reportTypes)) {
+      const currentReportTypeObj = reportTypes.find((rt: any) => rt.slug === reportType);
+      if (currentReportTypeObj) {
+        result = templatesV2.find((t: any) => t.reportTypeId === currentReportTypeObj.id) || null;
+      }
+    }
+    
+    return result;
+  }, [isEditMode, existingReport?.templateId, templatesV2, templateQueryParam, reportTypes, reportType]);
   
   const customTemplates = Array.isArray(templatesV2) ? templatesV2 : [];
 
   // Find the report type to get its current name
-  const currentReportType = Array.isArray(reportTypes) 
-    ? reportTypes.find((rt: any) => rt.slug === reportType)
-    : null;
+  const currentReportType = useMemo(() => 
+    Array.isArray(reportTypes) 
+      ? reportTypes.find((rt: any) => rt.slug === reportType) || null
+      : null
+  , [reportTypes, reportType]);
 
   // Helper function to generate report title from type
   const generateReportTitle = (type: string): string => {
@@ -205,140 +413,162 @@ export default function ReportBuilder() {
     },
   });
 
+  // Track whether template has been initialized to prevent repeated state updates
+  const templateInitializedRef = useRef(false);
+  const lastMatchingTemplateIdRef = useRef<number | null>(null);
+  const lastExistingReportIdRef = useRef<number | null>(null);
+
   // Set form values when project and report type are available, or when editing existing report
   useEffect(() => {
-    // Wait for settings to load before setting up the template
     if (settingsLoading) {
       return;
     }
     
-    if (projectId && reportType) {
-      form.setValue("projectId", projectId);
-      form.setValue("type", reportType);
+    if (!projectId || !reportType) return;
+
+    const currentTemplateId = matchingTemplate?.id || null;
+    const currentReportId = existingReport?.id || null;
+    
+    if (templateInitializedRef.current 
+        && lastMatchingTemplateIdRef.current === currentTemplateId
+        && lastExistingReportIdRef.current === currentReportId) {
+      return;
+    }
+    
+    templateInitializedRef.current = true;
+    lastMatchingTemplateIdRef.current = currentTemplateId;
+    lastExistingReportIdRef.current = currentReportId;
+
+    form.setValue("projectId", projectId);
+    form.setValue("type", reportType);
       
-      if (existingReport && isEditMode) {
-        // Populate form with existing report data
-        form.setValue("title", existingReport.title);
-        form.setValue("date", existingReport.date ? new Date(existingReport.date).toISOString().split('T')[0] : form.getValues("date"));
-        const content = existingReport.content || {};
+    if (existingReport && isEditMode) {
+      form.setValue("title", existingReport.title);
+      const dateValue = existingReport.date ? new Date(existingReport.date).toISOString().split('T')[0] : form.getValues("date");
+      form.setValue("date", dateValue);
+      setReportDate(dateValue);
         
-        // Hydrate content with template rich-text formatting
-        // If stored content is plain text that matches an untouched default, use template's rich-text version
-        if (matchingTemplate?.sections) {
-          const hydratedContent = { ...content };
+      if (existingReport.linkedEventIds && Array.isArray(existingReport.linkedEventIds) && existingReport.linkedEventIds.length > 0) {
+        setSelectedPerformanceIds(existingReport.linkedEventIds);
+        setSelectedPerformanceId(existingReport.linkedEventIds[0]);
+      } else if (existingReport.scheduleEventId) {
+        setSelectedPerformanceId(existingReport.scheduleEventId);
+        setSelectedPerformanceIds([existingReport.scheduleEventId]);
+      }
+      const content = existingReport.content || {};
+        
+      if (matchingTemplate?.sections) {
+        const hydratedContent = { ...content };
           
-          for (const section of matchingTemplate.sections) {
-            if (section.fields) {
-              for (const field of section.fields) {
-                const storedValue = hydratedContent[field.label];
-                const templateDefault = field.defaultValue || "";
+        for (const section of matchingTemplate.sections) {
+          if (section.fields) {
+            for (const field of section.fields) {
+              const storedValue = hydratedContent[field.label];
+              const templateDefault = field.defaultValue || "";
+              const plainTemplateDefault = templateDefault.replace(/<[^>]*>/g, '').trim();
                 
-                // Extract plain text from template default (strip HTML tags)
-                const plainTemplateDefault = templateDefault.replace(/<[^>]*>/g, '').trim();
-                
-                // Check if stored value is plain text that matches the template default
-                // or if it's empty/undefined - in these cases, use the template's rich-text version
-                if (storedValue !== undefined && storedValue !== null) {
-                  const storedPlainText = String(storedValue).replace(/<[^>]*>/g, '').trim();
-                  
-                  // If stored plain text matches template default but lacks HTML formatting, use template version
-                  if (storedPlainText === plainTemplateDefault && !String(storedValue).includes('<ol') && !String(storedValue).includes('<ul')) {
-                    console.log(`🔄 Hydrating field "${field.label}" with template rich-text formatting`);
-                    hydratedContent[field.label] = templateDefault;
-                  }
+              if (storedValue !== undefined && storedValue !== null) {
+                const storedPlainText = String(storedValue).replace(/<[^>]*>/g, '').trim();
+                if (storedPlainText === plainTemplateDefault && !String(storedValue).includes('<ol') && !String(storedValue).includes('<ul')) {
+                  hydratedContent[field.label] = templateDefault;
                 }
               }
             }
           }
-          
-          form.setValue("content", hydratedContent);
-          contentRef.current = hydratedContent;
-        } else {
-          form.setValue("content", content);
-          contentRef.current = { ...content };
         }
-        
-        setSelectedTemplate('custom-layout');
-        
-        // Load the template so fields have access to defaultValues
-        if (matchingTemplate) {
-          let parsedLayout = matchingTemplate.layoutConfiguration;
-          if (typeof parsedLayout === 'string') {
-            try {
-              parsedLayout = JSON.parse(parsedLayout);
-            } catch (e) {
-              console.error('Failed to parse layoutConfiguration:', e);
-            }
-          }
           
-          const newTemplate = {
-            ...matchingTemplate,
-            layoutConfiguration: parsedLayout,
-          };
-          
-          initializedFieldsRef.current.clear();
-          setCustomTemplate(newTemplate);
-        }
+        form.setValue("content", hydratedContent);
+        contentRef.current = hydratedContent;
       } else {
-        // Auto-generate title based on template name (most up-to-date source)
-        const reportTitle = matchingTemplate?.name || currentReportType?.name || generateReportTitle(reportType);
-        form.setValue("title", reportTitle);
+        form.setValue("content", content);
+        contentRef.current = { ...content };
+      }
         
-        // ALWAYS use custom template from matchingTemplate when available
-        if (matchingTemplate) {
-          console.log('⚙️ Setting customTemplate from matchingTemplate:', matchingTemplate);
-          setSelectedTemplate('custom-layout');
-          
-          // Reset initialized fields when template changes
-          initializedFieldsRef.current.clear();
-          
-          // Parse layoutConfiguration if it's a string
-          let parsedLayout = matchingTemplate.layoutConfiguration;
-          if (typeof parsedLayout === 'string') {
-            try {
-              parsedLayout = JSON.parse(parsedLayout);
-            } catch (e) {
-              console.error('Failed to parse layoutConfiguration:', e);
-            }
+      setSelectedTemplate('custom-layout');
+        
+      if (matchingTemplate) {
+        let parsedLayout = matchingTemplate.layoutConfiguration;
+        if (typeof parsedLayout === 'string') {
+          try {
+            parsedLayout = JSON.parse(parsedLayout);
+          } catch (e) {
+            console.error('Failed to parse layoutConfiguration:', e);
           }
-          
-          const newTemplate = {
-            ...matchingTemplate,
-            layoutConfiguration: parsedLayout,
-          };
-          
-          console.log('⚙️ Parsed template:', newTemplate);
-          setCustomTemplate(newTemplate);
         }
+          
+        const newTemplate = {
+          ...matchingTemplate,
+          layoutConfiguration: parsedLayout,
+        };
+          
+        initializedFieldsRef.current.clear();
+        setCustomTemplate(newTemplate);
+      }
+    } else {
+      const reportTitle = matchingTemplate?.name || currentReportType?.name || generateReportTitle(reportType);
+      form.setValue("title", reportTitle);
+        
+      if (matchingTemplate) {
+        setSelectedTemplate('custom-layout');
+        initializedFieldsRef.current.clear();
+          
+        let parsedLayout = matchingTemplate.layoutConfiguration;
+        if (typeof parsedLayout === 'string') {
+          try {
+            parsedLayout = JSON.parse(parsedLayout);
+          } catch (e) {
+            console.error('Failed to parse layoutConfiguration:', e);
+          }
+        }
+          
+        const newTemplate = {
+          ...matchingTemplate,
+          layoutConfiguration: parsedLayout,
+        };
+          
+        setCustomTemplate(newTemplate);
       }
     }
   }, [projectId, reportType, existingReport, isEditMode, matchingTemplate, projectSettings, settingsLoading, currentReportType]);
 
   const mutation = useMutation({
     mutationFn: async (data: ReportFormData) => {
+      // Validate performance selection for performance report types (only when creating new)
+      if (isPerformanceReportType && !isEditMode && selectedPerformanceIds.length === 0) {
+        throw new Error("Please select at least one performance to link to this report.");
+      }
+      
       // Sync contentRef to data before sending
       data.content = { ...contentRef.current };
       
+      const primaryEventId = selectedPerformanceIds.length > 0 ? selectedPerformanceIds[0] : selectedPerformanceId;
+      
       if (isEditMode && reportId) {
-        await apiRequest("PUT", `/api/projects/${projectId}/reports/${reportId}`, {
+        const result = await apiRequest("PUT", `/api/projects/${projectId}/reports/${reportId}`, {
           ...data,
           date: new Date(data.date),
+          scheduleEventId: primaryEventId,
+          linkedEventIds: selectedPerformanceIds.length > 0 ? selectedPerformanceIds : undefined,
         });
+        return { report: result, isNew: false };
       } else {
         // When creating a new report, link it to the custom template
         const reportData: any = {
           ...data,
           date: new Date(data.date),
+          scheduleEventId: primaryEventId,
+          linkedEventIds: selectedPerformanceIds.length > 0 ? selectedPerformanceIds : undefined,
         };
         
         if (matchingTemplate?.id) {
           reportData.templateId = matchingTemplate.id;
         }
         
-        await apiRequest("POST", `/api/projects/${projectId}/reports`, reportData);
+        const createdReport = await apiRequest("POST", `/api/projects/${projectId}/reports`, reportData);
+        return { report: createdReport, isNew: true };
       }
     },
-    onSuccess: () => {
+    onSuccess: async (result) => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/reports`] });
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/reports/${reportId}`] });
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/notes/all`] });
@@ -352,10 +582,10 @@ export default function ReportBuilder() {
         setLocation(`/shows/${projectId}/reports/${reportType}`);
       }
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: isEditMode ? "Failed to update report. Please try again." : "Failed to create report. Please try again.",
+        description: error?.message || (isEditMode ? "Failed to update report. Please try again." : "Failed to create report. Please try again."),
         variant: "destructive",
       });
     },
@@ -578,12 +808,14 @@ export default function ReportBuilder() {
                 <div className="space-y-4 pl-4">
                   {section.fields.map((field: any) => (
                     <div key={field.id} className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Label className="font-bold">
-                          {field.label}
-                        </Label>
-                      </div>
-                      <div className="pl-4">
+                      {!field.hideLabel && (
+                        <div className="flex items-center gap-2">
+                          <Label className="font-bold">
+                            {field.label}
+                          </Label>
+                        </div>
+                      )}
+                      <div className={field.hideLabel ? "" : "pl-4"}>
                         {field.helperText && (
                           <p className="text-sm text-muted-foreground">{field.helperText}</p>
                         )}
@@ -596,6 +828,8 @@ export default function ReportBuilder() {
                               return null;
                             })()}
                             <div
+                              data-field-label={field.label}
+                              data-field-department={field.departmentKey || ''}
                               ref={(el) => {
                                 if (!el) return;
                                 console.log('🔄 Ref callback for field:', field.label, 'already initialized:', initializedFieldsRef.current.has(field.id));
@@ -657,9 +891,17 @@ export default function ReportBuilder() {
                                 // For HTML lists (proper numbered/bullet lists)
                                 const currentHTML = e.currentTarget.innerHTML;
                                 if (currentHTML.includes("<ol") || currentHTML.includes("<ul")) {
-                                  // Check if this is the default "Nothing today." text
+                                  // Check if this is the default value (compare text content, not HTML structure)
+                                  // This handles cases where imported content matches the default text
                                   const defaultValue = defaultValuesRef.current[field.id] || "";
-                                  if (currentHTML === defaultValue && defaultValue.includes("Nothing today")) {
+                                  const currentTextContent = (e.currentTarget.textContent || "").trim();
+                                  const defaultTextContent = defaultValue.replace(/<[^>]*>/g, '').trim();
+                                  
+                                  // Clear if: exact HTML match OR text content matches the default text
+                                  const isDefaultContent = (currentHTML === defaultValue && defaultValue.trim()) ||
+                                    (currentTextContent === defaultTextContent && defaultTextContent.length > 0);
+                                  
+                                  if (isDefaultContent) {
                                     // Clear the default text but keep the list structure
                                     // Use a zero-width space to ensure the list item stays active
                                     const firstLi = e.currentTarget.querySelector("li");
@@ -834,6 +1076,62 @@ export default function ReportBuilder() {
                               ))}
                             </SelectContent>
                           </Select>
+                        )}
+                        {field.type === "dailycall" && (
+                          <div className="border rounded-lg p-4 bg-muted/30">
+                            {dailyCallLoading ? (
+                              <p className="text-sm text-muted-foreground">Loading daily call...</p>
+                            ) : dailyCallData ? (
+                              (() => {
+                                const callDate = new Date(dailyCallData.date + 'T00:00:00');
+                                const dateStr = callDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                                const locations = Array.isArray(dailyCallData.locations) ? dailyCallData.locations : [];
+                                const announcements = dailyCallData.announcements || '';
+
+                                // Store daily call content for report saving
+                                if (!contentRef.current[field.label]) {
+                                  contentRef.current[field.label] = JSON.stringify({
+                                    date: dailyCallData.date,
+                                    locations: dailyCallData.locations,
+                                    announcements: dailyCallData.announcements,
+                                  });
+                                }
+
+                                return (
+                                  <div className="space-y-3">
+                                    <div className="flex items-center gap-2 text-sm font-medium">
+                                      <CalendarDays className="h-4 w-4" />
+                                      <span>Daily Call — {dateStr}</span>
+                                    </div>
+                                    {locations.map((loc: any, locIdx: number) => (
+                                      <div key={locIdx} className="space-y-1">
+                                        <h4 className="text-sm font-semibold border-b pb-1">{loc.name}</h4>
+                                        {Array.isArray(loc.events) && loc.events.map((evt: any, evtIdx: number) => (
+                                          <div key={evtIdx} className="flex gap-4 text-sm py-0.5">
+                                            <span className="w-16 font-medium text-muted-foreground flex-shrink-0">{evt.startTime}</span>
+                                            <div>
+                                              <span className="font-medium">{evt.title}</span>
+                                              {evt.cast && evt.cast.length > 0 && (
+                                                <span className="text-muted-foreground ml-2 text-xs">({evt.cast.join(', ')})</span>
+                                              )}
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ))}
+                                    {announcements && (
+                                      <div className="pt-2 border-t">
+                                        <h4 className="text-sm font-semibold mb-1">Announcements</h4>
+                                        <div className="text-sm whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: announcements }} />
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })()
+                            ) : (
+                              <p className="text-sm text-muted-foreground italic">No daily call found for {reportDate}</p>
+                            )}
+                          </div>
                         )}
                       </div>
                     </div>
@@ -1163,6 +1461,19 @@ export default function ReportBuilder() {
           </div>
           
           <div className="flex items-center gap-2">
+            {!isEditMode && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleImportPreviousNotes}
+                disabled={isImporting}
+                className="flex items-center gap-1"
+              >
+                <Download className="h-4 w-4" />
+                {isImporting ? "Importing..." : "Import Previous Notes"}
+              </Button>
+            )}
             <Button
               type="button"
               variant="outline"
@@ -1211,6 +1522,72 @@ export default function ReportBuilder() {
             </div>
           );
         })()}
+
+        {/* Performance Selector - Only for performance report types */}
+        {isPerformanceReportType && (
+          <div className="mb-6 p-4 bg-muted/50 rounded-lg border">
+            <div className="flex items-center gap-2 mb-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <Label className="font-semibold">
+                Link to Performance{selectedPerformanceIds.length > 1 ? 's' : ''}
+                {!isEditMode && <span className="text-destructive ml-1">*</span>}
+              </Label>
+            </div>
+            <p className="text-sm text-muted-foreground mb-3">
+              Select one or more performances to link to this report.
+              {!isEditMode && " (At least one required)"}
+            </p>
+            <div className="space-y-2 max-h-60 overflow-y-auto border rounded-md p-2 bg-background">
+              {availablePerformances.map((performance: any) => {
+                const perfNumber = getPerformanceNumberForEvent(performance.id);
+                const dateStr = format(new Date(performance.date + 'T00:00:00'), 'EEE, MMM d, yyyy');
+                const timeStr = performance.startTime?.substring(0, 5) || '';
+                const isChecked = selectedPerformanceIds.includes(performance.id);
+                return (
+                  <div 
+                    key={performance.id} 
+                    className={`flex items-center gap-3 p-2 rounded-md cursor-pointer hover:bg-muted/50 transition-colors ${isChecked ? 'bg-primary/5 border border-primary/20' : ''}`}
+                    onClick={() => {
+                      setSelectedPerformanceIds(prev => {
+                        if (prev.includes(performance.id)) {
+                          const updated = prev.filter(id => id !== performance.id);
+                          setSelectedPerformanceId(updated.length > 0 ? updated[0] : null);
+                          return updated;
+                        } else {
+                          const updated = [...prev, performance.id].sort((a, b) => {
+                            const aPerf = availablePerformances.find((p: any) => p.id === a);
+                            const bPerf = availablePerformances.find((p: any) => p.id === b);
+                            if (!aPerf || !bPerf) return 0;
+                            if (aPerf.date !== bPerf.date) return aPerf.date.localeCompare(bPerf.date);
+                            return (aPerf.startTime || '').localeCompare(bPerf.startTime || '');
+                          });
+                          setSelectedPerformanceId(updated[0]);
+                          return updated;
+                        }
+                      });
+                    }}
+                  >
+                    <Checkbox checked={isChecked} className="pointer-events-none" />
+                    <span className="text-sm flex-1">
+                      {performance.title}{perfNumber ? ` #${perfNumber}` : ''} — {dateStr} at {timeStr}
+                    </span>
+                  </div>
+                );
+              })}
+              {availablePerformances.length === 0 && (
+                <p className="text-sm text-muted-foreground italic p-2">No performances found in schedule</p>
+              )}
+            </div>
+            {selectedPerformanceIds.length > 0 && (
+              <p className="text-sm text-green-600 mt-2">
+                {selectedPerformanceIds.length === 1 
+                  ? `Performance #${getPerformanceNumberForEvent(selectedPerformanceIds[0])} linked`
+                  : `${selectedPerformanceIds.length} performances linked: #${selectedPerformanceIds.map(id => getPerformanceNumberForEvent(id)).filter(Boolean).join(', #')}`
+                }
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Document Fields */}
         <div className="space-y-4">

@@ -183,13 +183,65 @@ export default function EmailManager() {
     }
   };
 
-  // Bulk action mutation
+  // Bulk action mutation with optimistic updates
   const bulkActionMutation = useMutation({
-    mutationFn: async ({ messageIds, action, targetFolder }: { messageIds: number[]; action: string; targetFolder?: string }) => {
-      if (!selectedAccount) throw new Error('No selected account');
+    mutationFn: async ({ messageIds, action, targetFolder, accountId, currentFolder }: { messageIds: (number | string)[]; action: string; targetFolder?: string; accountId: number; currentFolder: string }) => {
+      console.log('🗑️ Bulk action requested:', { messageIds, action, targetFolder, accountId });
       
-      console.log('🗑️ Bulk action requested:', { messageIds, action, targetFolder, accountId: selectedAccount.id });
+      // For OAuth connected accounts (id === -1), use provider-specific endpoints
+      if (accountId === -1) {
+        const results = await Promise.all(
+          messageIds.map(async (messageId) => {
+            let endpoint = '';
+            let method = 'POST';
+            
+            switch (action) {
+              case 'mark-read':
+                endpoint = `/api/user/email-provider/emails/${messageId}/read`;
+                break;
+              case 'mark-unread':
+                endpoint = `/api/user/email-provider/emails/${messageId}/unread`;
+                break;
+              case 'delete':
+                endpoint = `/api/user/email-provider/emails/${messageId}`;
+                method = 'DELETE';
+                break;
+              case 'archive':
+                endpoint = `/api/user/email-provider/emails/${messageId}/archive`;
+                break;
+              case 'move':
+                endpoint = `/api/user/email-provider/emails/${messageId}/move`;
+                method = 'POST';
+                break;
+              default:
+                throw new Error(`Unsupported action: ${action}`);
+            }
+            
+            const response = await fetch(endpoint, { 
+              method,
+              headers: action === 'move' ? { 'Content-Type': 'application/json' } : undefined,
+              body: action === 'move' ? JSON.stringify({ targetFolder }) : undefined
+            });
+            if (!response.ok) {
+              throw new Error(`Failed to ${action} message`);
+            }
+            // Handle empty responses (204 No Content)
+            const contentLength = response.headers.get('content-length');
+            if (response.status === 204 || contentLength === '0') {
+              return { success: true };
+            }
+            try {
+              return await response.json();
+            } catch {
+              return { success: true };
+            }
+          })
+        );
+        console.log('✅ OAuth bulk action completed:', results);
+        return { results, action, messageIds };
+      }
       
+      // For BackstageOS accounts, use the legacy bulk action endpoint
       const response = await fetch('/api/email/messages/bulk-action', {
         method: 'POST',
         headers: {
@@ -198,7 +250,7 @@ export default function EmailManager() {
         body: JSON.stringify({
           messageIds,
           action,
-          accountId: selectedAccount.id,
+          accountId,
           targetFolder,
         }),
       });
@@ -209,20 +261,59 @@ export default function EmailManager() {
       console.log('✅ Bulk action completed:', result);
       return result;
     },
-    onSuccess: (result, { messageIds, action, targetFolder }) => {
-      // Clear selection
+    onMutate: async ({ messageIds, action, targetFolder, accountId, currentFolder }) => {
+      // Optimistic update - update UI immediately before API call completes
+      const queryKey = ['/api/email/accounts', accountId, currentFolder];
+      
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey });
+      
+      // Snapshot the previous value
+      const previousMessages = queryClient.getQueryData<EmailMessage[]>(queryKey);
+      
+      // Optimistically update the cache
+      queryClient.setQueryData<EmailMessage[]>(queryKey, (old) => {
+        if (!old) return old;
+        
+        const messageIdSet = new Set(messageIds.map(id => String(id)));
+        
+        switch (action) {
+          case 'delete':
+          case 'archive':
+          case 'move':
+            // Remove messages from current view immediately
+            return old.filter(msg => !messageIdSet.has(String(msg.id)));
+          case 'mark-read':
+            return old.map(msg => 
+              messageIdSet.has(String(msg.id)) ? { ...msg, isRead: true } : msg
+            );
+          case 'mark-unread':
+            return old.map(msg => 
+              messageIdSet.has(String(msg.id)) ? { ...msg, isRead: false } : msg
+            );
+          default:
+            return old;
+        }
+      });
+      
+      // Clear selection immediately for responsive feel
       setSelectedMessages(new Set());
       
-      // Invalidate and refetch ALL email queries to ensure fresh data
-      if (selectedAccount) {
-        queryClient.invalidateQueries({ queryKey: ['/api/email/accounts', selectedAccount.id] });
-        queryClient.invalidateQueries({ queryKey: ['/api/email/unread-count'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/email/stats', selectedAccount.id] });
-        
-        // Force refresh the current view
-        queryClient.refetchQueries({ queryKey: ['/api/email/accounts', selectedAccount.id, activeFolder] });
+      return { previousMessages, queryKey };
+    },
+    onError: (error: any, variables, context) => {
+      // Roll back on error
+      if (context?.previousMessages && context?.queryKey) {
+        queryClient.setQueryData(context.queryKey, context.previousMessages);
       }
-      
+      console.error('Bulk action failed:', error);
+      toast({
+        title: "Error",
+        description: "Failed to perform bulk action",
+        variant: "destructive",
+      });
+    },
+    onSuccess: (result, { messageIds, action, targetFolder }) => {
       // Show specific success message based on action
       const count = messageIds.length;
       const messageText = count === 1 ? 'message' : 'messages';
@@ -269,21 +360,20 @@ export default function EmailManager() {
           });
       }
     },
-    onError: (error: any) => {
-      console.error('Bulk action failed:', error);
-      toast({
-        title: "Error",
-        description: "Failed to perform bulk action",
-        variant: "destructive",
-      });
+    onSettled: () => {
+      // Sync with server in background after mutation completes
+      if (selectedAccount) {
+        queryClient.invalidateQueries({ queryKey: ['/api/email/unread-count'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/email/stats', selectedAccount.id] });
+      }
     }
   });
 
   const handleBulkAction = (action: string, targetFolder?: string) => {
     const messageIds = Array.from(selectedMessages);
-    if (messageIds.length === 0) return;
+    if (messageIds.length === 0 || !selectedAccount) return;
     
-    bulkActionMutation.mutate({ messageIds, action, targetFolder });
+    bulkActionMutation.mutate({ messageIds, action, targetFolder, accountId: selectedAccount.id, currentFolder: activeFolder });
   };
   
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);

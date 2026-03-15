@@ -77,6 +77,25 @@ export default function PrivacyPage() {
           </div>
 
           <div>
+            <h2 className="text-2xl font-semibold mb-3 text-slate-900 dark:text-white">Data Protection Mechanisms</h2>
+            <p className="mb-4">
+              We implement industry-leading security measures to protect your sensitive data:
+            </p>
+            <ul>
+              <li><strong>Encryption in Transit:</strong> All data transmitted between your device and our servers is encrypted using TLS 1.3, the same encryption standard used by financial institutions.</li>
+              <li><strong>Encryption at Rest:</strong> Your data is encrypted at rest using AES-256 encryption, the same standard used by government agencies for classified information.</li>
+              <li><strong>Password Protection:</strong> Passwords are hashed using bcrypt with multiple rounds, making them resistant to brute-force attacks. We never store passwords in plain text.</li>
+              <li><strong>Authentication Security:</strong> We support multi-factor authentication (MFA) and implement rate limiting on login attempts to prevent automated attacks.</li>
+              <li><strong>Session Security:</strong> Sessions use secure HTTP-only cookies, CSRF protection, and automatic expiration after inactivity.</li>
+              <li><strong>Access Control:</strong> We follow the principle of least privilege, ensuring users only have access to the specific resources they need.</li>
+              <li><strong>Regular Audits:</strong> We conduct regular security assessments, penetration testing, and code reviews to identify and fix vulnerabilities.</li>
+            </ul>
+            <p className="mt-4">
+              For complete details on our security practices, please visit our <a href="/security" className="text-blue-600 dark:text-blue-400 hover:underline">Security page</a>.
+            </p>
+          </div>
+
+          <div>
             <h2 className="text-2xl font-semibold mb-3 text-slate-900 dark:text-white">Data Retention</h2>
           <p>
             We retain your data as long as your account is active. If you delete your account, we will remove your data within 30 days, except where we are required by law to retain it. Backups may contain your data for an additional 90 days.
@@ -153,7 +172,7 @@ export default function PrivacyPage() {
 
         <div className="pt-8 border-t border-slate-200 dark:border-slate-800 mt-8">
           <p className="text-sm text-slate-600 dark:text-slate-400">
-            Last updated: November 2025
+            Last updated: December 2025
           </p>
         </div>
       </div>

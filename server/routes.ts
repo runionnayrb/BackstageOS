@@ -12,8 +12,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 import { storage } from "./storage";
 import { db } from "./db";
-import { sql, and, eq } from "drizzle-orm";
-import { scheduledEmails, scheduleTemplateEvents, teamMembers, noteStatuses } from "@shared/schema";
+import { sql, and, eq, isNotNull, desc } from "drizzle-orm";
+import { scheduledEmails, scheduleTemplateEvents, teamMembers, noteStatuses, reports, scheduleEvents } from "@shared/schema";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
@@ -24,6 +24,7 @@ import { ConflictValidationService } from "./services/conflictValidationService.
 import { scheduleNotificationService } from "./services/scheduleNotificationService.js";
 import { ScheduleChangeDetectionService } from "./services/scheduleChangeDetectionService.js";
 import { billingSyncService } from "./services/billingSyncService";
+import { showBillingService } from "./services/showBillingService";
 import { z } from "zod";
 
 // Helper to get effective user ID - respects "view as" feature for admins
@@ -34,6 +35,53 @@ function getEffectiveUserId(req: any): string {
   }
   // Otherwise use the logged-in user's ID
   return req.user.id.toString();
+}
+
+async function checkShowBillingAccess(projectId: number): Promise<{ allowed: boolean; billingStatus: string | null; message?: string }> {
+  try {
+    const billing = await storage.getShowBillingByProjectId(projectId);
+    
+    if (!billing) {
+      return { allowed: true, billingStatus: null };
+    }
+    
+    const now = new Date();
+    const trialEndsAt = billing.trialEndsAt ? new Date(billing.trialEndsAt) : null;
+    const trialActive = trialEndsAt && now < trialEndsAt;
+    
+    if (trialActive) {
+      return { allowed: true, billingStatus: 'trial' };
+    }
+    
+    if (billing.billingStatus === 'trial' && !trialActive) {
+      return { 
+        allowed: false, 
+        billingStatus: 'trial_expired',
+        message: 'Your free trial has expired. Please pay the activation fee to continue using this show.'
+      };
+    }
+    
+    if (billing.billingStatus === 'unpaid') {
+      return { 
+        allowed: false, 
+        billingStatus: 'unpaid',
+        message: 'Payment required to access this show.'
+      };
+    }
+    
+    if (billing.billingStatus === 'archived') {
+      return { 
+        allowed: false, 
+        billingStatus: 'archived',
+        message: 'This show has been archived and is no longer accessible.'
+      };
+    }
+    
+    return { allowed: true, billingStatus: billing.billingStatus };
+  } catch (error) {
+    console.error('Error checking show billing access:', error);
+    return { allowed: true, billingStatus: null };
+  }
 }
 import Stripe from "stripe";
 import { googleOAuthService } from "./services/googleOAuthService";
@@ -376,8 +424,155 @@ function foldICSLine(line: string): string {
   return result.join('\r\n');
 }
 
+// Timezone configuration map for ICS generation - supports all timezones from show settings
+const TIMEZONE_CONFIGS: Record<string, {
+  tzid: string;
+  standardOffset: string;
+  daylightOffset: string;
+  standardName: string;
+  daylightName: string;
+  daylightStart: string;
+  daylightRule: string;
+  standardStart: string;
+  standardRule: string;
+  hasDST: boolean;
+}> = {
+  'America/New_York': {
+    tzid: 'America/New_York',
+    standardOffset: '-0500',
+    daylightOffset: '-0400',
+    standardName: 'EST',
+    daylightName: 'EDT',
+    daylightStart: '19700308T020000',
+    daylightRule: 'FREQ=YEARLY;BYMONTH=3;BYDAY=2SU',
+    standardStart: '19701101T020000',
+    standardRule: 'FREQ=YEARLY;BYMONTH=11;BYDAY=1SU',
+    hasDST: true
+  },
+  'America/Chicago': {
+    tzid: 'America/Chicago',
+    standardOffset: '-0600',
+    daylightOffset: '-0500',
+    standardName: 'CST',
+    daylightName: 'CDT',
+    daylightStart: '19700308T020000',
+    daylightRule: 'FREQ=YEARLY;BYMONTH=3;BYDAY=2SU',
+    standardStart: '19701101T020000',
+    standardRule: 'FREQ=YEARLY;BYMONTH=11;BYDAY=1SU',
+    hasDST: true
+  },
+  'America/Denver': {
+    tzid: 'America/Denver',
+    standardOffset: '-0700',
+    daylightOffset: '-0600',
+    standardName: 'MST',
+    daylightName: 'MDT',
+    daylightStart: '19700308T020000',
+    daylightRule: 'FREQ=YEARLY;BYMONTH=3;BYDAY=2SU',
+    standardStart: '19701101T020000',
+    standardRule: 'FREQ=YEARLY;BYMONTH=11;BYDAY=1SU',
+    hasDST: true
+  },
+  'America/Los_Angeles': {
+    tzid: 'America/Los_Angeles',
+    standardOffset: '-0800',
+    daylightOffset: '-0700',
+    standardName: 'PST',
+    daylightName: 'PDT',
+    daylightStart: '19700308T020000',
+    daylightRule: 'FREQ=YEARLY;BYMONTH=3;BYDAY=2SU',
+    standardStart: '19701101T020000',
+    standardRule: 'FREQ=YEARLY;BYMONTH=11;BYDAY=1SU',
+    hasDST: true
+  },
+  'Europe/London': {
+    tzid: 'Europe/London',
+    standardOffset: '+0000',
+    daylightOffset: '+0100',
+    standardName: 'GMT',
+    daylightName: 'BST',
+    daylightStart: '19700329T010000',
+    daylightRule: 'FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU',
+    standardStart: '19701025T020000',
+    standardRule: 'FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU',
+    hasDST: true
+  },
+  'Europe/Paris': {
+    tzid: 'Europe/Paris',
+    standardOffset: '+0100',
+    daylightOffset: '+0200',
+    standardName: 'CET',
+    daylightName: 'CEST',
+    daylightStart: '19700329T020000',
+    daylightRule: 'FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU',
+    standardStart: '19701025T030000',
+    standardRule: 'FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU',
+    hasDST: true
+  },
+  'Asia/Tokyo': {
+    tzid: 'Asia/Tokyo',
+    standardOffset: '+0900',
+    daylightOffset: '+0900',
+    standardName: 'JST',
+    daylightName: 'JST',
+    daylightStart: '',
+    daylightRule: '',
+    standardStart: '',
+    standardRule: '',
+    hasDST: false
+  }
+};
+
+// Helper function to generate VTIMEZONE block for ICS
+function generateVTimezoneBlock(timezone: string): string[] {
+  const config = TIMEZONE_CONFIGS[timezone] || TIMEZONE_CONFIGS['America/New_York'];
+  
+  const lines: string[] = [
+    'BEGIN:VTIMEZONE',
+    `TZID:${config.tzid}`,
+    `X-LIC-LOCATION:${config.tzid}`
+  ];
+  
+  if (config.hasDST) {
+    lines.push(
+      'BEGIN:DAYLIGHT',
+      `TZOFFSETFROM:${config.standardOffset}`,
+      `TZOFFSETTO:${config.daylightOffset}`,
+      `TZNAME:${config.daylightName}`,
+      `DTSTART:${config.daylightStart}`,
+      `RRULE:${config.daylightRule}`,
+      'END:DAYLIGHT',
+      'BEGIN:STANDARD',
+      `TZOFFSETFROM:${config.daylightOffset}`,
+      `TZOFFSETTO:${config.standardOffset}`,
+      `TZNAME:${config.standardName}`,
+      `DTSTART:${config.standardStart}`,
+      `RRULE:${config.standardRule}`,
+      'END:STANDARD'
+    );
+  } else {
+    lines.push(
+      'BEGIN:STANDARD',
+      `TZOFFSETFROM:${config.standardOffset}`,
+      `TZOFFSETTO:${config.standardOffset}`,
+      `TZNAME:${config.standardName}`,
+      'DTSTART:19700101T000000',
+      'END:STANDARD'
+    );
+  }
+  
+  lines.push('END:VTIMEZONE');
+  return lines;
+}
+
+// Helper function to get timezone ID (with fallback)
+function getTimezoneId(timezone: string): string {
+  const config = TIMEZONE_CONFIGS[timezone];
+  return config ? config.tzid : 'America/New_York';
+}
+
 // Helper function to generate ICS content
-function generateICSContent(events: any[], project: any, contact: any): string {
+function generateICSContent(events: any[], project: any, contact: any, timezone: string = 'America/New_York'): string {
   const formatDateTime = (date: string, time: string) => {
     const d = new Date(date);
     const [hours, minutes] = time.split(':');
@@ -398,6 +593,8 @@ function generateICSContent(events: any[], project: any, contact: any): string {
   const calendarName = escapeText(`${project.name} - ${contact.firstName} ${contact.lastName}`);
   const calendarDesc = escapeText(`Personal schedule for ${contact.firstName} ${contact.lastName} in ${project.name}`);
 
+  const tzid = getTimezoneId(timezone);
+  
   const lines: string[] = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
@@ -406,37 +603,22 @@ function generateICSContent(events: any[], project: any, contact: any): string {
     'METHOD:PUBLISH',
     `X-WR-CALNAME:${calendarName}`,
     `X-WR-CALDESC:${calendarDesc}`,
-    'X-WR-TIMEZONE:America/New_York',
-    'BEGIN:VTIMEZONE',
-    'TZID:America/New_York',
-    'X-LIC-LOCATION:America/New_York',
-    'BEGIN:DAYLIGHT',
-    'TZOFFSETFROM:-0500',
-    'TZOFFSETTO:-0400',
-    'TZNAME:EDT',
-    'DTSTART:19700308T020000',
-    'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU',
-    'END:DAYLIGHT',
-    'BEGIN:STANDARD',
-    'TZOFFSETFROM:-0400',
-    'TZOFFSETTO:-0500',
-    'TZNAME:EST',
-    'DTSTART:19701101T020000',
-    'RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU',
-    'END:STANDARD',
-    'END:VTIMEZONE'
+    `X-WR-TIMEZONE:${tzid}`,
+    ...generateVTimezoneBlock(timezone)
   ];
 
   events.forEach(event => {
     const startTime = event.startTime || '09:00';
     const endTime = event.endTime || '17:00';
-    const uid = `event-${event.id}@backstageos.com`;
+    // Include date in UID to ensure uniqueness across published versions
+    const dateStr = (event.date || '').replace(/-/g, '');
+    const uid = `event-${event.id}-${dateStr}@backstageos.com`;
     
     lines.push('BEGIN:VEVENT');
     lines.push(`UID:${uid}`);
     lines.push(`DTSTAMP:${now}`);
-    lines.push(`DTSTART;TZID=America/New_York:${formatDateTime(event.date, startTime)}`);
-    lines.push(`DTEND;TZID=America/New_York:${formatDateTime(event.date, endTime)}`);
+    lines.push(`DTSTART;TZID=${tzid}:${formatDateTime(event.date, startTime)}`);
+    lines.push(`DTEND;TZID=${tzid}:${formatDateTime(event.date, endTime)}`);
     lines.push(foldICSLine(`SUMMARY:${escapeText(event.title)}`));
     lines.push(foldICSLine(`DESCRIPTION:${escapeText(event.description || '')}`));
     if (event.location) {
@@ -452,7 +634,7 @@ function generateICSContent(events: any[], project: any, contact: any): string {
   return lines.join('\r\n') + '\r\n';
 }
 
-function generateICSSubscriptionContent(events: any[], project: any, contact: any, hostname: string): string {
+function generateICSSubscriptionContent(events: any[], project: any, contact: any, hostname: string, timezone: string = 'America/New_York'): string {
   const formatDateTime = (date: string, time: string) => {
     const d = new Date(date);
     const [hours, minutes] = time.split(':');
@@ -472,6 +654,7 @@ function generateICSSubscriptionContent(events: any[], project: any, contact: an
   const now = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
   const calendarName = escapeText(`${project.name} - ${contact.firstName} ${contact.lastName}`);
   const calendarDesc = escapeText(`Dynamic schedule for ${contact.firstName} ${contact.lastName} in ${project.name}`);
+  const tzid = getTimezoneId(timezone);
 
   const lines: string[] = [
     'BEGIN:VCALENDAR',
@@ -481,39 +664,24 @@ function generateICSSubscriptionContent(events: any[], project: any, contact: an
     'METHOD:PUBLISH',
     foldICSLine(`X-WR-CALNAME:${calendarName}`),
     foldICSLine(`X-WR-CALDESC:${calendarDesc}`),
-    'X-WR-TIMEZONE:America/New_York',
+    `X-WR-TIMEZONE:${tzid}`,
     'X-PUBLISHED-TTL:PT1H',
     'REFRESH-INTERVAL;VALUE=DURATION:PT1H',
-    'BEGIN:VTIMEZONE',
-    'TZID:America/New_York',
-    'X-LIC-LOCATION:America/New_York',
-    'BEGIN:DAYLIGHT',
-    'TZOFFSETFROM:-0500',
-    'TZOFFSETTO:-0400',
-    'TZNAME:EDT',
-    'DTSTART:19700308T020000',
-    'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU',
-    'END:DAYLIGHT',
-    'BEGIN:STANDARD',
-    'TZOFFSETFROM:-0400',
-    'TZOFFSETTO:-0500',
-    'TZNAME:EST',
-    'DTSTART:19701101T020000',
-    'RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU',
-    'END:STANDARD',
-    'END:VTIMEZONE'
+    ...generateVTimezoneBlock(timezone)
   ];
 
   events.forEach(event => {
     const startTime = event.startTime || '09:00';
     const endTime = event.endTime || '17:00';
-    const uid = `schedule-${event.id}-${project.id}@backstageos.com`;
+    // Include date in UID to ensure uniqueness across published versions
+    const dateStr = (event.date || '').replace(/-/g, '');
+    const uid = `schedule-${event.id}-${dateStr}-${project.id}@backstageos.com`;
     
     lines.push('BEGIN:VEVENT');
     lines.push(`UID:${uid}`);
     lines.push(`DTSTAMP:${now}`);
-    lines.push(`DTSTART;TZID=America/New_York:${formatDateTime(event.date, startTime)}`);
-    lines.push(`DTEND;TZID=America/New_York:${formatDateTime(event.date, endTime)}`);
+    lines.push(`DTSTART;TZID=${tzid}:${formatDateTime(event.date, startTime)}`);
+    lines.push(`DTEND;TZID=${tzid}:${formatDateTime(event.date, endTime)}`);
     lines.push(foldICSLine(`SUMMARY:${escapeText(event.title || 'Untitled Event')}`));
     lines.push(foldICSLine(`DESCRIPTION:${escapeText(event.description || '')}`));
     if (event.location) {
@@ -530,7 +698,7 @@ function generateICSSubscriptionContent(events: any[], project: any, contact: an
 }
 
 // Helper function to generate ICS content for personal schedule subscriptions
-function generatePersonalScheduleICSSubscriptionContent(events: any[], project: any, contact: any, version: any, hostname: string): string {
+function generatePersonalScheduleICSSubscriptionContent(events: any[], project: any, contact: any, version: any, hostname: string, timezone: string = 'America/New_York'): string {
   // Format date for ICS - returns YYYYMMDD format for all-day, YYYYMMDDTHHmmss for timed events (local time, no Z)
   const formatDateOnly = (date: string) => {
     const d = new Date(date);
@@ -574,6 +742,7 @@ function generatePersonalScheduleICSSubscriptionContent(events: any[], project: 
   const now = formatNow();
   const calendarName = escapeText(`${contact.firstName} ${contact.lastName} - ${project.name}`);
   const calendarDesc = escapeText(`Personal schedule for ${contact.firstName} ${contact.lastName} in ${project.name} (Version ${version.version})`);
+  const tzid = getTimezoneId(timezone);
   
   const lines: string[] = [
     'BEGIN:VCALENDAR',
@@ -583,31 +752,16 @@ function generatePersonalScheduleICSSubscriptionContent(events: any[], project: 
     'METHOD:PUBLISH',
     `X-WR-CALNAME:${calendarName}`,
     `X-WR-CALDESC:${calendarDesc}`,
-    'X-WR-TIMEZONE:America/New_York',
+    `X-WR-TIMEZONE:${tzid}`,
     'X-PUBLISHED-TTL:PT1H',
     'REFRESH-INTERVAL;VALUE=DURATION:PT1H',
-    'BEGIN:VTIMEZONE',
-    'TZID:America/New_York',
-    'X-LIC-LOCATION:America/New_York',
-    'BEGIN:DAYLIGHT',
-    'TZOFFSETFROM:-0500',
-    'TZOFFSETTO:-0400',
-    'TZNAME:EDT',
-    'DTSTART:19700308T020000',
-    'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU',
-    'END:DAYLIGHT',
-    'BEGIN:STANDARD',
-    'TZOFFSETFROM:-0400',
-    'TZOFFSETTO:-0500',
-    'TZNAME:EST',
-    'DTSTART:19701101T020000',
-    'RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU',
-    'END:STANDARD',
-    'END:VTIMEZONE'
+    ...generateVTimezoneBlock(timezone)
   ];
 
   events.forEach((event: any) => {
-    const uid = `personal-schedule-${event.id}-${project.id}@backstageos.com`;
+    // Include date in UID to ensure uniqueness across published versions
+    const dateStr = (event.date || '').replace(/-/g, '');
+    const uid = `personal-schedule-${event.id}-${dateStr}-${project.id}@backstageos.com`;
     
     lines.push('BEGIN:VEVENT');
     lines.push(`UID:${uid}`);
@@ -619,8 +773,8 @@ function generatePersonalScheduleICSSubscriptionContent(events: any[], project: 
     } else {
       const startTime = event.startTime || '09:00';
       const endTime = event.endTime || '17:00';
-      lines.push(`DTSTART;TZID=America/New_York:${formatDateTime(event.date, startTime)}`);
-      lines.push(`DTEND;TZID=America/New_York:${formatDateTime(event.date, endTime)}`);
+      lines.push(`DTSTART;TZID=${tzid}:${formatDateTime(event.date, startTime)}`);
+      lines.push(`DTEND;TZID=${tzid}:${formatDateTime(event.date, endTime)}`);
     }
     
     lines.push(foldICSLine(`SUMMARY:${escapeText(event.title)}`));
@@ -651,7 +805,7 @@ function generatePersonalScheduleICSSubscriptionContent(events: any[], project: 
 }
 
 // Helper function to generate ICS content for event type subscriptions
-function generateEventTypeICSSubscriptionContent(events: any[], project: any, share: any, hostname: string): string {
+function generateEventTypeICSSubscriptionContent(events: any[], project: any, share: any, hostname: string, timezone: string = 'America/New_York'): string {
   // Format date for ICS - returns YYYYMMDD format for all-day events
   const formatDateOnly = (date: string) => {
     const d = new Date(date);
@@ -662,12 +816,43 @@ function generateEventTypeICSSubscriptionContent(events: any[], project: any, sh
   };
 
   // Format date+time for ICS - returns YYYYMMDDTHHmmss (local time with timezone)
+  // Handles various time formats: "HH:MM:SS", "HH:MM", "H:MM AM/PM"
   const formatDateTime = (date: string, time: string) => {
     const d = new Date(date);
-    const [hours, minutes] = time.split(':');
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
+    
+    // Parse time - handle various formats
+    let hours = 0;
+    let minutes = 0;
+    
+    if (!time) {
+      return `${year}${month}${day}T000000`;
+    }
+    
+    // Check for AM/PM format (e.g., "9:00 AM", "12:30 PM")
+    const ampmMatch = time.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)?$/i);
+    if (ampmMatch) {
+      hours = parseInt(ampmMatch[1], 10);
+      minutes = parseInt(ampmMatch[2], 10);
+      const period = ampmMatch[3];
+      
+      if (period) {
+        // Convert 12-hour to 24-hour format
+        if (period.toUpperCase() === 'PM' && hours !== 12) {
+          hours += 12;
+        } else if (period.toUpperCase() === 'AM' && hours === 12) {
+          hours = 0;
+        }
+      }
+    } else {
+      // Fallback: try simple split for HH:MM or HH:MM:SS
+      const parts = time.split(':');
+      hours = parseInt(parts[0], 10) || 0;
+      minutes = parseInt(parts[1], 10) || 0;
+    }
+    
     const hr = String(hours).padStart(2, '0');
     const min = String(minutes).padStart(2, '0');
     return `${year}${month}${day}T${hr}${min}00`;
@@ -689,6 +874,7 @@ function generateEventTypeICSSubscriptionContent(events: any[], project: any, sh
   };
 
   const now = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  const tzid = getTimezoneId(timezone);
   
   const calendarName = escapeText(`${project.name} - ${share.eventTypeName}`);
   const calendarDesc = escapeText(`Live ${share.eventTypeName} events for ${project.name} - Updates automatically`);
@@ -702,31 +888,16 @@ function generateEventTypeICSSubscriptionContent(events: any[], project: any, sh
     `X-WR-CALNAME:${calendarName}`,
     `X-WR-CALDESC:${calendarDesc}`,
     'X-PUBLISHED-TTL:PT1H',
-    'X-WR-TIMEZONE:America/New_York',
+    `X-WR-TIMEZONE:${tzid}`,
     'REFRESH-INTERVAL;VALUE=DURATION:PT1H',
-    'BEGIN:VTIMEZONE',
-    'TZID:America/New_York',
-    'X-LIC-LOCATION:America/New_York',
-    'BEGIN:DAYLIGHT',
-    'TZOFFSETFROM:-0500',
-    'TZOFFSETTO:-0400',
-    'TZNAME:EDT',
-    'DTSTART:19700308T020000',
-    'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU',
-    'END:DAYLIGHT',
-    'BEGIN:STANDARD',
-    'TZOFFSETFROM:-0400',
-    'TZOFFSETTO:-0500',
-    'TZNAME:EST',
-    'DTSTART:19701101T020000',
-    'RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU',
-    'END:STANDARD',
-    'END:VTIMEZONE'
+    ...generateVTimezoneBlock(timezone)
   ];
 
   events.forEach(event => {
     const eventTypeSafe = share.eventTypeName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-    const uid = `eventtype-${event.id}-${eventTypeSafe}-${project.id}@backstageos.com`;
+    // Include date in UID to ensure each occurrence is unique (same event.id can appear in multiple published weeks)
+    const dateStr = (event.date || '').replace(/-/g, '');
+    const uid = `eventtype-${event.id}-${dateStr}-${eventTypeSafe}-${project.id}@backstageos.com`;
     
     lines.push('BEGIN:VEVENT');
     lines.push(`UID:${uid}`);
@@ -739,8 +910,8 @@ function generateEventTypeICSSubscriptionContent(events: any[], project: any, sh
     } else {
       const startTime = event.startTime || '09:00';
       const endTime = event.endTime || '17:00';
-      lines.push(`DTSTART;TZID=America/New_York:${formatDateTime(event.date, startTime)}`);
-      lines.push(`DTEND;TZID=America/New_York:${formatDateTime(event.date, endTime)}`);
+      lines.push(`DTSTART;TZID=${tzid}:${formatDateTime(event.date, startTime)}`);
+      lines.push(`DTEND;TZID=${tzid}:${formatDateTime(event.date, endTime)}`);
     }
 
     lines.push(foldICSLine(`SUMMARY:${escapeText(event.title)}`));
@@ -907,8 +1078,8 @@ async function requireAdmin(req: any, res: any, next: any) {
     return res.status(401).json({ message: "Authentication required" });
   }
   
-  const userId = req.user.id.toString();
-  if (!isAdmin(userId)) {
+  // Check user's isAdmin field from session
+  if (!isAdmin(req.user)) {
     return res.status(403).json({ message: "Admin access required" });
   }
   
@@ -1236,9 +1407,7 @@ Respond with valid JSON only.`;
   // Get error logs (admin only)
   app.get('/api/errors', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
-      
-      if (!isAdmin(userId)) {
+      if (!isAdmin(req.user)) {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -1252,9 +1421,7 @@ Respond with valid JSON only.`;
   // Analyze error and suggest fix (admin only)
   app.post('/api/errors/analyze', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
-      
-      if (!isAdmin(userId)) {
+      if (!isAdmin(req.user)) {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -1284,9 +1451,7 @@ Respond with valid JSON only.`;
   // Mark error as fixed after verification (admin only)
   app.post('/api/errors/mark-fixed', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
-      
-      if (!isAdmin(userId)) {
+      if (!isAdmin(req.user)) {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -1315,9 +1480,7 @@ Respond with valid JSON only.`;
   // Auto-apply AI recommended fixes (admin only)
   app.post('/api/errors/auto-apply-fix', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
-      
-      if (!isAdmin(userId)) {
+      if (!isAdmin(req.user)) {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -1577,7 +1740,7 @@ Respond with valid JSON only.`;
   const emailAttachmentUpload = multer({
     dest: uploadsDir,
     limits: {
-      fileSize: 25 * 1024 * 1024, // 25MB limit for email attachments
+      fileSize: 50 * 1024 * 1024, // 50MB limit for email attachments
       files: 10 // Max 10 files per email
     },
     fileFilter: (req, file, cb) => {
@@ -1866,9 +2029,7 @@ Respond with valid JSON only.`;
   // Get waitlist entries (admin only)
   app.get('/api/waitlist', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
-      
-      if (!isAdmin(userId)) {
+      if (!isAdmin(req.user)) {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -1882,9 +2043,7 @@ Respond with valid JSON only.`;
   // Update waitlist entry status (admin only)
   app.put('/api/waitlist/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
-      
-      if (!isAdmin(userId)) {
+      if (!isAdmin(req.user)) {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -1901,9 +2060,7 @@ Respond with valid JSON only.`;
   // Delete waitlist entry (admin only)
   app.delete('/api/waitlist/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
-      
-      if (!isAdmin(userId)) {
+      if (!isAdmin(req.user)) {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -1918,9 +2075,7 @@ Respond with valid JSON only.`;
   // Get waitlist stats (admin only)
   app.get('/api/waitlist/stats', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
-      
-      if (!isAdmin(userId)) {
+      if (!isAdmin(req.user)) {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -1950,15 +2105,36 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Set default feature preferences for new shows (replaces profile-type selection)
+  app.post('/api/auth/feature-preferences', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      const { featurePreferences } = req.body;
+      
+      if (!featurePreferences || typeof featurePreferences !== 'object') {
+        return res.status(400).json({ message: "Invalid feature preferences" });
+      }
+
+      // Update the user's default feature preferences and set a default profile type
+      const updatedUser = await storage.updateUser(userId, { 
+        defaultFeaturePreferences: featurePreferences,
+        profileType: featurePreferences.seasons ? 'fulltime' : 'freelance' // Set legacy profileType for backwards compatibility
+      });
+
+      res.json(updatedUser);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update feature preferences" });
+    }
+  });
+
   // Admin account switching endpoints
   app.post('/api/admin/switch-account', isAuthenticated, async (req: any, res) => {
     try {
-      const adminUserId = req.user.id.toString();
-      
-      if (!isAdmin(adminUserId)) {
+      if (!isAdmin(req.user)) {
         return res.status(403).json({ message: "Admin access required" });
       }
       
+      const adminUserId = req.user.id.toString();
       const { targetUserId } = req.body;
       
       if (!targetUserId) {
@@ -2002,11 +2178,74 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Admin endpoint to check billing mode
+  app.get('/api/admin/billing-mode', isAuthenticated, async (req: any, res) => {
+    try {
+      if (!isAdmin(req.user)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const billingMode = process.env.BILLING_MODE || 'beta';
+      
+      res.json({
+        mode: billingMode,
+        description: billingMode === 'beta' 
+          ? 'Beta mode - New users get free access without payment'
+          : 'Live mode - New users must pay to access features',
+        howToChange: 'Set the BILLING_MODE environment variable to "live" to start charging new users'
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: "Failed to get billing mode" });
+    }
+  });
+
+  // Admin endpoint to update billing mode and refresh all user statuses
+  app.post('/api/admin/billing-mode', isAuthenticated, async (req: any, res) => {
+    try {
+      if (!isAdmin(req.user)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const { mode, gracePeriodDays } = req.body;
+      if (!mode || !['beta', 'live'].includes(mode)) {
+        return res.status(400).json({ message: "Invalid mode. Must be 'beta' or 'live'" });
+      }
+      
+      // Update environment variable in memory (note: this persists until server restart)
+      process.env.BILLING_MODE = mode;
+      
+      let usersUpdated = 0;
+      
+      // When switching to live mode, set expiration dates for beta users
+      if (mode === 'live' && gracePeriodDays && gracePeriodDays > 0) {
+        const expirationDate = new Date();
+        expirationDate.setDate(expirationDate.getDate() + gracePeriodDays);
+        usersUpdated = await storage.setFreeAccessExpirationForBetaUsers(expirationDate);
+      }
+      
+      // Recalculate all user statuses based on new billing mode
+      await storage.updateAllUserStatuses();
+      
+      res.json({
+        mode,
+        description: mode === 'beta' 
+          ? 'Beta mode - New users get free access without payment'
+          : 'Live mode - New users must pay to access features',
+        message: mode === 'live' && usersUpdated > 0
+          ? `Live billing enabled. ${usersUpdated} beta users given ${gracePeriodDays} day grace period.`
+          : `Billing mode updated to ${mode}. All user statuses have been recalculated.`,
+        usersUpdated,
+        gracePeriodDays: mode === 'live' ? gracePeriodDays : null,
+      });
+    } catch (error: any) {
+      console.error('Error updating billing mode:', error);
+      res.status(500).json({ message: "Failed to update billing mode" });
+    }
+  });
+
   app.get('/api/admin/switch-status', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
-      
-      if (!isAdmin(userId) && !req.session.originalAdminId) {
+      if (!isAdmin(req.user) && !req.session.originalAdminId) {
         return res.status(403).json({ message: "Admin access required" });
       }
       
@@ -2035,9 +2274,7 @@ Respond with valid JSON only.`;
   // Beta access management routes (admin only)
   app.get('/api/admin/beta-users', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
-      
-      if (!isAdmin(userId)) {
+      if (!isAdmin(req.user)) {
         return res.status(403).json({ message: "Admin access required" });
       }
       
@@ -2050,9 +2287,7 @@ Respond with valid JSON only.`;
 
   app.post('/api/admin/beta-access', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
-      
-      if (!isAdmin(userId)) {
+      if (!isAdmin(req.user)) {
         return res.status(403).json({ message: "Admin access required" });
       }
       
@@ -2072,9 +2307,7 @@ Respond with valid JSON only.`;
   // Get all users for admin management
   app.get('/api/admin/users', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
-      
-      if (!isAdmin(userId)) {
+      if (!isAdmin(req.user)) {
         return res.status(403).json({ message: "Admin access required" });
       }
       
@@ -2104,8 +2337,7 @@ Respond with valid JSON only.`;
   // Get all users by role (admin, user, editor, viewer)
   app.get('/api/admin/users-by-role/:role', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
-      if (!isAdmin(userId)) {
+      if (!isAdmin(req.user)) {
         return res.status(403).json({ message: "Admin access required" });
       }
       
@@ -2137,8 +2369,7 @@ Respond with valid JSON only.`;
   // Get all editors with their project assignments
   app.get('/api/admin/editors-with-projects', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
-      if (!isAdmin(userId)) {
+      if (!isAdmin(req.user)) {
         return res.status(403).json({ message: "Admin access required" });
       }
       
@@ -2178,9 +2409,7 @@ Respond with valid JSON only.`;
   // Get all editors for admin dashboard (global editors tab)
   app.get('/api/admin/editors', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
-      
-      if (!isAdmin(userId)) {
+      if (!isAdmin(req.user)) {
         return res.status(403).json({ message: "Admin access required" });
       }
       
@@ -2194,9 +2423,7 @@ Respond with valid JSON only.`;
   // Get editor analytics for admin dashboard
   app.get('/api/admin/editor-analytics', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
-      
-      if (!isAdmin(userId)) {
+      if (!isAdmin(req.user)) {
         return res.status(403).json({ message: "Admin access required" });
       }
       
@@ -2210,9 +2437,7 @@ Respond with valid JSON only.`;
   // Get invited team members by user (for admin dashboard expansion)
   app.get('/api/admin/users/:userId/invited-editors', isAuthenticated, async (req: any, res) => {
     try {
-      const adminUserId = req.user.id.toString();
-      
-      if (!isAdmin(adminUserId)) {
+      if (!isAdmin(req.user)) {
         return res.status(403).json({ message: "Admin access required" });
       }
       
@@ -2227,9 +2452,7 @@ Respond with valid JSON only.`;
   // Check editor limits and duplicates before invitation
   app.post('/api/admin/check-editor-limits', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
-      
-      if (!isAdmin(userId)) {
+      if (!isAdmin(req.user)) {
         return res.status(403).json({ message: "Admin access required" });
       }
       
@@ -2271,9 +2494,7 @@ Respond with valid JSON only.`;
 
   app.get('/api/admin/analytics-stats', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
-      
-      if (!isAdmin(userId)) {
+      if (!isAdmin(req.user)) {
         return res.status(403).json({ message: "Admin access required" });
       }
       
@@ -2296,9 +2517,7 @@ Respond with valid JSON only.`;
   // Update all user statuses based on billing
   app.post('/api/admin/update-user-statuses', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
-      
-      if (!isAdmin(userId)) {
+      if (!isAdmin(req.user)) {
         return res.status(403).json({ message: "Admin access required" });
       }
       
@@ -2312,9 +2531,7 @@ Respond with valid JSON only.`;
   // Advanced Analytics - Engagement Scoring Routes
   app.post('/api/admin/calculate-engagement-scores', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
-      
-      if (!isAdmin(userId)) {
+      if (!isAdmin(req.user)) {
         return res.status(403).json({ message: "Admin access required" });
       }
       
@@ -2327,9 +2544,7 @@ Respond with valid JSON only.`;
 
   app.get('/api/admin/engagement-analytics', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
-      
-      if (!isAdmin(userId)) {
+      if (!isAdmin(req.user)) {
         return res.status(403).json({ message: "Admin access required" });
       }
       
@@ -2342,9 +2557,7 @@ Respond with valid JSON only.`;
 
   app.get('/api/admin/cost-optimization-recommendations', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
-      
-      if (!isAdmin(userId)) {
+      if (!isAdmin(req.user)) {
         return res.status(403).json({ message: "Admin access required" });
       }
       
@@ -2357,9 +2570,7 @@ Respond with valid JSON only.`;
 
   app.get('/api/admin/user-behavior-insights', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
-      
-      if (!isAdmin(userId)) {
+      if (!isAdmin(req.user)) {
         return res.status(403).json({ message: "Admin access required" });
       }
       
@@ -2373,9 +2584,7 @@ Respond with valid JSON only.`;
   // Billing System Routes
   app.get('/api/admin/subscription-plans', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
-      
-      if (!isAdmin(userId)) {
+      if (!isAdmin(req.user)) {
         return res.status(403).json({ message: "Admin access required" });
       }
       
@@ -2388,9 +2597,7 @@ Respond with valid JSON only.`;
 
   app.get('/api/admin/user-subscription/:userId', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
-      
-      if (!isAdmin(userId)) {
+      if (!isAdmin(req.user)) {
         return res.status(403).json({ message: "Admin access required" });
       }
       
@@ -2478,13 +2685,11 @@ Respond with valid JSON only.`;
   // Update user profile and permissions
   app.patch('/api/admin/users/:targetUserId', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
-      const { targetUserId } = req.params;
-      
-      if (!isAdmin(userId)) {
+      if (!isAdmin(req.user)) {
         return res.status(403).json({ message: "Admin access required" });
       }
       
+      const { targetUserId } = req.params;
       const { profileType, betaAccess, betaFeatures, isAdmin: userAdminStatus, subscriptionPlan, subscriptionStatus, grandfatheredFree } = req.body;
       
       // Normalize profile type to lowercase for validation
@@ -2521,21 +2726,21 @@ Respond with valid JSON only.`;
   // Delete user (admin only)
   app.delete('/api/admin/users/:targetUserId', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
-      const { targetUserId } = req.params;
-      
-      if (!isAdmin(userId)) {
+      if (!isAdmin(req.user)) {
         return res.status(403).json({ message: "Admin access required" });
       }
       
+      const { targetUserId } = req.params;
+      
       // Prevent admin from deleting themselves
-      if (targetUserId === userId) {
+      if (targetUserId === req.user.id.toString()) {
         return res.status(400).json({ message: "Cannot delete your own account" });
       }
       
       await storage.deleteUser(targetUserId);
       res.json({ message: "User deleted successfully" });
     } catch (error) {
+      console.error("Error deleting user:", error);
       res.status(500).json({ message: "Failed to delete user" });
     }
   });
@@ -2580,6 +2785,7 @@ Respond with valid JSON only.`;
       // Hash new password if provided
       if (newPassword) {
         updateData.password = await bcrypt.hash(newPassword, 10);
+        updateData.updatedAt = new Date();
       }
 
       // Update user in database
@@ -3224,6 +3430,16 @@ Respond with valid JSON only.`;
         }
       }
 
+      const billingAccess = await checkShowBillingAccess(projectId);
+      if (!billingAccess.allowed) {
+        return res.status(402).json({ 
+          message: billingAccess.message,
+          billingStatus: billingAccess.billingStatus,
+          requiresPayment: true,
+          projectId 
+        });
+      }
+
       res.json(project);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch project" });
@@ -3317,12 +3533,26 @@ Respond with valid JSON only.`;
 
   app.post('/api/projects', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
+      // Use effective user ID to respect admin "view as" feature
+      const userId = getEffectiveUserId(req);
+      
+      // Check if beta user has reached their 1 show limit
+      const user = await storage.getUser(userId);
+      if (user?.betaAccess && !user.isAdmin) {
+        const existingProjects = await storage.getProjectsByUserId(userId);
+        if (existingProjects.length >= 1) {
+          return res.status(403).json({ 
+            message: "Beta users are limited to 1 active show. Please archive your current show or upgrade to create more.",
+            betaLimitReached: true
+          });
+        }
+      }
       
       // Manual validation for project data since we updated the schema
       const projectSchema = z.object({
         name: z.string().min(1, "Project name is required"),
         description: z.string().optional().or(z.literal("")),
+        director: z.string().optional().or(z.literal("")).nullable(),
         venue: z.string().optional().or(z.literal("")),
         prepStartDate: z.union([z.string(), z.date(), z.null()]).optional().transform((val) => {
           if (!val || val === "") return null;
@@ -3498,6 +3728,22 @@ Best regards,
         project, 
         parseInt(userId)
       );
+
+      // Initialize show billing with trial period
+      try {
+        // Use earliest of first rehearsal or opening night as start date
+        const startDate = showBillingService.getProductionStartDate(project);
+        const endDate = project.closingDate || null;
+        
+        await showBillingService.initializeShowBilling(
+          project.id,
+          startDate,
+          endDate ? new Date(endDate) : null,
+          parseInt(userId)
+        );
+      } catch (billingError) {
+        console.error('Failed to initialize show billing:', billingError);
+      }
       
       res.json(project);
     } catch (error) {
@@ -3568,7 +3814,11 @@ Best regards,
         event.title.includes(dateField.label)
       );
 
-      if (newDate && newDate !== oldDate) {
+      // Normalize dates for comparison (handle Date objects and strings)
+      const normalizedOldDate = oldDate ? new Date(oldDate).toISOString().split('T')[0] : null;
+      const normalizedNewDate = newDate ? new Date(newDate).toISOString().split('T')[0] : null;
+
+      if (normalizedNewDate && normalizedNewDate !== normalizedOldDate) {
         // Create or update event
         const eventDate = new Date(newDate);
         const dateStr = eventDate.toISOString().split('T')[0];
@@ -3608,7 +3858,7 @@ Best regards,
             eventTypeId: eventTypeId
           });
         }
-      } else if (!newDate && existingEvent) {
+      } else if (!normalizedNewDate && existingEvent) {
         // Delete event if date was removed
         await storage.deleteScheduleEvent(existingEvent.id);
       }
@@ -3625,7 +3875,7 @@ Best regards,
       }
 
       // Check ownership - use loose equality to handle type conversion
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -3655,7 +3905,7 @@ Best regards,
       }
 
       // Check ownership - use loose equality to handle type conversion
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -3678,7 +3928,7 @@ Best regards,
       }
 
       // Check ownership - use loose equality to handle type conversion
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -3699,7 +3949,7 @@ Best regards,
       }
 
       // Check ownership - use loose equality to handle type conversion
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -3721,7 +3971,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -3743,7 +3993,8 @@ Best regards,
   
   app.get('/api/seasons', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
+      // Use effective user ID to respect admin "view as" feature
+      const userId = getEffectiveUserId(req);
       const seasons = await storage.getSeasonsByUserId(userId);
       res.json(seasons);
     } catch (error) {
@@ -3753,7 +4004,8 @@ Best regards,
 
   app.post('/api/seasons', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
+      // Use effective user ID to respect admin "view as" feature
+      const userId = getEffectiveUserId(req);
       const seasonData = insertSeasonSchema.parse({
         ...req.body,
         userId: parseInt(userId),
@@ -3779,7 +4031,7 @@ Best regards,
       }
 
       // Check ownership
-      if (season.userId != req.user.id.toString()) {
+      if (season.userId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -3800,7 +4052,7 @@ Best regards,
       }
 
       // Check ownership
-      if (season.userId != req.user.id.toString()) {
+      if (season.userId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -3815,7 +4067,8 @@ Best regards,
   
   app.get('/api/venues', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
+      // Use effective user ID to respect admin "view as" feature
+      const userId = getEffectiveUserId(req);
       const venues = await storage.getVenuesByUserId(userId);
       res.json(venues);
     } catch (error) {
@@ -3825,7 +4078,8 @@ Best regards,
 
   app.post('/api/venues', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
+      // Use effective user ID to respect admin "view as" feature
+      const userId = getEffectiveUserId(req);
       const venueData = insertVenueSchema.parse({
         ...req.body,
         userId: parseInt(userId),
@@ -3851,7 +4105,7 @@ Best regards,
       }
 
       // Check ownership
-      if (venue.userId != req.user.id.toString()) {
+      if (venue.userId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -3872,7 +4126,7 @@ Best regards,
       }
 
       // Check ownership
-      if (venue.userId != req.user.id.toString()) {
+      if (venue.userId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -3894,7 +4148,7 @@ Best regards,
       }
 
       // Check ownership - use loose equality to handle type conversion
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -3915,7 +4169,7 @@ Best regards,
       }
 
       // Check ownership - use loose equality to handle type conversion
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -3931,6 +4185,48 @@ Best regards,
         return res.status(400).json({ message: "Invalid team member data", errors: error.errors });
       }
       res.status(500).json({ message: "Failed to invite team member" });
+    }
+  });
+
+  app.put('/api/team-members/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const teamMemberId = parseInt(req.params.id);
+      const teamMember = await storage.getTeamMemberById(teamMemberId);
+      
+      if (!teamMember) {
+        return res.status(404).json({ message: "Team member not found" });
+      }
+
+      const project = await storage.getProjectById(teamMember.projectId);
+      if (!project || project.ownerId != getEffectiveUserId(req)) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const updatedMember = await storage.updateTeamMember(teamMemberId, req.body);
+      res.json(updatedMember);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update team member" });
+    }
+  });
+
+  app.delete('/api/team-members/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const teamMemberId = parseInt(req.params.id);
+      const teamMember = await storage.getTeamMemberById(teamMemberId);
+      
+      if (!teamMember) {
+        return res.status(404).json({ message: "Team member not found" });
+      }
+
+      const project = await storage.getProjectById(teamMember.projectId);
+      if (!project || project.ownerId != getEffectiveUserId(req)) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      await storage.deleteTeamMember(teamMemberId);
+      res.json({ message: "Team member removed successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to remove team member" });
     }
   });
 
@@ -3981,7 +4277,7 @@ Best regards,
       }
 
       // Check ownership or team membership
-      const isOwner = project.ownerId == req.user.id.toString();
+      const isOwner = project.ownerId == getEffectiveUserId(req);
       
       if (!isOwner) {
         const teamMembership = await db.select()
@@ -4005,6 +4301,118 @@ Best regards,
     }
   });
 
+  // Get the most recent report by type with its notes (for importing previous notes)
+  app.get('/api/projects/:id/reports/latest/:type', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const reportType = req.params.type;
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership or team membership
+      const isOwner = project.ownerId == getEffectiveUserId(req);
+      
+      if (!isOwner) {
+        const teamMembership = await db.select()
+          .from(teamMembers)
+          .where(and(
+            eq(teamMembers.projectId, projectId),
+            eq(teamMembers.userId, req.user.id),
+            eq(teamMembers.isArchived, false)
+          ))
+          .limit(1);
+        
+        if (teamMembership.length === 0) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      // Get the most recent report of this type
+      const projectReports = await db.select()
+        .from(reports)
+        .where(and(
+          eq(reports.projectId, projectId),
+          eq(reports.type, reportType)
+        ))
+        .orderBy(desc(reports.date));
+      
+      if (projectReports.length === 0) {
+        return res.json({ report: null, notes: [] });
+      }
+
+      const latestReport = projectReports[0];
+      const notes = await storage.getReportNotesByReportId(latestReport.id);
+      
+      res.json({ report: latestReport, notes });
+    } catch (error) {
+      console.error("Failed to fetch latest report:", error);
+      res.status(500).json({ message: "Failed to fetch latest report" });
+    }
+  });
+
+  // Get available performances for linking to performance reports
+  // Returns performance events that don't already have a report linked
+  app.get('/api/projects/:id/available-performances', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership or team membership
+      const isOwner = project.ownerId == getEffectiveUserId(req);
+      if (!isOwner) {
+        const teamMembership = await db.select()
+          .from(teamMembers)
+          .where(and(
+            eq(teamMembers.projectId, projectId),
+            eq(teamMembers.userId, req.user.id),
+            eq(teamMembers.isArchived, false)
+          ))
+          .limit(1);
+        
+        if (teamMembership.length === 0) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      // Get all schedule events for this project that are performance types
+      const allEvents = await db.select()
+        .from(scheduleEvents)
+        .where(eq(scheduleEvents.projectId, projectId));
+      
+      // Filter to only performance/preview type events that aren't cancelled
+      const performanceEvents = allEvents.filter((event: any) => {
+        const isPerformance = event.type === 'performance' || event.type === 'preview' ||
+                             event.type?.toLowerCase().includes('performance') ||
+                             event.type?.toLowerCase().includes('show');
+        const isCancelled = event.status === 'cancelled';
+        return isPerformance && !isCancelled;
+      });
+
+      // All performances are available since multi-performance linking is supported
+      const availablePerformances = performanceEvents;
+
+      // Sort by date and time (most recent first)
+      availablePerformances.sort((a: any, b: any) => {
+        if (a.date !== b.date) {
+          return b.date.localeCompare(a.date);
+        }
+        return b.startTime.localeCompare(a.startTime);
+      });
+
+      res.json(availablePerformances);
+    } catch (error) {
+      console.error("Failed to fetch available performances:", error);
+      res.status(500).json({ message: "Failed to fetch available performances" });
+    }
+  });
+
   app.get('/api/projects/:projectId/reports/:reportId', isAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.projectId);
@@ -4016,7 +4424,7 @@ Best regards,
       }
 
       // Check ownership or team membership
-      const isOwner = project.ownerId == req.user.id.toString();
+      const isOwner = project.ownerId == getEffectiveUserId(req);
       
       if (!isOwner) {
         const teamMembership = await db.select()
@@ -4070,7 +4478,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -4081,6 +4489,8 @@ Best regards,
         createdBy: parseInt(req.user.id),
         date: req.body.date ? new Date(req.body.date) : new Date(),
         templateId: req.body.templateId ? parseInt(req.body.templateId) : undefined,
+        scheduleEventId: req.body.scheduleEventId ? parseInt(req.body.scheduleEventId) : undefined,
+        linkedEventIds: Array.isArray(req.body.linkedEventIds) ? req.body.linkedEventIds.map(Number) : undefined,
       });
       
 
@@ -4211,7 +4621,7 @@ Best regards,
       }
 
       // Check access (owner or team member)
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -4220,12 +4630,16 @@ Best regards,
         return res.status(404).json({ message: "Report not found" });
       }
 
-      const updateData = {
+      const updateData: any = {
         title: req.body.title,
         type: req.body.type,
         content: req.body.content,
         date: req.body.date ? new Date(req.body.date) : undefined,
+        scheduleEventId: req.body.scheduleEventId !== undefined ? (req.body.scheduleEventId ? parseInt(req.body.scheduleEventId) : null) : undefined,
       };
+      if (req.body.linkedEventIds !== undefined) {
+        updateData.linkedEventIds = Array.isArray(req.body.linkedEventIds) ? req.body.linkedEventIds.map(Number) : null;
+      }
 
       const updatedReport = await storage.updateReport(reportId, updateData);
       
@@ -4326,7 +4740,7 @@ Best regards,
       }
 
       // Check access (owner or team member)
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -4374,7 +4788,7 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
 
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -4461,7 +4875,7 @@ Best regards,
       }
 
       // Check ownership or team membership
-      const isOwner = project.ownerId == req.user.id.toString();
+      const isOwner = project.ownerId == getEffectiveUserId(req);
       
       if (!isOwner) {
         const teamMembership = await db.select()
@@ -4501,7 +4915,7 @@ Best regards,
       }
 
       // Check ownership or team membership
-      const isOwner = project.ownerId == req.user.id.toString();
+      const isOwner = project.ownerId == getEffectiveUserId(req);
       
       if (!isOwner) {
         const teamMembership = await db.select()
@@ -4554,7 +4968,7 @@ Best regards,
       }
 
       // Check ownership or team membership
-      const isOwner = project.ownerId == req.user.id.toString();
+      const isOwner = project.ownerId == getEffectiveUserId(req);
       
       if (!isOwner) {
         const teamMembership = await db.select()
@@ -4595,7 +5009,7 @@ Best regards,
       }
 
       // Check ownership or team membership
-      const isOwner = project.ownerId == req.user.id.toString();
+      const isOwner = project.ownerId == getEffectiveUserId(req);
       
       if (!isOwner) {
         const teamMembership = await db.select()
@@ -4635,7 +5049,7 @@ Best regards,
       }
 
       // Check ownership or team membership
-      const isOwner = project.ownerId == req.user.id.toString();
+      const isOwner = project.ownerId == getEffectiveUserId(req);
       
       if (!isOwner) {
         const teamMembership = await db.select()
@@ -4677,7 +5091,7 @@ Best regards,
       }
 
       // Check ownership or team membership
-      const isOwner = project.ownerId == req.user.id.toString();
+      const isOwner = project.ownerId == getEffectiveUserId(req);
       
       if (!isOwner) {
         const teamMembership = await db.select()
@@ -4717,7 +5131,7 @@ Best regards,
       }
 
       // Check ownership or team membership
-      const isOwner = project.ownerId == req.user.id.toString();
+      const isOwner = project.ownerId == getEffectiveUserId(req);
       
       if (!isOwner) {
         const teamMembership = await db.select()
@@ -4753,7 +5167,7 @@ Best regards,
       }
 
       // Check ownership or team membership
-      const isOwner = project.ownerId == req.user.id.toString();
+      const isOwner = project.ownerId == getEffectiveUserId(req);
       
       if (!isOwner) {
         const teamMembership = await db.select()
@@ -4787,7 +5201,7 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
 
-      const isOwner = project.ownerId == req.user.id.toString();
+      const isOwner = project.ownerId == getEffectiveUserId(req);
       
       if (!isOwner) {
         const teamMembership = await db.select()
@@ -4825,7 +5239,7 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
 
-      const isOwner = project.ownerId == req.user.id.toString();
+      const isOwner = project.ownerId == getEffectiveUserId(req);
       
       if (!isOwner) {
         const teamMembership = await db.select()
@@ -4877,7 +5291,7 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
 
-      const isOwner = project.ownerId == req.user.id.toString();
+      const isOwner = project.ownerId == getEffectiveUserId(req);
       
       if (!isOwner) {
         const teamMembership = await db.select()
@@ -4926,7 +5340,7 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
 
-      const isOwner = project.ownerId == req.user.id.toString();
+      const isOwner = project.ownerId == getEffectiveUserId(req);
       
       if (!isOwner) {
         const teamMembership = await db.select()
@@ -4975,7 +5389,7 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
 
-      const isOwner = project.ownerId == req.user.id.toString();
+      const isOwner = project.ownerId == getEffectiveUserId(req);
       
       if (!isOwner) {
         const teamMembership = await db.select()
@@ -5157,7 +5571,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
       
@@ -5179,7 +5593,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
       
@@ -5203,7 +5617,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -5243,7 +5657,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -5296,7 +5710,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -5336,7 +5750,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -5376,7 +5790,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -5416,7 +5830,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -5446,7 +5860,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -5476,7 +5890,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -5504,7 +5918,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -5531,7 +5945,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
       
@@ -5553,9 +5967,9 @@ Best regards,
       }
 
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -5578,7 +5992,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
       
@@ -5602,7 +6016,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -5629,9 +6043,9 @@ Best regards,
       }
 
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -5654,9 +6068,9 @@ Best regards,
       }
 
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -5680,9 +6094,9 @@ Best regards,
       }
 
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -5705,7 +6119,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
       
@@ -5729,9 +6143,9 @@ Best regards,
       }
 
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -5755,7 +6169,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -5784,7 +6198,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -5807,7 +6221,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -5829,9 +6243,9 @@ Best regards,
       }
 
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -5855,9 +6269,9 @@ Best regards,
       }
 
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -5885,9 +6299,9 @@ Best regards,
       }
 
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -5916,9 +6330,9 @@ Best regards,
       }
 
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -5943,9 +6357,9 @@ Best regards,
       }
 
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -5969,9 +6383,9 @@ Best regards,
       }
 
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -5996,9 +6410,9 @@ Best regards,
       }
 
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -6037,9 +6451,9 @@ Best regards,
       }
 
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -6074,9 +6488,9 @@ Best regards,
       }
 
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -6099,9 +6513,9 @@ Best regards,
       }
 
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -6131,9 +6545,9 @@ Best regards,
       }
 
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -6158,9 +6572,9 @@ Best regards,
       }
 
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -6184,9 +6598,9 @@ Best regards,
       }
 
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -6209,9 +6623,9 @@ Best regards,
       }
 
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -6241,9 +6655,9 @@ Best regards,
       }
 
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -6268,9 +6682,9 @@ Best regards,
       }
 
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -6295,7 +6709,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -6322,9 +6736,9 @@ Best regards,
       }
 
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -6347,9 +6761,9 @@ Best regards,
       }
 
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -6373,9 +6787,9 @@ Best regards,
       }
 
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -6400,9 +6814,9 @@ Best regards,
       }
 
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -6431,9 +6845,9 @@ Best regards,
       }
 
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -6473,7 +6887,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -6511,7 +6925,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -6539,7 +6953,7 @@ Best regards,
       }
 
       // Check access (owner or team member)
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -6561,7 +6975,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -6589,7 +7003,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -6902,6 +7316,48 @@ Best regards,
     }
   });
 
+  // PATCH endpoint for reordering sections by ID array
+  app.patch("/api/templates-v2/:templateId/sections/reorder", isAuthenticated, async (req: any, res) => {
+    try {
+      const { sectionIds } = req.body;
+      
+      if (!Array.isArray(sectionIds)) {
+        return res.status(400).json({ message: "sectionIds must be an array" });
+      }
+
+      const sections = sectionIds.map((id: number, index: number) => ({
+        id,
+        displayOrder: index,
+      }));
+
+      await storage.reorderTemplateSections(sections);
+      res.json({ message: "Sections reordered successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to reorder sections" });
+    }
+  });
+
+  // PATCH endpoint for reordering fields by ID array within a section
+  app.patch("/api/templates-v2/sections/:sectionId/fields/reorder", isAuthenticated, async (req: any, res) => {
+    try {
+      const { fieldIds } = req.body;
+      
+      if (!Array.isArray(fieldIds)) {
+        return res.status(400).json({ message: "fieldIds must be an array" });
+      }
+
+      const fields = fieldIds.map((id: number, index: number) => ({
+        id,
+        displayOrder: index,
+      }));
+
+      await storage.reorderTemplateFields(fields);
+      res.json({ message: "Fields reordered successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to reorder fields" });
+    }
+  });
+
   // Report types routes
   app.get("/api/projects/:id/report-types", isAuthenticated, async (req: any, res) => {
     try {
@@ -7113,13 +7569,13 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
       const settings = await storage.getGlobalTemplateSettingsByProjectId(projectId);
       
-      // Default PDF export settings
+      // Default PDF export settings (margins match Daily Call: 0.5" all sides)
       const defaultPdfExport = {
         fontFamily: "helvetica",
         titleSize: 18,
@@ -7130,8 +7586,8 @@ Best regards,
         lineHeight: 1.4,
         marginTop: 0.5,
         marginBottom: 0.5,
-        marginLeft: 1,
-        marginRight: 1
+        marginLeft: 0.5,
+        marginRight: 0.5
       };
       
       // Handle null/undefined settings safely - return defaults merged with any saved settings
@@ -7159,7 +7615,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -7194,7 +7650,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -7226,7 +7682,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -7313,10 +7769,11 @@ Best regards,
 
   app.put('/api/admin/beta-settings', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
-      if (!isAdmin(userId)) {
+      if (!isAdmin(req.user)) {
         return res.status(403).json({ message: "Admin access required" });
       }
+      
+      const userId = req.user.id.toString();
 
       // Determine environment from NODE_ENV - CRITICAL for data isolation
       const environment = process.env.NODE_ENV === 'production' ? 'production' : 'development';
@@ -7407,13 +7864,27 @@ Best regards,
   // Feedback API routes
   app.get('/api/feedback', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
-      
       // Admins can see all feedback, users see only their own
-      if (isAdmin(userId)) {
+      if (isAdmin(req.user)) {
         const allFeedback = await storage.getAllFeedback();
-        res.json(allFeedback);
+        // Include submitter info for each feedback item
+        const feedbackWithSubmitters = await Promise.all(
+          allFeedback.map(async (item) => {
+            const submitter = await storage.getUser(item.submittedBy.toString());
+            return {
+              ...item,
+              submitter: submitter ? {
+                id: submitter.id,
+                email: submitter.email,
+                firstName: submitter.firstName,
+                lastName: submitter.lastName,
+              } : null,
+            };
+          })
+        );
+        res.json(feedbackWithSubmitters);
       } else {
+        const userId = req.user.id.toString();
         const userFeedback = await storage.getFeedbackByUserId(userId);
         res.json(userFeedback);
       }
@@ -7443,7 +7914,6 @@ Best regards,
   app.get('/api/feedback/:id', isAuthenticated, async (req: any, res) => {
     try {
       const feedbackId = parseInt(req.params.id);
-      const userId = req.user.id.toString();
       const feedback = await storage.getFeedbackById(feedbackId);
       
       if (!feedback) {
@@ -7451,7 +7921,7 @@ Best regards,
       }
 
       // Users can only view their own feedback, admins can view all
-      if (!isAdmin(userId) && feedback.submittedBy !== parseInt(userId)) {
+      if (!isAdmin(req.user) && feedback.submittedBy !== req.user.id) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -7464,7 +7934,6 @@ Best regards,
   app.patch('/api/feedback/:id', isAuthenticated, async (req: any, res) => {
     try {
       const feedbackId = parseInt(req.params.id);
-      const userId = req.user.id.toString();
       const feedback = await storage.getFeedbackById(feedbackId);
       
       if (!feedback) {
@@ -7472,7 +7941,7 @@ Best regards,
       }
 
       // Only admins can update feedback (for status changes, admin notes, etc.)
-      if (!isAdmin(userId)) {
+      if (!isAdmin(req.user)) {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -7494,7 +7963,6 @@ Best regards,
   app.delete('/api/feedback/:id', isAuthenticated, async (req: any, res) => {
     try {
       const feedbackId = parseInt(req.params.id);
-      const userId = req.user.id.toString();
       const feedback = await storage.getFeedbackById(feedbackId);
       
       if (!feedback) {
@@ -7502,7 +7970,7 @@ Best regards,
       }
 
       // Users can delete their own feedback, admins can delete any
-      if (!isAdmin(userId) && feedback.submittedBy !== parseInt(userId)) {
+      if (!isAdmin(req.user) && feedback.submittedBy !== req.user.id) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -7524,7 +7992,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -7589,7 +8057,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -7633,7 +8101,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -7850,11 +8318,8 @@ Best regards,
   // Global contacts route for email system (returns all user's contacts across projects)
   app.get('/api/contacts', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user?.id?.toString();
-      
-      if (!userId) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
+      // Use effective user ID to respect admin "view as" feature
+      const userId = getEffectiveUserId(req);
       
       // Direct database query for better performance instead of multiple calls
       const allContacts = await storage.getAllContactsByUserId(userId);
@@ -7875,15 +8340,18 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
 
+      // Use effective user ID to respect admin "view as" feature
+      const effectiveUserId = getEffectiveUserId(req);
+
       // Check ownership or team membership
-      const isOwner = project.ownerId == req.user.id.toString();
+      const isOwner = project.ownerId == effectiveUserId;
       
       if (!isOwner) {
         const teamMembership = await db.select()
           .from(teamMembers)
           .where(and(
             eq(teamMembers.projectId, projectId),
-            eq(teamMembers.userId, req.user.id),
+            eq(teamMembers.userId, parseInt(effectiveUserId)),
             eq(teamMembers.isArchived, false)
           ))
           .limit(1);
@@ -7909,32 +8377,24 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
 
+      // Use effective user ID to respect admin "view as" feature
+      const effectiveUserId = getEffectiveUserId(req);
+
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != effectiveUserId) {
         return res.status(403).json({ message: "Access denied" });
       }
 
-      const userId = req.user.id.toString();
+      const userId = effectiveUserId;
       
       // Custom validation: only require equity status for cast members
       const rawData = {
         ...req.body,
+        category: req.body.category || 'general',
         projectId,
         createdBy: parseInt(userId),
+        equityStatus: req.body.equityStatus || null,
       };
-
-      // Debug logging to help identify validation issues
-
-      // Handle equity status validation properly
-      if (rawData.category !== 'cast') {
-        // For non-cast contacts, set equity status to null
-        rawData.equityStatus = null;
-      } else {
-        // For cast contacts, convert empty string to null (let validation handle required case)
-        if (rawData.equityStatus === "" || rawData.equityStatus === undefined) {
-          rawData.equityStatus = null;
-        }
-      }
 
 
       const contactData = insertContactSchema.parse(rawData);
@@ -7961,7 +8421,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -8042,9 +8502,9 @@ Best regards,
           }
 
           const rawData = {
-            firstName: contactData.firstName || "Unknown",
-            lastName: contactData.lastName || "",
-            preferredName: contactData.preferredName || null,
+            firstName: (contactData.firstName || "Unknown").trim(),
+            lastName: (contactData.lastName || "").trim(),
+            preferredName: contactData.preferredName ? contactData.preferredName.trim() : null,
             projectId,
             groupId: finalGroupId,
             createdBy: parseInt(userIdString),
@@ -8081,7 +8541,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -8144,7 +8604,7 @@ Best regards,
 
       // Verify project ownership
       const project = await storage.getProjectById(contact.projectId);
-      if (!project || project.ownerId != req.user.id.toString()) {
+      if (!project || project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -8165,7 +8625,7 @@ Best regards,
 
       // Verify project ownership
       const project = await storage.getProjectById(contact.projectId);
-      if (!project || project.ownerId != req.user.id.toString()) {
+      if (!project || project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -8197,7 +8657,7 @@ Best regards,
 
       // Verify project ownership
       const project = await storage.getProjectById(contact.projectId);
-      if (!project || project.ownerId != req.user.id.toString()) {
+      if (!project || project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -8297,7 +8757,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -8458,7 +8918,7 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
       
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
         const teamMember = teamMembers.find(tm => tm.userId === userId);
         if (!teamMember) {
@@ -8484,7 +8944,7 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
       
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
         const teamMember = teamMembers.find(tm => tm.userId === userId);
         if (!teamMember) {
@@ -8518,7 +8978,7 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
       
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
         const teamMember = teamMembers.find(tm => tm.userId === userId);
         if (!teamMember) {
@@ -8549,7 +9009,7 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
       
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
         const teamMember = teamMembers.find(tm => tm.userId === userId);
         if (!teamMember) {
@@ -8582,7 +9042,7 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
       
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
         const teamMember = teamMembers.find(tm => tm.userId === userId);
         if (!teamMember) {
@@ -8615,7 +9075,7 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
       
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
         const teamMember = teamMembers.find(tm => tm.userId === userId);
         if (!teamMember) {
@@ -8644,7 +9104,7 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
       
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
         const teamMember = teamMembers.find(tm => tm.userId === userId);
         if (!teamMember) {
@@ -8671,7 +9131,7 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
       
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
         const teamMember = teamMembers.find(tm => tm.userId === userId);
         if (!teamMember) {
@@ -8687,6 +9147,34 @@ Best regards,
     }
   });
 
+  // Get the daily call distribution list for a project
+  app.get('/api/projects/:projectId/daily-call-distro', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const userId = parseInt(req.user.id.toString());
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      if (project.ownerId != getEffectiveUserId(req)) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === userId);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+      
+      const distros = await storage.getDistributionListsByProjectId(projectId);
+      const dailyCallDistro = distros.find(d => d.isDailyCallDistro === true);
+      res.json(dailyCallDistro || null);
+    } catch (error) {
+      console.error("Error fetching daily call distro:", error);
+      res.status(500).json({ message: "Failed to fetch daily call distribution list" });
+    }
+  });
+
   // Report Type Distribution List Assignment Routes
   app.get('/api/projects/:projectId/report-types/:reportTypeId/distro', isAuthenticated, async (req: any, res) => {
     try {
@@ -8699,7 +9187,7 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
       
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
         const teamMember = teamMembers.find(tm => tm.userId === userId);
         if (!teamMember) {
@@ -8732,7 +9220,7 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
       
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
         const teamMember = teamMembers.find(tm => tm.userId === userId);
         if (!teamMember) {
@@ -8763,7 +9251,7 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
       
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
         const teamMember = teamMembers.find(tm => tm.userId === userId);
         if (!teamMember) {
@@ -8789,10 +9277,13 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
 
+      // Use effective user ID to respect admin "view as" feature
+      const effectiveUserId = getEffectiveUserId(req);
+
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != effectiveUserId) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(effectiveUserId));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -8831,10 +9322,13 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
 
+      // Use effective user ID to respect admin "view as" feature
+      const effectiveUserId = getEffectiveUserId(req);
+
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != effectiveUserId) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(effectiveUserId));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -8865,9 +9359,12 @@ Best regards,
         return res.status(400).json({ message: "Event does not belong to this project" });
       }
 
+      // Use effective user ID to respect admin "view as" feature
+      const effectiveUserId = getEffectiveUserId(req);
+
       // Check project ownership
       const project = await storage.getProjectById(projectId);
-      if (!project || project.ownerId != req.user.id.toString()) {
+      if (!project || project.ownerId != effectiveUserId) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -8924,6 +9421,27 @@ Best regards,
         }
       }
 
+      // Auto-detect show date extensions: if updated event date exceeds current show end date
+      try {
+        const billing = await storage.getShowBillingByProjectId(projectId);
+        const eventDateField = validatedData.endDate || validatedData.date || event.endDate || event.date;
+        if (billing && billing.showEndDate && eventDateField) {
+          const eventDate = new Date(eventDateField);
+          const currentEndDate = new Date(billing.showEndDate);
+          
+          if (eventDate > currentEndDate) {
+            await showBillingService.updateShowDates(
+              projectId,
+              new Date(billing.showStartDate),
+              eventDate
+            );
+            console.log(`📅 Auto-extended show ${projectId} end date to ${eventDate.toISOString().split('T')[0]} due to schedule event update`);
+          }
+        }
+      } catch (billingError) {
+        console.log(`Could not auto-extend show dates: ${billingError}`);
+      }
+
       const eventWithParticipants = await storage.getScheduleEventById(eventId);
       res.json(eventWithParticipants);
     } catch (error) {
@@ -8944,7 +9462,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -8987,6 +9505,28 @@ Best regards,
         }
       }
 
+      // Auto-detect show date extensions: if event date exceeds current show end date
+      try {
+        const billing = await storage.getShowBillingByProjectId(projectId);
+        if (billing && billing.showEndDate) {
+          const eventDate = new Date(eventData.endDate || eventData.date);
+          const currentEndDate = new Date(billing.showEndDate);
+          
+          if (eventDate > currentEndDate) {
+            // Event is past the show end date - automatically extend
+            await showBillingService.updateShowDates(
+              projectId,
+              new Date(billing.showStartDate),
+              eventDate
+            );
+            console.log(`📅 Auto-extended show ${projectId} end date to ${eventDate.toISOString().split('T')[0]} due to schedule event`);
+          }
+        }
+      } catch (billingError) {
+        // Log but don't fail the event creation
+        console.log(`Could not auto-extend show dates: ${billingError}`);
+      }
+
       // Return event with participants
       const eventWithParticipants = await storage.getScheduleEventById(event.id);
       res.status(201).json(eventWithParticipants);
@@ -9009,9 +9549,9 @@ Best regards,
 
       // Check project access
       const project = await storage.getProjectById(event.projectId);
-      if (!project || project.ownerId != req.user.id.toString()) {
+      if (!project || project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(event.projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -9072,7 +9612,7 @@ Best regards,
 
       // Check project ownership
       const project = await storage.getProjectById(event.projectId);
-      if (!project || project.ownerId != req.user.id.toString()) {
+      if (!project || project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -9153,7 +9693,7 @@ Best regards,
 
       // Check project ownership
       const project = await storage.getProjectById(event.projectId);
-      if (!project || project.ownerId != req.user.id.toString()) {
+      if (!project || project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -9233,7 +9773,7 @@ Best regards,
 
       // Check project ownership
       const project = await storage.getProjectById(event.projectId);
-      if (!project || project.ownerId != req.user.id.toString()) {
+      if (!project || project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -9277,9 +9817,9 @@ Best regards,
 
       // Check project access
       const project = await storage.getProjectById(event.projectId);
-      if (!project || project.ownerId != req.user.id.toString()) {
+      if (!project || project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(event.projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -9312,7 +9852,7 @@ Best regards,
       }
 
       // Check ownership or team membership
-      const isOwner = project.ownerId == req.user.id.toString();
+      const isOwner = project.ownerId == getEffectiveUserId(req);
       
       if (!isOwner) {
         const teamMembership = await db.select()
@@ -9347,7 +9887,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -9371,9 +9911,9 @@ Best regards,
       }
 
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -9403,9 +9943,9 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
 
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(template.projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -9438,7 +9978,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -9471,7 +10011,7 @@ Best regards,
 
       // Check project ownership
       const project = await storage.getProjectById(template.projectId);
-      if (!project || project.ownerId != req.user.id.toString()) {
+      if (!project || project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -9504,7 +10044,7 @@ Best regards,
 
       // Check project ownership
       const project = await storage.getProjectById(template.projectId);
-      if (!project || project.ownerId != req.user.id.toString()) {
+      if (!project || project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -9532,9 +10072,9 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
 
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(template.projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -9568,7 +10108,7 @@ Best regards,
 
       // Check project ownership
       const project = await storage.getProjectById(template.projectId);
-      if (!project || project.ownerId != req.user.id.toString()) {
+      if (!project || project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -9626,7 +10166,7 @@ Best regards,
 
       // Check project ownership
       const project = await storage.getProjectById(template.projectId);
-      if (!project || project.ownerId != req.user.id.toString()) {
+      if (!project || project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -9681,7 +10221,7 @@ Best regards,
 
       // Check project ownership
       const project = await storage.getProjectById(template.projectId);
-      if (!project || project.ownerId != req.user.id.toString()) {
+      if (!project || project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -9704,7 +10244,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -9795,7 +10335,7 @@ Best regards,
 
       // Check project ownership
       const project = await storage.getProjectById(template.projectId);
-      if (!project || project.ownerId != req.user.id.toString()) {
+      if (!project || project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -9940,9 +10480,9 @@ Best regards,
       }
 
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -10031,9 +10571,9 @@ Best regards,
       }
 
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -10058,9 +10598,9 @@ Best regards,
       }
 
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -10088,7 +10628,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -10171,7 +10711,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -10256,7 +10796,7 @@ Best regards,
       }
 
       // Check ownership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -10286,9 +10826,9 @@ Best regards,
       }
 
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -10335,9 +10875,9 @@ Best regards,
       
       // Check project access
       const project = await storage.getProjectById(projectId);
-      if (!project || project.ownerId != req.user.id.toString()) {
+      if (!project || project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -10356,9 +10896,9 @@ Best regards,
       
       // Check project access
       const project = await storage.getProjectById(projectId);
-      if (!project || project.ownerId != req.user.id.toString()) {
+      if (!project || project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -10417,9 +10957,9 @@ Best regards,
       
       // Check project access
       const project = await storage.getProjectById(projectId);
-      if (!project || project.ownerId != req.user.id.toString()) {
+      if (!project || project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -10443,9 +10983,9 @@ Best regards,
       
       // Check project access
       const project = await storage.getProjectById(projectId);
-      if (!project || project.ownerId != req.user.id.toString()) {
+      if (!project || project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -10469,9 +11009,9 @@ Best regards,
       
       // Check project access
       const project = await storage.getProjectById(projectId);
-      if (!project || project.ownerId != req.user.id.toString()) {
+      if (!project || project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -10490,9 +11030,9 @@ Best regards,
       
       // Check project access
       const project = await storage.getProjectById(projectId);
-      if (!project || project.ownerId != req.user.id.toString()) {
+      if (!project || project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -10543,9 +11083,9 @@ Best regards,
       
       // Check project access
       const project = await storage.getProjectById(projectId);
-      if (!project || project.ownerId != req.user.id.toString()) {
+      if (!project || project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -10569,9 +11109,9 @@ Best regards,
       
       // Check project access
       const project = await storage.getProjectById(projectId);
-      if (!project || project.ownerId != req.user.id.toString()) {
+      if (!project || project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -10590,9 +11130,9 @@ Best regards,
       
       // Check project access
       const project = await storage.getProjectById(projectId);
-      if (!project || project.ownerId != req.user.id.toString()) {
+      if (!project || project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -10988,6 +11528,79 @@ Best regards,
   });
 
   // SEO Settings Routes
+  
+  // Helper function to sync SEO settings to index.html
+  const syncSeoToIndexHtml = async (settings: any) => {
+    try {
+      if (!settings || settings.domain !== 'backstageos.com') {
+        return;
+      }
+      
+      const indexPath = path.join(__dirname, '..', 'client', 'index.html');
+      let indexHtml = fs.readFileSync(indexPath, 'utf8');
+      
+      const escapeHtml = (str: string) => str?.replace(/"/g, '&quot;') || '';
+      
+      indexHtml = indexHtml.replace(
+        /<title>.*?<\/title>/,
+        `<title>${escapeHtml(settings.siteTitle)}</title>`
+      );
+      
+      indexHtml = indexHtml.replace(
+        /<meta name="description" content="[^"]*" \/>/,
+        `<meta name="description" content="${escapeHtml(settings.siteDescription)}" />`
+      );
+      
+      if (settings.keywords) {
+        indexHtml = indexHtml.replace(
+          /<meta name="keywords" content="[^"]*" \/>/,
+          `<meta name="keywords" content="${escapeHtml(settings.keywords)}" />`
+        );
+      }
+      
+      indexHtml = indexHtml.replace(
+        /<meta property="og:title" content="[^"]*" \/>/,
+        `<meta property="og:title" content="${escapeHtml(settings.siteTitle)}" />`
+      );
+      
+      indexHtml = indexHtml.replace(
+        /<meta property="og:description" content="[^"]*" \/>/,
+        `<meta property="og:description" content="${escapeHtml(settings.siteDescription)}" />`
+      );
+      
+      indexHtml = indexHtml.replace(
+        /<meta name="twitter:title" content="[^"]*" \/>/,
+        `<meta name="twitter:title" content="${escapeHtml(settings.siteTitle)}" />`
+      );
+      
+      indexHtml = indexHtml.replace(
+        /<meta name="twitter:description" content="[^"]*" \/>/,
+        `<meta name="twitter:description" content="${escapeHtml(settings.siteDescription)}" />`
+      );
+      
+      if (settings.shareImageUrl) {
+        const imageUrl = settings.shareImageUrl.startsWith('http') 
+          ? settings.shareImageUrl 
+          : `https://backstageos.com${settings.shareImageUrl}`;
+        
+        indexHtml = indexHtml.replace(
+          /<meta property="og:image" content="[^"]*" \/>/,
+          `<meta property="og:image" content="${escapeHtml(imageUrl)}" />`
+        );
+        
+        indexHtml = indexHtml.replace(
+          /<meta name="twitter:image" content="[^"]*" \/>/,
+          `<meta name="twitter:image" content="${escapeHtml(imageUrl)}" />`
+        );
+      }
+      
+      fs.writeFileSync(indexPath, indexHtml, 'utf8');
+      console.log('SEO settings synced to index.html');
+    } catch (error) {
+      console.error('Failed to sync SEO to index.html:', error);
+    }
+  };
+
   app.get('/api/seo-settings', requireAdmin, async (req: any, res) => {
     try {
       const settings = await storage.getAllSeoSettings();
@@ -11020,6 +11633,9 @@ Best regards,
       });
       
       const settings = await storage.createSeoSettings(settingsData);
+      
+      await syncSeoToIndexHtml(settings);
+      
       res.json(settings);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -11038,6 +11654,8 @@ Best regards,
       if (!settings) {
         return res.status(404).json({ message: "SEO settings not found" });
       }
+      
+      await syncSeoToIndexHtml(settings);
       
       res.json(settings);
     } catch (error) {
@@ -11756,9 +12374,9 @@ Best regards,
       }
 
       // Check ownership or team membership
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -11783,9 +12401,9 @@ Best regards,
 
       // Check project access
       const project = await storage.getProjectById(parentEvent.projectId);
-      if (!project || project.ownerId != req.user.id.toString()) {
+      if (!project || project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(parentEvent.projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -11810,7 +12428,7 @@ Best regards,
 
       // Check project access
       const project = await storage.getProjectById(parentEvent.projectId);
-      if (!project || project.ownerId != req.user.id.toString()) {
+      if (!project || project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -11861,7 +12479,7 @@ Best regards,
 
       // Check access to both events
       const project = await storage.getProjectById(dailyEvent.projectId);
-      if (!project || project.ownerId != req.user.id.toString()) {
+      if (!project || project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -11897,7 +12515,7 @@ Best regards,
 
       // Check project access
       const project = await storage.getProjectById(dailyEvent.projectId);
-      if (!project || project.ownerId != req.user.id.toString()) {
+      if (!project || project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -11923,9 +12541,9 @@ Best regards,
 
       // Check project access
       const project = await storage.getProjectById(eventWithChildren.projectId);
-      if (!project || project.ownerId != req.user.id.toString()) {
+      if (!project || project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(eventWithChildren.projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -12210,9 +12828,9 @@ Best regards,
       
       // Check project access
       const project = await storage.getProjectById(projectId);
-      if (!project || project.ownerId != req.user.id.toString()) {
+      if (!project || project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -12957,6 +13575,119 @@ Best regards,
         }
       }
 
+      // Fallback for daily-call and report emails when no email provider is connected
+      // Uses SendGrid with schedules@backstageos.com as the sender
+      const emailType = req.body.emailType;
+      const projectId = req.body.projectId ? parseInt(req.body.projectId) : null;
+      
+      if ((emailType === 'daily-call' || emailType === 'report') && !user.connectedEmailProvider) {
+        const {
+          toAddresses,
+          subject,
+          content,
+          htmlContent,
+          ccAddresses,
+          bccAddresses,
+        } = req.body;
+
+        if (!toAddresses || !subject) {
+          return res.status(400).json({ success: false, error: "To address and subject are required" });
+        }
+
+        const parseAddresses = (addresses: string | string[] | undefined): string[] => {
+          if (!addresses) return [];
+          if (Array.isArray(addresses)) return addresses.filter(Boolean);
+          return addresses.split(',').map(a => a.trim()).filter(Boolean);
+        };
+
+        const to = parseAddresses(toAddresses);
+        const cc = parseAddresses(ccAddresses);
+        const bcc = parseAddresses(bccAddresses);
+
+        // Get project name for sender name if projectId is provided
+        let senderName = user.name || user.email?.split('@')[0] || 'BackstageOS';
+        if (projectId) {
+          const project = await storage.getProjectById(projectId);
+          if (project) {
+            senderName = `${project.name} SM`;
+          }
+        }
+
+        // Process attachments if present
+        let attachmentsList: Array<{ content: string; filename: string; type: string }> = [];
+        if (req.files && req.files.length > 0) {
+          for (const file of req.files as any[]) {
+            const fileContent = fs.readFileSync(file.path);
+            const base64Content = fileContent.toString('base64');
+            attachmentsList.push({
+              content: base64Content,
+              filename: file.originalname,
+              type: file.mimetype || 'application/octet-stream',
+            });
+          }
+        }
+
+        // Get SendGrid API key
+        const apiSettings = await storage.getApiSettings();
+        if (!apiSettings?.sendgridApiKey) {
+          // Clean up files
+          if (req.files) {
+            for (const file of req.files as any[]) {
+              if (fs.existsSync(file.path)) {
+                fs.unlinkSync(file.path);
+              }
+            }
+          }
+          return res.status(500).json({ success: false, error: "Email service not configured. Please connect Gmail or Outlook, or contact support." });
+        }
+
+        sgMail.setApiKey(apiSettings.sendgridApiKey);
+
+        const msg: any = {
+          to,
+          cc: cc.length > 0 ? cc : undefined,
+          bcc: bcc.length > 0 ? bcc : undefined,
+          from: {
+            email: 'schedules@backstageos.com',
+            name: senderName
+          },
+          replyTo: user.email,
+          subject,
+          html: htmlContent || content.replace(/\n/g, '<br>'),
+          text: content,
+        };
+
+        if (attachmentsList.length > 0) {
+          msg.attachments = attachmentsList;
+        }
+
+        try {
+          await sgMail.send(msg);
+          
+          // Clean up uploaded files
+          if (req.files) {
+            for (const file of req.files as any[]) {
+              if (fs.existsSync(file.path)) {
+                fs.unlinkSync(file.path);
+              }
+            }
+          }
+          
+          return res.json({ success: true, message: "Email sent successfully via BackstageOS" });
+        } catch (sendgridError: any) {
+          console.error('SendGrid fallback error:', sendgridError);
+          // Clean up files
+          if (req.files) {
+            for (const file of req.files as any[]) {
+              if (fs.existsSync(file.path)) {
+                fs.unlinkSync(file.path);
+              }
+            }
+          }
+          return res.status(500).json({ success: false, error: sendgridError.message || "Failed to send email" });
+        }
+      }
+
       // Check if this is a multipart request with files
       if (req.files && req.files.length > 0) {
         // Handle multipart form data with attachments
@@ -13278,9 +14009,8 @@ Best regards,
   // Email cleanup endpoints
   app.post('/api/email/cleanup/run', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
       // Only allow admins to manually run cleanup
-      if (!isAdmin(userId)) {
+      if (!isAdmin(req.user)) {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -14052,8 +14782,7 @@ Best regards,
   app.post('/api/email/setup-catch-all-routing', isAuthenticated, async (req: any, res) => {
     try {
       // Check if user is admin
-      const userId = req.user.id.toString();
-      if (!isAdmin(userId)) {
+      if (!isAdmin(req.user)) {
         return res.status(403).json({ message: "Admin access required" });
       }
 
@@ -14666,9 +15395,9 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
 
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -14689,9 +15418,9 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
 
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -14718,9 +15447,9 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
 
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -14743,9 +15472,9 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
 
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -14766,9 +15495,9 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
 
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -14795,9 +15524,9 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
 
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -14820,9 +15549,9 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
 
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -14844,9 +15573,9 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
 
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -14867,9 +15596,9 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
 
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -14896,9 +15625,9 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
 
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -14921,9 +15650,9 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
 
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -14945,9 +15674,9 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
 
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -14968,9 +15697,9 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
 
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         const teamMembers = await storage.getTeamMembersByProjectId(projectId);
-        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        const teamMember = teamMembers.find(tm => tm.userId === parseInt(getEffectiveUserId(req)));
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
@@ -15474,10 +16203,12 @@ Best regards,
 
   app.post("/api/notes", isAuthenticated, async (req: any, res) => {
     try {
+      // Use effective user ID to respect admin "view as" feature
+      const effectiveUserId = parseInt(getEffectiveUserId(req));
       const noteData = insertNoteSchema.parse({
         ...req.body,
-        createdBy: req.user.id,
-        lastEditedBy: req.user.id
+        createdBy: effectiveUserId,
+        lastEditedBy: effectiveUserId
       });
       const note = await storage.createNote(noteData);
       res.json(note);
@@ -15488,10 +16219,12 @@ Best regards,
 
   app.put("/api/notes/:id", isAuthenticated, async (req: any, res) => {
     try {
+      // Use effective user ID to respect admin "view as" feature
+      const effectiveUserId = parseInt(getEffectiveUserId(req));
       const id = parseInt(req.params.id);
       const noteData = insertNoteSchema.partial().parse({
         ...req.body,
-        lastEditedBy: req.user.id
+        lastEditedBy: effectiveUserId
       });
       const note = await storage.updateNote(id, noteData);
       res.json(note);
@@ -15669,7 +16402,7 @@ Best regards,
       }
       
       // Check access (owner or team member)
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
       
@@ -15692,7 +16425,7 @@ Best regards,
       
       // Verify project access
       const project = await storage.getProjectById(version.projectId);
-      if (!project || project.ownerId != req.user.id.toString()) {
+      if (!project || project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
       
@@ -15714,7 +16447,7 @@ Best regards,
       }
       
       // Check access (owner or team member)
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -15826,12 +16559,14 @@ Best regards,
       // Don't wait for email completion to avoid blocking the response
       setImmediate(async () => {
         try {
+          console.log(`📧 Triggering schedule notifications - versionId: ${newVersion.id}, projectId: ${projectId}, userId: ${req.user.id}, versionType: ${req.body.versionType}`);
           await scheduleNotificationService.sendScheduleUpdateNotifications(
             newVersion.id,
             projectId,
             parseInt(req.user.id)
           );
         } catch (emailError) {
+          console.error(`❌ Failed to send schedule notifications - versionId: ${newVersion.id}, projectId: ${projectId}:`, emailError);
         }
       });
 
@@ -15853,7 +16588,7 @@ Best regards,
         return res.status(404).json({ message: "Project not found" });
       }
       
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -16089,7 +16824,7 @@ The Production Team`;
       }
       
       // Check access (owner or team member)
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
       
@@ -16161,6 +16896,7 @@ The Production Team`;
       // Send email notifications to selected contacts asynchronously
       setImmediate(async () => {
         try {
+          console.log(`📧 Triggering resend schedule notifications - versionId: ${currentVersion.id}, projectId: ${projectId}, userId: ${req.user.id}, contactIds: [${contactIds.join(', ')}]`);
           await scheduleNotificationService.sendScheduleUpdateNotifications(
             currentVersion.id,
             projectId,
@@ -16168,6 +16904,7 @@ The Production Team`;
             contactIds // Pass specific contact IDs to limit recipients
           );
         } catch (emailError) {
+          console.error(`❌ Failed to resend schedule notifications - versionId: ${currentVersion.id}, projectId: ${projectId}, contactIds: [${contactIds.join(', ')}]:`, emailError);
         }
       });
       
@@ -16194,7 +16931,7 @@ The Production Team`;
         return res.status(404).json({ message: "Project not found" });
       }
       
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
       
@@ -16237,7 +16974,7 @@ The Production Team`;
         return res.status(404).json({ message: "Project not found" });
       }
       
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -16293,7 +17030,7 @@ The Production Team`;
         return res.status(404).json({ message: "Project not found" });
       }
       
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -16319,7 +17056,7 @@ The Production Team`;
         return res.status(404).json({ message: "Project not found" });
       }
       
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
       
@@ -16341,7 +17078,7 @@ The Production Team`;
         return res.status(404).json({ message: "Project not found" });
       }
       
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -16545,6 +17282,69 @@ The Production Team`;
       // Get event types for color display
       const eventTypes = await storage.getEventTypesByProjectId(project.id);
 
+      // Get show settings for performance numbering configuration
+      const showSettings = await storage.getShowSettingsByProjectId(project.id);
+      const scheduleSettings = showSettings?.scheduleSettings || {};
+
+      // Map event types to match the expected frontend structure
+      const formattedEventTypes = eventTypes.map(et => ({ 
+        id: et.id, 
+        name: et.name, 
+        color: et.color 
+      }));
+
+      // Calculate performance numbers based on ALL published events in the project
+      // to ensure consistency between main schedule and personal schedules
+      const allEvents = await storage.getScheduleEventsByProjectId(project.id);
+      
+      // Helper to check if an event type is a performance
+      const isPerformanceType = (eventType: string, eventTypeId?: number | null) => {
+        const performanceTypes = ['performance', 'preview', 'show'];
+        if (eventTypeId && eventTypes.length > 0) {
+          const matchedType = eventTypes.find(et => et.id === eventTypeId);
+          if (matchedType) {
+            const name = matchedType.name?.toLowerCase() || '';
+            return name.includes('performance') || name.includes('show') || name.includes('preview');
+          }
+        }
+        const normalizedType = eventType.toLowerCase().replace(/[\s-]/g, '_');
+        return performanceTypes.some(pt => normalizedType.includes(pt));
+      };
+      
+      // Filter to performance events and sort by date/time
+      // Note: status is 'active' or 'cancelled', not 'published' - exclude cancelled events only
+      const performanceEvents = allEvents
+        .filter(e => e.status !== 'cancelled' && isPerformanceType(e.type, e.eventTypeId))
+        .sort((a, b) => {
+          if (a.date !== b.date) return a.date.localeCompare(b.date);
+          return a.startTime.localeCompare(b.startTime);
+        });
+      
+      // Find start index based on firstPerformanceEventId
+      // Performance numbering config is nested under scheduleSettings.performanceNumbering
+      const perfConfig = scheduleSettings?.performanceNumbering || {};
+      let startIndex = 0;
+      const firstPerfId = perfConfig.firstPerformanceEventId;
+      if (firstPerfId) {
+        const idx = performanceEvents.findIndex(e => e.id === firstPerfId);
+        if (idx !== -1) startIndex = idx;
+      }
+      
+      // Assign numbers
+      const performanceNumbers: Record<number, number | null> = {};
+      let currentNumber = perfConfig.startingNumber || 1;
+      for (let i = startIndex; i < performanceEvents.length; i++) {
+        performanceNumbers[performanceEvents[i].id] = currentNumber;
+        currentNumber++;
+      }
+      
+      // Mark all other events as null
+      allEvents.forEach(e => {
+        if (!(e.id in performanceNumbers)) {
+          performanceNumbers[e.id] = null;
+        }
+      });
+
       res.json({
         personalSchedule: {
           id: personalSchedule.id,
@@ -16554,7 +17354,8 @@ The Production Team`;
         project: {
           id: project.id,
           name: project.name,
-          description: project.description
+          description: project.description,
+          scheduleSettings: scheduleSettings
         },
         contact: {
           id: contact.id,
@@ -16574,7 +17375,8 @@ The Production Team`;
         } : null,
         events: upcomingEvents, // Only current week and forward (published)
         historicalWeeks, // Summary of past weeks for "Previous Schedules" button
-        eventTypes: eventTypes.map(et => ({ id: et.id, name: et.name, color: et.color })) // Event type colors from show settings
+        eventTypes: formattedEventTypes, // Event type colors from show settings
+        performanceNumbers // Include pre-calculated numbers from the full schedule
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch personal schedule" });
@@ -16772,8 +17574,12 @@ The Production Team`;
           )
         : null;
 
+      // Get project settings for timezone
+      const showSettings = await storage.getShowSettingsByProjectId(personalSchedule.projectId);
+      const timezone = showSettings?.scheduleSettings?.timeZone || 'America/New_York';
+
       // Generate ICS file content with calendar subscription headers
-      const icsContent = generatePersonalScheduleICSSubscriptionContent(upcomingEvents, project, contact, latestVersion, req.get('host'));
+      const icsContent = generatePersonalScheduleICSSubscriptionContent(upcomingEvents, project, contact, latestVersion, req.get('host'), timezone);
 
       // Set headers for dynamic calendar subscription
       res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
@@ -16798,7 +17604,7 @@ The Production Team`;
         return res.status(404).json({ message: "Project not found" });
       }
       
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
       
@@ -16820,7 +17626,7 @@ The Production Team`;
         return res.status(404).json({ message: "Project not found" });
       }
       
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -16854,7 +17660,7 @@ The Production Team`;
         return res.status(404).json({ message: "Project not found" });
       }
       
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -16877,7 +17683,7 @@ The Production Team`;
         return res.status(404).json({ message: "Project not found" });
       }
       
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -16985,8 +17791,12 @@ The Production Team`;
         event.participants && event.participants.some((p: any) => p.contactId === contact.id)
       );
 
+      // Get project settings for timezone
+      const showSettings = await storage.getShowSettingsByProjectId(share.projectId);
+      const timezone = showSettings?.scheduleSettings?.timeZone || 'America/New_York';
+
       // Generate ICS file content
-      const icsContent = generateICSContent(contactEvents, project, contact);
+      const icsContent = generateICSContent(contactEvents, project, contact, timezone);
 
       // Update access tracking
       await storage.updatePublicCalendarShareAccess(token);
@@ -17036,8 +17846,12 @@ The Production Team`;
         event.participants && event.participants.some((p: any) => p.contactId === contact.id)
       );
 
+      // Get project settings for timezone
+      const showSettings = await storage.getShowSettingsByProjectId(share.projectId);
+      const timezone = showSettings?.scheduleSettings?.timeZone || 'America/New_York';
+
       // Generate ICS file content with calendar subscription headers
-      const icsContent = generateICSSubscriptionContent(contactEvents, project, contact, req.get('host'));
+      const icsContent = generateICSSubscriptionContent(contactEvents, project, contact, req.get('host'), timezone);
 
       // Update access tracking
       await storage.updatePublicCalendarShareAccess(token);
@@ -17529,7 +18343,7 @@ The Production Team`;
         return res.status(404).json({ message: "Project not found" });
       }
       
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
       
@@ -17550,7 +18364,7 @@ The Production Team`;
         return res.status(404).json({ message: "Project not found" });
       }
       
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -17584,7 +18398,7 @@ The Production Team`;
         return res.status(404).json({ message: "Project not found" });
       }
       
-      if (project.ownerId != req.user.id.toString()) {
+      if (project.ownerId != getEffectiveUserId(req)) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -17624,14 +18438,29 @@ The Production Team`;
       // Get project settings to determine enabled event types
       const showSettings = await storage.getShowSettingsByProjectId(share.projectId);
       
+      // Build a normalized set of enabled event type names
+      const projectEventTypes = await storage.getEventTypesByProjectId(share.projectId);
+      const eventTypeIdToName: Record<number, string> = {};
+      for (const et of projectEventTypes) {
+        eventTypeIdToName[et.id] = (et.name || '').toLowerCase().replace(/[-_\s]+/g, '');
+      }
+      
+      const enabledEventTypes = showSettings?.scheduleSettings?.enabledEventTypes || [];
+      const enabledTypeNamesSet = new Set<string>();
+      for (const enabled of enabledEventTypes) {
+        if (typeof enabled === 'string') {
+          enabledTypeNamesSet.add(enabled.toLowerCase().replace(/[-_\s]+/g, ''));
+        } else if (typeof enabled === 'number' && eventTypeIdToName[enabled]) {
+          enabledTypeNamesSet.add(eventTypeIdToName[enabled]);
+        }
+      }
+      
       // Filter events by event type
       const filteredEvents = scheduleEvents.filter(event => {
         if (share.eventTypeCategory === 'show_schedule') {
-          // Show schedule events - use enabled event types from project settings
-          const enabledEventTypes = showSettings?.scheduleSettings?.enabledEventTypes || [];
-          return enabledEventTypes.includes(event.type);
+          const eventTypeLower = (event.type || '').toLowerCase().replace(/[-_\s]+/g, '');
+          return enabledTypeNamesSet.has(eventTypeLower);
         } else {
-          // Individual events - match by event type name
           return event.type === share.eventTypeName.toLowerCase().replace(/\s+/g, '_');
         }
       });
@@ -17682,43 +18511,32 @@ The Production Team`;
       // Get project settings to determine enabled event types
       const showSettings = await storage.getShowSettingsByProjectId(share.projectId);
       
-      // Fetch published schedule versions (same pattern as personal schedule ICS)
+      // Build a normalized set of enabled event type names
+      // Note: enabledEventTypes contains strings for stock types AND numeric IDs for custom types
+      const projectEventTypes = await storage.getEventTypesByProjectId(share.projectId);
+      const eventTypeIdToName: Record<number, string> = {};
+      for (const et of projectEventTypes) {
+        eventTypeIdToName[et.id] = (et.name || '').toLowerCase().replace(/[-_\s]+/g, '');
+      }
+      
+      const enabledEventTypes = showSettings?.scheduleSettings?.enabledEventTypes || [];
+      const enabledTypeNamesSet = new Set<string>();
+      for (const enabled of enabledEventTypes) {
+        if (typeof enabled === 'string') {
+          enabledTypeNamesSet.add(enabled.toLowerCase().replace(/[-_\s]+/g, ''));
+        } else if (typeof enabled === 'number' && eventTypeIdToName[enabled]) {
+          enabledTypeNamesSet.add(eventTypeIdToName[enabled]);
+        }
+      }
+      
+      // Fetch published schedule versions
       const allVersions = await storage.getScheduleVersionsByProjectId(share.projectId);
       
-      // Calculate current week start for filtering (only include current week and future)
-      const now = new Date();
-      const dayOfWeek = now.getDay();
-      const currentWeekStart = new Date(now);
-      currentWeekStart.setDate(now.getDate() - dayOfWeek);
-      currentWeekStart.setHours(0, 0, 0, 0);
-      const currentWeekStartTime = currentWeekStart.getTime();
-      
-      // Helper to parse week start date
-      const parseWeekStartDate = (weekStartStr: string): Date => {
-        const parts = weekStartStr.split('-');
-        if (parts.length === 3) {
-          const year = parseInt(parts[0], 10);
-          const month = parseInt(parts[1], 10) - 1;
-          const day = parseInt(parts[2], 10);
-          if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
-            return new Date(year, month, day, 0, 0, 0, 0);
-          }
-        }
-        const date = new Date(weekStartStr);
-        date.setHours(0, 0, 0, 0);
-        return date;
-      };
-      
-      // Helper to check if a week is current or future
-      const isCurrentOrFutureWeek = (weekStartStr: string): boolean => {
-        const weekDate = parseWeekStartDate(weekStartStr);
-        return weekDate.getTime() >= currentWeekStartTime;
-      };
-      
-      // Group versions by weekStart and get the latest version for each week
+      // Group versions by weekStart and get the latest PUBLISHED version for each week
+      // Only include versions that have a publishedAt date (excludes drafts)
       const latestVersionsByWeek: Record<string, any> = {};
       for (const version of allVersions) {
-        if (version.weekStart) {
+        if (version.weekStart && version.publishedAt) {
           const existing = latestVersionsByWeek[version.weekStart];
           if (!existing || new Date(version.publishedAt) > new Date(existing.publishedAt)) {
             latestVersionsByWeek[version.weekStart] = version;
@@ -17731,35 +18549,41 @@ The Production Team`;
       const seenEventIds = new Set<number>();
       
       for (const [weekStart, version] of Object.entries(latestVersionsByWeek)) {
-        // Only include current week and future weeks
-        if (isCurrentOrFutureWeek(weekStart)) {
-          const versionEvents = version.scheduleData?.events || [];
-          for (const event of versionEvents) {
-            if (!seenEventIds.has(event.id)) {
-              // Filter by event type based on share settings
-              let includeEvent = false;
-              
-              if (share.eventTypeCategory === 'show_schedule') {
-                // Show schedule events - use enabled event types from project settings
-                const enabledEventTypes = showSettings?.scheduleSettings?.enabledEventTypes || [];
-                includeEvent = enabledEventTypes.includes(event.type);
-              } else {
-                // Individual events - match by event type name
-                const normalizedEventType = share.eventTypeName.toLowerCase().replace(/\s+/g, '_');
-                includeEvent = event.type === normalizedEventType || event.type === share.eventTypeName;
-              }
-              
-              if (includeEvent) {
-                seenEventIds.add(event.id);
-                filteredEvents.push(event);
-              }
+        // Include ALL published weeks (past, current, and future)
+        const versionEvents = version.scheduleData?.events || [];
+        for (const event of versionEvents) {
+          if (!seenEventIds.has(event.id)) {
+            // Filter by event type based on share settings
+            let includeEvent = false;
+            
+            if (share.eventTypeCategory === 'show_schedule') {
+              // Simple lookup: is this event's type in the enabled set?
+              const eventTypeLower = (event.type || '').toLowerCase().replace(/[-_\s]+/g, '');
+              includeEvent = enabledTypeNamesSet.has(eventTypeLower);
+            } else if (share.eventTypeCategory === 'location') {
+              // Location-based filtering - match events by location name
+              const eventLocation = (event.location || '').toLowerCase().trim();
+              const shareLocation = (share.eventTypeName || '').toLowerCase().trim();
+              includeEvent = eventLocation === shareLocation;
+            } else {
+              // Individual events - match by event type name
+              const normalizedEventType = share.eventTypeName.toLowerCase().replace(/\s+/g, '_');
+              includeEvent = event.type === normalizedEventType || event.type === share.eventTypeName;
+            }
+            
+            if (includeEvent) {
+              seenEventIds.add(event.id);
+              filteredEvents.push(event);
             }
           }
         }
       }
 
+      // Get timezone from show settings (already fetched above)
+      const timezone = showSettings?.scheduleSettings?.timeZone || 'America/New_York';
+
       // Generate ICS file content with calendar subscription headers
-      const icsContent = generateEventTypeICSSubscriptionContent(filteredEvents, project, share, req.get('host'));
+      const icsContent = generateEventTypeICSSubscriptionContent(filteredEvents, project, share, req.get('host'), timezone);
 
       // Update access tracking
       await storage.updateEventTypeCalendarShareAccess(token);
@@ -17916,13 +18740,29 @@ The Production Team`;
   });
 
   // Billing System API Routes
-  // Get billing plans
+  // Get billing plans (auto-syncs descriptions from Stripe)
   app.get("/api/billing/plans", async (req, res) => {
     try {
+      // Auto-sync descriptions from Stripe in background (don't block response)
+      billingSyncService.syncDescriptionsFromStripe().catch(err => {
+        console.error("Background Stripe sync error:", err.message);
+      });
+      
       const plans = await storage.getBillingPlans();
       res.json(plans);
     } catch (error: any) {
       res.status(500).json({ message: "Failed to get billing plans", error: error.message });
+    }
+  });
+
+  // Get founder subscriber count
+  app.get("/api/billing/founder-count", async (req, res) => {
+    try {
+      const count = await storage.getFounderSubscriberCount();
+      res.json({ count, limit: 50 });
+    } catch (error: any) {
+      console.error("Error getting founder count:", error);
+      res.json({ count: 0, limit: 50 });
     }
   });
 
@@ -17988,6 +18828,20 @@ The Production Team`;
       res.json({ message: "Billing plan deleted successfully" });
     } catch (error: any) {
       res.status(400).json({ message: "Failed to delete billing plan", error: error.message });
+    }
+  });
+
+  // Admin: Sync descriptions from Stripe
+  app.post("/api/admin/billing/sync-descriptions", requireAdmin, async (req: any, res) => {
+    try {
+      const result = await billingSyncService.syncDescriptionsFromStripe();
+      res.json({ 
+        message: `Synced ${result.updated} plan descriptions from Stripe`,
+        updated: result.updated,
+        errors: result.errors 
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: "Failed to sync descriptions", error: error.message });
     }
   });
 
@@ -18290,10 +19144,11 @@ The Production Team`;
           });
 
           if (subscription.status === 'active' || subscription.status === 'trialing') {
+            // User is already subscribed - don't show payment form
             return res.json({
               subscriptionId: subscription.id,
               status: subscription.status,
-              clientSecret: subscription.latest_invoice?.payment_intent?.client_secret || null,
+              alreadySubscribed: true,
             });
           }
         } catch (stripeError) {
@@ -18381,9 +19236,12 @@ The Production Team`;
         status: subscription.status,
       });
     } catch (error: any) {
+      console.error('Stripe subscription error:', error);
       return res.status(400).json({ 
         message: "Error creating subscription", 
-        error: error.message 
+        error: error.message,
+        code: error.code,
+        type: error.type
       });
     }
   });
@@ -18421,6 +19279,20 @@ The Production Team`;
               transactionId: paymentIntent.id,
               description: 'One-time payment',
             });
+          }
+          break;
+
+        case 'checkout.session.completed':
+          const session = event.data.object;
+          
+          // Handle show activation payment
+          if (session.metadata?.eventType === 'show_activation' && session.metadata?.projectId) {
+            const projectId = parseInt(session.metadata.projectId);
+            await showBillingService.handleActivationPaymentSuccess(
+              projectId, 
+              session.payment_intent as string
+            );
+            console.log(`Show activation completed for project ${projectId}`);
           }
           break;
 
@@ -18540,7 +19412,234 @@ The Production Team`;
     }
   });
 
+  // ========== SHOW-BASED BILLING ENDPOINTS ==========
+
+  // Get show billing summary
+  app.get('/api/shows/:projectId/billing', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const summary = await showBillingService.getShowBillingSummary(projectId);
+      
+      if (!summary) {
+        return res.status(404).json({ message: 'No billing record found for this show' });
+      }
+      
+      res.json(summary);
+    } catch (error: any) {
+      res.status(500).json({ message: 'Failed to get show billing', error: error.message });
+    }
+  });
+
+  // Initialize show billing (called when creating a new show)
+  app.post('/api/shows/:projectId/billing/initialize', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const { startDate, endDate } = req.body;
+      
+      if (!startDate) {
+        return res.status(400).json({ message: 'Start date is required' });
+      }
+      
+      const billing = await showBillingService.initializeShowBilling(
+        projectId,
+        new Date(startDate),
+        endDate ? new Date(endDate) : null,
+        req.user.id
+      );
+      
+      res.json(billing);
+    } catch (error: any) {
+      res.status(500).json({ message: 'Failed to initialize show billing', error: error.message });
+    }
+  });
+
+  // Create activation checkout session
+  app.post('/api/shows/:projectId/billing/activate', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const { successUrl, cancelUrl } = req.body;
+      
+      if (!successUrl || !cancelUrl) {
+        return res.status(400).json({ message: 'Success and cancel URLs are required' });
+      }
+      
+      const result = await showBillingService.createActivationCheckout(
+        projectId,
+        req.user.id,
+        req.user.email,
+        successUrl,
+        cancelUrl
+      );
+      
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ message: 'Failed to create checkout', error: error.message });
+    }
+  });
+
+  // Update show dates and potentially billing type
+  app.patch('/api/shows/:projectId/billing/dates', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const { startDate, endDate } = req.body;
+      
+      if (!startDate) {
+        return res.status(400).json({ message: 'Start date is required' });
+      }
+      
+      const billing = await showBillingService.updateShowDates(
+        projectId,
+        new Date(startDate),
+        endDate ? new Date(endDate) : null
+      );
+      
+      res.json(billing);
+    } catch (error: any) {
+      res.status(500).json({ message: 'Failed to update show dates', error: error.message });
+    }
+  });
+
+  // Convert show to long running
+  app.post('/api/shows/:projectId/billing/convert-to-long-running', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const { newEndDate } = req.body;
+      
+      const billing = await showBillingService.convertShowToLongRunning(
+        projectId,
+        newEndDate ? new Date(newEndDate) : null
+      );
+      
+      res.json(billing);
+    } catch (error: any) {
+      res.status(500).json({ message: 'Failed to convert show', error: error.message });
+    }
+  });
+
+  // Close show (stops billing)
+  app.post('/api/shows/:projectId/billing/close', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const billing = await showBillingService.closeShow(projectId);
+      res.json(billing);
+    } catch (error: any) {
+      res.status(500).json({ message: 'Failed to close show', error: error.message });
+    }
+  });
+
+  // Reopen show (resumes billing)
+  app.post('/api/shows/:projectId/billing/reopen', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const billing = await showBillingService.reopenShow(projectId);
+      res.json(billing);
+    } catch (error: any) {
+      res.status(500).json({ message: 'Failed to reopen show', error: error.message });
+    }
+  });
+
+  // Archive show
+  app.post('/api/shows/:projectId/billing/archive', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const billing = await showBillingService.archiveShow(projectId);
+      res.json(billing);
+    } catch (error: any) {
+      res.status(500).json({ message: 'Failed to archive show', error: error.message });
+    }
+  });
+
+  // Transfer show ownership
+  app.post('/api/shows/:projectId/billing/transfer', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const { newOwnerId, newOwnerEmail } = req.body;
+      
+      if (!newOwnerId || !newOwnerEmail) {
+        return res.status(400).json({ message: 'New owner ID and email are required' });
+      }
+      
+      const billing = await showBillingService.transferOwnership(
+        projectId,
+        parseInt(newOwnerId),
+        newOwnerEmail
+      );
+      
+      res.json(billing);
+    } catch (error: any) {
+      res.status(500).json({ message: 'Failed to transfer ownership', error: error.message });
+    }
+  });
+
+  // Get show billing events/history
+  app.get('/api/shows/:projectId/billing/events', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const events = await storage.getShowBillingEvents(projectId);
+      res.json(events);
+    } catch (error: any) {
+      res.status(500).json({ message: 'Failed to get billing events', error: error.message });
+    }
+  });
+
+  // Admin: Migrate existing shows to new billing system
+  app.post('/api/admin/billing/migrate-shows', isAuthenticated, async (req: any, res) => {
+    try {
+      if (!req.user.isAdmin) {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+      
+      const result = await showBillingService.migrateExistingShows();
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ message: 'Migration failed', error: error.message });
+    }
+  });
+
+  // Admin: Process monthly billing activations (scheduled job endpoint)
+  app.post('/api/admin/billing/process-monthly', isAuthenticated, async (req: any, res) => {
+    try {
+      if (!req.user.isAdmin) {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+      
+      const result = await showBillingService.processMonthlyBillingActivations();
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ message: 'Failed to process monthly billing', error: error.message });
+    }
+  });
+
   // ========== USER BILLING PAGE ENDPOINTS ==========
+  
+  // Get all shows billing for the user
+  app.get('/api/billing/shows', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      
+      // Get all projects for the user
+      const projects = await storage.getProjects(userId.toString());
+      
+      // Get billing summary for each project
+      const showsBilling = await Promise.all(
+        projects.map(async (project) => {
+          const billing = await showBillingService.getShowBillingSummary(project.id);
+          if (!billing) return null;
+          return {
+            ...billing,
+            projectName: project.name,
+          };
+        })
+      );
+      
+      // Filter out projects without billing
+      const filteredBilling = showsBilling.filter(b => b !== null);
+      
+      res.json(filteredBilling);
+    } catch (error: any) {
+      res.status(500).json({ message: 'Failed to get shows billing: ' + error.message });
+    }
+  });
   
   // Billing status endpoint for user billing page
   app.get('/api/billing/status', async (req, res) => {
@@ -18615,6 +19714,142 @@ The Production Team`;
       res.json({ message: 'Upgraded to annual billing successfully' });
     } catch (error: any) {
       res.status(500).json({ message: 'Failed to switch to annual: ' + error.message });
+    }
+  });
+
+  // Fetch products and prices directly from Stripe (source of truth)
+  app.get('/api/stripe/products', async (req, res) => {
+    try {
+      // Fetch all active products from Stripe
+      const products = await stripe.products.list({
+        active: true,
+        expand: ['data.default_price'],
+      });
+
+      // Fetch all active prices
+      const prices = await stripe.prices.list({
+        active: true,
+        expand: ['data.product'],
+      });
+
+      // Build a comprehensive list of products with their prices
+      // Filter out products from other apps (e.g., TourOS)
+      const backstageProducts = products.data.filter(product => {
+        const name = product.name.toLowerCase();
+        return !name.includes('touros') && !name.includes('tour os');
+      });
+
+      const productsWithPrices = backstageProducts.map(product => {
+        const productPrices = prices.data.filter(
+          price => (typeof price.product === 'string' ? price.product : price.product.id) === product.id
+        );
+        
+        return {
+          id: product.id,
+          name: product.name,
+          description: product.description,
+          active: product.active,
+          metadata: product.metadata,
+          defaultPriceId: typeof product.default_price === 'string' 
+            ? product.default_price 
+            : product.default_price?.id,
+          prices: productPrices.map(price => ({
+            id: price.id,
+            unitAmount: price.unit_amount,
+            currency: price.currency,
+            interval: price.recurring?.interval,
+            intervalCount: price.recurring?.interval_count,
+            trialPeriodDays: price.recurring?.trial_period_days,
+            active: price.active,
+            metadata: price.metadata,
+          })),
+        };
+      });
+
+      res.json({ products: productsWithPrices });
+    } catch (error: any) {
+      console.error('Error fetching Stripe products:', error);
+      res.status(500).json({ message: 'Failed to fetch products from Stripe: ' + error.message });
+    }
+  });
+
+  // Create Stripe Customer Portal session
+  app.post('/api/stripe/customer-portal', async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const user = req.user;
+      
+      if (!user.stripeCustomerId) {
+        return res.status(400).json({ 
+          message: 'No billing account found. Please subscribe to a plan first.' 
+        });
+      }
+
+      // Create a Customer Portal session
+      const session = await stripe.billingPortal.sessions.create({
+        customer: user.stripeCustomerId,
+        return_url: `${req.headers.origin || process.env.APP_URL || 'https://backstageos.com'}/billing`,
+      });
+
+      res.json({ url: session.url });
+    } catch (error: any) {
+      console.error('Error creating Customer Portal session:', error);
+      res.status(500).json({ message: 'Failed to create billing portal session: ' + error.message });
+    }
+  });
+
+  // Admin: Fetch subscription analytics from Stripe
+  app.get('/api/admin/stripe/analytics', async (req, res) => {
+    if (!req.isAuthenticated() || req.user?.role !== 'admin') {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
+    try {
+      // Get all active subscriptions
+      const subscriptions = await stripe.subscriptions.list({
+        status: 'active',
+        limit: 100,
+      });
+
+      // Get subscription counts by status
+      const activeCount = subscriptions.data.length;
+      
+      // Calculate MRR (Monthly Recurring Revenue)
+      let mrr = 0;
+      for (const sub of subscriptions.data) {
+        for (const item of sub.items.data) {
+          const amount = item.price.unit_amount || 0;
+          const interval = item.price.recurring?.interval;
+          if (interval === 'month') {
+            mrr += amount;
+          } else if (interval === 'year') {
+            mrr += amount / 12;
+          }
+        }
+      }
+
+      // Get recent invoices for payment history
+      const recentInvoices = await stripe.invoices.list({
+        limit: 10,
+      });
+
+      res.json({
+        activeSubscriptions: activeCount,
+        mrr: mrr / 100, // Convert from cents to dollars
+        recentInvoices: recentInvoices.data.map(inv => ({
+          id: inv.id,
+          customerEmail: inv.customer_email,
+          amount: (inv.amount_paid || 0) / 100,
+          status: inv.status,
+          created: new Date(inv.created * 1000).toISOString(),
+        })),
+      });
+    } catch (error: any) {
+      console.error('Error fetching Stripe analytics:', error);
+      res.status(500).json({ message: 'Failed to fetch analytics: ' + error.message });
     }
   });
 
@@ -19081,6 +20316,13 @@ The Production Team`;
     const { emailCleanupService } = await import('./services/emailCleanupService.js');
     emailCleanupService.startCleanupScheduler();
   } catch (error) {
+  }
+
+  // Start show billing scheduler for daily billing tasks
+  try {
+    showBillingService.startBillingScheduler();
+  } catch (error) {
+    console.error('Failed to start show billing scheduler:', error);
   }
   
   // IMAP Server Management API endpoints

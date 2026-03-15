@@ -21,7 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Upload, Trash2, Save, Mail, Download, FileText } from "lucide-react";
+import { Upload, Trash2, Save, Mail, Download, FileText, CalendarDays } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -100,6 +100,66 @@ export default function ReportViewer() {
     queryKey: ['/api/projects', projectId, 'has-custom-template', 'report'],
     enabled: !!projectId,
   });
+
+  // Determine linked event IDs (support both legacy single and new multi-link)
+  const linkedEventIds: number[] = useMemo(() => {
+    if (report?.linkedEventIds && Array.isArray(report.linkedEventIds) && report.linkedEventIds.length > 0) {
+      return report.linkedEventIds;
+    }
+    if (report?.scheduleEventId) return [report.scheduleEventId];
+    return [];
+  }, [report?.linkedEventIds, report?.scheduleEventId]);
+
+  // Fetch schedule events for performance numbering
+  const { data: allScheduleEvents = [] } = useQuery<any[]>({
+    queryKey: ['/api/projects', projectId, 'schedule-events'],
+    enabled: !!projectId && linkedEventIds.length > 0,
+  });
+
+  // Calculate performance numbers for all linked events
+  const performanceNumbers = useMemo(() => {
+    if (!linkedEventIds.length || !allScheduleEvents.length || !projectSettings) return [];
+    
+    const scheduleSettings = typeof projectSettings?.scheduleSettings === 'string'
+      ? JSON.parse(projectSettings.scheduleSettings)
+      : (projectSettings?.scheduleSettings || {});
+    
+    const performanceNumbering = scheduleSettings?.performanceNumbering || {
+      firstPerformanceEventId: null,
+      startingNumber: 1,
+    };
+
+    const performanceEvents = allScheduleEvents.filter((event: any) => {
+      const isPerformance = event.type === 'performance' || event.type === 'preview' ||
+                           event.type?.toLowerCase().includes('performance') ||
+                           event.type?.toLowerCase().includes('show');
+      const isCancelled = event.status === 'cancelled';
+      return isPerformance && !isCancelled;
+    });
+
+    performanceEvents.sort((a: any, b: any) => {
+      if (a.date !== b.date) return a.date.localeCompare(b.date);
+      return a.startTime.localeCompare(b.startTime);
+    });
+
+    let startIndex = 0;
+    if (performanceNumbering.firstPerformanceEventId) {
+      const firstIndex = performanceEvents.findIndex((e: any) => e.id === performanceNumbering.firstPerformanceEventId);
+      if (firstIndex !== -1) startIndex = firstIndex;
+    }
+
+    return linkedEventIds.map(eventId => {
+      for (let i = startIndex; i < performanceEvents.length; i++) {
+        if (performanceEvents[i].id === eventId) {
+          return performanceNumbering.startingNumber + (i - startIndex);
+        }
+      }
+      return null;
+    }).filter(Boolean);
+  }, [linkedEventIds, allScheduleEvents, projectSettings]);
+
+  // Legacy single performance number (for backward compat)
+  const performanceNumber = performanceNumbers.length > 0 ? performanceNumbers[0] : null;
 
   // Find the V2 template for this report (used only to initialize stableTemplate)
   const foundTemplate = templatesV2.find((t: any) => t.id === report?.templateId);
@@ -218,8 +278,8 @@ export default function ReportViewer() {
         lineHeight: 1.4,
         marginTop: 0.5,
         marginBottom: 0.5,
-        marginLeft: 1,
-        marginRight: 1
+        marginLeft: 0.5,
+        marginRight: 0.5
       };
 
       // Create PDF with letter size (8.5 x 11 inches)
@@ -348,33 +408,50 @@ export default function ReportViewer() {
       };
 
       const centerX = pageWidth / 2;
+      
+      // Header font sizes matching Daily Call exactly:
+      // text-3xl = 30px ≈ 24pt, text-xl = 20px ≈ 16pt, text-lg = 18px ≈ 14pt
+      const headerShowNameSize = 24;
+      const headerSubtitleSize = 16;
+      const headerDateSize = 14;
 
-      // Add report title (bold, centered)
-      pdf.setFontSize(titleSize);
-      pdf.setFont(fontFamily, 'bold');
-      const titleLines = wrapText(report.title || 'Report', contentWidth, titleSize);
-      titleLines.forEach((line: string) => {
-        checkNewPage(titleSize * lineHeight);
-        pdf.text(line, centerX, yPosition, { align: 'center' });
-        yPosition += titleSize * lineHeight;
-      });
-
-      // Add show name (regular, centered)
-      pdf.setFontSize(showNameSize);
-      pdf.setFont(fontFamily, 'normal');
+      // Add show name first (bold, centered) - matches Daily Call header style
+      pdf.setFontSize(headerShowNameSize);
+      pdf.setFont('helvetica', 'bold');
       const projectName = project?.name || '';
       if (projectName) {
-        const projectLines = wrapText(projectName, contentWidth, showNameSize);
+        const projectLines = wrapText(projectName, contentWidth, headerShowNameSize);
         projectLines.forEach((line: string) => {
-          checkNewPage(showNameSize * lineHeight);
+          checkNewPage(headerShowNameSize * 0.8);
           pdf.text(line, centerX, yPosition, { align: 'center' });
-          yPosition += showNameSize * lineHeight;
+          yPosition += headerShowNameSize * 0.8;
         });
       }
 
-      // Add date (regular, centered)
-      pdf.setFontSize(showNameSize);
-      pdf.setFont(fontFamily, 'normal');
+      // Add director line if director field has text
+      const directorName = project?.director || '';
+      if (directorName.trim()) {
+        pdf.setFontSize(headerDateSize);
+        pdf.setFont('helvetica', 'normal');
+        const directorText = `Directed by ${directorName}`;
+        pdf.text(directorText, centerX, yPosition, { align: 'center' });
+        yPosition += headerDateSize * 1.2 + 8;
+      }
+
+      // Add report title (normal, centered, ALL CAPS) - like "DAILY SCHEDULE" subtitle
+      pdf.setFontSize(headerSubtitleSize);
+      pdf.setFont('helvetica', 'normal');
+      const reportTitle = (report.title || 'Report').toUpperCase();
+      const titleLines = wrapText(reportTitle, contentWidth, headerSubtitleSize);
+      titleLines.forEach((line: string) => {
+        checkNewPage(headerSubtitleSize * 1.2);
+        pdf.text(line, centerX, yPosition, { align: 'center' });
+        yPosition += headerSubtitleSize * 1.2;
+      });
+
+      // Add date (normal, centered)
+      pdf.setFontSize(headerDateSize);
+      pdf.setFont('helvetica', 'normal');
       const dateStr = new Date(report.date).toLocaleDateString('en-US', { 
         weekday: 'long', 
         year: 'numeric', 
@@ -382,12 +459,23 @@ export default function ReportViewer() {
         day: 'numeric' 
       });
       pdf.text(dateStr, centerX, yPosition, { align: 'center' });
-      yPosition += showNameSize * lineHeight;
+      yPosition += headerDateSize * 1.2;
 
-      // Add horizontal line from left margin to right margin
-      pdf.setLineWidth(0.5);
-      pdf.line(marginLeft, yPosition, pageWidth - marginRight, yPosition);
-      yPosition += contentSize * lineHeight + 12; // Extra padding under the line
+      // Add performance number(s) if linked (under date)
+      if (performanceNumbers.length > 0) {
+        pdf.setFontSize(headerDateSize);
+        pdf.setFont('helvetica', 'normal');
+        const perfLabel = performanceNumbers.length === 1
+          ? `Performance #${performanceNumbers[0]}`
+          : `Performances #${performanceNumbers.join(', #')}`;
+        pdf.text(perfLabel, centerX, yPosition, { align: 'center' });
+        yPosition += headerDateSize * 1.2 + 8;
+      } else {
+        yPosition += 8;
+      }
+
+      // Add padding before first section
+      yPosition += 10;
 
       // Process each section from the template
       if (stableTemplate?.sections) {
@@ -395,39 +483,109 @@ export default function ReportViewer() {
           // Check if we need a new page for section header
           checkNewPage(sectionTitleSize * lineHeight + 20);
 
-          // Section title (bold)
+          // Section title (bold, ALL CAPS)
           pdf.setFontSize(sectionTitleSize);
-          pdf.setFont(fontFamily, 'bold');
-          const sectionLines = wrapText(section.title || '', contentWidth, sectionTitleSize);
+          pdf.setFont('helvetica', 'bold');
+          const sectionTitle = (section.title || '').toUpperCase();
+          const sectionLines = wrapText(sectionTitle, contentWidth, sectionTitleSize);
           sectionLines.forEach((line: string) => {
-            checkNewPage(sectionTitleSize * lineHeight);
+            checkNewPage(sectionTitleSize * 1.0);
             pdf.text(line, marginLeft, yPosition);
-            yPosition += sectionTitleSize * lineHeight;
+            yPosition += sectionTitleSize * 1.0;
           });
-          yPosition += 6;
+          
+          // Add horizontal line under section title (matches Daily Call spacing exactly)
+          // Draw line closer to text by subtracting from yPosition
+          pdf.setLineWidth(1.5);
+          pdf.line(marginLeft, yPosition - 4, pageWidth - marginRight, yPosition - 4);
+          yPosition += 16;
 
           // Process fields in this section
           if (section.fields && section.fields.length > 0) {
             for (const field of section.fields) {
-              // Field title (bold)
-              checkNewPage(fieldTitleSize * lineHeight + 10);
-              pdf.setFontSize(fieldTitleSize);
-              pdf.setFont(fontFamily, 'bold');
-              const fieldLines = wrapText(field.label || '', contentWidth - 20, fieldTitleSize);
-              fieldLines.forEach((line: string) => {
-                checkNewPage(fieldTitleSize * lineHeight);
-                pdf.text(line, marginLeft + 10, yPosition);
-                yPosition += fieldTitleSize * lineHeight;
-              });
-              yPosition += 2;
+              if (!field.hideLabel) {
+                checkNewPage(fieldTitleSize * lineHeight + 10);
+                pdf.setFontSize(fieldTitleSize);
+                pdf.setFont('helvetica', 'bold');
+                const fieldLines = wrapText(field.label || '', contentWidth - 20, fieldTitleSize);
+                fieldLines.forEach((line: string) => {
+                  checkNewPage(fieldTitleSize * lineHeight);
+                  pdf.text(line, marginLeft + 10, yPosition);
+                  yPosition += fieldTitleSize * lineHeight;
+                });
+                yPosition += 2;
+              }
 
+              // Handle dailycall field type specially
+              if (field.type === "dailycall") {
+                const stored = contentRef.current[field.label];
+                let callData: any = null;
+                try {
+                  callData = stored ? (typeof stored === 'string' ? JSON.parse(stored) : stored) : null;
+                } catch { callData = null; }
+
+                if (callData) {
+                  pdf.setFontSize(contentSize);
+                  pdf.setFont('helvetica', 'normal');
+                  const callDate = new Date(callData.date + 'T00:00:00');
+                  const dateStr = callDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                  
+                  checkNewPage(contentSize * lineHeight);
+                  pdf.setFont('helvetica', 'italic');
+                  pdf.text(`Daily Call — ${dateStr}`, marginLeft + 20, yPosition);
+                  yPosition += contentSize * lineHeight + 4;
+                  pdf.setFont('helvetica', 'normal');
+
+                  const locations = Array.isArray(callData.locations) ? callData.locations : [];
+                  for (const loc of locations) {
+                    checkNewPage(contentSize * lineHeight + 8);
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.text(loc.name || 'Location', marginLeft + 20, yPosition);
+                    yPosition += contentSize * lineHeight;
+                    pdf.setFont('helvetica', 'normal');
+
+                    if (Array.isArray(loc.events)) {
+                      for (const evt of loc.events) {
+                        checkNewPage(contentSize * lineHeight);
+                        const time = evt.startTime || '';
+                        const title = evt.title || '';
+                        const cast = evt.cast?.length ? ` (${evt.cast.join(', ')})` : '';
+                        pdf.text(`${time}  ${title}${cast}`, marginLeft + 30, yPosition);
+                        yPosition += contentSize * lineHeight;
+                      }
+                    }
+                    yPosition += 4;
+                  }
+
+                  if (callData.announcements) {
+                    checkNewPage(contentSize * lineHeight + 8);
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.text('Announcements', marginLeft + 20, yPosition);
+                    yPosition += contentSize * lineHeight;
+                    pdf.setFont('helvetica', 'normal');
+                    const announcementText = callData.announcements.replace(/<[^>]*>/g, '').trim();
+                    const annLines = wrapText(announcementText, contentWidth - 30, contentSize);
+                    annLines.forEach((line: string) => {
+                      checkNewPage(contentSize * lineHeight);
+                      pdf.text(line, marginLeft + 30, yPosition);
+                      yPosition += contentSize * lineHeight;
+                    });
+                  }
+                } else {
+                  pdf.setFontSize(contentSize);
+                  pdf.setFont('helvetica', 'italic');
+                  pdf.text('No daily call data', marginLeft + 20, yPosition);
+                  yPosition += contentSize * lineHeight;
+                  pdf.setFont('helvetica', 'normal');
+                }
+              } else {
               // Field content (normal) - with list support
               const fieldContent = contentRef.current[field.label] || field.defaultValue || '';
               const segments = parseHtmlWithLists(fieldContent);
               
               if (segments.length > 0) {
                 pdf.setFontSize(contentSize);
-                pdf.setFont(fontFamily, 'normal');
+                pdf.setFont('helvetica', 'normal');
                 
                 for (const segment of segments) {
                   const indentOffset = segment.indent * 15;
@@ -436,12 +594,12 @@ export default function ReportViewer() {
                   
                   segmentLines.forEach((line: string, lineIndex: number) => {
                     checkNewPage(contentSize * lineHeight);
-                    // For wrapped lines of list items, add extra indent to align with text after number
                     const xPos = baseIndent + indentOffset + (segment.isListItem && lineIndex > 0 ? 15 : 0);
                     pdf.text(line, xPos, yPosition);
                     yPosition += contentSize * lineHeight;
                   });
                 }
+              }
               }
               yPosition += 8;
             }
@@ -455,7 +613,7 @@ export default function ReportViewer() {
       for (let i = 1; i <= totalPages; i++) {
         pdf.setPage(i);
         pdf.setFontSize(11);
-        pdf.setFont(fontFamily, 'normal');
+        pdf.setFont('helvetica', 'normal');
         const pageText = `Page ${i} of ${totalPages}`;
         pdf.text(pageText, centerX, pageHeight - marginBottom + 20, { align: 'center' });
       }
@@ -508,7 +666,7 @@ export default function ReportViewer() {
         sections: stableTemplate?.sections?.map((section: any) => ({
           name: section.name || "",
           content: section.fields?.map((field: any) => ({
-            label: field.label || "",
+            label: field.hideLabel ? "" : (field.label || ""),
             value: contentRef.current[field.label] || field.defaultValue || "",
           })) || [],
         })) || [],
@@ -593,8 +751,17 @@ export default function ReportViewer() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{report.title}</h1>
-            <p className="text-gray-600">{project.name} - {new Date(report.date).toLocaleDateString()}</p>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {report.title}
+              {performanceNumbers.length > 0 && (
+                <span className="ml-2 font-normal text-[#000000]">
+                  {performanceNumbers.length === 1 
+                    ? `#${performanceNumbers[0]}` 
+                    : `#${performanceNumbers.join(', #')}`}
+                </span>
+              )}
+            </h1>
+            <p className="text-gray-600">{project.name} - {new Date(report.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
           </div>
           
           <div className="flex items-center gap-2">
@@ -661,10 +828,12 @@ export default function ReportViewer() {
                       <div className="space-y-4 pl-4">
                         {section.fields.map((field: any) => (
                           <div key={field.id} className="space-y-2">
-                            <Label className="font-bold">
-                              {field.label}
-                            </Label>
-                            <div className="pl-4">
+                            {!field.hideLabel && (
+                              <Label className="font-bold">
+                                {field.label}
+                              </Label>
+                            )}
+                            <div className={field.hideLabel ? "" : "pl-4"}>
                               {field.helperText && (
                                 <p className="text-sm text-muted-foreground">{field.helperText}</p>
                               )}
@@ -772,6 +941,50 @@ export default function ReportViewer() {
                                   </SelectContent>
                                 </Select>
                               )}
+                              {field.type === "dailycall" && (() => {
+                                const stored = contentRef.current[field.label];
+                                let callData: any = null;
+                                try {
+                                  callData = stored ? (typeof stored === 'string' ? JSON.parse(stored) : stored) : null;
+                                } catch { callData = null; }
+
+                                if (!callData) return <p className="text-sm text-muted-foreground italic">No daily call data</p>;
+
+                                const callDate = new Date(callData.date + 'T00:00:00');
+                                const dateStr = callDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                                const locations = Array.isArray(callData.locations) ? callData.locations : [];
+
+                                return (
+                                  <div className="border rounded-lg p-4 bg-muted/30 space-y-3">
+                                    <div className="flex items-center gap-2 text-sm font-medium">
+                                      <CalendarDays className="h-4 w-4" />
+                                      <span>Daily Call — {dateStr}</span>
+                                    </div>
+                                    {locations.map((loc: any, locIdx: number) => (
+                                      <div key={locIdx} className="space-y-1">
+                                        <h4 className="text-sm font-semibold border-b pb-1">{loc.name}</h4>
+                                        {Array.isArray(loc.events) && loc.events.map((evt: any, evtIdx: number) => (
+                                          <div key={evtIdx} className="flex gap-4 text-sm py-0.5">
+                                            <span className="w-16 font-medium text-muted-foreground flex-shrink-0">{evt.startTime}</span>
+                                            <div>
+                                              <span className="font-medium">{evt.title}</span>
+                                              {evt.cast && evt.cast.length > 0 && (
+                                                <span className="text-muted-foreground ml-2 text-xs">({evt.cast.join(', ')})</span>
+                                              )}
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ))}
+                                    {callData.announcements && (
+                                      <div className="pt-2 border-t">
+                                        <h4 className="text-sm font-semibold mb-1">Announcements</h4>
+                                        <div className="text-sm whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: callData.announcements }} />
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })()}
                             </div>
                           </div>
                         ))}

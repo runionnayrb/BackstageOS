@@ -115,16 +115,32 @@ class ErrorLogger {
 
     // Catch unhandled promise rejections
     window.addEventListener('unhandledrejection', (event) => {
+      // Skip logging if the reason is undefined or null (often caused by cancelled requests)
+      if (event.reason === undefined || event.reason === null) {
+        return;
+      }
+      
+      // Skip cancelled fetch requests (AbortError)
+      if (event.reason?.name === 'AbortError') {
+        return;
+      }
+      
+      // Skip network-related errors that are already handled
+      const reasonString = String(event.reason?.message || event.reason || '');
+      if (reasonString.includes('401') || reasonString.includes('403') || reasonString.includes('404')) {
+        return;
+      }
+      
       this.logError({
         errorType: 'javascript_error',
-        message: `Unhandled Promise Rejection: ${event.reason}`,
+        message: `Unhandled Promise Rejection: ${event.reason?.message || event.reason || 'Unknown error'}`,
         page: this.currentPage,
         stackTrace: event.reason?.stack,
         userAgent: navigator.userAgent,
         timestamp: new Date().toISOString(),
         userId: this.userId,
         additionalData: {
-          reason: event.reason
+          reason: event.reason?.message || String(event.reason)
         }
       });
     });
@@ -139,25 +155,41 @@ class ErrorLogger {
       try {
         const response = await originalFetch(...args);
         
-        // Log failed network requests
+        // Log failed network requests, but skip expected errors
         if (!response.ok) {
-          this.logError({
-            errorType: 'network_error',
-            message: `Network request failed: ${response.status} ${response.statusText}`,
-            page: this.currentPage,
-            userAgent: navigator.userAgent,
-            timestamp: new Date().toISOString(),
-            userId: this.userId,
-            additionalData: {
-              url: args[0] as string,
-              status: response.status,
-              statusText: response.statusText
-            }
-          });
+          const url = typeof args[0] === 'string' ? args[0] : (args[0] as Request)?.url || '';
+          
+          // Skip logging expected errors:
+          // - 401/403: Authentication/authorization errors (expected when user is logged out)
+          // - 404: Resource not found (often expected)
+          // - Error logging endpoint to avoid recursive logging
+          const skipStatuses = [401, 403, 404];
+          const skipEndpoints = ['/api/errors/log', '/api/user/email-provider'];
+          
+          const shouldSkip = skipStatuses.includes(response.status) || 
+            skipEndpoints.some(endpoint => url.includes(endpoint));
+          
+          if (!shouldSkip) {
+            this.logError({
+              errorType: 'network_error',
+              message: `Network request failed: ${response.status} ${response.statusText}`,
+              page: this.currentPage,
+              userAgent: navigator.userAgent,
+              timestamp: new Date().toISOString(),
+              userId: this.userId,
+              additionalData: {
+                url: url,
+                status: response.status,
+                statusText: response.statusText
+              }
+            });
+          }
         }
         
         return response;
       } catch (error) {
+        const url = typeof args[0] === 'string' ? args[0] : (args[0] as Request)?.url || '';
+        
         this.logError({
           errorType: 'network_error',
           message: `Network request error: ${error}`,
@@ -166,7 +198,7 @@ class ErrorLogger {
           timestamp: new Date().toISOString(),
           userId: this.userId,
           additionalData: {
-            url: args[0] as string,
+            url: url,
             error: error instanceof Error ? error.message : String(error)
           }
         });

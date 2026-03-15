@@ -1,24 +1,23 @@
 // Admin utility functions for role-based access control
-
-export const ADMIN_USER_ID = 2;
+// Admin access is determined by the isAdmin boolean field on the user object
 
 export function isAdmin(user: any): boolean {
-  return user?.id === ADMIN_USER_ID;
+  return user?.isAdmin === true;
 }
 
 // Check if the currently effective user (after account switching) is admin
 export function isEffectiveAdmin(user: any, switchStatus?: any): boolean {
   if (switchStatus?.isViewingAs) {
     // If viewing as another user, check if that user is admin
-    return switchStatus.viewingUser?.id === ADMIN_USER_ID;
+    return switchStatus.viewingUser?.isAdmin === true;
   }
   // Otherwise, check the original user
-  return user?.id === ADMIN_USER_ID;
+  return user?.isAdmin === true;
 }
 
 // Check if the original logged-in user is admin (for showing admin UI controls)
 export function isOriginalAdmin(user: any): boolean {
-  return user?.id === ADMIN_USER_ID;
+  return user?.isAdmin === true;
 }
 
 export function requireAdmin(user: any): void {

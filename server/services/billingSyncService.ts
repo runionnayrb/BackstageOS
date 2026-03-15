@@ -25,7 +25,7 @@ export class BillingSyncService {
       console.log(`BillingSyncService: Creating Stripe Product: ${productName}`);
       createdProduct = await stripe.products.create({
         name: productName,
-        description: `BackstageOS ${productName}`,
+        description: planData.description || `BackstageOS ${productName}`,
         metadata: {
           planId: planData.planId,
           source: 'backstageos-admin',
@@ -117,29 +117,32 @@ export class BillingSyncService {
       }
 
       const productNameChanged = planData.name && planData.name !== existingPlan.name;
+      const descriptionChanged = planData.description !== undefined && planData.description !== existingPlan.description;
       const priceChanged = planData.price && parseFloat(String(planData.price)) !== parseFloat(String(existingPlan.price));
       const intervalChanged = planData.billingInterval && planData.billingInterval !== existingPlan.billingInterval;
 
       let newProductId = existingPlan.stripeProductId;
       let newPriceId = existingPlan.activeStripePriceId;
 
-      console.log(`BillingSyncService: Updating plan ${planId} - nameChanged:${productNameChanged}, priceChanged:${priceChanged}, intervalChanged:${intervalChanged}`);
+      console.log(`BillingSyncService: Updating plan ${planId} - nameChanged:${productNameChanged}, descriptionChanged:${descriptionChanged}, priceChanged:${priceChanged}, intervalChanged:${intervalChanged}`);
 
-      if (existingPlan.stripeProductId && productNameChanged) {
+      if (existingPlan.stripeProductId && (productNameChanged || descriptionChanged)) {
         console.log(`BillingSyncService: Updating Stripe Product: ${existingPlan.stripeProductId}`);
-        await stripe.products.update(existingPlan.stripeProductId, {
-          name: planData.name!,
+        const updateData: any = {
           metadata: {
             planId: planData.planId || existingPlan.planId,
             source: 'backstageos-admin',
             lastUpdated: new Date().toISOString(),
           },
-        });
+        };
+        if (productNameChanged) updateData.name = planData.name;
+        if (descriptionChanged) updateData.description = planData.description || '';
+        await stripe.products.update(existingPlan.stripeProductId, updateData);
       } else if (!existingPlan.stripeProductId) {
         console.log(`BillingSyncService: Creating Stripe Product for existing plan`);
         const product = await stripe.products.create({
           name: planData.name || existingPlan.name,
-          description: `BackstageOS ${planData.name || existingPlan.name}`,
+          description: planData.description || existingPlan.description || `BackstageOS ${planData.name || existingPlan.name}`,
           metadata: {
             planId: planData.planId || existingPlan.planId,
             source: 'backstageos-admin',
@@ -158,7 +161,7 @@ export class BillingSyncService {
           console.log(`BillingSyncService: Creating Stripe Product (missing product ID)`);
           const product = await stripe.products.create({
             name: planData.name || existingPlan.name,
-            description: `BackstageOS ${planData.name || existingPlan.name}`,
+            description: planData.description || existingPlan.description || `BackstageOS ${planData.name || existingPlan.name}`,
             metadata: {
               planId: planData.planId || existingPlan.planId,
               source: 'backstageos-admin',
@@ -262,6 +265,36 @@ export class BillingSyncService {
     } catch (error) {
       console.error(`BillingSyncService: Error fetching product ${productId}:`, error);
       return null;
+    }
+  }
+
+  async syncDescriptionsFromStripe(): Promise<{ updated: number; errors: string[] }> {
+    const errors: string[] = [];
+    let updated = 0;
+
+    try {
+      const plans = await storage.getBillingPlans();
+      const productIds = [...new Set(plans.filter(p => p.stripeProductId).map(p => p.stripeProductId!))];
+
+      for (const productId of productIds) {
+        try {
+          const product = await stripe.products.retrieve(productId);
+          const plansWithProduct = plans.filter(p => p.stripeProductId === productId);
+          
+          for (const plan of plansWithProduct) {
+            if (plan.description !== product.description) {
+              await storage.updateBillingPlan(plan.id, { description: product.description || null });
+              updated++;
+            }
+          }
+        } catch (err: any) {
+          errors.push(`Failed to fetch product ${productId}: ${err.message}`);
+        }
+      }
+
+      return { updated, errors };
+    } catch (error: any) {
+      throw new Error(`Failed to sync descriptions: ${error.message}`);
     }
   }
 }

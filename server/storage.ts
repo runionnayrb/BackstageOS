@@ -84,6 +84,8 @@ import {
   billingHistory,
   paymentMethods,
   subscriptionUsage,
+  showBilling,
+  showBillingEvents,
   searchHistory,
   searchIndexes,
   searchSuggestions,
@@ -93,6 +95,8 @@ import {
   scheduleTemplateEvents,
   scheduleTemplateEventParticipants,
   documentTemplates,
+  scriptCollaborators,
+  userSatisfactionMetrics,
 
   type User,
   type UpsertUser,
@@ -248,6 +252,10 @@ import {
   type InsertPaymentMethod,
   type SubscriptionUsage,
   type InsertSubscriptionUsage,
+  type ShowBilling,
+  type InsertShowBilling,
+  type ShowBillingEvent,
+  type InsertShowBillingEvent,
   type SearchHistory,
   type InsertSearchHistory,
   type SearchIndex,
@@ -288,6 +296,7 @@ export interface IStorage {
   updateUserAdmin(userId: string, updates: { profileType?: string; betaAccess?: string; betaFeatures?: string[]; isAdmin?: boolean; subscriptionPlan?: string; subscriptionStatus?: string; grandfatheredFree?: boolean }): Promise<User>;
   updateAllUsersBetaFeatures(enabledFeatures: string[]): Promise<void>;
   deleteUser(userId: string): Promise<void>;
+  setFreeAccessExpirationForBetaUsers(expirationDate: Date): Promise<number>;
 
   // Waitlist operations
   createWaitlistEntry(entry: InsertWaitlist): Promise<Waitlist>;
@@ -325,6 +334,7 @@ export interface IStorage {
   // Project operations
   getProjectsByUserId(userId: string): Promise<Project[]>;
   getProjectById(id: number): Promise<Project | undefined>;
+  getAllProjects(): Promise<Project[]>;
   createProject(project: InsertProject): Promise<Project>;
   updateProject(id: number, project: Partial<InsertProject>): Promise<Project>;
   deleteProject(id: number): Promise<void>;
@@ -721,6 +731,7 @@ export interface IStorage {
   createBillingPlan(plan: InsertBillingPlan): Promise<BillingPlan>;
   updateBillingPlan(id: number, plan: Partial<InsertBillingPlan>): Promise<BillingPlan>;
   deleteBillingPlan(id: number): Promise<void>;
+  getFounderSubscriberCount(): Promise<number>;
   
   // Billing plan price history operations
   getBillingPlanPrices(planId: number): Promise<BillingPlanPrice[]>;
@@ -739,6 +750,19 @@ export interface IStorage {
   
   getSubscriptionUsage(userId: number, planId: string): Promise<SubscriptionUsage[]>;
   createSubscriptionUsage(usage: InsertSubscriptionUsage): Promise<SubscriptionUsage>;
+
+  // Show Billing operations
+  getShowBillingByProjectId(projectId: number): Promise<ShowBilling | undefined>;
+  getShowBillingsByOwnerId(ownerId: number): Promise<ShowBilling[]>;
+  getShowBillingsRequiringMonthlyActivation(date: Date): Promise<ShowBilling[]>;
+  getAllShowBillings(): Promise<ShowBilling[]>;
+  createShowBilling(billing: InsertShowBilling): Promise<ShowBilling>;
+  updateShowBilling(id: number, billing: Partial<InsertShowBilling>): Promise<ShowBilling>;
+  deleteShowBilling(projectId: number): Promise<void>;
+  
+  // Show Billing Events operations
+  getShowBillingEvents(projectId: number): Promise<ShowBillingEvent[]>;
+  createShowBillingEvent(event: InsertShowBillingEvent): Promise<ShowBillingEvent>;
 
   // Search system operations
   getSearchHistoryByUserId(userId: number, limit?: number): Promise<SearchHistory[]>;
@@ -894,7 +918,69 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteUser(userId: string): Promise<void> {
-    await db.delete(users).where(eq(users.id, parseInt(userId)));
+    const userIdInt = parseInt(userId);
+    
+    // Delete related data in proper order to avoid foreign key constraint violations
+    // First, get all projects owned by the user
+    const userProjects = await db.select({ id: projects.id }).from(projects).where(eq(projects.ownerId, userIdInt));
+    const projectIds = userProjects.map(p => p.id);
+    
+    if (projectIds.length > 0) {
+      // Delete project-related data for each project
+      for (const projectId of projectIds) {
+        // Delete schedule weeks
+        await db.delete(scheduleWeeks).where(eq(scheduleWeeks.projectId, projectId));
+        // Delete schedule events
+        await db.delete(scheduleEvents).where(eq(scheduleEvents.projectId, projectId));
+        // Delete reports
+        await db.delete(reports).where(eq(reports.projectId, projectId));
+        // Delete tasks
+        await db.delete(tasks).where(eq(tasks.projectId, projectId));
+        // Delete contacts
+        await db.delete(contacts).where(eq(contacts.projectId, projectId));
+        // Delete contact groups
+        await db.delete(contactGroups).where(eq(contactGroups.projectId, projectId));
+        // Delete team members
+        await db.delete(teamMembers).where(eq(teamMembers.projectId, projectId));
+        // Delete cast members
+        await db.delete(castMembers).where(eq(castMembers.projectId, projectId));
+        // Delete props
+        await db.delete(props).where(eq(props.projectId, projectId));
+        // Delete costumes
+        await db.delete(costumes).where(eq(costumes.projectId, projectId));
+        // Delete notes
+        await db.delete(notes).where(eq(notes.projectId, projectId));
+      }
+      
+      // Delete the projects themselves
+      await db.delete(projects).where(eq(projects.ownerId, userIdInt));
+    }
+    
+    // Delete user's seasons
+    await db.delete(seasons).where(eq(seasons.userId, userIdInt));
+    
+    // Delete user's venues
+    await db.delete(venues).where(eq(venues.userId, userIdInt));
+    
+    // Delete user's email integrations
+    await db.delete(emailIntegrations).where(eq(emailIntegrations.userId, userIdInt));
+    
+    // Delete user's billing-related data
+    await db.delete(billingHistory).where(eq(billingHistory.userId, userIdInt));
+    await db.delete(paymentMethods).where(eq(paymentMethods.userId, userIdInt));
+    await db.delete(subscriptionUsage).where(eq(subscriptionUsage.userId, userIdInt));
+    
+    // Delete user's script collaborations
+    await db.delete(scriptCollaborators).where(eq(scriptCollaborators.userId, userIdInt));
+    
+    // Delete user satisfaction metrics
+    await db.delete(userSatisfactionMetrics).where(eq(userSatisfactionMetrics.userId, userIdInt));
+    
+    // Delete session records for this user
+    await db.execute(sql`DELETE FROM sessions WHERE sess::jsonb->>'userId' = ${userId}`);
+    
+    // Finally, delete the user
+    await db.delete(users).where(eq(users.id, userIdInt));
   }
 
   async getProjectsByUserId(userId: string): Promise<Project[]> {
@@ -932,6 +1018,10 @@ export class DatabaseStorage implements IStorage {
   async getProjectById(id: number): Promise<Project | undefined> {
     const result = await db.select().from(projects).where(eq(projects.id, id));
     return result[0];
+  }
+
+  async getAllProjects(): Promise<Project[]> {
+    return db.select().from(projects);
   }
 
   async createProject(project: InsertProject): Promise<Project> {
@@ -1008,12 +1098,22 @@ export class DatabaseStorage implements IStorage {
     await db.delete(venues).where(eq(venues.id, id));
   }
 
-  async getTeamMembersByProjectId(projectId: number): Promise<TeamMember[]> {
-    const result = await db.select().from(teamMembers).where(eq(teamMembers.projectId, projectId));
-    return result;
-  }
-
   async inviteTeamMember(teamMember: InsertTeamMember): Promise<TeamMember> {
+    // Check if a team member with this email already exists and is not archived in this project
+    const existing = await db
+      .select()
+      .from(teamMembers)
+      .where(and(
+        eq(teamMembers.projectId, teamMember.projectId),
+        eq(teamMembers.email, teamMember.email),
+        eq(teamMembers.isArchived, false)
+      ))
+      .limit(1);
+
+    if (existing.length > 0) {
+      throw new Error("User is already a member of this production");
+    }
+
     const result = await db.insert(teamMembers).values(teamMember).returning();
     return result[0];
   }
@@ -1021,10 +1121,6 @@ export class DatabaseStorage implements IStorage {
   async updateTeamMemberStatus(id: number, status: string): Promise<TeamMember> {
     const result = await db.update(teamMembers).set({ status }).where(eq(teamMembers.id, id)).returning();
     return result[0];
-  }
-
-  async deleteTeamMember(id: number): Promise<void> {
-    await db.delete(teamMembers).where(eq(teamMembers.id, id));
   }
 
   async getReportsByProjectId(projectId: number): Promise<Report[]> {
@@ -2609,6 +2705,8 @@ export class DatabaseStorage implements IStorage {
       isFullCast: scheduleEvents.isFullCast,
       parentEventId: scheduleEvents.parentEventId,
       isProductionLevel: scheduleEvents.isProductionLevel,
+      status: scheduleEvents.status,
+      cancellationReason: scheduleEvents.cancellationReason,
       createdBy: scheduleEvents.createdBy,
       createdAt: scheduleEvents.createdAt,
       updatedAt: scheduleEvents.updatedAt,
@@ -2685,6 +2783,8 @@ export class DatabaseStorage implements IStorage {
       isFullCast: scheduleEvents.isFullCast,
       parentEventId: scheduleEvents.parentEventId,
       isProductionLevel: scheduleEvents.isProductionLevel,
+      status: scheduleEvents.status,
+      cancellationReason: scheduleEvents.cancellationReason,
       createdBy: scheduleEvents.createdBy,
       createdAt: scheduleEvents.createdAt,
       updatedAt: scheduleEvents.updatedAt,
@@ -2777,6 +2877,8 @@ export class DatabaseStorage implements IStorage {
       isAllDay: scheduleEvents.isAllDay,
       parentEventId: scheduleEvents.parentEventId,
       isProductionLevel: scheduleEvents.isProductionLevel,
+      status: scheduleEvents.status,
+      cancellationReason: scheduleEvents.cancellationReason,
       createdBy: scheduleEvents.createdBy,
       createdAt: scheduleEvents.createdAt,
       updatedAt: scheduleEvents.updatedAt,
@@ -2828,6 +2930,8 @@ export class DatabaseStorage implements IStorage {
       isAllDay: scheduleEvents.isAllDay,
       parentEventId: scheduleEvents.parentEventId,
       isProductionLevel: scheduleEvents.isProductionLevel,
+      status: scheduleEvents.status,
+      cancellationReason: scheduleEvents.cancellationReason,
       createdBy: scheduleEvents.createdBy,
       createdAt: scheduleEvents.createdAt,
       updatedAt: scheduleEvents.updatedAt,
@@ -4382,16 +4486,6 @@ export class DatabaseStorage implements IStorage {
     await db.delete(emailTemplateCategories).where(eq(emailTemplateCategories.id, id));
   }
 
-  // Phase 5: Google Calendar Integration Methods
-  async getGoogleCalendarIntegrationsByProjectId(projectId: number): Promise<GoogleCalendarIntegration[]> {
-    const result = await db
-      .select()
-      .from(googleCalendarIntegrations)
-      .where(eq(googleCalendarIntegrations.projectId, projectId))
-      .orderBy(googleCalendarIntegrations.createdAt);
-    return result;
-  }
-
   async getGoogleCalendarIntegrationById(id: number): Promise<GoogleCalendarIntegration | undefined> {
     const result = await db
       .select()
@@ -4400,90 +4494,12 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
-  async createGoogleCalendarIntegration(integration: InsertGoogleCalendarIntegration): Promise<GoogleCalendarIntegration> {
-    const result = await db.insert(googleCalendarIntegrations).values(integration).returning();
-    return result[0];
-  }
-
-  async updateGoogleCalendarIntegration(id: number, integration: Partial<InsertGoogleCalendarIntegration>): Promise<GoogleCalendarIntegration> {
-    const result = await db
-      .update(googleCalendarIntegrations)
-      .set({ ...integration, updatedAt: new Date() })
-      .where(eq(googleCalendarIntegrations.id, id))
-      .returning();
-    return result[0];
-  }
-
-  async deleteGoogleCalendarIntegration(id: number): Promise<void> {
-    await db.delete(googleCalendarIntegrations).where(eq(googleCalendarIntegrations.id, id));
-  }
-
-  // Phase 5: Notification Preferences Methods
-  async getNotificationPreferencesByProjectId(projectId: number): Promise<NotificationPreferences[]> {
-    const result = await db
-      .select()
-      .from(notificationPreferences)
-      .where(eq(notificationPreferences.projectId, projectId))
-      .orderBy(notificationPreferences.createdAt);
-    return result;
-  }
-
-  async getNotificationPreferences(contactId: number, projectId: number): Promise<NotificationPreferences | undefined> {
-    const result = await db
-      .select()
-      .from(notificationPreferences)
-      .where(
-        and(
-          eq(notificationPreferences.contactId, contactId),
-          eq(notificationPreferences.projectId, projectId)
-        )
-      );
-    return result[0];
-  }
-
-  async createNotificationPreferences(preferences: InsertNotificationPreferences): Promise<NotificationPreferences> {
-    const result = await db.insert(notificationPreferences).values(preferences).returning();
-    return result[0];
-  }
-
-  async updateNotificationPreferences(id: number, preferences: Partial<InsertNotificationPreferences>): Promise<NotificationPreferences> {
-    const result = await db
-      .update(notificationPreferences)
-      .set({ ...preferences, updatedAt: new Date() })
-      .where(eq(notificationPreferences.id, id))
-      .returning();
-    return result[0];
-  }
-
-  async deleteNotificationPreferences(id: number): Promise<void> {
-    await db.delete(notificationPreferences).where(eq(notificationPreferences.id, id));
-  }
-
-  // Phase 5: Schedule Version Comparison Methods
-  async getScheduleVersionComparisonsByProjectId(projectId: number): Promise<ScheduleVersionComparison[]> {
-    const result = await db
-      .select()
-      .from(scheduleVersionComparisons)
-      .where(eq(scheduleVersionComparisons.projectId, projectId))
-      .orderBy(desc(scheduleVersionComparisons.createdAt));
-    return result;
-  }
-
   async getScheduleVersionComparisonById(id: number): Promise<ScheduleVersionComparison | undefined> {
     const result = await db
       .select()
       .from(scheduleVersionComparisons)
       .where(eq(scheduleVersionComparisons.id, id));
     return result[0];
-  }
-
-  async createScheduleVersionComparison(comparison: InsertScheduleVersionComparison): Promise<ScheduleVersionComparison> {
-    const result = await db.insert(scheduleVersionComparisons).values(comparison).returning();
-    return result[0];
-  }
-
-  async deleteScheduleVersionComparison(id: number): Promise<void> {
-    await db.delete(scheduleVersionComparisons).where(eq(scheduleVersionComparisons.id, id));
   }
 
   async getScheduleVersionComparisonByVersions(fromVersionId: number, toVersionId: number): Promise<ScheduleVersionComparison | undefined> {
@@ -4822,7 +4838,8 @@ export class DatabaseStorage implements IStorage {
         isActive: user.isActive ?? true, // Default to true if not set
         subscriptionStatus: user.subscriptionStatus,
         subscriptionPlan: user.subscriptionPlan,
-        grandfatheredFree: user.grandfatheredFree ?? false
+        grandfatheredFree: user.grandfatheredFree ?? false,
+        freeAccessExpiresAt: user.freeAccessExpiresAt || null
       };
     }));
 
@@ -5392,6 +5409,18 @@ export class DatabaseStorage implements IStorage {
     await db.delete(billingPlans).where(eq(billingPlans.id, id));
   }
 
+  async getFounderSubscriberCount(): Promise<number> {
+    const result = await db.select({ count: sql<number>`count(*)` })
+      .from(users)
+      .where(
+        and(
+          eq(users.subscriptionStatus, 'active'),
+          sql`${users.subscriptionPlan} LIKE '%founder%'`
+        )
+      );
+    return Number(result[0]?.count || 0);
+  }
+
   // Billing Plan Price History Methods
   async getBillingPlanPrices(planId: number): Promise<BillingPlanPrice[]> {
     const result = await db.select().from(billingPlanPrices)
@@ -5498,6 +5527,76 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
+  // ========== SHOW BILLING OPERATIONS ==========
+
+  async getShowBillingByProjectId(projectId: number): Promise<ShowBilling | undefined> {
+    const result = await db.select().from(showBilling).where(eq(showBilling.projectId, projectId));
+    return result[0];
+  }
+
+  async getShowBillingsByOwnerId(ownerId: number): Promise<ShowBilling[]> {
+    const result = await db
+      .select({ showBilling })
+      .from(showBilling)
+      .innerJoin(projects, eq(showBilling.projectId, projects.id))
+      .where(eq(projects.ownerId, ownerId));
+    return result.map(r => r.showBilling);
+  }
+
+  async getShowBillingsRequiringMonthlyActivation(date: Date): Promise<ShowBilling[]> {
+    const dateStr = date.toISOString().split('T')[0];
+    const result = await db
+      .select()
+      .from(showBilling)
+      .where(
+        and(
+          eq(showBilling.billingType, 'long_running'),
+          eq(showBilling.billingStatus, 'active'),
+          lte(showBilling.monthlyBillingStartsAt, dateStr),
+          isNull(showBilling.stripeSubscriptionId),
+          isNull(showBilling.closedAt),
+          isNull(showBilling.archivedAt)
+        )
+      );
+    return result;
+  }
+
+  async getAllShowBillings(): Promise<ShowBilling[]> {
+    const result = await db.select().from(showBilling);
+    return result;
+  }
+
+  async createShowBilling(billing: InsertShowBilling): Promise<ShowBilling> {
+    const result = await db.insert(showBilling).values(billing).returning();
+    return result[0];
+  }
+
+  async updateShowBilling(id: number, billing: Partial<InsertShowBilling>): Promise<ShowBilling> {
+    const result = await db
+      .update(showBilling)
+      .set({ ...billing, updatedAt: new Date() })
+      .where(eq(showBilling.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteShowBilling(projectId: number): Promise<void> {
+    await db.delete(showBilling).where(eq(showBilling.projectId, projectId));
+  }
+
+  async getShowBillingEvents(projectId: number): Promise<ShowBillingEvent[]> {
+    return db
+      .select()
+      .from(showBillingEvents)
+      .where(eq(showBillingEvents.projectId, projectId))
+      .orderBy(desc(showBillingEvents.createdAt));
+  }
+
+  async createShowBillingEvent(event: InsertShowBillingEvent): Promise<ShowBillingEvent> {
+    const result = await db.insert(showBillingEvents).values(event).returning();
+    return result[0];
+  }
+
   // ========== SEARCH SYSTEM OPERATIONS ==========
 
   async getSearchHistoryByUserId(userId: number, limit: number = 10): Promise<SearchHistory[]> {
@@ -5580,10 +5679,20 @@ export class DatabaseStorage implements IStorage {
     subscriptionStatus?: string;
     grandfatheredFree?: boolean;
     subscriptionPlan?: string;
+    freeAccessExpiresAt?: Date | null;
+    betaAccess?: boolean;
   }): boolean {
     // If user is grandfathered (beta user with permanent free access), they're active
     if (userData.grandfatheredFree) {
       return true;
+    }
+
+    // If user has free access that hasn't expired yet, they're active
+    if (userData.freeAccessExpiresAt) {
+      const now = new Date();
+      if (new Date(userData.freeAccessExpiresAt) > now) {
+        return true;
+      }
     }
 
     // If user has a free plan, they're active
@@ -5603,8 +5712,15 @@ export class DatabaseStorage implements IStorage {
       return false;
     }
 
-    // Default to active for users without billing setup yet
-    return true;
+    // BILLING_MODE controls default behavior:
+    // - 'beta' (default): New users are active without payment (legacy betaAccess support)
+    // - 'live': New users must pay to become active
+    const billingMode = process.env.BILLING_MODE || 'beta';
+    if (billingMode === 'beta' && userData.betaAccess) {
+      return true;
+    }
+    
+    return billingMode === 'beta';
   }
 
   // Update user status for all users based on current billing status
@@ -5615,13 +5731,31 @@ export class DatabaseStorage implements IStorage {
       const isActive = this.calculateUserStatus({
         subscriptionStatus: user.subscriptionStatus || undefined,
         grandfatheredFree: user.grandfatheredFree || false,
-        subscriptionPlan: user.subscriptionPlan || undefined
+        subscriptionPlan: user.subscriptionPlan || undefined,
+        freeAccessExpiresAt: user.freeAccessExpiresAt || null,
+        betaAccess: user.betaAccess || false,
       });
 
       await db.update(users)
         .set({ isActive, updatedAt: new Date() })
         .where(eq(users.id, user.id));
     }
+  }
+
+  // Set free access expiration for all beta users (used when switching to live billing)
+  async setFreeAccessExpirationForBetaUsers(expirationDate: Date): Promise<number> {
+    const result = await db.update(users)
+      .set({ 
+        freeAccessExpiresAt: expirationDate,
+        updatedAt: new Date()
+      })
+      .where(and(
+        eq(users.betaAccess, true),
+        eq(users.grandfatheredFree, false)
+      ))
+      .returning({ id: users.id });
+    
+    return result.length;
   }
 
   // ========== TEAM MEMBER MANAGEMENT METHODS ==========
@@ -5691,8 +5825,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTeamMember(id: number): Promise<void> {
     await db
-      .update(teamMembers)
-      .set({ isArchived: true, archivedAt: new Date() })
+      .delete(teamMembers)
       .where(eq(teamMembers.id, id));
   }
 
@@ -5712,7 +5845,8 @@ export class DatabaseStorage implements IStorage {
       .from(teamMembers)
       .where(and(
         eq(teamMembers.userId, userId),
-        eq(teamMembers.projectId, projectId)
+        eq(teamMembers.projectId, projectId),
+        eq(teamMembers.isArchived, false)
       ))
       .limit(1);
     
@@ -6082,6 +6216,27 @@ export class DatabaseStorage implements IStorage {
           }
         };
       }
+    }
+
+    // Check team_members table for existing membership that IS NOT archived
+    const existingTeamMember = await db
+      .select()
+      .from(teamMembers)
+      .where(and(
+        eq(teamMembers.email, email),
+        eq(teamMembers.isArchived, false)
+      ))
+      .limit(1);
+
+    if (existingTeamMember.length > 0) {
+      return {
+        duplicate: true,
+        type: 'team member already invited',
+        existingMember: {
+          name: existingTeamMember[0].name || existingTeamMember[0].email,
+          email: existingTeamMember[0].email,
+        }
+      };
     }
 
     // If name is provided, check for similar users with different emails

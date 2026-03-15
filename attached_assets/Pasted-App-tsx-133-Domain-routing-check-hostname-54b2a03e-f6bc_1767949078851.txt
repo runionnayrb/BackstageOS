@@ -1,0 +1,33 @@
+App.tsx:133 Domain routing check: {hostname: '54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev', isJoinDomain: false, isMainDomain: false, isBetaDomain: false, isDevEnvironment: true}
+contact-form.tsx:72 ContactForm Debug: {contact: undefined, hasContact: false, contactId: undefined, isEditing: false}
+contact-form.tsx:209 ContactForm submission data: {firstName: 'Joey', lastName: 'Johnson', preferredName: '', email: 'joeyjohnson@email.com', phone: '5555555555', …}
+contact-form.tsx:72 ContactForm Debug: {contact: undefined, hasContact: false, contactId: undefined, isEditing: false}
+errorLogger.ts:140  POST https://54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev/api/projects/12/contacts 400 (Bad Request)
+window.fetch @ errorLogger.ts:140
+apiRequest @ queryClient.ts:27
+mutationFn @ contact-form.tsx:117
+fn @ @tanstack_react-query.js?v=3d3f9d9c:1189
+run @ @tanstack_react-query.js?v=3d3f9d9c:494
+start @ @tanstack_react-query.js?v=3d3f9d9c:536
+execute @ @tanstack_react-query.js?v=3d3f9d9c:1225
+await in execute
+mutate @ @tanstack_react-query.js?v=3d3f9d9c:2630
+(anonymous) @ @tanstack_react-query.js?v=3d3f9d9c:3295
+handleSubmit @ contact-form.tsx:214
+callCallback2 @ chunk-RPCDYKBN.js?v=3d3f9d9c:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=3d3f9d9c:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=3d3f9d9c:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=3d3f9d9c:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=3d3f9d9c:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=3d3f9d9c:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=3d3f9d9c:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=3d3f9d9c:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=3d3f9d9c:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=3d3f9d9c:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=3d3f9d9c:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=3d3f9d9c:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=3d3f9d9c:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=3d3f9d9c:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=3d3f9d9c:5449Understand this error
+App.tsx:133 Domain routing check: {hostname: '54b2a03e-f6bc-4ffb-98e0-199af055748d-00-2qsoy9oww05fb.spock.replit.dev', isJoinDomain: false, isMainDomain: false, isBetaDomain: false, isDevEnvironment: true}
+contact-form.tsx:72 ContactForm Debug: {contact: undefined, hasContact: false, contactId: undefined, isEditing: false}

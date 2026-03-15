@@ -10,6 +10,8 @@ interface FeatureSettings {
   script: boolean;
   props: boolean;
   contacts: boolean;
+  costumes: boolean;
+  seasons: boolean;
 }
 
 interface ShowSettings {
@@ -26,6 +28,8 @@ const defaultFeatureSettings: FeatureSettings = {
   script: true,
   props: true,
   contacts: true,
+  costumes: true,
+  seasons: false,
 };
 
 export function useFeatureSettings(showId?: string) {
@@ -39,9 +43,14 @@ export function useFeatureSettings(showId?: string) {
   const isFeatureEnabled = (feature: keyof Omit<FeatureSettings, 'email'> | 'email.team'): boolean => {
     if (feature.includes('.')) {
       const [parentFeature, childFeature] = feature.split('.');
-      return featureSettings[parentFeature as keyof FeatureSettings]?.[childFeature as any] ?? true;
+      const parentValue = featureSettings[parentFeature as keyof FeatureSettings];
+      if (typeof parentValue === 'object' && parentValue !== null) {
+        return (parentValue as any)[childFeature] ?? true;
+      }
+      return true;
     }
-    return featureSettings[feature as keyof FeatureSettings] ?? true;
+    const value = featureSettings[feature as keyof Omit<FeatureSettings, 'email'>];
+    return typeof value === 'boolean' ? value : true;
   };
 
   const isEmailEnabled = () => {

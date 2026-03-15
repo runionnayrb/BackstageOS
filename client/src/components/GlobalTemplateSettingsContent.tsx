@@ -6,15 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import {
   Save,
-  Mail,
   Download
 } from "lucide-react";
-import { DistroManager } from "./DistroManager";
 
 interface GlobalTemplateSettings {
   id?: string;
@@ -177,8 +174,8 @@ const defaultGlobalSettings: Omit<GlobalTemplateSettings, "id" | "projectId"> = 
     lineHeight: 1.4,
     marginTop: 0.5,
     marginBottom: 0.5,
-    marginLeft: 1,
-    marginRight: 1
+    marginLeft: 0.5,
+    marginRight: 0.5
   }
 };
 
@@ -319,14 +316,7 @@ export const GlobalTemplateSettingsContent = forwardRef<GlobalTemplateSettingsRe
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="pdf" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="pdf">PDF Export</TabsTrigger>
-          <TabsTrigger value="email">Distro</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="pdf" className="space-y-6">
-          <Card>
+      <Card>
             <CardHeader className="flex flex-row items-start justify-between space-y-0">
               <div className="space-y-1.5">
                 <CardTitle className="flex items-center gap-2">
@@ -505,10 +495,10 @@ export const GlobalTemplateSettingsContent = forwardRef<GlobalTemplateSettingsRe
                       step="0.1"
                       min="0"
                       max="3"
-                      value={settings.pdfExport?.marginLeft || 1}
+                      value={settings.pdfExport?.marginLeft || 0.5}
                       onChange={(e) => setSettings(prev => ({
                         ...prev,
-                        pdfExport: { ...prev.pdfExport, marginLeft: parseFloat(e.target.value) || 1 }
+                        pdfExport: { ...prev.pdfExport, marginLeft: parseFloat(e.target.value) || 0.5 }
                       }))}
                       data-testid="input-pdf-margin-left"
                     />
@@ -520,10 +510,10 @@ export const GlobalTemplateSettingsContent = forwardRef<GlobalTemplateSettingsRe
                       step="0.1"
                       min="0"
                       max="3"
-                      value={settings.pdfExport?.marginRight || 1}
+                      value={settings.pdfExport?.marginRight || 0.5}
                       onChange={(e) => setSettings(prev => ({
                         ...prev,
-                        pdfExport: { ...prev.pdfExport, marginRight: parseFloat(e.target.value) || 1 }
+                        pdfExport: { ...prev.pdfExport, marginRight: parseFloat(e.target.value) || 0.5 }
                       }))}
                       data-testid="input-pdf-margin-right"
                     />
@@ -538,12 +528,6 @@ export const GlobalTemplateSettingsContent = forwardRef<GlobalTemplateSettingsRe
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="email" className="space-y-6">
-          <DistroManager projectId={projectId} />
-        </TabsContent>
-      </Tabs>
     </div>
   );
 });

@@ -78,7 +78,7 @@ export default function Dashboard() {
                 <p className="text-gray-500">No projects yet</p>
                 <Button 
                   className="mt-4"
-                  onClick={() => setLocation("/create-project")}
+                  onClick={() => setLocation("/onboarding")}
                 >
                   Create Your First {projectLabel.slice(0, -1)}
                 </Button>

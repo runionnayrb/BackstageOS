@@ -177,8 +177,6 @@ export default function Header() {
   };
 
   const currentUser = switchStatus?.isViewingAs ? switchStatus?.viewingUser : user;
-
-  console.log('🔍 Header component rendering, user:', user);
   
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
@@ -190,23 +188,7 @@ export default function Header() {
               onClick={() => setLocation("/")}
               className="text-xl p-0 hover:bg-transparent"
             >
-              <span 
-                style={{
-                  color: '#111827',
-                  transition: 'all 0.3s ease',
-                  cursor: 'pointer'
-                }}
-                onMouseEnter={(e) => {
-                  console.log('Mouse entered BackstageOS');
-                  e.currentTarget.style.color = '#ff0000';
-                  e.currentTarget.style.fontSize = '24px';
-                }}
-                onMouseLeave={(e) => {
-                  console.log('Mouse left BackstageOS');
-                  e.currentTarget.style.color = '#111827';
-                  e.currentTarget.style.fontSize = '20px';
-                }}
-              >
+              <span className="text-gray-900 hover:text-gray-700 transition-colors">
                 <span style={{ fontWeight: 400 }}>Backstage</span>
                 <span style={{ fontWeight: 700 }}>OS</span>
               </span>

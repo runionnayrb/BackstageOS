@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -31,6 +31,7 @@ interface UserAnalytics {
   subscriptionStatus: string | null;
   subscriptionPlan: string | null;
   grandfatheredFree: boolean;
+  freeAccessExpiresAt: string | null;
   trialEndsAt: string | null;
   subscriptionEndsAt: string | null;
   paymentMethodRequired: boolean | null;
@@ -56,6 +57,8 @@ interface UserAnalytics {
   };
 }
 
+type AccessStatusFilter = 'all' | 'paid' | 'free_access' | 'needs_payment' | 'grandfathered';
+
 interface BillingPlan {
   id: number;
   planId: string;
@@ -78,6 +81,9 @@ export default function UserAnalyticsSimple() {
   const [editingUser, setEditingUser] = useState<UserAnalytics | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<AccessStatusFilter>('all');
+  const [profileTypeFilter, setProfileTypeFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [editData, setEditData] = useState({
     firstName: '',
     lastName: '',
@@ -249,6 +255,55 @@ export default function UserAnalyticsSimple() {
     }
   };
 
+  const getUserAccessStatus = (user: UserAnalytics): { status: 'paid' | 'free_access' | 'needs_payment' | 'grandfathered'; label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' } => {
+    if (user.grandfatheredFree) {
+      return { status: 'grandfathered', label: 'Grandfathered', variant: 'default' };
+    }
+    if (user.subscriptionStatus === 'active') {
+      return { status: 'paid', label: 'Paid', variant: 'default' };
+    }
+    if (user.subscriptionStatus === 'trialing') {
+      const trialEnd = user.trialEndsAt ? new Date(user.trialEndsAt) : null;
+      const label = trialEnd ? `Trial until ${format(trialEnd, 'MMM d')}` : 'Trial';
+      return { status: 'free_access', label, variant: 'outline' };
+    }
+    if (user.freeAccessExpiresAt) {
+      const expiresAt = new Date(user.freeAccessExpiresAt);
+      if (expiresAt > new Date()) {
+        return { status: 'free_access', label: `Free until ${format(expiresAt, 'MMM d')}`, variant: 'outline' };
+      } else {
+        return { status: 'needs_payment', label: 'Needs Payment', variant: 'destructive' };
+      }
+    }
+    if (user.betaAccess && user.isActive) {
+      return { status: 'free_access', label: 'Beta Access', variant: 'outline' };
+    }
+    if (!user.isActive) {
+      return { status: 'needs_payment', label: 'Needs Payment', variant: 'destructive' };
+    }
+    return { status: 'free_access', label: 'Free', variant: 'secondary' };
+  };
+
+  const filteredUsers = users.filter(user => {
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const matchesSearch = 
+        (user.email?.toLowerCase().includes(query)) ||
+        (user.firstName?.toLowerCase().includes(query)) ||
+        (user.lastName?.toLowerCase().includes(query)) ||
+        (user.username?.toLowerCase().includes(query));
+      if (!matchesSearch) return false;
+    }
+    if (statusFilter !== 'all') {
+      const accessStatus = getUserAccessStatus(user);
+      if (accessStatus.status !== statusFilter) return false;
+    }
+    if (profileTypeFilter !== 'all') {
+      if (user.profileType !== profileTypeFilter) return false;
+    }
+    return true;
+  });
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -313,17 +368,49 @@ export default function UserAnalyticsSimple() {
           <CardTitle className="flex items-center justify-between">
             <span>Users</span>
             <div className="text-sm font-normal text-gray-600">
-              {users.length} users
+              {filteredUsers.length} of {users.length} users
             </div>
           </CardTitle>
+          <div className="flex flex-wrap gap-3 mt-4">
+            <div className="flex-1 min-w-[200px]">
+              <Input
+                placeholder="Search by name or email..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as AccessStatusFilter)}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Access Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="paid">Paid</SelectItem>
+                <SelectItem value="free_access">Free Access</SelectItem>
+                <SelectItem value="needs_payment">Needs Payment</SelectItem>
+                <SelectItem value="grandfathered">Grandfathered</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={profileTypeFilter} onValueChange={setProfileTypeFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Profile Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Profiles</SelectItem>
+                {profileTypes.map((type: any) => (
+                  <SelectItem key={type.id} value={type.name}>{type.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>User</TableHead>
-                <TableHead>Account Status</TableHead>
-                <TableHead>Subscription</TableHead>
+                <TableHead>Access Status</TableHead>
                 <TableHead>Activity</TableHead>
                 <TableHead>Cost/Day</TableHead>
                 <TableHead>Cost/Month</TableHead>
@@ -334,19 +421,19 @@ export default function UserAnalyticsSimple() {
             <TableBody>
               {error && (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center text-red-500 p-4">
+                  <TableCell colSpan={7} className="text-center text-red-500 p-4">
                     Error loading users: {(error as any).message || 'Unknown error'}
                   </TableCell>
                 </TableRow>
               )}
-              {!error && users.length === 0 && !isLoading && (
+              {!error && filteredUsers.length === 0 && !isLoading && (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center text-gray-500 p-4">
-                    No users found.
+                  <TableCell colSpan={7} className="text-center text-gray-500 p-4">
+                    {users.length === 0 ? 'No users found.' : 'No users match your filters.'}
                   </TableCell>
                 </TableRow>
               )}
-              {users.map((user) => (
+              {filteredUsers.map((user) => (
                 <TableRow 
                   key={user.id} 
                   className="cursor-pointer hover:bg-gray-50"
@@ -383,29 +470,19 @@ export default function UserAnalyticsSimple() {
                   </TableCell>
 
                   <TableCell>
-                    <Badge 
-                      variant={user.isActive ? "outline" : "destructive"}
-                      className={user.isActive ? "border-green-500 text-green-700" : ""}
-                    >
-                      {user.isActive ? 'Active' : 'Inactive'}
-                    </Badge>
-                  </TableCell>
-
-                  <TableCell>
-                    <div className="space-y-1">
-                      {getSubscriptionStatusBadge(user.subscriptionStatus)}
-                      {user.subscriptionPlan && (
-                        <div className="text-xs text-gray-500">{user.subscriptionPlan}</div>
-                      )}
-                      {user.grandfatheredFree && (
-                        <Badge variant="secondary" className="text-xs">Grandfathered</Badge>
-                      )}
-                      {user.trialEndsAt && (
-                        <div className="text-xs text-orange-600">
-                          Trial ends {new Date(user.trialEndsAt).toLocaleDateString()}
+                    {(() => {
+                      const accessStatus = getUserAccessStatus(user);
+                      return (
+                        <div className="space-y-1">
+                          <Badge variant={accessStatus.variant}>
+                            {accessStatus.label}
+                          </Badge>
+                          {user.isAdmin && (
+                            <Badge variant="secondary" className="text-xs ml-1">Admin</Badge>
+                          )}
                         </div>
-                      )}
-                    </div>
+                      );
+                    })()}
                   </TableCell>
 
                   <TableCell>
@@ -595,33 +672,18 @@ export default function UserAnalyticsSimple() {
               </div>
 
               <DialogFooter className="flex justify-between sm:justify-between">
-                <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive" size="sm" data-testid="button-delete-user">
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete User</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to permanently delete "{editingUser?.firstName && editingUser?.lastName ? `${editingUser.firstName} ${editingUser.lastName}` : editingUser?.email}"? 
-                        This action cannot be undone and will remove all user data.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => editingUser && deleteMutation.mutate(editingUser.id)}
-                        className="bg-red-600 hover:bg-red-700"
-                        disabled={deleteMutation.isPending}
-                      >
-                        {deleteMutation.isPending ? "Deleting..." : "Delete"}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <Button 
+                  variant="destructive" 
+                  size="sm" 
+                  data-testid="button-delete-user"
+                  onClick={() => {
+                    setIsEditDialogOpen(false);
+                    setTimeout(() => setIsDeleteDialogOpen(true), 100);
+                  }}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={handleCancel}>
                     Cancel
@@ -637,6 +699,28 @@ export default function UserAnalyticsSimple() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+
+          <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete User</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to permanently delete "{editingUser?.firstName && editingUser?.lastName ? `${editingUser.firstName} ${editingUser.lastName}` : editingUser?.email}"? 
+                  This action cannot be undone and will remove all user data.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => editingUser && deleteMutation.mutate(editingUser.id)}
+                  className="bg-red-600 hover:bg-red-700"
+                  disabled={deleteMutation.isPending}
+                >
+                  {deleteMutation.isPending ? "Deleting..." : "Delete"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </CardContent>
       </Card>
     </div>

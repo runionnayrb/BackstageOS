@@ -114,6 +114,8 @@ export const useSEO = () => {
       return response.json();
     },
     retry: false, // Don't retry if domain doesn't have SEO settings
+    staleTime: 30 * 60 * 1000, // 30 minutes - SEO settings rarely change
+    gcTime: 60 * 60 * 1000, // Cache for 1 hour
   });
 
   useEffect(() => {

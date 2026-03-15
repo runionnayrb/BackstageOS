@@ -37,7 +37,8 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
-  profileType: varchar("profile_type"), // 'freelance' or 'fulltime'
+  profileType: varchar("profile_type"), // 'freelance' or 'fulltime' - DEPRECATED, use defaultFeaturePreferences
+  defaultFeaturePreferences: jsonb("default_feature_preferences"), // Default feature settings for new shows
   // User role and access management
   userRole: varchar("user_role").notNull().default("user"), // 'admin', 'user', 'editor', 'viewer'
   betaAccess: boolean("beta_access").default(false), // Automatically granted to users on the waitlist at registration
@@ -71,6 +72,7 @@ export const users = pgTable("users", {
   subscriptionEndsAt: timestamp("subscription_ends_at"),
   paymentMethodRequired: boolean("payment_method_required").default(false),
   grandfatheredFree: boolean("grandfathered_free").default(false), // For beta users
+  freeAccessExpiresAt: timestamp("free_access_expires_at"), // When free/beta access expires
   isActive: boolean("is_active").default(true), // User status based on billing/subscription
   // Password reset fields
   passwordResetToken: varchar("password_reset_token"),
@@ -109,6 +111,7 @@ export const projects = pgTable("projects", {
   name: varchar("name").notNull(),
   slug: varchar("slug").notNull(),
   description: text("description"),
+  director: varchar("director"),
   venue: varchar("venue"), // For freelance users (free text) or venue name reference
   venueId: integer("venue_id").references(() => venues.id), // For full-time users
   prepStartDate: timestamp("prep_start_date"),
@@ -168,6 +171,8 @@ export const reports = pgTable("reports", {
   title: varchar("title").notNull(),
   type: varchar("type").notNull(), // rehearsal, tech, performance, meeting, custom
   templateId: integer("template_id").references(() => reportTemplates.id),
+  scheduleEventId: integer("schedule_event_id").references(() => scheduleEvents.id, { onDelete: "set null" }), // Links performance reports to schedule events (legacy single link)
+  linkedEventIds: jsonb("linked_event_ids").$type<number[]>(), // Array of schedule event IDs for multi-performance linking
   content: jsonb("content").notNull(),
   status: varchar("status").notNull().default("draft"), // draft, complete
   date: timestamp("date").notNull(),
@@ -236,6 +241,7 @@ export const templateFields = pgTable("template_fields", {
   options: jsonb("options"), // For select/radio fields: {values: string[]}
   defaultValue: text("default_value"),
   departmentKey: varchar("department_key"), // Field-level department for notes tracking
+  hideLabel: boolean("hide_label").default(false), // When true, field label is hidden in reports
   displayOrder: integer("display_order").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -487,7 +493,7 @@ export const showSettings = pgTable("show_settings", {
   footerFormatting: jsonb("footer_formatting"), // Template footer formatting settings
   layoutConfiguration: jsonb("layout_configuration"), // Drag-and-drop layout positioning for headers and notes
   globalPageMargins: jsonb("global_page_margins"), // Global page margins that apply to all templates
-  featureSettings: jsonb("feature_settings").notNull().default('{"email":{"team":true},"chat":true,"reports":true,"calendar":true,"script":true,"props":true,"contacts":true}'), // Toggle settings for app features
+  featureSettings: jsonb("feature_settings").notNull().default('{"email":{"team":true},"chat":true,"reports":true,"calendar":true,"script":true,"props":true,"contacts":true,"seasons":false}'), // Toggle settings for app features
   createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -636,6 +642,7 @@ export const distributionLists = pgTable("distribution_lists", {
   subjectTemplate: varchar("subject_template"), // Email subject template with variables like {{showName}}
   bodyTemplate: text("body_template"), // Email body template with variables
   signature: text("signature"), // Email signature
+  isDailyCallDistro: boolean("is_daily_call_distro").default(false), // If true, this distro is used for daily calls
   createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -670,6 +677,7 @@ export const contactGroups = pgTable("contact_groups", {
   name: varchar("name").notNull(),
   description: text("description"),
   sortOrder: integer("sort_order").default(0),
+  sortBy: varchar("sort_by").default("firstName"), // 'firstName' | 'lastName' | 'preferredName'
   createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -725,6 +733,8 @@ export const scheduleEvents = pgTable("schedule_events", {
   // Schedule Relationship Mapping fields
   parentEventId: integer("parent_event_id").references(() => scheduleEvents.id, { onDelete: "set null" }), // Links daily events to production events
   isProductionLevel: boolean("is_production_level").default(false), // true for production schedule events, false for daily detail events
+  status: varchar("status").default("active"), // 'active' or 'cancelled' - cancelled performances are excluded from numbering
+  cancellationReason: text("cancellation_reason"), // Reason why the performance was cancelled
   createdBy: integer("created_by").notNull().references(() => users.id),
   updatedBy: integer("updated_by").references(() => users.id), // Track who last updated the event
   createdAt: timestamp("created_at").defaultNow(),
@@ -885,6 +895,7 @@ export const dailyCalls = pgTable("daily_calls", {
   locations: jsonb("locations").notNull().default('[]'), // Array of location objects with events
   events: jsonb("events").notNull().default('[]'), // Array of call events
   announcements: text("announcements").default(""),
+  sectionContents: jsonb("section_contents").default('{}'), // Custom section contents (sectionId -> content)
   fittingsEvents: jsonb("fittings_events").default('[]'), // Fittings events
   appointmentsEvents: jsonb("appointments_events").default('[]'), // Appointments events
   createdBy: integer("created_by").notNull().references(() => users.id),
@@ -2400,6 +2411,7 @@ export const billingPlans = pgTable("billing_plans", {
   id: serial("id").primaryKey(),
   name: varchar("name").notNull(), // 'Monthly', 'Annual', 'Theatre'
   planId: varchar("plan_id").unique().notNull(), // 'monthly', 'annual', 'theatre'
+  description: text("description"), // Product description synced with Stripe
   accountTypeId: integer("account_type_id").references(() => accountTypes.id), // Link to account type
   stripeProductId: varchar("stripe_product_id"), // Stripe Product ID (one per plan/profile tier)
   activeStripePriceId: varchar("active_stripe_price_id"), // Currently active Stripe Price ID
@@ -2517,6 +2529,65 @@ export const subscriptionUsageRelations = relations(subscriptionUsage, ({ one })
   user: one(users, {
     fields: [subscriptionUsage.userId],
     references: [users.id],
+  }),
+}));
+
+// Show Billing table (per-show billing for the new pricing model)
+export const showBilling = pgTable("show_billing", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }).unique(),
+  billingType: varchar("billing_type").notNull(), // 'limited_run' or 'long_running'
+  showStartDate: date("show_start_date").notNull(),
+  showEndDate: date("show_end_date"), // null = long running (no end date)
+  activationFeePaidAt: timestamp("activation_fee_paid_at"), // When the $400 fee was paid
+  trialEndsAt: timestamp("trial_ends_at"), // 14-day trial end date
+  monthlyBillingStartsAt: date("monthly_billing_starts_at"), // For long_running: start_date + 6 months
+  billingStatus: varchar("billing_status").notNull().default("trial"), // 'trial', 'unpaid', 'active', 'paused', 'canceled', 'archived'
+  stripeCustomerId: varchar("stripe_customer_id"), // Stripe customer for this show's billing
+  stripeActivationPaymentId: varchar("stripe_activation_payment_id"), // Payment intent ID for activation fee
+  stripeSubscriptionId: varchar("stripe_subscription_id"), // For monthly billing (long_running shows)
+  closedAt: timestamp("closed_at"), // When show was closed (stops billing)
+  archivedAt: timestamp("archived_at"), // When show was archived
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_show_billing_project").on(table.projectId),
+  index("idx_show_billing_status").on(table.billingStatus),
+  index("idx_show_billing_monthly_start").on(table.monthlyBillingStartsAt),
+]);
+
+// Show Billing Events table (audit trail for all billing actions)
+export const showBillingEvents = pgTable("show_billing_events", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  eventType: varchar("event_type").notNull(), // 'trial_started', 'activation_paid', 'monthly_started', 'monthly_payment', 'subscription_canceled', 'show_closed', 'show_reopened', 'show_archived', 'converted_to_long_running', 'ownership_transferred'
+  providerReference: varchar("provider_reference"), // Stripe event ID, payment intent ID, etc.
+  amount: decimal("amount", { precision: 10, scale: 2 }), // Amount if payment-related
+  currency: varchar("currency").default("usd"),
+  metadata: jsonb("metadata"), // Additional event data
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_show_billing_events_project").on(table.projectId),
+  index("idx_show_billing_events_type").on(table.eventType),
+]);
+
+// Show Billing relations
+export const showBillingRelations = relations(showBilling, ({ one, many }) => ({
+  project: one(projects, {
+    fields: [showBilling.projectId],
+    references: [projects.id],
+  }),
+  events: many(showBillingEvents),
+}));
+
+export const showBillingEventsRelations = relations(showBillingEvents, ({ one }) => ({
+  project: one(projects, {
+    fields: [showBillingEvents.projectId],
+    references: [projects.id],
+  }),
+  billing: one(showBilling, {
+    fields: [showBillingEvents.projectId],
+    references: [showBilling.projectId],
   }),
 }));
 
@@ -3093,7 +3164,17 @@ export const insertSubscriptionUsageSchema = createInsertSchema(subscriptionUsag
   recordedAt: true,
 });
 
+// Show Billing insert schemas
+export const insertShowBillingSchema = createInsertSchema(showBilling).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
 
+export const insertShowBillingEventSchema = createInsertSchema(showBillingEvents).omit({
+  id: true,
+  createdAt: true,
+});
 
 // Type exports
 export type UpsertUser = z.infer<typeof insertUserSchema>;
@@ -3529,6 +3610,10 @@ export type BillingHistory = typeof billingHistory.$inferSelect;
 export type InsertBillingHistory = z.infer<typeof insertBillingHistorySchema>;
 export type PaymentMethod = typeof paymentMethods.$inferSelect;
 export type InsertPaymentMethod = z.infer<typeof insertPaymentMethodSchema>;
+export type ShowBilling = typeof showBilling.$inferSelect;
+export type InsertShowBilling = z.infer<typeof insertShowBillingSchema>;
+export type ShowBillingEvent = typeof showBillingEvents.$inferSelect;
+export type InsertShowBillingEvent = z.infer<typeof insertShowBillingEventSchema>;
 export type SubscriptionUsage = typeof subscriptionUsage.$inferSelect;
 export type InsertSubscriptionUsage = z.infer<typeof insertSubscriptionUsageSchema>;
 

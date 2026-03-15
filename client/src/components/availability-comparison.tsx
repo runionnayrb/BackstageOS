@@ -317,7 +317,15 @@ export default function AvailabilityComparison({
     const dateStr = currentDate.toISOString().split('T')[0];
     return (scheduleEvents as any[]).filter((event: any) => {
       if (event.date !== dateStr) return false;
-      return event.participants?.some((p: any) => p.contactId === contactId);
+      // Check participants array for contactId
+      const isParticipant = event.participants?.some((p: any) => 
+        (p.contactId === contactId) || (p.id === contactId)
+      );
+      if (isParticipant) return true;
+      
+      // Also check if assigned to specific departments that the contact belongs to
+      // or if the contact is the primary person for the event
+      return false;
     });
   };
 
@@ -1551,7 +1559,30 @@ export default function AvailabilityComparison({
                               );
                             })}
 
-                            {/* Schedule Events (conflicts hidden per user request) */}
+                            {/* Schedule Events */}
+                            {getFilteredScheduleEvents(contact.id).map((event: any) => {
+                              const startMinutes = timeToMinutes(event.startTime);
+                              const endMinutes = timeToMinutes(event.endTime);
+                              const startPercent = ((startMinutes - START_MINUTES) / TOTAL_MINUTES) * 100;
+                              const widthPercent = ((endMinutes - startMinutes) / TOTAL_MINUTES) * 100;
+
+                              return (
+                                <div
+                                  key={`event-${event.id}`}
+                                  className="absolute top-2 bottom-2 rounded text-[10px] px-1.5 py-0.5 text-white bg-green-600 border border-green-700 shadow-sm z-10 opacity-90 flex flex-col justify-center overflow-hidden"
+                                  style={{
+                                    left: `${startPercent}%`,
+                                    width: `${Math.max(2, widthPercent)}%`,
+                                  }}
+                                  title={`Scheduled: ${event.title}\n${formatTime(startMinutes)} - ${formatTime(endMinutes)}`}
+                                >
+                                  <div className="font-bold truncate leading-tight">{event.title}</div>
+                                  <div className="opacity-90 truncate leading-tight">
+                                    {formatTime(startMinutes)}
+                                  </div>
+                                </div>
+                              );
+                            })}
 
                             {/* New block preview */}
                             {newBlock && newBlock.contactId === contact.id && (
